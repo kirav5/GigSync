@@ -23,6 +23,5 @@ new_sqlite_classes = ["Mailbox"]
 # One deployment for the pilot. Split into staging and production when there is a team.
 [vars]
 ENVIRONMENT = "pilot"
-# Local dev: the OTP that always verifies. In the deployed Worker a secret of the same name overrides this
-# (`wrangler secret put DEV_OTP`), acting as the pilot's shared sign-in code until the SMS gateway exists.
-DEV_OTP = "000000"
+# DEV_OTP is a secret, not a var: the code that always verifies until the SMS gateway exists.
+# Local dev reads it from .dev.vars (see .dev.vars.example); the deployed Worker from `wrangler secret put DEV_OTP`.

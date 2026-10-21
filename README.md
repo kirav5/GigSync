@@ -79,7 +79,7 @@ Secrets to add in the repository settings when ready: `CLOUDFLARE_API_TOKEN`, `C
 
 ## What is a stub in M0
 
-- OTP: `000000` always verifies in dev. The SMS gateway comes with M0 hardening.
+- OTP: the `DEV_OTP` secret always verifies (`000000` locally via `.dev.vars`; a random pilot code on the deployed Worker). The SMS gateway comes with M0 hardening.
 - Sessions: opaque tokens in D1; signed tokens later.
 - Envelope signatures are not yet verified by the API (M2), and sealing is a placeholder until libsignal is wired in.
 - The LLM plugin returns "no model" on every platform; the agent runs in lite mode (keyword router, note search).
