@@ -37,9 +37,9 @@ jobs:
       - name: Build web app
         if: env.HAS_CLOUDFLARE == 'true'
         run: pnpm build
-      - name: Deploy web app (Pages)
+      - name: Deploy web app (static assets Worker)
         if: env.HAS_CLOUDFLARE == 'true'
-        run: pnpm --filter @collab/worker-api exec wrangler pages deploy ../../apps/mobile/dist --project-name collab-app --branch main --commit-dirty=true
+        run: pnpm --filter @collab/worker-api exec wrangler deploy --config ../../apps/mobile/wrangler.toml
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

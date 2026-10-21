@@ -1,0 +1,8 @@
+# The web build of the app, served as static assets by a Worker (Cloudflare Pages now runs on Workers).
+# Deploy: pnpm build && pnpm --filter @collab/worker-api exec wrangler deploy --config ../../apps/mobile/wrangler.toml
+name = "collab-app"
+compatibility_date = "2026-08-01"
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
