@@ -2,10 +2,10 @@ import { z } from "zod";
 
 /** AT Protocol collection NSIDs for Collab's public records. Kept on the user's repo on our PDS; D1 indexes copies. */
 export const COLLECTIONS = {
-  profile: "ai.collabnetwork.worker.profile",
-  listing: "ai.collabnetwork.listing",
-  note: "ai.collabnetwork.world.note",
-  review: "ai.collabnetwork.review",
+  profile: "network.collabai.worker.profile",
+  listing: "network.collabai.listing",
+  note: "network.collabai.world.note",
+  review: "network.collabai.review",
 } as const;
 
 const did = z.string().regex(/^did:(plc|web):[A-Za-z0-9._:%-]+$/, "did");

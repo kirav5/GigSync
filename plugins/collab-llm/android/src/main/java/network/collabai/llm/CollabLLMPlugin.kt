@@ -1,4 +1,4 @@
-package ai.collabnetwork.llm
+package network.collabai.llm
 
 import android.app.ActivityManager
 import android.content.Context

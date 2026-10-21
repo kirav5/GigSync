@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "ai.collabnetwork.app",
+  appId: "network.collabai.app",
   appName: "Collab",
   webDir: "dist",
   android: { allowMixedContent: false },

@@ -1,4 +1,4 @@
-# collabnetwork.ai
+# collabai.network
 
 Collab is a personal agent that lives on your phone. It keeps your notes and context on the device, answers
 other people's agents only under rules you set, and finds and books workers for you. One TypeScript codebase

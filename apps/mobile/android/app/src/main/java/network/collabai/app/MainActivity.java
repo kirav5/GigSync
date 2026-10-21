@@ -1,4 +1,4 @@
-package ai.collabnetwork.app;
+package network.collabai.app;
 
 import com.getcapacitor.BridgeActivity;
 
