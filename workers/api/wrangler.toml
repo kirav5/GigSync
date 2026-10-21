@@ -8,7 +8,7 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DIRECTORY"
 database_name = "collab-directory"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "d0ca0057-445e-4f39-b1fc-aa652b35d1a7"
 migrations_dir = "../../infra/wrangler/d1/directory"
 
 # One Durable Object per user, class from workers/mailbox, re-exported from src/index.ts.
@@ -20,15 +20,9 @@ class_name = "Mailbox"
 tag = "v1"
 new_sqlite_classes = ["Mailbox"]
 
+# One deployment for the pilot. Split into staging and production when there is a team.
 [vars]
-ENVIRONMENT = "dev"
-# Dev only: the OTP that always verifies. Unset in staging and production.
+ENVIRONMENT = "pilot"
+# Local dev: the OTP that always verifies. In the deployed Worker a secret of the same name overrides this
+# (`wrangler secret put DEV_OTP`), acting as the pilot's shared sign-in code until the SMS gateway exists.
 DEV_OTP = "000000"
-
-[env.staging]
-name = "collab-api-staging"
-vars = { ENVIRONMENT = "staging" }
-
-[env.production]
-name = "collab-api"
-vars = { ENVIRONMENT = "production" }

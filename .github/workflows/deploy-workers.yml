@@ -1,17 +1,15 @@
 name: Deploy Workers
 
-# main → staging. A v* tag → production. Skips cleanly until the Cloudflare secrets exist.
+# Every push to main deploys the pilot. Skips cleanly until the Cloudflare secrets exist.
 on:
   push:
     branches: [main]
-    tags: ["v*"]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
       HAS_CLOUDFLARE: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
-      TARGET: ${{ startsWith(github.ref, 'refs/tags/v') && 'production' || 'staging' }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -24,19 +22,28 @@ jobs:
       - name: Skipped (no Cloudflare secrets yet)
         if: env.HAS_CLOUDFLARE != 'true'
         run: echo "Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID to deploy."
-      - name: Migrate directory (${{ env.TARGET }})
+      - name: Migrate directory
         if: env.HAS_CLOUDFLARE == 'true'
-        run: pnpm --filter @collab/worker-api exec wrangler d1 migrations apply collab-directory --remote --env ${{ env.TARGET }}
+        run: pnpm --filter @collab/worker-api exec wrangler d1 migrations apply collab-directory --remote
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      - name: Deploy API + Mailbox (${{ env.TARGET }})
+      - name: Deploy API + Mailbox
         if: env.HAS_CLOUDFLARE == 'true'
-        run: pnpm --filter @collab/worker-api exec wrangler deploy --env ${{ env.TARGET }}
+        run: pnpm --filter @collab/worker-api exec wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      - name: Deploy Index (${{ env.TARGET }})
+      - name: Build web app
+        if: env.HAS_CLOUDFLARE == 'true'
+        run: pnpm build
+      - name: Deploy web app (Pages)
+        if: env.HAS_CLOUDFLARE == 'true'
+        run: pnpm --filter @collab/worker-api exec wrangler pages deploy ../../apps/mobile/dist --project-name collab-app --branch main --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Deploy Index
         if: env.HAS_CLOUDFLARE == 'true'
         run: pnpm --filter @collab/worker-index exec wrangler deploy
         env:
