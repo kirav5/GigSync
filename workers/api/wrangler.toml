@@ -23,5 +23,8 @@ new_sqlite_classes = ["Mailbox"]
 # One deployment for the pilot. Split into staging and production when there is a team.
 [vars]
 ENVIRONMENT = "pilot"
+# Who may call the API from a browser: the website, then the iOS and Android webviews (capacitor://localhost,
+# https://localhost). Add the custom domain here when there is one. Local dev overrides this in .dev.vars.
+ALLOWED_ORIGINS = "https://collab-app.collab-index-worker.workers.dev,capacitor://localhost,https://localhost"
 # DEV_OTP is a secret, not a var: the code that always verifies until the SMS gateway exists.
 # Local dev reads it from .dev.vars (see .dev.vars.example); the deployed Worker from `wrangler secret put DEV_OTP`.

@@ -1,3 +1,4 @@
 # Copy to .dev.vars for `wrangler dev`. Never commit .dev.vars.
 DEV_OTP=000000
 PHONE_HMAC_KEY=dev-only-key
+ALLOWED_ORIGINS=http://localhost:5173,capacitor://localhost,https://localhost

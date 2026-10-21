@@ -1,6 +1,7 @@
 import { type DeviceId, Envelope, MessageId, UserId } from "@collab/protocol";
 import { Mailbox } from "@collab/worker-mailbox";
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { ulid } from "ulid";
 import { z } from "zod";
 
@@ -10,6 +11,8 @@ export interface Env {
   DIRECTORY: D1Database;
   MAILBOX: DurableObjectNamespace<Mailbox>;
   ENVIRONMENT: string;
+  /** Comma-separated origins allowed to call the API from a browser or webview (the website and the phone apps). */
+  ALLOWED_ORIGINS?: string;
   DEV_OTP?: string;
   /** Secret: HMAC key for phone-number hashes. `wrangler secret put PHONE_HMAC_KEY`. */
   PHONE_HMAC_KEY?: string;
@@ -17,6 +20,20 @@ export interface Env {
 
 type Vars = { user: UserId; device: DeviceId };
 const app = new Hono<{ Bindings: Env; Variables: Vars }>();
+
+// ── CORS: only the origins in ALLOWED_ORIGINS. Auth is a bearer token, never a cookie, so no credentials mode. ──────
+app.use("*", (c, next) => {
+  const allowed = (c.env.ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean);
+  return cors({
+    origin: (origin) => (allowed.includes(origin) ? origin : null),
+    allowMethods: ["GET", "POST", "OPTIONS"],
+    allowHeaders: ["content-type", "authorization"],
+    maxAge: 86400,
+  })(c, next);
+});
 
 app.get("/health", (c) => c.json({ ok: true, env: c.env.ENVIRONMENT, protocol: 1 }));
 

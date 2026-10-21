@@ -1,5 +1,6 @@
 import { Agent, type Card } from "@collab/core";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { apiReachable } from "./adapters/api.js";
 import { createPorts } from "./adapters/ports.js";
 
 interface Turn {
@@ -20,10 +21,12 @@ export function App() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [platform, setPlatform] = useState("web");
+  const [online, setOnline] = useState<boolean>();
   const log = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     import("@capacitor/core").then(({ Capacitor }) => setPlatform(Capacitor.getPlatform()));
+    void apiReachable().then(setOnline);
   }, []);
 
   useEffect(() => {
@@ -54,7 +57,9 @@ export function App() {
     <div className="app">
       <header>
         <h1>Collab</h1>
-        <small>{platform} · lite mode (no model)</small>
+        <small>
+          {platform} · lite mode (no model){online !== undefined && ` · ${online ? "online" : "offline"}`}
+        </small>
       </header>
       <div className="log" ref={log}>
         {turns.length === 0 && (

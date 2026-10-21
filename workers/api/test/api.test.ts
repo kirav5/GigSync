@@ -22,6 +22,25 @@ describe("api", () => {
     expect(await res.json()).toMatchObject({ ok: true, protocol: 1 });
   });
 
+  it("answers CORS preflight only for allowed origins", async () => {
+    const preflight = (origin: string) =>
+      SELF.fetch("http://x/v1/inbox", {
+        method: "OPTIONS",
+        headers: {
+          origin,
+          "access-control-request-method": "GET",
+          "access-control-request-headers": "authorization",
+        },
+      });
+    const app = await preflight("capacitor://localhost");
+    expect(app.status).toBe(204);
+    expect(app.headers.get("access-control-allow-origin")).toBe("capacitor://localhost");
+    expect(app.headers.get("access-control-allow-headers")).toContain("authorization");
+
+    const other = await preflight("https://evil.example");
+    expect(other.headers.get("access-control-allow-origin")).toBeNull();
+  });
+
   it("signs in two people and routes an envelope between them", async () => {
     const asha = await signIn("+919800000001");
     const mother = await signIn("+919800000002");
