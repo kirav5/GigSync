@@ -53,7 +53,12 @@ Try the local API:
 curl -s -X POST localhost:8787/v1/auth/otp/verify -H 'content-type: application/json' -d '{"phone":"+919800000001","code":"000000","device":{"signing_key":"a","encryption_key":"b","protocol":1}}'
 ```
 
-## UI work with Claude Code
+## Working with Claude Code
+
+Backend work follows the `backend-engineering` skill in `.claude/skills/`: layered Workers code, validated inputs,
+normalized D1 tables, numbered migrations, tests, and a review checklist. Claude loads it whenever it touches
+`workers/`, `packages/` or `infra/wrangler`; people can read it as the backend style guide. One rule is enforced for
+everyone: `pnpm lint` fails when a source file reaches 300 lines.
 
 `.claude/settings.json` enables the [UI UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) plugin
 for this project: design guidance (style, palette, fonts, UX checks) whenever Claude works on UI. Opening the repo
