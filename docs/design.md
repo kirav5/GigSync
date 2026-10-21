@@ -10,7 +10,7 @@ Every person has an agent on their phone. It keeps their notes and context on th
 under rules they set (grants), and asks other agents on their behalf. Businesses and providers have worker
 agents. Agents talk through one object, the engagement, carried in signed, end-to-end encrypted envelopes
 through a mailbox on Cloudflare. Public data (worker profiles, listings, public notes, reviews) is owned by
-the user in an AT Protocol repository on our PDS; D1 keeps a searchable copy.
+the user in their AT Protocol repository on Bluesky's PDS; D1 keeps a searchable copy.
 
 ## Where data lives
 
@@ -18,7 +18,7 @@ the user in an AT Protocol repository on our PDS; D1 keeps a searchable copy.
 | ------------------------------- | ----------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------ |
 | Private (notes, chats)          | Phone, encrypted SQLite | Encrypted backup in R2, key never on server                                           | Owner only                                       |
 | Protected (free/busy, location) | Phone                   | Sealed envelope in the recipient's mailbox until acked; a copy on the contact's phone | Contacts a grant names, at the granted precision |
-| Public (profiles, listings)     | User's repo on our PDS  | D1 index, edge cache                                                                  | Anyone                                           |
+| Public (profiles, listings)     | User's repo on Bluesky  | D1 index, edge cache                                                                  | Anyone                                           |
 
 ## Pieces
 
@@ -31,7 +31,7 @@ the user in an AT Protocol repository on our PDS; D1 keeps a searchable copy.
 | API: sign-in, directory, mailbox routes | Cloudflare Worker + D1    | `workers/api`       |
 | Mailbox                                 | Durable Object per user   | `workers/mailbox`   |
 | Search index                            | Worker + D1 + IndexHub DO | `workers/index`     |
-| PDS                                     | VM in Mumbai              | `infra/pds`         |
+| PDS                                     | Bluesky's (`bsky.social`) | none (ADR 0005)     |
 
 ## The path of one question (Asha asks her mother when she is free)
 
@@ -46,4 +46,4 @@ the user in an AT Protocol repository on our PDS; D1 keeps a searchable copy.
 ## Milestones
 
 M0 foundation (this repo) → M1 own agent with on-device model → M2 person ↔ person → M3 person → worker with
-PDS and index → M4 worker → worker and hosted workers → M5 hardening and pilot.
+Bluesky records and index → M4 worker → worker and hosted workers → M5 hardening and pilot.

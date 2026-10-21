@@ -1,10 +1,7 @@
-# Collab PDS
+# Collab PDS (not used)
 
-The only server we run. It holds each user's public records in their own signed AT Protocol repository, so the
-data is theirs and portable. The search index on Cloudflare D1 is a copy fed from this server's event stream
-(`com.atproto.sync.subscribeRepos`) and can be rebuilt from it at any time.
-- Host: a small VM in Mumbai (2 vCPU, 4 GB is plenty for the pilot). Daily backups of `./data` to R2.
-- Accounts: created by the API Worker after OTP sign-in, handle `<name>.collabai.network`. Users never see a
-  separate "AT Protocol account".
-- Records: collections are defined in `packages/protocol/src/records.ts`.
-- Not yet deployed. M3 brings it up.
+Not deployed. Public records live in each user's repository on Bluesky's PDS instead (ADR 0005), so we run no
+server outside Cloudflare.
+
+This docker-compose file is kept for the day we run our own PDS again (the original plan, ADR 0003): Bluesky's
+PDS image on a small VM, blobs in R2, accounts created by the API Worker. Users could then move their repos here.

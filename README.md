@@ -18,7 +18,7 @@ workers/mailbox     the Mailbox Durable Object, one per user
 workers/index       search index over public records (Workers + D1), carried over from the Swift app
 apps/mobile         the Capacitor app: React UI + adapters that implement core's ports; android/ and ios/ inside
 plugins/collab-llm  Capacitor plugin for the on-device model (Kotlin + Swift stubs in M0)
-infra/              D1 migrations, PDS docker-compose
+infra/              D1 migrations; an unused PDS docker-compose (ADR 0005)
 docs/               design and ADRs
 ```
 
@@ -83,6 +83,6 @@ Secrets to add in the repository settings when ready: `CLOUDFLARE_API_TOKEN`, `C
 - Sessions: opaque tokens in D1; signed tokens later.
 - Envelope signatures are not yet verified by the API (M2), and sealing is a placeholder until libsignal is wired in.
 - The LLM plugin returns "no model" on every platform; the agent runs in lite mode (keyword router, note search).
-- The PDS is a docker-compose file, not deployed (M3).
+- Public records go to the user's Bluesky repository (ADR 0005); connecting a Bluesky account arrives in M3.
 
 No license yet.

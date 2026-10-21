@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** AT Protocol collection NSIDs for Collab's public records. Kept on the user's repo on our PDS; D1 indexes copies. */
+/** AT Protocol collection NSIDs for Collab's public records. Kept in the user's repo on Bluesky's PDS; D1 indexes copies. */
 export const COLLECTIONS = {
   profile: "network.collabai.worker.profile",
   listing: "network.collabai.listing",

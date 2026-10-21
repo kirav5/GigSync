@@ -1,6 +1,6 @@
 # ADR 0003: Public data lives on our own AT Protocol PDS; D1 is only an index
 
-Date: 2026-10-21. Status: accepted.
+Date: 2026-10-21. Status: superseded by ADR 0005 (Bluesky's PDS instead of our own).
 
 ## Decision
 
