@@ -3,6 +3,11 @@ main = "src/index.ts"
 compatibility_date = "2026-08-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Custom domain: Cloudflare creates the DNS record and certificate on deploy.
+routes = [{ pattern = "api.collabai.network", custom_domain = true }]
+# Keep the *.workers.dev address too (wrangler turns it off when routes are set).
+workers_dev = true
+
 # Directory: users, devices, keys, phone hashes, sessions. Create with `wrangler d1 create collab-directory`
 # and paste the id below for each environment.
 [[d1_databases]]
@@ -24,7 +29,7 @@ new_sqlite_classes = ["Mailbox"]
 [vars]
 ENVIRONMENT = "pilot"
 # Who may call the API from a browser: the website, then the iOS and Android webviews (capacitor://localhost,
-# https://localhost). Add the custom domain here when there is one. Local dev overrides this in .dev.vars.
-ALLOWED_ORIGINS = "https://collab-app.collab-index-worker.workers.dev,capacitor://localhost,https://localhost"
+# https://localhost). Local dev overrides this in .dev.vars.
+ALLOWED_ORIGINS = "https://collabai.network,https://www.collabai.network,https://collab-app.collab-index-worker.workers.dev,capacitor://localhost,https://localhost"
 # DEV_OTP is a secret, not a var: the code that always verifies until the SMS gateway exists.
 # Local dev reads it from .dev.vars (see .dev.vars.example); the deployed Worker from `wrangler secret put DEV_OTP`.
