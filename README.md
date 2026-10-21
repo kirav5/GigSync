@@ -53,6 +53,16 @@ Try the local API:
 curl -s -X POST localhost:8787/v1/auth/otp/verify -H 'content-type: application/json' -d '{"phone":"+919800000001","code":"000000","device":{"signing_key":"a","encryption_key":"b","protocol":1}}'
 ```
 
+## UI work with Claude Code
+
+`.claude/settings.json` enables the [UI UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) plugin
+for this project: design guidance (style, palette, fonts, UX checks) whenever Claude works on UI. Opening the repo
+in Claude Code asks you to trust the folder and install it. It needs Python 3 and runs a local search script.
+
+When the app's design system is settled, save it with the plugin's `--persist` option and commit the
+`design-system/` folder, so every developer and session builds to the same rules. The rules below still win over
+anything it suggests.
+
 ## Rules of the codebase
 
 1. `packages/core` never imports a browser, Node or Capacitor API. It runs in Node tests. All platform access
