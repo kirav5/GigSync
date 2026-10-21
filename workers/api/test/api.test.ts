@@ -10,6 +10,7 @@ const device = { signing_key: "c2lnbmluZw==", encryption_key: "ZW5jcnlwdGlvbg=="
 async function signIn(phone: string) {
   const res = await SELF.fetch("http://x/v1/auth/otp/verify", {
     method: "POST",
+    headers: { "cf-connecting-ip": phone }, // one client per person, so the per-IP cap does not span tests
     body: JSON.stringify({ phone, code: "000000", device }),
   });
   expect(res.status).toBe(200);

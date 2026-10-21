@@ -65,7 +65,8 @@ the existing code.
 - Respond with JSON `{ "error": "<short, safe message>" }` and the right status: 400 bad input, 401 no or bad
   session, 403 not yours, 404 missing, 409 conflict, 429 too many, 500 only for the unexpected.
 - Never put stack traces, SQL, ids of other users or raw upstream errors in a response.
-- Register one `app.onError` that logs a safe summary (route, status, error name) and returns a generic 500.
+- Register one `app.onError` that logs a safe summary (route, method, error name and message, never request data)
+  and returns a generic 500. Write thrown messages so they are safe to log: name the missing thing, not its value.
 - Return early on failure; no deep `if` nesting. Do not catch an error just to rethrow it.
 
 ## Security

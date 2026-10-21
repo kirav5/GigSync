@@ -2,21 +2,14 @@ import { type DeviceId, Envelope, MessageId, UserId } from "@collab/protocol";
 import { Mailbox } from "@collab/worker-mailbox";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { ulid } from "ulid";
+import { HTTPException } from "hono/http-exception";
+import { routePath } from "hono/route";
 import { z } from "zod";
+import type { Env } from "./env.js";
+import { auth } from "./routes/auth.js";
 
+export type { Env };
 export { Mailbox };
-
-export interface Env {
-  DIRECTORY: D1Database;
-  MAILBOX: DurableObjectNamespace<Mailbox>;
-  ENVIRONMENT: string;
-  /** Comma-separated origins allowed to call the API from a browser or webview (the website and the phone apps). */
-  ALLOWED_ORIGINS?: string;
-  DEV_OTP?: string;
-  /** Secret: HMAC key for phone-number hashes. `wrangler secret put PHONE_HMAC_KEY`. */
-  PHONE_HMAC_KEY?: string;
-}
 
 type Vars = { user: UserId; device: DeviceId };
 const app = new Hono<{ Bindings: Env; Variables: Vars }>();
@@ -35,65 +28,17 @@ app.use("*", (c, next) => {
   })(c, next);
 });
 
+// One place for the unexpected: log what failed, never the request (it may hold phone numbers, keys or content).
+app.onError((err, c) => {
+  if (err instanceof HTTPException) return err.getResponse();
+  console.error(JSON.stringify({ route: routePath(c), method: c.req.method, error: err.name, message: err.message }));
+  return c.json({ error: "internal error" }, 500);
+});
+
 app.get("/health", (c) => c.json({ ok: true, env: c.env.ENVIRONMENT, protocol: 1 }));
 
-// ── Sign-in (OTP). Dev accepts DEV_OTP; the SMS gateway arrives in M0 hardening. ─────────────────────────────────
-const Phone = z.string().regex(/^\+[1-9]\d{7,14}$/, "E.164");
-
-app.post("/v1/auth/otp/request", async (c) => {
-  const body = z.object({ phone: Phone }).safeParse(await c.req.json().catch(() => null));
-  if (!body.success) return c.json({ error: "phone must be E.164" }, 400);
-  // TODO(M0): send through the DLT-registered SMS gateway; store a hashed code with a 5-minute expiry.
-  return c.json({ sent: true, channel: c.env.DEV_OTP ? "dev" : "sms" });
-});
-
-app.post("/v1/auth/otp/verify", async (c) => {
-  const Body = z.object({
-    phone: Phone,
-    code: z.string().length(6),
-    device: z.object({
-      signing_key: z.string(),
-      encryption_key: z.string(),
-      protocol: z.number().int(),
-      push_token: z.string().optional(),
-    }),
-  });
-  const body = Body.safeParse(await c.req.json().catch(() => null));
-  if (!body.success) return c.json({ error: "bad request" }, 400);
-  if (!c.env.DEV_OTP || body.data.code !== c.env.DEV_OTP) return c.json({ error: "wrong code" }, 401);
-
-  const phoneHash = await hmacHex(c.env.PHONE_HMAC_KEY ?? "dev-only-key", body.data.phone);
-  const now = new Date().toISOString();
-  const existing = await c.env.DIRECTORY.prepare("SELECT user_id FROM phone_bindings WHERE phone_hmac = ?")
-    .bind(phoneHash)
-    .first<{ user_id: UserId }>();
-  const user = existing?.user_id ?? (`usr_${ulid()}` as UserId);
-  if (!existing) {
-    await c.env.DIRECTORY.batch([
-      c.env.DIRECTORY.prepare("INSERT INTO users (user_id, created_at, status) VALUES (?, ?, 'active')").bind(
-        user,
-        now,
-      ),
-      c.env.DIRECTORY.prepare("INSERT INTO phone_bindings (phone_hmac, user_id, verified_at) VALUES (?, ?, ?)").bind(
-        phoneHash,
-        user,
-        now,
-      ),
-    ]);
-  }
-  const device = `dev_${ulid()}` as DeviceId;
-  const d = body.data.device;
-  await c.env.DIRECTORY.prepare(
-    "INSERT INTO devices (device_id, user_id, signing_key, encryption_key, protocol, push_token, created_at, last_seen) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-  )
-    .bind(device, user, d.signing_key, d.encryption_key, d.protocol, d.push_token ?? null, now, now)
-    .run();
-  const token = `ses_${ulid()}`;
-  await c.env.DIRECTORY.prepare("INSERT INTO sessions (token, user_id, device_id, created_at) VALUES (?, ?, ?, ?)")
-    .bind(token, user, device, now)
-    .run();
-  return c.json({ user, device, token });
-});
+// ── Sign-in (OTP), before the session middleware ─────────────────────────────────────────────────────────────────
+app.route("/v1/auth", auth);
 
 // ── Auth middleware for everything below ──────────────────────────────────────────────────────────────────────────
 app.use("/v1/*", async (c, next) => {
@@ -160,15 +105,3 @@ app.post("/v1/inbox/ack", async (c) => {
 app.notFound((c) => c.json({ error: "not found" }, 404));
 
 export default app;
-
-async function hmacHex(key: string, message: string): Promise<string> {
-  const k = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(key),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const sig = await crypto.subtle.sign("HMAC", k, new TextEncoder().encode(message));
-  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
