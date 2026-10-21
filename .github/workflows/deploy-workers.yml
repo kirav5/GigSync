@@ -1,0 +1,44 @@
+name: Deploy Workers
+
+# main → staging. A v* tag → production. Skips cleanly until the Cloudflare secrets exist.
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HAS_CLOUDFLARE: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+      TARGET: ${{ startsWith(github.ref, 'refs/tags/v') && 'production' || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @collab/protocol build
+      - name: Skipped (no Cloudflare secrets yet)
+        if: env.HAS_CLOUDFLARE != 'true'
+        run: echo "Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID to deploy."
+      - name: Migrate directory (${{ env.TARGET }})
+        if: env.HAS_CLOUDFLARE == 'true'
+        run: pnpm --filter @collab/worker-api exec wrangler d1 migrations apply collab-directory --remote --env ${{ env.TARGET }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Deploy API + Mailbox (${{ env.TARGET }})
+        if: env.HAS_CLOUDFLARE == 'true'
+        run: pnpm --filter @collab/worker-api exec wrangler deploy --env ${{ env.TARGET }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Deploy Index (${{ env.TARGET }})
+        if: env.HAS_CLOUDFLARE == 'true'
+        run: pnpm --filter @collab/worker-index exec wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

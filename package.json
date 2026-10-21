@@ -1,0 +1,30 @@
+{
+  "name": "collabnetwork.ai",
+  "private": true,
+  "description": "Collab: a personal agent on your phone that talks to other people's agents under rules you set.",
+  "engines": {
+    "node": ">=24",
+    "pnpm": ">=10"
+  },
+  "packageManager": "pnpm@10.14.0",
+  "scripts": {
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "typecheck": "pnpm -r --filter './packages/*' --filter './workers/api' --filter './workers/mailbox' --filter './apps/*' --filter './plugins/*' run typecheck",
+    "test": "pnpm -r --filter './packages/*' --filter './workers/*' run test",
+    "build": "pnpm -r --filter './packages/*' --filter './plugins/*' --filter './apps/*' run build",
+    "dev:workers": "pnpm --filter @collab/worker-api dev",
+    "dev:app": "pnpm --filter @collab/mobile dev",
+    "deploy:workers": "pnpm --filter './workers/*' run deploy"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.2",
+    "typescript": "5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "workerd"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+# Standalone config so the Durable Object can be tested on its own. In deployment the class ships inside
+# workers/api, which re-exports it; see workers/api/wrangler.toml.
+name = "collab-mailbox-test"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[durable_objects.bindings]]
+name = "MAILBOX"
+class_name = "Mailbox"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Mailbox"]

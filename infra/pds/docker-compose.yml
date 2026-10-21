@@ -1,0 +1,12 @@
+# Our own AT Protocol PDS: the original copy of every user's public records (worker profiles, listings, public
+# notes, reviews). Run on a small VM in Mumbai. Blobs go to R2 through its S3 API.
+# Setup: copy pds.env.example to pds.env, fill it in, then `docker compose up -d`.
+services:
+  pds:
+    image: ghcr.io/bluesky-social/pds:latest
+    container_name: collab-pds
+    restart: unless-stopped
+    network_mode: host
+    env_file: pds.env
+    volumes:
+      - ./data:/pds

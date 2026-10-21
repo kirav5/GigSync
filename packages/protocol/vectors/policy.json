@@ -1,0 +1,271 @@
+{
+  "$comment": "Shared policy test vectors. The TypeScript engine (packages/core) and the Kotlin/Swift background responders must all produce `expected` for each case, so they cannot drift apart.",
+  "cases": [
+    {
+      "name": "no grant at all",
+      "grants": [],
+      "request": {
+        "from": "usr_01J0000000000000000000AAAA",
+        "topic": "availability",
+        "at": "2026-10-21T10:00:00+05:30",
+        "local_hour": 10
+      },
+      "expected": { "allow": false, "reason": "no_grant" }
+    },
+    {
+      "name": "grant for a different contact does not apply",
+      "grants": [
+        {
+          "id": "grt_01J0000000000000000000G001",
+          "grantee": "usr_01J0000000000000000000BBBB",
+          "topic": "availability",
+          "mode": "auto"
+        }
+      ],
+      "request": {
+        "from": "usr_01J0000000000000000000AAAA",
+        "topic": "availability",
+        "at": "2026-10-21T10:00:00+05:30",
+        "local_hour": 10
+      },
+      "expected": { "allow": false, "reason": "no_grant" }
+    },
+    {
+      "name": "grant for a different topic does not apply",
+      "grants": [
+        {
+          "id": "grt_01J0000000000000000000G001",
+          "grantee": "usr_01J0000000000000000000AAAA",
+          "topic": "status",
+          "mode": "auto"
+        }
+      ],
+      "request": {
+        "from": "usr_01J0000000000000000000AAAA",
+        "topic": "availability",
+        "at": "2026-10-21T10:00:00+05:30",
+        "local_hour": 10
+      },
+      "expected": { "allow": false, "reason": "no_grant" }
+    },
+    {
+      "name": "automatic availability",
+      "grants": [
+        {
+          "id": "grt_01J0000000000000000000G001",
+          "grantee": "usr_01J0000000000000000000AAAA",
+          "topic": "availability",
+          "mode": "auto"
+        }
+      ],
+      "request": {
+        "from": "usr_01J0000000000000000000AAAA",
+        "topic": "availability",
+        "at": "2026-10-21T10:00:00+05:30",
+        "local_hour": 10
+      },
+      "expected": { "allow": true, "mode": "auto", "grant": "grt_01J0000000000000000000G001" }
+    },
+    {
+      "name": "location is coarsened to the granted precision",
+      "grants": [
+        {
+          "id": "grt_01J0000000000000000000G001",
+          "grantee": "usr_01J0000000000000000000AAAA",
+          "topic": "location",
+          "mode": "auto",
+          "precision": "neighbourhood"
+        }
+      ],
+      "request": {
+        "from": "usr_01J0000000000000000000AAAA",
+        "topic": "location",
+        "precision": "exact",
+        "at": "2026-10-21T10:00:00+05:30",
+        "local_hour": 10
+      },
+      "expected": {
+        "allow": true,
+        "mode": "auto",
+        "precision": "neighbourhood",
+        "grant": "grt_01J0000000000000000000G001"
+      }
+    },
+    {
+      "name": "asking for less precision than granted gives what was asked",
+      "grants": [
+        {
+          "id": "grt_01J0000000000000000000G001",
+          "grantee": "usr_01J0000000000000000000AAAA",
+          "topic": "location",
+          "mode": "auto",
+          "precision": "exact"
+        }
+      ],
+      "request": {
+        "from": "usr_01J0000000000000000000AAAA",
+        "topic": "location",
+        "precision": "city",
+        "at": "2026-10-21T10:00:00+05:30",
+        "local_hour": 10
+      },
+      "expected": { "allow": true, "mode": "auto", "precision": "city", "grant": "grt_01J0000000000000000000G001" }
+    },
+    {
+      "name": "location grant with no precision answers at city level",
+      "grants": [
+        {
+          "id": "grt_01J0000000000000000000G001",
+          "grantee": "usr_01J0000000000000000000AAAA",
+          "topic": "location",
+          "mode": "ask"
+        }
+      ],
+      "request": {
+        "from": "usr_01J0000000000000000000AAAA",
+        "topic": "location",
+        "precision": "exact",
+        "at": "2026-10-21T10:00:00+05:30",
+        "local_hour": 10
+      },
+      "expected": { "allow": true, "mode": "ask", "precision": "city", "grant": "grt_01J0000000000000000000G001" }
+    },
+    {
+      "name": "outside the hour window",
+      "grants": [
+        {
+          "id": "grt_01J0000000000000000000G001",
+          "grantee": "usr_01J0000000000000000000AAAA",
+          "topic": "location",
+          "mode": "auto",
+          "precision": "exact",
+          "hours": { "start": 9, "end": 18 }
+        }
+      ],
+      "request": {
+        "from": "usr_01J0000000000000000000AAAA",
+        "topic": "location",
+        "precision": "exact",
+        "at": "2026-10-21T22:00:00+05:30",
+        "local_hour": 22
+      },
+      "expected": { "allow": false, "reason": "outside_hours" }
+    },
+    {
+      "name": "inside the hour window, end is exclusive",
+      "grants": [
+        {
+          "id": "grt_01J0000000000000000000G001",
+          "grantee": "usr_01J0000000000000000000AAAA",
+          "topic": "location",
+          "mode": "auto",
+          "precision": "exact",
+          "hours": { "start": 9, "end": 18 }
+        }
+      ],
+      "request": {
+        "from": "usr_01J0000000000000000000AAAA",
+        "topic": "location",
+        "precision": "exact",
+        "at": "2026-10-21T17:30:00+05:30",
+        "local_hour": 17
+      },
+      "expected": { "allow": true, "mode": "auto", "precision": "exact", "grant": "grt_01J0000000000000000000G001" }
+    },
+    {
+      "name": "expired grant",
+      "grants": [
+        {
+          "id": "grt_01J0000000000000000000G001",
+          "grantee": "usr_01J0000000000000000000AAAA",
+          "topic": "availability",
+          "mode": "auto",
+          "expires_at": "2026-10-01T00:00:00+05:30"
+        }
+      ],
+      "request": {
+        "from": "usr_01J0000000000000000000AAAA",
+        "topic": "availability",
+        "at": "2026-10-21T10:00:00+05:30",
+        "local_hour": 10
+      },
+      "expected": { "allow": false, "reason": "expired" }
+    },
+    {
+      "name": "two grants conflict: the most restrictive mode wins",
+      "grants": [
+        {
+          "id": "grt_01J0000000000000000000G001",
+          "grantee": "usr_01J0000000000000000000AAAA",
+          "topic": "availability",
+          "mode": "auto"
+        },
+        {
+          "id": "grt_01J0000000000000000000G002",
+          "grantee": "usr_01J0000000000000000000AAAA",
+          "topic": "availability",
+          "mode": "review"
+        }
+      ],
+      "request": {
+        "from": "usr_01J0000000000000000000AAAA",
+        "topic": "availability",
+        "at": "2026-10-21T10:00:00+05:30",
+        "local_hour": 10
+      },
+      "expected": { "allow": true, "mode": "review", "grant": "grt_01J0000000000000000000G002" }
+    },
+    {
+      "name": "two location grants conflict: the coarser precision wins",
+      "grants": [
+        {
+          "id": "grt_01J0000000000000000000G001",
+          "grantee": "usr_01J0000000000000000000AAAA",
+          "topic": "location",
+          "mode": "auto",
+          "precision": "exact"
+        },
+        {
+          "id": "grt_01J0000000000000000000G002",
+          "grantee": "usr_01J0000000000000000000AAAA",
+          "topic": "location",
+          "mode": "auto",
+          "precision": "city"
+        }
+      ],
+      "request": {
+        "from": "usr_01J0000000000000000000AAAA",
+        "topic": "location",
+        "precision": "exact",
+        "at": "2026-10-21T10:00:00+05:30",
+        "local_hour": 10
+      },
+      "expected": { "allow": true, "mode": "auto", "precision": "city", "grant": "grt_01J0000000000000000000G002" }
+    },
+    {
+      "name": "an expired grant beside a live one is ignored",
+      "grants": [
+        {
+          "id": "grt_01J0000000000000000000G001",
+          "grantee": "usr_01J0000000000000000000AAAA",
+          "topic": "availability",
+          "mode": "ask",
+          "expires_at": "2026-01-01T00:00:00+05:30"
+        },
+        {
+          "id": "grt_01J0000000000000000000G002",
+          "grantee": "usr_01J0000000000000000000AAAA",
+          "topic": "availability",
+          "mode": "auto"
+        }
+      ],
+      "request": {
+        "from": "usr_01J0000000000000000000AAAA",
+        "topic": "availability",
+        "at": "2026-10-21T10:00:00+05:30",
+        "local_hour": 10
+      },
+      "expected": { "allow": true, "mode": "auto", "grant": "grt_01J0000000000000000000G002" }
+    }
+  ]
+}

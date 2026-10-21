@@ -1,0 +1,27 @@
+name = "collab-index"
+main = "src/worker.ts"
+compatibility_date = "2026-09-01"
+
+# D1: the listing table (schema.sql). Create with: npx wrangler d1 create collab-index, then paste its id here.
+[[d1_databases]]
+binding = "DB"
+database_name = "collab-index"
+database_id = "d956459d-82ff-43dc-89c2-09ae8e7a21fb"
+
+# One Durable Object follows Jetstream (outbound WebSocket keeps it alive) and holds open searches (hibernatable sockets).
+[[durable_objects.bindings]]
+name = "HUB"
+class_name = "IndexHub"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["IndexHub"]
+
+# Wakes the hub every minute in case it was evicted (it reconnects to Jetstream from its saved cursor).
+[triggers]
+crons = ["* * * * *"]
+
+[vars]
+JETSTREAM = "wss://jetstream2.us-east.bsky.network/subscribe"
+# Which repos hold Collab records (com.atproto.sync.listReposByCollection), for backfill.
+RELAY = "https://relay1.us-east.bsky.network"

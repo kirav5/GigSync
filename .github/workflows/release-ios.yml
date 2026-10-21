@@ -1,0 +1,51 @@
+name: Release iOS
+
+# A v* tag archives and uploads to TestFlight. Skips until the Apple secrets exist:
+# APPLE_CERT_P12_BASE64, APPLE_CERT_PASSWORD, APPLE_PROVISIONING_PROFILE_BASE64, APP_STORE_CONNECT_API_KEY_ID,
+# APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_API_KEY_BASE64.
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  release:
+    runs-on: macos-15
+    env:
+      HAS_APPLE: ${{ secrets.APPLE_CERT_P12_BASE64 != '' && secrets.APP_STORE_CONNECT_API_KEY_BASE64 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Skipped (no Apple secrets yet)
+        if: env.HAS_APPLE != 'true'
+        run: echo "Add the Apple signing and App Store Connect secrets to release."
+      - uses: pnpm/action-setup@v4
+        if: env.HAS_APPLE == 'true'
+      - uses: actions/setup-node@v4
+        if: env.HAS_APPLE == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile && pnpm build && pnpm --filter @collab/mobile exec cap sync ios
+        if: env.HAS_APPLE == 'true'
+      - name: Install signing certificate and profile
+        if: env.HAS_APPLE == 'true'
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERT_P12_BASE64 }}
+          p12-password: ${{ secrets.APPLE_CERT_PASSWORD }}
+      - name: Archive and upload
+        if: env.HAS_APPLE == 'true'
+        working-directory: apps/mobile/ios/App
+        env:
+          PROFILE_B64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+          ASC_KEY_B64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles ~/.private_keys
+          echo "$PROFILE_B64" | base64 -d > ~/Library/MobileDevice/Provisioning\ Profiles/collab.mobileprovision
+          echo "$ASC_KEY_B64" | base64 -d > ~/.private_keys/AuthKey_$ASC_KEY_ID.p8
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release -archivePath build/App.xcarchive archive
+          xcodebuild -exportArchive -archivePath build/App.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath build/export \
+            -allowProvisioningUpdates -authenticationKeyPath ~/.private_keys/AuthKey_$ASC_KEY_ID.p8 \
+            -authenticationKeyID $ASC_KEY_ID -authenticationKeyIssuerID $ASC_ISSUER_ID
+          xcrun altool --upload-app -f build/export/App.ipa -t ios --apiKey $ASC_KEY_ID --apiIssuer $ASC_ISSUER_ID

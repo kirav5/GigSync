@@ -1,0 +1,20 @@
+{
+  "name": "@collab/worker-index",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Search index on Workers + D1: a rebuildable copy of public records, fed from the PDS event stream (Jetstream today), with live search subscriptions. Carried over from the Swift app's tools/collab-index-worker.",
+  "scripts": {
+    "test": "node --test --experimental-sqlite test/*.test.ts",
+    "dev": "wrangler dev",
+    "db:init": "wrangler d1 execute collab-index --remote --file=schema.sql",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@noble/curves": "^1.9.0",
+    "@noble/hashes": "^1.8.0"
+  },
+  "devDependencies": {
+    "wrangler": "4.151.3"
+  }
+}
