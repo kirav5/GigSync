@@ -22,19 +22,18 @@ password.
 
 ## Recovery
 
-| Situation | What happens |
-| --- | --- |
-| Normal use | The refresh token rolls over silently; no second login. |
-| Reinstall with backup | OTP, then the PIN unlocks the backup; the DB, account key and Bluesky session come back. New device keys are certified by the account key. |
-| Reinstall without backup | OTP, then "Continue with Bluesky" once more; the DID link in the directory is unchanged, so listings and reviews are intact. Private data is gone (new account key, safety code changes). |
-| Bluesky password forgotten | Bluesky's own email reset; then one OAuth login. Nothing in Collab changes. |
-| Session revoked or expired | A "Reconnect Bluesky" card; one OAuth login. Publishing queues in the outbox meanwhile. |
-| Bluesky outage | Publishing pauses; search, messages and everything private keep working. |
+| Situation                  | What happens                                                                                                                                                                              |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Normal use                 | The refresh token rolls over silently; no second login.                                                                                                                                   |
+| Reinstall with backup      | OTP, then the PIN unlocks the backup; the DB, account key and Bluesky session come back. New device keys are certified by the account key.                                                |
+| Reinstall without backup   | OTP, then "Continue with Bluesky" once more; the DID link in the directory is unchanged, so listings and reviews are intact. Private data is gone (new account key, safety code changes). |
+| Bluesky password forgotten | Bluesky's own email reset; then one OAuth login. Nothing in Collab changes.                                                                                                               |
+| Session revoked or expired | A "Reconnect Bluesky" card; one OAuth login. Publishing queues in the outbox meanwhile.                                                                                                   |
+| Bluesky outage             | Publishing pauses; search, messages and everything private keep working.                                                                                                                  |
 
 ## Onboarding options considered
 
 The user owns their repo on a PDS that is not ours (bsky.social today, any PDS later). Options, smoothest first:
-
 1. **Combined sign-up (chosen).** OTP, then one screen "Create your public identity" that opens bsky.social sign-up
    in the system browser with the handle suggested and the email pre-filled, then CAPTCHA, then the OAuth consent,
    then back in Collab. Framed as an identity hosted by Bluesky, never as joining a social network.
@@ -54,7 +53,6 @@ sign-up under Bluesky's terms, and would leave us holding the password.
 Bluesky creates the account as soon as the form and CAPTCHA pass. Publishing through OAuth works on an unverified
 account; the email is only Bluesky's recovery channel (password reset, email change, 2FA). A fake address therefore
 never blocks using Collab; it removes the safety net for a forgotten password.
-
 - The encrypted backup (H8) holds the Bluesky session, so the password is needed only when the backup is also gone.
   First backup runs right after onboarding and a copy stays in Downloads.
 - Right after sign-up the app offers to save the Bluesky password in the phone's own credential manager (the user's
