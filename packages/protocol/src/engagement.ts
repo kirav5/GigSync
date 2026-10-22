@@ -22,21 +22,23 @@ export const EngagementStatus = z.enum([
 ]);
 export type EngagementStatus = z.infer<typeof EngagementStatus>;
 
-export const TERMINAL_STATUSES: ReadonlySet<EngagementStatus> = new Set(["closed", "declined", "expired", "cancelled"]);
+const S = EngagementStatus.enum;
+
+export const TERMINAL_STATUSES: ReadonlySet<EngagementStatus> = new Set([S.closed, S.declined, S.expired, S.cancelled]);
 
 export const Role = z.enum(["requester", "provider"]);
 export type Role = z.infer<typeof Role>;
 
 /** Which envelope kinds move an engagement from each status, and where to. */
 export const TRANSITIONS: Readonly<Record<EngagementStatus, Partial<Record<EnvelopeKind, EngagementStatus>>>> = {
-  draft: { request: "sent" },
-  sent: { clarify: "clarifying", response: "responded", quote: "responded", cancel: "declined", receipt: "expired" },
-  clarifying: { response: "sent", cancel: "declined", receipt: "expired" },
-  responded: { agree: "agreed", review: "closed", cancel: "cancelled", receipt: "expired" },
-  agreed: { update: "in_progress", delivery: "delivered", cancel: "cancelled" },
-  in_progress: { update: "in_progress", delivery: "delivered", cancel: "cancelled" },
-  delivered: { review: "closed", clarify: "revision", receipt: "closed" },
-  revision: { delivery: "delivered", cancel: "cancelled" },
+  draft: { request: S.sent },
+  sent: { clarify: S.clarifying, response: S.responded, quote: S.responded, cancel: S.declined, receipt: S.expired },
+  clarifying: { response: S.sent, cancel: S.declined, receipt: S.expired },
+  responded: { agree: S.agreed, review: S.closed, cancel: S.cancelled, receipt: S.expired },
+  agreed: { update: S.in_progress, delivery: S.delivered, cancel: S.cancelled },
+  in_progress: { update: S.in_progress, delivery: S.delivered, cancel: S.cancelled },
+  delivered: { review: S.closed, clarify: S.revision, receipt: S.closed },
+  revision: { delivery: S.delivered, cancel: S.cancelled },
   closed: {},
   declined: {},
   expired: {},
@@ -47,20 +49,34 @@ export function nextStatus(from: EngagementStatus, kind: EnvelopeKind): Engageme
   return TRANSITIONS[from][kind] ?? null;
 }
 
+/** Google A2A task states (the spec's spelling, including its "canceled"). */
+export const A2aTaskState = z.enum([
+  "submitted",
+  "input-required",
+  "working",
+  "completed",
+  "rejected",
+  "failed",
+  "canceled",
+]);
+export type A2aTaskState = z.infer<typeof A2aTaskState>;
+const A = A2aTaskState.enum;
+const inputRequired = A["input-required"];
+
 /** Collab status → Google A2A task state, for the gateway planned at the edge. */
-export const A2A_STATE: Readonly<Record<EngagementStatus, string>> = {
-  draft: "submitted",
-  sent: "submitted",
-  clarifying: "input-required",
-  responded: "input-required",
-  agreed: "working",
-  in_progress: "working",
-  delivered: "input-required",
-  revision: "working",
-  closed: "completed",
-  declined: "rejected",
-  expired: "failed",
-  cancelled: "canceled",
+export const A2A_STATE: Readonly<Record<EngagementStatus, A2aTaskState>> = {
+  draft: A.submitted,
+  sent: A.submitted,
+  clarifying: inputRequired,
+  responded: inputRequired,
+  agreed: A.working,
+  in_progress: A.working,
+  delivered: inputRequired,
+  revision: A.working,
+  closed: A.completed,
+  declined: A.rejected,
+  expired: A.failed,
+  cancelled: A.canceled,
 };
 
 export const EngagementBrief = z.object({

@@ -1,11 +1,13 @@
 import type { Envelope } from "@collab/protocol";
-import type { Storage } from "../ports.js";
+import { Collection, type Storage } from "../ports.js";
+
+export const Outcome = { new: "new", duplicate: "duplicate", expired: "expired", held: "held" } as const;
 
 export type Accepted =
-  | { outcome: "new"; deliver: Envelope[] }
-  | { outcome: "duplicate" }
-  | { outcome: "expired" }
-  | { outcome: "held"; waiting_for: number };
+  | { outcome: typeof Outcome.new; deliver: Envelope[] }
+  | { outcome: typeof Outcome.duplicate }
+  | { outcome: typeof Outcome.expired }
+  | { outcome: typeof Outcome.held; waiting_for: number };
 
 interface Cursor {
   /** Last sequence number delivered for this (engagement, sender). */
@@ -25,19 +27,19 @@ export class Inbox {
   ) {}
 
   async accept(e: Envelope, now: Date): Promise<Accepted> {
-    if (Date.parse(e.expires_at) <= now.getTime()) return { outcome: "expired" };
-    if (await this.storage.get("inbox_seen", e.id)) return { outcome: "duplicate" };
-    await this.storage.put("inbox_seen", e.id, { at: now.toISOString() });
+    if (Date.parse(e.expires_at) <= now.getTime()) return { outcome: Outcome.expired };
+    if (await this.storage.get(Collection.inboxSeen, e.id)) return { outcome: Outcome.duplicate };
+    await this.storage.put(Collection.inboxSeen, e.id, { at: now.toISOString() });
 
     const key = `${e.engagement}|${e.from.user}`;
-    const cursor = (await this.storage.get<Cursor>("inbox_cursor", key)) ?? { last: -1, held: [] };
+    const cursor = (await this.storage.get<Cursor>(Collection.inboxCursor, key)) ?? { last: -1, held: [] };
 
-    if (e.seq <= cursor.last) return { outcome: "duplicate" };
+    if (e.seq <= cursor.last) return { outcome: Outcome.duplicate };
     if (e.seq > cursor.last + 1) {
       if (cursor.held.length >= this.holdLimit) cursor.held.shift();
       cursor.held.push(e);
-      await this.storage.put("inbox_cursor", key, cursor);
-      return { outcome: "held", waiting_for: cursor.last + 1 };
+      await this.storage.put(Collection.inboxCursor, key, cursor);
+      return { outcome: Outcome.held, waiting_for: cursor.last + 1 };
     }
 
     const deliver: Envelope[] = [e];
@@ -48,7 +50,7 @@ export class Inbox {
       deliver.push(next);
       cursor.last = next.seq;
     }
-    await this.storage.put("inbox_cursor", key, cursor);
-    return { outcome: "new", deliver };
+    await this.storage.put(Collection.inboxCursor, key, cursor);
+    return { outcome: Outcome.new, deliver };
   }
 }

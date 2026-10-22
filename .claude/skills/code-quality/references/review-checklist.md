@@ -1,7 +1,7 @@
-# Backend review checklist
+# Review checklist
 
-Go through this before you call backend work done, and use it when reviewing someone else's change. Fix what you
-find; if something has to stay, say why in the summary.
+Go through this before you call any work done, and use it when reviewing someone else's change. Fix what you
+find; if something has to stay, say why in the summary. Report the result item by item.
 
 ## Shape
 
@@ -9,11 +9,16 @@ find; if something has to stay, say why in the summary.
 - [ ] Handlers only parse, call and respond; SQL lives in data-access modules; rules live in plain functions.
 - [ ] No duplicated logic: a second copy of a query, validation or mapping became one shared function.
 - [ ] Names say what the thing is; no `data`, `info`, `tmp`, `handle2`.
-- [ ] No dead code, commented-out code, unused exports, `console.log`, or `TODO` without a milestone.
+- [ ] No magic values: every status, kind, header, route, storage key, tag name, limit and TTL is a named constant
+  in the right place (see "Named values" in SKILL.md). `pnpm lint` catches comparisons and repeats; check the rest
+  by eye, including values used only once.
+- [ ] A value shared by two packages is defined once (protocol or `@collab/core`), not copied.
+- [ ] No dead code, commented-out code, unused exports, bare `console.log`, or `TODO` without a milestone.
 
 ## Correctness
 
-- [ ] Every input is parsed with a schema from `@collab/protocol`; no `as` casts on outside data.
+- [ ] Every input is parsed with a schema from `@collab/protocol` (or a type guard); no `as` casts on outside data.
+- [ ] No `any`; outside JSON is `unknown` until checked.
 - [ ] Failure paths return the right status with a safe `{ error }` body.
 - [ ] Writes that belong together are in one `db.batch` (a sign-up must not leave a user without a device).
 - [ ] Retried operations are idempotent.
@@ -22,7 +27,7 @@ find; if something has to stay, say why in the summary.
 ## Security
 
 - [ ] New `/v1/*` routes are behind the session middleware and check that the caller owns the resource.
-- [ ] Nothing logs or returns message content, phone numbers, keys or tokens.
+- [ ] Nothing returns message content, phone numbers, keys or tokens; logs carry them only inside `pii()`, and secret keys never.
 - [ ] Caller-controlled sizes are capped (body, arrays, `LIMIT`, string length).
 - [ ] New config that is secret is a `wrangler secret`, not a `[vars]` entry.
 
@@ -39,7 +44,13 @@ find; if something has to stay, say why in the summary.
 - [ ] Per-request CPU stays small (free plan: 10 ms); heavy work moved to cron, queue or alarm.
 - [ ] Any new dependency runs on Workers and is justified.
 
+## App
+
+- [ ] UI components only render; logic is in `packages/core` or `src/adapters`.
+- [ ] Dev-only behaviour is behind `import.meta.env.DEV` and absent from a release build.
+
 ## Tests and checks
 
 - [ ] Tests cover the happy path, bad input, and the auth or ownership failure for each new route or DO method.
-- [ ] `pnpm lint`, `pnpm typecheck` and `pnpm test` pass.
+- [ ] `pnpm lint` (Biome, file size, magic strings), `pnpm build`, `pnpm build:workers`, `pnpm typecheck` and
+  `pnpm test` pass.

@@ -13,6 +13,7 @@
     "deploy": "echo 'deployed as part of @collab/worker-api'"
   },
   "dependencies": {
+    "@collab/core": "workspace:*",
     "@collab/protocol": "workspace:*"
   },
   "devDependencies": {

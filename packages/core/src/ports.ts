@@ -4,6 +4,18 @@
  * the core keeps running if the shell around it changes.
  */
 
+/** Every storage collection the agent uses. One name per kind of record, so two features never share one by accident. */
+export const Collection = {
+  chat: "chat",
+  contacts: "contacts",
+  engagements: "engagements",
+  episodes: "episodes",
+  inboxCursor: "inbox_cursor",
+  inboxSeen: "inbox_seen",
+  outbox: "outbox",
+  outboxSeq: "outbox_seq",
+} as const;
+
 export interface Storage {
   get<T>(collection: string, id: string): Promise<T | undefined>;
   put<T>(collection: string, id: string, value: T): Promise<void>;
@@ -17,6 +29,9 @@ export interface Keys {
   sign(bytes: Uint8Array): Promise<Uint8Array>;
   verify(bytes: Uint8Array, signature: Uint8Array, publicKey: string): Promise<boolean>;
 }
+
+/** Reply length when a caller does not ask for one: enough for a chat answer, short enough for a phone. */
+export const DEFAULT_MAX_TOKENS = 256;
 
 export interface Model {
   /** Returns null when no model is available; the agent then says so instead of guessing. */

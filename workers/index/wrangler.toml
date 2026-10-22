@@ -22,6 +22,14 @@ new_sqlite_classes = ["IndexHub"]
 crons = ["* * * * *"]
 
 [vars]
+# Events only; local runs set ENVIRONMENT=local, LOG_LEVEL=debug, LOG_PII=true in .dev.vars.
+LOG_LEVEL = "info"
+LOG_PII = "false"
 JETSTREAM = "wss://jetstream2.us-east.bsky.network/subscribe"
 # Which repos hold Collab records (com.atproto.sync.listReposByCollection), for backfill.
 RELAY = "https://relay1.us-east.bsky.network"
+
+# Workers Logs: console output and request details, searchable in the dashboard (Observability).
+[observability]
+enabled = true
+head_sampling_rate = 1

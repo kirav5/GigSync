@@ -1,9 +1,10 @@
 name: CI
 
+# Every push to any branch runs the checks, which covers PRs from this repo without running twice.
+# Phone builds are manual (mobile-builds.yml); deploys stay in deploy-workers.yml (main only).
 on:
   push:
-    branches: [main]
-  pull_request:
+    branches: ["**"]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -11,7 +12,7 @@ concurrency:
 
 jobs:
   check:
-    name: Lint, typecheck, test
+    name: Lint, typecheck, test, build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,52 +24,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm build
+      # Bundles each Worker the way a deploy would, without deploying: catches import and binding errors.
+      - run: pnpm build:workers
       - run: pnpm typecheck
       - run: pnpm test
-
-  android:
-    name: Android debug build
-    runs-on: ubuntu-latest
-    needs: check
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: pnpm --filter @collab/mobile exec cap sync android
-      - run: ./gradlew assembleDebug --no-daemon
-        working-directory: apps/mobile/android
-      - uses: actions/upload-artifact@v4
-        with:
-          name: collab-debug-apk
-          path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 14
-
-  ios:
-    name: iOS simulator build
-    runs-on: macos-15
-    needs: check
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: pnpm --filter @collab/mobile exec cap sync ios
-      - run: >
-          xcodebuild -project App.xcodeproj -scheme App -configuration Debug
-          -destination 'generic/platform=iOS Simulator' -derivedDataPath build
-          CODE_SIGNING_ALLOWED=NO build | xcpretty && exit ${PIPESTATUS[0]}
-        working-directory: apps/mobile/ios/App

@@ -8,11 +8,12 @@
   },
   "packageManager": "pnpm@10.14.0",
   "scripts": {
-    "lint": "biome check . && node scripts/check-file-size.mjs",
+    "lint": "biome check . && node scripts/check-file-size.mjs && node scripts/check-magic-strings.mjs",
     "lint:fix": "biome check --write .",
-    "typecheck": "pnpm -r --filter './packages/*' --filter './workers/api' --filter './workers/mailbox' --filter './apps/*' --filter './plugins/*' run typecheck",
+    "typecheck": "pnpm -r --filter './packages/*' --filter './workers/*' --filter './apps/*' --filter './plugins/*' run typecheck",
     "test": "pnpm -r --filter './packages/*' --filter './workers/*' run test",
     "build": "pnpm -r --filter './packages/*' --filter './plugins/*' --filter './apps/*' run build",
+    "build:workers": "pnpm --filter @collab/worker-api exec wrangler deploy --dry-run --outdir dist && pnpm --filter @collab/worker-index exec wrangler deploy --dry-run --outdir dist",
     "dev:workers": "pnpm --filter @collab/worker-api dev",
     "dev:app": "pnpm --filter @collab/mobile dev",
     "deploy:workers": "pnpm --filter './workers/*' run deploy"

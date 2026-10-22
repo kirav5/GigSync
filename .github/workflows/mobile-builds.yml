@@ -1,0 +1,170 @@
+name: Mobile builds
+
+# On demand only, since macOS runners use paid minutes 10x faster. Two ways to start it:
+# - Comment on a pull request: `/build mobile`, `/build android` or `/build ios`. Builds the PR's latest commit and
+#   reports back as checks and a comment. Only the repo's owner, members and collaborators can trigger it.
+# - Actions tab → Mobile builds → Run workflow, for any branch.
+# Comment triggers run this file from main, so a change to it takes effect once merged.
+on:
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      android:
+        description: Build the Android debug APK
+        type: boolean
+        default: true
+      ios:
+        description: Build for the iOS simulator
+        type: boolean
+        default: true
+
+concurrency:
+  group: mobile-${{ github.event.issue.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Works out what to build and for which commit, and marks the PR's checks as pending. It never runs PR code,
+  # so it is the only job with write access.
+  setup:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.issue.pull_request && startsWith(github.event.comment.body, '/build') &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+      statuses: write
+    outputs:
+      sha: ${{ steps.plan.outputs.sha }}
+      android: ${{ steps.plan.outputs.android }}
+      ios: ${{ steps.plan.outputs.ios }}
+    steps:
+      - id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          BODY: ${{ github.event.comment.body }}
+          PR: ${{ github.event.issue.number }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          IN_ANDROID: ${{ inputs.android }}
+          IN_IOS: ${{ inputs.ios }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            sha="$GITHUB_SHA"; android="$IN_ANDROID"; ios="$IN_IOS"
+          else
+            command=$(printf '%s' "$BODY" | head -n1 | tr '[:upper:]' '[:lower:]' | xargs)
+            case "$command" in
+              "/build" | "/build mobile") android=true; ios=true ;;
+              "/build android") android=true; ios=false ;;
+              "/build ios") android=false; ios=true ;;
+              *)
+                gh pr comment "$PR" --repo "$REPO" \
+                  --body 'Unknown command. Use `/build mobile`, `/build android` or `/build ios`.'
+                echo "android=false" >> "$GITHUB_OUTPUT"; echo "ios=false" >> "$GITHUB_OUTPUT"
+                exit 0 ;;
+            esac
+            sha=$(gh pr view "$PR" --repo "$REPO" --json headRefOid -q .headRefOid)
+            gh api "repos/$REPO/issues/comments/$COMMENT_ID/reactions" -f content=rocket > /dev/null
+          fi
+          for p in android ios; do
+            [ "${!p}" = "true" ] || continue
+            name=$([ "$p" = android ] && echo Android || echo iOS)
+            gh api "repos/$REPO/statuses/$sha" -f state=pending -f context="Mobile builds / $name" \
+              -f description="Building…" -f target_url="$RUN_URL" > /dev/null
+          done
+          { echo "sha=$sha"; echo "android=$android"; echo "ios=$ios"; } >> "$GITHUB_OUTPUT"
+
+  android:
+    name: Android debug build
+    needs: setup
+    if: needs.setup.outputs.android == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.setup.outputs.sha }}
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm --filter @collab/mobile exec cap sync android
+      - run: ./gradlew assembleDebug --no-daemon
+        working-directory: apps/mobile/android
+      - uses: actions/upload-artifact@v4
+        with:
+          name: collab-debug-apk
+          path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
+
+  ios:
+    name: iOS simulator build
+    needs: setup
+    if: needs.setup.outputs.ios == 'true'
+    runs-on: macos-15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.setup.outputs.sha }}
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm --filter @collab/mobile exec cap sync ios
+      - run: >
+          xcodebuild -project App.xcodeproj -scheme App -configuration Debug
+          -destination 'generic/platform=iOS Simulator' -derivedDataPath build
+          CODE_SIGNING_ALLOWED=NO build | xcpretty && exit ${PIPESTATUS[0]}
+        working-directory: apps/mobile/ios/App
+
+  # Turns the pending checks green or red and, for a comment, replies with the result.
+  report:
+    needs: [setup, android, ios]
+    if: always() && needs.setup.result == 'success' && needs.setup.outputs.sha != ''
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+      statuses: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          PR: ${{ github.event.issue.number }}
+          SHA: ${{ needs.setup.outputs.sha }}
+          ANDROID: ${{ needs.setup.outputs.android == 'true' && needs.android.result || 'skipped' }}
+          IOS: ${{ needs.setup.outputs.ios == 'true' && needs.ios.result || 'skipped' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          lines=""
+          for pair in "Android:$ANDROID" "iOS:$IOS"; do
+            name="${pair%%:*}"; result="${pair#*:}"
+            [ "$result" = "skipped" ] && continue
+            case "$result" in success) state=success; icon="✅" ;; cancelled) state=error; icon="⏹️" ;; *) state=failure; icon="❌" ;; esac
+            gh api "repos/$REPO/statuses/$SHA" -f state="$state" -f context="Mobile builds / $name" \
+              -f description="$result" -f target_url="$RUN_URL" > /dev/null
+            lines="$lines- $icon $name: $result"$'\n'
+          done
+          if [ "$EVENT" = "issue_comment" ] && [ -n "$lines" ]; then
+            gh pr comment "$PR" --repo "$REPO" \
+              --body "Mobile builds for \`${SHA:0:7}\`:"$'\n'"$lines"$'\n'"[Logs and the APK]($RUN_URL)"
+          fi

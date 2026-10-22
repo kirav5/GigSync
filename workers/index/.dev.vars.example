@@ -1,0 +1,5 @@
+# Copy to .dev.vars for `wrangler dev`. Never commit .dev.vars.
+# Local logging: everything, private data included. Deployed Workers ignore LOG_PII (ENVIRONMENT is not "local").
+ENVIRONMENT=local
+LOG_LEVEL=debug
+LOG_PII=true

@@ -1,8 +1,9 @@
 import { Preferences } from "@capacitor/preferences";
 import type { Keys, Model, Ports, Storage } from "@collab/core";
-import { SystemClock } from "@collab/core";
+import { DEFAULT_MAX_TOKENS, SystemClock, traced } from "@collab/core";
 import { CollabLLM } from "@collab/plugin-llm";
 import * as ed from "@noble/ed25519";
+import { OllamaModel } from "./ollama.js";
 
 /**
  * The app's implementations of the core's ports. These are the ONLY place platform APIs are touched, so moving
@@ -36,15 +37,18 @@ class PreferencesStorage implements Storage {
   }
 }
 
+/** Preferences key holding the software device key. */
+const DEVICE_KEY = "keys:device";
+
 /** Software Ed25519 key. DEV ONLY: lives in Preferences until the Keystore plugin lands. */
 class SoftwareKeys implements Keys {
   private priv: Promise<Uint8Array>;
   constructor() {
     this.priv = (async () => {
-      const { value } = await Preferences.get({ key: "keys:device" });
+      const { value } = await Preferences.get({ key: DEVICE_KEY });
       if (value) return fromBase64(value);
       const fresh = ed.utils.randomSecretKey();
-      await Preferences.set({ key: "keys:device", value: toBase64(fresh) });
+      await Preferences.set({ key: DEVICE_KEY, value: toBase64(fresh) });
       return fresh;
     })();
   }
@@ -63,7 +67,10 @@ class SoftwareKeys implements Keys {
 class PluginModel implements Model {
   async generate(prompt: string, options?: { maxTokens?: number }) {
     try {
-      const { text, available } = await CollabLLM.generate({ prompt, maxTokens: options?.maxTokens ?? 256 });
+      const { text, available } = await CollabLLM.generate({
+        prompt,
+        maxTokens: options?.maxTokens ?? DEFAULT_MAX_TOKENS,
+      });
       return available ? text : null;
     } catch {
       return null;
@@ -71,11 +78,23 @@ class PluginModel implements Model {
   }
 }
 
+/** Dev builds can use a model from Ollama on this computer; everything else uses the native plugin. */
+const ollamaModel = import.meta.env.DEV ? import.meta.env.VITE_OLLAMA_MODEL : undefined;
+
+/** What the header shows as the model in use. */
+export const modelLabel = ollamaModel ? `ollama ${ollamaModel}` : "lite mode (no model)";
+
+function createModel(): Model {
+  const model = ollamaModel ? new OllamaModel(ollamaModel) : new PluginModel();
+  // Prompts and replies are private: shown in local debug logs only.
+  return { generate: traced("model.generate", model.generate.bind(model)) };
+}
+
 export function createPorts(): Ports {
   return {
     storage: new PreferencesStorage(),
     keys: new SoftwareKeys(),
-    model: new PluginModel(),
+    model: createModel(),
     clock: new SystemClock(),
   };
 }

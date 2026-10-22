@@ -1,5 +1,6 @@
 import { type Card, type Contact, runExpert } from "./experts.js";
-import type { Ports } from "./ports.js";
+import { log, pii } from "./log.js";
+import { Collection, type Ports } from "./ports.js";
 import { type Route, routeByKeywords } from "./router/keyword.js";
 
 export interface Router {
@@ -21,18 +22,24 @@ export class Agent {
   ) {}
 
   async handle(text: string): Promise<{ route: Route; card: Card }> {
-    const contacts = await this.ports.storage.list<Contact>("contacts");
+    const start = Date.now();
+    log.debug("chat: input", { text: pii(text) });
+    const contacts = await this.ports.storage.list<Contact>(Collection.contacts);
     const route = await this.router.route(
       text,
       contacts.map((c) => c.name),
     );
+    log.debug("chat: routed", { expert: route.expert, contact: pii(route.contact), text: pii(route.text) });
     const card = await runExpert(route, this.ports, contacts);
-    await this.ports.storage.put("chat", `ch_${Date.now()}`, {
+    await this.ports.storage.put(Collection.chat, `ch_${Date.now()}`, {
       text,
       route,
       card,
       at: this.ports.clock.now().toISOString(),
     });
+    log.debug("chat: reply", { kind: card.kind, body: pii(card.body) });
+    // What happened, never what was said: the expert, the outcome, the size of the message and the time taken.
+    log.info("chat handled", { expert: route.expert, card: card.kind, chars: text.length, ms: Date.now() - start });
     return { route, card };
   }
 }

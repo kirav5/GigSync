@@ -5,7 +5,12 @@ export interface Env {
   MAILBOX: DurableObjectNamespace<Mailbox>;
   /** Caps sign-in attempts per client IP; the per-number cap lives in D1 (otp_attempts). */
   OTP_RATE_LIMIT: RateLimit;
+  /** "local" in .dev.vars; the only environment where LOG_PII can take effect. */
   ENVIRONMENT: string;
+  /** debug | info | warn | error. Unset or unknown means info. */
+  LOG_LEVEL?: string;
+  /** "true" prints values marked pii() in logs. Ignored unless ENVIRONMENT is "local". */
+  LOG_PII?: string;
   /** Comma-separated origins allowed to call the API from a browser or webview (the website and the phone apps). */
   ALLOWED_ORIGINS?: string;
   /** Secret: the code that always verifies until the SMS gateway exists. Unset means nobody can sign in. */

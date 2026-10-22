@@ -1,8 +1,14 @@
 import { DurableObject } from "cloudflare:workers";
+import { HttpMethod } from "@collab/core/http";
+import { configureLog, log, pii } from "@collab/core/log";
 import { DEFAULT_TTL_SECONDS, type DeviceId, Envelope, type MessageId } from "@collab/protocol";
 
 export interface Env {
   MAILBOX: DurableObjectNamespace<Mailbox>;
+  /** Shared with workers/api, which hosts this class; see packages/core/src/log.ts. */
+  ENVIRONMENT?: string;
+  LOG_LEVEL?: string;
+  LOG_PII?: string;
 }
 
 interface DeliverBody {
@@ -29,6 +35,7 @@ export class Mailbox extends DurableObject<Env> {
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
+    configureLog(env);
     this.sql.exec(`
       CREATE TABLE IF NOT EXISTS envelopes (
         msg_id TEXT NOT NULL,
@@ -51,10 +58,16 @@ export class Mailbox extends DurableObject<Env> {
       Math.floor(Date.parse(e.expires_at) / 1000),
       now + DEFAULT_TTL_SECONDS.job, // never trust a sender to keep a box alive for months
     );
-    if (expires <= now) return { stored: false, devices: 0 };
+    if (expires <= now) {
+      log.info("mailbox: envelope already expired", { messageId: e.id });
+      return { stored: false, devices: 0 };
+    }
 
     const seen = this.sql.exec("SELECT 1 FROM seen WHERE msg_id = ?", e.id).toArray();
-    if (seen.length > 0) return { stored: false, devices: 0 };
+    if (seen.length > 0) {
+      log.info("mailbox: duplicate envelope", { messageId: e.id });
+      return { stored: false, devices: 0 };
+    }
 
     const text = JSON.stringify(e);
     for (const d of body.devices) {
@@ -68,6 +81,7 @@ export class Mailbox extends DurableObject<Env> {
     }
     this.sql.exec("INSERT INTO seen (msg_id, at) VALUES (?, ?)", e.id, now);
     await this.scheduleExpiry();
+    log.debug("mailbox: stored", { messageId: e.id, devices: body.devices, expires, envelope: pii(e) });
     return { stored: true, devices: body.devices.length };
   }
 
@@ -82,6 +96,7 @@ export class Mailbox extends DurableObject<Env> {
         limit,
       )
       .toArray();
+    log.debug("mailbox: fetch", { device, count: rows.length });
     return rows.map((r) => JSON.parse(r.body) as Envelope);
   }
 
@@ -91,6 +106,7 @@ export class Mailbox extends DurableObject<Env> {
     for (const id of ids) {
       n += this.sql.exec("DELETE FROM envelopes WHERE device_id = ? AND msg_id = ?", device, id).rowsWritten;
     }
+    log.debug("mailbox: ack", { device, requested: ids.length, deleted: n });
     return n;
   }
 
@@ -101,7 +117,8 @@ export class Mailbox extends DurableObject<Env> {
   /** Expiry runs on the object's own alarm, so there is no global sweep over every user. */
   async alarm() {
     const now = Math.floor(Date.now() / 1000);
-    this.sql.exec("DELETE FROM envelopes WHERE expires_at <= ?", now);
+    const expired = this.sql.exec("DELETE FROM envelopes WHERE expires_at <= ?", now).rowsWritten;
+    if (expired > 0) log.info("mailbox: expired envelopes", { count: expired });
     // Remember ids for seven days after expiry so a late retry cannot resurrect a message.
     this.sql.exec("DELETE FROM seen WHERE at <= ?", now - DEFAULT_TTL_SECONDS.job);
     await this.scheduleExpiry();
@@ -115,23 +132,29 @@ export class Mailbox extends DurableObject<Env> {
   }
 }
 
+/** Actions of the local test surface: /mailbox/:user/:action. */
+const Action = { deliver: "deliver", fetch: "fetch", ack: "ack" } as const;
+const DEVICE_PARAM = "device";
+const NOT_FOUND = "not found";
+
 /** Minimal HTTP surface for local testing. The API Worker calls the object's methods directly via RPC. */
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
     const [, , user, action] = url.pathname.split("/"); // /mailbox/:user/:action
-    if (!user) return new Response("not found", { status: 404 });
+    if (!user) return new Response(NOT_FOUND, { status: 404 });
     const box = env.MAILBOX.get(env.MAILBOX.idFromName(user));
-    if (req.method === "POST" && action === "deliver") return Response.json(await box.deliver(await req.json()));
-    if (req.method === "GET" && action === "fetch") {
-      const device = url.searchParams.get("device") as DeviceId | null;
+    if (req.method === HttpMethod.post && action === Action.deliver)
+      return Response.json(await box.deliver(await req.json()));
+    if (req.method === HttpMethod.get && action === Action.fetch) {
+      const device = url.searchParams.get(DEVICE_PARAM) as DeviceId | null;
       if (!device) return new Response("device required", { status: 400 });
       return Response.json(await box.fetchFor(device));
     }
-    if (req.method === "POST" && action === "ack") {
+    if (req.method === HttpMethod.post && action === Action.ack) {
       const { device, ids } = (await req.json()) as { device: DeviceId; ids: MessageId[] };
       return Response.json({ acked: await box.ack(device, ids) });
     }
-    return new Response("not found", { status: 404 });
+    return new Response(NOT_FOUND, { status: 404 });
   },
 };

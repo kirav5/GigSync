@@ -1,5 +1,5 @@
 // Fails when a tracked source file reaches 300 lines. Runs as part of `pnpm lint`, so CI enforces it.
-// Split a growing file by responsibility well before the limit; see .claude/skills/backend-engineering.
+// Split a growing file by responsibility well before the limit; see .claude/skills/code-quality.
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 

@@ -13,6 +13,7 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
+    "@collab/core": "workspace:*",
     "@collab/protocol": "workspace:*",
     "@collab/worker-mailbox": "workspace:*",
     "hono": "4.13.13",

@@ -1,1 +1,70 @@
-{"active":{"kind":30402,"content":"selling my 2BHK in Koramangala for 80 lakh","pubkey":"856c198459715fbdf72da1a20ac3c31cc6314035e5e5a9222631e117853f2909","id":"0561684a739df97dfdf0d5e80f128ee9a2e8aa129632811456bd36cf0251f833","sig":"fa1987da95f594b4edd22d591bee4671e375aadc61a90f44eb2c67b270462e36613567e1f2712fc37e1c99d1f8a758c61d76b36447c9573229d4a79bd8520ccd","created_at":1791473586,"tags":[["d","01M4E2B4B6YPGCHKCJZ1WA5YS3"],["title","2BHK for sale in Koramangala, Bengaluru"],["summary","selling my 2BHK in Koramangala for 80 lakh"],["published_at","1791473586"],["location","Koramangala, Bengaluru"],["price","8000000","INR"],["status","active"],["expiration","1823009586"],["t","collab"],["t","collab-property-sale"],["t","real-estate"],["collab","collab:39kgmRXRt4oJcaDzXgwkw0eAjXH3UNDIEZN_l9u6VcQ","OAW3DPna9Jl57x587ER33VGcgpbdMovovNSxH9yEsw2nQm9cGxhjaRoYqWfR3CK8x7i8azIuFSD_a-ScNC5LBQ"],["collab-box","88fa41a034e7e78ad08267008ec0841973d10b83b7f30bc88d734d2bfb6b887b"],["collab-place","12.9320","77.6227","area"],["g","tdr1"],["g","tdr1w"],["g","tdr1w6"],["attr","bedrooms","2"],["ask","When are you planning to buy?"],["ask","Is your loan pre-approved, or is it a cash purchase?"]]},"sold":{"tags":[["d","01M4E2B4B6YPGCHKCJZ1WA5YS3"],["title","2BHK for sale in Koramangala, Bengaluru"],["summary","selling my 2BHK in Koramangala for 80 lakh"],["published_at","1791473586"],["location","Koramangala, Bengaluru"],["price","8000000","INR"],["status","sold"],["expiration","1823009586"],["t","collab"],["t","collab-property-sale"],["t","real-estate"],["collab","collab:39kgmRXRt4oJcaDzXgwkw0eAjXH3UNDIEZN_l9u6VcQ","p8uNCr-KuH7A6OQMeFL8DqOro3IzHR6mkQx1DlOuiEaXKU5B0lMBFRfVR5DsSiPs2wEVFJoWbgTGTT0Aoh0zBw"],["collab-box","88fa41a034e7e78ad08267008ec0841973d10b83b7f30bc88d734d2bfb6b887b"],["collab-place","12.9320","77.6227","area"],["g","tdr1"],["g","tdr1w"],["g","tdr1w6"],["attr","bedrooms","2"],["ask","When are you planning to buy?"],["ask","Is your loan pre-approved, or is it a cash purchase?"]],"content":"selling my 2BHK in Koramangala for 80 lakh","pubkey":"856c198459715fbdf72da1a20ac3c31cc6314035e5e5a9222631e117853f2909","id":"11f6d2629d4824d37280aa52855d5ab3014f357b1f8f8d34b6eee5f58de72586","sig":"873435b8ec4aa12146000b3e6cf1222836858fe025b3d22f00cee371cf31daaa416174d570df7d2b4991c110dbf1e7131d0fa188e3f5e212e734713d1350801f","created_at":1791473587,"kind":30402}}
+{
+  "active": {
+    "kind": 30402,
+    "content": "selling my 2BHK in Koramangala for 80 lakh",
+    "pubkey": "856c198459715fbdf72da1a20ac3c31cc6314035e5e5a9222631e117853f2909",
+    "id": "0561684a739df97dfdf0d5e80f128ee9a2e8aa129632811456bd36cf0251f833",
+    "sig": "fa1987da95f594b4edd22d591bee4671e375aadc61a90f44eb2c67b270462e36613567e1f2712fc37e1c99d1f8a758c61d76b36447c9573229d4a79bd8520ccd",
+    "created_at": 1791473586,
+    "tags": [
+      ["d", "01M4E2B4B6YPGCHKCJZ1WA5YS3"],
+      ["title", "2BHK for sale in Koramangala, Bengaluru"],
+      ["summary", "selling my 2BHK in Koramangala for 80 lakh"],
+      ["published_at", "1791473586"],
+      ["location", "Koramangala, Bengaluru"],
+      ["price", "8000000", "INR"],
+      ["status", "active"],
+      ["expiration", "1823009586"],
+      ["t", "collab"],
+      ["t", "collab-property-sale"],
+      ["t", "real-estate"],
+      [
+        "collab",
+        "collab:39kgmRXRt4oJcaDzXgwkw0eAjXH3UNDIEZN_l9u6VcQ",
+        "OAW3DPna9Jl57x587ER33VGcgpbdMovovNSxH9yEsw2nQm9cGxhjaRoYqWfR3CK8x7i8azIuFSD_a-ScNC5LBQ"
+      ],
+      ["collab-box", "88fa41a034e7e78ad08267008ec0841973d10b83b7f30bc88d734d2bfb6b887b"],
+      ["collab-place", "12.9320", "77.6227", "area"],
+      ["g", "tdr1"],
+      ["g", "tdr1w"],
+      ["g", "tdr1w6"],
+      ["attr", "bedrooms", "2"],
+      ["ask", "When are you planning to buy?"],
+      ["ask", "Is your loan pre-approved, or is it a cash purchase?"]
+    ]
+  },
+  "sold": {
+    "tags": [
+      ["d", "01M4E2B4B6YPGCHKCJZ1WA5YS3"],
+      ["title", "2BHK for sale in Koramangala, Bengaluru"],
+      ["summary", "selling my 2BHK in Koramangala for 80 lakh"],
+      ["published_at", "1791473586"],
+      ["location", "Koramangala, Bengaluru"],
+      ["price", "8000000", "INR"],
+      ["status", "sold"],
+      ["expiration", "1823009586"],
+      ["t", "collab"],
+      ["t", "collab-property-sale"],
+      ["t", "real-estate"],
+      [
+        "collab",
+        "collab:39kgmRXRt4oJcaDzXgwkw0eAjXH3UNDIEZN_l9u6VcQ",
+        "p8uNCr-KuH7A6OQMeFL8DqOro3IzHR6mkQx1DlOuiEaXKU5B0lMBFRfVR5DsSiPs2wEVFJoWbgTGTT0Aoh0zBw"
+      ],
+      ["collab-box", "88fa41a034e7e78ad08267008ec0841973d10b83b7f30bc88d734d2bfb6b887b"],
+      ["collab-place", "12.9320", "77.6227", "area"],
+      ["g", "tdr1"],
+      ["g", "tdr1w"],
+      ["g", "tdr1w6"],
+      ["attr", "bedrooms", "2"],
+      ["ask", "When are you planning to buy?"],
+      ["ask", "Is your loan pre-approved, or is it a cash purchase?"]
+    ],
+    "content": "selling my 2BHK in Koramangala for 80 lakh",
+    "pubkey": "856c198459715fbdf72da1a20ac3c31cc6314035e5e5a9222631e117853f2909",
+    "id": "11f6d2629d4824d37280aa52855d5ab3014f357b1f8f8d34b6eee5f58de72586",
+    "sig": "873435b8ec4aa12146000b3e6cf1222836858fe025b3d22f00cee371cf31daaa416174d570df7d2b4991c110dbf1e7131d0fa188e3f5e212e734713d1350801f",
+    "created_at": 1791473587,
+    "kind": 30402
+  }
+}

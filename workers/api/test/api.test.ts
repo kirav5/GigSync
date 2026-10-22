@@ -23,6 +23,12 @@ describe("api", () => {
     expect(await res.json()).toMatchObject({ ok: true, protocol: 1 });
   });
 
+  it("tags every response with a request id, cf-ray when Cloudflare sends one", async () => {
+    expect((await SELF.fetch("http://x/health")).headers.get("x-request-id")).toMatch(/.+/);
+    const res = await SELF.fetch("http://x/nope", { headers: { "cf-ray": "abc123-BOM" } });
+    expect(res.headers.get("x-request-id")).toBe("abc123-BOM");
+  });
+
   it("answers CORS preflight only for allowed origins", async () => {
     const preflight = (origin: string) =>
       SELF.fetch("http://x/v1/inbox", {

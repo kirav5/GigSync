@@ -34,8 +34,16 @@ simple = { limit = 10, period = 60 }
 # One deployment for the pilot. Split into staging and production when there is a team.
 [vars]
 ENVIRONMENT = "pilot"
+# Requests and events only; private values print as [redacted]. Local runs override both in .dev.vars.
+LOG_LEVEL = "info"
+LOG_PII = "false"
 # Who may call the API from a browser: the website, then the iOS and Android webviews (capacitor://localhost,
 # https://localhost). Local dev overrides this in .dev.vars.
 ALLOWED_ORIGINS = "https://collabai.network,https://www.collabai.network,https://collab-app.collab-index-worker.workers.dev,capacitor://localhost,https://localhost"
 # DEV_OTP is a secret, not a var: the code that always verifies until the SMS gateway exists.
 # Local dev reads it from .dev.vars (see .dev.vars.example); the deployed Worker from `wrangler secret put DEV_OTP`.
+
+# Workers Logs: console output and request details, searchable in the dashboard (Observability).
+[observability]
+enabled = true
+head_sampling_rate = 1

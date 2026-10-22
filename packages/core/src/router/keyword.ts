@@ -3,7 +3,15 @@
  * the model router that replaces it in M1 must return the same `Route` shape so experts never notice the swap.
  * English and Hindi (Latin script) words, since that is what the first users type.
  */
-export type Expert = "remember" | "askSelf" | "askContact" | "setRule" | "find" | "chat";
+export const Expert = {
+  remember: "remember",
+  askSelf: "askSelf",
+  askContact: "askContact",
+  setRule: "setRule",
+  find: "find",
+  chat: "chat",
+} as const;
+export type Expert = (typeof Expert)[keyof typeof Expert];
 
 export interface Route {
   expert: Expert;
@@ -24,12 +32,12 @@ export function routeByKeywords(text: string, contacts: readonly string[]): Rout
   const t = text.trim();
   const contact = contacts.find((c) => new RegExp(`\\b${escapeRe(c)}\\b`, "i").test(t));
 
-  if (REMEMBER.test(t)) return { expert: "remember", text: t.replace(REMEMBER, "") };
-  if (RULE.test(t) && contact) return { expert: "setRule", contact, text: t };
-  if (FIND.test(t)) return { expert: "find", text: t };
-  if (contact && ASK_CONTACT.test(t)) return { expert: "askContact", contact, text: t };
-  if (ASK_SELF.test(t) || contact) return { expert: "askSelf", ...(contact ? { contact } : {}), text: t };
-  return { expert: "chat", text: t };
+  if (REMEMBER.test(t)) return { expert: Expert.remember, text: t.replace(REMEMBER, "") };
+  if (RULE.test(t) && contact) return { expert: Expert.setRule, contact, text: t };
+  if (FIND.test(t)) return { expert: Expert.find, text: t };
+  if (contact && ASK_CONTACT.test(t)) return { expert: Expert.askContact, contact, text: t };
+  if (ASK_SELF.test(t) || contact) return { expert: Expert.askSelf, ...(contact ? { contact } : {}), text: t };
+  return { expert: Expert.chat, text: t };
 }
 
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

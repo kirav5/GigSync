@@ -2,7 +2,8 @@ import {
   type Engagement,
   type EngagementBrief,
   type EngagementId,
-  type EnvelopeKind,
+  EngagementStatus,
+  EnvelopeKind,
   nextStatus,
   type Role,
   TERMINAL_STATUSES,
@@ -31,7 +32,7 @@ export function newEngagement(
     group: input.group ?? id,
     role: input.role,
     counterpart: input.counterpart,
-    status: "draft",
+    status: EngagementStatus.enum.draft,
     brief: input.brief,
     created_at: at,
     updated_at: at,
@@ -47,22 +48,25 @@ export function apply(e: Engagement, kind: EnvelopeKind, now: Date): Engagement 
 
 export const isOpen = (e: Engagement) => !TERMINAL_STATUSES.has(e.status);
 
+const K = EnvelopeKind.enum;
+/** Kinds a person can choose to send; receipt and key_change are sent by the system. */
+const SENDABLE: readonly EnvelopeKind[] = [
+  K.request,
+  K.clarify,
+  K.response,
+  K.quote,
+  K.agree,
+  K.update,
+  K.delivery,
+  K.review,
+  K.cancel,
+];
+const BY_SIDE: Readonly<Record<Role, ReadonlySet<EnvelopeKind>>> = {
+  requester: new Set([K.request, K.response, K.agree, K.review, K.cancel, K.clarify]),
+  provider: new Set([K.clarify, K.response, K.quote, K.update, K.delivery, K.cancel]),
+};
+
 /** Envelope kinds a side may send in the current state, so the UI only offers real actions. */
 export function allowedKinds(e: Engagement): EnvelopeKind[] {
-  const all: EnvelopeKind[] = [
-    "request",
-    "clarify",
-    "response",
-    "quote",
-    "agree",
-    "update",
-    "delivery",
-    "review",
-    "cancel",
-  ];
-  const bySide: Record<Role, Set<EnvelopeKind>> = {
-    requester: new Set(["request", "response", "agree", "review", "cancel", "clarify"]),
-    provider: new Set(["clarify", "response", "quote", "update", "delivery", "cancel"]),
-  };
-  return all.filter((k) => nextStatus(e.status, k) && bySide[e.role].has(k));
+  return SENDABLE.filter((k) => nextStatus(e.status, k) && BY_SIDE[e.role].has(k));
 }

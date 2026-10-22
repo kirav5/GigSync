@@ -44,6 +44,10 @@ export const AccessRequest = z.object({
 });
 export type AccessRequest = z.infer<typeof AccessRequest>;
 
+/** Why the policy engine said no. */
+export const DenyReason = z.enum(["no_grant", "outside_hours", "expired"]);
+export type DenyReason = z.infer<typeof DenyReason>;
+
 export const Decision = z.discriminatedUnion("allow", [
   z.object({
     allow: z.literal(true),
@@ -53,7 +57,7 @@ export const Decision = z.discriminatedUnion("allow", [
   }),
   z.object({
     allow: z.literal(false),
-    reason: z.enum(["no_grant", "outside_hours", "expired"]),
+    reason: DenyReason,
   }),
 ]);
 export type Decision = z.infer<typeof Decision>;

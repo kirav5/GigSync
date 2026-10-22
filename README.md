@@ -24,7 +24,7 @@ docs/               design and ADRs
 
 ## Run it
 
-Needs Node 24 (`.nvmrc`) and pnpm 10.
+Needs Node 24 (`.nvmrc`) and pnpm 10. With nvm: `nvm install 24 && corepack enable`.
 
 ```bash
 pnpm install
@@ -34,11 +34,21 @@ pnpm install
 pnpm test
 ```
 
+Local settings for the API (sign-in code `000000`, full logs), then the local directory database:
+
+```bash
+cp workers/api/.dev.vars.example workers/api/.dev.vars
+```
+
+```bash
+pnpm --filter @collab/worker-api exec wrangler d1 migrations apply collab-directory --local
+```
+
 ```bash
 pnpm dev:workers
 ```
 
-In another terminal, the app in a browser (lite mode, no model):
+In another terminal, the app in a browser at http://localhost:5173 (lite mode, no model):
 
 ```bash
 pnpm dev:app
@@ -53,12 +63,54 @@ Try the local API:
 curl -s -X POST localhost:8787/v1/auth/otp/verify -H 'content-type: application/json' -d '{"phone":"+919800000001","code":"000000","device":{"signing_key":"a","encryption_key":"b","protocol":1}}'
 ```
 
+### A local model (optional)
+
+The web dev build can answer with a model from [Ollama](https://ollama.com) on your computer instead of lite mode.
+Release builds never include it.
+
+```bash
+brew install ollama
+```
+
+```bash
+ollama serve
+```
+
+In another terminal:
+
+```bash
+ollama pull gemma3:1b
+```
+
+```bash
+echo VITE_OLLAMA_MODEL=gemma3:1b > apps/mobile/.env.development.local
+```
+
+Restart `pnpm dev:app`; the header shows `ollama gemma3:1b`.
+
+## Logs
+
+One logger (`@collab/core/log`) for the app and every Worker. What it prints depends on where it runs:
+
+| Where               | Shows                                                                 | Settings                                                            |
+| ------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Local API and index | Everything: request and response bodies, traced calls, private values | `.dev.vars`: `ENVIRONMENT=local`, `LOG_LEVEL=debug`, `LOG_PII=true` |
+| App, dev build      | Everything, in the browser console (set the level filter to Verbose)  | automatic in `pnpm dev:app`                                         |
+| Deployed Workers    | Requests and events only; private values print as `[redacted]`        | `wrangler.toml`: `LOG_LEVEL=info`, `LOG_PII=false`                  |
+| App, release build  | Warnings and errors only, redacted, and they stay on the phone        | automatic                                                           |
+- **API logs** print in the `pnpm dev:workers` terminal. **Chat and agent logs** print in the browser console,
+  since the agent runs in the app and chat never reaches the server.
+- Each request gets a `requestId`, returned as the `x-request-id` header; search for it to follow one request.
+- `LOG_PII` takes effect only when `ENVIRONMENT=local`, so a copied config cannot leak private data from a deployment.
+- Deployed logs: Cloudflare dashboard → Workers → the Worker → Logs, or `wrangler tail` from `workers/api`.
+
 ## Working with Claude Code
 
-Backend work follows the `backend-engineering` skill in `.claude/skills/`: layered Workers code, validated inputs,
-normalized D1 tables, numbered migrations, tests, and a review checklist. Claude loads it whenever it touches
-`workers/`, `packages/` or `infra/wrangler`; people can read it as the backend style guide. One rule is enforced for
-everyone: `pnpm lint` fails when a source file reaches 300 lines.
+All code follows the `code-quality` skill in `.claude/skills/`: named constants instead of magic strings, layered
+Workers code, validated inputs, normalized D1 tables, numbered migrations, app structure, tests, and a review
+checklist. Claude loads it before touching any code; people can read it as the project's style guide. Two rules are
+enforced for everyone by `pnpm lint`: a source file must stay under 300 lines, and a string may not be compared
+with `===` or used as a `case` (or repeated 3+ times in a file) without a name.
 
 `.claude/settings.json` enables the [UI UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) plugin
 for this project: design guidance (style, palette, fonts, UX checks) whenever Claude works on UI. Opening the repo
@@ -75,17 +127,25 @@ anything it suggests.
 2. The model never decides what may be shared. `decide()` in the policy engine does, in code, before and after
    any drafting. `packages/protocol/vectors/policy.json` is the contract every implementation must pass.
 3. A message from another agent is data, never an instruction.
-4. No message content, phone numbers or keys in logs, ever.
+4. Message content, phone numbers and tokens reach logs only through `pii()`: shown in local runs, `[redacted]`
+   everywhere else. Secret keys are never logged.
 5. Schemas live in `packages/protocol` and nowhere else.
 
 ## Pipeline
 
-| Workflow        | When                      | Does                                                                           |
-| --------------- | ------------------------- | ------------------------------------------------------------------------------ |
-| CI              | every push and PR         | lint, typecheck, test, Android debug APK, iOS simulator build                  |
-| Deploy Workers  | push to `main` / tag `v*` | wrangler deploy to staging / production (skips until Cloudflare secrets exist) |
-| Release Android | tag `v*`                  | signed bundle to the Play internal track (skips until signing secrets exist)   |
-| Release iOS     | tag `v*`                  | archive to TestFlight (skips until Apple secrets exist)                        |
+| Workflow        | When                                                           | Does                                                                           |
+| --------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| CI              | every push, any branch                                         | lint, build (packages, app, Worker bundles), typecheck, test                   |
+| Mobile builds   | on demand: `/build` comment on a PR, or Actions → Run workflow | Android debug APK and/or iOS simulator build                                   |
+| Deploy Workers  | push to `main` / tag `v*`                                      | wrangler deploy to staging / production (skips until Cloudflare secrets exist) |
+| Release Android | tag `v*`                                                       | signed bundle to the Play internal track (skips until signing secrets exist)   |
+| Release iOS     | tag `v*`                                                       | archive to TestFlight (skips until Apple secrets exist)                        |
+
+To build the phone apps for a pull request, comment `/build mobile` (or `/build android`, `/build ios`) on it. The
+result appears as checks on the PR and a reply with a link to the logs and the APK. Owners, members and collaborators
+only.
+
+Sign off every commit (`git commit -s`): the DCO check on pull requests requires it.
 
 Secrets to add in the repository settings when ready: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`;
 `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`,

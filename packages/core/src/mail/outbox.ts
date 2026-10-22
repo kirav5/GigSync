@@ -1,5 +1,5 @@
 import type { Envelope, MessageId } from "@collab/protocol";
-import type { Storage } from "../ports.js";
+import { Collection, type Storage } from "../ports.js";
 
 export interface Pending {
   envelope: Envelope;
@@ -15,7 +15,7 @@ export class Outbox {
   constructor(private storage: Storage) {}
 
   async enqueue(envelope: Envelope, now: Date) {
-    await this.storage.put<Pending>("outbox", envelope.id, {
+    await this.storage.put<Pending>(Collection.outbox, envelope.id, {
       envelope,
       attempts: 0,
       next_attempt_at: now.toISOString(),
@@ -23,23 +23,23 @@ export class Outbox {
   }
 
   async due(now: Date): Promise<Pending[]> {
-    const all = await this.storage.list<Pending>("outbox");
+    const all = await this.storage.list<Pending>(Collection.outbox);
     return all
       .filter((p) => Date.parse(p.next_attempt_at) <= now.getTime())
       .sort((a, b) => a.envelope.id.localeCompare(b.envelope.id));
   }
 
   async sent(id: MessageId) {
-    await this.storage.delete("outbox", id);
+    await this.storage.delete(Collection.outbox, id);
   }
 
   /** 2s, 4s, 8s … capped at 10 minutes. */
   async failed(id: MessageId, now: Date) {
-    const p = await this.storage.get<Pending>("outbox", id);
+    const p = await this.storage.get<Pending>(Collection.outbox, id);
     if (!p) return;
     const attempts = p.attempts + 1;
     const delayMs = Math.min(2 ** attempts * 1000, 10 * 60 * 1000);
-    await this.storage.put<Pending>("outbox", id, {
+    await this.storage.put<Pending>(Collection.outbox, id, {
       ...p,
       attempts,
       next_attempt_at: new Date(now.getTime() + delayMs).toISOString(),
@@ -49,8 +49,8 @@ export class Outbox {
   /** Per (engagement, recipient) sequence numbers, so receivers can order and detect gaps. */
   async nextSeq(engagement: string, to: string): Promise<number> {
     const key = `${engagement}|${to}`;
-    const cur = (await this.storage.get<{ seq: number }>("outbox_seq", key))?.seq ?? -1;
-    await this.storage.put("outbox_seq", key, { seq: cur + 1 });
+    const cur = (await this.storage.get<{ seq: number }>(Collection.outboxSeq, key))?.seq ?? -1;
+    await this.storage.put(Collection.outboxSeq, key, { seq: cur + 1 });
     return cur + 1;
   }
 }

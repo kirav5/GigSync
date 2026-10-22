@@ -1,7 +1,6 @@
 # Collab index on Cloudflare
 
 The marketplace discovery index, serverless: nothing runs on your computer.
-
 - **Same API as `collab-index`** on the Mac: `POST /query` (a listing filter) → signed listings; `POST /publish`
   (a signed listing) → `{"ok": true}`; `GET /health` → `{"listings": n}`. Point the app's index at the Worker URL.
 - **Fed by AT Protocol:** a Durable Object follows Jetstream for `dev.collab.market.listing` records (verified sellers

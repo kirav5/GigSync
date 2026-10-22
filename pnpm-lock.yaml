@@ -109,6 +109,9 @@ importers:
 
   workers/api:
     dependencies:
+      "@collab/core":
+        specifier: workspace:*
+        version: link:../../packages/core
       "@collab/protocol":
         specifier: workspace:*
         version: link:../../packages/protocol
@@ -143,6 +146,9 @@ importers:
 
   workers/index:
     dependencies:
+      "@collab/core":
+        specifier: workspace:*
+        version: link:../../packages/core
       "@noble/curves":
         specifier: ^1.9.0
         version: 1.9.7
@@ -150,12 +156,21 @@ importers:
         specifier: ^1.8.0
         version: 1.8.0
     devDependencies:
+      "@cloudflare/workers-types":
+        specifier: 5.20261021.1
+        version: 5.20261021.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
       wrangler:
         specifier: 4.151.3
         version: 4.151.3(@cloudflare/workers-types@5.20261021.1)(@types/node@26.6.5)
 
   workers/mailbox:
     dependencies:
+      "@collab/core":
+        specifier: workspace:*
+        version: link:../../packages/core
       "@collab/protocol":
         specifier: workspace:*
         version: link:../../packages/protocol

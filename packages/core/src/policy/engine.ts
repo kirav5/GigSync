@@ -1,10 +1,12 @@
 import {
   type AccessRequest,
   type Decision,
+  DenyReason,
   type Grant,
   MODE_ORDER,
   PRECISION_ORDER,
-  type Precision,
+  Precision,
+  Topic,
 } from "@collab/protocol";
 
 /**
@@ -33,9 +35,9 @@ export function decide(grants: readonly Grant[], request: AccessRequest): Decisi
   }
 
   if (live.length === 0) {
-    if (sawOutsideHours) return { allow: false, reason: "outside_hours" };
-    if (sawExpired) return { allow: false, reason: "expired" };
-    return { allow: false, reason: "no_grant" };
+    if (sawOutsideHours) return { allow: false, reason: DenyReason.enum.outside_hours };
+    if (sawExpired) return { allow: false, reason: DenyReason.enum.expired };
+    return { allow: false, reason: DenyReason.enum.no_grant };
   }
 
   // Most restrictive mode, then coarsest precision. The grant that set the winning precision is the one reported.
@@ -45,10 +47,10 @@ export function decide(grants: readonly Grant[], request: AccessRequest): Decisi
   }
   const mode = winner.mode;
 
-  if (request.topic !== "location") return { allow: true, mode, grant: winner.id };
+  if (request.topic !== Topic.enum.location) return { allow: true, mode, grant: winner.id };
 
-  let precision: Precision = coarsest(live.map((g) => g.precision ?? "city"));
-  let precisionGrant = live.find((g) => (g.precision ?? "city") === precision) ?? winner;
+  let precision: Precision = coarsest(live.map((g) => g.precision ?? Precision.enum.city));
+  let precisionGrant = live.find((g) => (g.precision ?? Precision.enum.city) === precision) ?? winner;
   if (request.precision && rank(request.precision) < rank(precision)) {
     precision = request.precision;
     precisionGrant = winner;

@@ -1,7 +1,7 @@
-import { Agent, type Card } from "@collab/core";
+import { Agent, type Card, CardKind } from "@collab/core";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { apiReachable } from "./adapters/api.js";
-import { createPorts } from "./adapters/ports.js";
+import { createPorts, modelLabel } from "./adapters/ports.js";
 
 interface Turn {
   id: number;
@@ -58,7 +58,8 @@ export function App() {
       <header>
         <h1>Collab</h1>
         <small>
-          {platform} · lite mode (no model){online !== undefined && ` · ${online ? "online" : "offline"}`}
+          {platform} · {modelLabel}
+          {online !== undefined && ` · ${online ? "online" : "offline"}`}
         </small>
       </header>
       <div className="log" ref={log}>
@@ -85,7 +86,7 @@ export function App() {
               <div className="bubble agent">
                 <span className="kind">{t.card.kind.replace("_", " ")}</span>
                 {t.card.body}
-                {t.card.kind === "answer" && t.card.sources.length > 0 && (
+                {t.card.kind === CardKind.answer && t.card.sources.length > 0 && (
                   <span className="sources">from {t.card.sources.length} note(s)</span>
                 )}
               </div>
