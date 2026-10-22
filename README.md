@@ -98,6 +98,6 @@ Secrets to add in the repository settings when ready: `CLOUDFLARE_API_TOKEN`, `C
 - Sessions: opaque tokens in D1; signed tokens later.
 - Envelope signatures are not yet verified by the API (M2), and sealing is a placeholder until libsignal is wired in.
 - The LLM plugin returns "no model" on every platform; the agent runs in lite mode (keyword router, note search).
-- Public records go to the user's Bluesky repository (ADR 0005); connecting a Bluesky account arrives in M3.
+- Public records go to the user's Bluesky repository (ADR 0005); every user connects a Bluesky account at onboarding (ADR 0006), arriving with M3.
 
 No license yet.

@@ -10,7 +10,7 @@ Every person has an agent on their phone. It keeps their notes and context on th
 under rules they set (grants), and asks other agents on their behalf. Businesses and providers have worker
 agents. Agents talk through one object, the engagement, carried in signed, end-to-end encrypted envelopes
 through a mailbox on Cloudflare. Public data (worker profiles, listings, public notes, reviews) is owned by
-the user in their AT Protocol repository on Bluesky's PDS; D1 keeps a searchable copy.
+the user in their AT Protocol repository on Bluesky's PDS, connected at onboarding (ADR 0006); D1 keeps a searchable copy.
 
 ## Where data lives
 

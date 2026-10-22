@@ -1,6 +1,6 @@
 # ADR 0005: Public data lives on Bluesky's PDS, not one we run
 
-Date: 2026-10-21. Status: accepted. Supersedes ADR 0003.
+Date: 2026-10-21. Status: accepted, amended by ADR 0006 (connect at onboarding, not at first publish). Supersedes ADR 0003.
 
 ## Decision
 
