@@ -145,7 +145,6 @@ the existing code.
    docs-only ones: Biome formats Markdown (tables, lists) and the file-size check reads every tracked file. The
    committed hooks in `.githooks/` (installed by `pnpm install` via `prepare`) run lint on commit and typecheck on
    push; never bypass them with `--no-verify` to get a red commit through.
-6. **Never push to `main`.** Branch, push, open a PR, let CI go green, then merge. The `pre-push` hook refuses
-   `main`; GitHub cannot enforce it on this private repo without a paid plan, so the hook and the habit are the
-   guard. A red PR is never merged.
+6. **Never push to `main`.** Branch, PR, green CI, squash-merge; every commit signed off (`git commit -s`). The
+   full procedure is the `git-workflow` skill; load it before any commit, push or merge.
 6. Go through `references/review-checklist.md` and fix what it finds before calling the work done.
