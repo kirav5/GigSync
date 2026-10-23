@@ -141,5 +141,10 @@ the existing code.
 2. Migration in `infra/wrangler/d1/<db>/` if the data model changes (see `references/data.md`).
 3. Data-access functions, then domain logic, then the route.
 4. Tests in the Worker's `test/` folder (`@cloudflare/vitest-pool-workers`, `applyD1Migrations`).
-5. `pnpm lint && pnpm typecheck && pnpm test` must pass.
+5. `pnpm lint && pnpm typecheck && pnpm test` must pass. Run `pnpm lint` before **every** commit, including
+   docs-only ones: Biome formats Markdown (tables, lists) and the file-size check reads every tracked file. The
+   committed hooks in `.githooks/` (installed by `pnpm install` via `prepare`) run lint on commit and typecheck on
+   push; never bypass them with `--no-verify` to get a red commit through.
+6. **Never push to `main`.** Branch, PR, green CI, squash-merge; every commit signed off (`git commit -s`). The
+   full procedure is the `git-workflow` skill; load it before any commit, push or merge.
 6. Go through `references/review-checklist.md` and fix what it finds before calling the work done.

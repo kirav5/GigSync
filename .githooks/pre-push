@@ -1,0 +1,9 @@
+#!/bin/sh
+# Refuse direct pushes to main (GitHub's free plan cannot enforce this on a private repo); typecheck before pushing.
+while read local_ref local_sha remote_ref remote_sha; do
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    echo "Pushing straight to main is not allowed; open a pull request." >&2
+    exit 1
+  fi
+done
+pnpm typecheck

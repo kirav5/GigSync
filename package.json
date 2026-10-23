@@ -8,6 +8,7 @@
   },
   "packageManager": "pnpm@10.14.0",
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks || true",
     "lint": "biome check . && node scripts/check-file-size.mjs && node scripts/check-magic-strings.mjs",
     "lint:fix": "biome check --write .",
     "typecheck": "pnpm -r --filter './packages/*' --filter './workers/*' --filter './apps/*' --filter './plugins/*' run typecheck",

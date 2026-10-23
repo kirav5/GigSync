@@ -1,0 +1,4 @@
+#!/bin/sh
+# Runs the same checks as CI's lint step on every commit, docs included (Biome formats Markdown too).
+# Skip once with: git commit --no-verify
+pnpm lint
