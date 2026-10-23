@@ -9,12 +9,12 @@ Chat history and the agent's episodes are encrypted on the phone and written to 
 user's devices: it is held in the Keystore-wrapped store, in the PIN-wrapped backup, and in Block Store. Live
 data stays in the encrypted database on the phone; the repo copy is for sync and recovery and belongs to the user.
 
-| Store | Holds | Key |
-| --- | --- | --- |
-| Phone, SQLCipher | everything, live | Keystore AES key |
-| User's repo, `private.history` records | daily chunks of episodes and threads, ciphertext only | history key (XChaCha20-Poly1305), on the device |
-| PIN-wrapped backup (Downloads, optionally R2) | full snapshot plus the account key, the history key and the Bluesky session | recovery PIN (Argon2id), Block Store |
-| Shared-PII vault | values other people released to this user, time-boxed | device only; excluded from the repo and, by default, from the backup |
+| Store                                         | Holds                                                                       | Key                                                                  |
+| --------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Phone, SQLCipher                              | everything, live                                                            | Keystore AES key                                                     |
+| User's repo, `private.history` records        | daily chunks of episodes and threads, ciphertext only                       | history key (XChaCha20-Poly1305), on the device                      |
+| PIN-wrapped backup (Downloads, optionally R2) | full snapshot plus the account key, the history key and the Bluesky session | recovery PIN (Argon2id), Block Store                                 |
+| Shared-PII vault                              | values other people released to this user, time-boxed                       | device only; excluded from the repo and, by default, from the backup |
 
 Record shape: `{ v, keyId, nonce, ciphertext, size }` and nothing else. Conversation ids, counterpart DIDs and
 text are inside the ciphertext. Chunks are written once a day in fixed-size pieces, padded, so write times and
