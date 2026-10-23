@@ -81,4 +81,4 @@ never blocks using Collab; it removes the safety net for a forgotten password.
 - Public records sit on Bluesky's servers in the US under Bluesky's terms; private data is unaffected.
 - Handles are `name.bsky.social`; `name.collabai.network` can be offered later through a Worker serving
   `/.well-known/atproto-did`.
-- Private chats and notes are never written to the Bluesky repo under any setting; only records the user publishes.
+- Private chats and notes reach the Bluesky repo only as ciphertext the user alone can open (ADR 0007); the public records are the ones the user publishes.
