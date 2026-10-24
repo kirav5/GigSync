@@ -144,7 +144,7 @@ Receipt = z.object({
 A job is an engagement (`eng_`); the consumer is `requester`, the worker `provider`. Payments hang off it.
 
 ```ts
-Vpa = z.string().regex(/^[A-Za-z0-9._-]{2,256}@[A-Za-z][A-Za-z0-9]{1,63}$/); // UPI ID, e.g. sita@okaxis
+Vpa = z.string().regex(/^[A-Za-z0-9._-]{2,256}@[A-Za-z][A-Za-z0-9]{1,63}$/); // UPI ID, e.g. name@bank
 Paise = z.number().int().positive().max(UPI_MAX_PAISE); // ₹1,00,000 per UPI payment
 PaymentMethod = z.enum(["upi", "cash"]);
 PaymentStatus = z.enum(["requested", "paid", "confirmed", "disputed"]);

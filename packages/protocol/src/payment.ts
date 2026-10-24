@@ -13,7 +13,7 @@ export const PAISE_PER_RUPEE = 100;
 export const PAYMENT_NOTE_MAX = 50;
 export const PAYEE_NAME_MAX = 40;
 
-/** A UPI ID (virtual payment address), e.g. sita@okaxis. */
+/** A UPI ID (virtual payment address), in the form name@bank. */
 export const Vpa = z.string().regex(/^[A-Za-z0-9._-]{2,256}@[A-Za-z][A-Za-z0-9]{1,63}$/, "UPI ID");
 export type Vpa = z.infer<typeof Vpa>;
 

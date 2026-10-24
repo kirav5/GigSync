@@ -19,7 +19,7 @@ export const UpiParam = {
 export class UpiError extends Error {}
 
 export interface UpiPayment {
-  /** The worker's own UPI ID, e.g. sita@okaxis. */
+  /** The worker's own UPI ID, in the form name@bank. */
   vpa: string;
   /** Shown to the payer by their UPI app. */
   name: string;
