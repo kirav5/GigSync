@@ -15,7 +15,7 @@ const STARTERS = [
   "remember Sunday is my weekly off",
 ];
 
-/** Her agent: notes and answers from them, on this phone (lite mode without a model). */
+/** The worker's agent: notes and answers from them, on this phone (lite mode without a model). */
 export function AgentScreen({ agent, modelLabel }: { agent: CoreAgent; modelLabel: string }) {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [text, setText] = useState("");

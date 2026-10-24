@@ -15,7 +15,7 @@ import { qrDataUrl } from "./qr.js";
 import type { Payee } from "./store.js";
 
 const S = PaymentStatus.enum;
-/** Payments she can still settle: confirm as received, or dispute. */
+/** Payments the worker can still settle: confirm as received, or dispute. */
 export const OPEN_PAYMENT: ReadonlySet<Payment["status"]> = new Set([S.requested, S.paid]);
 
 interface Props {
@@ -42,7 +42,7 @@ function toPaise(text: string): number {
   return paise;
 }
 
-/** One job's payments: ask for an amount, show her UPI QR, then record what arrived. */
+/** One job's payments: ask for an amount, show their UPI QR, then record what arrived. */
 export function GetPaid({ book, job, payee, self, payments, changed }: Props) {
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");

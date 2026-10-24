@@ -16,7 +16,7 @@ const clock = { now: () => now };
 const WORKER = "usr_01J0000000000000000000WWWW";
 const CONSUMER = "usr_01J0000000000000000000CCCC";
 
-/** A job seen from the worker's phone: she is the provider, the consumer is the counterpart. */
+/** A job seen from the worker's phone: the worker is the provider, the consumer is the counterpart. */
 function job(status: Engagement["status"], role: Engagement["role"] = "provider"): Engagement {
   const e = newEngagement(
     { role, counterpart: CONSUMER, brief: { text: "House cleaning, Mon-Fri", topic: "cleaning", shared: {} } },
@@ -84,7 +84,7 @@ describe("PaymentBook", () => {
     expect(await b.summary(e.id)).toEqual({ requested: 45_000, paid: 45_000, confirmed: 45_000, outstanding: 0 });
   });
 
-  it("lets her confirm cash directly, and dispute instead of confirming", async () => {
+  it("lets the worker confirm cash directly, and dispute instead of confirming", async () => {
     const b = book();
     const e = job("in_progress");
     const cash = await b.request({ engagement: e, payee: WORKER, amountPaise: 20_000, note: "", method: "cash" });

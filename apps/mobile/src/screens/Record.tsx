@@ -4,7 +4,7 @@ import { jobLabel } from "../payments/store.js";
 import type { GigData } from "../state.js";
 import { C } from "../ui/cls.js";
 
-/** Her working record: every job and payment, kept on this phone, for a union, helpline or welfare board. */
+/** Their working record: every job and payment, kept on this phone, for a union, helpline or welfare board. */
 export function Record({ data }: { data: GigData }) {
   const sum = summarize(data.payments);
   const label = new Map(data.jobs.map((j) => [j.id, jobLabel(j)]));
