@@ -12,7 +12,7 @@ GigSync keeps steps 1 and 2 of the sanitize ADR:
 GigSync drops step 3, Gemini through the Inference Worker. No frontier or cloud model is used anywhere in GigSync:
 - **Phone:** speech, translation and phrasing run on the phone. The keyword router and templates cover every path
   when no model is installed.
-- **Desk:** a model runs only on the union's own machine, through Tiles and Tilekit (ADR 0009).
+- **Union mode and web:** the same offline model plugin (ADR 0009), or templates when the device has none.
 - **Inference Worker:** GigSync does not deploy it.
 
 ## Why

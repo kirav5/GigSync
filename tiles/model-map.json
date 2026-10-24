@@ -1,8 +1,0 @@
-{
-  "$comment": "Maps the Modelfile's FROM (desk, via Tiles) to the model each phone tier uses. Phone entries are candidates until measured on a ₹10-15k phone (HLD §10).",
-  "unsloth/gemma-4-12b-it-GGUF:Q4_K_M": {
-    "desk": "unsloth/gemma-4-12b-it-GGUF:Q4_K_M",
-    "phone_4gb": "[≤2B Apache-2.0 model, LiteRT-LM int4 — to choose after measurement]",
-    "phone_low_memory": null
-  }
-}

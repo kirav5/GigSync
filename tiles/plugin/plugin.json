@@ -1,9 +1,0 @@
-{
-  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-  "name": "gigsync",
-  "version": "0.1.0",
-  "description": "GigSync skills for Tiles: read a gig worker's evidence pack, explain an agreement, and draft a grievance, all on your own machine.",
-  "author": "Atishay Srivastava",
-  "license": "Apache-2.0",
-  "keywords": ["gig-work", "labour-rights", "india", "union", "local-first"]
-}

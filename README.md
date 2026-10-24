@@ -3,23 +3,15 @@
 GigSync gives a gig worker her own agent on her own phone. The agent agrees each job with the employer's agent,
 holds back her number and address until both sides sign, and keeps a signed record of every job and payment
 that belongs to her. She chooses what a union, a wage helpline or a welfare board sees. It works with no model
-at all; small on-device models only help with speech and wording. Union desks run on
-[Tiles](https://tiles.run) through Tilekit.
+at all; a small offline model, on the device, only helps with wording. One codebase runs on Android, iPhone and
+Mac, and the web.
 
 Status: **G0, design.** Start with the [HLD](docs/gigsync/HLD.md) and [LLD](docs/gigsync/LLD.md), then
-[ADR 0009](docs/adr/0009-tilekit-for-desktop-surfaces.md) (Tilekit) and
+[ADR 0009](docs/adr/0009-one-offline-model-plugin-not-tilekit.md) (the offline model) and
 [ADR 0010](docs/adr/0010-no-cloud-model-in-gigsync.md) (no cloud model). GigSync is a working name.
 
 GigSync is derived from [collabai.network](https://github.com/kirav5/collabai.network) (git remote `upstream`).
-It reuses Collab's agent core, protocol, mailbox and policy engine. Package names, Worker names and app ids
-still say `collab`; the rename is a separate PR (LLD §14). GigSync-specific additions so far:
-
-```
-packages/tilekit-client   typed client for the Tiles daemon's Tilekit REST API, with SSE streaming
-tiles/gigsync.modelfile   the persona and parameters, shared by Tiles (desk) and the phone build
-tiles/plugin/             a Tiles Agent Plugin: grievance and explain skills
-docs/gigsync/             HLD and LLD
-```
+It reuses Collab's agent core, protocol, mailbox, policy engine and offline model plugin.
 
 ---
 

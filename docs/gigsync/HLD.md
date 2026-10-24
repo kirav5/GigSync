@@ -57,7 +57,7 @@ flowchart LR
   E([Employer / household]) --> EP[GigSync app<br/>employer mode]
   WP <-->|sealed envelopes| CLOUD[(GigSync cloud<br/>API · mailbox · notifier · job board)]
   EP <-->|sealed envelopes| CLOUD
-  U([Union organiser]) --> DESK[GigSync Desk<br/>desktop agent on Tilekit]
+  U([Union organiser]) --> DESK[GigSync app<br/>union mode · web or phone]
   DESK <-->|sealed evidence packs| CLOUD
   WP -. consented export .-> HL[India Labourline /<br/>welfare board]
   CLOUD <-->|relay| ONDC[(ONDC network<br/>rides & delivery)]
@@ -65,50 +65,51 @@ flowchart LR
   WP -->|public profile| ATP[(AT Protocol / Bluesky<br/>public records)]
 ```
 
-| Actor                    | Uses                               | Sees                                                      |
-| ------------------------ | ---------------------------------- | --------------------------------------------------------- |
-| Worker                   | Android app, worker mode           | Everything about her own working life                     |
-| Employer / household     | Same app, employer mode            | Agreed terms; her contact only during the job             |
-| Union organiser          | **GigSync Desk** (Tilekit desktop) | Evidence packs the worker sent to the union, nothing else |
-| Union sisters' agents    | Their own phones                   | A "do not accept this customer" flag, never her story     |
-| Helpline / welfare board | A consented export file            | Days worked and pay (owed), only the fields she picked    |
-| GigSync cloud            | —                                  | Usernames, public keys, public profiles, locked envelopes |
+| Actor                    | Uses                             | Sees                                                      |
+| ------------------------ | -------------------------------- | --------------------------------------------------------- |
+| Worker                   | Android app (web/iPhone), worker | Everything about her own working life                     |
+| Employer / household     | Same app, employer mode          | Agreed terms; her contact only during the job             |
+| Union organiser          | Same app, union mode (web/phone) | Evidence packs the worker sent to the union, nothing else |
+| Union sisters' agents    | Their own phones                 | A "do not accept this customer" flag, never her story     |
+| Helpline / welfare board | A consented export file          | Days worked and pay (owed), only the fields she picked    |
+| GigSync cloud            | —                                | Usernames, public keys, public profiles, locked envelopes |
 
-## 5. Where Tiles and Tilekit fit
+## 5. One app, every platform, an offline model
 
-[Tiles](https://tiles.run) is Mozilla-backed, local-first and built on AT Protocol. It runs open models through
-llama.cpp on **Apple Silicon macOS and Linux**. **Tilekit** is how other products embed it:
-- the **Tilekit REST API** that the local Tiles daemon serves at `http://127.0.0.1:1729/v1/tilekit/`
-  (server, agent, session, account and atproto routes; streams replies as SSE);
-- the `tilekit` Rust crate, which parses **Modelfiles** (`FROM`, `SYSTEM`, `PARAMETER` …);
-- **Agent Plugins** (`plugin.json` plus `skills/<name>/SKILL.md`), installed with `tiles plugin install`.
+GigSync is **one TypeScript codebase** (Capacitor + React, ADR 0001), inherited from collabai.network. It ships as
+an Android app, an iPhone/Mac app and a **web app** from the same source. Workers, employers and union organisers
+use the same app in different modes; the union desk is simply the app in **union mode**, usually in a browser.
 
-Tiles does **not** run on a ₹10,000 Android phone, so GigSync uses it where a laptop is the right device:
+The language model is the **offline, on-device model plugin collabai.network already has**
+(`plugins/gigsync-llm`, formerly `plugins/collab-llm`). It is one Capacitor plugin, `GigSyncLLM`, with
+`status()` and `generate()`, and a native engine per platform:
 
-| GigSync surface                          | Runs on                  | How Tilekit is used                                                                                                         |
-| ---------------------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| **GigSync Desk** (union / helpline desk) | A union office laptop    | Tauri app that drives the Tiles daemon over the Tilekit API: reads evidence packs locally, drafts grievance letters offline |
-| **Persona and prompt config**            | Phone and desk           | One `gigsync.modelfile` (Modelfile format) is the source of truth for the phrasing model's system prompt and parameters     |
-| **GigSync Agent Plugin**                 | Any Tiles install        | Skills for reading evidence packs, explaining agreements and drafting complaints, installable with `tiles plugin install`   |
-| **Eval harness**                         | Developer machine and CI | Runs the on-phone prompt set against the same open models through Tilekit to measure quality before shipping to phones      |
-| **Phone**                                | Android 4 GB             | Does **not** use Tilekit. Uses LiteRT / llama.cpp behind the `Model` port, configured from the same Modelfile               |
+| Platform       | Engine                                                | State today                       |
+| -------------- | ----------------------------------------------------- | --------------------------------- |
+| Android        | LiteRT-LM (Kotlin), a ≤2B open model                  | Stub returns "no model"           |
+| iPhone and Mac | Apple Foundation Models (Swift), on-device            | Stub returns "no model"           |
+| Web            | In-browser engine behind `GigSyncLLMWeb` (WebGPU)     | Returns "no model"; templates run |
+| Development    | Ollama adapter (`VITE_OLLAMA_MODEL`), dev builds only | Exists                            |
 
-The Desk talks to Tilekit through a typed TypeScript client (`packages/tilekit-client`). Because both Tiles and
-GigSync publish public data on AT Protocol, a union's Desk identity and a worker's public profile live in the
-same network. See [ADR 0009](../adr/0009-tilekit-for-desktop-surfaces.md).
+Every engine is optional. When `status()` reports no model, or too little free memory, the agent runs in **lite
+mode**: the keyword router and fixed templates cover every path. Nothing in GigSync calls a cloud model
+([ADR 0010](../adr/0010-no-cloud-model-in-gigsync.md)). We do not use Tiles or Tilekit: Tiles runs only on Apple
+Silicon Macs and Linux, and GigSync must run on phones and in the browser
+([ADR 0009](../adr/0009-one-offline-model-plugin-not-tilekit.md)).
 
 ## 6. Containers
 
 ```mermaid
 flowchart TB
-  subgraph Phone["Worker's phone (Android, Capacitor)"]
-    UI[App & voice UI<br/>React] --> CORE[Agent core<br/>@gigsync/core]
+  subgraph App["GigSync app — Android · iPhone/Mac · web (Capacitor)"]
+    UI[App & voice UI<br/>React · worker / employer / union mode] --> CORE[Agent core<br/>@gigsync/core]
     CORE --> SAN[Sanitizer<br/>no AI]
     CORE --> POL[Policy checker<br/>no AI]
     CORE --> LED[Ledger & job state]
-    CORE --> MOD[On-device models<br/>ASR · translation · small LLM]
-    LED --> DB[(Encrypted store<br/>SQLCipher)]
-    KEYS[(Android Keystore<br/>Ed25519 · X25519)]
+    CORE --> LLM[gigsync-llm plugin<br/>LiteRT-LM · Foundation Models · web engine]
+    CORE --> SPEECH[Speech & translation<br/>optional, on device]
+    LED --> DB[(Encrypted store<br/>SQLCipher · IndexedDB on web)]
+    KEYS[(Keystore / Keychain<br/>Ed25519 · X25519)]
     BG[Background responder<br/>Kotlin, same policy vectors]
   end
   subgraph Cloud["GigSync cloud (Cloudflare)"]
@@ -117,31 +118,31 @@ flowchart TB
     MB --> Q[Queue] --> NOTIF[Notifier Worker]
     BOARD[Job board Worker] --> PG[(Postgres + PostGIS<br/>via Hyperdrive)]
     RELAY[ONDC relay Worker]
-  end
-  subgraph Desk["GigSync Desk (union laptop)"]
-    DUI[Tauri UI] --> TKC[tilekit-client] --> TILES[Tiles daemon<br/>:1729 Tilekit API]
-    DUI --> DCORE[@gigsync/core<br/>desk mode]
+    WEB[Static web app Worker]
   end
   CORE <--> API
-  NOTIF --> FCM[(FCM)] --> BG
-  DCORE <--> API
+  NOTIF --> FCM[(FCM / APNs)] --> BG
   RELAY <--> ONDC[(ONDC)]
 ```
 
-| Container            | Technology                                           | Responsibility                                                                           |
-| -------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Mobile app           | Capacitor 8, React 19, Vite (from collabai.network)  | Worker and employer modes, voice UI, confirm cards                                       |
-| Agent core           | TypeScript, no platform imports (`packages/core`)    | Router, experts, job machine, policy, sanitizer, ledger, mail                            |
-| Protocol             | zod schemas (`packages/protocol`)                    | Envelopes, job terms, receipts, grants, evidence packs, public records                   |
-| Encrypted store      | SQLCipher via a Capacitor plugin                     | Ledger, rules, audit, keys metadata, shared-context store                                |
-| Background responder | Kotlin, FCM-woken                                    | Answers routine requests while the app is closed, using the same rules                   |
-| On-device models     | IndicConformer (ASR), IndicTrans2-dist (MT), ≤2B LLM | Speech in, translation, optional phrasing; all optional                                  |
-| API Worker           | Cloudflare Workers + Hono + D1                       | OTP sign-in, device keys, directory, rate limits, mailbox front door                     |
-| Mailbox DO           | Durable Object (SQLite) per user                     | Holds sealed envelopes per device until acked, then deletes them                         |
-| Notifier             | Queue consumer Worker                                | Sends content-free FCM wake-ups                                                          |
-| Job board            | Worker + Postgres/PostGIS                            | Public profiles and open jobs, searchable by area and skill                              |
-| ONDC relay           | Worker                                               | Bridges ONDC ride/delivery jobs to worker agents (a phone cannot be an ONDC participant) |
-| GigSync Desk         | Tauri 2 + Svelte/React, Tiles daemon via Tilekit     | Union/helpline desk agent: receives packs, drafts grievances locally                     |
+| Container            | Technology                                                | Responsibility                                                                           |
+| -------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| GigSync app          | Capacitor 8, React 19, Vite; Android, iPhone/Mac, web     | Worker, employer and union modes; voice UI; confirm cards                                |
+| Agent core           | TypeScript, no platform imports (`packages/core`)         | Router, experts, job machine, policy, sanitizer, ledger, mail                            |
+| Protocol             | zod schemas (`packages/protocol`)                         | Envelopes, job terms, receipts, grants, evidence packs, public records                   |
+| Offline model        | `plugins/gigsync-llm`: LiteRT-LM, Foundation Models, web  | Optional intent help and phrasing; lite mode without it                                  |
+| Speech / translation | IndicConformer (ASR), IndicTrans2-dist (MT), ONNX Runtime | Speech in and translation, optional and on device                                        |
+| Encrypted store      | SQLCipher (native), encrypted IndexedDB (web)             | Ledger, rules, audit, keys metadata, shared-context store                                |
+| Background responder | Kotlin, FCM-woken                                         | Answers routine requests while the app is closed, using the same rules                   |
+| API Worker           | Cloudflare Workers + Hono + D1                            | OTP sign-in, device keys, directory, rate limits, mailbox front door                     |
+| Mailbox DO           | Durable Object (SQLite) per user                          | Holds sealed envelopes per device until acked, then deletes them                         |
+| Notifier             | Queue consumer Worker                                     | Sends content-free FCM wake-ups                                                          |
+| Job board            | Worker + Postgres/PostGIS                                 | Public profiles and open jobs, searchable by area and skill                              |
+| ONDC relay           | Worker                                                    | Bridges ONDC ride/delivery jobs to worker agents (a phone cannot be an ONDC participant) |
+| Web app host         | Static-assets Worker (`gigsync-app`)                      | Serves the web build of the same app                                                     |
+
+On the web, the store and keys use WebCrypto (non-extractable keys) and an encrypted IndexedDB; a browser session
+is treated as a lower-trust device and never runs the background responder.
 
 ## 7. Key flows
 
@@ -244,25 +245,24 @@ never protects anything stored off the phone (ADR 0007).
 | Grants and `decide()`              | Kept; new topics `contact`, `rate`, `ledger`, `safety`                |
 | Mailbox DO, OTP, directory         | Kept as is                                                            |
 | Index Worker (Jetstream)           | Becomes the job board's public-record ingester                        |
-| `plugins/collab-llm`               | Renamed `gigsync-llm`; models configured from the Modelfile           |
+| `plugins/collab-llm`               | Renamed `gigsync-llm`; the one offline model for every platform       |
 | PII sanitizer (ADR 0008)           | Kept and extended (Verhoeff, Luhn, PAN, UPI, IFSC, voter ID, DL)      |
 
 ## 12. Milestones
 
-| Milestone | Scope                                                                           |
-| --------- | ------------------------------------------------------------------------------- |
-| G0        | Rebrand fork, protocol additions, Tilekit client, Modelfile, docs (this branch) |
-| G1        | Job agreement end to end between two phones, contact grant, ledger              |
-| G2        | Receipts, evidence packs, exports; GigSync Desk on Tilekit                      |
-| G3        | Voice (IndicConformer), translation, phrasing model; shared-phone mode          |
-| G4        | Union flag lists and governance; job board; background responder                |
-| G5        | Pilot: 20–50 women service workers with a partner union; ONDC relay spike       |
+| Milestone | Scope                                                                     |
+| --------- | ------------------------------------------------------------------------- |
+| G0        | Rebrand fork to GigSync, docs                                             |
+| G1        | Job agreement end to end between two phones, contact grant, ledger        |
+| G2        | Receipts, evidence packs, exports; union mode (web)                       |
+| G3        | Voice (IndicConformer), translation, phrasing model; shared-phone mode    |
+| G4        | Union flag lists and governance; job board; background responder          |
+| G5        | Pilot: 20–50 women service workers with a partner union; ONDC relay spike |
 
 ## 13. Open questions
 
-1. Is a Tauri Desk acceptable for union offices, or do they need a web desk (Tilekit CORS only allows
-   `tauri://localhost` and `localhost:5173`)?
+1. Which phone-class model ships first on Android (≤2B, Apache 2.0), and which in-browser engine for the web?
 2. Who issues flags: any member, or only union-verified organisers? (Test with the pilot union.)
 3. What is the minimum evidence a helpline accepts from a unilateral (not countersigned) receipt?
 4. Should employer mode require KYC, given that her safety depends on being able to identify the employer later?
-5. Tilekit is pre-1.0 and its routes are changing (Tiles PR #277). Pin to a daemon version.
+5. How much of the ledger should the web build hold, given that browser storage can be cleared?
