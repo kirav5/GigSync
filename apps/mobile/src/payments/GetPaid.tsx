@@ -1,4 +1,4 @@
-import { buildUpiUri, type PaymentBook, type PaymentSummary, rupees } from "@gigsync/core";
+import { buildUpiUri, type PaymentBook, rupees, summarize } from "@gigsync/core";
 import {
   type Engagement,
   PAISE_PER_RUPEE,
@@ -8,22 +8,23 @@ import {
   UPI_MAX_PAISE,
   type UserId,
 } from "@gigsync/protocol";
-import { type FormEvent, useCallback, useEffect, useState } from "react";
+import { type FormEvent, useState } from "react";
+import { C } from "../ui/cls.js";
+import { PaymentRow } from "./PaymentRow.js";
 import { qrDataUrl } from "./qr.js";
 import type { Payee } from "./store.js";
 
-const BUTTON = "button";
-const SECONDARY = "secondary";
-const LINK = "link";
 const S = PaymentStatus.enum;
 /** Payments she can still settle: confirm as received, or dispute. */
-const OPEN: ReadonlySet<Payment["status"]> = new Set([S.requested, S.paid]);
+export const OPEN_PAYMENT: ReadonlySet<Payment["status"]> = new Set([S.requested, S.paid]);
 
 interface Props {
   book: PaymentBook;
   job: Engagement;
   payee: Payee;
   self: UserId;
+  payments: readonly Payment[];
+  changed: () => Promise<void>;
 }
 
 interface Showing {
@@ -42,36 +43,25 @@ function toPaise(text: string): number {
 }
 
 /** One job's payments: ask for an amount, show her UPI QR, then record what arrived. */
-export function GetPaid({ book, job, payee, self }: Props) {
+export function GetPaid({ book, job, payee, self, payments, changed }: Props) {
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [utr, setUtr] = useState("");
   const [showing, setShowing] = useState<Showing>();
-  const [history, setHistory] = useState<Payment[]>([]);
-  const [summary, setSummary] = useState<PaymentSummary>();
   const [error, setError] = useState<string>();
-
-  const refresh = useCallback(async () => {
-    setHistory(await book.forEngagement(job.id));
-    setSummary(await book.summary(job.id));
-  }, [book, job.id]);
-
-  useEffect(() => {
-    setShowing(undefined);
-    void refresh();
-  }, [refresh]);
+  const mine = payments.filter((p) => p.engagement === job.id);
+  const sum = summarize(mine);
 
   async function run(step: () => Promise<void>) {
     setError(undefined);
     try {
       await step();
-      await refresh();
+      await changed();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
   }
 
-  /** Back to an empty form once a payment is settled. */
   function reset() {
     setShowing(undefined);
     setAmount("");
@@ -117,84 +107,102 @@ export function GetPaid({ book, job, payee, self }: Props) {
     });
 
   return (
-    <section className="pay">
+    <>
       {!showing && (
-        <form className="pay-form" onSubmit={showQr}>
-          <input
-            inputMode="decimal"
-            placeholder="Amount (₹)"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-          <input
-            placeholder="Note, e.g. week 1"
-            maxLength={50}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
-          <button type="submit">Show QR</button>
-          <button type={BUTTON} className={SECONDARY} onClick={() => void paidInCash()}>
-            Paid in cash
-          </button>
+        <form className={C.card} onSubmit={showQr}>
+          <label className={C.fieldLabel}>
+            <span className={C.label}>Amount (₹)</span>
+            <input
+              className={C.field}
+              inputMode="decimal"
+              placeholder="Amount in rupees"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </label>
+          <label className={C.fieldLabel}>
+            <span className={C.label}>Note for the customer (optional)</span>
+            <input
+              className={C.field}
+              placeholder="Optional"
+              maxLength={50}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+          </label>
+          {error && <p className={C.error}>{error}</p>}
+          <div className={C.row}>
+            <button type="submit" className={C.accent}>
+              Show QR
+            </button>
+            <button type={C.button} className={C.secondary} onClick={() => void paidInCash()}>
+              Paid in cash
+            </button>
+          </div>
         </form>
       )}
+
       {showing && (
-        <div className="qr">
+        <div className={`${C.card} qr`}>
+          <span className={C.labelSq}>Scan to pay</span>
           <img src={showing.qr} alt={`UPI QR for ₹${rupees(showing.payment.amount_paise)} to ${payee.vpa}`} />
-          <strong>
-            ₹{rupees(showing.payment.amount_paise)} to {payee.vpa}
-          </strong>
-          <small>Ask the customer to scan with any UPI app.</small>
-          <a href={showing.uri}>Open in a UPI app on this phone</a>
+          <span className="amount">₹{rupees(showing.payment.amount_paise)}</span>
+          <span className={C.muted}>
+            to {payee.name} · {payee.vpa}
+          </span>
+          <span className={C.faint}>The customer scans with any UPI app. The money goes straight to your bank.</span>
+          <a className={C.secondary} href={showing.uri}>
+            Open in a UPI app on this phone
+          </a>
           <input
+            className={C.field}
             inputMode="numeric"
             placeholder="UPI reference no. (optional, 12 digits)"
             value={utr}
             onChange={(e) => setUtr(e.target.value)}
           />
-          <div className="row">
-            <button type={BUTTON} onClick={() => void settle(showing.payment.id, true, utr)}>
+          {error && <p className={C.error}>{error}</p>}
+          <div className={C.row}>
+            <button type={C.button} className={C.accent} onClick={() => void settle(showing.payment.id, true, utr)}>
               Received
             </button>
-            <button type={BUTTON} className={SECONDARY} onClick={() => void settle(showing.payment.id, false)}>
+            <button type={C.button} className={C.danger} onClick={() => void settle(showing.payment.id, false)}>
               Not received
             </button>
-            <button type={BUTTON} className={SECONDARY} onClick={() => setShowing(undefined)}>
+            <button type={C.button} className={C.quiet} onClick={() => setShowing(undefined)}>
               Later
             </button>
           </div>
         </div>
       )}
-      {error && <p className="error">{error}</p>}
-      {summary && summary.requested > 0 && (
-        <p className="totals">
-          Received ₹{rupees(summary.confirmed)} · waiting ₹{rupees(summary.outstanding)}
-        </p>
+
+      {mine.length > 0 && (
+        <section className={C.stack}>
+          <div className={C.row}>
+            <span className={C.label}>This job</span>
+            <span className={`${C.faint} end`}>
+              Received ₹{rupees(sum.confirmed)} · waiting ₹{rupees(sum.outstanding)}
+            </span>
+          </div>
+          <div className="ledger">
+            {mine.map((p) => (
+              <PaymentRow
+                key={p.id}
+                payment={p}
+                actions={
+                  OPEN_PAYMENT.has(p.status) && !showing
+                    ? {
+                        ...(p.method === PaymentMethod.enum.upi ? { qr: () => void run(() => show(p)) } : {}),
+                        received: () => void settle(p.id, true),
+                        notReceived: () => void settle(p.id, false),
+                      }
+                    : undefined
+                }
+              />
+            ))}
+          </div>
+        </section>
       )}
-      <ul className="payments">
-        {history.map((p) => (
-          <li key={p.id}>
-            ₹{rupees(p.amount_paise)} · {p.method} · {p.status}
-            {p.utr && ` · ref ${p.utr}`}
-            {p.note && ` · ${p.note}`}
-            {OPEN.has(p.status) && !showing && (
-              <span className="row-actions">
-                {p.method === PaymentMethod.enum.upi && (
-                  <button type={BUTTON} className={LINK} onClick={() => void run(() => show(p))}>
-                    QR
-                  </button>
-                )}
-                <button type={BUTTON} className={LINK} onClick={() => void settle(p.id, true)}>
-                  received
-                </button>
-                <button type={BUTTON} className={LINK} onClick={() => void settle(p.id, false)}>
-                  not received
-                </button>
-              </span>
-            )}
-          </li>
-        ))}
-      </ul>
-    </section>
+    </>
   );
 }

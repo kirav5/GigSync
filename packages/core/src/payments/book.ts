@@ -40,6 +40,19 @@ export interface PaymentSummary {
   outstanding: number;
 }
 
+/** Totals over any set of payments; disputed payments count nowhere. */
+export function summarize(payments: readonly Payment[]): PaymentSummary {
+  const sum = { requested: 0, paid: 0, confirmed: 0, outstanding: 0 };
+  for (const p of payments) {
+    if (p.status === S.disputed) continue;
+    sum.requested += p.amount_paise;
+    if (p.status === S.paid || p.status === S.confirmed) sum.paid += p.amount_paise;
+    if (p.status === S.confirmed) sum.confirmed += p.amount_paise;
+    else sum.outstanding += p.amount_paise;
+  }
+  return sum;
+}
+
 /** The payments of every job, kept on this phone. Each change is a pure transition, then saved. */
 export class PaymentBook {
   constructor(
@@ -111,15 +124,13 @@ export class PaymentBook {
   }
 
   async summary(engagement: EngagementId): Promise<PaymentSummary> {
-    const sum = { requested: 0, paid: 0, confirmed: 0, outstanding: 0 };
-    for (const p of await this.forEngagement(engagement)) {
-      if (p.status === S.disputed) continue;
-      sum.requested += p.amount_paise;
-      if (p.status === S.paid || p.status === S.confirmed) sum.paid += p.amount_paise;
-      if (p.status === S.confirmed) sum.confirmed += p.amount_paise;
-      else sum.outstanding += p.amount_paise;
-    }
-    return sum;
+    return summarize(await this.forEngagement(engagement));
+  }
+
+  /** Every payment on this phone, newest first: the worker's whole record. */
+  async all(): Promise<Payment[]> {
+    const all = await this.storage.list<Payment>(Collection.payments);
+    return all.sort((a, b) => (b.requested_at ?? "").localeCompare(a.requested_at ?? ""));
   }
 
   private async change(

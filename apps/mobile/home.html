@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>GigSync</title>
+<meta name="description" content="A gig worker's own agent, on her own phone: it agrees the job, holds back her number, and keeps the signed record of her work and pay." />
+<meta name="theme-color" content="#0a0a0a" />
+<link rel="icon" type="image/svg+xml" href="./icon.svg" />
+<script>
+  // Same look as the app (Settings › Look): saved choice, else the device's scheme.
+  let look = null;
+  try {
+    look = localStorage.getItem("gigsync-look");
+  } catch {}
+  document.documentElement.dataset.theme =
+    look === "light" || look === "dark" ? look : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+</script>
+<style>
+/* Collab's site language (kirav5/collab web/home.html): near-black canvas, hairlines instead of shadows, two-tone
+   grotesk headlines, mono uppercase labels, square controls, one magenta accent. Periwinkle marks what stays
+   private; cyan = agents talking, yellow = waiting on her, green = agreed and paid. */
+:root {
+  --bg: #0a0a0a; --surface: #121212; --surface2: #1a1a1a; --hairline: #262626;
+  --text: #f4f4f4; --text2: #a3a3a3; --text3: #8a8a8a;
+  --accent: #ff3ea5; --accent-ink: #ff6bbd; --on-accent: #0a0a0a; --brand: #ff3ea5;
+  --peri: #a5a8f0; --peri-fill: #1d1e33; --fresh: #3ddc97; --danger: #ff5a4e;
+  --wait: #fcee0a; --wait-fill: #262300; --talk: #3fd8f2; --talk-fill: #06262c; --done-fill: #0b2519;
+  --inverse: #f4f4f4; --on-inverse: #0a0a0a;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, system-ui, sans-serif;
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #f7f7f5; --surface: #ffffff; --surface2: #efefec; --hairline: #deded9;
+  --text: #0a0a0a; --text2: #55554f; --text3: #6b6b66;
+  --accent: #c8007a; --accent-ink: #b0006b; --on-accent: #fff;
+  --peri: #4a4ec4; --peri-fill: #e6e7fb; --fresh: #087443; --danger: #c9302c;
+  --wait: #7a5d00; --wait-fill: #fff3a8; --talk: #006d82; --talk-fill: #dcf3f8; --done-fill: #e2f4ea;
+  --inverse: #0a0a0a; --on-inverse: #f7f7f5;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+@media (max-width: 600px) { .wrap { padding: 0 16px; } }
+.label { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--text3); }
+.label.sq::before { content: "■ "; color: var(--accent); }
+.soft { color: var(--text3); }
+.btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 12px 18px; border-radius: 3px; border: 1px solid var(--inverse); background: var(--inverse); color: var(--on-inverse); text-decoration: none; white-space: nowrap; }
+.btn.accent { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.ghost { background: transparent; border-color: var(--hairline); color: var(--text); }
+.btn:hover { opacity: .88; }
+.tag { display: inline-flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 10px; letter-spacing: .07em; text-transform: uppercase; padding: 3px 7px; border-radius: 2px; border: 1px solid color-mix(in srgb, currentColor 35%, transparent); color: var(--text2); white-space: nowrap; }
+.tag.peri { color: var(--peri); background: var(--peri-fill); } .tag.talk { color: var(--talk); background: var(--talk-fill); }
+.tag.wait { color: var(--wait); background: var(--wait-fill); } .tag.fresh { color: var(--fresh); background: var(--done-fill); }
+
+nav { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--hairline); }
+nav .wrap { display: flex; align-items: center; gap: 24px; height: 60px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; letter-spacing: -.01em; text-decoration: none; font-size: 17px; }
+.logo { width: 24px; height: 24px; flex: none; }
+.logo .you { stroke: var(--brand); } .logo .them { stroke: currentColor; }
+nav .links { display: flex; gap: 22px; margin-left: auto; }
+nav .links a { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--text2); text-decoration: none; }
+nav .links a:hover { color: var(--text); }
+nav .btn { padding: 8px 12px; font-size: 11px; }
+.theme-btn { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid var(--hairline); border-radius: 3px; background: transparent; color: var(--text); cursor: pointer; flex: none; font-size: 15px; }
+@media (max-width: 760px) { nav .links { display: none; } .theme-btn { margin-left: auto; } }
+
+.hero { padding: 72px 0 40px; }
+.hero h1 { font-size: clamp(40px, 7.2vw, 88px); line-height: 1; letter-spacing: -.045em; font-weight: 650; margin: 18px 0 22px; max-width: 13ch; }
+.hero p.lede { font-size: clamp(17px, 2vw, 20px); color: var(--text2); max-width: 50ch; margin: 0 0 30px; }
+.ctas { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* The job, agent to agent */
+.stage { margin: 56px 0 0; border: 1px solid var(--hairline); border-radius: 8px; background: var(--surface); overflow: hidden; }
+.stage-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--hairline); flex-wrap: wrap; }
+.stage-head .proto { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+.live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--talk); box-shadow: 0 0 0 3px color-mix(in srgb, var(--talk) 25%, transparent); }
+.stage-body { display: grid; grid-template-columns: 250px 1fr 250px; }
+.side { padding: 18px 16px; display: flex; flex-direction: column; gap: 14px; }
+.side.left { border-right: 1px solid var(--hairline); } .side.right { border-left: 1px solid var(--hairline); }
+.who { display: flex; align-items: center; gap: 10px; }
+.avatar { width: 38px; height: 38px; border-radius: 4px; display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 13px; flex: none; }
+.avatar.you { background: var(--accent); color: var(--on-accent); } .avatar.them { background: var(--inverse); color: var(--on-inverse); }
+.who b { display: block; font-size: 14px; } .who span { font-size: 12px; color: var(--text3); }
+.ctx { border: 1px solid var(--hairline); border-radius: 5px; padding: 10px 11px; display: grid; gap: 7px; font-size: 13px; background: var(--bg); }
+.ctx .row { display: flex; justify-content: space-between; gap: 8px; } .ctx .k { color: var(--text3); }
+.ctx.private { border-color: color-mix(in srgb, var(--peri) 40%, transparent); background: var(--peri-fill); }
+.ctx.private .v, .ctx .lock { color: var(--peri); font-family: var(--mono); font-size: 11px; letter-spacing: .05em; }
+.status { margin-top: auto; font-family: var(--mono); font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--fresh); display: flex; align-items: center; gap: 8px; }
+.status .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.feed { padding: 18px; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; }
+.wallbar { position: relative; height: 34px; border-bottom: 1px solid var(--hairline); }
+.wallbar::before { content: ""; position: absolute; left: 18px; right: 18px; top: 50%; height: 1px; background: repeating-linear-gradient(90deg, var(--hairline) 0 6px, transparent 6px 11px); }
+.wallbar span { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--peri); background: var(--surface); padding: 0 6px; }
+.msg { max-width: 82%; padding: 10px 12px; border-radius: 6px; font-size: 14px; line-height: 1.45; border: 1px solid var(--hairline); background: var(--bg); }
+.msg .meta { display: block; font-family: var(--mono); font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--text3); margin-bottom: 3px; }
+.msg.them { align-self: flex-start; border-color: color-mix(in srgb, var(--talk) 45%, transparent); }
+.msg.you { align-self: flex-end; border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.msg.ask { align-self: center; background: var(--wait-fill); border-color: color-mix(in srgb, var(--wait) 45%, transparent); }
+.msg.ask .meta { color: var(--wait); }
+.msg.deal { align-self: stretch; max-width: none; background: var(--done-fill); border-color: color-mix(in srgb, var(--fresh) 45%, transparent); }
+.msg.deal .meta { color: var(--fresh); }
+.msg .price { font-family: var(--mono); font-weight: 700; }
+.msg .redact { font-family: var(--mono); font-size: 12px; color: var(--peri); background: var(--peri-fill); padding: 1px 5px; border-radius: 2px; }
+@media (max-width: 900px) {
+  .stage-body { grid-template-columns: 1fr 1fr; }
+  .side.left { border-bottom: 1px solid var(--hairline); } .side.right { border-left: 0; border-bottom: 1px solid var(--hairline); }
+  .channel { grid-column: 1 / -1; grid-row: 2; }
+}
+@media (max-width: 520px) { .stage-body { grid-template-columns: 1fr; } .side.left { border-right: 0; } .channel { grid-row: auto; } .msg { max-width: 92%; } }
+
+.uses { padding: 18px 0; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
+.uses .wrap { display: flex; gap: 10px; flex-wrap: wrap; }
+.uses span { font-size: 15px; padding: 8px 14px; border: 1px solid var(--hairline); border-radius: 999px; color: var(--text2); white-space: nowrap; }
+
+section { padding: 96px 0; border-top: 1px solid var(--hairline); }
+.sec-head { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: end; margin-bottom: 48px; }
+.sec-head h2 { font-size: clamp(30px, 4.4vw, 52px); line-height: 1.04; letter-spacing: -.035em; font-weight: 650; margin: 12px 0 0; }
+.sec-head p { color: var(--text2); margin: 0; max-width: 48ch; font-size: 17px; }
+@media (max-width: 820px) { .sec-head { grid-template-columns: 1fr; gap: 16px; } section { padding: 72px 0; } }
+
+.flow { border: 1px solid var(--hairline); border-radius: 8px; background: var(--surface); padding: 40px 24px 32px; position: relative; }
+.flow .line { position: absolute; left: 10%; right: 10%; top: 72px; height: 2px; background: var(--accent); opacity: .5; }
+.flow .steps { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.flow .st { display: grid; justify-items: center; gap: 10px; text-align: center; }
+.flow .c { width: 64px; height: 64px; border-radius: 50%; border: 1px solid var(--accent); background: var(--bg); display: grid; place-items: center; color: var(--accent); font-family: var(--mono); font-weight: 700; position: relative; z-index: 1; }
+.flow .st b { font-size: 15px; } .flow .st span { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--text3); }
+@media (max-width: 700px) { .flow .steps { grid-template-columns: 1fr; gap: 18px; } .flow .line { display: none; } .flow .st { grid-template-columns: 48px 1fr; justify-items: start; text-align: left; align-items: center; } .flow .c { width: 48px; height: 48px; grid-row: span 2; } }
+
+.pay { display: grid; grid-template-columns: 1fr 1.3fr; gap: 14px; }
+.scan { border: 1px solid var(--hairline); border-radius: 8px; background: var(--surface); padding: 22px; display: grid; justify-items: center; gap: 12px; text-align: center; }
+.qrbig { width: 176px; height: 176px; padding: 10px; background: #fff; border-radius: 6px; display: grid; grid-template-columns: repeat(11, 1fr); gap: 2px; }
+.qrbig i { background: #0a0a0a; border-radius: 1px; } .qrbig i.o { background: transparent; }
+.scan .amt { font-size: 28px; font-weight: 650; letter-spacing: -.02em; }
+.chain { border: 1px solid var(--hairline); border-radius: 8px; background: var(--surface); padding: 22px; display: grid; align-content: center; }
+.link { display: grid; grid-template-columns: 44px 1fr auto; gap: 14px; align-items: center; padding: 12px 0; position: relative; }
+.link:not(:last-child)::after { content: ""; position: absolute; left: 21px; top: 56px; bottom: -12px; width: 2px; background: var(--hairline); }
+.link .c { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--fresh); color: var(--fresh); display: grid; place-items: center; font-family: var(--mono); font-weight: 700; background: var(--bg); position: relative; z-index: 1; }
+.link b { display: block; font-size: 15px; } .link code { font-family: var(--mono); font-size: 11px; color: var(--text3); }
+.link .ok { font-family: var(--mono); color: var(--fresh); }
+@media (max-width: 820px) { .pay { grid-template-columns: 1fr; } }
+
+.theme { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--hairline); border-radius: 8px; overflow: hidden; }
+.theme > div { padding: 20px 18px; border-right: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); background: var(--surface); display: grid; gap: 8px; align-content: start; }
+.theme > div:nth-child(4n) { border-right: 0; }
+.theme > div:nth-last-child(-n+4) { border-bottom: 0; }
+.theme h3 { margin: 0; font-size: 17px; letter-spacing: -.01em; }
+.theme p { margin: 0; color: var(--text2); font-size: 14px; }
+.theme .label { color: var(--accent-ink); }
+@media (max-width: 900px) { .theme { grid-template-columns: 1fr 1fr; } .theme > div { border-bottom: 1px solid var(--hairline); } .theme > div:nth-child(2n) { border-right: 0; } .theme > div:nth-child(2n+1) { border-right: 1px solid var(--hairline); } }
+@media (max-width: 520px) { .theme { grid-template-columns: 1fr; } .theme > div { border-right: 0 !important; } }
+
+table.who-gets { width: 100%; border-collapse: collapse; border: 1px solid var(--hairline); border-radius: 8px; overflow: hidden; background: var(--surface); font-size: 15px; }
+.who-gets th, .who-gets td { text-align: left; padding: 14px 16px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+.who-gets th { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--text3); }
+.who-gets tr:last-child td { border-bottom: 0; }
+.who-gets td:first-child { font-weight: 600; width: 38%; }
+
+.closing { padding: 120px 0; }
+.closing h2 { font-size: clamp(40px, 7vw, 84px); letter-spacing: -.045em; line-height: 1; margin: 16px 0 28px; font-weight: 650; max-width: 14ch; }
+footer { border-top: 1px solid var(--hairline); padding: 28px 0 40px; color: var(--text3); font-size: 13px; }
+footer .wrap { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+footer .end { margin-left: auto; }
+footer a { color: var(--text2); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="./home.html"><svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke-width="8"><path class="you" d="M42 12H12V40H42"/><path class="them" d="M22 24H52V52H22"/></g></svg>GigSync</a>
+    <div class="links">
+      <a href="#how">How a job works</a>
+      <a href="#paid">Get paid</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#small">Built small</a>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch light or dark">◐</button>
+    <a class="btn accent" href="./index.html">Open GigSync</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="label sq">A gig worker's own agent</span>
+    <h1>On her side, <span class="soft">every working day.</span></h1>
+    <p class="lede">An agent on her own phone that agrees the job with the customer's agent, holds back her number until both sides sign, and keeps the record of every job and payment.</p>
+    <div class="ctas">
+      <a class="btn accent" href="./index.html">Open GigSync →</a>
+      <a class="btn ghost" href="#how">See a job</a>
+    </div>
+
+    <figure class="stage" aria-label="Example: a worker's agent and a customer's agent agree a job">
+      <div class="stage-head">
+        <span class="live"></span>
+        <span class="label" style="color: var(--text)">Example</span>
+        <span class="label">House cleaning, Mon–Fri</span>
+        <div class="proto"><span class="tag talk">Agent to agent</span><span class="tag">On her phone</span><span class="tag fresh">UPI · free</span></div>
+      </div>
+      <div class="stage-body">
+        <aside class="side left">
+          <div class="who"><div class="avatar them">C</div><div><b>Customer's agent</b><span>Asks for the work</span></div></div>
+          <div class="ctx"><div class="row"><span class="k">Needs</span><span>Cleaning</span></div><div class="row"><span class="k">Area</span><span>Koramangala</span></div><div class="row"><span class="k">When</span><span>Mon–Fri, 9–11</span></div></div>
+          <div class="status"><span class="dot"></span><span>Signed</span></div>
+        </aside>
+        <div class="channel">
+          <div class="wallbar"><span>Privacy wall</span></div>
+          <div class="feed">
+            <div class="msg them"><span class="meta">Customer's agent</span>Cleaning Mon–Fri, 9–11, Koramangala. Who can do it?</div>
+            <div class="msg you"><span class="meta">Her agent · her rules</span><span class="price">₹450</span> a visit, Sunday off, 4 days' paid leave a year.</div>
+            <div class="msg ask"><span class="meta">Asks her</span>Accept this job? Rate, area and hours fit your rules.</div>
+            <div class="msg deal"><span class="meta">Agreed · both phones signed</span>Her number is released now <span class="redact">until the job ends</span>. Every visit and payment is logged on both phones.</div>
+          </div>
+        </div>
+        <aside class="side right">
+          <div class="who"><div class="avatar you">S</div><div><b>Her agent</b><span>Gig worker</span></div></div>
+          <div class="ctx"><div class="row"><span class="k">Minimum</span><span>₹400 / visit</span></div><div class="row"><span class="k">Areas</span><span>Koramangala, HSR</span></div><div class="row"><span class="k">Weekly off</span><span>Sunday</span></div></div>
+          <div class="ctx private"><span class="lock">● Held back</span><div class="row"><span class="k">Phone, address</span><span class="v">until signed</span></div></div>
+          <div class="status"><span class="dot"></span><span>Agreed</span></div>
+        </aside>
+      </div>
+    </figure>
+  </div>
+</header>
+
+<section class="uses" aria-label="Who GigSync is for">
+  <div class="wrap">
+    <span>Domestic work</span><span>Cooking</span><span>Beauty at home</span><span>Elder and child care</span><span>AC and appliance repair</span><span>Delivery</span><span>Rides</span><span>Construction</span><span>Tailoring and piece work</span>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="label sq">How a job works</span><h2>Agree first. <span class="soft">Then share.</span></h2></div>
+      <p>Her agent and the customer's agent settle the terms under rules she sets. Her contact goes out only after both sign.</p>
+    </div>
+    <div class="flow">
+      <div class="line"></div>
+      <div class="steps">
+        <div class="st"><div class="c">1</div><b>Customer asks</b><span>Hours and area, no number</span></div>
+        <div class="st"><div class="c">2</div><b>Her rules check</b><span>Rate, area, hours, flags</span></div>
+        <div class="st"><div class="c">3</div><b>She taps yes</b><span>Or a standing rule answers</span></div>
+        <div class="st"><div class="c">4</div><b>Both sign</b><span>Rate, hours, weekly off, leave</span></div>
+        <div class="st"><div class="c">5</div><b>Contact released</b><span>Only until the job ends</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="paid">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="label sq">Get paid</span><h2>Straight to her bank. <span class="soft">Recorded on the job.</span></h2></div>
+      <p>Her phone shows a UPI QR for the amount. The customer pays with any UPI app. No gateway, no fees: GigSync never touches the money.</p>
+    </div>
+    <div class="pay">
+      <div class="scan">
+        <span class="label">Scan to pay</span>
+        <div class="qrbig" id="qrbig" role="img" aria-label="Example UPI QR code"></div>
+        <span class="amt">₹450.00</span>
+        <span class="label">To her own UPI ID</span>
+      </div>
+      <div class="chain">
+        <div class="link"><div class="c">1</div><div><b>She asks for the amount</b><code>for one job</code></div><span class="ok">✓</span></div>
+        <div class="link"><div class="c">2</div><div><b>Customer scans</b><code>GPay · PhonePe · Paytm · BHIM</code></div><span class="ok">✓</span></div>
+        <div class="link"><div class="c">3</div><div><b>Money reaches her bank</b><code>UPI · person to person · no fee</code></div><span class="ok">✓</span></div>
+        <div class="link"><div class="c">4</div><div><b>Recorded on the job</b><code>amount · UPI reference · received</code></div><span class="ok">✓</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="privacy">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="label sq">Privacy wall</span><h2>She holds the record. <span class="soft">She sets the rules.</span></h2></div>
+      <p>The platform, the contractor or the agency used to keep her work history. Now it is on her phone.</p>
+    </div>
+    <div class="theme">
+      <div><span class="label">On her phone</span><h3>Her data stays with her</h3><p>Jobs, pay, rules and notes live on her phone. The cloud only passes locked messages.</p></div>
+      <div><span class="label">Plain rules</span><h3>Her rules decide, not a model</h3><p>What is shared, how precisely and for how long is set by rules she chooses. AI may draft; it never decides.</p></div>
+      <div><span class="label">Every disclosure</span><h3>She sees what was shared</h3><p>"What my agent shared" lists each fact sent, to whom and under which rule. She can revoke any rule.</p></div>
+      <div><span class="label">Union governed</span><h3>Shared flags, decided together</h3><p>Members decide what a "do not accept" flag means and who may raise one. Planned with the pilot union.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="proof">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="label sq">When something goes wrong</span><h2>The proof is <span class="soft">already hers.</span></h2></div>
+      <p>Wages held back, an ID blocked, harassment at work: she picks who sees which part. Nothing leaves her phone without her tap.</p>
+    </div>
+    <table class="who-gets">
+      <tr><th>Who receives it</th><th>What they get</th></tr>
+      <tr><td>Union grievance desk</td><td>The full evidence pack, for an ID block</td></tr>
+      <tr><td>Wage helpline</td><td>Days worked and pay owed, for a wage claim</td></tr>
+      <tr><td>Welfare board</td><td>Days worked and earnings only</td></tr>
+      <tr><td>Union sisters' agents</td><td>A "do not accept" flag, never her story</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="small">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="label sq">Built small</span><h2>For a ₹10,000 phone. <span class="soft">Works with no model at all.</span></h2></div>
+      <p>One codebase for Android, iPhone and the web. Agreements, records and rules are plain code; a small model only helps with words.</p>
+    </div>
+    <div class="theme">
+      <div><span class="label">No model needed</span><h3>Rules and templates first</h3><p>Every core step works with no model: agreeing, holding back contact, keeping the record, getting paid.</p></div>
+      <div><span class="label">Offline model</span><h3>On the device, never the cloud</h3><p>LiteRT-LM on Android, Apple's on-device model on iPhone, an in-browser engine on the web. No frontier API.</p></div>
+      <div><span class="label">Planned</span><h3>Voice in her language</h3><p>Hindi, Telugu and Hinglish speech and translation on the phone, from open AI4Bharat models.</p></div>
+      <div><span class="label">Built on Collab</span><h3>Two agents, one deal</h3><p>Signed and sealed messages through a mailbox that cannot read them and deletes each once delivered.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="closing">
+  <div class="wrap">
+    <span class="label sq">Pilot build</span>
+    <h2>Agree first. <span class="soft">Get paid. Keep the proof.</span></h2>
+    <a class="btn accent" href="./index.html">Open GigSync →</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="./home.html"><svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke-width="8"><path class="you" d="M42 12H12V40H42"/><path class="them" d="M22 24H52V52H22"/></g></svg>GigSync</a>
+    <span>GigSync is a working name. Built on Collab.</span>
+    <span class="end"><a href="./index.html">Open the app</a></span>
+  </div>
+</footer>
+
+<script>
+  // Light / dark, shared with the app's Settings › Look.
+  const root = document.documentElement;
+  document.getElementById("themeBtn").addEventListener("click", () => {
+    const next = root.dataset.theme === "light" ? "dark" : "light";
+    root.dataset.theme = next;
+    try {
+      localStorage.setItem("gigsync-look", next);
+    } catch {}
+  });
+  // A decorative QR pattern: finder squares in three corners, a fixed scatter elsewhere (not a scannable code).
+  const qr = document.getElementById("qrbig");
+  const size = 11;
+  const finder = (r, c) => {
+    const inBox = (r0, c0) => r >= r0 && r < r0 + 3 && c >= c0 && c < c0 + 3;
+    return inBox(0, 0) || inBox(0, size - 3) || inBox(size - 3, 0);
+  };
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const cell = document.createElement("i");
+      const on = finder(r, c) || (r * 7 + c * 13) % 3 === 0;
+      if (!on) cell.className = "o";
+      qr.appendChild(cell);
+    }
+  }
+</script>
+</body>
+</html>
