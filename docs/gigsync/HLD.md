@@ -9,12 +9,18 @@
 ## 1. Summary
 
 GigSync gives a gig worker **her own agent, on her own phone**. The agent:
-1. **Agrees the job first.** Her agent and the employer's agent settle rate, hours, weekly off and leave, under
+1. **Agrees the job first.** Her agent and the consumer's agent settle rate, hours, weekly off and leave, under
    rules she sets.
 2. **Holds back her contact.** Her number, address and Aadhaar are released only after both phones sign the same
    terms, and only until the job ends.
 3. **Keeps the record.** Every job, visit and payment is signed by both phones and stays with her. She decides
    which part a union, a wage helpline or a welfare board sees.
+
+GigSync is Collab narrowed to one use case. Collab lets any two people's agents collaborate under rules each
+owner sets; GigSync is the same platform for one pair: **a gig worker and a consumer** who need her work. There
+is no employer, platform or agency in the middle. Each person has their own agent, and each job is one Collab
+**engagement** in which the consumer is the `requester` and the worker is the `provider`. The same person can be
+a worker in one engagement and a consumer in another.
 
 The thesis, carried over from Collab: with local agent-to-agent messaging, _the weaker party to a transaction
 holds the record of it_. The cloud only passes locked notes.
@@ -25,16 +31,16 @@ piece work come later on the same core.
 
 ## 2. Goals and non-goals
 
-| Goals                                                                  | Non-goals (v1)                                    |
-| ---------------------------------------------------------------------- | ------------------------------------------------- |
-| Runs on a 4 GB, ₹10,000 Android phone on patchy 4G                     | iPhone-first, or flagship-only features           |
-| Works with **no model at all**; models only help with speech and words | Any frontier or cloud LLM in the core path        |
-| A worker-held signed ledger of jobs and payments                       | A central database of workers that she cannot see |
-| Contact released only after both sides sign; it expires                | Payments rails (UPI is recorded, not moved)       |
-| Consented, partial exports to a union, helpline or welfare board       | Ratings or ranking of workers by GigSync          |
-| Voice first in Hindi, Telugu and Hinglish                              | Full literacy-dependent UI                        |
-| Shared-phone mode: one device, a separate locked store per worker      | Multi-tenant SaaS for platforms                   |
-| Open formats and test vectors that others can implement                | Lock-in through proprietary formats               |
+| Goals                                                                  | Non-goals (v1)                                     |
+| ---------------------------------------------------------------------- | -------------------------------------------------- |
+| Runs on a 4 GB, ₹10,000 Android phone on patchy 4G                     | iPhone-first, or flagship-only features            |
+| Works with **no model at all**; models only help with speech and words | Any frontier or cloud LLM in the core path         |
+| A worker-held signed ledger of jobs and payments                       | A central database of workers that she cannot see  |
+| Contact released only after both sides sign; it expires                | Holding or moving money (UPI goes straight to her) |
+| Consented, partial exports to a union, helpline or welfare board       | Ratings or ranking of workers by GigSync           |
+| Voice first in Hindi, Telugu and Hinglish                              | Full literacy-dependent UI                         |
+| Shared-phone mode: one device, a separate locked store per worker      | Multi-tenant SaaS for platforms                    |
+| Open formats and test vectors that others can implement                | Lock-in through proprietary formats                |
 
 ## 3. Design principles
 
@@ -53,8 +59,8 @@ piece work come later on the same core.
 
 ```mermaid
 flowchart LR
-  W([Worker]) -->|voice / taps| WP[GigSync app<br/>worker mode]
-  E([Employer / household]) --> EP[GigSync app<br/>employer mode]
+  W([Gig worker]) -->|voice / taps| WP[GigSync app<br/>worker's agent]
+  E([Consumer]) --> EP[GigSync app<br/>consumer's agent]
   WP <-->|sealed envelopes| CLOUD[(GigSync cloud<br/>API · mailbox · notifier · job board)]
   EP <-->|sealed envelopes| CLOUD
   U([Union organiser]) --> DESK[GigSync app<br/>union mode · web or phone]
@@ -68,7 +74,7 @@ flowchart LR
 | Actor                    | Uses                             | Sees                                                      |
 | ------------------------ | -------------------------------- | --------------------------------------------------------- |
 | Worker                   | Android app (web/iPhone), worker | Everything about her own working life                     |
-| Employer / household     | Same app, employer mode          | Agreed terms; her contact only during the job             |
+| Consumer                 | Same app, requester role         | Agreed terms; her contact only during the job             |
 | Union organiser          | Same app, union mode (web/phone) | Evidence packs the worker sent to the union, nothing else |
 | Union sisters' agents    | Their own phones                 | A "do not accept this customer" flag, never her story     |
 | Helpline / welfare board | A consented export file          | Days worked and pay (owed), only the fields she picked    |
@@ -77,8 +83,8 @@ flowchart LR
 ## 5. One app, every platform, an offline model
 
 GigSync is **one TypeScript codebase** (Capacitor + React, ADR 0001), inherited from collabai.network. It ships as
-an Android app, an iPhone/Mac app and a **web app** from the same source. Workers, employers and union organisers
-use the same app in different modes; the union desk is simply the app in **union mode**, usually in a browser.
+an Android app, an iPhone/Mac app and a **web app** from the same source. Workers, consumers and union organisers
+use the same app: workers and consumers are the two sides of an engagement, and organisers use union mode; the union desk is simply the app in **union mode**, usually in a browser.
 
 The language model is the **offline, on-device model plugin collabai.network already has**
 (`plugins/gigsync-llm`, formerly `plugins/collab-llm`). It is one Capacitor plugin, `GigSyncLLM`, with
@@ -102,7 +108,7 @@ Silicon Macs and Linux, and GigSync must run on phones and in the browser
 ```mermaid
 flowchart TB
   subgraph App["GigSync app — Android · iPhone/Mac · web (Capacitor)"]
-    UI[App & voice UI<br/>React · worker / employer / union mode] --> CORE[Agent core<br/>@gigsync/core]
+    UI[App & voice UI<br/>React · worker / consumer / union] --> CORE[Agent core<br/>@gigsync/core]
     CORE --> SAN[Sanitizer<br/>no AI]
     CORE --> POL[Policy checker<br/>no AI]
     CORE --> LED[Ledger & job state]
@@ -127,7 +133,7 @@ flowchart TB
 
 | Container            | Technology                                                | Responsibility                                                                           |
 | -------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| GigSync app          | Capacitor 8, React 19, Vite; Android, iPhone/Mac, web     | Worker, employer and union modes; voice UI; confirm cards                                |
+| GigSync app          | Capacitor 8, React 19, Vite; Android, iPhone/Mac, web     | Worker and consumer sides, union mode; voice UI; confirm cards                           |
 | Agent core           | TypeScript, no platform imports (`packages/core`)         | Router, experts, job machine, policy, sanitizer, ledger, mail                            |
 | Protocol             | zod schemas (`packages/protocol`)                         | Envelopes, job terms, receipts, grants, evidence packs, public records                   |
 | Offline model        | `plugins/gigsync-llm`: LiteRT-LM, Foundation Models, web  | Optional intent help and phrasing; lite mode without it                                  |
@@ -150,7 +156,7 @@ is treated as a lower-trust device and never runs the background responder.
 
 ```mermaid
 sequenceDiagram
-  participant EP as Employer's phone
+  participant EP as Consumer's phone
   participant MB as Mailbox (DO)
   participant N as Notifier
   participant WP as Worker's phone
@@ -172,7 +178,39 @@ Each visit (check-in, check-out) and each payment is a `receipt` envelope counte
 If the other side does not countersign within 48 h, it stays in her ledger as **unilateral** and is still
 exportable, marked as such.
 
-### 7.3 Something goes wrong
+### 7.3 She gets paid (pilot: UPI QR, no gateway)
+
+GigSync never touches the money. Her **own UPI ID** is the only payee, so payments are free (UPI person-to-person
+has no fee), need no payment gateway or merchant account, and keep GigSync outside payment-aggregator rules (to
+confirm with counsel before the pilot). See [ADR 0011](../adr/0011-upi-qr-payments-no-gateway.md).
+
+```mermaid
+sequenceDiagram
+  participant W as Worker's phone
+  participant C as Consumer's phone / any UPI app
+  participant B as Banks (UPI)
+  Note over W: job agreed (engagement agreed / in_progress / delivered)
+  W->>W: amount from agreed terms + visits → payment request
+  alt in person
+    W->>C: shows QR (upi://pay?pa=her-UPI-ID&am=…&tn=job ref)
+  else remote
+    W->>C: sealed payment_request envelope → consumer's app renders the same QR / opens its UPI app
+  end
+  C->>B: consumer approves in their UPI app
+  B-->>W: money lands in her bank account
+  C->>W: (if on GigSync) payment_record: "paid", UPI ref no.
+  W->>W: she taps "Received" → recorded on this job, countersigned
+```
+
+- The QR and the UPI link are generated **on her phone** from her UPI ID, which is stored only on her phone. A
+  remote payment request carries it sealed to the consumer's devices only.
+- The consumer does not need GigSync to pay: any UPI app scans the QR. If they have GigSync, their agent also
+  records the payment and she countersigns it, so both ledgers hold the same signed record.
+- Each payment is recorded **against the job** (its engagement id) with amount, method (UPI or cash), UPI
+  reference number and status: `requested → paid → confirmed`, or `disputed`.
+- Cash is recorded the same way, without the QR.
+
+### 7.4 Something goes wrong
 
 She picks a receiver and the scope. The phone builds an **evidence pack**: the signed agreement, receipts and her
 own notes, sanitized according to the receiver's scope. It is sealed for the receiver only:
@@ -184,10 +222,10 @@ own notes, sanitized according to the receiver's scope. It is sealed for the rec
 | Welfare board         | Days worked and earnings only               |
 | Union sisters' agents | A "do not accept" flag on a customer key    |
 
-### 7.4 Pre-acceptance safety check
+### 7.5 Pre-acceptance safety check
 
 Before she accepts a job, her policy checker looks up the customer's **blind key** (a keyed hash of the
-employer's GigSync id) in the flag list she receives from her union. A match turns the confirm card red. She
+consumer's GigSync id) in the flag list she receives from her union. A match turns the confirm card red. She
 always decides; a flag never auto-declines unless she set a rule that says so.
 
 ## 8. Data placement
@@ -217,7 +255,7 @@ never protects anything stored off the phone (ADR 0007).
   `expires_at`.
 - **Agreements:** identified by `terms_hash = SHA-256(canonical terms)`. Any change to rate or hours is a new
   agreement.
-- **Threats addressed:** platform or employer tampering with records (both-signed ledger), doxxing before
+- **Threats addressed:** platform or consumer tampering with records (both-signed ledger), doxxing before
   agreement (contact grant), prompt injection from the other agent (data-not-instructions, no model in the
   decision path), stolen phone (SQLCipher + Keystore + PIN), shared phone (per-worker store and key), server
   compromise (sealed envelopes, HMAC'd phones), flag abuse (union-governed issuers, signed flags, expiry).
@@ -253,7 +291,7 @@ never protects anything stored off the phone (ADR 0007).
 | Milestone | Scope                                                                     |
 | --------- | ------------------------------------------------------------------------- |
 | G0        | Rename fork to GigSync (done), HLD/LLD, ADRs                              |
-| G1        | Job agreement end to end between two phones, contact grant, ledger        |
+| G1        | Job agreement end to end, contact grant, ledger; UPI QR payments          |
 | G2        | Receipts, evidence packs, exports; union mode (web)                       |
 | G3        | Voice (IndicConformer), translation, phrasing model; shared-phone mode    |
 | G4        | Union flag lists and governance; job board; background responder          |
@@ -264,5 +302,5 @@ never protects anything stored off the phone (ADR 0007).
 1. Which phone-class model ships first on Android (≤2B, Apache 2.0), and which in-browser engine for the web?
 2. Who issues flags: any member, or only union-verified organisers? (Test with the pilot union.)
 3. What is the minimum evidence a helpline accepts from a unilateral (not countersigned) receipt?
-4. Should employer mode require KYC, given that her safety depends on being able to identify the employer later?
+4. Should a consumer account require KYC, given that her safety depends on being able to identify the consumer later?
 5. How much of the ledger should the web build hold, given that browser storage can be cleared?

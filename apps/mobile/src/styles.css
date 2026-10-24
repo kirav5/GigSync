@@ -131,3 +131,86 @@ button:disabled {
   color: var(--muted);
   font-size: 13px;
 }
+header nav {
+  display: flex;
+  gap: 6px;
+}
+header nav button {
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--rule);
+}
+header nav button[aria-pressed="true"] {
+  background: var(--accent);
+  color: #fff;
+}
+.payments-panel {
+  gap: 14px;
+}
+.pay-form,
+.qr {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+}
+.pay-form small,
+.qr small,
+.totals {
+  color: var(--muted);
+}
+.qr {
+  align-items: center;
+  text-align: center;
+}
+.qr img {
+  width: 100%;
+  max-width: 288px;
+  background: #fff;
+  border-radius: 8px;
+}
+.qr input {
+  width: 100%;
+}
+.qr .row {
+  display: flex;
+  gap: 8px;
+}
+button.secondary {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+button.link {
+  padding: 0;
+  background: transparent;
+  color: var(--accent);
+  font-weight: 400;
+  text-decoration: underline;
+}
+select {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--fg);
+}
+.error {
+  color: #b3261e;
+  margin: 0;
+}
+.payments {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.row-actions {
+  display: inline-flex;
+  gap: 10px;
+  margin-left: 8px;
+}

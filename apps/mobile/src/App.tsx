@@ -2,6 +2,12 @@ import { Agent, type Card, CardKind } from "@gigsync/core";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { apiReachable } from "./adapters/api.js";
 import { createPorts, modelLabel } from "./adapters/ports.js";
+import { PaymentsPanel } from "./payments/PaymentsPanel.js";
+
+/** The two screens: the agent chat and the worker's payments. */
+const Tab = { agent: "agent", pay: "pay" } as const;
+type Tab = (typeof Tab)[keyof typeof Tab];
+const BUTTON = "button";
 
 interface Turn {
   id: number;
@@ -16,7 +22,9 @@ const STARTERS = [
 ];
 
 export function App() {
-  const agent = useMemo(() => new Agent(createPorts()), []);
+  const ports = useMemo(createPorts, []);
+  const agent = useMemo(() => new Agent(ports), [ports]);
+  const [tab, setTab] = useState<Tab>(Tab.agent);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -57,55 +65,68 @@ export function App() {
     <div className="app">
       <header>
         <h1>GigSync</h1>
+        <nav>
+          <button type={BUTTON} aria-pressed={tab === Tab.agent} onClick={() => setTab(Tab.agent)}>
+            Agent
+          </button>
+          <button type={BUTTON} aria-pressed={tab === Tab.pay} onClick={() => setTab(Tab.pay)}>
+            Get paid
+          </button>
+        </nav>
         <small>
           {platform} · {modelLabel}
           {online !== undefined && ` · ${online ? "online" : "offline"}`}
         </small>
       </header>
-      <div className="log" ref={log}>
-        {turns.length === 0 && (
-          <div className="hint">
-            Your agent keeps notes on this device and answers from them. Try:
-            {STARTERS.map((s) => (
-              <div key={s}>
-                <button
-                  type="button"
-                  onClick={() => void send(s)}
-                  style={{ background: "transparent", color: "var(--accent)", padding: "4px 0" }}
-                >
-                  {s}
-                </button>
+      {tab === Tab.pay && <PaymentsPanel ports={ports} />}
+      {tab === Tab.agent && (
+        <>
+          <div className="log" ref={log}>
+            {turns.length === 0 && (
+              <div className="hint">
+                Your agent keeps notes on this device and answers from them. Try:
+                {STARTERS.map((s) => (
+                  <div key={s}>
+                    <button
+                      type={BUTTON}
+                      onClick={() => void send(s)}
+                      style={{ background: "transparent", color: "var(--accent)", padding: "4px 0" }}
+                    >
+                      {s}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {turns.map((t) => (
+              <div key={t.id} style={{ display: "contents" }}>
+                <div className="bubble own">{t.own}</div>
+                {t.card && (
+                  <div className="bubble agent">
+                    <span className="kind">{t.card.kind.replace("_", " ")}</span>
+                    {t.card.body}
+                    {t.card.kind === CardKind.answer && t.card.sources.length > 0 && (
+                      <span className="sources">from {t.card.sources.length} note(s)</span>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
-        )}
-        {turns.map((t) => (
-          <div key={t.id} style={{ display: "contents" }}>
-            <div className="bubble own">{t.own}</div>
-            {t.card && (
-              <div className="bubble agent">
-                <span className="kind">{t.card.kind.replace("_", " ")}</span>
-                {t.card.body}
-                {t.card.kind === CardKind.answer && t.card.sources.length > 0 && (
-                  <span className="sources">from {t.card.sources.length} note(s)</span>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-      <form onSubmit={onSubmit}>
-        <input
-          id="message"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Ask or tell your agent…"
-          autoComplete="off"
-        />
-        <button type="submit" disabled={busy || !text.trim()}>
-          Send
-        </button>
-      </form>
+          <form onSubmit={onSubmit}>
+            <input
+              id="message"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Ask or tell your agent…"
+              autoComplete="off"
+            />
+            <button type="submit" disabled={busy || !text.trim()}>
+              Send
+            </button>
+          </form>
+        </>
+      )}
     </div>
   );
 }

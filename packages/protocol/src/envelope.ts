@@ -18,6 +18,10 @@ export const EnvelopeKind = z.enum([
   "cancel",
   "receipt",
   "key_change",
+  /** Worker → consumer: pay this amount for the job. Carries her UPI ID, sealed. Does not move the engagement. */
+  "payment_request",
+  /** Either side → the other: a payment was made (UPI ref) or confirmed. Does not move the engagement. */
+  "payment_record",
 ]);
 export type EnvelopeKind = z.infer<typeof EnvelopeKind>;
 

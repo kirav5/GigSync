@@ -10,7 +10,7 @@
 GigSync/
 ├─ apps/
 │  └─ mobile/              @gigsync/mobile     Capacitor app: Android, iPhone/Mac, web;         exists
-│                                              worker, employer and union modes
+│                                              worker, consumer and union modes
 ├─ packages/
 │  ├─ protocol/            @gigsync/protocol   zod schemas, canonical JSON, test vectors         exists, extended
 │  ├─ core/                @gigsync/core       agent: router, experts, job machine, policy,      exists, extended
@@ -113,9 +113,9 @@ Agreement = z.object({
   terms: JobTerms,
   terms_hash: Hex32, // sha256(canonicalJson(terms))
   worker: UserId,
-  employer: UserId,
+  consumer: UserId,
   supersedes: AgreementId.optional(),
-  sigs: z.object({ worker: Sig, employer: Sig }), // each over terms_hash||job||id
+  sigs: z.object({ worker: Sig, consumer: Sig }), // each over terms_hash||job||id
   agreed_at: ISO,
 });
 ```
@@ -138,6 +138,46 @@ Receipt = z.object({
   countersigned_at: ISO.optional(),
 });
 ```
+
+### 2.4a Payments (`payment.ts`, exists)
+
+A job is an engagement (`eng_`); the consumer is `requester`, the worker `provider`. Payments hang off it.
+
+```ts
+Vpa = z.string().regex(/^[A-Za-z0-9._-]{2,256}@[A-Za-z][A-Za-z0-9]{1,63}$/); // UPI ID, e.g. sita@okaxis
+Paise = z.number().int().positive().max(UPI_MAX_PAISE); // ₹1,00,000 per UPI payment
+PaymentMethod = z.enum(["upi", "cash"]);
+PaymentStatus = z.enum(["requested", "paid", "confirmed", "disputed"]);
+PaymentRequest = z.object({
+  id: PaymentId /* pay_ */,
+  engagement: EngagementId,
+  payee: UserId,
+  payer: UserId,
+  amount_paise: Paise,
+  note: z.string().max(50),
+  payee_vpa: Vpa,
+  payee_name: z.string().max(40),
+  requested_at: ISO,
+});
+Payment = z.object({
+  id: PaymentId,
+  engagement: EngagementId,
+  payee: UserId,
+  payer: UserId,
+  amount_paise: Paise,
+  method: PaymentMethod,
+  status: PaymentStatus,
+  utr: Utr.optional() /* 12-digit UPI ref */,
+  note,
+  requested_at: ISO.optional(),
+  paid_at: ISO.optional(),
+  confirmed_at: ISO.optional(),
+});
+```
+
+Envelope kinds `payment_request` (worker → consumer) and `payment_record` (consumer → worker: "paid", UTR) are
+sealed like every other envelope. They do not move the engagement's status. The worker's own `Payment` record
+never stores her UPI ID; it lives once in her settings on the phone.
 
 ### 2.5 Grants (`grant.ts`, exists; topics extended)
 
@@ -182,7 +222,7 @@ Scope projection (enforced in `core/export/project.ts`, test vectors in `vectors
 | receipts    |  ✓   | payment, check_in/out | check_in/out |     —     |
 | summary     |  ✓   |           ✓           | days, earned |     —     |
 | notes       |  ✓   |           —           |      —       |     —     |
-| employer id |  ✓   |           ✓           |      —       | blind key |
+| consumer id |  ✓   |           ✓           |      —       | blind key |
 
 ### 2.7 Union flags (`flag.ts`, new)
 
@@ -190,7 +230,7 @@ Scope projection (enforced in `core/export/project.ts`, test vectors in `vectors
 Flag = z.object({
   id: FlagId,
   union: UserId,
-  subject: BlindKey /* HMAC(union_key, employer_user_id) */,
+  subject: BlindKey /* HMAC(union_key, consumer_user_id) */,
   reason_code: z.enum(["harassment", "non_payment", "unsafe", "other"]),
   issued_by: UserId,
   issued_at: ISO,
@@ -304,6 +344,19 @@ shared" screen reads it; revoking a rule writes `GrantEvent{revoked}` and sends 
 `buildPack(scope, period, receiver)` → project (§2.6) → sanitize notes → sign → seal for receiver or write a
 `.gigsync.json` file plus a printable PDF summary (rendered on the phone). Exports are logged as disclosures.
 
+### 3.8a Payments (`payments/`, exists)
+
+| Function                                             | Does                                                                     |
+| ---------------------------------------------------- | ------------------------------------------------------------------------ |
+| `buildUpiUri({ vpa, name, amountPaise, note, ref })` | `upi://pay?pa=…&pn=…&am=450.00&cu=INR&tn=…&tr=…`, validated; the QR text |
+| `canRequestPayment(engagement)`                      | provider side and status `agreed`, `in_progress`, `delivered`, `closed`  |
+| `PaymentBook.request / markPaid / confirm / dispute` | pure transitions saved under `Collection.payments`, keyed by payment id  |
+| `PaymentBook.forEngagement(id)` / `summary(id)`      | the job's payments; requested, paid, confirmed and outstanding totals    |
+
+Transitions: `requested → paid` (either side records it; UTR optional), `requested | paid → confirmed` (worker
+only), `requested | paid → disputed` (worker only). Anything else throws `PaymentError`. QR images are drawn by the
+app (`apps/mobile/src/payments/`), never by core.
+
 ### 3.9 Mail (`mail/`, exists)
 
 Outbox: durable queue, exponential backoff capped at 10 min (exists). Inbox: outcomes `new | duplicate | expired
@@ -330,12 +383,13 @@ Screens (React, voice-first, large tap targets, icon + audio label for each acti
 
 | Screen                  | Purpose                                                        |
 | ----------------------- | -------------------------------------------------------------- |
-| Onboarding              | Language, OTP, PIN, recovery code; worker, employer or union   |
+| Onboarding              | Language, OTP, PIN, recovery code; worker, consumer or union   |
 | Today                   | Jobs today; check-in/out buttons; payment due                  |
 | Requests                | Incoming job requests with policy verdict and flag colour      |
 | Confirm card            | "Send this?" with exact fields going out; send / edit / cancel |
 | My rules                | Min rate, areas, hours, auto-reply, flag handling              |
 | My record               | Ledger by month; days worked, earned, paid, owed               |
+| Get paid                | Pick the job and amount; show QR / open UPI app; mark received |
 | Share / complain        | Pick receiver + scope → preview → send pack or save file       |
 | What my agent shared    | Disclosure audit; revoke                                       |
 | Profiles (shared phone) | Switch worker; each has own PIN and SQLCipher DB               |
@@ -383,7 +437,7 @@ rate_limited | conflict | internal`. Every response carries `x-request-id` (exis
 ### 7.2 D1 additions (`infra/wrangler/d1/directory/0003_gigsync.sql`)
 
 ```sql
-ALTER TABLE users ADD COLUMN mode TEXT NOT NULL DEFAULT 'worker' CHECK (mode IN ('worker','employer','union'));
+-- No worker/consumer column: a person is a worker or a consumer per engagement, as in Collab.
 CREATE TABLE unions (union_id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(user_id),
   name TEXT NOT NULL, created_at INTEGER NOT NULL);
 CREATE TABLE union_members (union_id TEXT NOT NULL REFERENCES unions(union_id), user_id TEXT NOT NULL,
@@ -412,7 +466,7 @@ Postgres + PostGIS through Hyperdrive. Ingests `app.gigsync.*` records from Jets
 `IndexHub` DO) and serves:
 
 `GET /v1/board/workers?category&near=g5&lang` · `GET /v1/board/jobs?category&near=g5` ·
-`POST /v1/board/jobs` (employer-signed). Tables: `worker_profiles(did, categories[], languages[], g5, geom,
+`POST /v1/board/jobs` (consumer-signed). Tables: `worker_profiles(did, categories[], languages[], g5, geom,
 updated_at)`, `open_jobs(id, did, category, rate_paise, g5, geom, expires_at)`; GiST index on `geom`.
 
 ### 7.6 ONDC relay (`workers/ondc-relay`, spike)

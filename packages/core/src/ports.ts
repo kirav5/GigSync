@@ -14,6 +14,8 @@ export const Collection = {
   inboxSeen: "inbox_seen",
   outbox: "outbox",
   outboxSeq: "outbox_seq",
+  payments: "payments",
+  settings: "settings",
 } as const;
 
 export interface Storage {
