@@ -1,4 +1,7 @@
-# Collab index on Cloudflare
+# Index on Cloudflare (carried over from Collab)
+
+The Nostr tags and `dev.collab.*` collections below are the Swift Collab app's wire format and are kept as they
+are; GigSync's job board replaces this index (docs/gigsync/LLD.md §7.5).
 
 The marketplace discovery index, serverless: nothing runs on your computer.
 - **Same API as `collab-index`** on the Mac: `POST /query` (a listing filter) → signed listings; `POST /publish`
@@ -13,7 +16,7 @@ The marketplace discovery index, serverless: nothing runs on your computer.
 ```
 npm install
 npx wrangler login
-npx wrangler d1 create collab-index        # copy the database_id into wrangler.toml
+npx wrangler d1 create gigsync-index        # copy the database_id into wrangler.toml
 npm run db:init
 npm run deploy
 ```

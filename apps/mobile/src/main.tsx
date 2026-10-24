@@ -1,4 +1,4 @@
-import { configureLog, LOCAL_ENVIRONMENT, LogFormat, LogLevel } from "@collab/core";
+import { configureLog, LOCAL_ENVIRONMENT, LogFormat, LogLevel } from "@gigsync/core";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.js";

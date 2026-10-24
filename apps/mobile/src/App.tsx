@@ -1,4 +1,4 @@
-import { Agent, type Card, CardKind } from "@collab/core";
+import { Agent, type Card, CardKind } from "@gigsync/core";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { apiReachable } from "./adapters/api.js";
 import { createPorts, modelLabel } from "./adapters/ports.js";
@@ -56,7 +56,7 @@ export function App() {
   return (
     <div className="app">
       <header>
-        <h1>Collab</h1>
+        <h1>GigSync</h1>
         <small>
           {platform} · {modelLabel}
           {online !== undefined && ` · ${online ? "online" : "offline"}`}

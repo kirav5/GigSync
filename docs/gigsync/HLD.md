@@ -252,7 +252,7 @@ never protects anything stored off the phone (ADR 0007).
 
 | Milestone | Scope                                                                     |
 | --------- | ------------------------------------------------------------------------- |
-| G0        | Rebrand fork to GigSync, docs                                             |
+| G0        | Rename fork to GigSync (done), HLD/LLD, ADRs                              |
 | G1        | Job agreement end to end between two phones, contact grant, ledger        |
 | G2        | Receipts, evidence packs, exports; union mode (web)                       |
 | G3        | Voice (IndicConformer), translation, phrasing model; shared-phone mode    |

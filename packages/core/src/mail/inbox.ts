@@ -1,4 +1,4 @@
-import type { Envelope } from "@collab/protocol";
+import type { Envelope } from "@gigsync/protocol";
 import { Collection, type Storage } from "../ports.js";
 
 export const Outcome = { new: "new", duplicate: "duplicate", expired: "expired", held: "held" } as const;

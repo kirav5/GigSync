@@ -1,4 +1,4 @@
-import { DEFAULT_MAX_TOKENS, HttpMethod, log, type Model } from "@collab/core";
+import { DEFAULT_MAX_TOKENS, HttpMethod, log, type Model } from "@gigsync/core";
 
 /** Where `ollama serve` listens by default. */
 const OLLAMA_URL = "http://localhost:11434";

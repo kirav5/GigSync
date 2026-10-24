@@ -8,5 +8,5 @@ project(':capacitor-app').projectDir = new File('../../../node_modules/.pnpm/@ca
 include ':capacitor-preferences'
 project(':capacitor-preferences').projectDir = new File('../../../node_modules/.pnpm/@capacitor+preferences@8.0.1_@capacitor+core@8.5.3/node_modules/@capacitor/preferences/android')
 
-include ':collab-plugin-llm'
-project(':collab-plugin-llm').projectDir = new File('../node_modules/@collab/plugin-llm/android')
+include ':gigsync-plugin-llm'
+project(':gigsync-plugin-llm').projectDir = new File('../node_modules/@gigsync/plugin-llm/android')

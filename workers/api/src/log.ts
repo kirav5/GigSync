@@ -1,5 +1,5 @@
-import { ContentType, Header } from "@collab/core/http";
-import { configureLog, type Level, LogLevel, log, logEnabled, pii } from "@collab/core/log";
+import { ContentType, Header } from "@gigsync/core/http";
+import { configureLog, type Level, LogLevel, log, logEnabled, pii } from "@gigsync/core/log";
 import type { MiddlewareHandler } from "hono";
 import { routePath } from "hono/route";
 import { type AppEnv, Var } from "./context.js";

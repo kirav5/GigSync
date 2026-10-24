@@ -1,19 +1,20 @@
-name = "collab-api"
+name = "gigsync-api"
 main = "src/index.ts"
 compatibility_date = "2026-08-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Custom domain: Cloudflare creates the DNS record and certificate on deploy.
-routes = [{ pattern = "api.collabai.network", custom_domain = true }]
-# Keep the *.workers.dev address too (wrangler turns it off when routes are set).
+# Custom domain: uncomment once the GigSync domain is chosen and in this Cloudflare account (gigsync.app is a
+# placeholder). Cloudflare creates the DNS record and certificate on deploy.
+# routes = [{ pattern = "api.gigsync.app", custom_domain = true }]
 workers_dev = true
 
-# Directory: users, devices, keys, phone hashes, sessions. Create with `wrangler d1 create collab-directory`
+# Directory: users, devices, keys, phone hashes, sessions. Create with `wrangler d1 create gigsync-directory`
 # and paste the id below for each environment.
 [[d1_databases]]
 binding = "DIRECTORY"
-database_name = "collab-directory"
-database_id = "d0ca0057-445e-4f39-b1fc-aa652b35d1a7"
+database_name = "gigsync-directory"
+# Placeholder: replace with the id from `wrangler d1 create gigsync-directory` (never reuse Collab's database).
+database_id = "00000000-0000-0000-0000-000000000000"
 migrations_dir = "../../infra/wrangler/d1/directory"
 
 # One Durable Object per user, class from workers/mailbox, re-exported from src/index.ts.
@@ -39,7 +40,7 @@ LOG_LEVEL = "info"
 LOG_PII = "false"
 # Who may call the API from a browser: the website, then the iOS and Android webviews (capacitor://localhost,
 # https://localhost). Local dev overrides this in .dev.vars.
-ALLOWED_ORIGINS = "https://collabai.network,https://www.collabai.network,https://collab-app.collab-index-worker.workers.dev,capacitor://localhost,https://localhost"
+ALLOWED_ORIGINS = "https://gigsync.app,https://www.gigsync.app,https://gigsync-app.gigsync.workers.dev,capacitor://localhost,https://localhost"
 # DEV_OTP is a secret, not a var: the code that always verifies until the SMS gateway exists.
 # Local dev reads it from .dev.vars (see .dev.vars.example); the deployed Worker from `wrangler secret put DEV_OTP`.
 

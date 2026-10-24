@@ -1,8 +1,8 @@
 {
-  "name": "@collab/mobile",
+  "name": "@gigsync/mobile",
   "version": "0.1.0",
   "private": true,
-  "description": "The Collab app: one React + Capacitor codebase for Android, iPhone and Mac.",
+  "description": "The GigSync app: one React + Capacitor codebase for Android, iPhone and Mac.",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,9 +17,9 @@
     "@capacitor/app": "8.1.2",
     "@capacitor/core": "8.5.3",
     "@capacitor/preferences": "8.0.1",
-    "@collab/core": "workspace:*",
-    "@collab/plugin-llm": "workspace:*",
-    "@collab/protocol": "workspace:*",
+    "@gigsync/core": "workspace:*",
+    "@gigsync/plugin-llm": "workspace:*",
+    "@gigsync/protocol": "workspace:*",
     "@noble/ed25519": "3.2.0",
     "react": "19.3.1",
     "react-dom": "19.3.1"

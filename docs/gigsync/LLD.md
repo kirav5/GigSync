@@ -510,17 +510,22 @@ web build check. Branch → PR → green → squash merge; DCO sign-off (see `.c
 | Countersign timeout | 48 h → `unilateral`                             |
 | Contact grant max   | job end or 90 days, whichever first             |
 
-## 14. Rebrand map (G0 follow-up PR)
+## 14. Rename from Collab (done in G0)
 
-| Today (collabai.network)                            | GigSync                                                |
-| --------------------------------------------------- | ------------------------------------------------------ |
-| root `collabai.network`, scope `@collab/*`          | `gigsync`, `@gigsync/*`                                |
-| wrangler `collab-api`, `collab-index`, `collab-app` | `gigsync-api`, `gigsync-board`, `gigsync-app`          |
-| D1 `collab-directory`, `collab-index`               | new DBs `gigsync-directory`, `gigsync-board` (new ids) |
-| domains `api.collabai.network`, `collabai.network`  | `[gigsync domain]` — to choose                         |
-| NSIDs `network.collabai.*`, `dev.collab.*`          | `app.gigsync.*` (pending domain)                       |
-| appId `network.collabai.app`, "Collab"              | `app.gigsync`, "GigSync"                               |
-| `plugins/collab-llm`, `CollabLLM*`                  | `plugins/gigsync-llm`, `GigSyncLLM*`                   |
-| workers.dev fallback `collab-index-worker`          | new subdomain                                          |
+| Collab (collabai.network)                             | GigSync                                                                  |
+| ----------------------------------------------------- | ------------------------------------------------------------------------ |
+| root `collabai.network`, scope `@collab/*`            | root `gigsync`, scope `@gigsync/*`                                       |
+| Workers `collab-api`, `collab-index`, `collab-app`    | `gigsync-api`, `gigsync-index` (→ `gigsync-board`), `gigsync-app`        |
+| D1 `collab-directory`, `collab-index`                 | `gigsync-directory`, `gigsync-index`; ids are placeholders until created |
+| domains `collabai.network`, `api.`, `www.`            | `gigsync.app` placeholder; custom-domain routes commented out            |
+| NSIDs `network.collabai.*`                            | `app.gigsync.*`                                                          |
+| app id `network.collabai.app`, name "Collab"          | `app.gigsync`, "GigSync" (Android, iOS, Capacitor)                       |
+| `plugins/collab-llm`, `CollabLLM*`, `CollabPluginLlm` | `plugins/gigsync-llm`, `GigSyncLLM*`, `GigsyncPluginLlm`                 |
+| workers.dev subdomain `collab-index-worker`           | `gigsync` (set the `API_BASE` repo variable if yours differs)            |
 
-The rename is one mechanical PR after this one, followed by `pnpm install` (lockfile) and `npx cap sync`.
+Kept on purpose: `workers/index` still reads the Swift Collab app's Nostr wire format (`collab` tag,
+`collab-` category prefix, `dev.collab.*` collections) because its signed test fixtures must keep verifying; the
+job board replaces it. ADRs 0001–0008 keep their Collab wording where they describe decisions made for Collab.
+
+Before the first deploy: `wrangler d1 create gigsync-directory` and `gigsync-index`, paste the ids, choose the
+domain, then uncomment the routes.

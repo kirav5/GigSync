@@ -4,9 +4,9 @@
 
 | Data                                  | Store                     | Why                                      |
 | ------------------------------------- | ------------------------- | ---------------------------------------- |
-| Accounts, devices, sessions, consents | D1 `collab-directory`     | Relational, looked up across users       |
+| Accounts, devices, sessions, consents | D1 `gigsync-directory`    | Relational, looked up across users       |
 | Messages waiting for a device         | Mailbox DO (one per user) | Per-user, write-heavy, expires           |
-| Searchable public listings and notes  | D1 `collab-index`         | A rebuildable copy of records on Bluesky |
+| Searchable public listings and notes  | D1 `gigsync-index`        | A rebuildable copy of records on Bluesky |
 | Private notes and chats               | The phone only            | Never on the server                      |
 
 Never put message content in D1. Never store a phone number, only its HMAC.

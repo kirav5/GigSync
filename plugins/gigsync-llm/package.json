@@ -1,5 +1,5 @@
 {
-  "name": "@collab/plugin-llm",
+  "name": "@gigsync/plugin-llm",
   "version": "0.1.0",
   "private": true,
   "description": "Capacitor plugin that runs a language model on the device: LiteRT-LM on Android, Apple Foundation Models on iPhone and Mac.",

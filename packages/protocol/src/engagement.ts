@@ -63,7 +63,7 @@ export type A2aTaskState = z.infer<typeof A2aTaskState>;
 const A = A2aTaskState.enum;
 const inputRequired = A["input-required"];
 
-/** Collab status → Google A2A task state, for the gateway planned at the edge. */
+/** GigSync status → Google A2A task state, for the gateway planned at the edge. */
 export const A2A_STATE: Readonly<Record<EngagementStatus, A2aTaskState>> = {
   draft: A.submitted,
   sent: A.submitted,

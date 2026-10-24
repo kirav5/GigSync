@@ -6,7 +6,7 @@ export interface Env {
   HUB: DurableObjectNamespace<IndexHub>;
   JETSTREAM: string;
   RELAY: string;
-  /** Logging settings, read by @collab/core/log; see the README's Logs section. */
+  /** Logging settings, read by @gigsync/core/log; see the README's Logs section. */
   ENVIRONMENT?: string;
   LOG_LEVEL?: string;
   LOG_PII?: string;

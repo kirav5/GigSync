@@ -3,10 +3,10 @@ import Foundation
 
 /// Runs a language model on iPhone and Mac. M0 reports "no model". The iOS/macOS 26 build will wrap Apple
 /// Foundation Models here, reusing the Swift Collab app's AppleIntelligence and CollabMLX code.
-@objc(CollabLLMPlugin)
-public class CollabLLMPlugin: CAPPlugin, CAPBridgedPlugin {
-    public let identifier = "CollabLLMPlugin"
-    public let jsName = "CollabLLM"
+@objc(GigSyncLLMPlugin)
+public class GigSyncLLMPlugin: CAPPlugin, CAPBridgedPlugin {
+    public let identifier = "GigSyncLLMPlugin"
+    public let jsName = "GigSyncLLM"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "status", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "generate", returnType: CAPPluginReturnPromise),

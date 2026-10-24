@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "network.collabai.app",
-  appName: "Collab",
+  appId: "app.gigsync",
+  appName: "GigSync",
   webDir: "dist",
   android: { allowMixedContent: false },
   ios: { contentInset: "automatic" },

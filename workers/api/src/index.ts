@@ -1,7 +1,7 @@
-import { BEARER_PREFIX, Header, HttpMethod } from "@collab/core/http";
-import { log, pii } from "@collab/core/log";
-import { type DeviceId, Envelope, MessageId, UserId } from "@collab/protocol";
-import { Mailbox } from "@collab/worker-mailbox";
+import { BEARER_PREFIX, Header, HttpMethod } from "@gigsync/core/http";
+import { log, pii } from "@gigsync/core/log";
+import { type DeviceId, Envelope, MessageId, UserId } from "@gigsync/protocol";
+import { Mailbox } from "@gigsync/worker-mailbox";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";

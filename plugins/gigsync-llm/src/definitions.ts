@@ -18,7 +18,7 @@ export interface ModelStatus {
   freeMemoryMb?: number;
 }
 
-export interface CollabLLMPlugin {
+export interface GigSyncLLMPlugin {
   status(): Promise<ModelStatus>;
   generate(options: GenerateOptions): Promise<GenerateResult>;
 }

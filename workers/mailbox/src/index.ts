@@ -1,7 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
-import { HttpMethod } from "@collab/core/http";
-import { configureLog, log, pii } from "@collab/core/log";
-import { DEFAULT_TTL_SECONDS, type DeviceId, Envelope, type MessageId } from "@collab/protocol";
+import { HttpMethod } from "@gigsync/core/http";
+import { configureLog, log, pii } from "@gigsync/core/log";
+import { DEFAULT_TTL_SECONDS, type DeviceId, Envelope, type MessageId } from "@gigsync/protocol";
 
 export interface Env {
   MAILBOX: DurableObjectNamespace<Mailbox>;

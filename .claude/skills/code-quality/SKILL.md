@@ -1,9 +1,9 @@
 ---
 name: code-quality
-description: Code quality standards for all of collabai.network. Load BEFORE writing, changing or reviewing any code — workers/ (Hono API, Durable Objects, index), packages/protocol, packages/core, apps/mobile, plugins/, infra/wrangler (D1 migrations, SQL), wrangler.toml, scripts/ and CI workflows — and when designing tables, routes or data flows. Covers named constants (no magic strings or numbers), structure, file size limits, validation, errors, logging, security, D1 schema and queries, Durable Objects, performance on Workers, app code, and tests.
+description: Code quality standards for all of GigSync. Load BEFORE writing, changing or reviewing any code — workers/ (Hono API, Durable Objects, index), packages/protocol, packages/core, apps/mobile, plugins/, infra/wrangler (D1 migrations, SQL), wrangler.toml, scripts/ and CI workflows — and when designing tables, routes or data flows. Covers named constants (no magic strings or numbers), structure, file size limits, validation, errors, logging, security, D1 schema and queries, Durable Objects, performance on Workers, app code, and tests.
 ---
 
-# Code quality for collabai.network
+# Code quality for GigSync
 
 Write code the way a senior engineer would ship it: small focused modules, named values, validated inputs,
 normalized data, no dead code, tested. These rules apply to every package and are checked in review and partly in
@@ -27,7 +27,7 @@ Read the reference that matches the work before you write code:
 | Schemas           | `packages/protocol` (zod)                 | The only place schemas live                              |
 | Agent logic       | `packages/core`                           | Plain TS, no platform APIs; also the shared logger and HTTP names |
 | App               | `apps/mobile` (React + Capacitor)         | UI and adapters; platform APIs only in `src/adapters`    |
-| Directory DB      | D1 `collab-directory`                     | Migrations in `infra/wrangler/d1/directory`              |
+| Directory DB      | D1 `gigsync-directory`                     | Migrations in `infra/wrangler/d1/directory`              |
 
 ## Hard rules
 
@@ -37,12 +37,12 @@ Read the reference that matches the work before you write code:
 3. **Validate every input at the boundary** with `Schema.safeParse(...)`. Never trust a request body, query string,
    header, queue message or RPC argument through an `as` cast.
 4. **Never return message content, phone numbers, keys or tokens, and log them only through `pii()`.** Use the
-   logger in `@collab/core/log`: a `pii()` value prints locally (`ENVIRONMENT=local`, `LOG_PII=true`) and as
+   logger in `@gigsync/core/log`: a `pii()` value prints locally (`ENVIRONMENT=local`, `LOG_PII=true`) and as
    `[redacted]` everywhere else. Never log a private value bare, in errors or anywhere. Secret keys
    (`PHONE_HMAC_KEY`, private keys) are never logged, not even through `pii()`.
 5. **No magic strings or numbers.** A value that carries meaning gets a name (see "Named values" below). `pnpm lint`
    fails on a string compared with `===`/`!==` or used as a `case`, and on any string repeated 3+ times in a file.
-6. **No `any`.** Use the branded ids (`UserId`, `DeviceId`, `MessageId`) from `@collab/protocol`, `unknown` plus
+6. **No `any`.** Use the branded ids (`UserId`, `DeviceId`, `MessageId`) from `@gigsync/protocol`, `unknown` plus
    parsing for outside data, and real D1 row types.
 7. **No dead code.** No commented-out code, unused exports, bare `console.log` (use `log`), or speculative options.
    `TODO` only with a milestone, as the repo does: `// TODO(M2): verify sig against the directory key.`
@@ -58,8 +58,8 @@ Every fixed value that means something has exactly one definition, and code refe
 | Kind of value                                                        | Where it lives                                             | Shape                                    |
 | -------------------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------- |
 | Protocol values shared by phone and server (statuses, kinds, topics) | `packages/protocol`, as a zod enum                         | `Topic.enum.location`                    |
-| HTTP methods, header names, content types                            | `@collab/core/http`                                        | `HttpMethod.post`, `Header.authorization` |
-| Log levels and logger settings                                       | `@collab/core/log`                                         | `LogLevel.debug`, `LOCAL_ENVIRONMENT`    |
+| HTTP methods, header names, content types                            | `@gigsync/core/http`                                        | `HttpMethod.post`, `Header.authorization` |
+| Log levels and logger settings                                       | `@gigsync/core/log`                                         | `LogLevel.debug`, `LOCAL_ENVIRONMENT`    |
 | A package's own names (storage collections, card kinds, routes)      | next to the code that owns them, `as const`                | `Collection.outbox`, `CardKind.answer`   |
 | One Worker's names and limits (paths, storage keys, tags, TTLs)      | that Worker's `src/constants.ts` or `context.ts`           | `Path.health`, `StorageKey.cursor`       |
 | Error messages returned by an API                                    | one `as const` object per Worker                           | `ApiError.unauthorized`                  |
@@ -137,7 +137,7 @@ the existing code.
 
 ## Workflow
 
-1. Schema in `packages/protocol` → build it (`pnpm --filter @collab/protocol build`).
+1. Schema in `packages/protocol` → build it (`pnpm --filter @gigsync/protocol build`).
 2. Migration in `infra/wrangler/d1/<db>/` if the data model changes (see `references/data.md`).
 3. Data-access functions, then domain logic, then the route.
 4. Tests in the Worker's `test/` folder (`@cloudflare/vitest-pool-workers`, `applyD1Migrations`).

@@ -1,4 +1,4 @@
-package network.collabai.app;
+package app.gigsync;
 
 import com.getcapacitor.BridgeActivity;
 

@@ -1,4 +1,4 @@
-package network.collabai.llm
+package app.gigsync.llm
 
 import android.app.ActivityManager
 import android.content.Context
@@ -12,8 +12,8 @@ import com.getcapacitor.annotation.CapacitorPlugin
  * Runs a small language model on the phone. M0: reports "no model" so the agent stays in lite mode.
  * M1: load a Gemma-class model delivered as a Play AI pack through LiteRT-LM, and stream tokens back.
  */
-@CapacitorPlugin(name = "CollabLLM")
-class CollabLLMPlugin : Plugin() {
+@CapacitorPlugin(name = "GigSyncLLM")
+class GigSyncLLMPlugin : Plugin() {
 
     @PluginMethod
     fun status(call: PluginCall) {

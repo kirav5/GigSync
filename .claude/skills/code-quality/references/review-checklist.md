@@ -12,12 +12,12 @@ find; if something has to stay, say why in the summary. Report the result item b
 - [ ] No magic values: every status, kind, header, route, storage key, tag name, limit and TTL is a named constant
   in the right place (see "Named values" in SKILL.md). `pnpm lint` catches comparisons and repeats; check the rest
   by eye, including values used only once.
-- [ ] A value shared by two packages is defined once (protocol or `@collab/core`), not copied.
+- [ ] A value shared by two packages is defined once (protocol or `@gigsync/core`), not copied.
 - [ ] No dead code, commented-out code, unused exports, bare `console.log`, or `TODO` without a milestone.
 
 ## Correctness
 
-- [ ] Every input is parsed with a schema from `@collab/protocol` (or a type guard); no `as` casts on outside data.
+- [ ] Every input is parsed with a schema from `@gigsync/protocol` (or a type guard); no `as` casts on outside data.
 - [ ] No `any`; outside JSON is `unknown` until checked.
 - [ ] Failure paths return the right status with a safe `{ error }` body.
 - [ ] Writes that belong together are in one `db.batch` (a sign-up must not leave a user without a device).

@@ -8,7 +8,7 @@ import {
   type Role,
   TERMINAL_STATUSES,
   type UserId,
-} from "@collab/protocol";
+} from "@gigsync/protocol";
 import { ulid } from "ulid";
 
 export class TransitionError extends Error {

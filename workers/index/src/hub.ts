@@ -1,6 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
-import { ContentType, Header, WEBSOCKET_UPGRADE } from "@collab/core/http";
-import { configureLog, LogLevel, log, logEnabled } from "@collab/core/log";
+import { ContentType, Header, WEBSOCKET_UPGRADE } from "@gigsync/core/http";
+import { configureLog, LogLevel, log, logEnabled } from "@gigsync/core/log";
 import { type BackfillState, backfillStep, initialState } from "./backfill.ts";
 import { CommitOp, CURSOR_REWIND_US, JETSTREAM_COMMIT, StorageKey, Table } from "./constants.ts";
 import { type Env, nowSeconds } from "./env.ts";

@@ -16,8 +16,8 @@ We looked at [Tiles](https://tiles.run) and its embedding kit, Tilekit, which is
 The Tiles daemon runs only on Apple Silicon macOS and Linux, and its default model is a 12B model. Tiles has no
 Android, iPhone or browser runtime, and its daemon's CORS rules block ordinary web origins.
 
-collabai.network already has an offline model path that covers every platform GigSync targets:
-- `plugins/collab-llm` is one Capacitor plugin with `status()` and `generate()`.
+collabai.network (upstream) already has an offline model path that covers every platform GigSync targets:
+- `plugins/gigsync-llm` is one Capacitor plugin with `status()` and `generate()`.
   - On Android it runs LiteRT-LM.
   - On iPhone and Mac it runs Apple Foundation Models.
   - On the web it has a slot for an in-browser engine.

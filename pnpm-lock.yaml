@@ -25,13 +25,13 @@ importers:
       "@capacitor/preferences":
         specifier: 8.0.1
         version: 8.0.1(@capacitor/core@8.5.3)
-      "@collab/core":
+      "@gigsync/core":
         specifier: workspace:*
         version: link:../../packages/core
-      "@collab/plugin-llm":
+      "@gigsync/plugin-llm":
         specifier: workspace:*
-        version: link:../../plugins/collab-llm
-      "@collab/protocol":
+        version: link:../../plugins/gigsync-llm
+      "@gigsync/protocol":
         specifier: workspace:*
         version: link:../../packages/protocol
       "@noble/ed25519":
@@ -71,7 +71,7 @@ importers:
 
   packages/core:
     dependencies:
-      "@collab/protocol":
+      "@gigsync/protocol":
         specifier: workspace:*
         version: link:../protocol
       ulid:
@@ -98,7 +98,7 @@ importers:
         specifier: 4.1.12
         version: 4.1.12(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2))
 
-  plugins/collab-llm:
+  plugins/gigsync-llm:
     devDependencies:
       "@capacitor/core":
         specifier: 8.5.3
@@ -109,13 +109,13 @@ importers:
 
   workers/api:
     dependencies:
-      "@collab/core":
+      "@gigsync/core":
         specifier: workspace:*
         version: link:../../packages/core
-      "@collab/protocol":
+      "@gigsync/protocol":
         specifier: workspace:*
         version: link:../../packages/protocol
-      "@collab/worker-mailbox":
+      "@gigsync/worker-mailbox":
         specifier: workspace:*
         version: link:../mailbox
       hono:
@@ -146,7 +146,7 @@ importers:
 
   workers/index:
     dependencies:
-      "@collab/core":
+      "@gigsync/core":
         specifier: workspace:*
         version: link:../../packages/core
       "@noble/curves":
@@ -168,10 +168,10 @@ importers:
 
   workers/mailbox:
     dependencies:
-      "@collab/core":
+      "@gigsync/core":
         specifier: workspace:*
         version: link:../../packages/core
-      "@collab/protocol":
+      "@gigsync/protocol":
         specifier: workspace:*
         version: link:../../packages/protocol
     devDependencies:

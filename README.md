@@ -10,22 +10,15 @@ Status: **G0, design.** Start with the [HLD](docs/gigsync/HLD.md) and [LLD](docs
 [ADR 0009](docs/adr/0009-one-offline-model-plugin-not-tilekit.md) (the offline model) and
 [ADR 0010](docs/adr/0010-no-cloud-model-in-gigsync.md) (no cloud model). GigSync is a working name.
 
-GigSync is derived from [collabai.network](https://github.com/kirav5/collabai.network) (git remote `upstream`).
-It reuses Collab's agent core, protocol, mailbox, policy engine and offline model plugin.
+GigSync is derived from [collabai.network](https://github.com/kirav5/collabai.network) (git remote `upstream`),
+renamed throughout (`@gigsync/*`, `gigsync-*` Workers, app id `app.gigsync`). It reuses Collab's agent core,
+protocol, mailbox, policy engine and offline model plugin; the code below is still Collab's M0 foundation, and
+the GigSync features in the HLD/LLD are planned. `gigsync.app` is a placeholder domain: custom domains are
+commented out in the `wrangler.toml` files and the D1 ids are placeholders until GigSync's own Cloudflare
+resources exist.
 
----
-
-The rest of this README describes the upstream Collab base, which is unchanged so far.
-
-## Collab (upstream)
-
-Collab is a personal agent that lives on your phone. It keeps your notes and context on the device, answers
-other people's agents only under rules you set, and finds and books workers for you. One TypeScript codebase
-for Android, iPhone and Mac; Cloudflare for everything in between; your public data in your own AT Protocol
-repository.
-
-Status: **M0, foundation.** The skeleton builds, tests and deploys end to end. See [docs/design.md](docs/design.md)
-and the decisions in [docs/adr](docs/adr).
+The skeleton builds, tests and deploys end to end. See also [docs/design.md](docs/design.md) (Collab's design) and
+the decisions in [docs/adr](docs/adr).
 
 ## Layout
 
@@ -36,7 +29,7 @@ workers/api         sign-in, directory, mailbox and inbox routes (Hono on Worker
 workers/mailbox     the Mailbox Durable Object, one per user
 workers/index       search index over public records (Workers + D1), carried over from the Swift app
 apps/mobile         the Capacitor app: React UI + adapters that implement core's ports; android/ and ios/ inside
-plugins/collab-llm  Capacitor plugin for the on-device model (Kotlin + Swift stubs in M0)
+plugins/gigsync-llm Capacitor plugin for the offline model: LiteRT-LM (Android), Foundation Models (Apple), web
 infra/              D1 migrations; an unused PDS docker-compose (ADR 0005)
 docs/               design and ADRs
 ```
@@ -60,7 +53,7 @@ cp workers/api/.dev.vars.example workers/api/.dev.vars
 ```
 
 ```bash
-pnpm --filter @collab/worker-api exec wrangler d1 migrations apply collab-directory --local
+pnpm --filter @gigsync/worker-api exec wrangler d1 migrations apply gigsync-directory --local
 ```
 
 ```bash
@@ -73,7 +66,7 @@ In another terminal, the app in a browser at http://localhost:5173 (lite mode, n
 pnpm dev:app
 ```
 
-Phones: `pnpm build && pnpm --filter @collab/mobile exec cap sync`, then `cap run android` or `cap run ios`
+Phones: `pnpm build && pnpm --filter @gigsync/mobile exec cap sync`, then `cap run android` or `cap run ios`
 (Android Studio or Xcode must be installed).
 
 Try the local API:
@@ -109,7 +102,7 @@ Restart `pnpm dev:app`; the header shows `ollama gemma3:1b`.
 
 ## Logs
 
-One logger (`@collab/core/log`) for the app and every Worker. What it prints depends on where it runs:
+One logger (`@gigsync/core/log`) for the app and every Worker. What it prints depends on where it runs:
 
 | Where               | Shows                                                                 | Settings                                                            |
 | ------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------- |
