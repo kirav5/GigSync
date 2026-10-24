@@ -1,0 +1,26 @@
+{
+  "name": "@collab/tilekit-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Typed client for the Tiles daemon's Tilekit REST API (http://127.0.0.1:1729/v1/tilekit), with SSE streaming. Used by the GigSync Desk.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./src/index.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vitest": "4.1.12"
+  }
+}
