@@ -19,6 +19,7 @@
     "dev:app": "pnpm --filter @gigsync/mobile dev",
     "deploy:workers": "pnpm --filter './workers/*' run deploy",
     "test:e2e": "pnpm --filter @gigsync/e2e e2e",
+    "demo:workers": "pnpm --filter @gigsync/e2e demo:workers",
     "test:ui": "pnpm --filter @gigsync/ui-tests ui"
   },
   "devDependencies": {

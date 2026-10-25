@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "e2e": "vitest run"
+    "e2e": "vitest run",
+    "demo:workers": "jiti demo/workers.ts"
   },
   "dependencies": {
     "@gigsync/core": "workspace:*",
@@ -15,6 +16,7 @@
     "ulid": "3.0.2"
   },
   "devDependencies": {
+    "jiti": "2.7.0",
     "typescript": "5.9.3",
     "vitest": "4.1.12"
   }
