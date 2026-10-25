@@ -13,7 +13,7 @@ import { Settings } from "./screens/Settings.js";
 import { Today } from "./screens/Today.js";
 import { Screen, useGigData } from "./state.js";
 
-/** GigSync for the worker: Collab's layout and look, her jobs, her payments, her record. */
+/** GigSync for the worker: Collab's layout and look, their jobs, their payments, their record. */
 export function App() {
   const ports = useMemo(createPorts, []);
   const agent = useMemo(() => new Agent(ports), [ports]);

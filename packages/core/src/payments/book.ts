@@ -60,7 +60,7 @@ export class PaymentBook {
     private readonly clock: Clock,
   ) {}
 
-  /** The worker asks for payment for a job. Her UPI ID is not stored here; it is added only to the QR or request. */
+  /** The worker asks for payment for a job. Their UPI ID is not stored here; it is added only to the QR or request. */
   async request(input: {
     engagement: Engagement;
     payee: UserId;
@@ -91,7 +91,7 @@ export class PaymentBook {
     return this.change(id, S.paid, (p, at) => ({ ...p, paid_at: at, ...(utr ? { utr } : {}) }));
   }
 
-  /** The worker confirms the money reached her. */
+  /** The worker confirms the money reached them. */
   confirm(id: string): Promise<Payment> {
     return this.change(id, S.confirmed, (p, at) => ({ ...p, confirmed_at: at, paid_at: p.paid_at ?? at }));
   }

@@ -10,7 +10,7 @@ import {
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
 
-/** Where her UPI ID is kept: one record in this phone's settings, never in a payment or on a server. */
+/** Where their UPI ID is kept: one record in this phone's settings, never in a payment or on a server. */
 const PAYEE_KEY = "payee";
 /** Brief field holding the consumer's name for a job recorded on this phone. */
 export const CONSUMER_FIELD = "consumer";
@@ -45,7 +45,7 @@ export async function workerJobs(s: Storage): Promise<Engagement[]> {
 }
 
 /**
- * Pilot: records a job she agreed in person with a consumer, as an agreed engagement with a local contact. When
+ * Pilot: records a job the worker agreed in person with a consumer, as an agreed engagement with a local contact. When
  * agent-to-agent agreement (G1) is wired into the app, jobs arrive here already agreed and signed by both phones.
  */
 export async function recordJob(s: Storage, input: { consumer: string; work: string }, now: Date): Promise<Engagement> {
@@ -67,7 +67,7 @@ export async function recordJob(s: Storage, input: { consumer: string; work: str
 export const consumerName = (e: Engagement) => e.brief.shared[CONSUMER_FIELD] ?? "Customer";
 export const jobLabel = (e: Engagement) => `${consumerName(e)} · ${e.brief.text}`;
 
-/** Her moves on a job, as Collab envelope kinds: start work (update), then mark it done (delivery). */
+/** Their moves on a job, as Collab envelope kinds: start work (update), then mark it done (delivery). */
 export const JobMove = { start: EnvelopeKind.enum.update, done: EnvelopeKind.enum.delivery } as const;
 export type JobMove = (typeof JobMove)[keyof typeof JobMove];
 
@@ -77,7 +77,7 @@ export async function moveJob(s: Storage, job: Engagement, move: JobMove, now: D
   return next;
 }
 
-/** Where a job stands for her, as the four steps the screens show. */
+/** Where a job stands for the worker, as the four steps the screens show. */
 export const JobStep = { agreed: 0, working: 1, done: 2, paid: 3 } as const;
 export type JobStep = (typeof JobStep)[keyof typeof JobStep];
 const E = EngagementStatus.enum;

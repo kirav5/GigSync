@@ -19,7 +19,7 @@ interface Props {
   pay: (job: Engagement) => void;
 }
 
-/** The start screen: what she has earned, what is still owed, and where to go next. */
+/** The start screen: what the worker has earned, what is still owed, and where to go next. */
 export function Today({ data, go, pay }: Props) {
   const sum = summarize(data.payments);
   const open = data.jobs.filter((j) => jobStep(j, data.payments) !== JobStep.paid);

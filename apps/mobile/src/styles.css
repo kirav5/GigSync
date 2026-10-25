@@ -1,6 +1,6 @@
 /* GigSync uses Collab's visual language (kirav5/collab web/styles.css): near-black canvas (off-white in light mode),
    hairline rules instead of shadows, a large two-tone grotesk headline, small monospaced uppercase labels, square
-   controls and one pink accent. States: --wait (waiting on her), --talk (in progress), --fresh (paid / agreed),
+   controls and one pink accent. States: --wait (waiting on the worker), --talk (in progress), --fresh (paid / agreed),
    --danger (disputed). Set data-look on <html> (Settings › Look; Auto follows the device). */
 :root {
   --bg: #f7f7f5;
@@ -472,7 +472,7 @@ a {
   letter-spacing: -0.02em;
 }
 
-/* Logo: two square hooks holding each other across a gap; hers in brand pink, theirs in the text colour. */
+/* Logo: two square hooks holding each other across a gap; yours in brand pink, theirs in the text colour. */
 .logo {
   display: inline-block;
   width: 18px;

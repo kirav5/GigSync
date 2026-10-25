@@ -13,7 +13,7 @@ interface Props {
   changed: () => Promise<void>;
 }
 
-/** Get paid for a job: pick it, show her UPI QR, record what arrived. */
+/** Get paid for a job: pick it, show their UPI QR, record what arrived. */
 export function Pay({ data, book, jobId, onJob, go, changed }: Props) {
   const job = data.jobs.find((j) => j.id === jobId) ?? data.jobs[0];
   return (

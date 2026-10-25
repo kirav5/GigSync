@@ -11,7 +11,7 @@ const LOOKS: readonly { look: Look; label: string }[] = [
   { look: Look.dark, label: "Dark" },
 ];
 
-/** Her UPI ID (kept only on this phone) and how the app looks. */
+/** Their UPI ID (kept only on this phone) and how the app looks. */
 export function Settings({ ports, data, changed }: { ports: Ports; data: GigData; changed: () => Promise<void> }) {
   const [error, setError] = useState<string>();
   const [saved, setSaved] = useState(false);

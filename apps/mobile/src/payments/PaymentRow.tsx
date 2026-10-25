@@ -17,7 +17,7 @@ interface Props {
   actions?: { qr?: () => void; received: () => void; notReceived: () => void } | undefined;
 }
 
-/** One line of her record: amount, status, method, reference and when. */
+/** One line of their record: amount, status, method, reference and when. */
 export function PaymentRow({ payment: p, context, actions }: Props) {
   const status = STATUS[p.status];
   const when = p.confirmed_at ?? p.paid_at ?? p.requested_at;

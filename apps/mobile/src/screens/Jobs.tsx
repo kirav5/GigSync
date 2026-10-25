@@ -13,7 +13,7 @@ interface Props {
   pay: (job: Engagement) => void;
 }
 
-/** Her jobs: record one agreed in person, move it along, and get paid for it. */
+/** Their jobs: record one agreed in person, move it along, and get paid for it. */
 export function Jobs({ ports, data, changed, pay }: Props) {
   const [error, setError] = useState<string>();
 
