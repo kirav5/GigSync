@@ -89,7 +89,7 @@ export async function worker(
   trades: Trade[],
   where: Place,
   price: { rate: number; min: number },
-  opts: { autoConfirm?: boolean; radiusKm?: number } = {},
+  opts: { autoConfirm?: boolean; radiusKm?: number; areaName?: string } = {},
 ): Promise<Person> {
   const handle = name.toLowerCase().replace(/[^a-z]/g, "");
   const rules: WorkerRules = {
@@ -108,7 +108,7 @@ export async function worker(
     display_name: name,
     trades,
     area: where,
-    area_name: "Test town",
+    area_name: opts.areaName ?? "Test town",
     rate_paise: price.rate,
     languages: ["hi", "en"],
     about: `${trades.join(", ")} for 10 years`,
