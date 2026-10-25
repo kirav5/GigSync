@@ -42,6 +42,13 @@ Needs Node 24 (`.nvmrc`) and pnpm 10. With nvm: `nvm install 24 && corepack enab
 pnpm install
 ```
 
+Build the shared packages and the model plugin; the API and the app import their `dist/`. Run it again after
+changing anything under `packages/` or `plugins/`:
+
+```bash
+pnpm -r --filter './packages/*' --filter './plugins/*' run build
+```
+
 ```bash
 pnpm test
 ```
