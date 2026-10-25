@@ -8,14 +8,14 @@ compatibility_flags = ["nodejs_compat"]
 # routes = [{ pattern = "api.gigsync.app", custom_domain = true }]
 workers_dev = true
 
-# Directory: users, devices, keys, phone hashes, sessions. Create with `wrangler d1 create gigsync-directory`
-# and paste the id below for each environment.
-[[d1_databases]]
+# Directory: users, devices, keys, phone hashes, sessions, in Neon Postgres (ADR 0013), reached through Hyperdrive.
+# Create with `wrangler hyperdrive create gigsync-directory --connection-string="$DATABASE_URL_UNPOOLED"` (the
+# direct URL: Hyperdrive pools by itself) and paste the id below. Migrations: infra/postgres/directory.
+# Local dev never uses the id: wrangler dev connects to CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_DIRECTORY.
+[[hyperdrive]]
 binding = "DIRECTORY"
-database_name = "gigsync-directory"
-# Placeholder: replace with the id from `wrangler d1 create gigsync-directory` (never reuse Collab's database).
-database_id = "00000000-0000-0000-0000-000000000000"
-migrations_dir = "../../infra/wrangler/d1/directory"
+# Placeholder until GigSync's Cloudflare account exists.
+id = "00000000000000000000000000000000"
 
 # One Durable Object per user, class from workers/mailbox, re-exported from src/index.ts.
 [[durable_objects.bindings]]

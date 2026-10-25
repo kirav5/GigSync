@@ -28,7 +28,7 @@ GigSync/
 │  ├─ board/               Job board (public profiles, open jobs)                                 planned (from workers/index)
 │  └─ ondc-relay/          ONDC BAP/BPP bridge                                                     spike
 ├─ android-responder/      Kotlin background responder (FCM-woken)                                planned
-├─ infra/wrangler/d1/      D1 migrations                                                           exists
+├─ infra/postgres/        Directory migrations (Neon Postgres, ADR 0013)                          exists
 └─ docs/{gigsync,adr}/     HLD, LLD, ADRs
 ```
 
@@ -451,7 +451,9 @@ notification. CI fails if Kotlin and TS disagree on any vector.
 Errors: `{ error: { code, message, request_id } }`, codes `bad_request | unauthorized | forbidden | not_found |
 rate_limited | conflict | internal`. Every response carries `x-request-id` (exists).
 
-### 7.2 D1 additions (`infra/wrangler/d1/directory/0003_gigsync.sql`)
+### 7.2 Directory additions (`infra/postgres/directory/0002_gigsync.sql`)
+
+The directory is Neon Postgres (ADR 0013): write these with `TIMESTAMPTZ` columns, like `0001_init.sql`.
 
 ```sql
 -- No worker/consumer column: a person is a worker or a consumer per engagement, as in Collab.
@@ -583,20 +585,20 @@ web build check. Branch → PR → green → squash merge; DCO sign-off (see `.c
 
 ## 14. Rename from Collab (done in G0)
 
-| Collab (collabai.network)                             | GigSync                                                                  |
-| ----------------------------------------------------- | ------------------------------------------------------------------------ |
-| root `collabai.network`, scope `@collab/*`            | root `gigsync`, scope `@gigsync/*`                                       |
-| Workers `collab-api`, `collab-index`, `collab-app`    | `gigsync-api`, `gigsync-index` (→ `gigsync-board`), `gigsync-app`        |
-| D1 `collab-directory`, `collab-index`                 | `gigsync-directory`, `gigsync-index`; ids are placeholders until created |
-| domains `collabai.network`, `api.`, `www.`            | `gigsync.app` placeholder; custom-domain routes commented out            |
-| NSIDs `network.collabai.*`                            | `app.gigsync.*`                                                          |
-| app id `network.collabai.app`, name "Collab"          | `app.gigsync`, "GigSync" (Android, iOS, Capacitor)                       |
-| `plugins/collab-llm`, `CollabLLM*`, `CollabPluginLlm` | `plugins/gigsync-llm`, `GigSyncLLM*`, `GigsyncPluginLlm`                 |
-| workers.dev subdomain `collab-index-worker`           | `gigsync` (set the `API_BASE` repo variable if yours differs)            |
+| Collab (collabai.network)                             | GigSync                                                                                          |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| root `collabai.network`, scope `@collab/*`            | root `gigsync`, scope `@gigsync/*`                                                               |
+| Workers `collab-api`, `collab-index`, `collab-app`    | `gigsync-api`, `gigsync-index` (→ `gigsync-board`), `gigsync-app`                                |
+| D1 `collab-directory`, `collab-index`                 | Neon directory (ADR 0013) via Hyperdrive, D1 `gigsync-index`; ids are placeholders until created |
+| domains `collabai.network`, `api.`, `www.`            | `gigsync.app` placeholder; custom-domain routes commented out                                    |
+| NSIDs `network.collabai.*`                            | `app.gigsync.*`                                                                                  |
+| app id `network.collabai.app`, name "Collab"          | `app.gigsync`, "GigSync" (Android, iOS, Capacitor)                                               |
+| `plugins/collab-llm`, `CollabLLM*`, `CollabPluginLlm` | `plugins/gigsync-llm`, `GigSyncLLM*`, `GigsyncPluginLlm`                                         |
+| workers.dev subdomain `collab-index-worker`           | `gigsync` (set the `API_BASE` repo variable if yours differs)                                    |
 
 Kept on purpose: `workers/index` still reads the Swift Collab app's Nostr wire format (`collab` tag,
 `collab-` category prefix, `dev.collab.*` collections) because its signed test fixtures must keep verifying; the
 job board replaces it. ADRs 0001–0008 keep their Collab wording where they describe decisions made for Collab.
 
-Before the first deploy: `wrangler d1 create gigsync-directory` and `gigsync-index`, paste the ids, choose the
-domain, then uncomment the routes.
+Before the first deploy: `wrangler hyperdrive create gigsync-directory` (ADR 0013) and `wrangler d1 create
+gigsync-index`, paste the ids, choose the domain, then uncomment the routes.

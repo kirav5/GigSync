@@ -1,10 +1,11 @@
 import type { DeviceId, UserId } from "@gigsync/protocol";
+import type { Db } from "./db/client.js";
 import type { Env } from "./env.js";
 
 /** Keys of the values middleware stores on each request (c.set / c.get). */
-export const Var = { user: "user", device: "device", requestId: "requestId" } as const;
+export const Var = { user: "user", device: "device", requestId: "requestId", db: "db" } as const;
 
-export type Vars = { [Var.user]: UserId; [Var.device]: DeviceId; [Var.requestId]: string };
+export type Vars = { [Var.user]: UserId; [Var.device]: DeviceId; [Var.requestId]: string; [Var.db]: Db };
 export type AppEnv = { Bindings: Env; Variables: Vars };
 
 /** Route prefixes. Everything under V1 needs a session except V1_AUTH. */
