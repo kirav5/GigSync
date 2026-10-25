@@ -3,6 +3,7 @@ import {
   type Engagement,
   EngagementStatus,
   EnvelopeKind,
+  PAYEE_NAME_MAX,
   type Payment,
   Role,
   type UserId,
@@ -23,9 +24,14 @@ export interface Payee {
 
 export const loadPayee = (s: Storage) => s.get<Payee>(Collection.settings, PAYEE_KEY);
 
+/** Saves the UPI ID and the name customers see; both are required, as the QR needs both. */
 export async function savePayee(s: Storage, payee: Payee): Promise<void> {
-  if (!Vpa.safeParse(payee.vpa.trim()).success) throw new Error("That does not look like a UPI ID (name@bank).");
-  await s.put(Collection.settings, PAYEE_KEY, { vpa: payee.vpa.trim(), name: payee.name.trim() });
+  const vpa = payee.vpa.trim();
+  const name = payee.name.trim();
+  if (!Vpa.safeParse(vpa).success) throw new Error("That does not look like a UPI ID (name@bank).");
+  if (!name) throw new Error("Enter the name customers will see when they pay you.");
+  if (name.length > PAYEE_NAME_MAX) throw new Error(`Keep the name to ${PAYEE_NAME_MAX} characters.`);
+  await s.put(Collection.settings, PAYEE_KEY, { vpa, name });
 }
 
 /** This phone's own user id. Until sign-in is wired into the app, a local id kept in settings. */
