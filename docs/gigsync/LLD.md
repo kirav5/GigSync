@@ -177,7 +177,7 @@ Payment = z.object({
 
 Envelope kinds `payment_request` (worker → consumer) and `payment_record` (consumer → worker: "paid", UTR) are
 sealed like every other envelope. They do not move the engagement's status. The worker's own `Payment` record
-never stores her UPI ID; it lives once in her settings on the phone.
+never stores their UPI ID; it lives once in their settings on the phone.
 
 ### 2.5 Grants (`grant.ts`, exists; topics extended)
 
@@ -240,7 +240,7 @@ Flag = z.object({
 });
 ```
 
-Only `reason_code`, never her story, travels. The union key is shared with members' phones when they join.
+Only `reason_code`, never their story, travels. The union key is shared with members' phones when they join.
 
 ### 2.8 Public records (`records.ts`, exists; NSIDs renamed)
 
@@ -356,6 +356,23 @@ shared" screen reads it; revoking a rule writes `GrantEvent{revoked}` and sends 
 Transitions: `requested → paid` (either side records it; UTR optional), `requested | paid → confirmed` (worker
 only), `requested | paid → disputed` (worker only). Anything else throws `PaymentError`. QR images are drawn by the
 app (`apps/mobile/src/payments/`), never by core.
+
+### 3.8b Payment auto-detect (planned, [ADR 0012](../adr/0012-payment-auto-detect.md))
+
+Android only, free, and nothing leaves either phone. Signals become `evidence` on the `Payment`; the worker still
+confirms (or a standing rule they switch on confirms on an exact UPI-reference match).
+
+| Piece                                  | Where                          | Does                                                                                |
+| -------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------- |
+| `parseUpiResponse(text)`               | `core/payments/upiResponse.ts` | NPCI `response` string → `{ status, utr?, txnRef?, txnId? }`, keys case-insensitive |
+| `parseCreditSms(text, at)`             | `core/payments/creditSms.ts`   | amount, UPI ref, credit vs debit; rules only, no model; raw text dropped            |
+| `matchCredit(credit, payments)`        | `core/payments/match.ts`       | exact amount, after request, within 24 h, unique; strong if UTRs agree              |
+| `GigSyncUpi.pay({ uri })`              | `plugins/gigsync-upi` (Kotlin) | customer side: opens the UPI app, returns its `response` (iOS/web: unsupported)     |
+| `GigSyncUpi.watchCredits({ minutes })` | `plugins/gigsync-upi` (Kotlin) | worker side: SMS User Consent API, per-message consent, no SMS permission           |
+| Settings › Payments                    | `apps/mobile`                  | off by default; consent recorded; optional auto-confirm on strong match             |
+
+`Payment.evidence[]` sources: `customer_upi_app` (status, UTR), `bank_sms` (amount, UTR, optional sender),
+`worker` (confirmed / disputed, and which rule). Vectors: `vectors/upi_response.json`, `vectors/credit_sms.json`.
 
 ### 3.9 Mail (`mail/`, exists)
 

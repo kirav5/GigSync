@@ -3,7 +3,7 @@ import { EngagementId, PaymentId, UserId } from "./ids.js";
 
 /**
  * Payments for a job (ADR 0011). A job is an engagement: the consumer is the requester and pays, the gig worker is
- * the provider and is paid straight into her own UPI account. GigSync never holds or moves the money; these records
+ * the provider and is paid straight into their own UPI account. GigSync never holds or moves the money; these records
  * are what both phones keep about it.
  */
 

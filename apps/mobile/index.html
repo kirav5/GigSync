@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <title>GigSync</title>
+    <meta name="description" content="A gig worker's own agent: agrees the job, holds back their number, keeps the signed record of their work and pay." />
+    <meta name="theme-color" content="#0a0a0a" />
+    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+    <script>
+      // The look chosen in Settings (Auto follows the device), applied before anything paints.
+      let look = null;
+      try {
+        look = localStorage.getItem("gigsync-look");
+      } catch {}
+      document.documentElement.dataset.look =
+        look === "light" || look === "dark" ? look : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    </script>
   </head>
   <body>
     <div id="root"></div>

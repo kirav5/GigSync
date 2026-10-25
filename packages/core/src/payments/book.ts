@@ -40,6 +40,19 @@ export interface PaymentSummary {
   outstanding: number;
 }
 
+/** Totals over any set of payments; disputed payments count nowhere. */
+export function summarize(payments: readonly Payment[]): PaymentSummary {
+  const sum = { requested: 0, paid: 0, confirmed: 0, outstanding: 0 };
+  for (const p of payments) {
+    if (p.status === S.disputed) continue;
+    sum.requested += p.amount_paise;
+    if (p.status === S.paid || p.status === S.confirmed) sum.paid += p.amount_paise;
+    if (p.status === S.confirmed) sum.confirmed += p.amount_paise;
+    else sum.outstanding += p.amount_paise;
+  }
+  return sum;
+}
+
 /** The payments of every job, kept on this phone. Each change is a pure transition, then saved. */
 export class PaymentBook {
   constructor(
@@ -47,7 +60,7 @@ export class PaymentBook {
     private readonly clock: Clock,
   ) {}
 
-  /** The worker asks for payment for a job. Her UPI ID is not stored here; it is added only to the QR or request. */
+  /** The worker asks for payment for a job. Their UPI ID is not stored here; it is added only to the QR or request. */
   async request(input: {
     engagement: Engagement;
     payee: UserId;
@@ -78,7 +91,7 @@ export class PaymentBook {
     return this.change(id, S.paid, (p, at) => ({ ...p, paid_at: at, ...(utr ? { utr } : {}) }));
   }
 
-  /** The worker confirms the money reached her. */
+  /** The worker confirms the money reached them. */
   confirm(id: string): Promise<Payment> {
     return this.change(id, S.confirmed, (p, at) => ({ ...p, confirmed_at: at, paid_at: p.paid_at ?? at }));
   }
@@ -111,15 +124,13 @@ export class PaymentBook {
   }
 
   async summary(engagement: EngagementId): Promise<PaymentSummary> {
-    const sum = { requested: 0, paid: 0, confirmed: 0, outstanding: 0 };
-    for (const p of await this.forEngagement(engagement)) {
-      if (p.status === S.disputed) continue;
-      sum.requested += p.amount_paise;
-      if (p.status === S.paid || p.status === S.confirmed) sum.paid += p.amount_paise;
-      if (p.status === S.confirmed) sum.confirmed += p.amount_paise;
-      else sum.outstanding += p.amount_paise;
-    }
-    return sum;
+    return summarize(await this.forEngagement(engagement));
+  }
+
+  /** Every payment on this phone, newest first: the worker's whole record. */
+  async all(): Promise<Payment[]> {
+    const all = await this.storage.list<Payment>(Collection.payments);
+    return all.sort((a, b) => (b.requested_at ?? "").localeCompare(a.requested_at ?? ""));
   }
 
   private async change(
