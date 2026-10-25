@@ -1,4 +1,4 @@
-# Collab PDS (not used)
+# GigSync PDS (not used)
 
 Not deployed. Public records live in each user's repository on Bluesky's PDS instead (ADR 0005), so we run no
 server outside Cloudflare.

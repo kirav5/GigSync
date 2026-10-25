@@ -1,7 +1,7 @@
 import { Preferences } from "@capacitor/preferences";
-import type { Keys, Model, Ports, Storage } from "@collab/core";
-import { DEFAULT_MAX_TOKENS, SystemClock, traced } from "@collab/core";
-import { CollabLLM } from "@collab/plugin-llm";
+import type { Keys, Model, Ports, Storage } from "@gigsync/core";
+import { DEFAULT_MAX_TOKENS, SystemClock, traced } from "@gigsync/core";
+import { GigSyncLLM } from "@gigsync/plugin-llm";
 import * as ed from "@noble/ed25519";
 import { OllamaModel } from "./ollama.js";
 
@@ -67,7 +67,7 @@ class SoftwareKeys implements Keys {
 class PluginModel implements Model {
   async generate(prompt: string, options?: { maxTokens?: number }) {
     try {
-      const { text, available } = await CollabLLM.generate({
+      const { text, available } = await GigSyncLLM.generate({
         prompt,
         maxTokens: options?.maxTokens ?? DEFAULT_MAX_TOKENS,
       });

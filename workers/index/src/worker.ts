@@ -3,8 +3,8 @@
 // Listings arrive from sellers' AT Protocol repos through Jetstream, and directly via /publish. Public ("World") notes
 // are indexed the same way and searched with GET /notes?q=… Records published before the index existed come in by
 // backfill (relay → each repo's PDS), a few repos per cron tick. The Jetstream follower lives in hub.ts.
-import { ContentType, Header, HttpMethod, WEBSOCKET_UPGRADE } from "@collab/core/http";
-import { configureLog, log } from "@collab/core/log";
+import { ContentType, Header, HttpMethod, WEBSOCKET_UPGRADE } from "@gigsync/core/http";
+import { configureLog, log } from "@gigsync/core/log";
 import { HUB_NAME, MAX_SEARCH_LENGTH, NotesParam, Path } from "./constants.ts";
 import { type Env, nowSeconds } from "./env.ts";
 import { asNostrEvent, normalizeFilter } from "./listing.ts";

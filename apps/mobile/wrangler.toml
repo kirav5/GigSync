@@ -1,14 +1,14 @@
 # The web build of the app, served as static assets by a Worker (Cloudflare Pages now runs on Workers).
-# Deploy: pnpm build && pnpm --filter @collab/worker-api exec wrangler deploy --config ../../apps/mobile/wrangler.toml
-name = "collab-app"
+# Deploy: pnpm build && pnpm --filter @gigsync/worker-api exec wrangler deploy --config ../../apps/mobile/wrangler.toml
+name = "gigsync-app"
 compatibility_date = "2026-08-01"
 
-# Custom domains: Cloudflare creates the DNS records and certificates on deploy.
-routes = [
-  { pattern = "collabai.network", custom_domain = true },
-  { pattern = "www.collabai.network", custom_domain = true },
-]
-# Keep the *.workers.dev address too (wrangler turns it off when routes are set).
+# Custom domains: uncomment once the GigSync domain is chosen and in this Cloudflare account (gigsync.app is a
+# placeholder). Cloudflare creates the DNS records and certificates on deploy.
+# routes = [
+#   { pattern = "gigsync.app", custom_domain = true },
+#   { pattern = "www.gigsync.app", custom_domain = true },
+# ]
 workers_dev = true
 
 [assets]

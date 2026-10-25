@@ -5,7 +5,7 @@ Date: 2026-10-23. Status: accepted. Replaces the design page 0.3 wording that pu
 ## Decision
 
 Every text a model reads goes through three steps, always in this order:
-1. **Sanitizer**: plain code in `@collab/core` (`packages/core/src/pii`), on the phone, even in lite mode. Patterns
+1. **Sanitizer**: plain code in `@gigsync/core` (`packages/core/src/pii`), on the phone, even in lite mode. Patterns
    and checksums find phone numbers, emails, Aadhaar, PAN, passport, driving licence, voter ID, UPI ids, card numbers,
    IFSC codes and addresses with a PIN code, and swap each for a numbered placeholder (`AADHAAR_1`). The real values
    are saved in the encrypted DB as high-sensitivity, device-only facts. It runs on what the owner types and on every

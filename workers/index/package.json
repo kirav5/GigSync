@@ -1,5 +1,5 @@
 {
-  "name": "@collab/worker-index",
+  "name": "@gigsync/worker-index",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,11 +8,11 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --test --experimental-sqlite test/*.test.ts",
     "dev": "wrangler dev",
-    "db:init": "wrangler d1 execute collab-index --remote --file=schema.sql",
+    "db:init": "wrangler d1 execute gigsync-index --remote --file=schema.sql",
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "@collab/core": "workspace:*",
+    "@gigsync/core": "workspace:*",
     "@noble/curves": "^1.9.0",
     "@noble/hashes": "^1.8.0"
   },

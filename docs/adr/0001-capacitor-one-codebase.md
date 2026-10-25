@@ -4,7 +4,7 @@ Date: 2026-10-21. Status: accepted.
 
 ## Decision
 
-The app is written once in TypeScript (React UI, `@collab/core` agent) and shipped through Capacitor. Native
+The app is written once in TypeScript (React UI, `@gigsync/core` agent) and shipped through Capacitor. Native
 Kotlin and Swift code is limited to plugins behind the interfaces in `packages/core/src/ports.ts`.
 
 ## Why

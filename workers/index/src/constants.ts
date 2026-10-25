@@ -27,7 +27,12 @@ export const HUB_NAME = "main";
 /** Tables a record can be indexed in, by collection. */
 export const Table = { listings: "listings", notes: "notes" } as const;
 
-/** NIP-99 listing tags the index reads. */
+/**
+ * NIP-99 listing tags the index reads. The `collab` tag, the `collab-` category prefix and the `dev.collab.*`
+ * collections are the wire format of listings signed by the Swift Collab app; they stay as they are so existing
+ * signed events still verify. GigSync's own records use `app.gigsync.*` (packages/protocol) and replace this index
+ * with the job board (LLD §7.5).
+ */
 export const NostrTag = {
   identifier: "d",
   topic: "t",

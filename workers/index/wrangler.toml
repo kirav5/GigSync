@@ -1,12 +1,13 @@
-name = "collab-index"
+name = "gigsync-index"
 main = "src/worker.ts"
 compatibility_date = "2026-09-01"
 
-# D1: the listing table (schema.sql). Create with: npx wrangler d1 create collab-index, then paste its id here.
+# D1: the listing table (schema.sql). Create with: npx wrangler d1 create gigsync-index, then paste its id here.
 [[d1_databases]]
 binding = "DB"
-database_name = "collab-index"
-database_id = "d956459d-82ff-43dc-89c2-09ae8e7a21fb"
+database_name = "gigsync-index"
+# Placeholder: replace with the id from `wrangler d1 create gigsync-index` (never reuse Collab's database).
+database_id = "00000000-0000-0000-0000-000000000000"
 
 # One Durable Object follows Jetstream (outbound WebSocket keeps it alive) and holds open searches (hibernatable sockets).
 [[durable_objects.bindings]]
@@ -26,7 +27,7 @@ crons = ["* * * * *"]
 LOG_LEVEL = "info"
 LOG_PII = "false"
 JETSTREAM = "wss://jetstream2.us-east.bsky.network/subscribe"
-# Which repos hold Collab records (com.atproto.sync.listReposByCollection), for backfill.
+# Which repos hold the records it indexes (com.atproto.sync.listReposByCollection), for backfill.
 RELAY = "https://relay1.us-east.bsky.network"
 
 # Workers Logs: console output and request details, searchable in the dashboard (Observability).

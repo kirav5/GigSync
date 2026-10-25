@@ -1,7 +1,7 @@
 {
-  "name": "collabai.network",
+  "name": "gigsync",
   "private": true,
-  "description": "Collab: a personal agent on your phone that talks to other people's agents under rules you set.",
+  "description": "GigSync: a gig worker's own agent on her phone. It agrees the job, holds back her contact until both sides sign, and keeps the signed record.",
   "engines": {
     "node": ">=24",
     "pnpm": ">=10"
@@ -14,9 +14,9 @@
     "typecheck": "pnpm -r --filter './packages/*' --filter './workers/*' --filter './apps/*' --filter './plugins/*' run typecheck",
     "test": "pnpm -r --filter './packages/*' --filter './workers/*' run test",
     "build": "pnpm -r --filter './packages/*' --filter './plugins/*' --filter './apps/*' run build",
-    "build:workers": "pnpm --filter @collab/worker-api exec wrangler deploy --dry-run --outdir dist && pnpm --filter @collab/worker-index exec wrangler deploy --dry-run --outdir dist",
-    "dev:workers": "pnpm --filter @collab/worker-api dev",
-    "dev:app": "pnpm --filter @collab/mobile dev",
+    "build:workers": "pnpm --filter @gigsync/worker-api exec wrangler deploy --dry-run --outdir dist && pnpm --filter @gigsync/worker-index exec wrangler deploy --dry-run --outdir dist",
+    "dev:workers": "pnpm --filter @gigsync/worker-api dev",
+    "dev:app": "pnpm --filter @gigsync/mobile dev",
     "deploy:workers": "pnpm --filter './workers/*' run deploy"
   },
   "devDependencies": {

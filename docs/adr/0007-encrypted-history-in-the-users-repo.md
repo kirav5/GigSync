@@ -5,7 +5,7 @@ Date: 2026-10-23. Status: accepted. Amends ADR 0005 and 0006.
 ## Decision
 
 Chat history and the agent's episodes are encrypted on the phone and written to the user's own repo on their PDS
-(Bluesky's today) as records in the collection `network.collabai.private.history`. The key never leaves the
+(Bluesky's today) as records in the collection `app.gigsync.private.history`. The key never leaves the
 user's devices: it is held in the Keystore-wrapped store, in the PIN-wrapped backup, and in Block Store. Live
 data stays in the encrypted database on the phone; the repo copy is for sync and recovery and belongs to the user.
 

@@ -1,4 +1,4 @@
-import type { Mailbox } from "@collab/worker-mailbox";
+import type { Mailbox } from "@gigsync/worker-mailbox";
 
 export interface Env {
   DIRECTORY: D1Database;

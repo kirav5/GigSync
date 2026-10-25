@@ -1,4 +1,4 @@
-import type { Envelope } from "@collab/protocol";
+import type { Envelope } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import { Inbox, MemoryStorage, Outbox } from "../src/index.js";
 

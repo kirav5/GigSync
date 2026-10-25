@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # The API address baked into the app build. Set the API_BASE repository variable to move it (e.g. a custom domain).
-      VITE_API_BASE: ${{ vars.API_BASE || 'https://collab-api.collab-index-worker.workers.dev' }}
+      VITE_API_BASE: ${{ vars.API_BASE || 'https://gigsync-api.gigsync.workers.dev' }}
       HAS_SIGNING: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
     steps:
       - uses: actions/checkout@v4
@@ -30,7 +30,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - run: pnpm install --frozen-lockfile && pnpm build && pnpm --filter @collab/mobile exec cap sync android
+      - run: pnpm install --frozen-lockfile && pnpm build && pnpm --filter @gigsync/mobile exec cap sync android
         if: env.HAS_SIGNING == 'true'
       - name: Decode keystore
         if: env.HAS_SIGNING == 'true'
@@ -48,6 +48,6 @@ jobs:
         if: env.HAS_SIGNING == 'true'
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: network.collabai.app
+          packageName: app.gigsync
           releaseFiles: apps/mobile/android/app/build/outputs/bundle/release/app-release.aab
           track: internal

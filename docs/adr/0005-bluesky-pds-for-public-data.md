@@ -19,7 +19,7 @@ Worker reads them from Jetstream and keeps the searchable copy in D1, rebuildabl
 
 - Accounts cannot be created silently at phone sign-in; Bluesky's sign-up has its own verification. Users
   connect a Bluesky account, asked for only when they first publish something public, not to use the app.
-- Handles default to `<name>.bsky.social`. `<name>.collabai.network` stays possible later: a Worker can answer
+- Handles default to `<name>.bsky.social`. `<name>.gigsync.app` stays possible later: a Worker can answer
   `/.well-known/atproto-did` for each subdomain, no server needed.
 - Public records sit on Bluesky's servers in the US and follow Bluesky's terms and write rate limits. Private data
   is unaffected: it never leaves the phone.

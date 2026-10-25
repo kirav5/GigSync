@@ -1,8 +1,9 @@
-import { configureLog, LOCAL_ENVIRONMENT, LogFormat, LogLevel } from "@collab/core";
+import { configureLog, LOCAL_ENVIRONMENT, LogFormat, LogLevel } from "@gigsync/core";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.js";
 import "./styles.css";
+import { applyLook, watchDeviceLook } from "./ui/look.js";
 
 const RELEASE_ENVIRONMENT = "production";
 
@@ -13,6 +14,9 @@ configureLog(
     ? { ENVIRONMENT: LOCAL_ENVIRONMENT, LOG_LEVEL: LogLevel.debug, LOG_PII: true, format: LogFormat.pretty }
     : { ENVIRONMENT: RELEASE_ENVIRONMENT, LOG_LEVEL: LogLevel.warn, format: LogFormat.pretty },
 );
+
+applyLook();
+watchDeviceLook();
 
 const root = document.getElementById("root");
 if (!root) throw new Error("no #root");

@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-/** AT Protocol collection NSIDs for Collab's public records. Kept in the user's repo on Bluesky's PDS; D1 indexes copies. */
+/** AT Protocol collection NSIDs for GigSync's public records. Kept in the user's repo on Bluesky's PDS; D1 indexes copies. */
 export const COLLECTIONS = {
-  profile: "network.collabai.worker.profile",
-  listing: "network.collabai.listing",
-  note: "network.collabai.world.note",
-  review: "network.collabai.review",
+  profile: "app.gigsync.worker.profile",
+  listing: "app.gigsync.listing",
+  note: "app.gigsync.world.note",
+  review: "app.gigsync.review",
 } as const;
 
 const did = z.string().regex(/^did:(plc|web):[A-Za-z0-9._:%-]+$/, "did");

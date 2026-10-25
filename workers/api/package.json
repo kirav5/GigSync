@@ -1,5 +1,5 @@
 {
-  "name": "@collab/worker-api",
+  "name": "@gigsync/worker-api",
   "version": "0.1.0",
   "private": true,
   "description": "The public API: sign-in, directory, mailbox routes. Deploys the Mailbox Durable Object.",
@@ -8,14 +8,14 @@
     "dev": "wrangler dev",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "db:migrate:local": "wrangler d1 migrations apply collab-directory --local",
-    "db:migrate:remote": "wrangler d1 migrations apply collab-directory --remote",
+    "db:migrate:local": "wrangler d1 migrations apply gigsync-directory --local",
+    "db:migrate:remote": "wrangler d1 migrations apply gigsync-directory --remote",
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "@collab/core": "workspace:*",
-    "@collab/protocol": "workspace:*",
-    "@collab/worker-mailbox": "workspace:*",
+    "@gigsync/core": "workspace:*",
+    "@gigsync/protocol": "workspace:*",
+    "@gigsync/worker-mailbox": "workspace:*",
     "hono": "4.13.13",
     "ulid": "3.0.2",
     "zod": "4.6.7"

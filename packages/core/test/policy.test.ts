@@ -1,5 +1,5 @@
-import { AccessRequest, Decision, Grant } from "@collab/protocol";
-import vectors from "@collab/protocol/vectors/policy.json" with { type: "json" };
+import { AccessRequest, Decision, Grant } from "@gigsync/protocol";
+import vectors from "@gigsync/protocol/vectors/policy.json" with { type: "json" };
 import { describe, expect, it } from "vitest";
 import { decide } from "../src/index.js";
 

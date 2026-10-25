@@ -1,11 +1,11 @@
 ---
 name: git-workflow
-description: How changes reach collabai.network's main branch. Load BEFORE any git commit, push, branch, merge or PR action in this repo, and whenever asked to "push", "commit", "ship", "deploy" or "merge" anything. Nothing is ever pushed to main directly: every change, code or docs, goes on a branch, through a pull request, with lint run before the commit, a DCO sign-off on every commit, and green CI before merge.
+description: How changes reach GigSync's main branch. Load BEFORE any git commit, push, branch, merge or PR action in this repo, and whenever asked to "push", "commit", "ship", "deploy" or "merge" anything. Nothing is ever pushed to main directly: every change, code or docs, goes on a branch, through a pull request, with lint run before the commit, a DCO sign-off on every commit, and green CI before merge.
 ---
 
-# Git workflow for collabai.network
+# Git workflow for GigSync
 
-`main` is the live product: every push to it deploys to collabai.network. So nobody, person or agent, pushes to
+`main` is the live product: every push to it deploys the GigSync pilot. So nobody, person or agent, pushes to
 `main`. Changes travel on a branch, through a pull request, and merge only when CI is green. GitHub cannot
 enforce this on a private repo under the free plan, so the committed hooks in `.githooks/` and this skill are the
 guard. Treat them as the rule, not a suggestion.
@@ -38,7 +38,7 @@ guard. Treat them as the rule, not a suggestion.
 
 Two people in one working tree is the usual reason hooks "block for no reason": the hook typechecks the whole
 tree, including the other person's uncommitted files. If the pre-push hook fails on a file you did not touch,
-say so in the PR and use your own clone or `git worktree add ../collab-<name> main`. Never stage files you did not
+say so in the PR and use your own clone or `git worktree add ../gigsync-<name> main`. Never stage files you did not
 change (`git add <paths>`, not `git add -A`), and never commit or stash another person's work.
 
 ## The sequence, every time

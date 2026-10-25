@@ -1,5 +1,5 @@
 {
-  "name": "@collab/worker-mailbox",
+  "name": "@gigsync/worker-mailbox",
   "version": "0.1.0",
   "private": true,
   "description": "One Durable Object per user: holds sealed envelopes until each device acknowledges them, then deletes them.",
@@ -10,11 +10,11 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "deploy": "echo 'deployed as part of @collab/worker-api'"
+    "deploy": "echo 'deployed as part of @gigsync/worker-api'"
   },
   "dependencies": {
-    "@collab/core": "workspace:*",
-    "@collab/protocol": "workspace:*"
+    "@gigsync/core": "workspace:*",
+    "@gigsync/protocol": "workspace:*"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "0.23.0",

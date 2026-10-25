@@ -1,4 +1,4 @@
-import type { DeviceId, UserId } from "@collab/protocol";
+import type { DeviceId, UserId } from "@gigsync/protocol";
 import type { Env } from "./env.js";
 
 /** Keys of the values middleware stores on each request (c.set / c.get). */

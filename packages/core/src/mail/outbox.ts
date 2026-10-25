@@ -1,4 +1,4 @@
-import type { Envelope, MessageId } from "@collab/protocol";
+import type { Envelope, MessageId } from "@gigsync/protocol";
 import { Collection, type Storage } from "../ports.js";
 
 export interface Pending {

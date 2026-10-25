@@ -1,4 +1,4 @@
-import type { DeviceId, DeviceRegistration, UserId } from "@collab/protocol";
+import type { DeviceId, DeviceRegistration, UserId } from "@gigsync/protocol";
 import { ulid } from "ulid";
 import { clearFailures } from "./attempts.js";
 

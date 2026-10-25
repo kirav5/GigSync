@@ -1,6 +1,6 @@
-import { Header } from "@collab/core/http";
-import { log, pii, traced } from "@collab/core/log";
-import { OtpRequest, OtpVerify } from "@collab/protocol";
+import { Header } from "@gigsync/core/http";
+import { log, pii, traced } from "@gigsync/core/log";
+import { OtpRequest, OtpVerify } from "@gigsync/protocol";
 import { Hono } from "hono";
 import { isLocked, recordFailure } from "../auth/attempts.js";
 import { completeSignIn } from "../auth/signin.js";

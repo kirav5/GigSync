@@ -7,7 +7,7 @@ import {
   PRECISION_ORDER,
   Precision,
   Topic,
-} from "@collab/protocol";
+} from "@gigsync/protocol";
 
 /**
  * Deterministic: no model is involved. Given the owner's grants and one grounded request, says whether to answer,

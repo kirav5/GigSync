@@ -1,5 +1,5 @@
 import { env, SELF } from "cloudflare:test";
-import type { DeviceId, Envelope } from "@collab/protocol";
+import type { DeviceId, Envelope } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 
 const U = "01J0000000000000000000AAAA";

@@ -1,4 +1,4 @@
-import { type Engagement, Role, type UserId } from "@collab/protocol";
+import { type Engagement, Role, type UserId } from "@gigsync/protocol";
 import { ulid } from "ulid";
 import { newEngagement } from "./engagement/machine.js";
 import { Collection, type Ports } from "./ports.js";

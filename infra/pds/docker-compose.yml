@@ -4,7 +4,7 @@
 services:
   pds:
     image: ghcr.io/bluesky-social/pds:latest
-    container_name: collab-pds
+    container_name: gigsync-pds
     restart: unless-stopped
     network_mode: host
     env_file: pds.env

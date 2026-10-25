@@ -5,6 +5,8 @@ export * from "./http.js";
 export * from "./log.js";
 export * from "./mail/inbox.js";
 export * from "./mail/outbox.js";
+export * from "./payments/book.js";
+export * from "./payments/upi.js";
 export * from "./policy/engine.js";
 export * from "./ports.js";
 export * from "./router/keyword.js";
