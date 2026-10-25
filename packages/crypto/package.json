@@ -1,0 +1,32 @@
+{
+  "name": "@gigsync/crypto",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Device keys, sealing envelopes to devices (X25519 + XChaCha20-Poly1305), Ed25519 signatures, terms hashes. Runs on phones, Node and Workers.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./src/index.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@gigsync/protocol": "workspace:*",
+    "@noble/ciphers": "2.4.0",
+    "@noble/curves": "2.4.0",
+    "@noble/hashes": "2.4.0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vitest": "4.1.12"
+  }
+}

@@ -1,15 +1,16 @@
 import { Preferences } from "@capacitor/preferences";
 import type { Keys, Model, Ports, Storage } from "@gigsync/core";
-import { DEFAULT_MAX_TOKENS, SystemClock, traced } from "@gigsync/core";
+import { DEFAULT_MAX_TOKENS, SecretKeys, SystemClock, traced } from "@gigsync/core";
+import { type DeviceSecrets, newDeviceSecrets, type Sealed } from "@gigsync/crypto";
 import { GigSyncLLM } from "@gigsync/plugin-llm";
-import * as ed from "@noble/ed25519";
+import type { DeviceId } from "@gigsync/protocol";
 import { OllamaModel } from "./ollama.js";
 
 /**
  * The app's implementations of the core's ports. These are the ONLY place platform APIs are touched, so moving
  * to another shell later means rewriting this file, not the agent.
  *
- * M0 state: Preferences-backed storage and a software key. M0 hardening replaces them with the SQLCipher plugin
+ * M0 state: Preferences-backed storage and software keys. M0 hardening replaces them with the SQLCipher plugin
  * and a Keystore/Keychain-wrapped key; the interfaces do not change.
  */
 
@@ -37,29 +38,29 @@ class PreferencesStorage implements Storage {
   }
 }
 
-/** Preferences key holding the software device key. */
-const DEVICE_KEY = "keys:device";
+/** Preferences key holding the device's software secrets (v2: Ed25519 + X25519; v1 held Ed25519 only). */
+const DEVICE_SECRETS = "keys:device:v2";
 
-/** Software Ed25519 key. DEV ONLY: lives in Preferences until the Keystore plugin lands. */
+/** Software keys. DEV ONLY: the secrets live in Preferences until the Keystore plugin lands. */
 class SoftwareKeys implements Keys {
-  private priv: Promise<Uint8Array>;
+  private keys: Promise<SecretKeys>;
   constructor() {
-    this.priv = (async () => {
-      const { value } = await Preferences.get({ key: DEVICE_KEY });
-      if (value) return fromBase64(value);
-      const fresh = ed.utils.randomSecretKey();
-      await Preferences.set({ key: DEVICE_KEY, value: toBase64(fresh) });
-      return fresh;
+    this.keys = (async () => {
+      const { value } = await Preferences.get({ key: DEVICE_SECRETS });
+      if (value) return new SecretKeys(JSON.parse(value) as DeviceSecrets);
+      const fresh = newDeviceSecrets();
+      await Preferences.set({ key: DEVICE_SECRETS, value: JSON.stringify(fresh) });
+      return new SecretKeys(fresh);
     })();
   }
-  async publicKey() {
-    return toBase64(await ed.getPublicKeyAsync(await this.priv));
+  async publicKeys() {
+    return (await this.keys).publicKeys();
   }
   async sign(bytes: Uint8Array) {
-    return ed.signAsync(bytes, await this.priv);
+    return (await this.keys).sign(bytes);
   }
-  async verify(bytes: Uint8Array, sig: Uint8Array, publicKey: string) {
-    return ed.verifyAsync(sig, bytes, fromBase64(publicKey));
+  async open(sealed: Sealed, device: DeviceId) {
+    return (await this.keys).open(sealed, device);
   }
 }
 
@@ -98,6 +99,3 @@ export function createPorts(): Ports {
     clock: new SystemClock(),
   };
 }
-
-const toBase64 = (b: Uint8Array) => btoa(String.fromCharCode(...b));
-const fromBase64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));

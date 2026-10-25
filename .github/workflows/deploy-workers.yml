@@ -20,7 +20,7 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @gigsync/protocol --filter @gigsync/core build
+      - run: pnpm --filter @gigsync/protocol --filter @gigsync/crypto --filter @gigsync/core build
       - name: Skipped (no Cloudflare secrets yet)
         if: env.HAS_CLOUDFLARE != 'true'
         run: echo "Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID to deploy."

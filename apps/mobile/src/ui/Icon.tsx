@@ -14,6 +14,8 @@ const PATHS = {
   close: "M6 6l12 12M18 6 6 18",
   phone: "M6.5 2.5h11v19h-11zM11 18h2",
   wall: "M12 3v18M5 7h4M15 7h4M5 12h4M15 12h4M5 17h4M15 17h4",
+  search: "M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM15.5 15.5 20 20",
+  card: "M3 6h18v12H3zM7 10h4M7 14h8",
 } as const;
 
 export type IconName = keyof typeof PATHS;

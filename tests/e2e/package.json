@@ -1,0 +1,21 @@
+{
+  "name": "@gigsync/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "End-to-end journeys between real devices against a running API (pnpm dev:workers) and its Neon directory.",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "e2e": "vitest run"
+  },
+  "dependencies": {
+    "@gigsync/core": "workspace:*",
+    "@gigsync/crypto": "workspace:*",
+    "@gigsync/protocol": "workspace:*",
+    "ulid": "3.0.2"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vitest": "4.1.12"
+  }
+}

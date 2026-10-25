@@ -1,11 +1,8 @@
+import { newDeviceSecrets } from "@gigsync/crypto";
 import { describe, expect, it } from "vitest";
-import { Agent, type Keys, MemoryStorage, NoModel, routeByKeywords } from "../src/index.js";
+import { Agent, MemoryStorage, NoModel, routeByKeywords, SecretKeys } from "../src/index.js";
 
-const fakeKeys: Keys = {
-  publicKey: async () => "pk",
-  sign: async () => new Uint8Array(),
-  verify: async () => true,
-};
+const fakeKeys = new SecretKeys(newDeviceSecrets());
 
 describe("keyword router", () => {
   it("routes the common shapes", () => {

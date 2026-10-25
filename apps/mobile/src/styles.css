@@ -765,3 +765,28 @@ a {
 .qr .field {
   max-width: 280px;
 }
+
+/* A job thread: the agents' offers, then the contact both signatures released. */
+.offers {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text2);
+  font-size: 14px;
+}
+.contact {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--fresh);
+  border-radius: 10px;
+}
+
+/* Labelled groups (a deal, a payment, a contact) are fieldsets for screen readers, drawn as plain blocks. */
+fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}

@@ -5,6 +5,9 @@ import { loadPayee, type Payee, selfId, workerJobs } from "./payments/store.js";
 
 /** The screens of the app, in the order of the menu. */
 export const Screen = {
+  find: "find",
+  requests: "requests",
+  card: "card",
   today: "today",
   jobs: "jobs",
   pay: "pay",
