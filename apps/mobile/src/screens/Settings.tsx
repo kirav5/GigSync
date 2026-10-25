@@ -5,6 +5,7 @@ import { savePayee } from "../payments/store.js";
 import type { GigData } from "../state.js";
 import { C } from "../ui/cls.js";
 import { Look, savedLook, saveLook } from "../ui/look.js";
+import { ModelSettings } from "./ModelSettings.js";
 
 const LOOKS: readonly { look: Look; label: string }[] = [
   { look: Look.auto, label: "Auto" },
@@ -96,6 +97,8 @@ export function Settings({ ports, data, changed }: { ports: Ports; data: GigData
           server.
         </span>
       </form>
+
+      <ModelSettings ports={ports} />
 
       <div className={C.card}>
         <span className={C.label}>Look</span>

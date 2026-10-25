@@ -544,6 +544,21 @@ Only at two pipeline steps (§3.5): **intent**, when the keyword router is unsur
 `decide()`, the edge check, the ledger and exports never call it. Load rule: load only if `status().available` and
 `freeMemoryMb ≥ 1500`; otherwise lite mode. Downloads only on Wi-Fi, resumable and SHA-256 verified.
 
+### 8.4a Choosing the model (Settings › On-device model)
+
+The app hands core one `Model`: `ChosenModel` (`apps/mobile/src/adapters/model.ts`), which routes each call to the
+engine chosen in Settings and kept on the device:
+
+| Choice       | Uses                                                                          |
+| ------------ | ----------------------------------------------------------------------------- |
+| Auto         | the device's model if `status().available` and ≥ 1500 MB free, else lite mode |
+| On-device    | always the device's model (LiteRT-LM, Apple Foundation Models, web engine)    |
+| Lite mode    | no model; rules and templates                                                 |
+| Ollama (dev) | development builds only; Settings lists the models `ollama serve` has pulled  |
+
+Settings shows what the device reports (engine, ready or not, free memory) and which engine is answering now; the
+agent screen shows the same line. No choice ever reaches a cloud model (ADR 0010).
+
 ### 8.5 Eval harness (`scripts/eval-model.mjs`, G3)
 
 Runs `vectors/prompts/*.json` (sanitized intents and drafts in three languages) through the dev Ollama adapter

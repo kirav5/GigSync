@@ -2,7 +2,8 @@ import { Agent } from "@gigsync/core";
 import type { Engagement } from "@gigsync/protocol";
 import { useEffect, useMemo, useState } from "react";
 import { apiReachable } from "./adapters/api.js";
-import { createPorts, modelLabel } from "./adapters/ports.js";
+import { chosenModel } from "./adapters/model.js";
+import { createPorts } from "./adapters/ports.js";
 import { JobStep, jobStep } from "./payments/store.js";
 import { Shell } from "./Shell.js";
 import { AgentScreen } from "./screens/Agent.js";
@@ -29,6 +30,10 @@ export function App() {
     void apiReachable().then(setOnline);
   }, []);
 
+  useEffect(() => {
+    void chosenModel.load(ports.storage);
+  }, [ports]);
+
   const pay = (job: Engagement) => {
     setPayJob(job.id);
     setScreen(Screen.pay);
@@ -51,7 +56,7 @@ export function App() {
         <Pay data={gig} book={gig.book} jobId={payJob} onJob={setPayJob} go={setScreen} changed={gig.reload} />
       )}
       {screen === Screen.record && <Record data={gig} />}
-      {screen === Screen.agent && <AgentScreen agent={agent} modelLabel={modelLabel} />}
+      {screen === Screen.agent && <AgentScreen agent={agent} />}
       {screen === Screen.settings && <Settings ports={ports} data={gig} changed={gig.reload} />}
     </Shell>
   );
