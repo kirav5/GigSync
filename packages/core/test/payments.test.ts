@@ -108,7 +108,22 @@ describe("PaymentBook", () => {
     const b = book();
     const p = await b.request({ engagement: job("delivered"), payee: WORKER, amountPaise: 100, note: "" });
     const theirs = { ...p, status: "confirmed" as const };
-    expect((await b.receive(theirs)).status).toBe("requested");
-    expect((await b.receive({ ...p, status: "paid", utr: "412345678901" })).status).toBe("paid");
+    expect((await b.receive(theirs, p.payer)).status).toBe("requested");
+    expect((await b.receive({ ...p, status: "paid", utr: "412345678901" }, p.payer)).status).toBe("paid");
+  });
+
+  it("takes 'confirmed' and 'disputed' only from the worker who is paid", async () => {
+    const b = book();
+    const p = await b.request({ engagement: job("delivered"), payee: WORKER, amountPaise: 100, note: "" });
+    await b.receive({ ...p, status: "paid" }, p.payer);
+    expect((await b.receive({ ...p, status: "disputed" }, p.payer)).status).toBe("paid");
+    expect((await b.receive({ ...p, status: "confirmed" }, WORKER)).status).toBe("confirmed");
+  });
+
+  it("refuses a new payment that is not the worker's request", async () => {
+    const b = book();
+    const p = await b.request({ engagement: job("delivered"), payee: WORKER, amountPaise: 100, note: "" });
+    const forged = { ...p, id: "pay_01J0000000000000000000FORG" as typeof p.id, status: "confirmed" as const };
+    await expect(b.receive(forged, WORKER)).rejects.toThrow(PaymentError);
   });
 });

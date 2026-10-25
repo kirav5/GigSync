@@ -31,15 +31,15 @@ importers:
       "@gigsync/core":
         specifier: workspace:*
         version: link:../../packages/core
+      "@gigsync/crypto":
+        specifier: workspace:*
+        version: link:../../packages/crypto
       "@gigsync/plugin-llm":
         specifier: workspace:*
         version: link:../../plugins/gigsync-llm
       "@gigsync/protocol":
         specifier: workspace:*
         version: link:../../packages/protocol
-      "@noble/ed25519":
-        specifier: 3.2.0
-        version: 3.2.0
       qrcode:
         specifier: 1.5.4
         version: 1.5.4
@@ -83,12 +83,40 @@ importers:
 
   packages/core:
     dependencies:
+      "@gigsync/crypto":
+        specifier: workspace:*
+        version: link:../crypto
       "@gigsync/protocol":
         specifier: workspace:*
         version: link:../protocol
       ulid:
         specifier: 3.0.2
         version: 3.0.2
+      zod:
+        specifier: 4.6.7
+        version: 4.6.7
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: 4.1.12
+        version: 4.1.12(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
+
+  packages/crypto:
+    dependencies:
+      "@gigsync/protocol":
+        specifier: workspace:*
+        version: link:../protocol
+      "@noble/ciphers":
+        specifier: 2.4.0
+        version: 2.4.0
+      "@noble/curves":
+        specifier: 2.4.0
+        version: 2.4.0
+      "@noble/hashes":
+        specifier: 2.4.0
+        version: 2.4.0
     devDependencies:
       typescript:
         specifier: 5.9.3
@@ -119,11 +147,58 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  tests/e2e:
+    dependencies:
+      "@gigsync/core":
+        specifier: workspace:*
+        version: link:../../packages/core
+      "@gigsync/crypto":
+        specifier: workspace:*
+        version: link:../../packages/crypto
+      "@gigsync/protocol":
+        specifier: workspace:*
+        version: link:../../packages/protocol
+      ulid:
+        specifier: 3.0.2
+        version: 3.0.2
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: 4.1.12
+        version: 4.1.12(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
+
+  tests/ui:
+    dependencies:
+      "@gigsync/core":
+        specifier: workspace:*
+        version: link:../../packages/core
+      "@gigsync/crypto":
+        specifier: workspace:*
+        version: link:../../packages/crypto
+      "@gigsync/protocol":
+        specifier: workspace:*
+        version: link:../../packages/protocol
+    devDependencies:
+      "@playwright/test":
+        specifier: 1.64.0
+        version: 1.64.0
+      "@types/node":
+        specifier: 26.6.5
+        version: 26.6.5
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   workers/api:
     dependencies:
       "@gigsync/core":
         specifier: workspace:*
         version: link:../../packages/core
+      "@gigsync/crypto":
+        specifier: workspace:*
+        version: link:../../packages/crypto
       "@gigsync/protocol":
         specifier: workspace:*
         version: link:../../packages/protocol
@@ -1210,23 +1285,40 @@ packages:
       { integrity: sha512-0zc1SynODndBsO5I+IVXl+6GiJe5LTSomz5WU+161C7EJkkoWBpNyosR4BnYcxfL5kwfutZ44ba4fnxTiSvJEQ== }
     engines: { node: ">=20.19.0" }
 
+  "@noble/ciphers@2.4.0":
+    resolution:
+      { integrity: sha512-AnjFn0Jv92laAkvMrghlFZq4qQCIN/4DxFV/eooqtC2YTjB7kBeLMS2T9KJX4Dn+ZVXLOwK0lSgqDtx9gvxtiw== }
+    engines: { node: ">= 20.19.0" }
+
   "@noble/curves@1.9.7":
     resolution:
       { integrity: sha512-gbKGcRUYIjA3/zCCNaWDciTMFI0dCkvou3TL8Zmy5Nc7sJ47a0jtOeZoTaMxkuqRo9cRhjOdZJXegxYE5FN/xw== }
     engines: { node: ^14.21.3 || >=16 }
 
-  "@noble/ed25519@3.2.0":
+  "@noble/curves@2.4.0":
     resolution:
-      { integrity: sha512-criDgRlnUA09hchYrTy/JUWPIEap5rZxQe6wDWzRx51oWWpDRcUpuNzlgPxDJaOK6AsW9c0wKcj3rKRv6t+bPQ== }
+      { integrity: sha512-P4/62zrgfH33CneE3Dn4WhJVA22YUU0eR51wKIan4NVRvwsA0YnPTwWGpNbpuacSujmSFLvyzpyuR30+fbq2Ew== }
+    engines: { node: ">= 20.19.0" }
 
   "@noble/hashes@1.8.0":
     resolution:
       { integrity: sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A== }
     engines: { node: ^14.21.3 || >=16 }
 
+  "@noble/hashes@2.4.0":
+    resolution:
+      { integrity: sha512-X5XaVWZIBCT7HHZGm5I7ZQXDwLG+bGXuSrMQAW+7Zvl87h1kmc1ZB1VSRJcpUfoUrGQp4Fkoxm5kZ+Ms+aW+eA== }
+    engines: { node: ">= 20.19.0" }
+
   "@oxc-project/types@0.154.0":
     resolution:
       { integrity: sha512-KYOUGQFlLWR+s4QMV2Q9ko38TZm7EdO87Qm7rvZLqk/webse/cDjtyxKhg/47l0byCbs/k46LT8qc4PKjAikzA== }
+
+  "@playwright/test@1.64.0":
+    resolution:
+      { integrity: sha512-oTN9FNYuN6bqQMwiho6jJKLCG2/QOYCixGXuCjRmzOq23eODeukuY2XiAVoVpAECbuezMt1MHQjAiQxK8F+Y+g== }
+    engines: { node: ">=20" }
+    hasBin: true
 
   "@poppinss/colors@4.1.6":
     resolution:
@@ -2000,6 +2092,18 @@ packages:
     resolution:
       { integrity: sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA== }
     engines: { node: ">=12" }
+
+  playwright-core@1.64.0:
+    resolution:
+      { integrity: sha512-T9r+MZkTECl2+oUcZ26YgZzTrYidTsIhYYkJix+6iDOymOb1FB2RLLSOxRGnZGv5DStt+aduIVbt+E8WygXYpg== }
+    engines: { node: ">=20" }
+    hasBin: true
+
+  playwright@1.64.0:
+    resolution:
+      { integrity: sha512-kVzTnYFYEyQ9RGzBjNCd2+yEqWmVbxl3AHPynv3qQ6JTjv4a+kwRcnqQwIpuP3NnrnIrE/Q6wWAIAvMfIE2/Yg== }
+    engines: { node: ">=20" }
+    hasBin: true
 
   plist@3.1.1:
     resolution:
@@ -3128,15 +3232,25 @@ snapshots:
 
   "@neon/sdk@7.5.0": {}
 
+  "@noble/ciphers@2.4.0": {}
+
   "@noble/curves@1.9.7":
     dependencies:
       "@noble/hashes": 1.8.0
 
-  "@noble/ed25519@3.2.0": {}
+  "@noble/curves@2.4.0":
+    dependencies:
+      "@noble/hashes": 2.4.0
 
   "@noble/hashes@1.8.0": {}
 
+  "@noble/hashes@2.4.0": {}
+
   "@oxc-project/types@0.154.0": {}
+
+  "@playwright/test@1.64.0":
+    dependencies:
+      playwright: 1.64.0
 
   "@poppinss/colors@4.1.6":
     dependencies:
@@ -3702,6 +3816,12 @@ snapshots:
   picocolors@1.1.1: {}
 
   picomatch@4.0.7: {}
+
+  playwright-core@1.64.0: {}
+
+  playwright@1.64.0:
+    dependencies:
+      playwright-core: 1.64.0
 
   plist@3.1.1:
     dependencies:

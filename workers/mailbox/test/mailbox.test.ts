@@ -14,6 +14,8 @@ const envelope = (n: number): Envelope => ({
   kind: "request",
   sent_at: new Date().toISOString(),
   expires_at: new Date(Date.now() + 3600_000).toISOString(),
+  epk: "ZXBr",
+  keys: { dev_01J0000000000000000000D001: "a2V5" },
   ciphertext: "aGVsbG8=",
   sig: "c2ln",
 });

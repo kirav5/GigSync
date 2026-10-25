@@ -25,7 +25,9 @@ Read the reference that matches the work before you write code:
 | Mailbox           | `workers/mailbox` (Durable Object/user)   | Own SQLite; expiry by alarm                              |
 | Search index      | `workers/index` (Worker + D1 + IndexHub)  | Fed by Jetstream; D1 is a rebuildable copy               |
 | Schemas           | `packages/protocol` (zod)                 | The only place schemas live                              |
-| Agent logic       | `packages/core`                           | Plain TS, no platform APIs; also the shared logger and HTTP names |
+| Agent logic       | `packages/core`                           | Plain TS, no platform APIs; jobs, mail transport, API client, logger, HTTP names |
+| Crypto            | `packages/crypto`                         | Seal/open, sign/verify, terms hash; pure JS (noble), no secrets kept |
+| E2E journeys      | `tests/e2e`                               | Real devices against a running API + Neon; `pnpm test:e2e` |
 | App               | `apps/mobile` (React + Capacitor)         | UI and adapters; platform APIs only in `src/adapters`    |
 | Directory DB      | Neon Postgres via Hyperdrive (ADR 0013)   | `pg`; migrations in `infra/postgres/directory`           |
 

@@ -54,6 +54,9 @@ All schemas are zod; every wire object is signed over `canonicalJson()` (exists 
 
 ### 2.2 Envelope (`envelope.ts`, exists; kinds extended)
 
+Built as in [ADR 0014](../adr/0014-agent-to-agent-jobs.md): the kinds are `quote`/`counter`/`agree`/`contact_release` rather
+than the `job_*` names below, and the envelope carries `epk` and the per-device `keys` map.
+
 ```ts
 EnvelopeHeader = { v: 1, id: MsgId, from: { user: UserId, device: DeviceId }, to: { user: UserId },
   engagement: JobId | EngagementId, seq: number, kind: EnvelopeKind, sent_at: ISO, expires_at: ISO, hop: 0..3 }
@@ -271,6 +274,9 @@ New storage collections: `jobs`, `agreements`, `receipts`, `ledger_head`, `rules
 
 ### 3.2 Job state machine (`job/machine.ts`, from `engagement/machine.ts`)
 
+Built in `packages/core/src/job/` ([ADR 0014](../adr/0014-agent-to-agent-jobs.md)): `negotiating` and `confirming`
+statuses, two `agree` signatures on one terms hash, contact cards only after both.
+
 | From \ event | job_request | job_offer / counter   | agree (both)      | check_in | check_out / payment | dispute  | cancel    | expire  |
 | ------------ | ----------- | --------------------- | ----------------- | -------- | ------------------- | -------- | --------- | ------- |
 | (none)       | requested   | —                     | —                 | —        | —                   | —        | —         | —       |
@@ -392,7 +398,7 @@ Outbox: durable queue, exponential backoff capped at 10 min (exists). Inbox: out
 | held` with per-engagement `seq` gap holding (exists). Signature verification moves into `crypto` (TODO M2 in
 upstream).
 
-## 4. Crypto (`packages/crypto`, new)
+## 4. Crypto (`packages/crypto`, exists: seal/open, sign/verify, termsHash; ADR 0014)
 
 | Function                       | Algorithm                                                                                |
 | ------------------------------ | ---------------------------------------------------------------------------------------- |

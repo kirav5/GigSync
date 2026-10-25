@@ -21,7 +21,8 @@ describe("engagement machine", () => {
   });
   it("walks a job to closed and refuses further moves", () => {
     let e = start();
-    for (const k of ["request", "quote", "agree", "update", "delivery", "review"] as const) e = apply(e, k, now);
+    for (const k of ["request", "quote", "agree", "agree", "update", "delivery", "review"] as const)
+      e = apply(e, k, now);
     expect(e.status).toBe("closed");
     expect(isOpen(e)).toBe(false);
     expect(() => apply(e, "update", now)).toThrow(TransitionError);

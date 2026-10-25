@@ -18,6 +18,15 @@ export async function activeDevices(db: Db, user: UserId): Promise<DeviceKeys[]>
   return rows;
 }
 
+/** The signing key of one of a user's active devices, or undefined when it is unknown or revoked. */
+export async function deviceSigningKey(db: Db, user: UserId, device: DeviceId): Promise<string | undefined> {
+  const { rows } = await db.query<{ signing_key: string }>(
+    "SELECT signing_key FROM devices WHERE device_id = $1 AND user_id = $2 AND revoked_at IS NULL",
+    [device, user],
+  );
+  return rows[0]?.signing_key;
+}
+
 /** Just the ids of a user's active devices: where the mailbox fans an envelope out to. */
 export async function activeDeviceIds(db: Db, user: UserId): Promise<DeviceId[]> {
   const { rows } = await db.query<{ device_id: DeviceId }>(
