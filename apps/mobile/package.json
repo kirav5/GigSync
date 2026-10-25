@@ -21,13 +21,16 @@
     "@gigsync/plugin-llm": "workspace:*",
     "@gigsync/protocol": "workspace:*",
     "@noble/ed25519": "3.2.0",
+    "qrcode": "1.5.4",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "ulid": "3.0.2"
   },
   "devDependencies": {
     "@capacitor/android": "8.5.3",
     "@capacitor/cli": "8.5.3",
     "@capacitor/ios": "8.5.3",
+    "@types/qrcode": "1.5.5",
     "@types/react": "19.2.13",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.1.2",

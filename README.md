@@ -1,8 +1,8 @@
 # GigSync
 
-GigSync gives a gig worker her own agent on her own phone. The agent agrees each job with the employer's agent,
-holds back her number and address until both sides sign, and keeps a signed record of every job and payment
-that belongs to her. She chooses what a union, a wage helpline or a welfare board sees. It works with no model
+GigSync gives a gig worker their own agent on their own phone. The agent agrees each job with the consumer's agent,
+holds back their number and address until both sides sign, and keeps a signed record of every job and payment
+that belongs to them. The worker chooses what a union, a wage helpline or a welfare board sees. It works with no model
 at all; a small offline model, on the device, only helps with wording. One codebase runs on Android, iPhone and
 Mac, and the web.
 
