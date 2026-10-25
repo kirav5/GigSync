@@ -521,12 +521,12 @@ export const GigSyncLLM = registerPlugin<GigSyncLLMPlugin>("GigSyncLLM", { web: 
 
 ### 8.2 Engines
 
-| Platform       | Implementation                                               | Model                             | State          |
-| -------------- | ------------------------------------------------------------ | --------------------------------- | -------------- |
-| Android        | `GigSyncLLMPlugin.kt` (package `app.gigsync.llm`), LiteRT-LM | ≤2B open model, int4 (Apache 2.0) | stub, G3       |
-| iPhone and Mac | `GigSyncLLMPlugin.swift`, Apple Foundation Models            | the OS's on-device model          | stub, G3       |
-| Web            | `src/web.ts` `GigSyncLLMWeb`; in-browser engine on WebGPU    | same family as Android, q4        | "no model", G3 |
-| Development    | `apps/mobile/src/adapters/ollama.ts` (`VITE_OLLAMA_MODEL`)   | any local Ollama model            | exists         |
+| Platform       | Implementation                                                                      | Model                                 | State    |
+| -------------- | ----------------------------------------------------------------------------------- | ------------------------------------- | -------- |
+| Android        | `GigSyncLLMPlugin.kt` (package `app.gigsync.llm`), LiteRT-LM                        | ≤2B open model, int4 (Apache 2.0)     | stub, G3 |
+| iPhone and Mac | `GigSyncLLMPlugin.swift`, Apple Foundation Models                                   | the OS's on-device model              | stub, G3 |
+| Web            | `src/web.ts` `GigSyncLLMWeb`: Chrome's built-in model (Prompt API, `LanguageModel`) | Gemini Nano, desktop Chrome 138+ only | exists   |
+| Development    | `apps/mobile/src/adapters/ollama.ts` (`VITE_OLLAMA_MODEL`)                          | any local Ollama model                | exists   |
 
 The app's `Model` port adapter (`apps/mobile/src/adapters/ports.ts`) wraps the plugin, and `@gigsync/core` sees
 only `Model.status()` / `Model.generate()`.
@@ -555,6 +555,12 @@ engine chosen in Settings and kept on the device:
 | On-device    | always the device's model (LiteRT-LM, Apple Foundation Models, web engine)    |
 | Lite mode    | no model; rules and templates                                                 |
 | Ollama (dev) | development builds only; Settings lists the models `ollama serve` has pulled  |
+
+On the web the device's model is Chrome's built-in Gemini Nano. Chrome offers it to web pages on desktop only
+(Windows 10/11, macOS 13+, Linux, Chromebook Plus; about 22 GB free and a 4 GB GPU or 16 GB RAM), in English,
+Japanese, Spanish, German and French. Chrome on Android and every iPhone browser have no such model, so phones use
+the native engines above or lite mode. The model downloads once per Chrome profile and only after a tap on
+Settings › Download Chrome's model (`GigSyncLLM.prepare()`); Auto uses it as soon as Chrome reports it available.
 
 Settings shows what the device reports (engine, ready or not, free memory) and which engine is answering now; the
 agent screen shows the same line. No choice ever reaches a cloud model (ADR 0010).

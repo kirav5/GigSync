@@ -7,7 +7,8 @@ import { OllamaModel } from "./ollama.js";
  * Which model the agent uses, chosen in Settings and kept on this device. Everything goes through core's `Model`
  * port, so the agent never knows which engine answered (HLD principle 6).
  *   auto:   the device's own model when it is ready and there is enough memory, otherwise lite mode
- *   device: always try the device's own model (LiteRT-LM on Android, Apple Foundation Models, the web engine)
+ *   device: always try the device's own model (LiteRT-LM on Android, Apple Foundation Models, or Chrome's
+ *           built-in Gemini Nano in desktop Chrome)
  *   lite:   no model at all: rules and templates do every job
  *   ollama: development builds only, a model served by Ollama on this computer
  */
@@ -35,6 +36,7 @@ const DEFAULTS: ModelSettings = {
 const ENGINE_NAMES: Readonly<Record<string, string>> = {
   litert: "LiteRT-LM",
   "foundation-models": "Apple Foundation Models",
+  "chrome-built-in": "Chrome's built-in model (Gemini Nano)",
 };
 
 export const engineName = (engine: string) => ENGINE_NAMES[engine] ?? engine;
@@ -91,6 +93,16 @@ export class ChosenModel implements Model {
 
   async refresh(): Promise<void> {
     this.status = await deviceStatus();
+    this.notify();
+  }
+
+  /** Asks the engine to fetch its model (Chrome's one-time download). Call only from a tap. */
+  async prepare(): Promise<void> {
+    try {
+      this.status = await GigSyncLLM.prepare();
+    } catch {
+      this.status = await deviceStatus();
+    }
     this.notify();
   }
 

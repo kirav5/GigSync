@@ -1,4 +1,5 @@
 import type { Ports } from "@gigsync/core";
+import { ModelDownload } from "@gigsync/plugin-llm";
 import { useEffect, useState } from "react";
 import {
   deviceUsable,
@@ -61,7 +62,7 @@ export function ModelSettings({ ports }: { ports: Ports }) {
   const deviceLine = !status
     ? "Checking this device…"
     : status.engine === ENGINE_NONE
-      ? "This device has no on-device model yet."
+      ? "This device has no on-device model yet. Desktop Chrome can provide one; phone browsers cannot."
       : `${engine} · ${status.available ? "ready" : "not ready"}${
           status.freeMemoryMb === undefined ? "" : ` · ${status.freeMemoryMb} MB free`
         }`;
@@ -88,6 +89,22 @@ export function ModelSettings({ ports }: { ports: Ports }) {
           </button>
         ))}
       </div>
+      {status?.download === ModelDownload.downloadable && (
+        <div className={C.stack}>
+          <span className={C.muted}>
+            Chrome can download its built-in model once for this computer (several GB; needs about 22 GB free). It runs
+            on this computer only, never in the cloud.
+          </span>
+          <div>
+            <button type={C.button} className={C.secondary} onClick={() => void model.prepare()}>
+              Download Chrome's model
+            </button>
+          </div>
+        </div>
+      )}
+      {status?.download === ModelDownload.downloading && (
+        <span className={C.muted}>Chrome is downloading its model. Tap Check again in a few minutes.</span>
+      )}
       <span className={C.faint}>{CHOICES.find((c) => c.choice === choice)?.about}</span>
       {choice === ModelChoice.ollama && OLLAMA_OFFERED && (
         <div className={C.row}>
