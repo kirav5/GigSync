@@ -1,9 +1,10 @@
 import type { Mailbox } from "@gigsync/worker-mailbox";
 
 export interface Env {
-  DIRECTORY: D1Database;
+  /** Hyperdrive in front of the Neon directory database (users, devices, sessions, sign-in attempts). */
+  DIRECTORY: Hyperdrive;
   MAILBOX: DurableObjectNamespace<Mailbox>;
-  /** Caps sign-in attempts per client IP; the per-number cap lives in D1 (otp_attempts). */
+  /** Caps sign-in attempts per client IP; the per-number cap lives in the directory (otp_attempts). */
   OTP_RATE_LIMIT: RateLimit;
   /** "local" in .dev.vars; the only environment where LOG_PII can take effect. */
   ENVIRONMENT: string;

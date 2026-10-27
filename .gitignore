@@ -19,3 +19,4 @@ apps/mobile/ios/App/Pods
 apps/mobile/ios/App/App.xcworkspace/xcuserdata
 apps/mobile/ios/App/App.xcodeproj/xcuserdata
 apps/mobile/ios/DerivedData
+.neon

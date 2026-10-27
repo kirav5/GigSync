@@ -1,9 +1,5 @@
-import { applyD1Migrations, env, SELF } from "cloudflare:test";
-import { beforeAll, describe, expect, it } from "vitest";
-
-beforeAll(async () => {
-  await applyD1Migrations(env.DIRECTORY, env.TEST_MIGRATIONS);
-});
+import { SELF } from "cloudflare:test";
+import { describe, expect, it } from "vitest";
 
 const device = { signing_key: "c2lnbmluZw==", encryption_key: "ZW5jcnlwdGlvbg==", protocol: 1 };
 

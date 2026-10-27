@@ -38,7 +38,7 @@ auth.post("/otp/verify", async (c) => {
   const body = OtpVerify.safeParse(await c.req.json().catch(() => null));
   if (!body.success) return c.json({ error: ApiError.badRequest }, 400);
 
-  const db = c.env.DIRECTORY;
+  const db = c.get(Var.db);
   const now = new Date();
   const phoneHmac = await hmacHex(requireSecret(c.env.PHONE_HMAC_KEY, "PHONE_HMAC_KEY"), body.data.phone);
   const who = { requestId: c.get(Var.requestId), phone: pii(body.data.phone) };
