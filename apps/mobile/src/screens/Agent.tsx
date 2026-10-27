@@ -1,5 +1,6 @@
 import { type Card, CardKind, type Agent as CoreAgent } from "@gigsync/core";
 import { type FormEvent, useState } from "react";
+import { useChosenModel } from "../adapters/model.js";
 import { C } from "../ui/cls.js";
 
 interface Turn {
@@ -16,7 +17,8 @@ const STARTERS = [
 ];
 
 /** The worker's agent: notes and answers from them, on this phone (lite mode without a model). */
-export function AgentScreen({ agent, modelLabel }: { agent: CoreAgent; modelLabel: string }) {
+export function AgentScreen({ agent }: { agent: CoreAgent }) {
+  const model = useChosenModel();
   const [turns, setTurns] = useState<Turn[]>([]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -48,7 +50,7 @@ export function AgentScreen({ agent, modelLabel }: { agent: CoreAgent; modelLabe
         <h1 className={C.headline}>
           Your agent. <span className={C.soft}>Your notes stay here.</span>
         </h1>
-        <span className={C.faint}>{modelLabel}</span>
+        <span className={C.faint}>{model.label()} · change in Settings</span>
       </div>
       {turns.length === 0 && (
         <div className={C.row}>

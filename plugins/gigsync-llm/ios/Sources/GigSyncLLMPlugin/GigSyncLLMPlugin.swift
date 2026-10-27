@@ -10,10 +10,16 @@ public class GigSyncLLMPlugin: CAPPlugin, CAPBridgedPlugin {
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "status", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "generate", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "prepare", returnType: CAPPluginReturnPromise),
     ]
 
     @objc func status(_ call: CAPPluginCall) {
         call.resolve(["available": false, "engine": "none", "freeMemoryMb": ProcessInfo.processInfo.physicalMemory / (1024 * 1024)])
+    }
+
+    /// Apple's on-device model is part of the OS: nothing to download, so this reports the same as status.
+    @objc func prepare(_ call: CAPPluginCall) {
+        status(call)
     }
 
     @objc func generate(_ call: CAPPluginCall) {

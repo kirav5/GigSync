@@ -1,9 +1,8 @@
 import { Preferences } from "@capacitor/preferences";
 import type { Keys, Model, Ports, Storage } from "@gigsync/core";
-import { DEFAULT_MAX_TOKENS, SystemClock, traced } from "@gigsync/core";
-import { GigSyncLLM } from "@gigsync/plugin-llm";
+import { SystemClock, traced } from "@gigsync/core";
 import * as ed from "@noble/ed25519";
-import { OllamaModel } from "./ollama.js";
+import { chosenModel } from "./model.js";
 
 /**
  * The app's implementations of the core's ports. These are the ONLY place platform APIs are touched, so moving
@@ -63,31 +62,9 @@ class SoftwareKeys implements Keys {
   }
 }
 
-/** The native LLM plugin; on web it answers nothing, so the agent runs in lite mode. */
-class PluginModel implements Model {
-  async generate(prompt: string, options?: { maxTokens?: number }) {
-    try {
-      const { text, available } = await GigSyncLLM.generate({
-        prompt,
-        maxTokens: options?.maxTokens ?? DEFAULT_MAX_TOKENS,
-      });
-      return available ? text : null;
-    } catch {
-      return null;
-    }
-  }
-}
-
-/** Dev builds can use a model from Ollama on this computer; everything else uses the native plugin. */
-const ollamaModel = import.meta.env.DEV ? import.meta.env.VITE_OLLAMA_MODEL : undefined;
-
-/** What the header shows as the model in use. */
-export const modelLabel = ollamaModel ? `ollama ${ollamaModel}` : "lite mode (no model)";
-
 function createModel(): Model {
-  const model = ollamaModel ? new OllamaModel(ollamaModel) : new PluginModel();
-  // Prompts and replies are private: shown in local debug logs only.
-  return { generate: traced("model.generate", model.generate.bind(model)) };
+  // The engine is chosen in Settings (adapters/model.ts). Prompts and replies are private: shown in local debug logs only.
+  return { generate: traced("model.generate", chosenModel.generate.bind(chosenModel)) };
 }
 
 export function createPorts(): Ports {

@@ -26,6 +26,10 @@ class GigSyncLLMPlugin : Plugin() {
         call.resolve(result)
     }
 
+    /** Nothing to download yet (M0); reports the same as status. M1 fetches the Play AI pack here. */
+    @PluginMethod
+    fun prepare(call: PluginCall) = status(call)
+
     @PluginMethod
     fun generate(call: PluginCall) {
         if (call.getString("prompt").isNullOrBlank()) {
