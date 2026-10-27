@@ -49,7 +49,7 @@ piece work come later on the same core.
 3. **Private data never leaves the phone readable.** Envelopes are sealed on the sender's phone, for the
    recipient's devices only.
 4. **Private data stays raw on the phone; it is checked at the edge**
-   ([ADR 0013](../adr/0013-raw-pii-on-device-check-at-the-edge.md)).
+   ([ADR 0015](../adr/0015-raw-pii-on-device-check-at-the-edge.md)).
    - What the worker tells their own agent ("remember my phone number is …") is stored exactly as typed in the
      encrypted private store, and the offline model may read it to answer the worker.
    - When another agent is involved, identifiers become placeholders (`PHONE_1`) before the model sees the text, so
@@ -246,7 +246,7 @@ never protects anything stored off the phone (ADR 0007).
 | Mailbox DO, OTP, directory         | Kept as is                                                            |
 | Index Worker (Jetstream)           | Becomes the job board's public-record ingester                        |
 | `plugins/collab-llm`               | Renamed `gigsync-llm`; the one offline model for every platform       |
-| PII detectors (inherited)          | Kept; now run at the edge and for other agents' text (ADR 0013)       |
+| PII detectors (inherited)          | Kept; now run at the edge and for other agents' text (ADR 0015)       |
 
 ## 12. Milestones
 

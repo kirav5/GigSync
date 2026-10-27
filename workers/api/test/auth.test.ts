@@ -1,10 +1,7 @@
-import { applyD1Migrations, env, SELF } from "cloudflare:test";
-import { beforeAll, describe, expect, it } from "vitest";
+import { env, SELF } from "cloudflare:test";
+import { describe, expect, it } from "vitest";
 import app from "../src/index.js";
-
-beforeAll(async () => {
-  await applyD1Migrations(env.DIRECTORY, env.TEST_MIGRATIONS);
-});
+import { sql } from "./sql.js";
 
 const device = { signing_key: "c2lnbmluZw==", encryption_key: "ZW5jcnlwdGlvbg==", protocol: 1 };
 
@@ -16,8 +13,7 @@ function verify(phone: string, code: string, ip = phone, body: unknown = { phone
   });
 }
 
-const count = async (table: string) =>
-  (await env.DIRECTORY.prepare(`SELECT COUNT(*) AS n FROM ${table}`).first<{ n: number }>())?.n ?? 0;
+const count = async (table: string) => (await sql<{ n: number }>(`SELECT COUNT(*)::int AS n FROM ${table}`))[0]?.n ?? 0;
 
 describe("otp verify", () => {
   it("rejects a wrong code", async () => {
@@ -59,11 +55,11 @@ describe("otp verify", () => {
 
   it("writes nothing when part of a sign-up fails", async () => {
     const before = { users: await count("users"), devices: await count("devices") };
-    await env.DIRECTORY.exec("ALTER TABLE sessions RENAME TO sessions_off");
+    await sql("ALTER TABLE sessions RENAME TO sessions_off");
     try {
       expect((await verify("+919811000005", "000000")).status).toBe(500);
     } finally {
-      await env.DIRECTORY.exec("ALTER TABLE sessions_off RENAME TO sessions");
+      await sql("ALTER TABLE sessions_off RENAME TO sessions");
     }
     expect({ users: await count("users"), devices: await count("devices") }).toEqual(before);
   });

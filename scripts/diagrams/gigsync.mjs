@@ -177,7 +177,7 @@ function piiBoundary() {
   return svg(
     1180,
     470,
-    "Private data: raw on the phone, checked at the edge (ADR 0013)",
+    "Private data: raw on the phone, checked at the edge (ADR 0015)",
     [
       ...col(
         20,

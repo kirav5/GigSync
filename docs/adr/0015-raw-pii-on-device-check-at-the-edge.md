@@ -1,4 +1,4 @@
-# ADR 0013: Private data stays raw on the phone; it is checked at the edge
+# ADR 0015: Private data stays raw on the phone; it is checked at the edge
 
 Date: 2026-10-25. Status: proposed. For GigSync, this replaces the rule "sanitize before any model, even the
 phone's own" (HLD principle 4 as first written, the inherited sanitize ADR

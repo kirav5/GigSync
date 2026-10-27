@@ -30,7 +30,8 @@ workers/mailbox     the Mailbox Durable Object, one per user
 workers/index       search index over public records (Workers + D1), carried over from the Swift app
 apps/mobile         the Capacitor app: React UI + adapters that implement core's ports; android/ and ios/ inside
 plugins/gigsync-llm Capacitor plugin for the offline model: LiteRT-LM (Android), Foundation Models (Apple), web
-infra/              D1 migrations; an unused PDS docker-compose (ADR 0005)
+infra/              directory migrations for Neon Postgres (ADR 0013); an unused PDS docker-compose (ADR 0005)
+neon.ts             the Neon services the project's branches get (Postgres)
 docs/               design and ADRs
 ```
 
@@ -42,18 +43,38 @@ Needs Node 24 (`.nvmrc`) and pnpm 10. With nvm: `nvm install 24 && corepack enab
 pnpm install
 ```
 
+Build the shared packages and the model plugin; the API and the app import their `dist/`. Run it again after
+changing anything under `packages/` or `plugins/`:
+
+```bash
+pnpm -r --filter './packages/*' --filter './plugins/*' run build
+```
+
+The API tests need a throwaway Postgres 18 on port 54329, which they wipe on every run (CI runs the same):
+
+```bash
+docker run -d --name gigsync-test-db -e POSTGRES_PASSWORD=postgres -p 54329:5432 postgres:18
+```
+
 ```bash
 pnpm test
 ```
 
-Local settings for the API (sign-in code `000000`, full logs), then the local directory database:
+Local settings for the API (sign-in code `000000`, full logs):
 
 ```bash
 cp workers/api/.dev.vars.example workers/api/.dev.vars
 ```
 
+The directory is Neon Postgres (ADR 0013). Pull its connection strings into `.env.local` (git-ignored; needs
+`npm i -g neon` and `neon login`), then create the tables. `pnpm dev:workers` reads the same file:
+
 ```bash
-pnpm --filter @gigsync/worker-api exec wrangler d1 migrations apply gigsync-directory --local
+neon env pull
+```
+
+```bash
+pnpm --filter @gigsync/worker-api db:migrate
 ```
 
 ```bash

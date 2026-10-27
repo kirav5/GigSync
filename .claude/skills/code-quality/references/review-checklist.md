@@ -20,7 +20,8 @@ find; if something has to stay, say why in the summary. Report the result item b
 - [ ] Every input is parsed with a schema from `@gigsync/protocol` (or a type guard); no `as` casts on outside data.
 - [ ] No `any`; outside JSON is `unknown` until checked.
 - [ ] Failure paths return the right status with a safe `{ error }` body.
-- [ ] Writes that belong together are in one `db.batch` (a sign-up must not leave a user without a device).
+- [ ] Writes that belong together are in one transaction (`transaction()` on Postgres, `db.batch` on D1): a sign-up
+  must not leave a user without a device.
 - [ ] Retried operations are idempotent.
 - [ ] Time, ids and expiry use the repo's conventions (ULID ids, seconds vs ISO per database).
 
@@ -40,7 +41,7 @@ find; if something has to stay, say why in the summary. Report the result item b
 
 ## Performance
 
-- [ ] No remote call (`D1`, `fetch`, DO RPC) awaited inside a loop; independent awaits use `Promise.all`.
+- [ ] No remote call (Postgres, D1, `fetch`, DO RPC) awaited inside a loop; independent awaits use `Promise.all`.
 - [ ] Per-request CPU stays small (free plan: 10 ms); heavy work moved to cron, queue or alarm.
 - [ ] Any new dependency runs on Workers and is justified.
 

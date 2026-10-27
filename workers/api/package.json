@@ -5,11 +5,10 @@
   "description": "The public API: sign-in, directory, mailbox routes. Deploys the Mailbox Durable Object.",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "node --env-file-if-exists=../../.env.local scripts/dev.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "db:migrate:local": "wrangler d1 migrations apply gigsync-directory --local",
-    "db:migrate:remote": "wrangler d1 migrations apply gigsync-directory --remote",
+    "db:migrate": "node --env-file-if-exists=../../.env.local scripts/migrate.mjs",
     "deploy": "wrangler deploy"
   },
   "dependencies": {
@@ -17,12 +16,14 @@
     "@gigsync/protocol": "workspace:*",
     "@gigsync/worker-mailbox": "workspace:*",
     "hono": "4.13.13",
+    "pg": "8.23.1",
     "ulid": "3.0.2",
     "zod": "4.6.7"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "0.23.0",
     "@cloudflare/workers-types": "5.20261021.1",
+    "@types/pg": "8.23.1",
     "typescript": "5.9.3",
     "vitest": "4.1.12",
     "wrangler": "4.151.3"

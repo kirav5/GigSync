@@ -6,7 +6,7 @@ for GigSync.
 ## Decision
 
 GigSync keeps the sanitize ADR's detectors in code on the phone, and changes where they run
-(ADR 0013):
+(ADR 0015):
 1. The worker's own data stays raw on the phone, and the offline model may read it when answering the worker.
 2. When another agent is involved, the model sees placeholders; an edge check gates everything that leaves.
 
