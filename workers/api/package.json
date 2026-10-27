@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@gigsync/core": "workspace:*",
+    "@gigsync/crypto": "workspace:*",
     "@gigsync/protocol": "workspace:*",
     "@gigsync/worker-mailbox": "workspace:*",
     "hono": "4.13.13",

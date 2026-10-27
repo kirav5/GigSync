@@ -101,14 +101,24 @@ export class PaymentBook {
     return this.change(id, S.disputed, (p, at) => ({ ...p, disputed_at: at }));
   }
 
-  /** A payment the other side sent in a `payment_record`; it replaces ours only if it moves the status forward. */
-  async receive(theirs: Payment): Promise<Payment> {
+  /**
+   * A payment the other side sent, from `from`; it replaces ours only if it moves the status forward and the sender
+   * may make that move: only the payer says "paid", only the payee (the worker) says "confirmed" or "disputed". A new
+   * payment is taken only as the payee's request.
+   */
+  async receive(theirs: Payment, from: UserId): Promise<Payment> {
     const ours = await this.storage.get<Payment>(Collection.payments, theirs.id);
+    const byPayee = from === theirs.payee;
     if (!ours) {
+      if (!byPayee || theirs.status !== S.requested) throw new PaymentError(`unexpected new payment ${theirs.id}`);
       await this.save(theirs);
       return theirs;
     }
-    if (theirs.status === S.paid && FROM.paid.has(ours.status)) return this.markPaid(ours.id, theirs.utr);
+    if (theirs.payee !== ours.payee || theirs.payer !== ours.payer) return ours;
+    if (theirs.status === S.paid && from === ours.payer && FROM.paid.has(ours.status))
+      return this.markPaid(ours.id, theirs.utr);
+    if (theirs.status === S.confirmed && byPayee && FROM.confirmed.has(ours.status)) return this.confirm(ours.id);
+    if (theirs.status === S.disputed && byPayee && FROM.disputed.has(ours.status)) return this.dispute(ours.id);
     return ours;
   }
 

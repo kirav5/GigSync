@@ -1,5 +1,5 @@
 /** HTTP names shared by the app and the Workers, so a method or header is never typed as a bare string. */
-export const HttpMethod = { get: "GET", post: "POST", options: "OPTIONS" } as const;
+export const HttpMethod = { get: "GET", post: "POST", put: "PUT", delete: "DELETE", options: "OPTIONS" } as const;
 
 export const Header = {
   accept: "accept",

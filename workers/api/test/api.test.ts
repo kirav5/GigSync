@@ -1,17 +1,8 @@
 import { SELF } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
+import { envelope, post, signIn } from "./people.js";
 
-const device = { signing_key: "c2lnbmluZw==", encryption_key: "ZW5jcnlwdGlvbg==", protocol: 1 };
-
-async function signIn(phone: string) {
-  const res = await SELF.fetch("http://x/v1/auth/otp/verify", {
-    method: "POST",
-    headers: { "cf-connecting-ip": phone }, // one client per person, so the per-IP cap does not span tests
-    body: JSON.stringify({ phone, code: "000000", device }),
-  });
-  expect(res.status).toBe(200);
-  return (await res.json()) as { user: string; device: string; token: string };
-}
+const area = { lat: 12.97, lon: 77.64 };
 
 describe("api", () => {
   it("reports health", async () => {
@@ -44,68 +35,54 @@ describe("api", () => {
     expect(other.headers.get("access-control-allow-origin")).toBeNull();
   });
 
-  it("signs in two people and routes an envelope between them", async () => {
+  it("signs in two people and routes a sealed, signed envelope between them", async () => {
     const asha = await signIn("+919800000001");
     const mother = await signIn("+919800000002");
 
-    const dir = await SELF.fetch(`http://x/v1/directory/${mother.user}`, {
-      headers: { authorization: `Bearer ${asha.token}` },
-    });
-    expect(dir.status).toBe(200);
+    const dir = await asha.api.directory(mother.session.user);
+    expect(dir.devices.map((d) => d.device_id)).toEqual([mother.session.device]);
 
-    const envelope = {
-      v: 1,
-      id: "msg_01J0000000000000000000M001",
-      from: { user: asha.user, device: asha.device },
-      to: { user: mother.user },
-      engagement: "eng_01J0000000000000000000E001",
-      seq: 0,
-      kind: "request",
-      sent_at: new Date().toISOString(),
-      expires_at: new Date(Date.now() + 3600_000).toISOString(),
-      ciphertext: "aGVsbG8=",
-      sig: "c2ln",
-    };
-    const sent = await SELF.fetch(`http://x/v1/mailbox/${mother.user}`, {
-      method: "POST",
-      headers: { authorization: `Bearer ${asha.token}` },
-      body: JSON.stringify(envelope),
+    const e = await envelope(asha, mother, "request", {
+      trade: "maid",
+      need: "Daily cleaning",
+      when: "mornings",
+      area,
     });
-    expect(sent.status).toBe(201);
+    expect(await asha.api.deliver(e)).toEqual({ stored: true, devices: 1 });
 
-    const inbox = await SELF.fetch("http://x/v1/inbox", { headers: { authorization: `Bearer ${mother.token}` } });
-    const list = (await inbox.json()) as { id: string }[];
-    expect(list.map((e) => e.id)).toEqual([envelope.id]);
+    const inbox = await mother.api.inbox();
+    expect(inbox.map((x) => x.id)).toEqual([e.id]);
+    expect(JSON.stringify(inbox)).not.toContain("Daily cleaning");
+    expect(await mother.api.ack([e.id])).toEqual({ acked: 1 });
+    expect(await mother.api.inbox()).toEqual([]);
+  });
 
-    const ack = await SELF.fetch("http://x/v1/inbox/ack", {
-      method: "POST",
-      headers: { authorization: `Bearer ${mother.token}` },
-      body: JSON.stringify({ ids: [envelope.id] }),
-    });
-    expect(await ack.json()).toEqual({ acked: 1 });
+  it("refuses an envelope whose content was altered after signing", async () => {
+    const a = await signIn("+919800000005");
+    const b = await signIn("+919800000006");
+    const e = await envelope(a, b, "request", { trade: "maid", need: "Cleaning", when: "today", area });
+    expect(await post(a, { ...e, ciphertext: `${e.ciphertext.slice(0, -4)}AAA=` })).toBe(403);
+    expect(await post(a, { ...e, seq: 9 })).toBe(403);
+    expect(await b.api.inbox()).toEqual([]);
+  });
+
+  it("refuses an envelope signed by a different device than the session's", async () => {
+    const a = await signIn("+919800000007");
+    const b = await signIn("+919800000008");
+    const forged = await envelope(a, b, "request", { trade: "maid", need: "x", when: "now", area });
+    const other = await signIn("+919800000009");
+    // Signed by `other`'s key but claiming a's device: the signature does not match a's registered key.
+    const resigned = await envelope(other, b, "request", { trade: "maid", need: "x", when: "now", area });
+    expect(await post(a, { ...resigned, from: forged.from })).toBe(403);
+    // a's genuine envelope, but sent with b's session.
+    expect(await post(b, forged)).toBe(403);
   });
 
   it("refuses an envelope that claims another sender", async () => {
     const a = await signIn("+919800000003");
     const b = await signIn("+919800000004");
-    const res = await SELF.fetch(`http://x/v1/mailbox/${b.user}`, {
-      method: "POST",
-      headers: { authorization: `Bearer ${a.token}` },
-      body: JSON.stringify({
-        v: 1,
-        id: "msg_01J0000000000000000000M002",
-        from: { user: b.user, device: b.device },
-        to: { user: b.user },
-        engagement: "eng_01J0000000000000000000E002",
-        seq: 0,
-        kind: "request",
-        sent_at: new Date().toISOString(),
-        expires_at: new Date(Date.now() + 3600_000).toISOString(),
-        ciphertext: "",
-        sig: "",
-      }),
-    });
-    expect(res.status).toBe(403);
+    const e = await envelope(b, b, "request", { trade: "maid", need: "x", when: "now", area });
+    expect(await post(a, e)).toBe(403);
   });
 
   it("rejects requests without a session", async () => {

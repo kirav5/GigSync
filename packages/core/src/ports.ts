@@ -4,11 +4,22 @@
  * the core keeps running if the shell around it changes.
  */
 
+import type { DevicePublicKeys, Sealed } from "@gigsync/crypto";
+import type { DeviceId } from "@gigsync/protocol";
+
 /** Every storage collection the agent uses. One name per kind of record, so two features never share one by accident. */
 export const Collection = {
   chat: "chat",
   contacts: "contacts",
   engagements: "engagements",
+  /** One record per job this device is part of (as consumer or worker). */
+  jobs: "jobs",
+  /** What a consumer is looking for, per request group: the need and their private budget. */
+  needs: "needs",
+  /** Decisions waiting for the owner: confirm a deal, answer questions, confirm a payment. */
+  tasks: "tasks",
+  /** Payment requests received, with the worker's UPI ID, so the consumer can open a UPI app. */
+  paymentRequests: "payment_requests",
   episodes: "episodes",
   inboxCursor: "inbox_cursor",
   inboxSeen: "inbox_seen",
@@ -25,11 +36,17 @@ export interface Storage {
   list<T>(collection: string): Promise<T[]>;
 }
 
+/**
+ * The device's private keys stay behind this port (a keystore on the phone). Everything public — sealing to someone,
+ * checking a signature — needs no secret and is done with @gigsync/crypto directly.
+ */
 export interface Keys {
-  /** The device's public signing key, base64. */
-  publicKey(): Promise<string>;
+  /** This device's public keys, as registered at sign-in. */
+  publicKeys(): Promise<DevicePublicKeys>;
+  /** Ed25519 with the device's signing key. */
   sign(bytes: Uint8Array): Promise<Uint8Array>;
-  verify(bytes: Uint8Array, signature: Uint8Array, publicKey: string): Promise<boolean>;
+  /** Opens a body sealed to this device; throws when it was not sealed to it or was altered. */
+  open(sealed: Sealed, device: DeviceId): Promise<Uint8Array>;
 }
 
 /** Reply length when a caller does not ask for one: enough for a chat answer, short enough for a phone. */

@@ -1,0 +1,174 @@
+import {
+  CancelReason,
+  type ContactCard,
+  type DeviceId,
+  type EngagementId,
+  type EnvelopeKind,
+  type Payment,
+  SIDE_CHANNEL_KINDS,
+  type UserId,
+} from "@gigsync/protocol";
+import { ulid } from "ulid";
+import { apply } from "../engagement/machine.js";
+import { MailTransport } from "../mail/transport.js";
+import type { Relay } from "../net/api.js";
+import { PaymentBook } from "../payments/book.js";
+import type { Clock, Keys, Storage } from "../ports.js";
+import * as after from "./aftercare.js";
+import * as consumer from "./consumer.js";
+import type { JobContext } from "./context.js";
+import * as deal from "./deal.js";
+import { dispatch, needOf } from "./dispatch.js";
+import type { Mandate } from "./negotiate.js";
+import { type JobRecord, JobStore, type Need, type OwnerTask, TaskKind } from "./store.js";
+import type * as worker from "./worker.js";
+
+export interface DeviceOptions {
+  relay: Relay;
+  storage: Storage;
+  keys: Keys;
+  clock: Clock;
+  me: { user: UserId; device: DeviceId };
+  contact: ContactCard;
+  /** Sign deals the agent reaches without asking. Off by default: the owner taps to sign. */
+  autoConfirm?: boolean;
+  /** Set on a worker's phone: what they do, where, and at what price. */
+  worker?: worker.WorkerRules;
+}
+
+/** A consumer's need before it is sent: the budget is a private mandate and never leaves the phone. */
+export type NewNeed = Omit<Need, "group" | "details" | "budget"> & {
+  details?: Record<string, string>;
+  budget: Mandate;
+};
+
+export class DeviceError extends Error {}
+
+/** One phone's agent for jobs: it negotiates on the owner's behalf and asks the owner only to decide. */
+export class GigDevice {
+  readonly store: JobStore;
+  readonly payments: PaymentBook;
+  private readonly transport: MailTransport;
+  private readonly ctx: JobContext;
+
+  constructor(private readonly o: DeviceOptions) {
+    this.store = new JobStore(o.storage);
+    this.payments = new PaymentBook(o.storage, o.clock);
+    this.transport = new MailTransport(o.relay, o.storage, o.keys, o.clock, o.me);
+    this.ctx = {
+      me: o.me,
+      contact: o.contact,
+      autoConfirm: o.autoConfirm ?? false,
+      store: this.store,
+      storage: o.storage,
+      payments: this.payments,
+      keys: o.keys,
+      clock: o.clock,
+      send: (r, kind, body) => this.send(r, kind, body),
+      signingKeyOf: (user, device) => this.transport.signingKeyOf(user, device),
+    };
+  }
+
+  /** Takes in what arrived, lets the agent answer it, and sends what is queued. */
+  async sync(): Promise<{ received: number; sent: number }> {
+    const received = await this.transport.receive();
+    // In order on purpose: each envelope may depend on the one before it.
+    for (const item of received) await dispatch(this.ctx, this.o.worker, item);
+    return { received: received.length, sent: await this.transport.flush() };
+  }
+
+  // ── Consumer ──────────────────────────────────────────────────────────────────────────────────────────────────────
+  /** Sends the need to one or more workers at once; agreeing with one cancels the rest. */
+  async request(n: NewNeed, workers: readonly UserId[]): Promise<JobRecord[]> {
+    if (workers.length === 0) throw new DeviceError("no workers to ask");
+    const need: Need = { ...n, details: n.details ?? {}, group: `eng_${ulid(this.o.clock.now().getTime())}` };
+    await this.store.saveNeed(need);
+    // Each request is its own engagement with its own worker, so they can be prepared and queued together.
+    return Promise.all(workers.map((w) => consumer.startRequest(this.ctx, need, w)));
+  }
+
+  async answer(id: EngagementId, answers: Record<string, string>): Promise<JobRecord> {
+    const r = await this.job(id);
+    return consumer.answer(this.ctx, await needOf(this.ctx, r), r, answers);
+  }
+
+  async upiLink(paymentId: string): Promise<string> {
+    return after.upiLink(this.ctx, paymentId);
+  }
+
+  async markPaid(paymentId: string, utr?: string): Promise<Payment> {
+    const p = await this.payments.markPaid(paymentId, utr);
+    await after.sendPaymentRecord(this.ctx, await this.job(p.engagement), p);
+    return p;
+  }
+
+  async review(id: EngagementId, review: { stars: number; text?: string }): Promise<JobRecord> {
+    return after.sendReview(this.ctx, await this.job(id), { stars: review.stars, text: review.text ?? "" });
+  }
+
+  // ── Worker ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  async update(id: EngagementId, text: string): Promise<JobRecord> {
+    return after.sendUpdate(this.ctx, await this.job(id), text);
+  }
+
+  async deliver(id: EngagementId, text: string): Promise<JobRecord> {
+    return after.sendDelivery(this.ctx, await this.job(id), text);
+  }
+
+  async requestPayment(id: EngagementId, note: string): Promise<Payment> {
+    if (!this.o.worker) throw new DeviceError("only a worker asks for payment");
+    return after.requestPayment(this.ctx, this.o.worker, await this.job(id), note);
+  }
+
+  async confirmPayment(paymentId: string): Promise<Payment> {
+    return this.settlePayment(paymentId, (id) => this.payments.confirm(id));
+  }
+
+  async disputePayment(paymentId: string): Promise<Payment> {
+    return this.settlePayment(paymentId, (id) => this.payments.dispute(id));
+  }
+
+  // ── Either side ───────────────────────────────────────────────────────────────────────────────────────────────────
+  tasks(): Promise<OwnerTask[]> {
+    return this.store.tasks();
+  }
+
+  async confirmDeal(id: EngagementId): Promise<JobRecord> {
+    return deal.sign(this.ctx, await this.job(id));
+  }
+
+  async declineDeal(id: EngagementId): Promise<JobRecord> {
+    return deal.decline(this.ctx, await this.job(id));
+  }
+
+  async cancelJob(id: EngagementId, note?: string): Promise<JobRecord> {
+    return deal.cancel(this.ctx, await this.job(id), { reason: CancelReason.enum.other, ...(note ? { note } : {}) });
+  }
+
+  jobs(): Promise<JobRecord[]> {
+    return this.store.jobs();
+  }
+
+  async job(id: EngagementId): Promise<JobRecord> {
+    const r = await this.store.job(id);
+    if (!r) throw new DeviceError(`no job ${id}`);
+    return r;
+  }
+
+  // ── Internals ─────────────────────────────────────────────────────────────────────────────────────────────────────
+  private async settlePayment(paymentId: string, change: (id: string) => Promise<Payment>): Promise<Payment> {
+    const p = await change(paymentId);
+    await this.store.removeTask(TaskKind.confirmPayment, p.engagement);
+    await after.sendPaymentRecord(this.ctx, await this.job(p.engagement), p);
+    return p;
+  }
+
+  /** Applies the move first (so an impossible one throws before anything is queued), then seals and queues it. */
+  private async send(r: JobRecord, kind: EnvelopeKind, body: unknown): Promise<JobRecord> {
+    const engagement = SIDE_CHANNEL_KINDS.has(kind) ? r.engagement : apply(r.engagement, kind, this.o.clock.now());
+    await this.transport.send(r.engagement.counterpart, r.engagement.id, kind, body);
+    const next = { ...r, engagement };
+    await this.store.saveJob(next);
+    return next;
+  }
+}

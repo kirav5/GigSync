@@ -10,8 +10,14 @@ export const EnvelopeKind = z.enum([
   "request",
   "clarify",
   "response",
+  /** Worker → consumer: an offer for the job (price, slot, scope). */
   "quote",
+  /** Consumer → worker: a counter-offer to the last quote. */
+  "counter",
+  /** Either side signs the agreed terms; the job is agreed once both have (two `agree`s on one terms hash). */
   "agree",
+  /** Either side → the other, once agreed: the sender's contact card. Does not move the engagement. */
+  "contact_release",
   "update",
   "delivery",
   "review",
@@ -25,7 +31,18 @@ export const EnvelopeKind = z.enum([
 ]);
 export type EnvelopeKind = z.infer<typeof EnvelopeKind>;
 
-const base64 = z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/, "base64");
+const K = EnvelopeKind.enum;
+/** Kinds that travel alongside an engagement without moving its status. */
+export const SIDE_CHANNEL_KINDS: ReadonlySet<EnvelopeKind> = new Set([
+  K.contact_release,
+  K.payment_request,
+  K.payment_record,
+  K.key_change,
+]);
+
+export const Base64 = z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/, "base64");
+/** A person has at most this many devices to seal one envelope to. */
+export const MAX_RECIPIENT_DEVICES = 10;
 const isoDate = z.string().datetime({ offset: true });
 
 /** Everything the mailbox needs to route and expire an envelope. Content stays inside `ciphertext`. */
@@ -45,9 +62,16 @@ export const EnvelopeHeader = z.object({
 export type EnvelopeHeader = z.infer<typeof EnvelopeHeader>;
 
 export const Envelope = EnvelopeHeader.extend({
-  ciphertext: base64,
-  /** Ed25519 over the canonical JSON of the header plus ciphertext. */
-  sig: base64,
+  /** The sender's one-time X25519 public key for this envelope. */
+  epk: Base64,
+  /** The body's content key, wrapped once for each recipient device that may open it. */
+  keys: z
+    .record(DeviceId, Base64)
+    .refine((k) => Object.keys(k).length >= 1 && Object.keys(k).length <= MAX_RECIPIENT_DEVICES, "1 to 10 devices"),
+  /** XChaCha20-Poly1305 over the JSON body; only the devices in `keys` can read it. */
+  ciphertext: Base64,
+  /** Ed25519 by the sending device over the canonical JSON of everything above. */
+  sig: Base64,
 });
 export type Envelope = z.infer<typeof Envelope>;
 
