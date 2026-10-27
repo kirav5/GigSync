@@ -1,6 +1,6 @@
 # ADR 0010: No cloud model in GigSync
 
-Date: 2026-10-25. Status: proposed. This ADR amends the sanitize ADR (`0007-sanitize-then-local-model-then-gemini.md`)
+Date: 2026-10-25. Status: proposed. This ADR amends the sanitize ADR ([ADR 0008](0008-sanitize-then-local-model-then-gemini.md), numbered 0007 until 27 Oct 2026)
 for GigSync.
 
 ## Decision

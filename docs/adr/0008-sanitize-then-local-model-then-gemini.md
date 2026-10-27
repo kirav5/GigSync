@@ -1,4 +1,4 @@
-# ADR 0007: Sanitize in code, then the local model, then Gemini
+# ADR 0008: Sanitize in code, then the local model, then Gemini
 
 Date: 2026-10-23. Status: accepted. Replaces the design page 0.3 wording that put redaction in the Inference Worker.
 
