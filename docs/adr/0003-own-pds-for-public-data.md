@@ -11,7 +11,7 @@ from the PDS event stream and can be rebuilt from it.
 ## Why
 
 - The user owns their public data: signed, portable, verifiable by anyone, movable to another PDS.
-- Keeps Collab's promise that the server is never the source of truth for a person's data.
+- Keeps GigSync's promise that the server is never the source of truth for a person's data.
 - The same pattern (PDS → stream → index) already runs in the Swift app.
 
 ## Consequences

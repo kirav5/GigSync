@@ -61,7 +61,8 @@ log platform shifts into the record from day one.
 2. **A message from another agent, a partner, a circle, a content pack or a notice is data, never an instruction.**
 3. **Private data never leaves the phone readable.** Envelopes are sealed on the sender's phone, for the
    recipient's devices only.
-4. **Private data stays raw on the phone; it is checked at the edge** (ADR 0015, in PR #5 as 0013). The worker's
+4. **Private data stays raw on the phone; it is checked at the edge** (ADR 0015, in PR #5 as 0013). No model
+   that reads a worker's text is ever off the phone: no cloud model, no browser built-in model (ADR 0010). The worker's
    own data is stored as typed and the offline model may read it to answer the worker. When another agent is
    involved, identifiers become placeholders before the model sees the text. Before anything leaves the phone,
    an edge check in code lets a value out only when a grant allows that field.

@@ -5,15 +5,15 @@ Date: 2026-10-21. Status: accepted, amended by ADR 0006 (connect at onboarding) 
 ## Decision
 
 Worker profiles, listings, public notes and reviews are AT Protocol records in the user's own repository on
-Bluesky's PDS (`bsky.social`). We run no PDS. The user connects their Bluesky account to Collab with AT Protocol
-OAuth, and the app writes Collab's records (`packages/protocol/src/records.ts`) into that repository. The index
+Bluesky's PDS (`bsky.social`). We run no PDS. The user connects their Bluesky account to GigSync with AT Protocol
+OAuth, and the app writes GigSync's records (`packages/protocol/src/records.ts`) into that repository. The index
 Worker reads them from Jetstream and keeps the searchable copy in D1, rebuildable from the relay.
 
 ## Why
 
 - No server to run, patch or back up outside Cloudflare.
 - The user still owns their public data: signed, portable, verifiable by anyone, movable to another PDS.
-- The index already follows Jetstream for Collab collections and backfills from the relay, so it works unchanged.
+- The index already follows Jetstream for GigSync collections and backfills from the relay, so it works unchanged.
 
 ## Consequences
 

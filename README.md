@@ -16,15 +16,14 @@ order, phases, risks). The decisions are in [docs/adr](docs/adr); start with
 circles, work modes, registration, no ratings). The market research behind the vision is in
 `reports/India gig worker benefits and GigSync fit.md`. GigSync is a working name.
 
-GigSync is derived from [collabai.network](https://github.com/kirav5/collabai.network) (git remote `upstream`),
-renamed throughout (`@gigsync/*`, `gigsync-*` Workers, app id `app.gigsync`). It reuses Collab's agent core,
-protocol, mailbox, policy engine and offline model plugin. On `main` the code is still Collab's M0 foundation;
+On `main` the code is the M0 foundation (agent core, protocol, mailbox, policy engine and offline model plugin);
 the agent-to-agent job flow is in [PR #8](https://github.com/kirav5/GigSync/pull/8) on top of the Neon directory
 in [PR #7](https://github.com/kirav5/GigSync/pull/7). `gigsync.app` is a placeholder domain: custom domains are
 commented out in the `wrangler.toml` files and the database ids are placeholders until GigSync's own Cloudflare
 and Neon resources exist.
 
-The skeleton builds, tests and deploys end to end. See also [docs/design.md](docs/design.md) (Collab's design).
+The skeleton builds, tests and deploys end to end. Nothing in GigSync calls a cloud model: the only models are
+small, open ones that run on the phone, and the app works with none installed.
 
 ## Layout
 
@@ -104,14 +103,15 @@ ollama serve
 In another terminal:
 
 ```bash
-ollama pull gemma3:1b
+ollama pull qwen2.5:1.5b
 ```
 
 ```bash
-echo VITE_OLLAMA_MODEL=gemma3:1b > apps/mobile/.env.development.local
+echo VITE_OLLAMA_MODEL=qwen2.5:1.5b > apps/mobile/.env.development.local
 ```
 
-Restart `pnpm dev:app`; the header shows `ollama gemma3:1b`.
+Restart `pnpm dev:app`; the header shows `ollama qwen2.5:1.5b`. Any small open model Ollama can pull works; the
+release builds never include Ollama or any model that is not on the device.
 
 ## Logs
 

@@ -1,18 +1,18 @@
-# ADR 0002: Cloudflare Workers, D1 and Durable Objects instead of Google Cloud + Postgres
+# ADR 0002: Cloudflare Workers and Durable Objects for the backend
 
 Date: 2026-10-21. Status: accepted.
 
 ## Decision
 
 APIs run as Workers. The directory and the search index are D1 databases. Each user's mailbox is a Durable
-Object with its own SQLite. Files and backups go to R2. Google Cloud is used only for Gemini and analytics.
+Object with its own SQLite. Files and backups go to R2. No other cloud is used, and no cloud model (ADR 0010).
 
 ## Why
 
 - Free to start, pay per use after; no servers to run except the PDS.
 - Workers run in several Indian cities, so the hop from the phone is short.
 - A Durable Object per user spreads load across a million small boxes instead of one hot table.
-- The index already exists on this stack (carried over from the Swift app).
+- The mailbox and index already exist on this stack.
 
 ## Consequences
 

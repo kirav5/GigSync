@@ -1,6 +1,6 @@
 # ADR 0010: No cloud model in GigSync
 
-Date: 2026-10-25. Status: proposed. This ADR amends the sanitize ADR ([ADR 0008](0008-sanitize-then-local-model-then-gemini.md), numbered 0007 until 27 Oct 2026)
+Date: 2026-10-25. Status: proposed. This ADR amends the sanitize ADR ([ADR 0008](0008-sanitize-in-code-then-local-model.md))
 for GigSync.
 
 ## Decision
@@ -9,7 +9,7 @@ GigSync keeps steps 1 and 2 of the sanitize ADR:
 1. The sanitizer runs in code on the phone.
 2. The local model reads only sanitized text.
 
-GigSync drops step 3, Gemini through the Inference Worker. No frontier or cloud model is used anywhere in GigSync:
+GigSync has no cloud step at all. No frontier or cloud model is used anywhere in GigSync:
 - **Phone:** speech, translation and phrasing run on the phone. The keyword router and templates cover every path
   when no model is installed.
 - **Union mode and web:** the same offline model plugin (ADR 0009), or templates when the device has none.

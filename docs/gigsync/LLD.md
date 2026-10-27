@@ -17,7 +17,7 @@ GigSync/
 │  └─ core/                @gigsync/core       discovery, jobs, policy + edge check, ledger, schedule, exports,   built, extended
 │                                              landing, registration, circles, safety, notices, mail
 ├─ plugins/
-│  ├─ gigsync-llm/         offline model: LiteRT-LM, Apple Foundation Models, Chrome Prompt API                 built (stubs; web)
+│  ├─ gigsync-llm/         offline model: LiteRT-LM, Apple Foundation Models, in-browser engine (WebGPU)         built (stubs)
 │  ├─ gigsync-speech/      Indic ASR + translation via ONNX Runtime                                              planned (G3)
 │  ├─ gigsync-store/       SQLCipher + Keystore/Keychain; encrypted IndexedDB on web                             planned (G1b)
 │  └─ gigsync-upi/         UPI result + SMS consent (ADR 0012)                                                   planned
@@ -27,7 +27,7 @@ GigSync/
 │  ├─ notifier/            Queue consumer → FCM                                                                   planned (G4)
 │  ├─ wa-gateway/          WhatsApp templates + menu bot, SMS fallback, one-time links (ADR 0021)                  planned (G2)
 │  ├─ content/             signed city packs on R2                                                               planned (G3)
-│  └─ index/               Jetstream ingester (Collab)                                                           retired (ADR 0018)
+│  └─ index/               Jetstream ingester (inherited)                                                        retired (ADR 0018)
 ├─ android-responder/      Kotlin background responder (FCM-woken); safety timers                                planned (G4)
 ├─ infra/postgres/         directory, board, unions, partners, circles, signers migrations (Neon, ADR 0013)      built, extended
 ├─ tests/e2e, tests/ui     two-phone journeys against the API; Playwright screens                                built (PR #8)
@@ -548,7 +548,7 @@ Keys move from Preferences into the Android Keystore through `plugins/gigsync-st
 ## 5. App (`apps/mobile`)
 
 Built in PR #8: Sign in, Find, My jobs, Requests, My card, Job thread, Job actions, Today, Jobs, Pay, Record,
-Settings (with the model chooser from PR #5), Agent.
+Settings (with the model chooser from PR #5, minus its Chrome engine), Agent.
 
 | Screen                   | Purpose                                                                                                    | State    |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------- | -------- |
@@ -1017,8 +1017,10 @@ the Keystore. `contacts` is a separate table purged on grant close so a stolen p
 
 ## 9. Offline model and speech
 
-As in v0.3: plugin `status()` / `generate()`; LiteRT-LM (Android, stub), Apple Foundation Models (stub), Chrome
-Prompt API (desktop web, built), Ollama (dev); `ChosenModel` in Settings (PR #5); the model is used only for
+Plugin `status()` / `generate()`; LiteRT-LM (Android, stub), Apple Foundation Models (stub), an in-browser engine
+on WebGPU running the same open model family as Android (web, planned G3; lite mode until then), Ollama (dev builds
+only); `ChosenModel` in Settings (PR #5). Every model is open-weights and runs on the device; nothing from Google,
+OpenAI or any hosted API is used, including a browser's built-in model. The model is used only for
 intent and phrasing; load only when `freeMemoryMb ≥ 1500`. Speech: IndicConformer ONNX or Sarvam Edge, device
 test on a 4 GB phone first; pilot languages Kannada, Hindi, Telugu, English/Hinglish.
 
@@ -1067,7 +1069,7 @@ PR → green → squash merge; DCO sign-off; `pnpm lint` before every commit.
 | Notices              | ≤ 10 per job per side; one-time link 7 days, single use                                         |
 | Safety               | ≤ 5 chosen contacts; grace 15 min; one mid-point check for jobs over 4 h                        |
 
-## 14. Rename from Collab (done in G0)
+## 14. Naming and first deploy
 
 Scope `@gigsync/*`, Workers `gigsync-*`, app id `app.gigsync`, NSIDs `app.gigsync.*`, `plugins/gigsync-llm`.
 `workers/index` is retired; the board lives in the API on Neon (PR #8). Before the first deploy: Hyperdrive

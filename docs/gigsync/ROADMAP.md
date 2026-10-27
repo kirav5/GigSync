@@ -7,13 +7,13 @@
 
 ## 1. Where the project is on 27 Oct 2026
 
-| Branch / PR                                                                  | Holds                                                                                                                                                    | State                                                    |
-| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `main` (`90aa4a0`)                                                           | Collab M0 code renamed; HLD/LLD v0.1; ADRs 0001–0012                                                                                                     | G0                                                       |
-| [PR #7](https://github.com/kirav5/GigSync/pull/7) `feat/neon-postgres`       | Directory on Neon Postgres via Hyperdrive; migrations; ADR 0013                                                                                          | Open, tests green                                        |
-| [PR #8](https://github.com/kirav5/GigSync/pull/8) `feat/agent-flow`          | Agent-to-agent jobs: crypto, board, negotiation, two signatures, contact release, UPI, signature checks, both sides' screens, e2e and UI tests; ADR 0014 | Open, stacked on #7, 126 unit + 19 e2e tests green       |
-| [PR #5](https://github.com/kirav5/GigSync/pull/5) `docs/review-pii-diagrams` | Private data raw on the phone, checked at the edge (ADR numbered 0013); diagrams as SVG; Settings fixes; model chooser; Chrome Prompt API on the web     | Open, docs + app; conflicts with #8 and with this branch |
-| This branch                                                                  | VISION, HLD v0.2, LLD v0.3, ADRs 0016–0020, ADR 0007→0008 renumber, this roadmap, the landscape report                                                   | Open                                                     |
+| Branch / PR                                                                  | Holds                                                                                                                                                                                             | State                                                    |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `main` (`90aa4a0`)                                                           | M0 foundation code; HLD/LLD v0.1; ADRs 0001–0012                                                                                                                                                  | G0                                                       |
+| [PR #7](https://github.com/kirav5/GigSync/pull/7) `feat/neon-postgres`       | Directory on Neon Postgres via Hyperdrive; migrations; ADR 0013                                                                                                                                   | Open, tests green                                        |
+| [PR #8](https://github.com/kirav5/GigSync/pull/8) `feat/agent-flow`          | Agent-to-agent jobs: crypto, board, negotiation, two signatures, contact release, UPI, signature checks, both sides' screens, e2e and UI tests; ADR 0014                                          | Open, stacked on #7, 126 unit + 19 e2e tests green       |
+| [PR #5](https://github.com/kirav5/GigSync/pull/5) `docs/review-pii-diagrams` | Private data raw on the phone, checked at the edge (ADR numbered 0013); diagrams as SVG; Settings fixes; model chooser; a Chrome built-in model engine on the web that must be dropped (ADR 0010) | Open, docs + app; conflicts with #8 and with this branch |
+| This branch                                                                  | VISION, HLD v0.2, LLD v0.3, ADRs 0016–0020, ADR 0007→0008 renumber, this roadmap, the landscape report                                                                                            | Open                                                     |
 
 What is **not** anywhere yet: a hash-chained ledger, receipts, the encrypted store and Keystore keys, the
 sanitizer and edge check in the agent's path, exports, union mode, voice, any landing, circle, partner or
@@ -45,6 +45,9 @@ Do this before any new feature work, in this order:
      `node scripts/diagrams/gigsync.mjs` after updating the script for the new containers and flows).
    - Its app changes (`App.tsx`, `adapters/ports.ts`, `payments/store.ts`) overlap PR #8's; PR #8 wins on
      structure, PR #5 wins on Settings and the model chooser.
+   - **Drop its Chrome built-in model engine** (`plugins/gigsync-llm/src/web.ts` Prompt API path): that model is
+     Google's and is not an on-device model GigSync controls. The web build runs lite mode until the WebGPU engine
+     lands in G3 (ADR 0010).
 4. **Merge this branch** (docs). It renames `0007-sanitize…` to `0008-…` (two ADRs were numbered 0007 and the
    HLD cited an 0008 that did not exist).
 5. Open the licence question (README still says "No license yet"): the Mozilla memo recommended an OSI licence;

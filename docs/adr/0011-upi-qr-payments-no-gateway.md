@@ -5,7 +5,7 @@ Date: 2026-10-25. Status: accepted.
 ## Context
 
 A job between a gig worker and a consumer should end with the worker being paid, and the payment recorded against
-that job. For the pilot, the payment path must be free. GigSync is Collab for one pair of people, so there is no
+that job. For the pilot, the payment path must be free. GigSync is an agent for one pair of people, so there is no
 employer or platform in the middle that could collect and pass on the money.
 
 ## Decision
