@@ -11,7 +11,7 @@ beforeAll(async () => {
     listed.push(w);
     return w;
   };
-  await list("Anil", ["electrician"], near(centre, 1), { rate: 70000, min: 55000 });
+  await list("Anil", ["electrician"], near(centre, 0.5), { rate: 70000, min: 55000 });
   await list("Babu", ["electrician", "ac_technician"], near(centre, 0, 2), { rate: 65000, min: 52000 });
   await list("Chetan", ["electrician"], near(centre, -8), { rate: 80000, min: 62000 });
   await list("Dinesh", ["electrician"], near(centre, 40), { rate: 50000, min: 40000 });
@@ -19,7 +19,9 @@ beforeAll(async () => {
   await list("Farid", ["plumber"], near(centre, 3), { rate: 55000, min: 42000 });
   await list("Gauri", ["maid"], near(centre, 0.5), { rate: 40000, min: 35000 });
   await list("Hema", ["maid", "cook"], near(centre, 2.5), { rate: 45000, min: 38000 });
-  await list("Imran", ["ac_technician"], near(centre, 2), { rate: 90000, min: 70000 });
+  // The board rounds areas to about 1.1 km, so each stored point can move up to ~0.6 km. Workers whose order a test
+  // asserts sit at least 1.2 km apart, or the rounding (which depends on the random centre) can swap them.
+  await list("Imran", ["ac_technician"], near(centre, 3.5), { rate: 90000, min: 70000 });
   priya = await person("Priya", { address: "Flat 302, 3rd floor" });
 });
 
