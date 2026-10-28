@@ -1,4 +1,4 @@
-import type { ContactCard, DeviceId, EnvelopeKind, UserId } from "@gigsync/protocol";
+import type { ContactCard, DeviceId, EnvelopeKind, Lang, UserId } from "@gigsync/protocol";
 import type { PaymentBook } from "../payments/book.js";
 import type { Clock, Keys, Storage } from "../ports.js";
 import type { JobRecord, JobStore } from "./store.js";
@@ -8,6 +8,8 @@ export interface JobContext {
   me: { user: UserId; device: DeviceId };
   /** This owner's card, released to the other party only once both have signed. */
   contact: ContactCard;
+  /** The owner's language: what their free text is tagged with and what their screens and voice use. */
+  lang: Lang;
   /** Sign deals the agent reached without asking the owner first. */
   autoConfirm: boolean;
   store: JobStore;

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { Phone } from "./auth.js";
 import { Base64, EnvelopeKind } from "./envelope.js";
 import { EngagementId, prefixedId, UserId } from "./ids.js";
+import { DEFAULT_LANG, Lang, QuestionKey } from "./lang.js";
 import { Paise, PaymentRecord, PaymentRequest } from "./payment.js";
 
 /**
@@ -46,10 +47,13 @@ export const JobRequest = z.object({
   area: Place,
   /** Answers the consumer gave up front, so the worker's agent need not ask. */
   details: z.record(DetailKey, shortText).default({}),
+  /** The language `need` and any free-text detail are written in, so the worker's phone can translate on receipt. */
+  lang: Lang.default(DEFAULT_LANG),
 });
 export type JobRequest = z.infer<typeof JobRequest>;
 
-export const Question = z.object({ key: DetailKey, text: shortText });
+/** A question by key only: each phone renders it in its owner's language (`t()` in `@gigsync/core`). */
+export const Question = z.object({ key: QuestionKey });
 export type Question = z.infer<typeof Question>;
 
 /** `clarify`: what the worker's agent needs to know before it can quote. */
@@ -117,8 +121,8 @@ export type CancelReason = z.infer<typeof CancelReason>;
 export const Cancel = z.object({ reason: CancelReason, note: z.string().max(300).optional() });
 export type Cancel = z.infer<typeof Cancel>;
 
-/** `update` and `delivery`: a short note from the worker (on my way, done). */
-export const Note = z.object({ text: shortText });
+/** `update` and `delivery`: a short note from the worker (on my way, done), tagged with the language it is in. */
+export const Note = z.object({ text: shortText, lang: Lang.default(DEFAULT_LANG) });
 export type Note = z.infer<typeof Note>;
 
 export const MIN_STARS = 1;

@@ -10,6 +10,7 @@ import {
   EnvelopeKind,
   type JobRequest,
   type JobReview,
+  type Note,
   type Offer,
   type PaymentRecord,
   type PaymentRequest,
@@ -134,8 +135,12 @@ async function react(
     case K.review:
       await ctx.store.saveJob({ ...r, review: body as JobReview });
       return;
+    case K.update:
+    case K.delivery:
+      await ctx.store.saveJob({ ...r, notes: [...(r.notes ?? []), body as Note] });
+      return;
     default:
-      return; // update, delivery: the status change is all there is
+      return;
   }
 }
 

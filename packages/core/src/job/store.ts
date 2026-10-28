@@ -7,6 +7,7 @@ import type {
   JobRequest,
   JobReview,
   JobTerms,
+  Note,
   Offer,
   Place,
   Role,
@@ -33,6 +34,8 @@ export interface JobRecord {
   contact?: ContactCard | undefined;
   cancel?: Cancel;
   review?: JobReview;
+  /** The worker's notes (on my way, done) as received, each with its language so the screen can translate it. */
+  notes?: Note[];
 }
 
 /** What a consumer is looking for, shared by every request in one group. The budget stays on this phone. */

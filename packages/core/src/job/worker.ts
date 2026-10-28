@@ -5,7 +5,7 @@ import {
   EnvelopeKind,
   type Offer,
   type Place,
-  type Question,
+  QuestionKey,
   Role,
   SCOPE_MAX,
   Trade,
@@ -33,19 +33,21 @@ export interface WorkerRules {
   payee_name: string;
 }
 
-/** The detail most trades ask about first: what is wrong. */
-const PROBLEM = "problem";
+const Q = QuestionKey.enum;
 
-/** What the worker's agent asks before quoting, per trade, unless the consumer already said. */
-export const QUESTIONS: Readonly<Record<Trade, Question[]>> = {
-  [T.electrician]: [{ key: PROBLEM, text: "What exactly isn't working?" }],
-  [T.plumber]: [{ key: PROBLEM, text: "What is leaking or blocked, and where?" }],
-  [T.maid]: [{ key: "rooms", text: "How many rooms, and which tasks?" }],
-  [T.carpenter]: [{ key: PROBLEM, text: "What needs making or fixing?" }],
-  [T.ac_technician]: [{ key: PROBLEM, text: "What's wrong with the AC: not cooling, leaking, noise?" }],
-  [T.painter]: [{ key: "area_sqft", text: "Roughly how many square feet, inside or outside?" }],
-  [T.cook]: [{ key: "people", text: "How many people, and which meals?" }],
-  [T.driver]: [{ key: "route", text: "From where to where, and for how long?" }],
+/**
+ * What the worker's agent asks before quoting, per trade, unless the consumer already said. Keys only: each phone
+ * shows them in its owner's language (`questionText`).
+ */
+export const QUESTIONS: Readonly<Record<Trade, readonly QuestionKey[]>> = {
+  [T.electrician]: [Q.problem],
+  [T.plumber]: [Q.problem],
+  [T.maid]: [Q.rooms, Q.pets],
+  [T.carpenter]: [Q.problem],
+  [T.ac_technician]: [Q.problem],
+  [T.painter]: [Q.area_sqft],
+  [T.cook]: [Q.people, Q.meals, Q.pets],
+  [T.driver]: [Q.route],
 };
 
 const EARTH_RADIUS_KM = 6371;
@@ -62,7 +64,7 @@ export async function onRequest(ctx: JobContext, rules: WorkerRules, r: JobRecor
   const req = r.request;
   if (!rules.trades.includes(req.trade) || distanceKm(rules.base, req.area) > rules.radius_km)
     return cancel(ctx, r, { reason: CancelReason.enum.no_match });
-  const missing = QUESTIONS[req.trade].filter((q) => !req.details[q.key]);
+  const missing = QUESTIONS[req.trade].filter((key) => !req.details[key]).map((key) => ({ key }));
   if (missing.length > 0 && !r.asked)
     return ctx.send({ ...r, asked: true }, K.clarify, { questions: missing } satisfies Clarify);
   return quote(ctx, r, priceAt(R.provider, rules.rate, 1));

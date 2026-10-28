@@ -4,6 +4,7 @@ import {
   type DeviceId,
   type DeviceKeys,
   type Envelope,
+  type Lang,
   type MessageId,
   signingBytes,
   type UserId,
@@ -65,7 +66,7 @@ export interface Phone {
 export async function phone(
   relay: MemoryRelay,
   contact: ContactCard,
-  opts: { worker?: WorkerRules; autoConfirm?: boolean } = {},
+  opts: { worker?: WorkerRules; autoConfirm?: boolean; lang?: Lang } = {},
 ): Promise<Phone> {
   const keys = new SecretKeys(newDeviceSecrets());
   const me = { user: `usr_${ulid()}` as UserId, device: `dev_${ulid()}` as DeviceId };
@@ -106,3 +107,28 @@ export const fanNeed = (budget = 65000, details: Record<string, string> = {}): N
 
 export const RAVI: ContactCard = { name: "Ravi", phone: "+919800000202" };
 export const PRIYA: ContactCard = { name: "Priya", phone: "+919800000101", address: "Flat 302, 3rd floor, 5th Cross" };
+
+/** Asha, a cook in Koramangala: her floor is ₹8,000 a month, her usual rate ₹9,500. */
+export function cook(min = 800000, rate = 950000): WorkerRules {
+  return {
+    trades: ["cook"],
+    rate: { opening_paise: rate, limit_paise: min },
+    base: BENGALURU,
+    radius_km: 5,
+    vpa: "asha.test@okaxis",
+    payee_name: "Asha",
+  };
+}
+
+/** Ravi's household needs a cook, mornings, and has said nothing else yet. */
+export const cookNeed = (budget = 900000, details: Record<string, string> = {}): NewNeed => ({
+  trade: "cook",
+  need: "ಬೆಳಗ್ಗೆ ಅಡುಗೆ ಮಾಡುವವರು ಬೇಕು",
+  when: "mon–sat 07:00–10:00",
+  area: { lat: 12.975, lon: 77.645 },
+  details,
+  budget: { opening_paise: 700000, limit_paise: budget },
+});
+
+export const ASHA: ContactCard = { name: "Asha", phone: "+919800000303" };
+export const RAVI_HOME: ContactCard = { name: "Ravi", phone: "+919800000404", address: "12, 4th Block, Koramangala" };

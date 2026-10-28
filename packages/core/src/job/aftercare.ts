@@ -23,12 +23,12 @@ export class AftercareError extends Error {}
 
 /** Worker: on my way, or any progress note. */
 export function sendUpdate(ctx: JobContext, r: JobRecord, text: string): Promise<JobRecord> {
-  return ctx.send(r, K.update, { text } satisfies Note);
+  return ctx.send(r, K.update, { text, lang: ctx.lang } satisfies Note);
 }
 
 /** Worker: the work is done. */
 export function sendDelivery(ctx: JobContext, r: JobRecord, text: string): Promise<JobRecord> {
-  return ctx.send(r, K.delivery, { text } satisfies Note);
+  return ctx.send(r, K.delivery, { text, lang: ctx.lang } satisfies Note);
 }
 
 /** Worker: ask for the agreed price. The UPI ID travels sealed to the consumer and is not kept in the payment. */

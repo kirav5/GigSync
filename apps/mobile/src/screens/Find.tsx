@@ -1,5 +1,5 @@
-import { type GigDevice, type Ports, QUESTIONS } from "@gigsync/core";
-import { type BoardWorker, Trade } from "@gigsync/protocol";
+import { type GigDevice, type Ports, QUESTIONS, questionText } from "@gigsync/core";
+import { type BoardWorker, DEFAULT_LANG, Trade } from "@gigsync/protocol";
 import { type FormEvent, useState } from "react";
 import { type Account, apiClient, rememberName } from "../adapters/account.js";
 import { C } from "../ui/cls.js";
@@ -43,6 +43,10 @@ export function Find({ ports, account, device, onAsked }: Props) {
     }
   }
 
+  // TODO(G1): the owner's language from Settings; until then screens render in the default language.
+  const first = QUESTIONS[trade][0];
+  const firstQuestion = first ? questionText(DEFAULT_LANG, first) : "";
+
   async function ask(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const v = new FormData(e.currentTarget);
@@ -59,7 +63,7 @@ export function Find({ ports, account, device, onAsked }: Props) {
         need: String(v.get("need") ?? "").trim(),
         when: String(v.get("when") ?? "").trim(),
         area: { lat: at.lat, lon: at.lon },
-        details: question && detail ? { [question.key]: detail } : {},
+        details: question && detail ? { [question]: detail } : {},
         budget: { opening_paise: Math.round(budget * OPENING_SHARE), limit_paise: budget },
       },
       picked as BoardWorker["user"][],
@@ -147,8 +151,8 @@ export function Find({ ports, account, device, onAsked }: Props) {
             <input
               className={C.field}
               name="detail"
-              aria-label={QUESTIONS[trade][0]?.text}
-              placeholder={`${QUESTIONS[trade][0]?.text} (optional)`}
+              aria-label={firstQuestion}
+              placeholder={`${firstQuestion} (optional)`}
             />
             <input className={C.field} name="when" required aria-label="When" placeholder="Tomorrow 10am" />
             <input

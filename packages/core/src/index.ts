@@ -2,6 +2,7 @@ export * from "./agent.js";
 export * from "./engagement/machine.js";
 export * from "./experts.js";
 export * from "./http.js";
+export * from "./i18n/t.js";
 export * from "./job/aftercare.js";
 export * from "./job/deal.js";
 export * from "./job/device.js";

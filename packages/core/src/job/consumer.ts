@@ -30,6 +30,7 @@ export async function startRequest(ctx: JobContext, need: Need, worker: UserId):
     when: need.when,
     area: need.area,
     details: need.details,
+    lang: ctx.lang,
   };
   const r: JobRecord = {
     engagement: {

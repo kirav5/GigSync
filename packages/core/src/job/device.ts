@@ -1,9 +1,11 @@
 import {
   CancelReason,
   type ContactCard,
+  DEFAULT_LANG,
   type DeviceId,
   type EngagementId,
   type EnvelopeKind,
+  type Lang,
   type Payment,
   SIDE_CHANNEL_KINDS,
   type UserId,
@@ -30,6 +32,8 @@ export interface DeviceOptions {
   clock: Clock;
   me: { user: UserId; device: DeviceId };
   contact: ContactCard;
+  /** The owner's language. Defaults to English. */
+  lang?: Lang;
   /** Sign deals the agent reaches without asking. Off by default: the owner taps to sign. */
   autoConfirm?: boolean;
   /** Set on a worker's phone: what they do, where, and at what price. */
@@ -58,6 +62,7 @@ export class GigDevice {
     this.ctx = {
       me: o.me,
       contact: o.contact,
+      lang: o.lang ?? DEFAULT_LANG,
       autoConfirm: o.autoConfirm ?? false,
       store: this.store,
       storage: o.storage,

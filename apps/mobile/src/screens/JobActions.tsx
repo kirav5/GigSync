@@ -1,5 +1,13 @@
-import { type GigDevice, type JobRecord, TaskKind } from "@gigsync/core";
-import { EngagementStatus, type JobTerms, type Payment, PaymentStatus, type Question, Role } from "@gigsync/protocol";
+import { type GigDevice, type JobRecord, questionText, TaskKind } from "@gigsync/core";
+import {
+  DEFAULT_LANG,
+  EngagementStatus,
+  type JobTerms,
+  type Payment,
+  PaymentStatus,
+  type Question,
+  Role,
+} from "@gigsync/protocol";
 import { type FormEvent, useEffect, useState } from "react";
 import { qrDataUrl } from "../payments/qr.js";
 import { C } from "../ui/cls.js";
@@ -123,8 +131,8 @@ function AnswerForm({
     <form className={C.stack} onSubmit={submit} aria-label="Answer the worker">
       {questions.map((q) => (
         <label key={q.key} className={C.fieldLabel}>
-          <span className={C.muted}>The worker asks: {q.text}</span>
-          <input className={C.field} name={q.key} required aria-label={q.text} />
+          <span className={C.muted}>The worker asks: {questionText(DEFAULT_LANG, q.key)}</span>
+          <input className={C.field} name={q.key} required aria-label={questionText(DEFAULT_LANG, q.key)} />
         </label>
       ))}
       <div>
