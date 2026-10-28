@@ -51,6 +51,8 @@ export async function requestPayment(
 ): Promise<Payment> {
   const terms = r.mine?.terms;
   if (!terms) throw new AftercareError("the job has no signed terms");
+  // Checked before anything is saved. Goes when the request reads the payee store instead of the card.
+  if (!rules.vpa || !rules.payee_name) throw new AftercareError("the worker has no UPI ID");
   const payment = await ctx.payments.request({
     engagement: r.engagement,
     payee: ctx.me.user,

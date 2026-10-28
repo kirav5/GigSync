@@ -64,7 +64,7 @@ export const worker = {
   "record.soft": "Your proof.",
   "record.about": "Kept only on this phone. When something goes wrong, you choose who sees which part.",
   "record.empty": "No payments recorded yet.",
-  "settings.headline": "Yours to set.",
+  "settings.headline": "Your profile.",
   "settings.soft": "Kept on this device.",
   "settings.paid_to": "Get paid to",
   "settings.vpa": "Your UPI ID",

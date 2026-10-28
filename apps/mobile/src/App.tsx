@@ -20,7 +20,7 @@ import { Requests } from "./screens/Requests.js";
 import { Settings } from "./screens/Settings.js";
 import { SignIn } from "./screens/SignIn.js";
 import { Today } from "./screens/Today.js";
-import { Screen, useGigData } from "./state.js";
+import { CardState, Screen, useGigData } from "./state.js";
 import { useGig } from "./useGig.js";
 
 /** Where each role lands after signing in. */
@@ -100,6 +100,7 @@ export function App() {
     setScreen(Screen.pay);
   };
   const due = gig.jobs.filter((j) => jobStep(j, gig.payments) === JobStep.done).length;
+  const card = !account.worker ? CardState.none : account.listed === false ? CardState.off : CardState.on;
   const waiting = view.tasks.length;
   return (
     <I18nProvider lang={lang} setLang={setLang}>
@@ -120,15 +121,30 @@ export function App() {
           <Find ports={ports} account={account} device={device} onAsked={() => setScreen(Screen.requests)} />
         )}
         {screen === Screen.requests && <Requests isWorker={isWorker} view={view} device={device} run={run} />}
-        {screen === Screen.card && <MyCard ports={ports} account={account} onSaved={setAccount} />}
-        {screen === Screen.today && <Today data={gig} go={setScreen} pay={pay} />}
+        {screen === Screen.card && (
+          <MyCard ports={ports} account={account} onSaved={setAccount} onTalk={() => setScreen(Screen.talk)} />
+        )}
+        {screen === Screen.today && (
+          <Today
+            ports={ports}
+            view={view}
+            device={device}
+            run={run}
+            card={card}
+            onMakeCard={() => setScreen(Screen.talk)}
+            onOpenCard={() => setScreen(Screen.card)}
+            onAddPayee={() => setScreen(Screen.profile)}
+          />
+        )}
         {screen === Screen.jobs && <Jobs ports={ports} data={gig} changed={gig.reload} pay={pay} />}
         {screen === Screen.pay && (
           <Pay data={gig} book={gig.book} jobId={payJob} onJob={setPayJob} go={setScreen} changed={gig.reload} />
         )}
         {screen === Screen.record && <Record data={gig} />}
-        {screen === Screen.agent && <AgentScreen agent={agent} />}
-        {screen === Screen.settings && <Settings ports={ports} data={gig} changed={gig.reload} />}
+        {screen === Screen.talk && (
+          <AgentScreen agent={agent} ports={ports} account={account} interview={false} onSaved={setAccount} />
+        )}
+        {screen === Screen.profile && <Settings ports={ports} data={gig} changed={gig.reload} />}
       </Shell>
     </I18nProvider>
   );

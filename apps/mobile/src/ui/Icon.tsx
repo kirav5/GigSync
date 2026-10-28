@@ -16,6 +16,12 @@ const PATHS = {
   wall: "M12 3v18M5 7h4M15 7h4M5 12h4M15 12h4M5 17h4M15 17h4",
   search: "M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM15.5 15.5 20 20",
   card: "M3 6h18v12H3zM7 10h4M7 14h8",
+  mic: "M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM5 11a7 7 0 0 0 14 0M12 18v3",
+  stop: "M7 7h10v10H7z",
+  speaker: "M4 9h4l5-4v14l-5-4H4zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11",
+  share: "M12 3v12M8 7l4-4 4 4M5 12v8h14v-8",
+  install: "M12 3v12M8 11l4 4 4-4M5 20h14",
+  back: "M15 5l-7 7 7 7",
 } as const;
 
 export type IconName = keyof typeof PATHS;

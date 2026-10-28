@@ -66,7 +66,7 @@ export const worker: Readonly<Record<keyof typeof en, string>> = {
   "record.soft": "ನಿಮ್ಮ ಪುರಾವೆ.",
   "record.about": "ಈ ಫೋನ್‌ನಲ್ಲಿ ಮಾತ್ರ ಇರುತ್ತದೆ. ಏನಾದರೂ ತಪ್ಪಾದರೆ, ಯಾರು ಯಾವ ಭಾಗ ನೋಡಬೇಕು ಎಂದು ನೀವೇ ನಿರ್ಧರಿಸುತ್ತೀರಿ.",
   "record.empty": "ಇನ್ನೂ ಯಾವುದೇ ಪಾವತಿ ದಾಖಲಾಗಿಲ್ಲ.",
-  "settings.headline": "ನಿಮ್ಮ ಆಯ್ಕೆ.",
+  "settings.headline": "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್.",
   "settings.soft": "ಈ ಫೋನ್‌ನಲ್ಲೇ ಇರುತ್ತದೆ.",
   "settings.paid_to": "ಹಣ ಇಲ್ಲಿಗೆ ಪಡೆಯಿರಿ",
   "settings.vpa": "ನಿಮ್ಮ ಯುಪಿಐ ಐಡಿ",

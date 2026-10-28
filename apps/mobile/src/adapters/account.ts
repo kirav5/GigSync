@@ -18,6 +18,10 @@ export interface Account {
   autoConfirm?: boolean;
   /** The languages a worker listed on their card, their own first. */
   languages?: Lang[];
+  /** The line about their work on the worker's card, kept here so publishing again does not wipe it. */
+  about?: string;
+  /** False once the worker takes their card off the board; absent or true while it is listed. */
+  listed?: boolean;
 }
 
 const ACCOUNT_KEY = "account";

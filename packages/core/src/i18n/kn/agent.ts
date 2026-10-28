@@ -2,10 +2,10 @@ import type { agent as en } from "../en/agent.js";
 
 /** Kannada: the agent screen and its cards, translation on the phone, and the rate card's source line. */
 export const agent: Readonly<Record<keyof typeof en, string>> = {
-  "agent.headline": "ನಿಮ್ಮ ಏಜೆಂಟ್.",
+  "agent.headline": "ನಿಮ್ಮ ಏಜೆಂಟ್ ಜೊತೆ ಮಾತಾಡಿ.",
   "agent.soft": "ನಿಮ್ಮ ಟಿಪ್ಪಣಿಗಳು ಇಲ್ಲೇ ಇರುತ್ತವೆ.",
   "agent.model_line": "{model} · ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಬದಲಿಸಿ",
-  "agent.placeholder": "ಏನಾದರೂ ಬರೆದಿಡಿ ಅಥವಾ ಏಜೆಂಟನ್ನು ಕೇಳಿ…",
+  "agent.placeholder": "ಮಾತಾಡಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ…",
   "agent.sources.one": "{count} ಟಿಪ್ಪಣಿಯಿಂದ",
   "agent.sources.other": "{count} ಟಿಪ್ಪಣಿಗಳಿಂದ",
   "agent.starter_1": "ನೆನಪಿಡು: ಮೂರನೇ ಮಹಡಿಯ ಗ್ರಾಹಕರು 5ನೇ ತಾರೀಖು ಪಾವತಿಸುತ್ತಾರೆ",
@@ -20,9 +20,9 @@ export const agent: Readonly<Record<keyof typeof en, string>> = {
   "agent.nothing": "ಅದರ ಬಗ್ಗೆ ನನ್ನಲ್ಲಿ ಏನೂ ಉಳಿಸಿಲ್ಲ.",
   "agent.no_contact": "ನಿಮ್ಮ ಸಂಪರ್ಕಗಳಲ್ಲಿ ಇನ್ನೂ {name} ಇಲ್ಲ.",
   "agent.ask_contact": '{name} ಅವರನ್ನು ಕೇಳಲೇ: "{text}"?',
-  "agent.rules_later": "ನಿಯಮಗಳು M2ನಲ್ಲಿ ಬರುತ್ತವೆ. ನಾನು ಅರ್ಥಮಾಡಿಕೊಂಡದ್ದು: {text}",
-  "agent.market_later": "ಮಾರುಕಟ್ಟೆ M3ನಲ್ಲಿ ಬರುತ್ತದೆ. ನಾನು ಅರ್ಥಮಾಡಿಕೊಂಡದ್ದು: {text}",
-  "agent.needs_model": "ಅದಕ್ಕೆ ಮಾಡೆಲ್ ಬೇಕು. ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ, ಅಥವಾ ನಿಮ್ಮ ಟಿಪ್ಪಣಿಗಳ ಬಗ್ಗೆ ಕೇಳಿ.",
+  "agent.rules_later": 'ನಾನು ನಿಮ್ಮ ಕಾರ್ಡ್ ಬದಲಾಯಿಸಬಲ್ಲೆ. ಏನು ಬದಲಾಯಿಸಬೇಕು ಹೇಳಿ, ಉದಾಹರಣೆಗೆ "ನನ್ನ ದರ ಬದಲಾಯಿಸಿ".',
+  "agent.market_later": "ಹತ್ತಿರದ ಗ್ರಾಹಕರು ಬೋರ್ಡ್‌ನಲ್ಲಿ ನಿಮ್ಮ ಕಾರ್ಡ್ ನೋಡಿ ನಿಮ್ಮನ್ನು ಹುಡುಕುತ್ತಾರೆ. ಹೊಸ ರಿಕ್ವೆಸ್ಟ್‌ಗಳು 'ಇಂದು' ವಿಭಾಗದಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ.",
+  "agent.needs_model": "ಇದನ್ನು ಈ ಫೋನ್‌ನಲ್ಲಿ ಇನ್ನೂ ಮಾಡಲು ಆಗುವುದಿಲ್ಲ. ನಾನು ನಿಮ್ಮ ಕಾರ್ಡ್ ಮಾಡಬಲ್ಲೆ, ನೀವು ಹೇಳಿದ್ದನ್ನು ನೆನಪಿಟ್ಟುಕೊಳ್ಳಬಲ್ಲೆ.",
   "said.translated": "{lang} ಭಾಷೆಯಿಂದ ಈ ಫೋನ್‌ನಲ್ಲೇ ಯಂತ್ರ ಅನುವಾದ",
   "said.translating": "ಈ ಫೋನ್‌ನಲ್ಲೇ ಅನುವಾದಿಸಲಾಗುತ್ತಿದೆ…",
   "said.cannot": "ಭಾಷೆ: {lang}. ಈ ಫೋನ್ ಇನ್ನೂ ಇದನ್ನು ಅನುವಾದಿಸಲಾರದು.",

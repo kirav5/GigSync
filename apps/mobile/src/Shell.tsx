@@ -12,8 +12,8 @@ export interface NavItem {
   icon: IconName;
 }
 
-const SETTINGS: NavItem = { screen: Screen.settings, label: "nav.settings", icon: "user" };
-const AGENT: NavItem = { screen: Screen.agent, label: "nav.agent", icon: "chat" };
+const SETTINGS: NavItem = { screen: Screen.profile, label: "nav.settings", icon: "user" };
+const AGENT: NavItem = { screen: Screen.talk, label: "nav.agent", icon: "chat" };
 
 /** A worker's menu: jobs that found them and their card first, then the record they keep. */
 export const WORKER_NAV: readonly NavItem[] = [

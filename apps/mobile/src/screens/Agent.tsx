@@ -1,5 +1,6 @@
-import { type Card, CardKind, type Agent as CoreAgent, type MessageKey } from "@gigsync/core";
+import { type Card, CardKind, type Agent as CoreAgent, type MessageKey, type Ports } from "@gigsync/core";
 import { type FormEvent, useState } from "react";
+import type { Account } from "../adapters/account.js";
 import { useChosenModel } from "../adapters/model.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
@@ -30,8 +31,18 @@ function CardText({ card }: { card: Card }) {
   return <Said text={card.words.text} from={card.words.lang} />;
 }
 
+interface TalkProps {
+  agent: CoreAgent;
+  ports: Ports;
+  account: Account;
+  /** Start (or resume) the card interview instead of the notes chat. */
+  interview: boolean;
+  /** The account after the interview published the card. */
+  onSaved: (a: Account) => void;
+}
+
 /** The worker's agent: notes and answers from them, on this phone (lite mode without a model). */
-export function AgentScreen({ agent }: { agent: CoreAgent }) {
+export function AgentScreen({ agent }: TalkProps) {
   const { t, plural } = useI18n();
   const model = useChosenModel();
   const [turns, setTurns] = useState<Turn[]>([]);

@@ -66,7 +66,7 @@ export const worker: Readonly<Record<keyof typeof en, string>> = {
   "record.soft": "आपका सबूत।",
   "record.about": "सिर्फ़ इसी फ़ोन पर रहता है। कुछ गड़बड़ हो, तो कौन क्या देखे, यह आप तय करें।",
   "record.empty": "अभी कोई भुगतान दर्ज नहीं।",
-  "settings.headline": "आपकी पसंद।",
+  "settings.headline": "आपकी प्रोफ़ाइल।",
   "settings.soft": "इसी फ़ोन पर रखी जाती है।",
   "settings.paid_to": "पैसे यहाँ लें",
   "settings.vpa": "आपका यूपीआई आईडी",

@@ -1,0 +1,29 @@
+/** Voice: the mic, reading aloud, and the owner's consent before a cloud recognizer hears them (ADR 0023). */
+export const speech = {
+  "speech.listen": "Speak your answer",
+  "speech.stop": "Stop listening",
+  "speech.listening": "Listening…",
+  "speech.unavailable": "Speaking in {lang} doesn't work on this phone yet. Please type.",
+  "speech.download": "Get {lang} voice typing (downloads once to this phone)",
+  "speech.denied": "GigSync can't use the microphone. Allow it in the phone's settings.",
+  "speech.didnt_hear": "I didn't catch that. Say it again, or type.",
+  "speech.title": "Voice on this phone",
+  "speech.about":
+    "What you say becomes text. This phone does it itself when it can; otherwise only after you allow it.",
+  "speech.listen_state": "Voice typing in {lang}: {state}",
+  "speech.speak_state": "Reading aloud in {lang}: {state}",
+  "speech.read_aloud": "Read questions aloud",
+  "speech.replay": "Hear it again",
+  "speech.state_denied": "microphone not allowed",
+  "speech.cloud_ask":
+    "This phone can't understand {lang} speech by itself. To use your voice, it would send it to {vendor} to turn into text. Allow?",
+  "speech.cloud_yes": "Allow",
+  "speech.cloud_no": "I'll type",
+  "speech.cloud_on": "Your voice goes to {vendor} to become text.",
+  "speech.cloud_withdraw": "Stop sending my voice",
+  "speech.where_device": "Voice stays on this phone.",
+  "speech.where_cloud": "Voice is sent to {vendor} to become text.",
+  "speech.vendor_google": "Google",
+  "speech.vendor_apple": "Apple",
+  "speech.vendor_browser": "your browser's company",
+} as const;

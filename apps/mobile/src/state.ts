@@ -3,19 +3,25 @@ import type { Engagement, Payment, UserId } from "@gigsync/protocol";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { loadPayee, type Payee, selfId, workerJobs } from "./payments/store.js";
 
-/** The screens of the app, in the order of the menu. */
+/** The screens of the app: each role's tabs, and My card under Profile. */
 export const Screen = {
   find: "find",
   requests: "requests",
-  card: "card",
   today: "today",
+  talk: "talk",
+  passbook: "passbook",
+  profile: "profile",
+  card: "card",
+  // The manual flow's screens, removed with it.
   jobs: "jobs",
   pay: "pay",
   record: "record",
-  agent: "agent",
-  settings: "settings",
 } as const;
 export type Screen = (typeof Screen)[keyof typeof Screen];
+
+/** The worker's card: none yet, made but off the board, or on the board. */
+export const CardState = { none: "none", off: "off", on: "on" } as const;
+export type CardState = (typeof CardState)[keyof typeof CardState];
 
 export interface GigData {
   ready: boolean;

@@ -20,7 +20,17 @@ const askable = (trades: readonly Trade[]): QuestionKey[] =>
  * The worker's card: the public half goes on the board (name, trades, area, usual rate, languages); the private half
  * stays here (lowest rate, UPI ID, how far they travel, what to see first) and is what their agent negotiates with.
  */
-export function MyCard({ ports, account, onSaved }: { ports: Ports; account: Account; onSaved: (a: Account) => void }) {
+export function MyCard({
+  ports,
+  account,
+  onSaved,
+}: {
+  ports: Ports;
+  account: Account;
+  onSaved: (a: Account) => void;
+  /** Opens Talk to fill the card in by voice. */
+  onTalk: () => void;
+}) {
   const { lang, t } = useI18n();
   const rules = account.worker;
   const [trades, setTrades] = useState<Trade[]>(rules?.trades ?? []);

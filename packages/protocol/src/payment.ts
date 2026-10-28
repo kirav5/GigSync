@@ -33,6 +33,13 @@ export type PaymentStatus = z.infer<typeof PaymentStatus>;
 const isoDate = z.string().datetime({ offset: true });
 const note = z.string().max(PAYMENT_NOTE_MAX);
 
+/**
+ * The worker's UPI ID and the name payers see, kept once in the phone's settings. Never in a `Payment`, never on the
+ * board, never on a server; it travels only sealed inside a `PaymentRequest` to the consumer of a signed job.
+ */
+export const Payee = z.object({ vpa: Vpa, name: z.string().trim().min(1).max(PAYEE_NAME_MAX) });
+export type Payee = z.infer<typeof Payee>;
+
 /** Body of a `payment_request` envelope: what the consumer's app needs to show the QR or open a UPI app. */
 export const PaymentRequest = z.object({
   id: PaymentId,

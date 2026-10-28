@@ -3,7 +3,7 @@
 // Run with `pnpm i18n:sheet` after changing any string; the sheet is what a reviewer signs off before the pilot.
 import { writeFileSync } from "node:fs";
 
-const AREAS = ["job", "screens", "worker", "agent"];
+const AREAS = ["job", "screens", "worker", "agent", "shell", "money", "speech", "interview", "home", "install"];
 const OUT = new URL("../docs/gigsync/i18n-review.md", import.meta.url);
 const core = new URL("../packages/core/dist/i18n/", import.meta.url);
 

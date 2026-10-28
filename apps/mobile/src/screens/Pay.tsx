@@ -32,7 +32,7 @@ export function Pay({ data, book, jobId, onJob, go, changed }: Props) {
         <div className={C.cardWait}>
           <strong>{t("pay.first_upi")}</strong>
           <div>
-            <button type={C.button} className={C.accent} onClick={() => go(Screen.settings)}>
+            <button type={C.button} className={C.accent} onClick={() => go(Screen.profile)}>
               {t("today.add_upi")}
             </button>
           </div>

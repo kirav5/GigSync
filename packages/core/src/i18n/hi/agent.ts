@@ -2,10 +2,10 @@ import type { agent as en } from "../en/agent.js";
 
 /** Hindi: the agent screen and its cards, translation on the phone, and the rate card's source line. */
 export const agent: Readonly<Record<keyof typeof en, string>> = {
-  "agent.headline": "आपका एजेंट।",
+  "agent.headline": "अपने एजेंट से बात करें।",
   "agent.soft": "आपके नोट यहीं रहते हैं।",
   "agent.model_line": "{model} · सेटिंग्स में बदलें",
-  "agent.placeholder": "कुछ लिख लें या एजेंट से पूछें…",
+  "agent.placeholder": "बोलिए या लिखिए…",
   "agent.sources.one": "{count} नोट से",
   "agent.sources.other": "{count} नोटों से",
   "agent.starter_1": "याद रखना: तीसरी मंज़िल वाले ग्राहक 5 तारीख़ को पैसे देते हैं",
@@ -20,9 +20,9 @@ export const agent: Readonly<Record<keyof typeof en, string>> = {
   "agent.nothing": "इसके बारे में मेरे पास कुछ सेव नहीं है।",
   "agent.no_contact": "आपके संपर्कों में अभी {name} नहीं हैं।",
   "agent.ask_contact": '{name} से पूछें: "{text}"?',
-  "agent.rules_later": "नियम M2 में आएँगे। मैंने समझा: {text}",
-  "agent.market_later": "मार्केटप्लेस M3 में आएगा। मैंने समझा: {text}",
-  "agent.needs_model": "इसके लिए मॉडल चाहिए। सेटिंग्स में डाउनलोड करें, या अपने नोटों के बारे में पूछें।",
+  "agent.rules_later": 'मैं आपका कार्ड बदल सकता हूँ। बताइए क्या बदलना है, जैसे "मेरा रेट बदलो"।',
+  "agent.market_later": "आस-पास के ग्राहक बोर्ड पर आपका कार्ड देखकर आपको ढूँढते हैं। नई रिक्वेस्ट 'आज' में दिखती हैं।",
+  "agent.needs_model": "यह अभी इस फ़ोन पर नहीं हो सकता। मैं आपका कार्ड बना सकता हूँ और आपकी बातें याद रख सकता हूँ।",
   "said.translated": "{lang} से इसी फ़ोन पर मशीन अनुवाद",
   "said.translating": "इसी फ़ोन पर अनुवाद हो रहा है…",
   "said.cannot": "{lang} में। यह फ़ोन अभी इसका अनुवाद नहीं कर सकता।",

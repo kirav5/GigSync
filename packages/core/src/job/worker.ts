@@ -38,9 +38,12 @@ export interface WorkerRules {
   /** Where they work from and how far they go. Requests from further away are declined. */
   base: Place;
   radius_km: number;
-  /** Their UPI ID and the name payers see, for payment requests. */
-  vpa: string;
-  payee_name: string;
+  /**
+   * Their UPI ID and the name payers see. Leaving the card for the payee store in settings (`payments/payee.ts`), which
+   * payment requests will read at send time; optional until then.
+   */
+  vpa?: string;
+  payee_name?: string;
 }
 
 const Q = QuestionKey.enum;
