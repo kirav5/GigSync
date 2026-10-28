@@ -23,6 +23,7 @@ public class GigSyncTranslatePlugin: CAPPlugin, CAPBridgedPlugin {
     private static let engine = "apple-translation"
     private static let none = "none"
 
+    @available(iOS 18.0, *)
     private func pair(_ call: CAPPluginCall) -> (from: Locale.Language, to: Locale.Language)? {
         guard let from = call.getString("from"), let to = call.getString("to") else { return nil }
         return (Locale.Language(identifier: from), Locale.Language(identifier: to))

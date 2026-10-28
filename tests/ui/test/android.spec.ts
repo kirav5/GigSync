@@ -1,14 +1,15 @@
+import { execFileSync } from "node:child_process";
 import { plural, questionText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { _android, type AndroidDevice, expect, type Page, test } from "@playwright/test";
-import { newPhone, open, Role, RUN, SHOTS, signIn } from "./helpers.js";
+import { API, APP, newPhone, open, Role, RUN, SHOTS, signIn } from "./helpers.js";
 import { fillAsk, type Phone, publishCard, sendNote, signBoth } from "./journey.js";
 
 /**
  * Asha's phone is a real Android emulator running the Capacitor app, driven through Playwright's Android support
  * (adb, then the app's WebView); Ravi is desktop Chromium. Her phone translates Ravi's Kannada with ML Kit on the
- * device, after she taps to fetch the language packs, as the design asks. Runs only when an emulator is attached:
- *   adb reverse tcp:5173 tcp:5173 && adb reverse tcp:8787 tcp:8787
+ * device, after she taps to fetch the language packs, as the design asks. Runs only when an emulator is attached and
+ * adb is on the PATH; the test forwards the dev server's and API's ports itself:
  *   ANDROID=1 pnpm exec playwright test android --project=chromium
  */
 
@@ -32,20 +33,31 @@ async function androidPage(): Promise<Page> {
   const [device] = await _android.devices();
   if (!device) throw new Error("no Android device: start the emulator first");
   phone = device;
-  await phone.shell(`am start -n ${PACKAGE}/.MainActivity`);
-  return (await phone.webView({ pkg: PACKAGE })).page();
+  // The emulator reaches the dev server and API on this computer through adb; a reconnect drops these, so set them.
+  for (const url of [APP, API]) {
+    const port = new URL(url).port;
+    execFileSync("adb", ["-s", phone.serial(), "reverse", `tcp:${port}`, `tcp:${port}`]);
+  }
+  // A fresh install each run: no saved language or account, and no ML Kit packs from an earlier run.
+  await phone.shell(`pm clear ${PACKAGE}`);
+  await phone.shell(`am start -W -n ${PACKAGE}/.MainActivity`);
+  const page = await (await phone.webView({ pkg: PACKAGE })).page();
+  // A lost `adb reverse` leaves the app on screen but every request failing: say so now, not after the timeout.
+  const reached = await page.evaluate(
+    (url) =>
+      fetch(url).then(
+        (r) => r.ok,
+        () => false,
+      ),
+    `${API}/health`,
+  );
+  if (!reached) throw new Error(`the phone cannot reach ${API}: run adb reverse tcp:8787 tcp:8787 (and 5173)`);
+  return page;
 }
 
 test("Hindi cook on Android, Kannada household: ML Kit translates his words on her phone", async ({ browser }) => {
   test.setTimeout(600_000);
   const page = await androidPage();
-  // Start clean: a phone that ran the app before keeps its language and account in native storage.
-  await page.evaluate(async () => {
-    const plugins = (globalThis as { Capacitor?: { Plugins?: Record<string, { clear?: () => Promise<void> }> } })
-      .Capacitor?.Plugins;
-    await plugins?.Preferences?.clear?.();
-    localStorage.clear();
-  });
   const asha: Phone = { page, lang: hi };
   const ctx = await browser.newContext();
   const ravi: Phone = { page: await ctx.newPage(), lang: kn };
@@ -92,10 +104,11 @@ test("Hindi cook on Android, Kannada household: ML Kit translates his words on h
   await expect(fetch).toBeVisible({ timeout: 60_000 });
   await deviceShot("02-offer-download");
   await fetch.click();
-  const translated = job.locator(".said-tr").first();
-  await expect(translated).toContainText(t(hi, "said.translated", { lang: t(hi, "lang.kn") }), {
-    timeout: DOWNLOAD_MS,
-  });
+  const translated = job.locator(".said", { hasText: t(hi, "said.translated", { lang: t(hi, "lang.kn") }) }).first();
+  await expect(translated).toBeVisible({ timeout: DOWNLOAD_MS });
+  // Every line of his reads in Hindi alone once the pack is here; his Kannada waits behind "show original".
+  await expect(job.getByRole("button", { name: t(hi, "said.download", { lang: t(hi, "lang.kn") }) })).toHaveCount(0);
+  await expect(job).not.toContainText(KN_NEED);
   expect(await translated.textContent()).toMatch(DEVANAGARI);
   console.log("ML Kit kn→hi:", KN_NEED, "→", (await translated.locator("[lang=hi]").first().textContent())?.trim());
   await deviceShot("03-mlkit-translated");
