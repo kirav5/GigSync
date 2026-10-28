@@ -1,5 +1,5 @@
 import { mkdirSync } from "node:fs";
-import { ApiClient, Header, SecretKeys, t } from "@gigsync/core";
+import { ApiClient, Header, type MessageKey, SecretKeys, t } from "@gigsync/core";
 import { newDeviceSecrets } from "@gigsync/crypto";
 import { DEFAULT_LANG, type Lang, type Place, type Trade } from "@gigsync/protocol";
 import { expect, type Page, test } from "@playwright/test";
@@ -14,31 +14,42 @@ export const RUN = String(Date.now()).slice(-5);
 const digits = (n: number) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join("");
 export const newPhone = () => `+9198${digits(8)}`;
 
-export const Role = { consumer: "I need work done", worker: "I do the work" } as const;
+export const Role = { consumer: "consumer", worker: "worker" } as const;
+type Role = (typeof Role)[keyof typeof Role];
 
-/** Signs in through the app's own screen: role, language (named in itself), name, number, code. */
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** Picks a language on the first screen, by its name in its own script. */
+export async function chooseLanguage(page: Page, lang: Lang) {
+  await page.goto("/");
+  await page.getByRole("button", { name: t(lang, `lang.${lang}`), exact: true }).click();
+}
+
+/** Signs in through the app's own screens, in the person's language: language first, then role, name, number, code. */
 export async function signIn(
   page: Page,
-  who: { role: string; name: string; phone: string; address?: string; lang?: Lang },
+  who: { role: Role; name: string; phone: string; address?: string; lang?: Lang },
 ) {
   const lang = who.lang ?? DEFAULT_LANG;
-  await page.goto("/");
-  const form = page.getByRole("form", { name: "Sign in" });
-  await form.getByRole("radio", { name: who.role }).click();
-  await form.getByRole("radio", { name: t(lang, `lang.${lang}`) }).click();
-  await form.getByLabel("Your name").fill(who.name);
-  await form.getByLabel("Mobile number").fill(who.phone);
-  if (who.address) await form.getByLabel(/^Address/).fill(who.address);
-  await form.getByRole("button", { name: "Send code" }).click();
-  await form.getByLabel(/^Code from SMS/).fill(DEV_OTP);
-  await form.getByRole("button", { name: "Sign in" }).click();
+  await chooseLanguage(page, lang);
+  const form = page.getByRole("form", { name: t(lang, "signin.label") });
+  await form.getByRole("radio", { name: t(lang, `signin.${who.role}`) }).click();
+  await form.getByLabel(t(lang, "signin.name")).fill(who.name);
+  await form.getByLabel(t(lang, "signin.phone")).fill(who.phone);
+  if (who.address) await form.getByLabel(t(lang, "signin.address")).fill(who.address);
+  await form.getByRole("button", { name: t(lang, "signin.send_code") }).click();
+  await form.getByLabel(new RegExp(`^${escapeRe(t(lang, "signin.code"))}`)).fill(DEV_OTP);
+  await form.getByRole("button", { name: t(lang, "signin.submit") }).click();
   await expect(page.getByText(`${who.name} ·`)).toBeAttached();
 }
 
-/** Opens a screen from the menu (the menu slides in on a phone-sized window). */
-export async function open(page: Page, screen: string) {
-  await page.getByRole("button", { name: "Open menu" }).click();
-  await page.getByRole("navigation").getByRole("button", { name: screen }).click();
+/** Opens a screen from the menu (the menu slides in on a phone-sized window), named in the person's language. */
+export async function open(page: Page, screen: MessageKey, lang: Lang = DEFAULT_LANG) {
+  await page.getByRole("button", { name: t(lang, "a11y.open_menu") }).click();
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: t(lang, screen) })
+    .click();
 }
 
 const steps = new Map<string, number>();
@@ -50,6 +61,13 @@ export async function shoot(label: string, phones: Record<string, Page>, folder 
   const n = String(step).padStart(2, "0");
   const dir = `${SHOTS}${info.project.name}/${folder ? `${folder}/` : ""}`;
   for (const [who, page] of Object.entries(phones)) {
+    // Let the menu's slide and other transitions finish, but never wait on an endless one.
+    await page.evaluate(() =>
+      Promise.race([
+        Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))),
+        new Promise((done) => setTimeout(done, 1000)),
+      ]),
+    );
     await page.screenshot({ path: `${dir}${n}-${label}-${who}.png`, fullPage: true });
   }
 }

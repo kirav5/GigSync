@@ -79,7 +79,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await priya.getByRole("button", { name: "Ask 1 worker" }).click();
 
   // ── Anil's agent asks what is wrong; Priya's agent cannot know, so it asks her ────────────────────────────────
-  await open(anil, "Requests");
+  await open(anil, "nav.requests");
   const question = priya.getByRole("form", { name: "Answer the worker" });
   await expect(question).toBeVisible();
   await expect(anil.getByText("Question asked")).toBeVisible();
@@ -139,7 +139,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await shoot("paid-rated-closed", phones);
 
   // Anil takes his card off the board so later runs start clean.
-  await open(anil, "My card");
+  await open(anil, "nav.card");
   await anil.getByRole("button", { name: "Take my card off the board" }).click();
   await expect(anil.getByText("Off the board")).toBeVisible();
 });
