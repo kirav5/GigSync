@@ -37,6 +37,9 @@ importers:
       "@gigsync/plugin-llm":
         specifier: workspace:*
         version: link:../../plugins/gigsync-llm
+      "@gigsync/plugin-translate":
+        specifier: workspace:*
+        version: link:../../plugins/gigsync-translate
       "@gigsync/protocol":
         specifier: workspace:*
         version: link:../../packages/protocol
@@ -139,6 +142,15 @@ importers:
         version: 4.1.12(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
 
   plugins/gigsync-llm:
+    devDependencies:
+      "@capacitor/core":
+        specifier: 8.5.3
+        version: 8.5.3
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  plugins/gigsync-translate:
     devDependencies:
       "@capacitor/core":
         specifier: 8.5.3

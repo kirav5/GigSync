@@ -10,3 +10,6 @@ project(':capacitor-preferences').projectDir = new File('../../../node_modules/.
 
 include ':gigsync-plugin-llm'
 project(':gigsync-plugin-llm').projectDir = new File('../node_modules/@gigsync/plugin-llm/android')
+
+include ':gigsync-plugin-translate'
+project(':gigsync-plugin-translate').projectDir = new File('../node_modules/@gigsync/plugin-translate/android')
