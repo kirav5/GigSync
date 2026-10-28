@@ -16,13 +16,17 @@ export default defineConfig({
   outputDir: "test-results",
   use: {
     baseURL: APP,
-    // The Chrome already installed on this machine: no browser download.
-    channel: "chrome",
     headless: true,
     // Tall enough that every step fits on one screen: the app scrolls inside its own panel, not the page.
     viewport: { width: 400, height: 1400 },
     deviceScaleFactor: 2,
   },
+  // Chrome's engine and Safari's, as Playwright ships them (`pnpm exec playwright install chromium webkit`): a
+  // Homebrew or downloaded Chrome may be quarantined by macOS and refuse to start headless. Pick one with --project.
+  projects: [
+    { name: "chromium", use: { browserName: "chromium" } },
+    { name: "webkit", use: { browserName: "webkit" } },
+  ],
   webServer: [
     {
       command: "pnpm --filter @gigsync/worker-api dev",

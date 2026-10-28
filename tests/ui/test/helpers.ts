@@ -2,7 +2,7 @@ import { mkdirSync } from "node:fs";
 import { ApiClient, Header, SecretKeys } from "@gigsync/core";
 import { newDeviceSecrets } from "@gigsync/crypto";
 import type { Place, Trade } from "@gigsync/protocol";
-import { expect, type Page } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 export const API = process.env.API_BASE ?? "http://localhost:8787";
 const DEV_OTP = process.env.DEV_OTP ?? "000000";
@@ -37,12 +37,13 @@ export async function open(page: Page, screen: string) {
 }
 
 let step = 0;
-/** Saves both phones' screens for one step of the journey, side by side by name. */
+/** Saves both phones' screens for one step of the journey, side by side by name, in a folder per browser. */
 export async function shoot(label: string, phones: Record<string, Page>) {
   step++;
   const n = String(step).padStart(2, "0");
+  const dir = `${SHOTS}${test.info().project.name}/`;
   for (const [who, page] of Object.entries(phones)) {
-    await page.screenshot({ path: `${SHOTS}${n}-${label}-${who}.png`, fullPage: true });
+    await page.screenshot({ path: `${dir}${n}-${label}-${who}.png`, fullPage: true });
   }
 }
 
