@@ -1,4 +1,4 @@
-import { Collection, DEFAULT_MAX_TOKENS, type Model, type Storage } from "@gigsync/core";
+import { Collection, DEFAULT_MAX_TOKENS, type MessageKey, type Model, type Params, type Storage } from "@gigsync/core";
 import { GigSyncLLM, type ModelStatus } from "@gigsync/plugin-llm";
 import { useSyncExternalStore } from "react";
 import { OllamaModel } from "./ollama.js";
@@ -126,19 +126,19 @@ export class ChosenModel implements Model {
     }
   }
 
-  /** One line for the screens: which engine will answer right now. */
-  label(): string {
-    const lite = "Lite mode (no model)";
-    const deviceLabel = `On-device: ${engineName(this.status?.engine ?? ENGINE_NONE)}`;
+  /** One line for the screens, in the owner's language: which engine will answer right now. */
+  label(t: (key: MessageKey, params?: Params) => string): string {
+    const lite = t("model.lite_label");
+    const device = t("model.on_device_label", { engine: engineName(this.status?.engine ?? ENGINE_NONE) });
     switch (this.settings.choice) {
       case ModelChoice.lite:
         return lite;
       case ModelChoice.ollama:
-        return this.settings.ollamaModel ? `Ollama: ${this.settings.ollamaModel} (dev)` : lite;
+        return this.settings.ollamaModel ? t("model.ollama_label", { name: this.settings.ollamaModel }) : lite;
       case ModelChoice.device:
-        return this.status?.available ? deviceLabel : `${deviceLabel} · not ready, so lite mode`;
+        return this.status?.available ? device : t("model.not_ready_lite", { device });
       default:
-        return deviceUsable(this.status) ? `Auto · ${deviceLabel}` : `Auto · ${lite}`;
+        return t("model.auto_label", { model: deviceUsable(this.status) ? device : lite });
     }
   }
 

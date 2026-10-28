@@ -27,7 +27,9 @@
   --done-fill: #e2f4ea;
   --brand: #ff3ea5;
   --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
-  --sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, system-ui, sans-serif;
+  --sans:
+    -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, "Noto Sans Devanagari", "Noto Sans Kannada",
+    system-ui, sans-serif;
   color-scheme: light;
 }
 :root[data-look="dark"] {
@@ -711,9 +713,11 @@ a {
 :lang(hi) .label,
 :lang(hi) .btn,
 :lang(hi) .tag,
+:lang(hi) .link-btn,
 :lang(kn) .label,
 :lang(kn) .btn,
-:lang(kn) .tag {
+:lang(kn) .tag,
+:lang(kn) .link-btn {
   font-family: var(--sans);
   letter-spacing: normal;
   text-transform: none;
@@ -801,4 +805,16 @@ fieldset {
   margin: 0;
   padding: 0;
   border: 0;
+}
+
+/* Someone else's words: the original, then the phone's translation on its own line. */
+.said {
+  display: inline-grid;
+  gap: 2px;
+}
+.said-tr {
+  display: grid;
+  gap: 2px;
+  padding-left: 8px;
+  border-left: 2px solid var(--hairline);
 }

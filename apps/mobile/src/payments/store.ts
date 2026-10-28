@@ -1,4 +1,13 @@
-import { apply, Collection, type Contact, newEngagement, type Storage, summarize } from "@gigsync/core";
+import {
+  apply,
+  Collection,
+  type Contact,
+  type MessageKey,
+  newEngagement,
+  type Params,
+  type Storage,
+  summarize,
+} from "@gigsync/core";
 import {
   type Engagement,
   EngagementStatus,
@@ -25,12 +34,22 @@ export interface Payee {
 export const loadPayee = (s: Storage) => s.get<Payee>(Collection.settings, PAYEE_KEY);
 
 /** Saves the UPI ID and the name customers see; both are required, as the QR needs both. */
+/** What is wrong with the payee details, as a key the Settings screen says in the owner's language. */
+export class PayeeError extends Error {
+  constructor(
+    readonly key: MessageKey,
+    readonly params: Params = {},
+  ) {
+    super(key);
+  }
+}
+
 export async function savePayee(s: Storage, payee: Payee): Promise<void> {
   const vpa = payee.vpa.trim();
   const name = payee.name.trim();
-  if (!Vpa.safeParse(vpa).success) throw new Error("That does not look like a UPI ID (name@bank).");
-  if (!name) throw new Error("Enter the name customers will see when they pay you.");
-  if (name.length > PAYEE_NAME_MAX) throw new Error(`Keep the name to ${PAYEE_NAME_MAX} characters.`);
+  if (!Vpa.safeParse(vpa).success) throw new PayeeError("settings.err_vpa");
+  if (!name) throw new PayeeError("settings.err_name");
+  if (name.length > PAYEE_NAME_MAX) throw new PayeeError("settings.err_name_long", { max: PAYEE_NAME_MAX });
   await s.put(Collection.settings, PAYEE_KEY, { vpa, name });
 }
 

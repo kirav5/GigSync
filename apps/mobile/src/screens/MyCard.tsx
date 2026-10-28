@@ -1,39 +1,34 @@
-import { CITY_RATES, type Ports, QUESTIONS, t, type WorkerRules, YES_NO_QUESTIONS } from "@gigsync/core";
-import { type BoardProfile, type Lang, PAISE_PER_RUPEE, type QuestionKey, Trade } from "@gigsync/protocol";
+import { CITY_RATES, log, type Ports, QUESTIONS, type WorkerRules, YES_NO_QUESTIONS } from "@gigsync/core";
+import { type BoardProfile, Lang, PAISE_PER_RUPEE, type QuestionKey, SEED_SIGNER, Trade } from "@gigsync/protocol";
 import { type FormEvent, useState } from "react";
 import { type Account, apiClient, saveAccount } from "../adapters/account.js";
+import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
-import { AREAS, areaNamed, money, TRADE_LABEL, toPaise } from "../ui/places.js";
+import { AREAS, areaNamed, money, toPaise } from "../ui/places.js";
 
 const DEFAULT_RADIUS_KM = 10;
 const rupeesOf = (paise?: number) => (paise ? String(paise / PAISE_PER_RUPEE) : "");
 const ASK_FIELD = "ask.";
+/** The rate card's city, as a key for its name in each language. */
+const CITY_KEY = "city.bengaluru";
 
 /** Yes-or-no details these trades' agents ask about, which the worker may want to see before any quote. */
 const askable = (trades: readonly Trade[]): QuestionKey[] =>
   [...YES_NO_QUESTIONS].filter((k) => trades.some((tr) => QUESTIONS[tr].includes(k)));
 
 /**
- * The worker's card: the public half goes on the board (name, trades, area, usual rate); the private half stays here
- * (lowest rate, UPI ID, how far they travel) and is what their agent negotiates and gets paid with.
+ * The worker's card: the public half goes on the board (name, trades, area, usual rate, languages); the private half
+ * stays here (lowest rate, UPI ID, how far they travel, what to see first) and is what their agent negotiates with.
  */
-export function MyCard({
-  ports,
-  account,
-  lang,
-  onSaved,
-}: {
-  ports: Ports;
-  account: Account;
-  lang: Lang;
-  onSaved: (a: Account) => void;
-}) {
+export function MyCard({ ports, account, onSaved }: { ports: Ports; account: Account; onSaved: (a: Account) => void }) {
+  const { lang, t } = useI18n();
   const rules = account.worker;
   const [trades, setTrades] = useState<Trade[]>(rules?.trades ?? []);
+  const [spoken, setSpoken] = useState<Lang[]>(account.languages ?? [lang]);
   const [error, setError] = useState<string>();
   const [status, setStatus] = useState<string>();
 
-  const toggle = (t: Trade) => setTrades((ts) => (ts.includes(t) ? ts.filter((x) => x !== t) : [...ts, t]));
+  const toggle = <T,>(list: T[], item: T) => (list.includes(item) ? list.filter((x) => x !== item) : [...list, item]);
 
   async function publish(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -41,15 +36,17 @@ export function MyCard({
     const area = areaNamed(String(v.get("area")));
     const rate = toPaise(String(v.get("rate")));
     const min = toPaise(String(v.get("min")));
-    if (trades.length === 0) return setError("Choose at least one trade.");
-    if (!(min > 0 && rate >= min)) return setError("Your usual rate must be at least your lowest rate.");
+    if (trades.length === 0) return setError(t("card.err_trade"));
+    if (!(min > 0 && rate >= min)) return setError(t("card.err_rate"));
+    // The owner's own language first: it is the one their card's free text is written in.
+    const languages = [lang, ...spoken.filter((l) => l !== lang)];
     const card: BoardProfile = {
       display_name: account.contact.name,
       trades,
       area: { lat: area.lat, lon: area.lon },
       area_name: area.name,
       rate_paise: rate,
-      languages: [lang],
+      languages,
       about: String(v.get("about") ?? "").trim(),
     };
     const worker: WorkerRules = {
@@ -64,19 +61,26 @@ export function MyCard({
     };
     try {
       await apiClient(account.session).publishProfile(card);
-      const next = { ...account, worker, autoConfirm: v.has("auto") };
+      const next: Account = { ...account, worker, languages, autoConfirm: v.has("auto") };
       await saveAccount(ports, next);
       setError(undefined);
-      setStatus(`On the board: ${trades.map((t) => TRADE_LABEL[t]).join(", ")} in ${area.name} from ${money(rate)}`);
+      setStatus(
+        t("card.on_board", {
+          trades: trades.map((tr) => t(`trade.${tr}`)).join(", "),
+          area: t(`area.${area.key}`),
+          price: money(rate),
+        }),
+      );
       onSaved(next);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      log.warn("publish failed", { error: err instanceof Error ? err.message : String(err) });
+      setError(t("error.generic"));
     }
   }
 
   async function unlist() {
     await apiClient(account.session).removeProfile();
-    setStatus("Off the board");
+    setStatus(t("card.off_board"));
   }
 
   const areaName = AREAS.find((a) => a.lat === rules?.base.lat)?.name;
@@ -84,42 +88,51 @@ export function MyCard({
   return (
     <>
       <div className={C.stack}>
-        <span className={C.labelSq}>My card</span>
+        <span className={C.labelSq}>{t("nav.card")}</span>
         <h1 className={C.headline}>
-          Be found. <span className={C.soft}>Your lowest price stays on this phone.</span>
+          {t("card.headline")} <span className={C.soft}>{t("card.soft")}</span>
         </h1>
       </div>
-      <form className={C.card} onSubmit={(e) => void publish(e)} aria-label="My card">
-        <span className={C.label}>What I do</span>
+      <form className={C.card} onSubmit={(e) => void publish(e)} aria-label={t("a11y.my_card")}>
+        <span className={C.label}>{t("card.what")}</span>
         <div className={C.row}>
-          {Trade.options.map((t) => (
+          {Trade.options.map((tr) => (
             <button
-              key={t}
+              key={tr}
               type={C.button}
-              aria-pressed={trades.includes(t)}
-              className={trades.includes(t) ? C.chipOn : C.chip}
-              onClick={() => toggle(t)}
+              aria-pressed={trades.includes(tr)}
+              className={trades.includes(tr) ? C.chipOn : C.chip}
+              onClick={() => setTrades((ts) => toggle(ts, tr))}
             >
-              {TRADE_LABEL[t]}
+              {t(`trade.${tr}`)}
             </button>
           ))}
         </div>
         {bands.map((b) => (
           <span key={b.trade} className={C.faint}>
-            {TRADE_LABEL[b.trade]}: going rate in {CITY_RATES.city} {money(b.low_paise)}–{money(b.high_paise)} a month.
-            Your agent plans each job from it and never goes below your lowest price.
+            {t("card.band", {
+              trade: t(`trade.${b.trade}`),
+              city: t(CITY_KEY),
+              low: money(b.low_paise),
+              high: money(b.high_paise),
+            })}
           </span>
         ))}
+        {bands.length > 0 && CITY_RATES.signed_by === SEED_SIGNER && (
+          <span className={C.faint}>{t("card.rates_note", { source: t("rates.seed") })}</span>
+        )}
         <label className={C.fieldLabel}>
-          <span className={C.muted}>Where I work</span>
+          <span className={C.muted}>{t("card.where")}</span>
           <select className={C.field} name="area" defaultValue={areaName}>
             {AREAS.map((a) => (
-              <option key={a.name}>{a.name}</option>
+              <option key={a.key} value={a.name}>
+                {t(`area.${a.key}`)}
+              </option>
             ))}
           </select>
         </label>
         <label className={C.fieldLabel}>
-          <span className={C.muted}>Usual rate for a visit, ₹ (shown on the board)</span>
+          <span className={C.muted}>{t("card.rate")}</span>
           <input
             className={C.field}
             name="rate"
@@ -129,7 +142,7 @@ export function MyCard({
           />
         </label>
         <label className={C.fieldLabel}>
-          <span className={C.muted}>Lowest I will take, ₹ (private)</span>
+          <span className={C.muted}>{t("card.min")}</span>
           <input
             className={C.field}
             name="min"
@@ -139,7 +152,7 @@ export function MyCard({
           />
         </label>
         <label className={C.fieldLabel}>
-          <span className={C.muted}>UPI ID to be paid on (private)</span>
+          <span className={C.muted}>{t("card.vpa")}</span>
           <input
             className={C.field}
             name="vpa"
@@ -150,33 +163,43 @@ export function MyCard({
           />
         </label>
         <label className={C.fieldLabel}>
-          <span className={C.muted}>About my work</span>
-          <input className={C.field} name="about" placeholder="10 years, wiring and fans" />
+          <span className={C.muted}>{t("card.about")}</span>
+          <input className={C.field} name="about" placeholder={t("card.about_example")} />
         </label>
+        <span className={C.label}>{t("card.languages")}</span>
+        <div className={C.row}>
+          {Lang.options.map((l) => (
+            <button
+              key={l}
+              type={C.button}
+              lang={l}
+              aria-pressed={spoken.includes(l)}
+              className={spoken.includes(l) ? C.chipOn : C.chip}
+              onClick={() => setSpoken((s) => (l === lang ? s : toggle(s, l)))}
+            >
+              {t(`lang.${l}`)}
+            </button>
+          ))}
+        </div>
         {askable(trades).map((k) => (
           <label key={k} className={C.row}>
-            <input
-              type="checkbox"
-              name={ASK_FIELD + k}
-              aria-label={`Ask me first: ${k}`}
-              defaultChecked={rules?.ask_me?.includes(k)}
-            />
-            <span className={C.muted}>Ask me before quoting when there are {t(lang, `detail.${k}`)}</span>
+            <input type="checkbox" name={ASK_FIELD + k} defaultChecked={rules?.ask_me?.includes(k)} />
+            <span className={C.muted}>{t("card.ask_first", { item: t(`detail.${k}`) })}</span>
           </label>
         ))}
         <label className={C.row}>
           <input type="checkbox" name="auto" defaultChecked={account.autoConfirm} />
-          <span className={C.muted}>Let my agent sign deals inside my prices</span>
+          <span className={C.muted}>{t("card.auto")}</span>
         </label>
         {error && <p className={C.error}>{error}</p>}
         {status && <span className="label fresh">{status}</span>}
         <div className={C.row}>
           <button type="submit" className={C.accent}>
-            Publish my card
+            {t("card.publish")}
           </button>
           {rules && (
             <button type={C.button} className={C.secondary} onClick={() => void unlist()}>
-              Take my card off the board
+              {t("card.unlist")}
             </button>
           )}
         </div>

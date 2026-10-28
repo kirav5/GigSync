@@ -1,21 +1,32 @@
-import { type Ports, t } from "@gigsync/core";
-import { DEFAULT_LANG, Lang } from "@gigsync/protocol";
+import { log, type MessageKey, type Ports } from "@gigsync/core";
 import { type FormEvent, useState } from "react";
 import { type Account, AccountRole, sendCode, signIn } from "../adapters/account.js";
+import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 
 /** The form's field names. */
 const F = { name: "name", phone: "phone", address: "address", code: "code" } as const;
+/** The code the development API accepts, shown only in dev builds. */
+const DEV_CODE = "000000";
 
-const ROLES: readonly { role: AccountRole; label: string }[] = [
-  { role: AccountRole.consumer, label: "I need work done" },
-  { role: AccountRole.worker, label: "I do the work" },
+const ROLES: readonly { role: AccountRole; label: MessageKey }[] = [
+  { role: AccountRole.consumer, label: "signin.consumer" },
+  { role: AccountRole.worker, label: "signin.worker" },
 ];
 
 /** Phone and one-time code. The code goes to the server; this phone's private keys never do. */
-export function SignIn({ ports, onSignedIn }: { ports: Ports; onSignedIn: (a: Account) => void }) {
+export function SignIn({
+  ports,
+  onSignedIn,
+  onLanguage,
+}: {
+  ports: Ports;
+  onSignedIn: (a: Account) => void;
+  /** Back to the first screen to pick another language. */
+  onLanguage: () => void;
+}) {
+  const { lang, t } = useI18n();
   const [role, setRole] = useState<AccountRole>(AccountRole.consumer);
-  const [lang, setLang] = useState<Lang>(DEFAULT_LANG);
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -34,9 +45,10 @@ export function SignIn({ ports, onSignedIn }: { ports: Ports; onSignedIn: (a: Ac
       }
       const address = String(v.get(F.address) ?? "").trim();
       const contact = { name: String(v.get(F.name) ?? "").trim(), phone, ...(address ? { address } : {}) };
-      onSignedIn(await signIn(ports, { phone, code: String(v.get(F.code) ?? "").trim(), role, contact, lang }));
+      onSignedIn(await signIn(ports, { phone, code: String(v.get(F.code) ?? "").trim(), role, contact }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      log.warn("sign-in failed", { error: err instanceof Error ? err.message : String(err) });
+      setError(t("error.generic"));
     } finally {
       setBusy(false);
     }
@@ -45,52 +57,52 @@ export function SignIn({ ports, onSignedIn }: { ports: Ports; onSignedIn: (a: Ac
   return (
     <>
       <div className={C.stack}>
-        <span className={C.labelSq}>Sign in</span>
+        <span className={C.labelSq}>{t("signin.label")}</span>
         <h1 className={C.headline}>
-          Your agent, your phone. <span className={C.soft}>Your number stays yours.</span>
+          {t("signin.headline")} <span className={C.soft}>{t("signin.soft")}</span>
         </h1>
+        <span className={C.faint}>
+          {t("signin.language", { lang: t(`lang.${lang}`) })} ·{" "}
+          <button type={C.button} className={C.linkBtn} onClick={onLanguage}>
+            {t("signin.change")}
+          </button>
+        </span>
       </div>
-      <form className={C.card} onSubmit={(e) => void submit(e)} aria-label="Sign in">
-        <fieldset className={C.row} aria-label="Role">
+      <form className={C.card} onSubmit={(e) => void submit(e)} aria-label={t("signin.label")}>
+        <fieldset className={C.row} aria-label={t("a11y.role")}>
           {ROLES.map((r) => (
             <label key={r.role} className={role === r.role ? C.chipOn : C.chip}>
               <input type="radio" name="role" checked={role === r.role} onChange={() => setRole(r.role)} />
-              {r.label}
-            </label>
-          ))}
-        </fieldset>
-        <fieldset className={C.row} aria-label="Language">
-          {Lang.options.map((l) => (
-            <label key={l} lang={l} className={lang === l ? C.chipOn : C.chip}>
-              <input type="radio" name="lang" checked={lang === l} onChange={() => setLang(l)} />
-              {t(l, `lang.${l}`)}
+              {t(r.label)}
             </label>
           ))}
         </fieldset>
         <label className={C.fieldLabel}>
-          <span className={C.muted}>Your name</span>
+          <span className={C.muted}>{t("signin.name")}</span>
           <input className={C.field} name={F.name} required autoComplete={F.name} />
         </label>
         <label className={C.fieldLabel}>
-          <span className={C.muted}>Mobile number</span>
+          <span className={C.muted}>{t("signin.phone")}</span>
           <input className={C.field} name={F.phone} required placeholder="+919800000000" inputMode="tel" />
         </label>
         {role === AccountRole.consumer && (
           <label className={C.fieldLabel}>
-            <span className={C.muted}>Address, shared only with the worker you sign a job with</span>
+            <span className={C.muted}>{t("signin.address")}</span>
             <input className={C.field} name={F.address} autoComplete="street-address" />
           </label>
         )}
         {sent && (
           <label className={C.fieldLabel}>
-            <span className={C.muted}>Code from SMS{import.meta.env.DEV ? " (dev: 000000)" : ""}</span>
+            <span className={C.muted}>
+              {import.meta.env.DEV ? t("signin.code_dev", { code: DEV_CODE }) : t("signin.code")}
+            </span>
             <input className={C.field} name={F.code} required inputMode="numeric" autoComplete="one-time-code" />
           </label>
         )}
         {error && <p className={C.error}>{error}</p>}
         <div>
           <button type={C.submit} className={C.accent} disabled={busy}>
-            {sent ? "Sign in" : "Send code"}
+            {t(sent ? "signin.submit" : "signin.send_code")}
           </button>
         </div>
       </form>

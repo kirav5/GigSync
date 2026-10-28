@@ -1,5 +1,5 @@
 import type { GigDevice } from "@gigsync/core";
-import type { Lang } from "@gigsync/protocol";
+import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import type { GigView } from "../useGig.js";
 import { JobThread } from "./JobThread.js";
@@ -9,29 +9,27 @@ interface Props {
   view: GigView;
   device: GigDevice;
   run: (work: () => Promise<unknown>) => Promise<unknown>;
-  lang: Lang;
 }
 
 /** Every job this phone is in, newest first: requests to a worker, or a consumer's asks. */
-export function Requests({ isWorker, view, device, run, lang }: Props) {
+export function Requests({ isWorker, view, device, run }: Props) {
+  const { t, time } = useI18n();
   const jobs = [...view.jobs].reverse();
   return (
     <>
       <div className={C.stack}>
-        <span className={C.labelSq}>{isWorker ? "Requests" : "My jobs"}</span>
+        <span className={C.labelSq}>{t(isWorker ? "nav.requests" : "nav.my_jobs")}</span>
         <h1 className={C.headline}>
-          {isWorker ? "Jobs that found you." : "Your asks."}{" "}
-          <span className={C.soft}>Your agent talks; you decide.</span>
+          {t(isWorker ? "requests.headline_worker" : "requests.headline_consumer")}{" "}
+          <span className={C.soft}>{t("requests.soft")}</span>
         </h1>
-        {view.syncedAt && <span className={C.faint}>Checked {view.syncedAt.toLocaleTimeString()}</span>}
+        {view.syncedAt && <span className={C.faint}>{t("requests.checked", { time: time(view.syncedAt) })}</span>}
       </div>
       {jobs.length === 0 && (
-        <div className={C.empty}>
-          {isWorker ? "No requests yet. Publish your card to be found." : "Nothing asked yet. Find someone first."}
-        </div>
+        <div className={C.empty}>{t(isWorker ? "requests.empty_worker" : "requests.empty_consumer")}</div>
       )}
       {jobs.map((job) => (
-        <JobThread key={job.engagement.id} job={job} view={view} device={device} run={run} lang={lang} />
+        <JobThread key={job.engagement.id} job={job} view={view} device={device} run={run} />
       ))}
     </>
   );

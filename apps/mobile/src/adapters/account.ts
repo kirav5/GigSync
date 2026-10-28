@@ -16,8 +16,8 @@ export interface Account {
   worker?: WorkerRules;
   /** Sign deals the agent reaches without asking first. Off unless the owner turns it on. */
   autoConfirm?: boolean;
-  /** The language this phone shows jobs in, and the language its owner's free text is tagged with. */
-  lang?: Lang;
+  /** The languages a worker listed on their card, their own first. */
+  languages?: Lang[];
 }
 
 const ACCOUNT_KEY = "account";
@@ -53,17 +53,17 @@ export async function sendCode(phone: string): Promise<void> {
 /** Verifies the code and registers this device's public keys; the private keys never leave the phone. */
 export async function signIn(
   ports: Ports,
-  input: { phone: string; code: string; role: AccountRole; contact: ContactCard; lang: Lang },
+  input: { phone: string; code: string; role: AccountRole; contact: ContactCard },
 ): Promise<Account> {
   const keys = await ports.keys.publicKeys();
   const session = await apiClient().verifyOtp(input.phone, input.code, { ...keys, protocol: PROTOCOL });
-  const account: Account = { session, role: input.role, contact: input.contact, lang: input.lang };
+  const account: Account = { session, role: input.role, contact: input.contact };
   await saveAccount(ports, account);
   return account;
 }
 
-/** This phone's agent for jobs, acting as the signed-in owner. */
-export function deviceFor(ports: Ports, account: Account): GigDevice {
+/** This phone's agent for jobs, acting as the signed-in owner, tagging their free text with the phone's language. */
+export function deviceFor(ports: Ports, account: Account, lang: Lang): GigDevice {
   return new GigDevice({
     relay: apiClient(account.session),
     storage: ports.storage,
@@ -73,7 +73,7 @@ export function deviceFor(ports: Ports, account: Account): GigDevice {
     contact: account.contact,
     ...(account.worker ? { worker: account.worker } : {}),
     ...(account.autoConfirm ? { autoConfirm: true } : {}),
-    ...(account.lang ? { lang: account.lang } : {}),
+    lang,
   });
 }
 
