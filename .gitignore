@@ -22,3 +22,6 @@ apps/mobile/ios/DerivedData
 .neon
 tests/ui/test-results
 tests/ui/screenshots
+
+# Gradle output of local Capacitor plugins
+plugins/*/android/build/

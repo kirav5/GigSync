@@ -2,7 +2,7 @@
   "name": "@gigsync/plugin-translate",
   "version": "0.1.0",
   "private": true,
-  "description": "Capacitor plugin that translates free text on the device: Chrome's built-in translator on the web, ML Kit on Android. Never a cloud service.",
+  "description": "Capacitor plugin that translates free text on the device: Chrome's built-in translator on the web, ML Kit on Android, Apple Translation on iPhone. Never a cloud service.",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
