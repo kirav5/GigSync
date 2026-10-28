@@ -2,6 +2,7 @@ import { configureLog, LOCAL_ENVIRONMENT, LogFormat, LogLevel } from "@gigsync/c
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.js";
+import { keepFocusedFieldVisible } from "./adapters/keyboard.js";
 import "./styles.css";
 import { applyLook, watchDeviceLook } from "./ui/look.js";
 
@@ -17,6 +18,7 @@ configureLog(
 
 applyLook();
 watchDeviceLook();
+keepFocusedFieldVisible();
 
 const root = document.getElementById("root");
 if (!root) throw new Error("no #root");

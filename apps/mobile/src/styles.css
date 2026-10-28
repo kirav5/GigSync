@@ -69,6 +69,13 @@ body,
 #root {
   height: 100%;
 }
+/* An app shell, not a page: only the content panel scrolls. A scrollable document lets iOS scroll it to reveal a
+   focused field and leave it there, sliding the top bar under the status bar. */
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
 body {
   margin: 0;
   background: var(--bg);
@@ -82,6 +89,14 @@ textarea,
 select {
   font: inherit;
   color: inherit;
+}
+/* 16px or more in anything typed into, or iOS zooms the page in when the field is focused. The margin keeps a
+   field brought into view above the keyboard (adapters/keyboard.ts) clear of the keys. */
+input:not([type="checkbox"], [type="radio"]),
+textarea,
+select {
+  font-size: max(16px, 1em);
+  scroll-margin-block: 24px;
 }
 button,
 summary,
@@ -868,14 +883,8 @@ fieldset {
   border: 0;
 }
 
-/* Someone else's words: the phone's translation, its label, and the original when asked for. */
+/* Someone else's words: the phone's translation and its label, or the original with a note. */
 .said {
   display: inline-grid;
   gap: 2px;
-}
-.said-original {
-  display: grid;
-  gap: 2px;
-  padding-left: 8px;
-  border-left: 2px solid var(--hairline);
 }

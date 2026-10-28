@@ -16,6 +16,7 @@
   "dependencies": {
     "@capacitor/app": "8.1.2",
     "@capacitor/core": "8.5.3",
+    "@capacitor/keyboard": "8.0.6",
     "@capacitor/preferences": "8.0.1",
     "@gigsync/core": "workspace:*",
     "@gigsync/crypto": "workspace:*",

@@ -1,4 +1,5 @@
 import type { CapacitorConfig } from "@capacitor/cli";
+import { KeyboardResize } from "@capacitor/keyboard";
 
 /**
  * Development only: `CAP_SERVER_URL=http://localhost:5173 pnpm exec cap sync` makes a simulator load the app from
@@ -15,6 +16,11 @@ const config: CapacitorConfig = {
   // Edge to edge on both phones; the CSS takes the safe areas off once (env(safe-area-inset-*)), so iOS must not too.
   ios: { contentInset: "never" },
   server: { androidScheme: "https", ...(devServer ? { url: devServer, cleartext: true } : {}) },
+  plugins: {
+    // The keyboard shrinks the web view instead of scrolling the page under it, so the top bar stays put and the
+    // focused field stays above the keys. resizeOnFullScreen: Android's edge-to-edge apps need it to resize at all.
+    Keyboard: { resize: KeyboardResize.Native, resizeOnFullScreen: true },
+  },
 };
 
 export default config;

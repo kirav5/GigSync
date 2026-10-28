@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { plural, questionText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { _android, type AndroidDevice, expect, type Page, test } from "@playwright/test";
-import { API, APP, newPhone, open, Role, RUN, SHOTS, signIn } from "./helpers.js";
+import { API, APP, newPhone, open, Role, RUN, SHOTS, screenSizeShots, signIn } from "./helpers.js";
 import { fillAsk, type Phone, publishCard, sendNote, signBoth } from "./journey.js";
 
 /**
@@ -42,6 +42,7 @@ async function androidPage(): Promise<Page> {
   await phone.shell(`pm clear ${PACKAGE}`);
   await phone.shell(`am start -W -n ${PACKAGE}/.MainActivity`);
   const page = await (await phone.webView({ pkg: PACKAGE })).page();
+  screenSizeShots.add(page);
   // A lost `adb reverse` leaves the app on screen but every request failing: say so now, not after the timeout.
   const reached = await page.evaluate(
     (url) =>
@@ -106,7 +107,7 @@ test("Hindi cook on Android, Kannada household: ML Kit translates his words on h
   await fetch.click();
   const translated = job.locator(".said", { hasText: t(hi, "said.translated", { lang: t(hi, "lang.kn") }) }).first();
   await expect(translated).toBeVisible({ timeout: DOWNLOAD_MS });
-  // Every line of his reads in Hindi alone once the pack is here; his Kannada waits behind "show original".
+  // Every line of his reads in Hindi alone once the pack is here; his Kannada is not shown.
   await expect(job.getByRole("button", { name: t(hi, "said.download", { lang: t(hi, "lang.kn") }) })).toHaveCount(0);
   await expect(job).not.toContainText(KN_NEED);
   expect(await translated.textContent()).toMatch(DEVANAGARI);

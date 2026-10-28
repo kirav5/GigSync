@@ -55,6 +55,12 @@ export async function open(page: Page, screen: MessageKey, lang: Lang = DEFAULT_
     .click();
 }
 
+/**
+ * Pages shot at screen size: a full-page capture of a phone's web view sends a large image over the emulator's adb
+ * link, which has reset mid-run under that load.
+ */
+export const screenSizeShots = new WeakSet<Page>();
+
 const steps = new Map<string, number>();
 /** Saves both phones' screens for one step of the journey, side by side by name, in a folder per browser and test. */
 export async function shoot(label: string, phones: Record<string, Page>, folder = "") {
@@ -71,7 +77,7 @@ export async function shoot(label: string, phones: Record<string, Page>, folder 
         new Promise((done) => setTimeout(done, 1000)),
       ]),
     );
-    await page.screenshot({ path: `${dir}${n}-${label}-${who}.png`, fullPage: true });
+    await page.screenshot({ path: `${dir}${n}-${label}-${who}.png`, fullPage: !screenSizeShots.has(page) });
   }
 }
 
