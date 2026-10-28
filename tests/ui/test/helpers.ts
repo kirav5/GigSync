@@ -5,6 +5,8 @@ import { DEFAULT_LANG, type Lang, type Place, type Trade } from "@gigsync/protoc
 import { expect, type Page, test } from "@playwright/test";
 
 export const API = process.env.API_BASE ?? "http://localhost:8787";
+/** The app as the dev server serves it; absolute, so pages without a base URL (a phone over DevTools) work too. */
+export const APP = process.env.APP_URL ?? "http://localhost:5173";
 const DEV_OTP = process.env.DEV_OTP ?? "000000";
 export const SHOTS = new URL("../screenshots/", import.meta.url).pathname;
 mkdirSync(SHOTS, { recursive: true });
@@ -21,7 +23,7 @@ const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** Picks a language on the first screen, by its name in its own script. */
 export async function chooseLanguage(page: Page, lang: Lang) {
-  await page.goto("/");
+  await page.goto(APP);
   await page.getByRole("button", { name: t(lang, `lang.${lang}`), exact: true }).click();
 }
 
