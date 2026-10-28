@@ -1,6 +1,7 @@
-import { type Engagement, Role, type UserId } from "@gigsync/protocol";
+import { type Engagement, Lang, Role, type UserId } from "@gigsync/protocol";
 import { ulid } from "ulid";
 import { newEngagement } from "./engagement/machine.js";
+import type { MessageKey, Params } from "./i18n/t.js";
 import { Collection, type Ports } from "./ports.js";
 import { Expert, type Route } from "./router/keyword.js";
 
@@ -12,13 +13,33 @@ export const CardKind = {
   needsModel: "needs_model",
 } as const;
 
+/** What the agent says, as a key each phone renders in its owner's language (`t(lang, key, params)`). */
+export interface Phrase {
+  key: MessageKey;
+  params?: Params;
+}
+
+/**
+ * Words the agent did not write from a key: the owner's own notes, quoted back, or a model's reply. `lang` is set
+ * when it is known (the model answers in English), so the phone can translate it for the owner.
+ */
+export interface Words {
+  text: string;
+  lang?: Lang;
+}
+
 /** A typed card the UI renders. Kept small on purpose; DynamicUI grows this in M1. */
 export type Card =
-  | { kind: typeof CardKind.text; body: string }
-  | { kind: typeof CardKind.saved; body: string; episode: string }
-  | { kind: typeof CardKind.answer; body: string; sources: string[] }
-  | { kind: typeof CardKind.draft; body: string; engagement: Engagement }
-  | { kind: typeof CardKind.needsModel; body: string };
+  | { kind: typeof CardKind.text; say: Phrase }
+  | { kind: typeof CardKind.text; words: Words }
+  | { kind: typeof CardKind.saved; say: Phrase; episode: string }
+  | { kind: typeof CardKind.answer; say: Phrase; sources: string[] }
+  | { kind: typeof CardKind.answer; words: Words; sources: string[] }
+  | { kind: typeof CardKind.draft; say: Phrase; engagement: Engagement }
+  | { kind: typeof CardKind.needsModel; say: Phrase };
+
+/** The language the on-device models answer in today (HLD 7.6); their replies are translated on the phone. */
+const MODEL_LANG = Lang.enum.en;
 
 /** Engagements the agent opens from a chat question. */
 const QUESTION_TOPIC = "question";
@@ -40,20 +61,23 @@ export async function runExpert(route: Route, ports: Ports, contacts: Contact[])
     case Expert.remember: {
       const episode: Episode = { id: `ep_${ulid(now.getTime())}`, text: route.text, created_at: now.toISOString() };
       await ports.storage.put(Collection.episodes, episode.id, episode);
-      return { kind: CardKind.saved, body: `Saved: "${route.text}"`, episode: episode.id };
+      return { kind: CardKind.saved, say: { key: "agent.saved", params: { text: route.text } }, episode: episode.id };
     }
     case Expert.askSelf: {
       const episodes = await ports.storage.list<Episode>(Collection.episodes);
       const hits = search(route.text, episodes).slice(0, 3);
-      if (hits.length === 0) return { kind: CardKind.answer, body: "I have nothing saved about that.", sources: [] };
+      if (hits.length === 0) return { kind: CardKind.answer, say: { key: "agent.nothing" }, sources: [] };
       const draft = await ports.model.generate(answerPrompt(route.text, hits));
       // Grounding rule: with no model we quote the notes; with one we still show which notes it used.
-      const body = draft ?? hits.map((h) => `• ${h.text}`).join("\n");
-      return { kind: CardKind.answer, body, sources: hits.map((h) => h.id) };
+      const words: Words = draft
+        ? { text: draft, lang: MODEL_LANG }
+        : { text: hits.map((h) => `• ${h.text}`).join("\n") };
+      return { kind: CardKind.answer, words, sources: hits.map((h) => h.id) };
     }
     case Expert.askContact: {
       const contact = contacts.find((c) => c.name.toLowerCase() === route.contact?.toLowerCase());
-      if (!contact) return { kind: CardKind.text, body: `I don't have ${route.contact} in your contacts yet.` };
+      if (!contact)
+        return { kind: CardKind.text, say: { key: "agent.no_contact", params: { name: route.contact ?? "" } } };
       const engagement = newEngagement(
         {
           role: Role.enum.requester,
@@ -63,29 +87,34 @@ export async function runExpert(route: Route, ports: Ports, contacts: Contact[])
         now,
       );
       await ports.storage.put(Collection.engagements, engagement.id, engagement);
-      return { kind: CardKind.draft, body: `Ask ${contact.name}: "${route.text}"?`, engagement };
+      return {
+        kind: CardKind.draft,
+        say: { key: "agent.ask_contact", params: { name: contact.name, text: route.text } },
+        engagement,
+      };
     }
     case Expert.setRule:
-      return { kind: CardKind.text, body: `Rules come in M2. I understood: ${route.text}` };
+      return { kind: CardKind.text, say: { key: "agent.rules_later", params: { text: route.text } } };
     case Expert.find:
-      return { kind: CardKind.text, body: `The marketplace comes in M3. I understood: ${route.text}` };
+      return { kind: CardKind.text, say: { key: "agent.market_later", params: { text: route.text } } };
     default: {
       const reply = await ports.model.generate(route.text);
       return reply
-        ? { kind: CardKind.text, body: reply }
-        : {
-            kind: CardKind.needsModel,
-            body: "I need a model for that. Download one in Settings, or ask about your notes.",
-          };
+        ? { kind: CardKind.text, words: { text: reply, lang: MODEL_LANG } }
+        : { kind: CardKind.needsModel, say: { key: "agent.needs_model" } };
     }
   }
 }
 
+/** Splits on anything that is not a letter, a combining mark or a digit, so Devanagari and Kannada words stay whole. */
+const NOT_WORD = /[^\p{L}\p{M}\p{N}]+/u;
+const MIN_WORD = 3;
+
 function search(query: string, episodes: Episode[]): Episode[] {
   const words = query
     .toLowerCase()
-    .split(/\W+/)
-    .filter((w) => w.length > 2);
+    .split(NOT_WORD)
+    .filter((w) => w.length >= MIN_WORD);
   return episodes
     .map((e) => ({ e, score: words.filter((w) => e.text.toLowerCase().includes(w)).length }))
     .filter((x) => x.score > 0)

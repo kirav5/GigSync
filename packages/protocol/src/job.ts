@@ -121,8 +121,18 @@ export type CancelReason = z.infer<typeof CancelReason>;
 export const Cancel = z.object({ reason: CancelReason, note: z.string().max(300).optional() });
 export type Cancel = z.infer<typeof Cancel>;
 
-/** `update` and `delivery`: a short note from the worker (on my way, done), tagged with the language it is in. */
-export const Note = z.object({ text: shortText, lang: Lang.default(DEFAULT_LANG) });
+/**
+ * The common progress notes, as codes: each phone renders them in its owner's language, so they never need machine
+ * translation (multilanguage plan §3.2). Anything else travels as free text and is translated on the reader's phone.
+ */
+export const UpdateCode = z.enum(["on_my_way", "started", "done", "delayed"]);
+export type UpdateCode = z.infer<typeof UpdateCode>;
+
+/**
+ * `update` and `delivery`: a short note from the worker, tagged with the language it is in. With a `code`, `text` is
+ * the sender's own wording of it, kept for the record; the reader's phone shows the code in its owner's language.
+ */
+export const Note = z.object({ text: shortText, lang: Lang.default(DEFAULT_LANG), code: UpdateCode.optional() });
 export type Note = z.infer<typeof Note>;
 
 export const MIN_STARS = 1;

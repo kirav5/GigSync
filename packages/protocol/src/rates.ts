@@ -14,6 +14,9 @@ const MIN_SCOPE_PERCENT = -50;
 const MAX_SCOPE_RULES = 10;
 const MAX_BANDS = 50;
 const MAX_INCLUDED = 50;
+const MAX_SIGNER = 120;
+/** A card nobody has signed yet: the app says so next to every number it plans from. */
+export const SEED_SIGNER = "seed";
 
 /** How a scope rule reads a detail: present or not, or a count beyond what the band already includes. */
 export const ScopeKind = z.enum(["flag", "count"]);
@@ -50,5 +53,7 @@ export const RateCard = z.object({
   city: z.string().min(1).max(60),
   version: z.number().int().min(1),
   bands: z.array(RateBand).max(MAX_BANDS),
+  /** Who stands behind these numbers: the union that signed the card, or "seed" until one does. */
+  signed_by: z.string().min(1).max(MAX_SIGNER).default(SEED_SIGNER),
 });
 export type RateCard = z.infer<typeof RateCard>;

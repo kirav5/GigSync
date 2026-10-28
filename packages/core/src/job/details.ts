@@ -8,6 +8,7 @@ import { DetailFlag, QuestionKey } from "@gigsync/protocol";
 /** Zero in each script whose digits people type on Indian phones: ASCII, Devanagari, Kannada. */
 const DIGIT_ZEROS = [0x30, 0x966, 0xce6] as const;
 const DIGITS = /[0-9०-९೦-೯]+/;
+const ALL_DIGITS = /[0-9०-९೦-೯]+/g;
 const BASE = 10;
 
 function digitValue(ch: string): number {
@@ -21,6 +22,16 @@ export function countIn(value: string | undefined): number | undefined {
   const run = value?.match(DIGITS)?.[0];
   if (!run) return undefined;
   return [...run].reduce((n, ch) => n * BASE + digitValue(ch), 0);
+}
+
+/** The text with every Devanagari or Kannada digit written as a Western one: what people type, as forms expect it. */
+export function asciiDigits(text: string): string {
+  return text.replace(ALL_DIGITS, (run) => [...run].map((ch) => String(digitValue(ch))).join(""));
+}
+
+/** Every whole number in a text, in any of those scripts, as values: "₹9,500 at 7" gives [9, 500, 7]. */
+export function numbersIn(text: string): number[] {
+  return (text.match(ALL_DIGITS) ?? []).map((run) => countIn(run) as number);
 }
 
 /**

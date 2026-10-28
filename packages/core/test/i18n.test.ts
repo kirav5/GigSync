@@ -1,6 +1,6 @@
 import { Lang, QuestionKey } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import { en } from "../src/i18n/en.js";
+import { en } from "../src/i18n/en/index.js";
 import { questionText, t } from "../src/index.js";
 
 const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();

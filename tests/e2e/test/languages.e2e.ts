@@ -1,5 +1,5 @@
 import { type Advice, questionText, ReasonKind, reasonText, TaskKind, type WorkerRules } from "@gigsync/core";
-import { type Clarify, type EngagementId, Lang, type RateCard } from "@gigsync/protocol";
+import { type Clarify, type EngagementId, Lang, type RateCard, SEED_SIGNER } from "@gigsync/protocol";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { near, newCentre, type Person, person, talk } from "./world.js";
 
@@ -16,6 +16,7 @@ const KANNADA = /[ಀ-೿]/;
 const RATES: RateCard = {
   city: "Bengaluru",
   version: 1,
+  signed_by: SEED_SIGNER,
   bands: [
     {
       trade: "cook",

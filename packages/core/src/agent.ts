@@ -37,7 +37,7 @@ export class Agent {
       card,
       at: this.ports.clock.now().toISOString(),
     });
-    log.debug("chat: reply", { kind: card.kind, body: pii(card.body) });
+    log.debug("chat: reply", { kind: card.kind, card: pii(JSON.stringify(card)) });
     // What happened, never what was said: the expert, the outcome, the size of the message and the time taken.
     log.info("chat handled", { expert: route.expert, card: card.kind, chars: text.length, ms: Date.now() - start });
     return { route, card };

@@ -1,7 +1,8 @@
 /**
  * The fallback router, used when no model is available ("lite mode") and as the first line in tests. Patterns only;
  * the model router that replaces it in M1 must return the same `Route` shape so experts never notice the swap.
- * English and Hindi (Latin script) words, since that is what the first users type.
+ * English and Hindi in Latin script, plus Hindi in Devanagari and Kannada in Kannada script for owners who chose
+ * those languages. JavaScript's `\b` only knows ASCII letters, so the Indic patterns spell their own boundaries.
  */
 export const Expert = {
   remember: "remember",
@@ -28,15 +29,34 @@ const FIND =
 const ASK_SELF = /\b(what did|when did|where did|did i|what's my|what is my|my notes|kya kaha|kab)\b/i;
 const ASK_CONTACT = /\b(is|are|where is|where's|when is|ask|free|busy|kahan|kahaan|khaali|free hai)\b/i;
 
+const REMEMBER_INDIC = /^(याद रखना|याद रखो|याद रख|नोट करो|नोट कर लो|ನೆನಪಿಡು|ನೆನಪಿಟ್ಟುಕೊ|ಬರೆದಿಡು)[\s:,।-]*/u;
+const REMEMBER_INDIC_END = /[\s,]*(याद रखना|याद रखो|ನೆನಪಿಡು)[\s।.]*$/u;
+const ASK_SELF_INDIC = /(क्या लिखा|क्या कहा|क्या नोट|मैंने क्या|कब तक|ಏನು ಬರೆದಿದ್ದೆ|ಏನು ಹೇಳಿದ್ದೆ|ನಾನು ಏನು|ಯಾವಾಗ)/u;
+const NEED_INDIC = /(चाहिए|ढूँढो|ढूंढो|बुक करो|ಬೇಕು|ಹುಡುಕಿ|ಹುಡುಕು)/u;
+const SOMEONE_INDIC =
+  /(इलेक्ट्रीशियन|बिजली|प्लंबर|रसोइया|खाना बनाने|कामवाली|ड्राइवर|बढ़ई|पेंटर|कोई|ಎಲೆಕ್ಟ್ರಿಷಿಯನ್|ಪ್ಲಂಬರ್|ಅಡುಗೆ|ಚಾಲಕ|ಡ್ರೈವರ್|ಕೆಲಸದವರು|ಯಾರಾದರೂ)/u;
+/** Letters and combining marks in any script: a name inside a longer word is not that name. */
+const LETTER = "[\\p{L}\\p{M}]";
+
+/** The note itself, with the "remember" words taken off the front or the back; undefined when it is not a note. */
+function noteText(t: string): string | undefined {
+  if (REMEMBER.test(t)) return t.replace(REMEMBER, "");
+  if (REMEMBER_INDIC.test(t)) return t.replace(REMEMBER_INDIC, "");
+  if (REMEMBER_INDIC_END.test(t)) return t.replace(REMEMBER_INDIC_END, "");
+  return undefined;
+}
+
 export function routeByKeywords(text: string, contacts: readonly string[]): Route {
   const t = text.trim();
-  const contact = contacts.find((c) => new RegExp(`\\b${escapeRe(c)}\\b`, "i").test(t));
+  const contact = contacts.find((c) => new RegExp(`(?<!${LETTER})${escapeRe(c)}(?!${LETTER})`, "iu").test(t));
+  const note = noteText(t);
 
-  if (REMEMBER.test(t)) return { expert: Expert.remember, text: t.replace(REMEMBER, "") };
+  if (note !== undefined) return { expert: Expert.remember, text: note };
   if (RULE.test(t) && contact) return { expert: Expert.setRule, contact, text: t };
-  if (FIND.test(t)) return { expert: Expert.find, text: t };
+  if (FIND.test(t) || (NEED_INDIC.test(t) && SOMEONE_INDIC.test(t))) return { expert: Expert.find, text: t };
   if (contact && ASK_CONTACT.test(t)) return { expert: Expert.askContact, contact, text: t };
-  if (ASK_SELF.test(t) || contact) return { expert: Expert.askSelf, ...(contact ? { contact } : {}), text: t };
+  if (ASK_SELF.test(t) || ASK_SELF_INDIC.test(t) || contact)
+    return { expert: Expert.askSelf, ...(contact ? { contact } : {}), text: t };
   return { expert: Expert.chat, text: t };
 }
 

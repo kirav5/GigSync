@@ -112,12 +112,13 @@ export class GigDevice {
   }
 
   // ── Worker ────────────────────────────────────────────────────────────────────────────────────────────────────────
-  async update(id: EngagementId, text: string): Promise<JobRecord> {
-    return after.sendUpdate(this.ctx, await this.job(id), text);
+  /** A progress note: a common code (`{ code: "on_my_way" }`) or the worker's own words. */
+  async update(id: EngagementId, say: after.Say): Promise<JobRecord> {
+    return after.sendUpdate(this.ctx, await this.job(id), say);
   }
 
-  async deliver(id: EngagementId, text: string): Promise<JobRecord> {
-    return after.sendDelivery(this.ctx, await this.job(id), text);
+  async deliver(id: EngagementId, say: after.Say): Promise<JobRecord> {
+    return after.sendDelivery(this.ctx, await this.job(id), say);
   }
 
   async requestPayment(id: EngagementId, note: string): Promise<Payment> {

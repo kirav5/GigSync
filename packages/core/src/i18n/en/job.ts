@@ -1,8 +1,5 @@
-/**
- * English strings, and the shape every language must match: a key missing from another language is a type error,
- * not an English word on a Hindi screen. Placeholders are `{name}`, filled by `t()`.
- */
-export const en = {
+/** The job between two phones: questions, details, the price plan, statuses, offers, signing, notes. */
+export const job = {
   "question.problem": "What exactly isn't working?",
   "question.rooms": "How many rooms, and which tasks?",
   "question.area_sqft": "Roughly how many square feet, inside or outside?",
@@ -54,11 +51,8 @@ export const en = {
   "job.reached": "Your agent reached {price}.",
   "job.sign": "Sign deal for {price}",
   "job.decline": "Decline",
-  "job.on_my_way": "On my way",
   "job.mark_done": "Mark done",
-  "job.work_done": "Work done",
   "job.ask_payment": "Ask for payment",
-  "job.notes": "Messages",
   "job.said_in": "in {lang}",
   "lang.en": "English",
   "lang.hi": "Hindi",
@@ -70,7 +64,39 @@ export const en = {
   "approve.flagged": "You asked to see these first: {items}.",
   "approve.yes": "Go ahead from {price}",
   "approve.no": "Turn it down",
+  "trade.electrician": "Electrician",
+  "trade.plumber": "Plumber",
+  "trade.maid": "Maid",
+  "trade.carpenter": "Carpenter",
+  "trade.ac_technician": "AC technician",
+  "trade.painter": "Painter",
+  "trade.cook": "Cook",
+  "trade.driver": "Driver",
+  "area.indiranagar": "Indiranagar",
+  "area.koramangala": "Koramangala",
+  "area.hsr_layout": "HSR Layout",
+  "area.jayanagar": "Jayanagar",
+  "area.whitefield": "Whitefield",
+  "city.bengaluru": "Bengaluru",
+  "update.on_my_way": "On my way",
+  "update.started": "Started work",
+  "update.done": "Work done",
+  "update.delayed": "Running late",
+  "pay.thread.requested": "requested",
+  "pay.thread.paid": "paid",
+  "pay.thread.confirmed": "confirmed",
+  "pay.thread.disputed": "disputed",
+  "job.payment": "Payment {price}: {status}",
+  "job.utr": "UPI ref {utr}",
+  "job.customer_paid": "Customer says they paid {price}.",
+  "job.money_received": "Money received",
+  "job.not_received": "Not received",
+  "job.pay_by_upi": "Pay {price} by UPI",
+  "job.open_upi": "Open in a UPI app",
+  "job.utr_placeholder": "12-digit UPI reference",
+  "job.paid": "I've paid",
+  "job.review_placeholder": "How did it go?",
+  "job.send_review": "Send review",
+  "job.note_placeholder": "A short note to the customer",
+  "job.send_note": "Send note",
 } as const;
-
-export type MessageKey = keyof typeof en;
-export type Strings = Readonly<Record<MessageKey, string>>;

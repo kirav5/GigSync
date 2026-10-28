@@ -7,6 +7,7 @@ import {
   type Lang,
   type MessageId,
   type RateCard,
+  SEED_SIGNER,
   signingBytes,
   type UserId,
 } from "@gigsync/protocol";
@@ -138,6 +139,7 @@ export const RAVI_HOME: ContactCard = { name: "Ravi", phone: "+919800000404", ad
 export const BENGALURU_RATES: RateCard = {
   city: "Bengaluru",
   version: 1,
+  signed_by: SEED_SIGNER,
   bands: [
     {
       trade: "cook",

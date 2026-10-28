@@ -7,7 +7,9 @@ import {
   PaymentRecord,
   type PaymentRequest,
   PaymentStatus,
+  type UpdateCode,
 } from "@gigsync/protocol";
+import { t } from "../i18n/t.js";
 import { log } from "../log.js";
 import { PaymentError } from "../payments/book.js";
 import { buildUpiUri } from "../payments/upi.js";
@@ -21,14 +23,23 @@ const S = PaymentStatus.enum;
 
 export class AftercareError extends Error {}
 
+/** What a worker says in a note: one of the common codes, or their own words. */
+export type Say = string | { code: UpdateCode };
+
+/** The note as it travels: a code goes with the sender's wording of it, free text with its language. */
+function noteOf(ctx: JobContext, say: Say): Note {
+  if (typeof say === "string") return { text: say, lang: ctx.lang };
+  return { text: t(ctx.lang, `update.${say.code}`), lang: ctx.lang, code: say.code };
+}
+
 /** Worker: on my way, or any progress note. */
-export function sendUpdate(ctx: JobContext, r: JobRecord, text: string): Promise<JobRecord> {
-  return ctx.send(r, K.update, { text, lang: ctx.lang } satisfies Note);
+export function sendUpdate(ctx: JobContext, r: JobRecord, say: Say): Promise<JobRecord> {
+  return ctx.send(r, K.update, noteOf(ctx, say));
 }
 
 /** Worker: the work is done. */
-export function sendDelivery(ctx: JobContext, r: JobRecord, text: string): Promise<JobRecord> {
-  return ctx.send(r, K.delivery, { text, lang: ctx.lang } satisfies Note);
+export function sendDelivery(ctx: JobContext, r: JobRecord, say: Say): Promise<JobRecord> {
+  return ctx.send(r, K.delivery, noteOf(ctx, say));
 }
 
 /** Worker: ask for the agreed price. The UPI ID travels sealed to the consumer and is not kept in the payment. */
