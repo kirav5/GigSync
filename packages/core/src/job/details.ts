@@ -1,4 +1,4 @@
-import { DetailFlag } from "@gigsync/protocol";
+import { DetailFlag, QuestionKey } from "@gigsync/protocol";
 
 /**
  * Reading the details a consumer gave (by key, from toggles and number pads in their app) without guessing at free
@@ -32,3 +32,6 @@ export function present(value: string | undefined): boolean {
   if (!v || v === DetailFlag.enum.no) return false;
   return countIn(v) !== 0;
 }
+
+/** Questions the consumer's app answers with a yes-or-no toggle, writing a `DetailFlag`, never typed text. */
+export const YES_NO_QUESTIONS: ReadonlySet<QuestionKey> = new Set([QuestionKey.enum.pets]);
