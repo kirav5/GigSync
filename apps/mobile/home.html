@@ -8,10 +8,11 @@
 <meta name="theme-color" content="#0a0a0a" />
 <link rel="icon" type="image/svg+xml" href="./icon.svg" />
 <script>
-  // Same look as the app (Settings › Look): saved choice, else the device's scheme.
+  // The site's own light/dark toggle wins; otherwise follow the app's Settings › Look, then the device.
+  // The site never writes the app's setting, so tapping the toggle here cannot change the app.
   let look = null;
   try {
-    look = localStorage.getItem("gigsync-look");
+    look = localStorage.getItem("gigsync-site-theme") || localStorage.getItem("gigsync-look");
   } catch {}
   document.documentElement.dataset.theme =
     look === "light" || look === "dark" ? look : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -338,13 +339,13 @@ footer a { color: var(--text2); text-decoration: none; }
 </footer>
 
 <script>
-  // Light / dark, shared with the app's Settings › Look.
+  // Light / dark for the website only (kept apart from the app's Settings › Look).
   const root = document.documentElement;
   document.getElementById("themeBtn").addEventListener("click", () => {
     const next = root.dataset.theme === "light" ? "dark" : "light";
     root.dataset.theme = next;
     try {
-      localStorage.setItem("gigsync-look", next);
+      localStorage.setItem("gigsync-site-theme", next);
     } catch {}
   });
   // A decorative QR pattern: finder squares in three corners, a fixed scatter elsewhere (not a scannable code).

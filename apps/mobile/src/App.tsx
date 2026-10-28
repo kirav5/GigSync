@@ -3,7 +3,8 @@ import type { Engagement } from "@gigsync/protocol";
 import { useEffect, useMemo, useState } from "react";
 import { type Account, AccountRole, deviceFor, loadAccount, signOut } from "./adapters/account.js";
 import { apiReachable } from "./adapters/api.js";
-import { createPorts, modelLabel } from "./adapters/ports.js";
+import { chosenModel } from "./adapters/model.js";
+import { createPorts } from "./adapters/ports.js";
 import { JobStep, jobStep } from "./payments/store.js";
 import { CONSUMER_NAV, Shell, WORKER_NAV } from "./Shell.js";
 import { AgentScreen } from "./screens/Agent.js";
@@ -46,6 +47,10 @@ export function App() {
       setAccount(a ?? null);
       if (a) setScreen(a.role === AccountRole.worker && a.worker ? Screen.requests : HOME[a.role]);
     });
+  }, [ports]);
+
+  useEffect(() => {
+    void chosenModel.load(ports.storage);
   }, [ports]);
 
   if (account === undefined) return null;
@@ -105,7 +110,7 @@ export function App() {
         <Pay data={gig} book={gig.book} jobId={payJob} onJob={setPayJob} go={setScreen} changed={gig.reload} />
       )}
       {screen === Screen.record && <Record data={gig} />}
-      {screen === Screen.agent && <AgentScreen agent={agent} modelLabel={modelLabel} />}
+      {screen === Screen.agent && <AgentScreen agent={agent} />}
       {screen === Screen.settings && <Settings ports={ports} data={gig} changed={gig.reload} />}
     </Shell>
   );
