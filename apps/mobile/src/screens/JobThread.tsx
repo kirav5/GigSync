@@ -1,4 +1,5 @@
-import { CancelReason, EngagementStatus, Role } from "@gigsync/protocol";
+import { t } from "@gigsync/core";
+import { CancelReason, DEFAULT_LANG, EngagementStatus, QuestionKey, Role } from "@gigsync/protocol";
 import { C } from "../ui/cls.js";
 import { money, TRADE_LABEL } from "../ui/places.js";
 import { type JobActionProps, JobActions } from "./JobActions.js";
@@ -8,6 +9,13 @@ const TALK = "tag talk";
 const WAIT = "tag wait";
 const FRESH = "tag fresh";
 const DANGER = "tag danger";
+
+/** A detail's label in the owner's language when it answers a known question, else its own name. */
+const detailLabel = (key: string) => {
+  const q = QuestionKey.safeParse(key);
+  // TODO(G1): the owner's language from settings.
+  return q.success ? t(DEFAULT_LANG, `detail.${q.data}`) : key;
+};
 
 const STATUS: Readonly<Record<EngagementStatus, { text: string; cls: string }>> = {
   [S.draft]: { text: "Sending", cls: TALK },
@@ -63,7 +71,7 @@ export function JobThread(props: JobActionProps) {
       {Object.keys(job.request.details).length > 0 && (
         <span className={C.faint}>
           {Object.entries(job.request.details)
-            .map(([k, v]) => `${k}: ${v}`)
+            .map(([k, v]) => `${detailLabel(k)}: ${v}`)
             .join(" · ")}
         </span>
       )}
