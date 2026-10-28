@@ -127,7 +127,7 @@ describe("consumer and worker, end to end through the real API and Neon", () => 
   it("Meera's budget is below every maid's minimum: no deal and no contact", async () => {
     const meera = await person("Meera", { autoConfirm: true, address: "Flat 8B" });
     const [job] = await meera.device.request(
-      need("maid", centre, 30000, "Daily cleaning", { rooms: "2 rooms, sweeping and mopping" }),
+      need("maid", centre, 30000, "Daily cleaning", { rooms: "2 rooms, sweeping and mopping", pets: "no" }),
       [gauri.session.user],
     );
     await talk(meera, gauri);

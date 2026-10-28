@@ -10,7 +10,7 @@ import {
   type WorkerRules,
 } from "@gigsync/core";
 import { newDeviceSecrets } from "@gigsync/crypto";
-import type { ContactCard, Place, Session, Trade } from "@gigsync/protocol";
+import type { ContactCard, Lang, Place, Session, Trade } from "@gigsync/protocol";
 
 /** The API under test: `pnpm dev:workers`, which talks to the Neon directory. */
 export const API = process.env.API_BASE ?? "http://localhost:8787";
@@ -62,7 +62,7 @@ export interface Person {
 
 export async function person(
   name: string,
-  opts: { worker?: WorkerRules; autoConfirm?: boolean; address?: string } = {},
+  opts: { worker?: WorkerRules; autoConfirm?: boolean; address?: string; lang?: Lang } = {},
 ): Promise<Person> {
   const keys = new SecretKeys(newDeviceSecrets());
   const phone = newPhone();
@@ -79,6 +79,7 @@ export async function person(
     contact,
     ...(opts.worker ? { worker: opts.worker } : {}),
     ...(opts.autoConfirm !== undefined ? { autoConfirm: opts.autoConfirm } : {}),
+    ...(opts.lang ? { lang: opts.lang } : {}),
   });
   return { name, contact, session, api, keys, device };
 }

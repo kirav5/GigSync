@@ -17,5 +17,3 @@ export function t(lang: Lang, key: MessageKey, params: Readonly<Record<string, s
 
 /** A question the other side's agent asked, in this owner's language. */
 export const questionText = (lang: Lang, key: QuestionKey): string => t(lang, `question.${key}`);
-
-export type { MessageKey };

@@ -10,7 +10,7 @@ import { Paise } from "./payment.js";
  */
 
 export const MAX_SCOPE_PERCENT = 100;
-export const MIN_SCOPE_PERCENT = -50;
+const MIN_SCOPE_PERCENT = -50;
 const MAX_SCOPE_RULES = 10;
 const MAX_BANDS = 50;
 const MAX_INCLUDED = 50;

@@ -64,7 +64,7 @@ export function median(values: readonly number[]): number | undefined {
 }
 
 /** The percentage each scope rule adds for these details; rules that do not apply are left out. */
-export function scopeApplied(rules: readonly ScopeRule[], details: Readonly<Record<string, string>>) {
+function scopeApplied(rules: readonly ScopeRule[], details: Readonly<Record<string, string>>) {
   const applied: { key: QuestionKey; percent: number }[] = [];
   for (const rule of rules) {
     const value = details[rule.key];
