@@ -70,7 +70,7 @@ describe("the price plan", () => {
   it("reads its reasons in the owner's language, with rupees as price tags show them", () => {
     const [bandReason, scope, last] = [...plan({ pets: "yes" }).reasons];
     expect(reasonText(Lang.enum.en, bandReason as never)).toBe("The going rate for this work here is ₹8,630–₹10,930.");
-    expect(reasonText(Lang.enum.hi, scope as never)).toBe("पालतू जानवर के लिए 15% ज़्यादा।");
+    expect(reasonText(Lang.enum.hi, scope as never)).toBe("पालतू जानवर: 15% ज़्यादा।");
     expect(reasonText(Lang.enum.kn, last as never)).toBe("₹10,930 ರಿಂದ ಶುರು ಮಾಡುತ್ತೇವೆ, ₹8,630 ಗಿಂತ ಕಡಿಮೆ ಹೋಗುವುದಿಲ್ಲ.");
   });
 });

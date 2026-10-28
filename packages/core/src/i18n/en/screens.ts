@@ -58,7 +58,7 @@ export const screens = {
   "card.soft": "Your lowest price stays on this phone.",
   "card.what": "What I do",
   "card.where": "Where I work",
-  "card.rate": "Usual rate for a visit, ₹ (shown on the board)",
+  "card.rate": "Usual rate, ₹ (shown on the board)",
   "card.min": "Lowest I will take, ₹ (private)",
   "card.vpa": "UPI ID to be paid on (private)",
   "card.about": "About my work",
