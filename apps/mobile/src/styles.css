@@ -707,6 +707,18 @@ a {
     max-width: 92%;
   }
 }
+/* Devanagari and Kannada have no capitals, and letter-spacing breaks their conjuncts: plain sans, normal spacing. */
+:lang(hi) .label,
+:lang(hi) .btn,
+:lang(hi) .tag,
+:lang(kn) .label,
+:lang(kn) .btn,
+:lang(kn) .tag {
+  font-family: var(--sans);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;

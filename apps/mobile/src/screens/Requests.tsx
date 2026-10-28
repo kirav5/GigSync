@@ -1,4 +1,5 @@
 import type { GigDevice } from "@gigsync/core";
+import type { Lang } from "@gigsync/protocol";
 import { C } from "../ui/cls.js";
 import type { GigView } from "../useGig.js";
 import { JobThread } from "./JobThread.js";
@@ -8,10 +9,11 @@ interface Props {
   view: GigView;
   device: GigDevice;
   run: (work: () => Promise<unknown>) => Promise<unknown>;
+  lang: Lang;
 }
 
 /** Every job this phone is in, newest first: requests to a worker, or a consumer's asks. */
-export function Requests({ isWorker, view, device, run }: Props) {
+export function Requests({ isWorker, view, device, run, lang }: Props) {
   const jobs = [...view.jobs].reverse();
   return (
     <>
@@ -29,7 +31,7 @@ export function Requests({ isWorker, view, device, run }: Props) {
         </div>
       )}
       {jobs.map((job) => (
-        <JobThread key={job.engagement.id} job={job} view={view} device={device} run={run} />
+        <JobThread key={job.engagement.id} job={job} view={view} device={device} run={run} lang={lang} />
       ))}
     </>
   );

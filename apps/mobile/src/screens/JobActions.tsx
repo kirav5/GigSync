@@ -1,8 +1,8 @@
-import { type GigDevice, type JobRecord, questionText, TaskKind } from "@gigsync/core";
+import { type GigDevice, type JobRecord, TaskKind, t } from "@gigsync/core";
 import {
-  DEFAULT_LANG,
   EngagementStatus,
   type JobTerms,
+  type Lang,
   type Payment,
   PaymentStatus,
   type Question,
@@ -13,12 +13,15 @@ import { qrDataUrl } from "../payments/qr.js";
 import { C } from "../ui/cls.js";
 import { money } from "../ui/places.js";
 import type { GigView } from "../useGig.js";
+import { AnswerForm, ApproveCard, type ApproveDetail } from "./JobDecide.js";
 
 export interface JobActionProps {
   job: JobRecord;
   view: GigView;
   device: GigDevice;
   run: (work: () => Promise<unknown>) => Promise<unknown>;
+  /** The owner's language, for everything on the job they read. */
+  lang: Lang;
 }
 
 const S = EngagementStatus.enum;
@@ -28,7 +31,7 @@ const SIGNED: ReadonlySet<EngagementStatus> = new Set([S.agreed, S.in_progress, 
 const STARS = [5, 4, 3, 2, 1] as const;
 
 /** The decisions and moves open to this owner on this job, and nothing else. */
-export function JobActions({ job, view, device, run }: JobActionProps) {
+export function JobActions({ job, view, device, run, lang }: JobActionProps) {
   const id = job.engagement.id;
   const status = job.engagement.status;
   const isWorker = job.engagement.role === Role.enum.provider;
@@ -37,20 +40,34 @@ export function JobActions({ job, view, device, run }: JobActionProps) {
   const confirm = task(TaskKind.confirmDeal);
   const questions = task(TaskKind.answerQuestions);
   const paid = task(TaskKind.confirmPayment);
+  const approve = task(TaskKind.approveRequest);
+  const price = (paise: number) => ({ price: money(paise) });
 
   return (
     <div className={C.stack}>
+      {approve && (
+        <ApproveCard
+          detail={approve.detail as ApproveDetail}
+          lang={lang}
+          onApprove={() => void run(() => device.approveRequest(id))}
+          onDecline={() => void run(() => device.declineRequest(id))}
+        />
+      )}
       {questions && (
-        <AnswerForm questions={questions.detail as Question[]} onSend={(a) => run(() => device.answer(id, a))} />
+        <AnswerForm
+          questions={questions.detail as Question[]}
+          lang={lang}
+          onSend={(a) => run(() => device.answer(id, a))}
+        />
       )}
       {confirm && (
         <fieldset className={C.row} aria-label="Sign the deal">
-          <span className={C.muted}>Your agent reached {money((confirm.detail as JobTerms).price_paise)}.</span>
+          <span className={C.muted}>{t(lang, "job.reached", price((confirm.detail as JobTerms).price_paise))}</span>
           <button type={C.button} className={C.accent} onClick={() => void run(() => device.confirmDeal(id))}>
-            Sign deal for {money((confirm.detail as JobTerms).price_paise)}
+            {t(lang, "job.sign", price((confirm.detail as JobTerms).price_paise))}
           </button>
           <button type={C.button} className={C.secondary} onClick={() => void run(() => device.declineDeal(id))}>
-            Decline
+            {t(lang, "job.decline")}
           </button>
         </fieldset>
       )}
@@ -60,18 +77,18 @@ export function JobActions({ job, view, device, run }: JobActionProps) {
             <button
               type={C.button}
               className={C.secondary}
-              onClick={() => void run(() => device.update(id, "On my way"))}
+              onClick={() => void run(() => device.update(id, t(lang, "job.on_my_way")))}
             >
-              On my way
+              {t(lang, "job.on_my_way")}
             </button>
           )}
           {status !== S.delivered && (
             <button
               type={C.button}
               className={C.secondary}
-              onClick={() => void run(() => device.deliver(id, "Work done"))}
+              onClick={() => void run(() => device.deliver(id, t(lang, "job.work_done")))}
             >
-              Mark done
+              {t(lang, "job.mark_done")}
             </button>
           )}
           {payments.length === 0 && (
@@ -80,7 +97,7 @@ export function JobActions({ job, view, device, run }: JobActionProps) {
               className={C.accent}
               onClick={() => void run(() => device.requestPayment(id, job.request.need.slice(0, 40)))}
             >
-              Ask for payment
+              {t(lang, "job.ask_payment")}
             </button>
           )}
         </div>
@@ -112,35 +129,6 @@ export function JobActions({ job, view, device, run }: JobActionProps) {
         <ReviewForm onSend={(stars, text) => run(() => device.review(id, { stars, text }))} />
       )}
     </div>
-  );
-}
-
-function AnswerForm({
-  questions,
-  onSend,
-}: {
-  questions: Question[];
-  onSend: (a: Record<string, string>) => Promise<unknown>;
-}) {
-  function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const v = new FormData(e.currentTarget);
-    void onSend(Object.fromEntries(questions.map((q) => [q.key, String(v.get(q.key) ?? "").trim()])));
-  }
-  return (
-    <form className={C.stack} onSubmit={submit} aria-label="Answer the worker">
-      {questions.map((q) => (
-        <label key={q.key} className={C.fieldLabel}>
-          <span className={C.muted}>The worker asks: {questionText(DEFAULT_LANG, q.key)}</span>
-          <input className={C.field} name={q.key} required aria-label={questionText(DEFAULT_LANG, q.key)} />
-        </label>
-      ))}
-      <div>
-        <button type={C.submit} className={C.btn}>
-          Send answers
-        </button>
-      </div>
-    </form>
   );
 }
 

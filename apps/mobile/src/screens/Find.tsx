@@ -1,5 +1,5 @@
-import { type GigDevice, type Ports, QUESTIONS, questionText } from "@gigsync/core";
-import { type BoardWorker, DEFAULT_LANG, Trade } from "@gigsync/protocol";
+import { type GigDevice, type Ports, QUESTIONS, questionText, t } from "@gigsync/core";
+import { type BoardWorker, Lang, Trade } from "@gigsync/protocol";
 import { type FormEvent, useState } from "react";
 import { type Account, apiClient, rememberName } from "../adapters/account.js";
 import { C } from "../ui/cls.js";
@@ -9,15 +9,22 @@ const RADII_KM = [5, 10, 25] as const;
 /** The consumer's agent opens at this share of their budget and concedes toward the full budget. */
 const OPENING_SHARE = 0.7;
 
+/** A language a worker listed, named in the owner's language when the app has strings for it, else its code. */
+function languageName(owner: Lang, code: string): string {
+  const known = Lang.safeParse(code);
+  return known.success ? t(owner, `lang.${known.data}`) : code;
+}
+
 interface Props {
   ports: Ports;
   account: Account;
   device: GigDevice;
+  lang: Lang;
   onAsked: () => void;
 }
 
 /** Find workers near you for one need, then let your agent ask the ones you pick. Your budget stays here. */
-export function Find({ ports, account, device, onAsked }: Props) {
+export function Find({ ports, account, device, lang, onAsked }: Props) {
   const [trade, setTrade] = useState<Trade>(Trade.enum.electrician);
   const [area, setArea] = useState(AREAS[0]?.name ?? "");
   const [found, setFound] = useState<BoardWorker[]>();
@@ -43,9 +50,8 @@ export function Find({ ports, account, device, onAsked }: Props) {
     }
   }
 
-  // TODO(G1): the owner's language from Settings; until then screens render in the default language.
   const first = QUESTIONS[trade][0];
-  const firstQuestion = first ? questionText(DEFAULT_LANG, first) : "";
+  const firstQuestion = first ? questionText(lang, first) : "";
 
   async function ask(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -131,8 +137,11 @@ export function Find({ ports, account, device, onAsked }: Props) {
                 <div className="who">
                   <strong>{w.display_name}</strong>
                   <span className={C.muted}>
-                    {w.trades.map((t) => TRADE_LABEL[t]).join(", ")} · {w.area_name} · {w.distance_km} km
+                    {w.trades.map((tr) => TRADE_LABEL[tr]).join(", ")} · {w.area_name} · {w.distance_km} km
                   </span>
+                  {w.languages.length > 0 && (
+                    <span className={C.faint}>{w.languages.map((l) => languageName(lang, l)).join(", ")}</span>
+                  )}
                 </div>
                 <span className={`${C.money} end`}>from {money(w.rate_paise)}</span>
               </div>

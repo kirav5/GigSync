@@ -26,4 +26,6 @@ export const C = {
   linkBtn: "link-btn",
   error: "error",
   off: "off",
+  chip: "chip",
+  chipOn: "chip on",
 } as const;

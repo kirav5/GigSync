@@ -1,8 +1,9 @@
-import { t } from "@gigsync/core";
-import { CancelReason, DEFAULT_LANG, EngagementStatus, QuestionKey, Role } from "@gigsync/protocol";
+import { countIn, t } from "@gigsync/core";
+import { DetailFlag, EngagementStatus, type Lang, QuestionKey, Role } from "@gigsync/protocol";
 import { C } from "../ui/cls.js";
 import { money, TRADE_LABEL } from "../ui/places.js";
 import { type JobActionProps, JobActions } from "./JobActions.js";
+import { PlanCard } from "./JobDecide.js";
 
 const S = EngagementStatus.enum;
 const TALK = "tag talk";
@@ -10,51 +11,52 @@ const WAIT = "tag wait";
 const FRESH = "tag fresh";
 const DANGER = "tag danger";
 
-/** A detail's label in the owner's language when it answers a known question, else its own name. */
-const detailLabel = (key: string) => {
+/** How each status looks; its words come from the owner's language (`status.<name>`). */
+const TAG: Readonly<Record<EngagementStatus, string>> = {
+  [S.draft]: TALK,
+  [S.sent]: TALK,
+  [S.clarifying]: WAIT,
+  [S.responded]: TALK,
+  [S.negotiating]: TALK,
+  [S.confirming]: WAIT,
+  [S.agreed]: FRESH,
+  [S.in_progress]: FRESH,
+  [S.delivered]: FRESH,
+  [S.revision]: WAIT,
+  [S.closed]: FRESH,
+  [S.declined]: DANGER,
+  [S.expired]: DANGER,
+  [S.cancelled]: DANGER,
+};
+
+/** A value that is only a number, in any script people type on Indian phones ("3", "३", "೩"). */
+const NUMBER_ONLY = /^[0-9०-९೦-೯]+$/;
+
+/**
+ * A detail as "label: value" in the owner's language: known questions by their short name, yes and no as words, a
+ * bare number in the digits every reader shares. Other free text shows as written until on-device translation.
+ */
+function detailText(lang: Lang, key: string, value: string): string {
   const q = QuestionKey.safeParse(key);
-  // TODO(G1): the owner's language from settings.
-  return q.success ? t(DEFAULT_LANG, `detail.${q.data}`) : key;
-};
+  const flag = DetailFlag.safeParse(value);
+  const label = q.success ? t(lang, `detail.${q.data}`) : key;
+  const shown = flag.success ? t(lang, `flag.${flag.data}`) : NUMBER_ONLY.test(value) ? String(countIn(value)) : value;
+  return `${label}: ${shown}`;
+}
 
-const STATUS: Readonly<Record<EngagementStatus, { text: string; cls: string }>> = {
-  [S.draft]: { text: "Sending", cls: TALK },
-  [S.sent]: { text: "Asked", cls: TALK },
-  [S.clarifying]: { text: "Question asked", cls: WAIT },
-  [S.responded]: { text: "Answered", cls: TALK },
-  [S.negotiating]: { text: "Agents negotiating", cls: TALK },
-  [S.confirming]: { text: "Waiting for a signature", cls: WAIT },
-  [S.agreed]: { text: "Agreed", cls: FRESH },
-  [S.in_progress]: { text: "On the way", cls: FRESH },
-  [S.delivered]: { text: "Done", cls: FRESH },
-  [S.revision]: { text: "Fixing", cls: WAIT },
-  [S.closed]: { text: "Closed", cls: FRESH },
-  [S.declined]: { text: "Declined", cls: DANGER },
-  [S.expired]: { text: "Expired", cls: DANGER },
-  [S.cancelled]: { text: "Cancelled", cls: DANGER },
-};
-
-const CR = CancelReason.enum;
-const REASON: Readonly<Record<CancelReason, string>> = {
-  [CR.no_match]: "Does not take this kind of job, or this area",
-  [CR.no_deal]: "No price inside both limits",
-  [CR.declined_by_owner]: "Turned down the deal",
-  [CR.taken]: "Booked with another worker",
-  [CR.other]: "Cancelled",
-};
-
-/** One job as this owner sees it: who, what, the agents' offers, the deal, the contact, the money. */
+/** One job as this owner sees it: who, what, the agents' offers, the deal, the contact, notes, the money. */
 export function JobThread(props: JobActionProps) {
-  const { job, view } = props;
+  const { job, view, lang } = props;
   const e = job.engagement;
   const isWorker = e.role === Role.enum.provider;
-  const them = view.names[e.counterpart] || job.contact?.name || (isWorker ? "Customer" : "Worker");
-  const tag = STATUS[e.status];
+  const them = view.names[e.counterpart] || job.contact?.name || t(lang, isWorker ? "job.customer" : "job.worker");
   const terms = job.mine?.terms;
   const payments = view.payments.filter((p) => p.engagement === e.id);
+  const details = Object.entries(job.request.details);
+  const notes = job.notes ?? [];
 
   return (
-    <article className={C.card} aria-label={`Job with ${them}`} data-status={e.status}>
+    <article className={C.card} aria-label={`Job with ${them}`} data-status={e.status} lang={lang}>
       <div className={C.row}>
         <span className="avatar" aria-hidden="true">
           {them.slice(0, 1).toUpperCase()}
@@ -65,40 +67,53 @@ export function JobThread(props: JobActionProps) {
             {TRADE_LABEL[job.request.trade]} · {job.request.need} · {job.request.when}
           </span>
         </div>
-        <span className={`${tag.cls} end`}>{tag.text}</span>
+        <span className={`${TAG[e.status]} end`}>{t(lang, `status.${e.status}`)}</span>
       </div>
 
-      {Object.keys(job.request.details).length > 0 && (
-        <span className={C.faint}>
-          {Object.entries(job.request.details)
-            .map(([k, v]) => `${detailLabel(k)}: ${v}`)
-            .join(" · ")}
-        </span>
+      {details.length > 0 && (
+        <span className={C.faint}>{details.map(([k, v]) => detailText(lang, k, v)).join(" · ")}</span>
       )}
+      {isWorker && job.advice && <PlanCard advice={job.advice} lang={lang} />}
       {job.offers.length > 0 && (
         <ol className="offers" aria-label="Offers">
           {job.offers.map(({ by, offer }) => (
             <li key={offer.offer_id}>
-              {by === e.role ? "Your agent" : `${them}'s agent`} offered <b>{money(offer.price_paise)}</b>
+              {by === e.role
+                ? t(lang, "job.mine_offered", { price: money(offer.price_paise) })
+                : t(lang, "job.theirs_offered", { name: them, price: money(offer.price_paise) })}
             </li>
           ))}
         </ol>
       )}
       {terms && (
         <fieldset aria-label="Deal">
-          Signed: <b>{money(terms.price_paise)}</b> · {terms.slot}
-          {job.theirs ? " · both signed" : " · waiting for their signature"}
+          {t(lang, "job.signed", { price: money(terms.price_paise), slot: terms.slot })} ·{" "}
+          {t(lang, job.theirs ? "job.both_signed" : "job.their_signature")}
         </fieldset>
       )}
       {job.contact && (
         <fieldset className="contact" aria-label="Contact">
-          <span className={C.label}>Contact, released after both signed</span>
+          <span className={C.label}>{t(lang, "job.contact")}</span>
           <strong>{job.contact.name}</strong>
           <span>{job.contact.phone}</span>
           {job.contact.address && <span>{job.contact.address}</span>}
         </fieldset>
       )}
-      {job.cancel && <p className={C.error}>{REASON[job.cancel.reason]}</p>}
+      {notes.length > 0 && (
+        <ul className={C.stack} aria-label="Notes">
+          {notes.map((n, i) => (
+            // Notes have no id; the list only grows, so the position is stable.
+            // biome-ignore lint/suspicious/noArrayIndexKey: append-only list
+            <li key={i} lang={n.lang}>
+              <b>{n.text}</b>
+              {n.lang !== lang && (
+                <span className={C.faint}> · {t(lang, "job.said_in", { lang: t(lang, `lang.${n.lang}`) })}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      {job.cancel && <p className={C.error}>{t(lang, `cancel.${job.cancel.reason}`)}</p>}
       {payments.map((p) => (
         <fieldset key={p.id} aria-label="Payment">
           Payment {money(p.amount_paise)}: <b>{p.status}</b>

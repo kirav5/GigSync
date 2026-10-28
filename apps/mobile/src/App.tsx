@@ -1,5 +1,5 @@
 import { Agent } from "@gigsync/core";
-import type { Engagement } from "@gigsync/protocol";
+import { DEFAULT_LANG, type Engagement } from "@gigsync/protocol";
 import { useEffect, useMemo, useState } from "react";
 import { type Account, AccountRole, deviceFor, loadAccount, signOut } from "./adapters/account.js";
 import { apiReachable } from "./adapters/api.js";
@@ -75,6 +75,7 @@ export function App() {
   }
 
   const isWorker = account.role === AccountRole.worker;
+  const lang = account.lang ?? DEFAULT_LANG;
   const pay = (job: Engagement) => {
     setPayJob(job.id);
     setScreen(Screen.pay);
@@ -100,10 +101,10 @@ export function App() {
       status={status}
     >
       {screen === Screen.find && (
-        <Find ports={ports} account={account} device={device} onAsked={() => setScreen(Screen.requests)} />
+        <Find ports={ports} account={account} device={device} lang={lang} onAsked={() => setScreen(Screen.requests)} />
       )}
-      {screen === Screen.requests && <Requests isWorker={isWorker} view={view} device={device} run={run} />}
-      {screen === Screen.card && <MyCard ports={ports} account={account} onSaved={setAccount} />}
+      {screen === Screen.requests && <Requests isWorker={isWorker} view={view} device={device} run={run} lang={lang} />}
+      {screen === Screen.card && <MyCard ports={ports} account={account} lang={lang} onSaved={setAccount} />}
       {screen === Screen.today && <Today data={gig} go={setScreen} pay={pay} />}
       {screen === Screen.jobs && <Jobs ports={ports} data={gig} changed={gig.reload} pay={pay} />}
       {screen === Screen.pay && (

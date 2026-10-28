@@ -1,4 +1,5 @@
-import type { Ports } from "@gigsync/core";
+import { type Ports, t } from "@gigsync/core";
+import { DEFAULT_LANG, Lang } from "@gigsync/protocol";
 import { type FormEvent, useState } from "react";
 import { type Account, AccountRole, sendCode, signIn } from "../adapters/account.js";
 import { C } from "../ui/cls.js";
@@ -14,6 +15,7 @@ const ROLES: readonly { role: AccountRole; label: string }[] = [
 /** Phone and one-time code. The code goes to the server; this phone's private keys never do. */
 export function SignIn({ ports, onSignedIn }: { ports: Ports; onSignedIn: (a: Account) => void }) {
   const [role, setRole] = useState<AccountRole>(AccountRole.consumer);
+  const [lang, setLang] = useState<Lang>(DEFAULT_LANG);
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -32,7 +34,7 @@ export function SignIn({ ports, onSignedIn }: { ports: Ports; onSignedIn: (a: Ac
       }
       const address = String(v.get(F.address) ?? "").trim();
       const contact = { name: String(v.get(F.name) ?? "").trim(), phone, ...(address ? { address } : {}) };
-      onSignedIn(await signIn(ports, { phone, code: String(v.get(F.code) ?? "").trim(), role, contact }));
+      onSignedIn(await signIn(ports, { phone, code: String(v.get(F.code) ?? "").trim(), role, contact, lang }));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -51,9 +53,17 @@ export function SignIn({ ports, onSignedIn }: { ports: Ports; onSignedIn: (a: Ac
       <form className={C.card} onSubmit={(e) => void submit(e)} aria-label="Sign in">
         <fieldset className={C.row} aria-label="Role">
           {ROLES.map((r) => (
-            <label key={r.role} className={role === r.role ? "chip on" : "chip"}>
+            <label key={r.role} className={role === r.role ? C.chipOn : C.chip}>
               <input type="radio" name="role" checked={role === r.role} onChange={() => setRole(r.role)} />
               {r.label}
+            </label>
+          ))}
+        </fieldset>
+        <fieldset className={C.row} aria-label="Language">
+          {Lang.options.map((l) => (
+            <label key={l} lang={l} className={lang === l ? C.chipOn : C.chip}>
+              <input type="radio" name="lang" checked={lang === l} onChange={() => setLang(l)} />
+              {t(l, `lang.${l}`)}
             </label>
           ))}
         </fieldset>
