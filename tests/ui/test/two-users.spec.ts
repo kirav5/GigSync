@@ -58,6 +58,10 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await card.getByLabel("About my work").fill("Wiring, fans and switchboards, 10 years");
   await card.getByRole("button", { name: "Publish my card" }).click();
   await expect(card.getByText(/On the board: Electrician in Indiranagar from ₹700/)).toBeVisible();
+  // The app restarts: the keys his phone registered at sign-in must be the keys it kept, or Priya's request,
+  // sealed to them, cannot be opened.
+  await anil.reload();
+  await expect(anil.getByRole("button", { name: "Open menu" })).toBeVisible();
 
   // ── Priya signs in and finds electricians near Indiranagar ──────────────────────────────────────────────────────
   await signIn(priya, { role: Role.consumer, name: priyaName, phone: newPhone(), address: ADDRESS });

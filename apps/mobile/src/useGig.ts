@@ -22,11 +22,15 @@ const EMPTY: GigView = { jobs: [], tasks: [], payments: [], requests: {}, names:
 
 /**
  * Keeps the job screens in step with the agent: syncs on a timer and after every owner action, one at a time, so an
- * action never races a sync over the same job.
+ * action never races a sync over the same job. A slow phone must not pile up timer syncs, and a sync queued for a
+ * replaced device (publishing a card makes a new one, with the worker's rules) must not run: the old device would
+ * take a request it has no rules for and drop it.
  */
 export function useGig(ports: Ports, device: GigDevice | undefined) {
   const [view, setView] = useState<GigView>(EMPTY);
   const queue = useRef<Promise<unknown>>(Promise.resolve());
+  const current = useRef(device);
+  const timerQueued = useRef(false);
 
   const read = useCallback(async () => {
     if (!device) return;
@@ -55,7 +59,7 @@ export function useGig(ports: Ports, device: GigDevice | undefined) {
   const run = useCallback(
     (work?: () => Promise<unknown>) => {
       const next = queue.current.then(async () => {
-        if (!device) return;
+        if (!device || current.current !== device) return;
         try {
           if (work) await work();
           await device.sync();
@@ -73,10 +77,17 @@ export function useGig(ports: Ports, device: GigDevice | undefined) {
   );
 
   useEffect(() => {
+    current.current = device;
     setView(EMPTY);
     if (!device) return;
     void run();
-    const timer = setInterval(() => void run(), SYNC_MS);
+    const timer = setInterval(() => {
+      if (timerQueued.current) return;
+      timerQueued.current = true;
+      void run().finally(() => {
+        timerQueued.current = false;
+      });
+    }, SYNC_MS);
     return () => clearInterval(timer);
   }, [device, run]);
 
