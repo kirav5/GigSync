@@ -2,10 +2,11 @@ import { type TranslateEngine, TranslateState, Translations } from "@gigsync/cor
 import { GigSyncTranslate, type PairStatus } from "@gigsync/plugin-translate";
 import type { Lang } from "@gigsync/protocol";
 
-/** What runs translation on this device: Chrome's built-in translator on the web, ML Kit on Android. */
+/** What runs translation on this device: Chrome's translator on the web, ML Kit on Android, Apple's on iPhone. */
 export const ENGINE_NAMES: Readonly<Record<string, string>> = {
   "chrome-built-in": "Chrome (on this computer)",
   mlkit: "ML Kit (on this phone)",
+  "apple-translation": "Apple Translation (on this phone)",
 };
 /** The engine name the plugin reports when nothing on this device can translate. */
 export const NO_ENGINE = "none";
@@ -20,12 +21,29 @@ export async function pairStatus(from: Lang, to: Lang): Promise<PairStatus> {
   }
 }
 
+/**
+ * Bumped whenever a language pack finishes downloading, so every line of translated text on screen asks again,
+ * not only the one whose button was tapped.
+ */
+let packs = 0;
+const listeners = new Set<() => void>();
+export const packsChanged = {
+  subscribe(fn: () => void) {
+    listeners.add(fn);
+    return () => listeners.delete(fn);
+  },
+  version: () => packs,
+};
+
 /** Fetches a language pack. Only from an owner's tap: engines refuse downloads without one. */
 export async function preparePair(from: Lang, to: Lang): Promise<PairStatus> {
   try {
     return await GigSyncTranslate.prepare({ from, to });
   } catch {
     return NONE;
+  } finally {
+    packs += 1;
+    for (const fn of listeners) fn();
   }
 }
 
