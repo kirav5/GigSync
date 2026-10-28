@@ -1,37 +1,40 @@
 import { t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
+import { type FormEvent, useState } from "react";
 import { C } from "../ui/cls.js";
 
 /**
- * The first screen: three big buttons, each language named in its own script, and the heading in all three, so
- * someone who reads only one of them can still choose. Everything after this speaks the chosen language.
+ * The first screen, before the app knows the owner's language. One list, made from the languages the app ships,
+ * each named in its own script; the heading and button speak the selected language, starting from the phone's own,
+ * and change as the owner picks, as Android's and iOS's own setup screens do. A new language is one more catalog,
+ * not one more heading.
  */
 export function LanguageChooser({ suggested, onChoose }: { suggested: Lang; onChoose: (lang: Lang) => void }) {
+  const [picked, setPicked] = useState(suggested);
+
+  function submit(e: FormEvent) {
+    e.preventDefault();
+    onChoose(picked);
+  }
+
   return (
-    <div className={C.stack}>
-      {Lang.options.map((l) => (
-        <h1 key={l} lang={l} className={C.headline}>
-          {t(l, "onboard.title")}
-        </h1>
-      ))}
-      <fieldset className={C.stack} aria-label={Lang.options.map((l) => t(l, "a11y.language")).join(" · ")}>
+    <form className={C.stack} lang={picked} onSubmit={submit} aria-label={t(picked, "onboard.title")}>
+      <h1 className={C.headline}>{t(picked, "onboard.title")}</h1>
+      <fieldset className="lang-list" aria-label={t(picked, "a11y.language")}>
         {Lang.options.map((l) => (
-          <button
-            key={l}
-            type={C.button}
-            lang={l}
-            className={l === suggested ? C.wide : `${C.secondary} wide`}
-            onClick={() => onChoose(l)}
-          >
-            {t(l, `lang.${l}`)}
-          </button>
+          <label key={l} className={l === picked ? "lang-option on" : "lang-option"}>
+            <input type="radio" name="lang" value={l} checked={l === picked} onChange={() => setPicked(l)} />
+            <span lang={l} className="lang-native">
+              {t(l, `lang.${l}`)}
+            </span>
+            {l !== picked && <span className={C.faint}>{t(picked, `lang.${l}`)}</span>}
+          </label>
         ))}
       </fieldset>
-      {Lang.options.map((l) => (
-        <span key={l} lang={l} className={C.faint}>
-          {t(l, "onboard.later")}
-        </span>
-      ))}
-    </div>
+      <button type={C.submit} className={C.wide}>
+        {t(picked, "onboard.continue")}
+      </button>
+      <span className={C.faint}>{t(picked, "onboard.later")}</span>
+    </form>
   );
 }

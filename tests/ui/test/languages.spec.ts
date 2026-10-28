@@ -9,7 +9,8 @@ import { pairKey, type TranslationTable, useTableTranslator } from "./translator
  * Agent-flows §1 through the app's real screens, each phone entirely in its owner's language: a Hindi-speaking worker
  * with a Kannada-speaking household, then with an English-speaking one. Keys, numbers and signed terms cross between
  * phones; the free text people type is translated on the reader's phone (here by a table standing in for Chrome's
- * built-in translator), shown under the original, and withheld if a number changed.
+ * built-in translator), shown in place of the original with the original a tap away, and withheld if a number
+ * changed.
  */
 
 const KORAMANGALA = { lat: 12.9352, lon: 77.6245 };
@@ -108,6 +109,7 @@ test("Hindi cook, Kannada household: every screen in its own language, free text
   await expect(card).toContainText(t(kn, "lang.hi"));
   await expect(card).toContainText("ಉತ್ತರ ಮತ್ತು ದಕ್ಷಿಣ ಭಾರತೀಯ ಅಡುಗೆ"); // her Hindi "about", translated on his phone
   await expect(card).toContainText(t(kn, "said.translated", { lang: t(kn, "lang.hi") }));
+  await expect(card).not.toContainText(HI_ABOUT_COOK); // only his language, until he asks for the original
   await shoot("card-and-search", shots, folder);
   await ravi.page.getByRole("button", { name: plural(kn, "find.ask", 1) }).click();
 
@@ -125,6 +127,14 @@ test("Hindi cook, Kannada household: every screen in its own language, free text
   const job = asha.page.getByRole("article");
   await expect(job).toContainText("सुबह खाना बनाने वाले चाहिए");
   await expect(job).toContainText("सुबह और रात");
+  await expect(job).not.toContainText(KN_NEED);
+  await job
+    .getByRole("button", { name: t(hi, "said.show") })
+    .first()
+    .click();
+  await expect(job).toContainText(KN_NEED);
+  await job.getByRole("button", { name: t(hi, "said.hide") }).click();
+  await expect(job).not.toContainText(KN_NEED);
   const check = asha.page.getByRole("group", { name: t(hi, "a11y.approve") });
   await expect(check).toBeVisible();
   await expect(asha.page.getByRole("group", { name: t(hi, "a11y.plan") })).toContainText("₹12,600");

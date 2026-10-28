@@ -46,7 +46,7 @@ export function ApproveCard({
     <fieldset className={C.stack} aria-label={t("a11y.approve")}>
       <span className={C.label}>{t("approve.title")}</span>
       <span>{t("approve.flagged", { items })}</span>
-      <div className={C.row}>
+      <div className={C.actions}>
         <button type={C.button} className={C.accent} onClick={onApprove}>
           {t("approve.yes", { price: money(detail.advice.mandate.opening_paise) })}
         </button>

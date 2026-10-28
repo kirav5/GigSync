@@ -42,7 +42,7 @@ export const job = {
   "job.worker": "Worker",
   "job.mine_offered": "Your agent offered {price}",
   "job.theirs_offered": "{name}'s agent offered {price}",
-  "job.signed": "Signed: {price} · {slot}",
+  "job.signed": "Signed: {price}",
   "job.both_signed": "both signed",
   "job.their_signature": "waiting for their signature",
   "job.contact": "Contact, released after both signed",

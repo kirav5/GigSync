@@ -21,10 +21,11 @@ type Role = (typeof Role)[keyof typeof Role];
 
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-/** Picks a language on the first screen, by its name in its own script. */
+/** Picks a language on the first screen, by its name in its own script, then continues in it. */
 export async function chooseLanguage(page: Page, lang: Lang) {
   await page.goto(APP);
-  await page.getByRole("button", { name: t(lang, `lang.${lang}`), exact: true }).click();
+  await page.getByRole("radio", { name: new RegExp(`^${escapeRe(t(lang, `lang.${lang}`))}`) }).check();
+  await page.getByRole("button", { name: t(lang, "onboard.continue") }).click();
 }
 
 /** Signs in through the app's own screens, in the person's language: language first, then role, name, number, code. */

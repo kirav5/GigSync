@@ -69,7 +69,7 @@ export function SignIn({
         </span>
       </div>
       <form className={C.card} onSubmit={(e) => void submit(e)} aria-label={t("signin.label")}>
-        <fieldset className={C.row} aria-label={t("a11y.role")}>
+        <fieldset className={C.actions} aria-label={t("a11y.role")}>
           {ROLES.map((r) => (
             <label key={r.role} className={role === r.role ? C.chipOn : C.chip}>
               <input type="radio" name="role" checked={role === r.role} onChange={() => setRole(r.role)} />

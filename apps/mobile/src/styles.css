@@ -165,12 +165,16 @@ a {
   background: var(--inverse);
   color: var(--on-inverse);
   cursor: pointer;
-  white-space: nowrap;
   text-decoration: none;
+  /* 48px: Material's touch target, above Apple's 44pt. Long Hindi or Kannada labels wrap instead of running off. */
+  min-height: 48px;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 .btn.compact {
   font-size: 11px;
   padding: 7px 11px;
+  min-height: 40px;
 }
 .btn.accent {
   background: var(--accent);
@@ -250,8 +254,12 @@ a {
   color: var(--accent-ink);
 }
 .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
   font-size: 13px;
-  padding: 6px 10px;
+  padding: 6px 12px;
   border-radius: 3px;
   border: 1px solid var(--hairline);
   background: var(--surface);
@@ -275,6 +283,20 @@ a {
 }
 .row .end {
   margin-left: auto;
+}
+/* A decision's buttons: side by side when there is room, stacked full width on a phone, in reading order. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.actions > .btn {
+  flex: 1 1 auto;
+}
+@media (max-width: 520px) {
+  .actions {
+    flex-direction: column;
+  }
 }
 .stack {
   display: grid;
@@ -595,6 +617,45 @@ a {
   flex: 1;
   overflow-y: auto;
   overscroll-behavior-y: contain;
+  /* The web view runs edge to edge on both phones; the notch and home indicator come off here, once. */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.main > .content:first-child {
+  padding-top: env(safe-area-inset-top);
+}
+/* The first screen's language list: one big row per language, named in its own script. */
+.lang-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.lang-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 3px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.lang-option.on {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.lang-option input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+.lang-native {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 600;
 }
 .inner {
   max-width: 860px;
@@ -807,12 +868,12 @@ fieldset {
   border: 0;
 }
 
-/* Someone else's words: the original, then the phone's translation on its own line. */
+/* Someone else's words: the phone's translation, its label, and the original when asked for. */
 .said {
   display: inline-grid;
   gap: 2px;
 }
-.said-tr {
+.said-original {
   display: grid;
   gap: 2px;
   padding-left: 8px;

@@ -2,6 +2,7 @@
 export const screens = {
   "onboard.title": "Choose your language",
   "onboard.later": "You can change it later in Settings.",
+  "onboard.continue": "Continue",
   "signin.label": "Sign in",
   "signin.headline": "Your agent, your phone.",
   "signin.soft": "Your number stays yours.",

@@ -99,7 +99,7 @@ export function JobThread(props: JobActionProps) {
       )}
       {terms && (
         <fieldset aria-label={t("a11y.deal")}>
-          {t("job.signed", { price: money(terms.price_paise), slot: terms.slot })} ·{" "}
+          {t("job.signed", { price: money(terms.price_paise) })} · <Said text={terms.slot} from={theirs} /> ·{" "}
           {t(job.theirs ? "job.both_signed" : "job.their_signature")}
         </fieldset>
       )}

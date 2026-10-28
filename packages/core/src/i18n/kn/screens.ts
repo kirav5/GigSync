@@ -4,6 +4,7 @@ import type { screens as en } from "../en/screens.js";
 export const screens: Readonly<Record<keyof typeof en, string>> = {
   "onboard.title": "ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
   "onboard.later": "ನಂತರ ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಬದಲಾಯಿಸಬಹುದು.",
+  "onboard.continue": "ಮುಂದುವರಿಸಿ",
   "signin.label": "ಸೈನ್ ಇನ್",
   "signin.headline": "ನಿಮ್ಮ ಏಜೆಂಟ್, ನಿಮ್ಮ ಫೋನ್.",
   "signin.soft": "ನಿಮ್ಮ ನಂಬರ್ ನಿಮ್ಮದೇ ಆಗಿರುತ್ತದೆ.",

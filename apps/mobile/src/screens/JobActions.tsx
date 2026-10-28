@@ -57,19 +57,21 @@ export function JobActions({ job, view, device, run }: JobActionProps) {
         <AnswerForm questions={questions.detail as Question[]} onSend={(a) => run(() => device.answer(id, a))} />
       )}
       {confirm && (
-        <fieldset className={C.row} aria-label={t("a11y.sign")}>
+        <fieldset className={C.stack} aria-label={t("a11y.sign")}>
           <span className={C.muted}>{t("job.reached", price((confirm.detail as JobTerms).price_paise))}</span>
-          <button type={C.button} className={C.accent} onClick={() => void run(() => device.confirmDeal(id))}>
-            {t("job.sign", price((confirm.detail as JobTerms).price_paise))}
-          </button>
-          <button type={C.button} className={C.secondary} onClick={() => void run(() => device.declineDeal(id))}>
-            {t("job.decline")}
-          </button>
+          <div className={C.actions}>
+            <button type={C.button} className={C.accent} onClick={() => void run(() => device.confirmDeal(id))}>
+              {t("job.sign", price((confirm.detail as JobTerms).price_paise))}
+            </button>
+            <button type={C.button} className={C.secondary} onClick={() => void run(() => device.declineDeal(id))}>
+              {t("job.decline")}
+            </button>
+          </div>
         </fieldset>
       )}
       {isWorker && SIGNED.has(status) && (
         <>
-          <div className={C.row}>
+          <div className={C.actions}>
             {status === S.agreed && (
               <button
                 type={C.button}
@@ -102,22 +104,24 @@ export function JobActions({ job, view, device, run }: JobActionProps) {
         </>
       )}
       {paid && (
-        <fieldset className={C.row} aria-label={t("a11y.confirm_payment")}>
+        <fieldset className={C.stack} aria-label={t("a11y.confirm_payment")}>
           <span className={C.muted}>{t("job.customer_paid", price((paid.detail as Payment).amount_paise))}</span>
-          <button
-            type={C.button}
-            className={C.accent}
-            onClick={() => void run(() => device.confirmPayment((paid.detail as Payment).id))}
-          >
-            {t("job.money_received")}
-          </button>
-          <button
-            type={C.button}
-            className={C.danger}
-            onClick={() => void run(() => device.disputePayment((paid.detail as Payment).id))}
-          >
-            {t("job.not_received")}
-          </button>
+          <div className={C.actions}>
+            <button
+              type={C.button}
+              className={C.accent}
+              onClick={() => void run(() => device.confirmPayment((paid.detail as Payment).id))}
+            >
+              {t("job.money_received")}
+            </button>
+            <button
+              type={C.button}
+              className={C.danger}
+              onClick={() => void run(() => device.disputePayment((paid.detail as Payment).id))}
+            >
+              {t("job.not_received")}
+            </button>
+          </div>
         </fieldset>
       )}
       {!isWorker &&

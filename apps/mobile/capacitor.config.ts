@@ -12,7 +12,8 @@ const config: CapacitorConfig = {
   appName: "GigSync",
   webDir: "dist",
   android: { allowMixedContent: false },
-  ios: { contentInset: "automatic" },
+  // Edge to edge on both phones; the CSS takes the safe areas off once (env(safe-area-inset-*)), so iOS must not too.
+  ios: { contentInset: "never" },
   server: { androidScheme: "https", ...(devServer ? { url: devServer, cleartext: true } : {}) },
 };
 

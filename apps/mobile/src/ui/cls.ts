@@ -18,6 +18,8 @@ export const C = {
   soft: "soft",
   title: "title",
   row: "row",
+  /** A decision's buttons: side by side with room, stacked full width on a phone. */
+  actions: "actions",
   stack: "stack",
   muted: "muted small",
   faint: "faint small",
