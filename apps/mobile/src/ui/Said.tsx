@@ -9,16 +9,15 @@ import { C } from "./cls.js";
 const DOWNLOAD_POLL_MS = 3000;
 
 /**
- * Words someone else wrote, read in the owner's language: the phone's translation takes the original's place, marked
- * as a machine translation, with the original one tap away (multilanguage plan §3.4). The original shows by itself
- * only when there is nothing safe to show instead: no pack yet, no engine, or a translation that changed a number.
+ * Words someone else wrote, read only in the owner's language: the phone's translation, marked as a machine
+ * translation. The original shows only when there is nothing safe to show instead (no pack yet, no engine, or a
+ * translation that changed a number), with a note saying why. The original is still what both sides sign.
  * With no `from`, or the owner's own language, it is plain text.
  */
 export function Said({ text, from }: { text: string; from?: Lang | undefined }) {
   const { lang, t, translations } = useI18n();
   const foreign = from !== undefined && from !== lang && text.trim().length > 0;
   const [result, setResult] = useState<Translation>();
-  const [original, setOriginal] = useState(false);
   // A pack fetched anywhere on screen, or one still downloading, makes this line ask again.
   const packs = useSyncExternalStore(packsChanged.subscribe, packsChanged.version);
   const [retry, setRetry] = useState(0);
@@ -56,17 +55,7 @@ export function Said({ text, from }: { text: string; from?: Lang | undefined }) 
     return (
       <span className="said">
         <span lang={lang}>{result.text}</span>
-        <span className={C.faint}>
-          {t("said.translated", { lang: name })} ·{" "}
-          <button type={C.button} className={C.linkBtn} onClick={() => setOriginal((o) => !o)}>
-            {t(original ? "said.hide" : "said.show")}
-          </button>
-        </span>
-        {original && (
-          <span className="said-original" lang={from}>
-            {text}
-          </span>
-        )}
+        <span className={C.faint}>{t("said.translated", { lang: name })}</span>
       </span>
     );
   // Asking the engine takes a moment; the foreign words appear only if no translation comes.
