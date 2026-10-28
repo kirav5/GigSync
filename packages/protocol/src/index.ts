@@ -7,4 +7,5 @@ export * from "./ids.js";
 export * from "./job.js";
 export * from "./lang.js";
 export * from "./payment.js";
+export * from "./rates.js";
 export * from "./records.js";

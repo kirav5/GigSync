@@ -14,6 +14,7 @@ import type {
   Trade,
 } from "@gigsync/protocol";
 import { Collection, type Storage } from "../ports.js";
+import type { Advice } from "./advice.js";
 import type { Mandate } from "./negotiate.js";
 
 /** One job as this device sees it: the engagement plus everything said in it. Never leaves the phone. */
@@ -26,6 +27,12 @@ export interface JobRecord {
   offers_made: number;
   /** Questions this side's agent has asked (worker) so it asks only once. */
   asked: boolean;
+  /** The worker's price plan for this job, fixed at the first quote so every round follows the same curve. */
+  mandate?: Mandate;
+  /** Why the agent proposed that plan, when it came from the city's rates. */
+  advice?: Advice;
+  /** The worker said yes to a request their own rules said to show them first. */
+  owner_ok?: boolean;
   /** Terms this side's agent accepted, waiting for the owner to sign. */
   pending?: JobTerms | undefined;
   mine?: Agree;
@@ -57,6 +64,8 @@ export const TaskKind = {
   answerQuestions: "answer_questions",
   /** The consumer says they paid; confirm the money arrived, or dispute it. */
   confirmPayment: "confirm_payment",
+  /** A request has a detail the worker asked to see first (pets, say): take it, or decline. */
+  approveRequest: "approve_request",
 } as const;
 export type TaskKind = (typeof TaskKind)[keyof typeof TaskKind];
 

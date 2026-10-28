@@ -23,7 +23,7 @@ import * as deal from "./deal.js";
 import { dispatch, needOf } from "./dispatch.js";
 import type { Mandate } from "./negotiate.js";
 import { type JobRecord, JobStore, type Need, type OwnerTask, TaskKind } from "./store.js";
-import type * as worker from "./worker.js";
+import * as worker from "./worker.js";
 
 export interface DeviceOptions {
   relay: Relay;
@@ -121,8 +121,18 @@ export class GigDevice {
   }
 
   async requestPayment(id: EngagementId, note: string): Promise<Payment> {
-    if (!this.o.worker) throw new DeviceError("only a worker asks for payment");
-    return after.requestPayment(this.ctx, this.o.worker, await this.job(id), note);
+    return after.requestPayment(this.ctx, this.rules(), await this.job(id), note);
+  }
+
+  /** Takes a request the worker's rules said to show them first; the agent then quotes. */
+  async approveRequest(id: EngagementId): Promise<JobRecord> {
+    return worker.approve(this.ctx, this.rules(), await this.job(id));
+  }
+
+  /** Turns down a request the worker's rules said to show them first. */
+  async declineRequest(id: EngagementId): Promise<JobRecord> {
+    this.rules();
+    return worker.refuse(this.ctx, await this.job(id));
   }
 
   async confirmPayment(paymentId: string): Promise<Payment> {
@@ -161,6 +171,11 @@ export class GigDevice {
   }
 
   // ── Internals ─────────────────────────────────────────────────────────────────────────────────────────────────────
+  private rules(): worker.WorkerRules {
+    if (!this.o.worker) throw new DeviceError("only a worker's phone does this");
+    return this.o.worker;
+  }
+
   private async settlePayment(paymentId: string, change: (id: string) => Promise<Payment>): Promise<Payment> {
     const p = await change(paymentId);
     await this.store.removeTask(TaskKind.confirmPayment, p.engagement);

@@ -6,6 +6,7 @@ import {
   type Envelope,
   type Lang,
   type MessageId,
+  type RateCard,
   signingBytes,
   type UserId,
 } from "@gigsync/protocol";
@@ -132,3 +133,20 @@ export const cookNeed = (budget = 900000, details: Record<string, string> = {}):
 
 export const ASHA: ContactCard = { name: "Asha", phone: "+919800000303" };
 export const RAVI_HOME: ContactCard = { name: "Ravi", phone: "+919800000404", address: "12, 4th Block, Koramangala" };
+
+/** Bengaluru's cook band as the union's rate card might seed it: ₹7,500–9,500 a month, +15% with pets, +10% a person past 3. */
+export const BENGALURU_RATES: RateCard = {
+  city: "Bengaluru",
+  version: 1,
+  bands: [
+    {
+      trade: "cook",
+      low_paise: 750000,
+      high_paise: 950000,
+      scope: [
+        { kind: "flag", key: "pets", percent: 15 },
+        { kind: "count", key: "people", percent: 10, included: 3 },
+      ],
+    },
+  ],
+};

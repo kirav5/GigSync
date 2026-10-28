@@ -10,6 +10,18 @@ export const en = {
   "question.meals": "Which meals?",
   "question.pets": "Are there any pets at home?",
   "question.route": "From where to where, and for how long?",
+  "detail.problem": "the problem",
+  "detail.rooms": "rooms",
+  "detail.area_sqft": "area",
+  "detail.people": "people",
+  "detail.meals": "meals",
+  "detail.pets": "pets",
+  "detail.route": "the route",
+  "reason.band": "The going rate for this work here is {low}–{high}.",
+  "reason.scope": "{percent}% more for {item}.",
+  "reason.history": "You were paid about {median} for this work before ({count} jobs).",
+  "reason.floor": "Your own minimum is {floor}.",
+  "reason.plan": "We will start at {opening} and not go below {limit}.",
 } as const;
 
 export type MessageKey = keyof typeof en;
