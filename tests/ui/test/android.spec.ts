@@ -1,9 +1,9 @@
-import { execFileSync } from "node:child_process";
 import { plural, questionText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
-import { _android, type AndroidDevice, expect, type Page, test } from "@playwright/test";
-import { API, APP, newPhone, open, openCard, Role, RUN, SHOTS, screenSizeShots, signIn, textOf } from "./helpers.js";
-import { fillAsk, type Phone, publishCard, sendNote, signBoth } from "./journey.js";
+import { type AndroidDevice, expect, test } from "@playwright/test";
+import { androidPhone, deviceShot as shotOf } from "./android-phone.js";
+import { newPhone, open, openCard, Role, RUN, signIn, textOf } from "./helpers.js";
+import { fillAsk, type Phone, publishCard, sendNote, signBoth, unlistCards } from "./journey.js";
 
 /**
  * Asha's phone is a real Android emulator running the Capacitor app, driven through Playwright's Android support
@@ -14,7 +14,11 @@ import { fillAsk, type Phone, publishCard, sendNote, signBoth } from "./journey.
  */
 
 const ON = process.env.ANDROID;
-const PACKAGE = "app.gigsync";
+/**
+ * Where the journey happens. A workaround, not the story's place: Koramangala's cook listings on the shared board are
+ * full of cards earlier aborted runs left behind (kept there by the owner's decision), and they outrank a new card.
+ */
+const AREA = { key: "indiranagar", name: "Indiranagar" } as const;
 const { hi, kn } = Lang.enum;
 const KN_NEED = "ಬೆಳಗ್ಗೆ ಅಡುಗೆ ಮಾಡುವವರು ಬೇಕು";
 const KN_MEALS = "ಬೆಳಗ್ಗೆ ಮತ್ತು ರಾತ್ರಿ";
@@ -28,42 +32,17 @@ const OLD_NOTE = "मशीन अनुवाद";
 const DOWNLOAD_MS = 240_000;
 
 test.skip(!ON, "no Android emulator attached (ANDROID=1)");
+test.afterEach(unlistCards);
 
 let phone: AndroidDevice;
 
 /** The emulator's own screen, as the person holding the phone sees it. */
-const deviceShot = (name: string) => phone.screenshot({ path: `${SHOTS}android-${name}.png` });
-
-async function androidPage(): Promise<Page> {
-  const [device] = await _android.devices();
-  if (!device) throw new Error("no Android device: start the emulator first");
-  phone = device;
-  // The emulator reaches the dev server and API on this computer through adb; a reconnect drops these, so set them.
-  for (const url of [APP, API]) {
-    const port = new URL(url).port;
-    execFileSync("adb", ["-s", phone.serial(), "reverse", `tcp:${port}`, `tcp:${port}`]);
-  }
-  // A fresh install each run: no saved language or account, and no ML Kit packs from an earlier run.
-  await phone.shell(`pm clear ${PACKAGE}`);
-  await phone.shell(`am start -W -n ${PACKAGE}/.MainActivity`);
-  const page = await (await phone.webView({ pkg: PACKAGE })).page();
-  screenSizeShots.add(page);
-  // A lost `adb reverse` leaves the app on screen but every request failing: say so now, not after the timeout.
-  const reached = await page.evaluate(
-    (url) =>
-      fetch(url).then(
-        (r) => r.ok,
-        () => false,
-      ),
-    `${API}/health`,
-  );
-  if (!reached) throw new Error(`the phone cannot reach ${API}: run adb reverse tcp:8787 tcp:8787 (and 5173)`);
-  return page;
-}
+const deviceShot = (name: string) => shotOf(phone, name);
 
 test("Hindi cook on Android, Kannada household: ML Kit translates his words on her phone", async ({ browser }) => {
   test.setTimeout(600_000);
-  const page = await androidPage();
+  const { phone: device, page } = await androidPhone();
+  phone = device;
   const asha: Phone = { page, lang: hi };
   const ctx = await browser.newContext();
   const ravi: Phone = { page: await ctx.newPage(), lang: kn };
@@ -74,12 +53,12 @@ test("Hindi cook on Android, Kannada household: ML Kit translates his words on h
     role: Role.consumer,
     name: `Ravi ${RUN}`,
     phone: newPhone(),
-    address: "Koramangala",
+    address: AREA.name,
     lang: kn,
   });
   await publishCard(asha, {
     trade: t(hi, "trade.cook"),
-    area: "koramangala",
+    area: AREA.key,
     rate: "9500",
     min: "8000",
     about: "उत्तर और दक्षिण भारतीय खाना",
@@ -88,7 +67,7 @@ test("Hindi cook on Android, Kannada household: ML Kit translates his words on h
   await deviceShot("01-card");
   await fillAsk(ravi, {
     trade: "cook",
-    area: "Koramangala",
+    area: AREA.name,
     worker: ashaName,
     need: KN_NEED,
     when: "when.daily",
@@ -124,7 +103,7 @@ test("Hindi cook on Android, Kannada household: ML Kit translates his words on h
   const check = asha.page.getByRole("group", { name: t(hi, "a11y.approve") });
   await check.getByRole("button", { name: textOf(hi, "approve.yes") }).click();
   await signBoth({ worker: asha, customer: ravi }, "android");
-  await expect(asha.page.getByLabel(t(hi, "a11y.contact"))).toContainText("Koramangala");
+  await expect(asha.page.getByLabel(t(hi, "a11y.contact"))).toContainText(AREA.name);
   await deviceShot("04-signed");
   await sendNote(asha, "गेट पर 10 मिनट में पहुँचूँगी");
   await expect(ravi.page.getByRole("list", { name: t(kn, "a11y.notes") })).toContainText("गेट पर 10 मिनट");
