@@ -6,6 +6,7 @@ import { install } from "../src/i18n/en/install.js";
 import { interview } from "../src/i18n/en/interview.js";
 import { job } from "../src/i18n/en/job.js";
 import { money } from "../src/i18n/en/money.js";
+import { need } from "../src/i18n/en/need.js";
 import { net } from "../src/i18n/en/net.js";
 import { record } from "../src/i18n/en/record.js";
 import { screens } from "../src/i18n/en/screens.js";
@@ -30,6 +31,7 @@ const AREAS: Readonly<Record<string, object>> = {
   record,
   colleague,
   talk,
+  need,
 };
 
 describe("string areas", () => {

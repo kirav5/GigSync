@@ -1,10 +1,11 @@
-import { countIn, dayOf, EVERY_DAY, type JobRecord, WhenDetail } from "@gigsync/core";
-import { DetailFlag, EngagementStatus, type JobRequest, type Lang, QuestionKey, Role } from "@gigsync/protocol";
+import { dayOf, EVERY_DAY, type JobRecord, WhenDetail } from "@gigsync/core";
+import { EngagementStatus, type JobRequest, type Lang, QuestionKey, Role } from "@gigsync/protocol";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { money } from "../ui/places.js";
 import { Said } from "../ui/Said.js";
 import { AgentTalk } from "./AgentTalk.js";
+import { DetailValue } from "./DetailValue.js";
 import { type JobActionProps, JobActions } from "./JobActions.js";
 import { PlanCard } from "./JobDecide.js";
 import { dayDate } from "./jobGroups.js";
@@ -35,7 +36,6 @@ const TAG: Readonly<Record<EngagementStatus, string>> = {
 };
 
 /** A value that is only a number, in any script people type on Indian phones ("3", "३", "೩"). */
-const NUMBER_ONLY = /^[0-9०-९೦-೯]+$/;
 
 /** The When details have their own line; the generic list leaves them out. */
 const WHEN_KEYS: ReadonlySet<string> = new Set(Object.values(WhenDetail));
@@ -141,14 +141,6 @@ function More({ job, from }: { job: JobRecord; from: Lang | undefined }) {
   const plan = job.engagement.role === Role.enum.provider ? job.advice : undefined;
   if (details.length === 0 && !plan) return null;
 
-  /** A detail's value: yes and no as words, a bare number in shared digits, anything else as the other side wrote it. */
-  function detailValue(value: string) {
-    const flag = DetailFlag.safeParse(value);
-    if (flag.success) return t(`flag.${flag.data}`);
-    if (NUMBER_ONLY.test(value)) return String(countIn(value));
-    return <Said text={value} from={from} />;
-  }
-
   return (
     <details className="job-more">
       <summary>{t("home.details")}</summary>
@@ -159,7 +151,7 @@ function More({ job, from }: { job: JobRecord; from: Lang | undefined }) {
               const q = QuestionKey.safeParse(k);
               return (
                 <li key={k}>
-                  {q.success ? t(`detail.${q.data}`) : k}: {detailValue(v)}
+                  {q.success ? t(`detail.${q.data}`) : k}: <DetailValue value={v} from={from} />
                 </li>
               );
             })}

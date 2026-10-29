@@ -76,13 +76,26 @@ export async function unlistCards() {
 export type WhenChip = "when.today" | "when.tomorrow" | "when.daily";
 
 /**
- * The household searches, picks only `worker`, and fills the ask: the need, a When chip and, if given, the time. The
- * caller presses the dock's Ask button after a screenshot.
+ * Find opens as a conversation; the journeys that test the form switch to it ("Use the form instead"). The choice
+ * lasts until the app reloads or the owner signs out.
+ */
+export async function switchToForm({ page, lang }: Phone) {
+  const search = page.getByRole("form", { name: t(lang, "a11y.search") });
+  const toForm = page.getByRole("button", { name: t(lang, "need.use_form") });
+  await expect(search.or(toForm)).toBeVisible();
+  if (await toForm.isVisible()) await toForm.click();
+  await expect(search).toBeVisible();
+}
+
+/**
+ * The household switches to the form, searches, picks only `worker`, and fills the ask: the need, a When chip and, if
+ * given, the time. The caller presses the dock's Ask button after a screenshot.
  */
 export async function fillAsk(
   { page, lang }: Phone,
   ask: { trade: string; area: string; worker: string; need: string; when: WhenChip; time?: string; budget: string },
 ) {
+  await switchToForm({ page, lang });
   const search = page.getByRole("form", { name: t(lang, "a11y.search") });
   await search.getByLabel(t(lang, "find.trade")).selectOption(ask.trade);
   await search.getByLabel(t(lang, "find.area")).selectOption(ask.area);

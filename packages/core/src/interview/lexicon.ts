@@ -195,17 +195,29 @@ function closest(words: readonly string[], { name }: Named): number | undefined 
   return best;
 }
 
+const namesOf = (areas: readonly AreaChoice[]): Named[] =>
+  areas.flatMap((a) => a.names.map((n) => ({ key: a.key, name: normalize(n) })));
+
+/**
+ * The area a longer sentence names exactly ("electrician in HSR tomorrow"), the longest name winning. No near
+ * misses: in a whole sentence, a word a letter away from an area's name is usually another word.
+ */
+export function areaNamedIn(text: string, areas: readonly AreaChoice[]): string | undefined {
+  const said = normalize(text);
+  return namesOf(areas)
+    .filter((n) => n.name && finder(n.name)(said) >= 0)
+    .sort((a, b) => b.name.length - a.name.length)[0]?.key;
+}
+
 /**
  * The area an answer names: any of its names inside the answer ("मैं कोरमंगला में काम करती हूँ"), the longest such
  * name winning; otherwise the name closest to a run of the answer's words, within a letter or two ("कोरमंगल").
  */
 export function areaIn(text: string, areas: readonly AreaChoice[]): string | undefined {
+  const inside = areaNamedIn(text, areas);
+  if (inside) return inside;
   const said = normalize(text);
-  const names: Named[] = areas.flatMap((a) => a.names.map((n) => ({ key: a.key, name: normalize(n) })));
-  const inside = names
-    .filter((n) => n.name && finder(n.name)(said) >= 0)
-    .sort((a, b) => b.name.length - a.name.length)[0];
-  if (inside) return inside.key;
+  const names = namesOf(areas);
   const words = said.split(SPACE);
   let best: { key: string; d: number } | undefined;
   for (const n of names) {

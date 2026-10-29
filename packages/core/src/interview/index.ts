@@ -1,9 +1,9 @@
 import { Lang, Trade } from "@gigsync/protocol";
-import { en } from "../i18n/en/index.js";
 import { type MessageKey, t } from "../i18n/t.js";
 import { isMonthly } from "../job/when.js";
-import { askable, type Choice, FIELDS, type InterviewState, type Line, Pick, type Prompt, Slot } from "./card.js";
+import { askable, FIELDS, type InterviewState, type Line, Pick, type Prompt, Slot } from "./card.js";
 import { minAloud } from "./card-parse.js";
+import { areaChoices, areaHints, isMessageKey, YES_NO } from "./choices.js";
 import type { Field } from "./lexicon.js";
 
 /**
@@ -31,10 +31,6 @@ export {
 export { aboutIsPrivate, choose, hear } from "./card-parse.js";
 export { editIntent } from "./lexicon.js";
 
-const YES_NO: Choice[] = [
-  { value: Pick.yes, key: "flag.yes" },
-  { value: Pick.no, key: "flag.no" },
-];
 /** The chip for each field the owner can change from confirm, labelled as on the My card form. */
 const FIELD_LABEL: Readonly<Record<Field, MessageKey>> = {
   trade: "card.what",
@@ -45,14 +41,6 @@ const FIELD_LABEL: Readonly<Record<Field, MessageKey>> = {
   about: "card.about",
   auto: "card.auto",
 };
-/** Which script a language's recognizer expects its words in, to pick area names worth biasing it towards. */
-const SCRIPT: Readonly<Record<Lang, RegExp>> = {
-  en: /\p{Script=Latin}/u,
-  hi: /\p{Script=Devanagari}/u,
-  kn: /\p{Script=Kannada}/u,
-};
-
-const isMessageKey = (key: string): key is MessageKey => key in en;
 
 /** An area by key: its catalog name, put in the reader's language when shown, else as the app named it. */
 function areaName(state: InterviewState): { names?: Line["names"]; params?: Line["params"] } {
@@ -101,11 +89,8 @@ function question(state: InterviewState): Prompt {
     case Slot.area:
       return {
         lines: [{ key: "iv.ask.area" }],
-        choices: config.areas.flatMap((a) => {
-          const key = `area.${a.key}`;
-          return isMessageKey(key) ? [{ value: a.key, key }] : [];
-        }),
-        hints: config.areas.flatMap((a) => a.names.filter((n) => SCRIPT[own].test(n))),
+        choices: areaChoices(config.areas),
+        hints: areaHints(config.areas, own),
       };
     case Slot.rate:
     case Slot.min: {

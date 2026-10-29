@@ -9,7 +9,7 @@ import {
   type Ports,
   Slot,
 } from "@gigsync/core";
-import { type ReactNode, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import type { Account } from "../adapters/account.js";
 import { readAloud, stopSpeaking } from "../adapters/speech.js";
 import {
@@ -23,35 +23,19 @@ import {
   useInterview,
 } from "../card/interviewStore.js";
 import { AboutPrivateError, publishCard } from "../card/publish.js";
-import { type I18n, useI18n } from "../i18n.js";
+import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { errorKey } from "../ui/errorKey.js";
-import { AREAS, money } from "../ui/places.js";
+import { AREAS } from "../ui/places.js";
 import { Said } from "../ui/Said.js";
-import { SpeakButton } from "../ui/SpeakButton.js";
+import { Ask, lineText, Own, spoken } from "./talk/Bubbles.js";
 import "./talk.css";
-
-/** A line in the owner's language as it is now, its prices as rupees and its names (trades, area) in that language. */
-function lineText(t: I18n["t"], line: Line): string {
-  const prices = Object.fromEntries(Object.entries(line.prices ?? {}).map(([name, paise]) => [name, money(paise)]));
-  const names = Object.fromEntries(
-    Object.entries(line.names ?? {}).map(([name, keys]) => [name, keys.map((k) => t(k)).join(", ")]),
-  );
-  return t(line.key, { ...line.params, ...prices, ...names });
-}
 
 /** "Later": the voice stops with the questions, so a summary half read out does not carry on over the next screen. */
 function later() {
   void stopSpeaking();
   pauseInterview();
 }
-
-/** What is read aloud: every line but the silent ones (the lowest rate, unless the owner just said it aloud). */
-const spoken = (t: I18n["t"], lines: readonly Line[]) =>
-  lines
-    .filter((l) => !l.silent)
-    .map((l) => lineText(t, l))
-    .join(" ");
 
 /** The heading each card kind gets on screen. */
 const KIND_LABEL: Readonly<Record<Card["kind"], MessageKey>> = {
@@ -67,15 +51,6 @@ function CardText({ card }: { card: Card }) {
   const { t } = useI18n();
   if ("say" in card) return <>{t(card.say.key, card.say.params)}</>;
   return <Said text={card.words.text} from={card.words.lang} />;
-}
-
-/** The owner's own words, on their side of the conversation. */
-function Own({ text }: { text: string }) {
-  return (
-    <div className="msg-user">
-      <div className="bubble">{text}</div>
-    </div>
-  );
 }
 
 /** A note to the agent and, once it has answered, its card. */
@@ -95,24 +70,6 @@ function Note({ text, card }: { text: string; card: Card | undefined }) {
           )}
         </div>
       )}
-    </div>
-  );
-}
-
-/** An interview question or readback, with its replay button; the silent lines are shown but never spoken. */
-function Ask({ lines, children }: { lines: readonly Line[]; children?: ReactNode }) {
-  const { lang, t } = useI18n();
-  return (
-    <div className="msg-agent iv-ask">
-      <div className="iv-say">
-        <div className="text">
-          {lines.map((line) => (
-            <p key={line.key}>{lineText(t, line)}</p>
-          ))}
-        </div>
-        <SpeakButton lang={lang} text={spoken(t, lines)} />
-      </div>
-      {children}
     </div>
   );
 }
@@ -148,7 +105,8 @@ export function Interview({
   account: Account;
   onSaved: (a: Account) => void;
 }) {
-  const { lang, t } = useI18n();
+  const i18n = useI18n();
+  const { lang } = i18n;
   const { state, turns, paused } = useInterview();
   const active = state !== undefined && !paused;
   /** Choices are offered while a question is open, not once the owner has said yes and the card is being sent. */
@@ -159,8 +117,8 @@ export function Interview({
   useEffect(() => {
     if (!active || newest?.who !== Speaker.app || heard.current === newest.id) return;
     heard.current = newest.id;
-    void readAloud(lang, spoken(t, newest.lines));
-  }, [active, newest, lang, t]);
+    void readAloud(lang, spoken(i18n, newest.lines));
+  }, [active, newest, lang, i18n]);
 
   // Leaving Talk (another tab, Back) ends what is being read out.
   useEffect(
@@ -182,7 +140,7 @@ export function Interview({
         const line: Line = { key: "iv.published", ...where };
         // Signed out while the card was on its way: the next owner hears nothing of it.
         if (!interviewPublished(claim, line)) return;
-        void readAloud(lang, lineText(t, line));
+        void readAloud(lang, lineText(i18n, line));
         onSaved(saved);
       })
       .catch((err: unknown) => {
@@ -190,7 +148,7 @@ export function Interview({
         // A line kept from an older card can carry a phone number; say so, so the owner knows what to change.
         interviewFailed(claim, { key: err instanceof AboutPrivateError ? "iv.err_private" : errorKey(err) });
       });
-  }, [state, ports, account, lang, t, onSaved]);
+  }, [state, ports, account, lang, i18n, onSaved]);
 
   const show = (turn: Turn) => {
     if (turn.who === Speaker.owner) return <Own key={turn.id} text={turn.text} />;

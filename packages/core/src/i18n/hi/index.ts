@@ -6,6 +6,7 @@ import { install } from "./install.js";
 import { interview } from "./interview.js";
 import { job } from "./job.js";
 import { money } from "./money.js";
+import { need } from "./need.js";
 import { net } from "./net.js";
 import { record } from "./record.js";
 import { screens } from "./screens.js";
@@ -30,4 +31,5 @@ export const hi: Strings = {
   ...record,
   ...colleague,
   ...talk,
+  ...need,
 };

@@ -2,6 +2,7 @@ import { type ApiClient, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, test } from "@playwright/test";
 import { listWorker, newPhone, Role, RUN, signIn } from "./helpers.js";
+import { switchToForm } from "./journey.js";
 import { useSilentTranslator } from "./translator.js";
 
 /**
@@ -39,6 +40,7 @@ test("a translator that never answers falls back to the original, labelled, with
   });
 
   await signIn(page, { role: Role.consumer, name: `Ravi ${RUN}`, phone: newPhone(), address: "HSR", lang: kn });
+  await switchToForm({ page, lang: kn });
   const search = page.getByRole("form", { name: t(kn, "a11y.search") });
   await search.getByLabel(t(kn, "find.trade")).selectOption("cook");
   await search.getByLabel(t(kn, "find.area")).selectOption("HSR Layout");

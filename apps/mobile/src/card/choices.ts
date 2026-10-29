@@ -1,4 +1,4 @@
-import { type AreaChoice, CITY_RATES, type InterviewConfig, t } from "@gigsync/core";
+import { type AreaChoice, CITY_RATES, type InterviewConfig, type NeedConfig, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { AREAS } from "../ui/places.js";
 
@@ -20,3 +20,11 @@ const AREA_CHOICES: readonly AreaChoice[] = AREAS.map((a) => {
 
 /** The card interview's settings for an owner: their language, the pilot's areas and the city's going rates. */
 export const interviewConfig = (own: Lang): InterviewConfig => ({ own, areas: AREA_CHOICES, rates: CITY_RATES });
+
+/** Find's chat settings for an owner: their language, the pilot's areas, the city's rates, and the phone's day. */
+export const needConfig = (own: Lang, today: string): NeedConfig => ({
+  own,
+  areas: AREA_CHOICES,
+  rates: CITY_RATES,
+  today,
+});

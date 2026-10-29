@@ -9,6 +9,7 @@ import { chosenModel } from "./adapters/model.js";
 import { createPorts } from "./adapters/ports.js";
 import { forgetCloudConsent } from "./adapters/speech-settings.js";
 import { endInterview } from "./card/interviewStore.js";
+import { endNeed } from "./find/needStore.js";
 import { I18nProvider } from "./i18n.js";
 import { Shell, SUB_SCREENS, WORKER_SUB_SCREENS } from "./Shell.js";
 import { AgentScreen } from "./screens/Agent.js";
@@ -206,8 +207,9 @@ export function App() {
               online={online}
               onSignOut={() =>
                 void signOut(ports).then(() => {
-                  // What they told the card interview, and the companies they let hear them, were theirs alone.
+                  // What they told the card interview and Find's chat, and the companies they let hear them, were theirs alone.
                   endInterview();
+                  endNeed();
                   forgetCloudConsent();
                   setAccount(null);
                 })

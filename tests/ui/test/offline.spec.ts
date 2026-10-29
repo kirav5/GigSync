@@ -2,6 +2,7 @@ import { t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, test } from "@playwright/test";
 import { APP, newPhone, open, Role, RUN, SHOTS, signIn } from "./helpers.js";
+import { switchToForm } from "./journey.js";
 
 /**
  * The installed web app without a network (round2-spec §6): a production build, served where the dev server usually
@@ -35,6 +36,7 @@ test("the installed web app opens offline, keeps the owner signed in, and says i
     address: "Indiranagar",
     lang: hi,
   });
+  await switchToForm({ page, lang: hi });
   // Hindi names the Find tab and its search button alike ("खोजें"): the button is the one in the page.
   const search = page.getByRole("main").getByRole("button", { name: t(hi, "find.search") });
   await expect(search).toBeVisible();
@@ -42,7 +44,8 @@ test("the installed web app opens offline, keeps the owner signed in, and says i
 
   await ctx.setOffline(true);
   await page.reload();
-  // Opened from the cache, still signed in, still in Hindi.
+  // Opened from the cache, still signed in, still in Hindi; a reload opens Find on the chat again.
+  await switchToForm({ page, lang: hi });
   await expect(search).toBeVisible();
   await page.screenshot({ path: `${DIR}02-offline-reopened.png` });
   await search.click();

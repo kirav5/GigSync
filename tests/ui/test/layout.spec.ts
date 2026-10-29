@@ -2,6 +2,7 @@ import { type ApiClient, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { APP, completeSignIn, counted, listWorker, newPhone, openCard, Role, RUN, tabs } from "./helpers.js";
+import { switchToForm } from "./journey.js";
 
 /**
  * A 360×640 phone, the small end of what pilot workers carry: on every screen with a dock, its one action is on
@@ -99,6 +100,7 @@ test("a household's screens at 360×640 in Hindi: Language, Sign-in and Find's A
     lang: hi,
   });
 
+  await switchToForm({ page, lang: hi });
   const search = page.getByRole("form", { name: t(hi, "a11y.search") });
   await tappable(search.getByRole("combobox"));
   await search.getByLabel(t(hi, "find.trade")).selectOption("painter");

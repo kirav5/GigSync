@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { money } from "../ui/places.js";
-import { Said } from "../ui/Said.js";
+import { DetailValue } from "./DetailValue.js";
 
 const S = EngagementStatus.enum;
 /** While the agents are still at it, their talk is open on the card; once it is settled it folds away. */
@@ -51,7 +51,7 @@ export function AgentTalk({ job, them, from }: { job: JobRecord; them: string; f
             <ul>
               {s.answers.map(([k, text]) => (
                 <li key={k}>
-                  {t(`detail.${k}`)}: <Said text={text} from={mine(s.by) ? undefined : from} />
+                  {t(`detail.${k}`)}: <DetailValue value={text} from={mine(s.by) ? undefined : from} />
                 </li>
               ))}
             </ul>
