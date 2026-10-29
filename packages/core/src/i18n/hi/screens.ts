@@ -14,6 +14,7 @@ export const screens: Readonly<Record<keyof typeof en, string>> = {
   "signin.change": "बदलें",
   "signin.name": "आपका नाम",
   "signin.phone": "मोबाइल नंबर",
+  "signin.err_phone": "अपना 10 अंकों का मोबाइल नंबर लिखें।",
   "signin.address": "पता, सिर्फ़ उसी कामगार को दिखेगा जिससे आपका सौदा पक्का होगा",
   "signin.code": "एसएमएस में आया कोड",
   "signin.code_dev": "एसएमएस में आया कोड (डेव: {code})",

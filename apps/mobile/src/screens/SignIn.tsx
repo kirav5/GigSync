@@ -5,6 +5,7 @@ import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
 import { errorKey } from "../ui/errorKey.js";
+import { phoneE164 } from "../ui/phone.js";
 
 /** The form's field names. */
 const F = { name: "name", phone: "phone", address: "address", code: "code" } as const;
@@ -38,7 +39,8 @@ export function SignIn({
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const v = new FormData(e.currentTarget);
-    const phone = String(v.get(F.phone) ?? "").trim();
+    const phone = phoneE164(String(v.get(F.phone) ?? ""));
+    if (!phone) return setError(t("signin.err_phone"));
     setBusy(true);
     setError(undefined);
     try {
@@ -87,7 +89,7 @@ export function SignIn({
         </label>
         <label className={C.fieldLabel}>
           <span className={C.muted}>{t("signin.phone")}</span>
-          <input className={C.field} name={F.phone} required placeholder="+919800000000" inputMode="tel" />
+          <input className={C.field} name={F.phone} required placeholder="98000 00000" type="tel" autoComplete="tel" />
         </label>
         {role === AccountRole.consumer && (
           <label className={C.fieldLabel}>

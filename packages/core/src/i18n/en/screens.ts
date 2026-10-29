@@ -12,6 +12,7 @@ export const screens = {
   "signin.change": "Change",
   "signin.name": "Your name",
   "signin.phone": "Mobile number",
+  "signin.err_phone": "Enter your 10-digit mobile number.",
   "signin.address": "Address, shared only with the worker you sign a job with",
   "signin.code": "Code from SMS",
   "signin.code_dev": "Code from SMS (dev: {code})",
