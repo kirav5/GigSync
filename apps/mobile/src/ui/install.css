@@ -1,36 +1,77 @@
-/* The install card (InstallCard.tsx): Profile and, on iPhone or where Chrome offered it, the language screen. */
+/*
+ * The install card (InstallCard.tsx): Profile and, on iPhone or where Chrome offered it, the language screen. One
+ * quiet row in the card style: a tinted icon, the title and why, a × for "Not now"; the button or the iPhone step sits
+ * under the text, small and secondary, so it never shouts over the screen it is on.
+ */
+.install {
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  column-gap: 12px;
+  row-gap: 10px;
+  padding: 12px 8px 12px 14px;
+}
+.install .install-badge {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent-ink);
+}
+.install .install-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding-top: 1px;
+}
 .install .install-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   font-weight: 600;
-  font-size: var(--fs-body);
+  font-size: var(--fs-2);
   line-height: var(--lh-head);
 }
-.install .install-title .ic {
-  color: var(--accent-ink);
+.install .install-about {
+  color: var(--text2);
+  font-size: var(--fs-label);
+  line-height: var(--lh-body);
+}
+/* The × keeps a full tap target while looking small. */
+.install .install-later {
+  width: var(--tap);
+  min-height: var(--tap);
+  margin-top: -6px;
+  padding: 0;
+  color: var(--text3);
+}
+.install .install-action {
+  grid-column: 2 / 4;
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  padding-right: 6px;
+}
+.install .install-action .btn {
+  min-height: 40px;
+  padding: 6px 14px;
+  font-size: var(--fs-label);
 }
 .install .install-step {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-size: var(--fs-2);
+  color: var(--text2);
+  font-size: var(--fs-label);
   line-height: var(--lh-body);
 }
 .install .install-step .ic {
   margin-top: 0.15em;
+  flex: none;
 }
 /* The reason to do it before signing in carries the weight on iPhone, so it reads as a notice, not small print. */
 .install .install-first {
-  border-left: 3px solid var(--wait);
+  border-left: 2px solid var(--wait);
   padding-left: 10px;
-  font-size: var(--fs-2);
+  color: var(--text2);
+  font-size: var(--fs-label);
   line-height: var(--lh-body);
-}
-.install .btn {
-  min-height: var(--tap);
-}
-.install .install-later {
-  justify-self: start;
-  min-height: var(--tap);
 }

@@ -20,7 +20,11 @@ const OFFERED: Readonly<Record<InstallPlace, readonly InstallState[]>> = {
   [InstallPlace.settings]: [InstallState.prompt, InstallState.ios, InstallState.manual],
 };
 
-/** Offers to put the web app on the home screen. Takes `lang` because the language screen is outside I18nProvider. */
+/**
+ * Offers to put the web app on the home screen, as one quiet row: an icon, what it gives, and a small button (or, on
+ * iPhone, the one step to take). "Not now" is the × in the corner. Takes `lang` because the language screen is outside
+ * I18nProvider.
+ */
 export function InstallCard({ place, lang }: { place: InstallPlace; lang: Lang }) {
   const state = useInstallState();
   const [hidden, setHidden] = useState(() => dismissed(place));
@@ -33,29 +37,40 @@ export function InstallCard({ place, lang }: { place: InstallPlace; lang: Lang }
 
   return (
     <section className={`${C.card} install`} lang={lang} aria-label={t(lang, "install.title")}>
-      <span className="install-title">
-        <Icon name="install" />
-        {t(lang, "install.title")}
+      <span className="install-badge" aria-hidden="true">
+        <Icon name="install" size={18} />
       </span>
-      <span className={C.muted}>{t(lang, "install.about")}</span>
-      {state === InstallState.prompt && (
-        <button type={C.button} className={C.accent} onClick={() => void install()}>
-          {t(lang, "install.button")}
-        </button>
-      )}
-      {state === InstallState.ios && (
-        <span className="install-step">
-          <Icon name="share" />
-          {t(lang, "install.ios")}
-        </span>
-      )}
-      {state === InstallState.ios && place === InstallPlace.onboarding && (
-        <span className="install-first">{t(lang, "install.ios_first")}</span>
-      )}
-      {state === InstallState.manual && <span className="install-step">{t(lang, "install.manual")}</span>}
-      <button type={C.button} className={`${C.linkBtn} install-later`} onClick={later}>
-        {t(lang, "install.later")}
+      <span className="install-text">
+        <span className="install-title">{t(lang, "install.title")}</span>
+        <span className="install-about">{t(lang, "install.about")}</span>
+      </span>
+      <button
+        type={C.button}
+        className={`${C.quiet} install-later`}
+        aria-label={t(lang, "install.later")}
+        title={t(lang, "install.later")}
+        onClick={later}
+      >
+        <Icon name="close" size={16} />
       </button>
+      <span className="install-action">
+        {state === InstallState.prompt && (
+          <button type={C.button} className={C.secondary} onClick={() => void install()}>
+            <Icon name="install" size={16} />
+            {t(lang, "install.button")}
+          </button>
+        )}
+        {state === InstallState.ios && (
+          <span className="install-step">
+            <Icon name="share" size={16} />
+            {t(lang, "install.ios")}
+          </span>
+        )}
+        {state === InstallState.ios && place === InstallPlace.onboarding && (
+          <span className="install-first">{t(lang, "install.ios_first")}</span>
+        )}
+        {state === InstallState.manual && <span className="install-step">{t(lang, "install.manual")}</span>}
+      </span>
     </section>
   );
 }
