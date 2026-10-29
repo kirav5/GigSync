@@ -11,6 +11,7 @@ import type {
   Note,
   Offer,
   Place,
+  Question,
   QuestionKey,
   Role,
   Trade,
@@ -50,11 +51,20 @@ export interface JobRecord {
   referral?: { colleague: UserId; card: ColleagueCard; at: string };
   /** Worker side: the colleague this phone suggested on this declined request. */
   referred?: UserId;
-  /** The questions the worker's agent asked about this request, by key; both phones keep them for the job's story. */
-  questions?: QuestionKey[];
+  /**
+   * The questions the worker's agent asked about this request, as sent: standard keys, or a model's words with their
+   * kind. Both phones keep them for the job's story. Records saved before round 3 hold bare keys.
+   */
+  questions?: (Question | QuestionKey)[];
   /** The household's answers to those questions, as written. */
   answers?: Record<string, string>;
+  /** Household side: where each answer came from, by question key. */
+  answered_from?: Record<string, AnswerSource>;
 }
+
+/** Where the household's agent found an answer: the owner typed it, it was in this need's words, or a past job's. */
+export const AnswerSource = { owner: "owner", words: "words", memory: "memory" } as const;
+export type AnswerSource = (typeof AnswerSource)[keyof typeof AnswerSource];
 
 /** What a consumer is looking for, shared by every request in one group. The budget stays on this phone. */
 export interface Need {

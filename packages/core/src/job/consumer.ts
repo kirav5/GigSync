@@ -7,14 +7,17 @@ import {
   EnvelopeKind,
   type JobRequest,
   type Offer,
+  QuestionKey,
   Role,
+  SKIPPED,
   type UserId,
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
+import { answersFound } from "./answer.js";
 import type { JobContext } from "./context.js";
 import { accept, cancel, termsFor } from "./deal.js";
 import { MoveKind, respond } from "./negotiate.js";
-import { type JobRecord, type Need, TaskKind } from "./store.js";
+import { AnswerSource, type JobRecord, type Need, TaskKind } from "./store.js";
 
 const K = EnvelopeKind.enum;
 const R = Role.enum;
@@ -51,25 +54,46 @@ export async function startRequest(ctx: JobContext, need: Need, worker: UserId):
   return ctx.send(r, K.request, request);
 }
 
-/** The worker asked questions: answer from what the owner already said, or ask the owner for the rest. */
+/**
+ * The worker asked questions: the agent answers what its owner already said (this need's words, or a past job's
+ * stable facts) and asks the owner the rest, sending nothing until every question has an answer.
+ */
 export async function onClarify(ctx: JobContext, need: Need, job: JobRecord, body: Clarify): Promise<JobRecord> {
-  const r = { ...job, questions: body.questions.map((q) => q.key) };
-  const unknown = body.questions.filter((q) => !need.details[q.key]);
-  if (unknown.length > 0) {
-    await ctx.store.addTask(TaskKind.answerQuestions, r.engagement.id, unknown, ctx.clock.now());
+  const found = await answersFound(ctx, need, body.questions);
+  const r: JobRecord = {
+    ...job,
+    questions: body.questions,
+    answers: { ...job.answers, ...mapValues(found, (f) => f.text) },
+    answered_from: { ...job.answered_from, ...mapValues(found, (f) => f.source) },
+  };
+  const open = body.questions.filter((q) => found[q.key] === undefined);
+  if (open.length > 0) {
+    await ctx.store.addTask(TaskKind.answerQuestions, r.engagement.id, open, ctx.clock.now());
     await ctx.store.saveJob(r);
     return r;
   }
-  const answers = Object.fromEntries(body.questions.map((q) => [q.key, need.details[q.key] as string]));
-  return ctx.send({ ...r, answers }, K.response, { answers } satisfies Answers);
+  return ctx.send(r, K.response, { answers: r.answers ?? {} } satisfies Answers);
 }
 
-/** The owner answered the worker's questions; the answers are kept for the other requests in the group too. */
-export async function answer(ctx: JobContext, need: Need, r: JobRecord, answers: Record<string, string>) {
-  await ctx.store.saveNeed({ ...need, details: { ...need.details, ...answers } });
+/**
+ * The owner answered the rest (or skipped them); everything goes to the worker together. Answers to standard
+ * questions are kept for the other requests in the group too; answers to a model's questions are not, since another
+ * worker's agent may use the same key for a different question.
+ */
+export async function answer(ctx: JobContext, need: Need, r: JobRecord, given: Record<string, string>) {
+  const typed = mapValues(given, (text) => text.trim() || SKIPPED);
+  const reusable = Object.entries(typed).filter(
+    ([key, text]) => QuestionKey.safeParse(key).success && text !== SKIPPED,
+  );
+  await ctx.store.saveNeed({ ...need, details: { ...need.details, ...Object.fromEntries(reusable) } });
   await ctx.store.removeTask(TaskKind.answerQuestions, r.engagement.id);
-  return ctx.send({ ...r, answers: { ...r.answers, ...answers } }, K.response, { answers } satisfies Answers);
+  const answers = { ...r.answers, ...typed };
+  const answered_from = { ...r.answered_from, ...mapValues(typed, () => AnswerSource.owner) };
+  return ctx.send({ ...r, answers, answered_from }, K.response, { answers } satisfies Answers);
 }
+
+const mapValues = <T, U>(o: Readonly<Record<string, T>>, f: (v: T) => U): Record<string, U> =>
+  Object.fromEntries(Object.entries(o).map(([k, v]) => [k, f(v)]));
 
 /** The worker quoted: accept, counter one step, or walk away when rounds run out. */
 export async function onQuote(ctx: JobContext, need: Need, r: JobRecord, offer: Offer): Promise<JobRecord> {

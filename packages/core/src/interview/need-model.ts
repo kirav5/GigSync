@@ -33,7 +33,7 @@ const MODEL_LANG = Lang.enum.en;
 /** A small model's answer is short; anything longer is not the object asked for. */
 const MAX_TOKENS = 120;
 /** How long the owner waits for the model before the interview carries on without it. */
-const MODEL_WAIT_MS = 8000;
+export const MODEL_WAIT_MS = 8000;
 /** No household budget in the pilot comes near this. */
 const MAX_BUDGET_RUPEES = 1_000_000;
 const AREA_TEXT_MAX = 60;
@@ -123,7 +123,7 @@ function checked(reply: Reply, text: string, areas: readonly AreaChoice[]): Need
 }
 
 /** The model's answer, or null once `ms` have passed; the timer never outlives the answer. */
-async function within(answer: Promise<string | null>, ms: number): Promise<string | null> {
+export async function within(answer: Promise<string | null>, ms: number): Promise<string | null> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const late = new Promise<null>((resolve) => {
     timer = setTimeout(() => resolve(null), ms);

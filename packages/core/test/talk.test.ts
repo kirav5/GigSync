@@ -22,10 +22,13 @@ describe("agentTalk", () => {
     expect(kinds(onHome)).toEqual(kinds(onRavi));
     expect(kinds(onHome).slice(0, 3)).toEqual([TalkKind.request, TalkKind.questions, TalkKind.answers]);
     expect(kinds(onHome).slice(-4)).toEqual([TalkKind.agreed, TalkKind.signed, TalkKind.signed, TalkKind.contacts]);
-    expect(onHome.find((s) => s.kind === TalkKind.questions)).toMatchObject({ by: "provider", keys: ["problem"] });
+    expect(onHome.find((s) => s.kind === TalkKind.questions)).toMatchObject({
+      by: "provider",
+      questions: [{ key: "problem" }],
+    });
     expect(onRavi.find((s) => s.kind === TalkKind.answers)).toMatchObject({
       by: "requester",
-      answers: [["problem", "hums but does not spin"]],
+      answers: [{ question: { key: "problem" }, text: "hums but does not spin" }],
     });
     const offers = onHome.filter((s) => s.kind === TalkKind.offer);
     expect(offers.length).toBeGreaterThan(0);

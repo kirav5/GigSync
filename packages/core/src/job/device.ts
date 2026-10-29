@@ -16,8 +16,9 @@ import { Colleagues } from "../colleague/colleagues.js";
 import { apply } from "../engagement/machine.js";
 import { MailTransport } from "../mail/transport.js";
 import type { Relay } from "../net/api.js";
+import { everyDeviceSpeaks } from "../net/reach.js";
 import { PaymentBook } from "../payments/book.js";
-import type { Clock, Keys, Storage } from "../ports.js";
+import type { Clock, Keys, Model, Storage } from "../ports.js";
 import * as after from "./aftercare.js";
 import * as consumer from "./consumer.js";
 import type { JobContext } from "./context.js";
@@ -40,6 +41,8 @@ export interface DeviceOptions {
   autoConfirm?: boolean;
   /** Set on a worker's phone: what they do, where, and at what price. */
   worker?: worker.WorkerRules;
+  /** The phone's model, if any: the worker's agent asks it what to ask, the household's agent what was already said. */
+  model?: Model;
 }
 
 /** A consumer's need before it is sent: the budget is a private mandate and never leaves the phone. */
@@ -73,6 +76,8 @@ export class GigDevice {
       payments: this.payments,
       keys: o.keys,
       clock: o.clock,
+      ...(o.model ? { model: o.model } : {}),
+      speaks: (user, protocol) => everyDeviceSpeaks(o.relay, user, protocol),
       send: (r, kind, body) => this.send(r, kind, body),
       signingKeyOf: (user, device) => this.transport.signingKeyOf(user, device),
     };

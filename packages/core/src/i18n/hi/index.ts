@@ -1,10 +1,12 @@
 import type { Strings } from "../en/index.js";
 import { agent } from "./agent.js";
+import { ask } from "./ask.js";
 import { colleague } from "./colleague.js";
 import { home } from "./home.js";
 import { install } from "./install.js";
 import { interview } from "./interview.js";
 import { job } from "./job.js";
+import { memory } from "./memory.js";
 import { money } from "./money.js";
 import { need } from "./need.js";
 import { net } from "./net.js";
@@ -32,4 +34,6 @@ export const hi: Strings = {
   ...colleague,
   ...talk,
   ...need,
+  ...memory,
+  ...ask,
 };

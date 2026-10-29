@@ -9,18 +9,22 @@ import {
   type RateCard,
   Role,
   SCOPE_MAX,
-  Trade,
+  SKIPPED,
+  type Trade,
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
 import { pastPrices, proposeMandate } from "./advice.js";
+import { questionsFor } from "./ask.js";
 import type { JobContext } from "./context.js";
 import { accept, cancel, termsFor } from "./deal.js";
 import { present } from "./details.js";
 import { type Mandate, MoveKind, priceAt, respond } from "./negotiate.js";
 import { type JobRecord, TaskKind } from "./store.js";
 
+/** The standard questions live with the rest of the asking; screens and the interview read them from here. */
+export { QUESTIONS } from "./ask.js";
+
 const K = EnvelopeKind.enum;
-const T = Trade.enum;
 const R = Role.enum;
 
 /**
@@ -43,23 +47,6 @@ export interface WorkerRules {
   radius_km: number;
 }
 
-const Q = QuestionKey.enum;
-
-/**
- * What the worker's agent asks before quoting, per trade, unless the consumer already said. Keys only: each phone
- * shows them in its owner's language (`questionText`).
- */
-export const QUESTIONS: Readonly<Record<Trade, readonly QuestionKey[]>> = {
-  [T.electrician]: [Q.problem],
-  [T.plumber]: [Q.problem],
-  [T.maid]: [Q.rooms, Q.pets],
-  [T.carpenter]: [Q.problem],
-  [T.ac_technician]: [Q.problem],
-  [T.painter]: [Q.area_sqft],
-  [T.cook]: [Q.people, Q.meals, Q.pets],
-  [T.driver]: [Q.route],
-};
-
 const EARTH_RADIUS_KM = 6371;
 const rad = (deg: number) => (deg * Math.PI) / 180;
 export function distanceKm(a: Place, b: Place): number {
@@ -74,16 +61,23 @@ export async function onRequest(ctx: JobContext, rules: WorkerRules, r: JobRecor
   const req = r.request;
   if (!rules.trades.includes(req.trade) || distanceKm(rules.base, req.area) > rules.radius_km)
     return cancel(ctx, r, { reason: CancelReason.enum.no_match });
-  const missing = QUESTIONS[req.trade].filter((key) => !req.details[key]).map((key) => ({ key }));
-  if (missing.length > 0 && !r.asked)
-    return ctx.send({ ...r, asked: true, questions: missing.map((q) => q.key) }, K.clarify, {
-      questions: missing,
-    } satisfies Clarify);
+  if (!r.asked) {
+    const questions = await questionsFor(ctx, rules, r);
+    if (questions.length > 0)
+      return ctx.send({ ...r, asked: true, questions }, K.clarify, { questions } satisfies Clarify);
+  }
   return quoteNext(ctx, rules, r);
 }
 
+/**
+ * Only answers to standard questions become the job's details, which the price rules and the scope read; answers to
+ * the model's questions, and skipped ones, are kept for the worker to read.
+ */
 export function onAnswers(ctx: JobContext, rules: WorkerRules, r: JobRecord, body: Answers): Promise<JobRecord> {
-  const request = { ...r.request, details: { ...r.request.details, ...body.answers } };
+  const structured = Object.entries(body.answers).filter(
+    ([key, text]) => QuestionKey.safeParse(key).success && text !== SKIPPED,
+  );
+  const request = { ...r.request, details: { ...r.request.details, ...Object.fromEntries(structured) } };
   return quoteNext(ctx, rules, { ...r, request, answers: { ...r.answers, ...body.answers } });
 }
 

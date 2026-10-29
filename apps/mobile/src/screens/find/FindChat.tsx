@@ -41,6 +41,7 @@ import { AREAS } from "../../ui/places.js";
 import { phoneDay } from "../jobGroups.js";
 import { lineText, spoken } from "../talk/Bubbles.js";
 import { type FoundTurn, NeedTurns } from "./NeedTurns.js";
+import { needMemory, withMemory } from "./remembered.js";
 import "../talk.css";
 
 /** The language the phone's model reads; other languages go by the word lists alone. */
@@ -76,16 +77,20 @@ export function FindChat({ ports, account, device, hire, onAsked }: Props) {
   const current = state ? needPrompt(state) : undefined;
   const newest = [...turns].reverse().find((turn) => turn.who === NeedSpeaker.app);
 
-  // Opening Find starts a new need, unless one is under way; it carries on where it was.
+  // Opening Find starts a new need, unless one is under way; it carries on where it was. What the agent remembers
+  // from past jobs comes along, to offer as "same as last time".
   useEffect(() => {
     if (opened.current) return;
     opened.current = true;
-    if (!state) beginNeed(startNeed(needConfig(lang, phoneDay(ports.clock.now()))));
-  }, [state, lang, ports]);
+    if (state) return;
+    const config = needConfig(lang, phoneDay(ports.clock.now()));
+    void needMemory(ports, account).then((remembered) => beginNeed(startNeed(withMemory(config, remembered))));
+  }, [state, lang, ports, account]);
 
   // A language picked in Profile part-way: the questions from here on, and what the mic listens for, follow it.
   useEffect(() => {
-    if (state && state.config.own !== lang) relanguageNeed(needConfig(lang, state.config.today));
+    if (state && state.config.own !== lang)
+      relanguageNeed(withMemory(needConfig(lang, state.config.today), state.config.remembered));
   }, [state, lang]);
 
   useEffect(() => {

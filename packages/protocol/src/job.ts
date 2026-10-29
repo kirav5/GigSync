@@ -43,13 +43,55 @@ export const JobRequest = z.object({
 });
 export type JobRequest = z.infer<typeof JobRequest>;
 
-/** A question by key only: each phone renders it in its owner's language (`t()` in `@gigsync/core`). */
-export const Question = z.object({ key: QuestionKey });
+/** The device capability number that understands questions a model wrote (`ModelQuestion`); older phones stall on them. */
+export const FREE_QUESTIONS_PROTOCOL = 3;
+export const ASK_TEXT_MIN = 3;
+export const ASK_TEXT_MAX = 120;
+
+/** How a model-written question is answered: two buttons, a number, or a few words. */
+export const AskKind = z.enum(["yes_no", "number", "text"]);
+export type AskKind = z.infer<typeof AskKind>;
+
+/** Who wrote a question's words. Only the worker's agent's model, today; standard questions have no author. */
+export const AskedBy = z.enum(["model"]);
+export type AskedBy = z.infer<typeof AskedBy>;
+
+/** A standard question, by key only: each phone renders it in its owner's language (`t()` in `@gigsync/core`). */
+export const StandardQuestion = z.object({ key: QuestionKey });
+export type StandardQuestion = z.infer<typeof StandardQuestion>;
+
+/**
+ * A question the worker's agent's model wrote, already through the worker phone's guards; the household's phone
+ * translates `text` from `lang`. Its key is never a standard one, so a free-text answer can never land under a key
+ * the price rules read.
+ */
+export const ModelQuestion = z.object({
+  key: DetailKey.refine((k) => !QuestionKey.safeParse(k).success, "not a standard key"),
+  text: z.string().min(ASK_TEXT_MIN).max(ASK_TEXT_MAX),
+  lang: Lang,
+  kind: AskKind,
+  by: AskedBy,
+});
+export type ModelQuestion = z.infer<typeof ModelQuestion>;
+
+/** Model questions first: a standard question's schema would quietly strip a model question's words. */
+export const Question = z.union([ModelQuestion, StandardQuestion]);
 export type Question = z.infer<typeof Question>;
 
-/** `clarify`: what the worker's agent needs to know before it can quote. */
-export const Clarify = z.object({ questions: z.array(Question).min(1).max(MAX_QUESTIONS) });
+export const isModelQuestion = (q: Question): q is ModelQuestion => "by" in q;
+
+/** `clarify`: what the worker's agent needs to know before it can quote. One question per key. */
+export const Clarify = z.object({
+  questions: z
+    .array(Question)
+    .min(1)
+    .max(MAX_QUESTIONS)
+    .refine((qs) => new Set(qs.map((q) => q.key)).size === qs.length, "one question per key"),
+});
 export type Clarify = z.infer<typeof Clarify>;
+
+/** The answer the household's app sends for a question its owner chose to skip; each phone shows it in its language. */
+export const SKIPPED = "skipped";
 
 /** `response`: answers to a `clarify`, by detail key. */
 export const Answers = z.object({ answers: z.record(DetailKey, shortText) });

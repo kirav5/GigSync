@@ -40,6 +40,14 @@ export interface NeedConfig {
   rates: RateCard;
   /** The phone's calendar day when the interview started, "YYYY-MM-DD", for dates said without a year. */
   today: string;
+  /** What the owner's agent remembers from past jobs, offered as "same as last time" chips; never the budget. */
+  remembered?: NeedMemory;
+}
+
+/** The household's remembered area (a key of `areas`) and stable facts, by question. */
+export interface NeedMemory {
+  area?: string;
+  facts: Partial<Record<QuestionKey, string>>;
 }
 
 /** Where the interview is: a field being asked, the readback, the search, or what it found. */

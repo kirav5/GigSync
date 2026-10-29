@@ -1,9 +1,11 @@
 import { agent } from "./agent.js";
+import { ask } from "./ask.js";
 import { colleague } from "./colleague.js";
 import { home } from "./home.js";
 import { install } from "./install.js";
 import { interview } from "./interview.js";
 import { job } from "./job.js";
+import { memory } from "./memory.js";
 import { money } from "./money.js";
 import { need } from "./need.js";
 import { net } from "./net.js";
@@ -36,6 +38,8 @@ export const en = {
   ...colleague,
   ...talk,
   ...need,
+  ...memory,
+  ...ask,
 } as const;
 
 export type MessageKey = keyof typeof en;

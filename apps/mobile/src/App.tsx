@@ -1,4 +1,4 @@
-import { Agent } from "@gigsync/core";
+import { Agent, wipeMemory } from "@gigsync/core";
 import type { Lang } from "@gigsync/protocol";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type Account, AccountRole, deviceFor, loadAccount, signOut } from "./adapters/account.js";
@@ -206,13 +206,16 @@ export function App() {
               platform={platform}
               online={online}
               onSignOut={() =>
-                void signOut(ports).then(() => {
-                  // What they told the card interview and Find's chat, and the companies they let hear them, were theirs alone.
-                  endInterview();
-                  endNeed();
-                  forgetCloudConsent();
-                  setAccount(null);
-                })
+                // The agent's memory goes first: a failure leaves the owner signed in, never their memory to the next.
+                void wipeMemory(ports.storage)
+                  .then(() => signOut(ports))
+                  .then(() => {
+                    // What they told the card interview and Find's chat, and the companies they let hear them, were theirs alone.
+                    endInterview();
+                    endNeed();
+                    forgetCloudConsent();
+                    setAccount(null);
+                  })
               }
               onCard={() => setScreen(Screen.card)}
               onTalkCard={talkCard}

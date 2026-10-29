@@ -16,8 +16,9 @@ import { WorkerPay } from "../payments/WorkerPay.js";
 import { C } from "../ui/cls.js";
 import { money } from "../ui/places.js";
 import type { GigView } from "../useGig.js";
+import { AnswerForm } from "./AnswerForm.js";
 import { ReferralOffer, SuggestColleague } from "./colleague/Referral.js";
-import { AnswerForm, ApproveCard, type ApproveDetail, SignCard } from "./JobDecide.js";
+import { ApproveCard, type ApproveDetail, SignCard } from "./JobDecide.js";
 
 export interface JobActionProps {
   job: JobRecord;

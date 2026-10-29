@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { agent } from "../src/i18n/en/agent.js";
+import { ask } from "../src/i18n/en/ask.js";
 import { colleague } from "../src/i18n/en/colleague.js";
 import { home } from "../src/i18n/en/home.js";
 import { install } from "../src/i18n/en/install.js";
 import { interview } from "../src/i18n/en/interview.js";
 import { job } from "../src/i18n/en/job.js";
+import { memory } from "../src/i18n/en/memory.js";
 import { money } from "../src/i18n/en/money.js";
 import { need } from "../src/i18n/en/need.js";
 import { net } from "../src/i18n/en/net.js";
@@ -32,6 +34,8 @@ const AREAS: Readonly<Record<string, object>> = {
   colleague,
   talk,
   need,
+  memory,
+  ask,
 };
 
 describe("string areas", () => {

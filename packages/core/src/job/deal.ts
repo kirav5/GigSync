@@ -14,6 +14,7 @@ import {
   TERMINAL_STATUSES,
 } from "@gigsync/protocol";
 import { log } from "../log.js";
+import { remember } from "../memory/remember.js";
 import type { JobContext } from "./context.js";
 import { type JobRecord, TaskKind } from "./store.js";
 
@@ -138,6 +139,7 @@ async function onAgreed(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
     }
   }
   log.info("job agreed", { engagement: r.engagement.id, price: r.mine?.terms.price_paise });
+  await remember(ctx, out, await ctx.store.need(out.engagement.group));
   return out;
 }
 
@@ -149,6 +151,8 @@ export async function onContact(ctx: JobContext, r: JobRecord, body: ContactRele
   }
   const next = { ...r, contact: body.contact };
   await ctx.store.saveJob(next);
+  // The card brings the other side's name: the one thing memory keeps from it.
+  await remember(ctx, next, await ctx.store.need(next.engagement.group));
   return next;
 }
 

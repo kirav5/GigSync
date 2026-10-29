@@ -33,6 +33,8 @@ export const Collection = {
   colleagueNotes: "colleague_notes",
   /** The single-use codes this phone showed as a colleague QR, until they run out. */
   linkCodes: "link_codes",
+  /** What the agent remembers from past signed jobs, one document per owner; wiped at sign-out. */
+  memory: "memory",
 } as const;
 
 export interface Storage {

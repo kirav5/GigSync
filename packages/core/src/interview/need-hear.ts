@@ -30,7 +30,7 @@ import { finder, firstIn, normalize } from "./normalize.js";
  */
 
 /** What the tap choices carry besides trades, areas, days, radii and fields. */
-export const NeedPick = { date: "date", change: "change" } as const;
+export const NeedPick = { date: "date", change: "change", remembered: "remembered" } as const;
 /** The When chips' values, in the order shown. */
 const WHEN_VALUES: readonly string[] = [DayWord.today, DayWord.tomorrow, EVERY_DAY];
 /** What `JobRequest.need` holds. */
@@ -192,6 +192,12 @@ export function hearNeed(s: NeedState, text: string, aloud = false, hint: NeedHi
 const flag = (value: string): boolean | undefined =>
   value === Pick.yes ? true : value === Pick.no ? false : undefined;
 
+/** What the owner gave last time for the trade's first question, from the agent's memory. */
+export function rememberedDetail(s: NeedState): string | undefined {
+  const first = firstQuestion(s.draft.trade);
+  return first ? s.config.remembered?.facts[first] : undefined;
+}
+
 /** A tap on one of the prompt's choices. A value the prompt did not offer changes nothing. */
 export function chooseNeed(s: NeedState, value: string): NeedState {
   const d = s.draft;
@@ -202,6 +208,8 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
     }
     case NeedSlot.detail: {
       if (value === Pick.skip) return moveOn(s, { ...d, detail: null });
+      const remembered = rememberedDetail(s);
+      if (value === NeedPick.remembered && remembered) return moveOn(s, { ...d, detail: remembered });
       const yes = flag(value);
       return yes === undefined ? s : moveOn(s, { ...d, detail: yes ? DetailFlag.enum.yes : DetailFlag.enum.no });
     }

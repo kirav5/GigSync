@@ -1,12 +1,15 @@
-import { agentTalk, type JobRecord, questionText, TalkKind, type TalkStep } from "@gigsync/core";
-import { EngagementStatus, type Lang, Role } from "@gigsync/protocol";
+import { AnswerSource, agentTalk, type JobRecord, questionText, TalkKind, type TalkStep } from "@gigsync/core";
+import { EngagementStatus, isModelQuestion, type Lang, type Question, Role } from "@gigsync/protocol";
 import type { ReactNode } from "react";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { money } from "../ui/places.js";
+import { Said } from "../ui/Said.js";
 import { DetailValue } from "./DetailValue.js";
 
 const S = EngagementStatus.enum;
+/** The space between a line's words and its faint note, which JSX would otherwise drop. */
+const GAP = " ";
 /** While the agents are still at it, their talk is open on the card; once it is settled it folds away. */
 const TALKING: ReadonlySet<EngagementStatus> = new Set([
   S.sent,
@@ -28,6 +31,9 @@ export function AgentTalk({ job, them, from }: { job: JobRecord; them: string; f
   if (steps.length <= 1) return null;
   const role = job.engagement.role;
   const mine = (by: Role) => by === role;
+  /** Who wrote a question: the worker's agent's model, or the app's standard list. */
+  const askedBy = (q: Question, byMe: boolean) =>
+    !isModelQuestion(q) ? t("ask.standard") : byMe ? t("ask.by_mine") : t("ask.by_theirs", { name: them });
 
   function line(s: TalkStep): ReactNode {
     switch (s.kind) {
@@ -38,8 +44,12 @@ export function AgentTalk({ job, them, from }: { job: JobRecord; them: string; f
           <>
             {mine(s.by) ? t("talk.asked_mine") : t("talk.asked_theirs", { name: them })}
             <ul>
-              {s.keys.map((k) => (
-                <li key={k}>{questionText(lang, k)}</li>
+              {s.questions.map((q) => (
+                <li key={q.key}>
+                  {isModelQuestion(q) ? <Said text={q.text} from={q.lang} /> : questionText(lang, q.key)}
+                  {GAP}
+                  <span className={C.faint}>{askedBy(q, mine(s.by))}</span>
+                </li>
               ))}
             </ul>
           </>
@@ -49,9 +59,16 @@ export function AgentTalk({ job, them, from }: { job: JobRecord; them: string; f
           <>
             {mine(s.by) ? t("talk.answered_mine") : t("talk.answered_theirs", { name: them })}
             <ul>
-              {s.answers.map(([k, text]) => (
-                <li key={k}>
-                  {t(`detail.${k}`)}: <DetailValue value={text} from={mine(s.by) ? undefined : from} />
+              {s.answers.map(({ question: q, text, source }) => (
+                <li key={q.key}>
+                  {isModelQuestion(q) ? <Said text={q.text} from={q.lang} /> : t(`detail.${q.key}`)}:{GAP}
+                  <DetailValue value={text} from={mine(s.by) ? undefined : from} />
+                  {source && source !== AnswerSource.owner && (
+                    <span className={C.faint}>
+                      {GAP}
+                      {t(source === AnswerSource.memory ? "ask.from_memory" : "ask.from_words")}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>

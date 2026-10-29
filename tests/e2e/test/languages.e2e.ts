@@ -1,5 +1,5 @@
 import { type Advice, questionText, ReasonKind, reasonText, TaskKind, type WorkerRules } from "@gigsync/core";
-import { type Clarify, type EngagementId, Lang, type RateCard, SEED_SIGNER } from "@gigsync/protocol";
+import { type Clarify, type EngagementId, Lang, QuestionKey, type RateCard, SEED_SIGNER } from "@gigsync/protocol";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { near, newCentre, type Person, person, talk, testPayee } from "./world.js";
 
@@ -104,7 +104,7 @@ describe("a Hindi-speaking cook and a Kannada-speaking household, end to end", (
     expect((await asha.device.job(id)).request.lang).toBe(Lang.enum.kn);
     const [ask] = await ravi.device.tasks();
     expect(ask?.kind).toBe(TaskKind.answerQuestions);
-    const keys = ((ask?.detail ?? []) as Clarify["questions"]).map((q) => q.key);
+    const keys = ((ask?.detail ?? []) as Clarify["questions"]).map((q) => QuestionKey.parse(q.key));
     expect(keys).toEqual(["people", "meals", "pets"]);
     for (const k of keys) expect(questionText(Lang.enum.kn, k)).toMatch(KANNADA);
 

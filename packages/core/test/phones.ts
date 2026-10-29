@@ -17,6 +17,7 @@ import {
   GigDevice,
   HttpError,
   MemoryStorage,
+  type Model,
   type NewNeed,
   type Relay,
   SecretKeys,
@@ -32,8 +33,9 @@ export class MemoryRelay {
   /** Every envelope the relay accepted, as the server would store it. */
   readonly stored: Envelope[] = [];
 
-  register(user: UserId, device: DeviceId, keys: DevicePublicKeys) {
-    this.devices.set(user, [...(this.devices.get(user) ?? []), { device_id: device, protocol: 1, ...keys }]);
+  /** `protocol` is the capability number the device reports at sign-in. */
+  register(user: UserId, device: DeviceId, keys: DevicePublicKeys, protocol = 1) {
+    this.devices.set(user, [...(this.devices.get(user) ?? []), { device_id: device, protocol, ...keys }]);
     this.boxes.set(device, []);
   }
 
@@ -65,18 +67,28 @@ export class MemoryRelay {
 export interface Phone {
   user: UserId;
   device: GigDevice;
+  /** The phone's own storage, for checking what it keeps (its agent's memory, say). */
+  storage: MemoryStorage;
 }
 
 /** One phone. `payee` is the UPI ID saved in its settings, as the owner would in Profile. */
 export async function phone(
   relay: MemoryRelay,
   contact: ContactCard,
-  opts: { worker?: WorkerRules; autoConfirm?: boolean; lang?: Lang; payee?: Payee } = {},
+  opts: {
+    worker?: WorkerRules;
+    autoConfirm?: boolean;
+    lang?: Lang;
+    payee?: Payee;
+    model?: Model;
+    /** The capability number this phone registers; 1 unless a test needs a newer phone. */
+    protocol?: number;
+  } = {},
 ): Promise<Phone> {
-  const { payee, ...options } = opts;
+  const { payee, protocol, ...options } = opts;
   const keys = new SecretKeys(newDeviceSecrets());
   const me = { user: `usr_${ulid()}` as UserId, device: `dev_${ulid()}` as DeviceId };
-  relay.register(me.user, me.device, await keys.publicKeys());
+  relay.register(me.user, me.device, await keys.publicKeys(), protocol);
   const storage = new MemoryStorage();
   if (payee) await savePayee(storage, payee);
   const device = new GigDevice({
@@ -88,7 +100,7 @@ export async function phone(
     contact,
     ...options,
   });
-  return { user: me.user, device };
+  return { user: me.user, device, storage };
 }
 
 export const BENGALURU = { lat: 12.97, lon: 77.64 };

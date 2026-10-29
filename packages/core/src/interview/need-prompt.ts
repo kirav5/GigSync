@@ -1,4 +1,4 @@
-import { Trade } from "@gigsync/protocol";
+import { DetailFlag, Trade } from "@gigsync/protocol";
 import { type MessageKey, t } from "../i18n/t.js";
 import { YES_NO_QUESTIONS } from "../job/details.js";
 import { EVERY_DAY, isMonthly } from "../job/when.js";
@@ -13,7 +13,7 @@ import {
   type NeedState,
   SEARCH_RADII_KM,
 } from "./need.js";
-import { NeedPick } from "./need-hear.js";
+import { NeedPick, rememberedDetail } from "./need-hear.js";
 import { needWords } from "./need-request.js";
 
 /**
@@ -103,15 +103,32 @@ function confirmPrompt(s: NeedState): Prompt {
   };
 }
 
+/** "Same as last time: …" for the trade's first question, when the agent remembers the owner's answer. */
+function sameDetail(s: NeedState): Choice[] {
+  const value = rememberedDetail(s);
+  if (!value) return [];
+  const flag = DetailFlag.safeParse(value);
+  const shown = flag.success ? t(s.config.own, `flag.${flag.data}`) : value;
+  return [{ value: NeedPick.remembered, key: "memory.same_value", params: { value: shown } }];
+}
+
 function detailPrompt(s: NeedState): Prompt {
   const first = firstQuestion(s.draft.trade);
   if (!first) return { lines: [], hints: [] };
   const yesNo = YES_NO_QUESTIONS.has(first);
   return {
     lines: [{ key: `question.${first}` }],
-    choices: yesNo ? YES_NO : [{ value: CardPick.skip, key: "iv.skip" }],
+    choices: [...sameDetail(s), ...(yesNo ? YES_NO : [{ value: CardPick.skip, key: "iv.skip" } as const])],
     hints: yesNo ? yesNoHints(s) : [],
   };
+}
+
+/** "Same as last time (area)" first among the areas, when the agent remembers one the catalog still has. */
+function sameArea(s: NeedState): Choice[] {
+  const area = s.config.remembered?.area;
+  const key = `area.${area ?? ""}`;
+  if (!area || !s.config.areas.some((a) => a.key === area) || !isMessageKey(key)) return [];
+  return [{ value: area, key: "memory.same_area", params: { area: t(s.config.own, key) } }];
 }
 
 function question(s: NeedState): Prompt {
@@ -128,7 +145,7 @@ function question(s: NeedState): Prompt {
     case NeedSlot.area:
       return {
         lines: [{ key: "need.ask.area" }],
-        choices: areaChoices(s.config.areas),
+        choices: [...sameArea(s), ...areaChoices(s.config.areas)],
         hints: areaHints(s.config.areas, own),
       };
     case NeedSlot.when:

@@ -11,10 +11,10 @@ import {
   type WorkerRules,
 } from "@gigsync/core";
 import {
-  COLLEAGUE_PROTOCOL,
   type ColleagueCard,
   ContactCard,
   type EngagementId,
+  FREE_QUESTIONS_PROTOCOL,
   type Lang,
   MAX_TRADES,
   PAYEE_NAME_MAX,
@@ -49,8 +49,11 @@ export interface Account {
 const ACCOUNT_KEY = "account";
 /** Names the consumer saw on the board, so their jobs show who they are talking to. */
 const PEOPLE = "people";
-/** What this app understands, sent with the device's keys at sign-in: colleague and referral envelopes. */
-const PROTOCOL = COLLEAGUE_PROTOCOL;
+/**
+ * What this app understands, sent with the device's keys at sign-in: colleague and referral envelopes, and questions
+ * a worker's agent's model wrote. Each capability number includes the ones before it (COLLEAGUE_PROTOCOL is 2).
+ */
+const PROTOCOL = FREE_QUESTIONS_PROTOCOL;
 
 export class AccountError extends Error {}
 
@@ -133,6 +136,7 @@ export function deviceFor(ports: Ports, account: Account, lang: Lang): GigDevice
     contact: account.contact,
     ...(account.worker ? { worker: account.worker } : {}),
     ...(account.autoConfirm ? { autoConfirm: true } : {}),
+    model: ports.model,
     lang,
   });
 }

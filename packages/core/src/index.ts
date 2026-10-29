@@ -13,6 +13,7 @@ export {
   type NeedConfig,
   type NeedDraft,
   type NeedField,
+  type NeedMemory,
   NeedSlot,
   type NeedState,
   needWithConfig,
@@ -36,6 +37,7 @@ export {
 } from "./interview/need-request.js";
 export * from "./job/advice.js";
 export * from "./job/aftercare.js";
+export { QUESTIONS } from "./job/ask.js";
 export * from "./job/city-rates.js";
 export * from "./job/deal.js";
 export { asciiDigits, countIn, YES_NO_QUESTIONS } from "./job/details.js";
@@ -45,13 +47,14 @@ export * from "./job/settle.js";
 export * from "./job/store.js";
 export * from "./job/talk.js";
 export * from "./job/when.js";
-export { QUESTIONS, type WorkerRules } from "./job/worker.js";
+export type { WorkerRules } from "./job/worker.js";
 export * from "./keys.js";
 export * from "./log.js";
 export * from "./mail/inbox.js";
 export * from "./mail/outbox.js";
 export * from "./mail/sealed.js";
 export * from "./mail/transport.js";
+export * from "./memory/index.js";
 export * from "./net/api.js";
 export * from "./payments/book.js";
 export * from "./payments/passbook.js";

@@ -12,6 +12,7 @@ import { ColleaguesSection } from "./colleague/List.js";
 import type { ColleaguePlace } from "./colleague/place.js";
 import { SiteForm } from "./colleague/SiteForm.js";
 import { ModelSettings } from "./ModelSettings.js";
+import { MemorySection } from "./memory/MemorySection.js";
 import { SpeechSettings } from "./SpeechSettings.js";
 import { TranslationSettings } from "./TranslationSettings.js";
 
@@ -142,6 +143,8 @@ export function Settings(props: Props) {
           ))}
         </fieldset>
       </section>
+
+      <MemorySection ports={ports} account={account} />
 
       {isWorker && <SpeechSettings />}
       <TranslationSettings />

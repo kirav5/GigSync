@@ -13,7 +13,8 @@ import {
   type UserId,
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
-import { HttpError, type Relay } from "../net/api.js";
+import type { Relay } from "../net/api.js";
+import { everyDeviceSpeaks } from "../net/reach.js";
 import { newLinkCode } from "./code.js";
 import { ColleagueError, ColleagueRefusal } from "./errors.js";
 import { type ColleagueContext, type ColleagueRecord, publicView } from "./store.js";
@@ -21,19 +22,10 @@ import { type Colleague, ColleagueState, NoteFrom } from "./types.js";
 
 const K = EnvelopeKind.enum;
 const S = LinkStep.enum;
-const NOT_FOUND = 404;
 
 /** True when `user` has a phone signed in and every one of their phones understands colleague envelopes. */
-export async function canReach(relay: Relay, user: UserId): Promise<boolean> {
-  try {
-    const { devices } = await relay.directory(user);
-    return devices.length > 0 && devices.every((d) => d.protocol >= COLLEAGUE_PROTOCOL);
-  } catch (err) {
-    // The directory answers 404 for someone with no active phone: there is nobody to reach.
-    if (err instanceof HttpError && err.status === NOT_FOUND) return false;
-    throw err;
-  }
-}
+export const canReach = (relay: Relay, user: UserId): Promise<boolean> =>
+  everyDeviceSpeaks(relay, user, COLLEAGUE_PROTOCOL);
 
 /** A fresh single-use code for this phone's colleague QR, as the QR text that carries it with the owner's name. */
 export async function invite(c: ColleagueContext, card: ColleagueCard): Promise<string> {

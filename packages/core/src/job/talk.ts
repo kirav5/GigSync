@@ -1,6 +1,6 @@
-import { type CancelReason, QuestionKey, Role } from "@gigsync/protocol";
-import type { JobRecord } from "./store.js";
-import { QUESTIONS } from "./worker.js";
+import { type CancelReason, Question, Role } from "@gigsync/protocol";
+import { QUESTIONS } from "./ask.js";
+import type { AnswerSource, JobRecord } from "./store.js";
 
 /** One thing that happened between the two agents, and the owners' signatures that closed it. */
 export const TalkKind = {
@@ -14,10 +14,17 @@ export const TalkKind = {
   ended: "ended",
 } as const;
 
+/** One answer in the story: the question it answers, the words, and (household side) where the agent found them. */
+export interface TalkAnswer {
+  question: Question;
+  text: string;
+  source?: AnswerSource;
+}
+
 export type TalkStep =
   | { kind: typeof TalkKind.request; by: Role }
-  | { kind: typeof TalkKind.questions; by: Role; keys: QuestionKey[] }
-  | { kind: typeof TalkKind.answers; by: Role; answers: [key: QuestionKey, text: string][] }
+  | { kind: typeof TalkKind.questions; by: Role; questions: Question[] }
+  | { kind: typeof TalkKind.answers; by: Role; answers: TalkAnswer[] }
   | { kind: typeof TalkKind.offer; by: Role; price_paise: number }
   | { kind: typeof TalkKind.agreed; price_paise: number }
   | { kind: typeof TalkKind.signed; by: Role }
@@ -27,19 +34,27 @@ export type TalkStep =
 const R = Role.enum;
 const other = (role: Role): Role => (role === R.provider ? R.requester : R.provider);
 
-/** The questions asked, by key: kept on the job since round 2; older worker-side jobs fall back to the trade's list. */
-function questionsOf(job: JobRecord): QuestionKey[] {
-  if (job.questions) return job.questions;
-  if (!job.asked) return [];
-  return QUESTIONS[job.request.trade].filter((k) => job.request.details[k] !== undefined);
+/**
+ * The questions asked, as sent: kept on the job since round 2 (bare keys until round 3, written questions since);
+ * older worker-side jobs fall back to the trade's list. Anything that no longer reads as a question is left out.
+ */
+function questionsOf(job: JobRecord): Question[] {
+  const kept =
+    job.questions ??
+    (job.asked ? QUESTIONS[job.request.trade].filter((k) => job.request.details[k] !== undefined) : []);
+  return kept.flatMap((q) => {
+    const parsed = Question.safeParse(typeof q === "string" ? { key: q } : q);
+    return parsed.success ? [parsed.data] : [];
+  });
 }
 
 /** Each asked question with the answer the household gave, as written; questions with no answer yet are left out. */
-function answersOf(job: JobRecord, keys: readonly QuestionKey[]): [QuestionKey, string][] {
+function answersOf(job: JobRecord, questions: readonly Question[]): TalkAnswer[] {
   const given = job.answers ?? (job.engagement.role === R.provider ? job.request.details : {});
-  return keys.flatMap((k) => {
-    const text = given[k];
-    return text === undefined ? [] : [[k, text] as [QuestionKey, string]];
+  return questions.flatMap((question) => {
+    const text = given[question.key];
+    const source = job.answered_from?.[question.key];
+    return text === undefined ? [] : [{ question, text, ...(source ? { source } : {}) }];
   });
 }
 
@@ -50,10 +65,10 @@ function answersOf(job: JobRecord, keys: readonly QuestionKey[]): [QuestionKey, 
  */
 export function agentTalk(job: JobRecord): TalkStep[] {
   const steps: TalkStep[] = [{ kind: TalkKind.request, by: R.requester }];
-  const keys = questionsOf(job).filter((k) => QuestionKey.safeParse(k).success);
-  if (keys.length > 0) {
-    steps.push({ kind: TalkKind.questions, by: R.provider, keys });
-    const answers = answersOf(job, keys);
+  const questions = questionsOf(job);
+  if (questions.length > 0) {
+    steps.push({ kind: TalkKind.questions, by: R.provider, questions });
+    const answers = answersOf(job, questions);
     if (answers.length > 0) steps.push({ kind: TalkKind.answers, by: R.requester, answers });
   }
   for (const { by, offer } of job.offers) steps.push({ kind: TalkKind.offer, by, price_paise: offer.price_paise });
