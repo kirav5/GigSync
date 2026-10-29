@@ -1,4 +1,4 @@
-import { type MessageKey, type PassbookTotals, passbook } from "@gigsync/core";
+import { type GigDevice, type MessageKey, type PassbookTotals, passbook } from "@gigsync/core";
 import type { UserId } from "@gigsync/protocol";
 import { useMemo } from "react";
 import { useI18n } from "../i18n.js";
@@ -17,7 +17,16 @@ const TOTALS: readonly { key: keyof PassbookTotals; label: MessageKey }[] = [
 ];
 
 /** Money from jobs both sides signed on GigSync, with this week's and this month's totals. */
-export function Passbook({ view, me }: { view: GigView; me: UserId }) {
+interface Props {
+  view: GigView;
+  me: UserId;
+  /** For a record row opened in place: the job's own money actions (P-record wires these). */
+  device: GigDevice;
+  run: (work: () => Promise<unknown>) => Promise<unknown>;
+  onAddPayee: () => void;
+}
+
+export function Passbook({ view, me }: Props) {
   const { t } = useI18n();
   // The phone's own offset from UTC decides where its week and month begin.
   const { rows, totals } = useMemo(

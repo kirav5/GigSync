@@ -162,7 +162,15 @@ export function App() {
             onHire={() => setScreen(Screen.find)}
           />
         )}
-        {screen === Screen.passbook && <Passbook view={view} me={account.session.user} />}
+        {screen === Screen.passbook && (
+          <Passbook
+            view={view}
+            me={account.session.user}
+            device={device}
+            run={run}
+            onAddPayee={() => setScreen(Screen.profile)}
+          />
+        )}
         {screen === Screen.profile && (
           <Settings
             ports={ports}
