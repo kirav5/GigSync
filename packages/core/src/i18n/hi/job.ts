@@ -42,8 +42,6 @@ export const job: Readonly<Record<keyof typeof en, string>> = {
   "cancel.other": "रद्द",
   "job.customer": "ग्राहक",
   "job.worker": "कामगार",
-  "job.mine_offered": "आपके एजेंट ने {price} कहा",
-  "job.theirs_offered": "{name} के एजेंट ने {price} कहा",
   "job.signed": "दस्तख़त: {price}",
   "job.both_signed": "दोनों ने दस्तख़त किए",
   "job.their_signature": "उनके दस्तख़त का इंतज़ार",

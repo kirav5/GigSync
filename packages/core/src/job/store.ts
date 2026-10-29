@@ -11,6 +11,7 @@ import type {
   Note,
   Offer,
   Place,
+  QuestionKey,
   Role,
   Trade,
   UserId,
@@ -49,6 +50,10 @@ export interface JobRecord {
   referral?: { colleague: UserId; card: ColleagueCard; at: string };
   /** Worker side: the colleague this phone suggested on this declined request. */
   referred?: UserId;
+  /** The questions the worker's agent asked about this request, by key; both phones keep them for the job's story. */
+  questions?: QuestionKey[];
+  /** The household's answers to those questions, as written. */
+  answers?: Record<string, string>;
 }
 
 /** What a consumer is looking for, shared by every request in one group. The budget stays on this phone. */

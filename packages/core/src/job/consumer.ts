@@ -52,7 +52,8 @@ export async function startRequest(ctx: JobContext, need: Need, worker: UserId):
 }
 
 /** The worker asked questions: answer from what the owner already said, or ask the owner for the rest. */
-export async function onClarify(ctx: JobContext, need: Need, r: JobRecord, body: Clarify): Promise<JobRecord> {
+export async function onClarify(ctx: JobContext, need: Need, job: JobRecord, body: Clarify): Promise<JobRecord> {
+  const r = { ...job, questions: body.questions.map((q) => q.key) };
   const unknown = body.questions.filter((q) => !need.details[q.key]);
   if (unknown.length > 0) {
     await ctx.store.addTask(TaskKind.answerQuestions, r.engagement.id, unknown, ctx.clock.now());
@@ -60,14 +61,14 @@ export async function onClarify(ctx: JobContext, need: Need, r: JobRecord, body:
     return r;
   }
   const answers = Object.fromEntries(body.questions.map((q) => [q.key, need.details[q.key] as string]));
-  return ctx.send(r, K.response, { answers } satisfies Answers);
+  return ctx.send({ ...r, answers }, K.response, { answers } satisfies Answers);
 }
 
 /** The owner answered the worker's questions; the answers are kept for the other requests in the group too. */
 export async function answer(ctx: JobContext, need: Need, r: JobRecord, answers: Record<string, string>) {
   await ctx.store.saveNeed({ ...need, details: { ...need.details, ...answers } });
   await ctx.store.removeTask(TaskKind.answerQuestions, r.engagement.id);
-  return ctx.send(r, K.response, { answers } satisfies Answers);
+  return ctx.send({ ...r, answers: { ...r.answers, ...answers } }, K.response, { answers } satisfies Answers);
 }
 
 /** The worker quoted: accept, counter one step, or walk away when rounds run out. */

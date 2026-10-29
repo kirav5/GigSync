@@ -76,13 +76,15 @@ export async function onRequest(ctx: JobContext, rules: WorkerRules, r: JobRecor
     return cancel(ctx, r, { reason: CancelReason.enum.no_match });
   const missing = QUESTIONS[req.trade].filter((key) => !req.details[key]).map((key) => ({ key }));
   if (missing.length > 0 && !r.asked)
-    return ctx.send({ ...r, asked: true }, K.clarify, { questions: missing } satisfies Clarify);
+    return ctx.send({ ...r, asked: true, questions: missing.map((q) => q.key) }, K.clarify, {
+      questions: missing,
+    } satisfies Clarify);
   return quoteNext(ctx, rules, r);
 }
 
 export function onAnswers(ctx: JobContext, rules: WorkerRules, r: JobRecord, body: Answers): Promise<JobRecord> {
   const request = { ...r.request, details: { ...r.request.details, ...body.answers } };
-  return quoteNext(ctx, rules, { ...r, request });
+  return quoteNext(ctx, rules, { ...r, request, answers: { ...r.answers, ...body.answers } });
 }
 
 /** The worker took a request their rules said to show them first: the agent quotes now. */

@@ -140,7 +140,9 @@ test("Hindi cook, Kannada household: every screen in its own language, free text
   const job = asha.page.getByRole("article");
   await expect(job.locator(TRANSLATED).filter({ hasText: "सुबह खाना बनाने वाले चाहिए" })).toBeVisible();
   // His answers to the agent's questions are with the job's other details, under its Details fold.
-  await reveal(asha.page, job.locator(TRANSLATED).filter({ hasText: "सुबह और रात" }));
+  // It is in the agents' talk (his answer to her agent's question) and again under Details.
+  await expect(job.getByRole("list", { name: t(hi, "talk.title") })).toContainText("सुबह और रात");
+  await reveal(asha.page, job.locator(".job-more").locator(TRANSLATED).filter({ hasText: "सुबह और रात" }));
   await expect(job.locator(TRANSLATED).filter({ hasText: "सुबह 7–10" }).first()).toBeVisible(); // the time he gave
   await expect(job).not.toContainText(KN_NEED);
   await expect(job).not.toContainText(KN_MEALS);

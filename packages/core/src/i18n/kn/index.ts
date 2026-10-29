@@ -11,6 +11,7 @@ import { record } from "./record.js";
 import { screens } from "./screens.js";
 import { shell } from "./shell.js";
 import { speech } from "./speech.js";
+import { talk } from "./talk.js";
 import { worker } from "./worker.js";
 
 /** Kannada. Written by the team, to be checked by a native-speaking organiser before the pilot (docs/gigsync/i18n-review.md). */
@@ -28,4 +29,5 @@ export const kn: Strings = {
   ...net,
   ...record,
   ...colleague,
+  ...talk,
 };

@@ -10,6 +10,7 @@ import { record } from "./record.js";
 import { screens } from "./screens.js";
 import { shell } from "./shell.js";
 import { speech } from "./speech.js";
+import { talk } from "./talk.js";
 import { worker } from "./worker.js";
 
 /**
@@ -32,6 +33,7 @@ export const en = {
   ...net,
   ...record,
   ...colleague,
+  ...talk,
 } as const;
 
 export type MessageKey = keyof typeof en;

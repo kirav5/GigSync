@@ -40,8 +40,6 @@ export const job = {
   "cancel.other": "Cancelled",
   "job.customer": "Customer",
   "job.worker": "Worker",
-  "job.mine_offered": "Your agent offered {price}",
-  "job.theirs_offered": "{name}'s agent offered {price}",
   "job.signed": "Signed: {price}",
   "job.both_signed": "both signed",
   "job.their_signature": "waiting for their signature",

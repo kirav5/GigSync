@@ -4,6 +4,7 @@ import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { money } from "../ui/places.js";
 import { Said } from "../ui/Said.js";
+import { AgentTalk } from "./AgentTalk.js";
 import { type JobActionProps, JobActions } from "./JobActions.js";
 import { PlanCard } from "./JobDecide.js";
 import { dayDate } from "./jobGroups.js";
@@ -124,21 +125,21 @@ export function JobThread(props: JobActionProps) {
         </fieldset>
       )}
 
-      <More job={job} them={them} from={theirs} />
+      <AgentTalk job={job} them={them} from={theirs} />
+      <More job={job} from={theirs} />
     </article>
   );
 }
 
 /**
- * What the agents said on the way, folded under Details: the request's details (the When ones have their own line),
- * the worker's private price plan, and the offers. Nothing at all when there is none of it.
+ * Folded under Details: the request's details (the When ones have their own line) and the worker's private price
+ * plan. Nothing at all when there is neither. The offers are in the agents' talk above.
  */
-function More({ job, them, from }: { job: JobRecord; them: string; from: Lang | undefined }) {
+function More({ job, from }: { job: JobRecord; from: Lang | undefined }) {
   const { t } = useI18n();
-  const role = job.engagement.role;
   const details = Object.entries(job.request.details).filter(([k]) => !WHEN_KEYS.has(k));
-  const plan = role === Role.enum.provider ? job.advice : undefined;
-  if (details.length === 0 && !plan && job.offers.length === 0) return null;
+  const plan = job.engagement.role === Role.enum.provider ? job.advice : undefined;
+  if (details.length === 0 && !plan) return null;
 
   /** A detail's value: yes and no as words, a bare number in shared digits, anything else as the other side wrote it. */
   function detailValue(value: string) {
@@ -165,17 +166,6 @@ function More({ job, them, from }: { job: JobRecord; them: string; from: Lang | 
           </ul>
         )}
         {plan && <PlanCard advice={plan} />}
-        {job.offers.length > 0 && (
-          <ol className="offers" aria-label={t("a11y.offers")}>
-            {job.offers.map(({ by, offer }) => (
-              <li key={offer.offer_id}>
-                {by === role
-                  ? t("job.mine_offered", { price: money(offer.price_paise) })
-                  : t("job.theirs_offered", { name: them, price: money(offer.price_paise) })}
-              </li>
-            ))}
-          </ol>
-        )}
       </div>
     </details>
   );

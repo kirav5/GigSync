@@ -75,7 +75,6 @@ export const screens: Readonly<Record<keyof typeof en, string>> = {
   "requests.checked": "ಕೊನೆಯ ಪರಿಶೀಲನೆ: {time}",
   "requests.empty_consumer": "ಇನ್ನೂ ಏನೂ ಕೇಳಿಲ್ಲ. ಮೊದಲು ಯಾರನ್ನಾದರೂ ಹುಡುಕಿ.",
   "error.generic": "ಏನೋ ತಪ್ಪಾಗಿದೆ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
-  "a11y.offers": "ಆಫರ್‌ಗಳು",
   "a11y.deal": "ಒಪ್ಪಂದ",
   "a11y.contact": "ಸಂಪರ್ಕ",
   "a11y.notes": "ಸಂದೇಶಗಳು",

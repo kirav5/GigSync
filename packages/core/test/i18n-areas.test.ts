@@ -11,6 +11,7 @@ import { record } from "../src/i18n/en/record.js";
 import { screens } from "../src/i18n/en/screens.js";
 import { shell } from "../src/i18n/en/shell.js";
 import { speech } from "../src/i18n/en/speech.js";
+import { talk } from "../src/i18n/en/talk.js";
 import { worker } from "../src/i18n/en/worker.js";
 
 /** Every English area file. Each language's index spreads them into one object, where a repeated key wins silently. */
@@ -28,6 +29,7 @@ const AREAS: Readonly<Record<string, object>> = {
   net,
   record,
   colleague,
+  talk,
 };
 
 describe("string areas", () => {

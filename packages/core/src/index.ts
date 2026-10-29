@@ -17,6 +17,7 @@ export * from "./job/device.js";
 export * from "./job/negotiate.js";
 export * from "./job/settle.js";
 export * from "./job/store.js";
+export * from "./job/talk.js";
 export * from "./job/when.js";
 export { QUESTIONS, type WorkerRules } from "./job/worker.js";
 export * from "./keys.js";

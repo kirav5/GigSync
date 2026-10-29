@@ -75,7 +75,6 @@ export const screens: Readonly<Record<keyof typeof en, string>> = {
   "requests.checked": "{time} पर देखा",
   "requests.empty_consumer": "अभी कुछ नहीं पूछा। पहले किसी को खोजें।",
   "error.generic": "कुछ गड़बड़ हो गई। फिर से कोशिश करें।",
-  "a11y.offers": "ऑफ़र",
   "a11y.deal": "सौदा",
   "a11y.contact": "संपर्क",
   "a11y.notes": "संदेश",

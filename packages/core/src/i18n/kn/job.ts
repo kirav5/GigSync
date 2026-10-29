@@ -42,8 +42,6 @@ export const job: Readonly<Record<keyof typeof en, string>> = {
   "cancel.other": "ರದ್ದಾಗಿದೆ",
   "job.customer": "ಗ್ರಾಹಕರು",
   "job.worker": "ಕೆಲಸಗಾರರು",
-  "job.mine_offered": "ನಿಮ್ಮ ಏಜೆಂಟ್ {price} ಹೇಳಿತು",
-  "job.theirs_offered": "{name} ಅವರ ಏಜೆಂಟ್ {price} ಹೇಳಿತು",
   "job.signed": "ಸಹಿ: {price}",
   "job.both_signed": "ಇಬ್ಬರೂ ಸಹಿ ಮಾಡಿದ್ದಾರೆ",
   "job.their_signature": "ಅವರ ಸಹಿಗಾಗಿ ಕಾಯಲಾಗುತ್ತಿದೆ",

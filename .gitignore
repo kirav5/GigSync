@@ -20,7 +20,7 @@ apps/mobile/ios/App/App.xcworkspace/xcuserdata
 apps/mobile/ios/App/App.xcodeproj/xcuserdata
 apps/mobile/ios/DerivedData
 .neon
-tests/ui/test-results
+tests/ui/test-results*
 tests/ui/screenshots
 
 # Gradle output of local Capacitor plugins

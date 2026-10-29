@@ -73,7 +73,6 @@ export const screens = {
   "requests.checked": "Checked {time}",
   "requests.empty_consumer": "Nothing asked yet. Find someone first.",
   "error.generic": "Something went wrong. Please try again.",
-  "a11y.offers": "Offers",
   "a11y.deal": "Deal",
   "a11y.contact": "Contact",
   "a11y.notes": "Notes",

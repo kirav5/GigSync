@@ -123,8 +123,10 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   // ── The agents haggle inside both limits; then each owner signs. Anil's deal waits under "Decide now" ─────────
   const signOn = (p: Page) => (p === anil ? inSection(anil, "home.decide") : p).getByRole("button", { name: SIGN });
   const first = await whichever([anil, priya], SIGN);
-  await expand(first, "home.details");
-  await expect(first.getByRole("list", { name: say("a11y.offers") })).toBeVisible();
+  // The agents' talk is open on the card while they are at it: his question, her answer, and the offers.
+  const talk = first.getByRole("list", { name: say("talk.title") });
+  await expect(talk).toBeVisible();
+  await expect(talk).toContainText("It hums but does not spin");
   await expect(priya.getByLabel(say("a11y.contact"))).toHaveCount(0);
   await expect(anil.getByLabel(say("a11y.contact"))).toHaveCount(0);
   await shoot("agents-agree", phones);
