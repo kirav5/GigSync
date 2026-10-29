@@ -3,7 +3,7 @@ import { Lang } from "@gigsync/protocol";
 import { expect, test } from "@playwright/test";
 import { listWorker, newPhone, Role, RUN, signIn } from "./helpers.js";
 import { switchToForm } from "./journey.js";
-import { useSilentTranslator } from "./translator.js";
+import { pairKey, useDownloadableTranslator, useSilentTranslator } from "./translator.js";
 
 /**
  * When the phone's translator never answers (Chrome 156 headless leaves `Translator.availability()` pending), the
@@ -13,6 +13,7 @@ import { useSilentTranslator } from "./translator.js";
 
 const { hi, kn } = Lang.enum;
 const ABOUT = "उत्तर और दक्षिण भारतीय खाना";
+const KN_ABOUT = "ಉತ್ತರ ಮತ್ತು ದಕ್ಷಿಣ ಭಾರತೀಯ ಅಡುಗೆ";
 let other: ApiClient | undefined;
 
 test.afterEach(async () => {
@@ -48,5 +49,45 @@ test("a translator that never answers falls back to the original, labelled, with
   const card = page.getByLabel(t(kn, "a11y.worker", { name }));
   await expect(card).toContainText(t(kn, "said.cannot", { lang: t(kn, "lang.hi") }), { timeout: 10_000 });
   await expect(card.locator('[data-said="original"]')).toHaveText(ABOUT);
+  await context.close();
+});
+
+test("language packs come by themselves: choosing a language fetches them, and a waiting line fetches on the next tap", async ({
+  browser,
+}) => {
+  const context = await browser.newContext();
+  await useDownloadableTranslator(context, { [pairKey(hi, kn, ABOUT)]: KN_ABOUT });
+  const page = await context.newPage();
+  const name = `Kavya ${RUN}`;
+  other = await listWorker(name, ["cook"], { lat: 12.9116, lon: 77.6474 }, 900000, {
+    area_name: "HSR Layout",
+    languages: [hi],
+  });
+  await other.publishProfile({
+    display_name: name,
+    trades: ["cook"],
+    area: { lat: 12.9116, lon: 77.6474 },
+    area_name: "HSR Layout",
+    rate_paise: 900000,
+    languages: [hi],
+    about: ABOUT,
+  });
+
+  // Choosing Kannada is a tap: the packs that read Hindi and English in Kannada are fetched in that moment.
+  await signIn(page, { role: Role.consumer, name: `Ravi ${RUN}`, phone: newPhone(), address: "HSR", lang: kn });
+  const fetches = () =>
+    page.evaluate(() => (globalThis as unknown as { packFetches: { pair: string; tapped: boolean }[] }).packFetches);
+  await expect.poll(async () => (await fetches()).map((f) => f.pair).sort()).toEqual([`en>${kn}`, `${hi}>${kn}`]);
+  expect((await fetches()).every((f) => f.tapped)).toBe(true);
+
+  // Her Hindi "about" reads in Kannada, and nowhere is there a download button.
+  await switchToForm({ page, lang: kn });
+  const search = page.getByRole("form", { name: t(kn, "a11y.search") });
+  await search.getByLabel(t(kn, "find.trade")).selectOption("cook");
+  await search.getByLabel(t(kn, "find.area")).selectOption("HSR Layout");
+  await search.getByRole("button", { name: t(kn, "find.search") }).click();
+  const card = page.getByLabel(t(kn, "a11y.worker", { name }));
+  await expect(card.locator('[data-said="translated"]')).toHaveText(KN_ABOUT);
+  await expect(page.getByRole("button", { name: /download|ಡೌನ್‌ಲೋಡ್/i })).toHaveCount(0);
   await context.close();
 });

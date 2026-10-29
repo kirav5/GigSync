@@ -8,6 +8,7 @@ import { loadLang, saveLang, suggestedLang } from "./adapters/lang.js";
 import { chosenModel } from "./adapters/model.js";
 import { createPorts } from "./adapters/ports.js";
 import { forgetCloudConsent } from "./adapters/speech-settings.js";
+import { fetchPacksOnTap, prepareLanguage } from "./adapters/translate.js";
 import { endInterview } from "./card/interviewStore.js";
 import { endNeed } from "./find/needStore.js";
 import { I18nProvider } from "./i18n.js";
@@ -62,6 +63,8 @@ export function App() {
     (next: Lang) => {
       setLangState(next);
       void saveLang(ports, next);
+      // Picked with a tap, the one moment engines allow a download: other people's words are ready in it.
+      prepareLanguage(next);
     },
     [ports],
   );
@@ -110,6 +113,8 @@ export function App() {
       return true;
     };
   });
+  // A line waiting for a language pack has it fetched on the owner's next tap anywhere.
+  useEffect(() => fetchPacksOnTap(), []);
   useEffect(() => onBackButton(() => back.current()), []);
   useEffect(() => keepBackInApp(account ? screen !== landing(account) : false), [account, screen]);
 

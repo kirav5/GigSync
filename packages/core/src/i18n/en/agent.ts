@@ -29,12 +29,10 @@ export const agent = {
   "agent.needs_model": "I can't do that on this phone yet. I can make your card and remember things for you.",
   "said.translating": "Translating on this phone…",
   "said.cannot": "In {lang}. This phone can't translate it yet.",
-  "said.download": "Translate from {lang} (downloads once to this phone)",
   "said.unsafe": "In {lang}. The translation changed a number, so it is not shown.",
   "translation.title": "Translation on this phone",
   "translation.about":
     "Messages in other languages are translated here, on this phone. Nothing is sent to a translation service.",
-  "translation.pair": "{from} → {to}: {state}",
   "translation.engine": "Engine: {engine}",
   "translation.none": "No on-device translator on this phone yet.",
   "translation.download": "Download",

@@ -44,3 +44,26 @@ export async function useSilentTranslator(context: BrowserContext): Promise<void
     };
   });
 }
+
+/**
+ * Chrome with no language packs yet: every pair is "downloadable" until `create()` fetches it, then "available" and
+ * translating from `table`. Each fetch is logged on `window.packFetches` with whether it ran during a tap, since real
+ * engines refuse a download without one.
+ */
+export async function useDownloadableTranslator(context: BrowserContext, table: TranslationTable): Promise<void> {
+  await context.addInitScript((entries: TranslationTable) => {
+    const fetched = new Set<string>();
+    const fetches: { pair: string; tapped: boolean }[] = [];
+    (globalThis as Record<string, unknown>).packFetches = fetches;
+    (globalThis as Record<string, unknown>).Translator = {
+      availability: async ({ sourceLanguage, targetLanguage }: { sourceLanguage: string; targetLanguage: string }) =>
+        fetched.has(`${sourceLanguage}>${targetLanguage}`) ? "available" : "downloadable",
+      create: async ({ sourceLanguage, targetLanguage }: { sourceLanguage: string; targetLanguage: string }) => {
+        const pair = `${sourceLanguage}>${targetLanguage}`;
+        fetches.push({ pair, tapped: navigator.userActivation.isActive });
+        fetched.add(pair);
+        return { translate: async (text: string) => entries[`${pair}:${text}`] ?? text };
+      },
+    };
+  }, table);
+}

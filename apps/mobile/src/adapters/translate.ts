@@ -1,6 +1,6 @@
 import { type TranslateEngine, TranslateState, Translations } from "@gigsync/core";
 import { GigSyncTranslate, type PairStatus } from "@gigsync/plugin-translate";
-import type { Lang } from "@gigsync/protocol";
+import { Lang } from "@gigsync/protocol";
 
 /** What runs translation on this device: Chrome's translator on the web, ML Kit on Android, Apple's on iPhone. */
 export const ENGINE_NAMES: Readonly<Record<string, string>> = {
@@ -45,6 +45,33 @@ export async function preparePair(from: Lang, to: Lang): Promise<PairStatus> {
     packs += 1;
     for (const fn of listeners) fn();
   }
+}
+
+/**
+ * Packs fetched without asking (ADR: the owner never downloads pair by pair). Engines only download from a tap, so
+ * this runs inside one: choosing a language fetches what reads every other language GigSync speaks in it, and a line
+ * on screen that is waiting for a pack has it fetched on the owner's next tap anywhere.
+ */
+export function prepareLanguage(to: Lang): void {
+  for (const from of Lang.options) if (from !== to) void preparePair(from, to);
+}
+
+/** Pairs a line on screen is waiting for, fetched on the owner's next tap. */
+const wanted = new Map<string, readonly [Lang, Lang]>();
+
+export function wantPair(from: Lang, to: Lang): void {
+  wanted.set(`${from}>${to}`, [from, to]);
+}
+
+/** Once per app: any tap fetches the packs lines on screen are waiting for. Returns how to stop. */
+export function fetchPacksOnTap(): () => void {
+  const onTap = () => {
+    const pairs = [...wanted.values()];
+    wanted.clear();
+    for (const [from, to] of pairs) void preparePair(from, to);
+  };
+  document.addEventListener("pointerdown", onTap, true);
+  return () => document.removeEventListener("pointerdown", onTap, true);
 }
 
 const engine: TranslateEngine = {

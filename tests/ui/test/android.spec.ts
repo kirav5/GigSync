@@ -83,16 +83,15 @@ test("Hindi cook on Android, Kannada household: ML Kit translates his words on h
   await answer.getByLabel(questionText(kn, "pets")).selectOption("yes");
   await answer.getByRole("button", { name: t(kn, "job.send_answers") }).click();
 
-  // Her phone has no Kannada pack yet: it offers to fetch one, and only her tap does it.
+  // Her phone has no Kannada pack yet: the line says it is translating, never shows Kannada, and her next tap anywhere
+  // fetches the pack (engines only download from a tap); there is no download button to find.
   const job = asha.page.getByRole("article");
-  const fetch = job.getByRole("button", { name: t(hi, "said.download", { lang: t(hi, "lang.kn") }) }).first();
-  await expect(fetch).toBeVisible({ timeout: 60_000 });
-  await deviceShot("02-offer-download");
-  await fetch.click();
+  await expect(job.getByText(t(hi, "said.translating")).first()).toBeVisible({ timeout: 60_000 });
+  await deviceShot("02-translating");
+  await job.first().click();
   const translated = job.locator(TRANSLATED).first();
   await expect(translated).toBeVisible({ timeout: DOWNLOAD_MS });
   // Every line of his reads in Hindi alone once the pack is here: no Kannada, and no note saying it was translated.
-  await expect(job.getByRole("button", { name: t(hi, "said.download", { lang: t(hi, "lang.kn") }) })).toHaveCount(0);
   await expect(job).not.toContainText(KN_NEED);
   await expect(job).not.toContainText(KANNADA);
   await expect(job).not.toContainText(OLD_NOTE);
