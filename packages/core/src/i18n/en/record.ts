@@ -1,4 +1,4 @@
-/** The worker's record inside Passbook: every finished job both sides signed, and money paid to helpers they hired. */
+/** The worker's record inside Passbook: every finished job both sides signed. */
 export const record = {
   "record.title": "Work done",
   "record.jobs.one": "{count} job done",
@@ -11,9 +11,6 @@ export const record = {
   "record.state_waiting": "Waiting for payment",
   "record.state_not_asked": "Not asked for yet",
   "record.state_cancelled": "Cancelled",
-  "record.hired": "Paid to helpers",
-  "record.hired_paid": "Paid {price}",
-  "record.hired_unpaid": "Not paid yet",
   "record.open": "Show this job",
   "record.close": "Hide this job",
   "record.empty": "Jobs you finish on GigSync show here.",

@@ -3,9 +3,9 @@ import { type FormEvent, useState } from "react";
 import { NeedSpeaker, type NeedTurn, pickNeedDate, tapNeed, togglePick } from "../../find/needStore.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
-import { WorkerPick } from "../colleague/WorkerPick.js";
 import { dayDate } from "../jobGroups.js";
 import { Ask, Own } from "../talk/Bubbles.js";
+import { WorkerPick } from "./WorkerPick.js";
 
 /** A found-workers turn. */
 export type FoundTurn = Extract<NeedTurn, { who: typeof NeedSpeaker.found }>;

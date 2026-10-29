@@ -1,4 +1,5 @@
 import {
+  COLLEAGUE_KINDS,
   type EngagementId,
   type Envelope,
   EnvelopeKind,
@@ -15,6 +16,7 @@ import type { Received } from "../mail/transport.js";
 import type { MentorContext } from "./context.js";
 import { onIntroAnswer, onIntroduce } from "./intro.js";
 import { openMentorLink } from "./link.js";
+import { receiveOnLink } from "./link-receive.js";
 import { refreshSlots } from "./listing.js";
 import { RequestState } from "./types.js";
 
@@ -27,15 +29,17 @@ function dropped(e: Envelope, reason: string): void {
 }
 
 /**
- * Takes one mentor envelope. Anything from someone blocked here, or that fits no request or introduction this phone
- * has, is dropped without a reply.
+ * Takes one mentor envelope, or one on a mentor link (a note, a renewal, the end). Anything from someone blocked
+ * here, or that fits no request, introduction or link this phone has, is dropped without a reply.
  */
 export async function receive(m: MentorContext, { envelope: e, body }: Received): Promise<void> {
   const from = e.from.user;
+  // Someone this owner blocked is hidden everywhere: nothing they send is kept.
   if (await m.store.isBlocked(from)) return dropped(e, "blocked");
+  if (COLLEAGUE_KINDS.has(e.kind)) return receiveOnLink(m, e, body);
   switch (e.kind) {
     case K.introduce:
-      if (!(await onIntroduce(m, from, e.engagement, body as Introduce))) dropped(e, "not from a colleague");
+      if (!(await onIntroduce(m, from, e.engagement, body as Introduce))) dropped(e, "not from someone known");
       return;
     case K.landing_request:
       return onLanding(m, e, body as LandingRequest);
@@ -51,7 +55,7 @@ export async function receive(m: MentorContext, { envelope: e, body }: Received)
 /** A newcomer asks this owner for help: kept as a decision for Today, once per channel. */
 async function onLanding(m: MentorContext, e: Envelope, request: LandingRequest): Promise<void> {
   if (await m.store.receivedOn(e.engagement)) return dropped(e, "already asked");
-  const at = m.c.ctx.clock.now().toISOString();
+  const at = m.ctx.clock.now().toISOString();
   await m.store.saveReceived({ channel: e.engagement, from: e.from.user, request, state: S.sent, at });
 }
 

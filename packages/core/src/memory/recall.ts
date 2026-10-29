@@ -20,15 +20,14 @@ function recalledPerson(p: Person): NonNullable<Recall["person"]> {
 }
 
 /**
- * What this owner's agent remembers that bears on a job in this trade with this counterpart: the owner's own stable
- * facts (household side), the counterpart if they did a signed job together before, and what was asked before for
- * this trade (worker side). Prices are never part of it.
+ * What this owner's agent remembers that bears on a job in this trade with this counterpart: the counterpart if they
+ * did a signed job together before, and what was asked before for this trade (worker side). Prices are never part of
+ * it. The household's own facts, which its agent answers from, are `householdKnown`.
  */
 export async function recall(owner: MemoryOwner, trade: Trade, counterpart?: UserId): Promise<Recall> {
   const doc = await load(owner.storage, owner.me.user);
   const person = counterpart ? doc.people[counterpart] : undefined;
   return {
-    facts: valuesOf(doc.facts),
     ...(person ? { person: recalledPerson(person) } : {}),
     askedBefore: doc.asked[trade] ?? [],
   };

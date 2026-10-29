@@ -1,5 +1,5 @@
 import { type EngagementId, Role, type Trade, type UserId } from "@gigsync/protocol";
-import { type JobRecord, MemoryStorage, type MemoryWriter } from "../src/index.js";
+import { householdKnown, type JobRecord, MemoryStorage, type MemoryWriter } from "../src/index.js";
 
 export const HOME = "usr_01HOME0000000000000000000" as UserId;
 export const WORKER = "usr_01WORKER00000000000000000" as UserId;
@@ -9,6 +9,12 @@ const SIG = "c2ln";
 /** A phone's memory owner on its own storage, with a fixed day. */
 export function writer(owner: UserId, day = "2026-10-01"): MemoryWriter & { storage: MemoryStorage } {
   return { storage: new MemoryStorage(), me: { user: owner }, clock: { now: () => new Date(`${day}T09:00:00Z`) } };
+}
+
+/** The owner's remembered facts as plain values, as the household's agent reads them. */
+export async function factValues(owner: MemoryWriter): Promise<Record<string, string | undefined>> {
+  const { facts } = await householdKnown(owner);
+  return Object.fromEntries(Object.entries(facts).map(([key, known]) => [key, known?.value]));
 }
 
 /** One job as `role` sees it, signed by both unless `signed` is false. */

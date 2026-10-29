@@ -3,10 +3,9 @@ import { useState } from "react";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import type { GigView } from "../useGig.js";
-import { useColleagues } from "./colleague/context.js";
 import type { JobActionProps } from "./JobActions.js";
 import { JobThread } from "./JobThread.js";
-import { groupJobs, phoneDay, referralsOpen } from "./jobGroups.js";
+import { groupJobs, phoneDay } from "./jobGroups.js";
 import "./jobs.css";
 
 interface Props {
@@ -19,15 +18,13 @@ interface Props {
 type ListProps = Omit<JobActionProps, "job"> & { jobs: readonly JobRecord[] };
 
 /**
- * The consumer's jobs: what to decide now (answer the worker, sign, ask a colleague a worker suggested), the jobs
+ * The consumer's jobs: what to decide now (answer the worker, sign, say whether a payment went), the jobs
  * agreed (pay, review), then folded away the requests the agents are still talking over, and the past.
  */
 export function Requests({ view, device, run }: Props) {
   const { t, time, plural } = useI18n();
-  const { answers } = useColleagues();
   const now = new Date();
-  const referrals = referralsOpen({ jobs: view.jobs, answered: answers, canSuggest: false, now });
-  const g = groupJobs({ jobs: view.jobs, tasks: view.tasks, payments: view.payments, day: phoneDay(now), referrals });
+  const g = groupJobs({ jobs: view.jobs, tasks: view.tasks, payments: view.payments, day: phoneDay(now) });
   const list = { view, device, run };
   return (
     <>

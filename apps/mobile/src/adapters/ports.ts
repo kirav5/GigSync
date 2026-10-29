@@ -35,6 +35,11 @@ class PreferencesStorage implements Storage {
     }
     return out;
   }
+  async ids(c: string) {
+    const { keys } = await Preferences.keys();
+    const prefix = `${c}:`;
+    return keys.filter((k) => k.startsWith(prefix)).map((k) => k.slice(prefix.length));
+  }
 }
 
 /** Preferences key holding the device's software secrets (v2: Ed25519 + X25519; v1 held Ed25519 only). */

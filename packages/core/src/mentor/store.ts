@@ -2,7 +2,8 @@ import type { EngagementId, UserId } from "@gigsync/protocol";
 import { Collection, type Storage } from "../ports.js";
 import type { EarlyReply, Introduction, MentorChoices, NewcomerPrefs, ReceivedRequest, SentRequest } from "./types.js";
 
-import { SettingsDoc } from "./wipe.js";
+/** Ids of the single documents in `Collection.mentorSettings`. */
+const SettingsDoc = { newcomer: "newcomer", choices: "choices" } as const;
 
 /** At most this many early answers are kept: a stranger cannot fill a phone with answers to nothing. */
 const MAX_EARLY = 20;

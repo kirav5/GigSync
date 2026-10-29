@@ -1,4 +1,4 @@
-import { dayOf, EVERY_DAY, type JobRecord, WhenDetail } from "@gigsync/core";
+import { bothSigned, dayOf, EVERY_DAY, FINISHED_WORK, type JobRecord, WhenDetail } from "@gigsync/core";
 import { EngagementStatus, type JobRequest, type Lang, QuestionKey, Role } from "@gigsync/protocol";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
@@ -9,6 +9,7 @@ import { DetailValue } from "./DetailValue.js";
 import { type JobActionProps, JobActions } from "./JobActions.js";
 import { PlanCard } from "./JobDecide.js";
 import { dayDate } from "./jobGroups.js";
+import { IntroActions } from "./mentor/IntroActions.js";
 import "./jobs.css";
 
 const S = EngagementStatus.enum;
@@ -45,7 +46,7 @@ const WHEN_KEYS: ReadonlySet<string> = new Set(Object.values(WhenDetail));
  * notes and the money. What the agents said on the way (the request's details, the plan, the offers) is folded away.
  */
 export function JobThread(props: JobActionProps) {
-  const { job, view } = props;
+  const { job, view, device, run } = props;
   const { lang, t } = useI18n();
   const e = job.engagement;
   const isWorker = e.role === Role.enum.provider;
@@ -58,6 +59,9 @@ export function JobThread(props: JobActionProps) {
   // The signed slot is a copy of the request's `when`; with a structured day, the When line below says it in this
   // phone's own words, so the slot's machine-translated copy is left out. Older requests have only the slot.
   const slot = terms && dayOf(job.request) === undefined ? terms.slot : undefined;
+  // Finished work both signed makes them someone this owner knows: a worker may ask the household whether they know
+  // someone in a new city, and a household may introduce the worker who did the job.
+  const known = job.contact && bothSigned(job) && FINISHED_WORK.has(e.status) ? job.contact : undefined;
 
   return (
     <article className={C.card} aria-label={t("a11y.job_with", { name: them })} data-status={e.status} lang={lang}>
@@ -93,6 +97,15 @@ export function JobThread(props: JobActionProps) {
           <strong>{job.contact.name}</strong>
           <span>{job.contact.phone}</span>
           {job.contact.address && <span>{job.contact.address}</span>}
+          {known && (
+            <IntroActions
+              device={device}
+              person={{ user: e.counterpart, name: known.name }}
+              run={run}
+              ask={isWorker}
+              introduce={!isWorker}
+            />
+          )}
         </fieldset>
       )}
       {notes.length > 0 && (

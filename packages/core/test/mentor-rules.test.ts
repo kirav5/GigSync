@@ -57,7 +57,7 @@ describe("who may list as a mentor", () => {
 });
 
 describe("mentor link expiry", () => {
-  it("ends 30 days after it opens; a colleague met in person never ends", () => {
+  it("ends 30 days after it opens; a link with no end date (an older in-person link) never ends", () => {
     const end = mentorExpiry(NOW);
     expect(Date.parse(end) - NOW.getTime()).toBe(MENTOR_LINK_TTL_MS);
     expect(daysLeft(end, NOW)).toBe(30);

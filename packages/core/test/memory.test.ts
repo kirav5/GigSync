@@ -7,12 +7,12 @@ import {
   type JobRecord,
   listMemory,
   MemoryItemKind,
+  OwnerStorage,
   recall,
   remember,
   summary,
-  wipeMemory,
 } from "../src/index.js";
-import { HOME, job, WORKER, writer } from "./memory-fixtures.js";
+import { factValues, HOME, job, WORKER, writer } from "./memory-fixtures.js";
 
 const R = Role.enum;
 const ASHA = { name: "Asha", phone: "+919800000303" };
@@ -24,7 +24,7 @@ describe("agent memory: what is kept", () => {
     const done = job({ details: { people: "4", problem: "none" }, answers: { meals: "2", pets: "no" }, contact: ASHA });
     await remember(home, done);
     const known = await recall(home, "cook", WORKER);
-    expect(known.facts).toEqual({ people: "4", meals: "2", pets: "no" });
+    expect(await factValues(home)).toEqual({ people: "4", meals: "2", pets: "no" });
     expect(known.person).toMatchObject({ name: "Asha", role: R.provider, jobs: 1, trades: ["cook"] });
     expect(JSON.stringify(known)).not.toContain("900000");
     const stored = JSON.stringify(await home.storage.list(Collection.memory));
@@ -47,7 +47,7 @@ describe("agent memory: what is kept", () => {
     });
     await remember(ravi, served);
     const known = await recall(ravi, "cook", HOME);
-    expect(known.facts).toEqual({});
+    expect(await factValues(ravi)).toEqual({});
     expect(known.person).toMatchObject({ name: "Ravi", role: R.requester, details: { people: "4", meals: "2" } });
     expect(known.askedBefore.map((a) => [a.key, a.answered])).toEqual([
       ["meals", true],
@@ -88,7 +88,7 @@ describe("agent memory: what is never kept", () => {
     const home = writer(HOME);
     await remember(home, job({ details: { rooms: "3" }, signed: false, contact: ASHA }));
     const known = await recall(home, "cook", WORKER);
-    expect(known.facts).toEqual({ rooms: "3" });
+    expect(await factValues(home)).toEqual({ rooms: "3" });
     expect(known.person).toBeUndefined();
 
     const ravi = writer(WORKER);
@@ -107,7 +107,7 @@ describe("agent memory: what is never kept", () => {
       pets: "yes",
     };
     await remember(home, job({ details }));
-    expect((await recall(home, "cook")).facts).toEqual({ pets: "yes" });
+    expect(await factValues(home)).toEqual({ pets: "yes" });
   });
 });
 
@@ -120,7 +120,7 @@ describe("agent memory: newest wins, counted once", () => {
     await remember(day2, second);
     await remember(day2, { ...second, contact: ASHA });
     const known = await recall(day2, "cook", WORKER);
-    expect(known.facts.rooms).toBe("3");
+    expect((await factValues(day2)).rooms).toBe("3");
     expect(known.person).toMatchObject({ jobs: 2, name: "Asha", last_on: "2026-10-01" });
   });
 
@@ -137,10 +137,10 @@ describe("agent memory: forget", () => {
     const home = writer(HOME);
     await remember(home, job({ details: { rooms: "3", pets: "no" }, contact: ASHA }));
     await forgetMemory(home, "fact:rooms");
-    expect((await recall(home, "cook")).facts).toEqual({ pets: "no" });
+    expect(await factValues(home)).toEqual({ pets: "no" });
     await forgetMemory(home, "nonsense");
     await forgetMemory(home, "fact:not_a_key");
-    expect((await recall(home, "cook")).facts).toEqual({ pets: "no" });
+    expect(await factValues(home)).toEqual({ pets: "no" });
     await forgetMemory(home, FORGET_ALL);
     expect(await listMemory(home)).toEqual([]);
   });
@@ -154,11 +154,13 @@ describe("agent memory: forget", () => {
     expect((await recall(home, "cook", WORKER)).person).toBeUndefined();
   });
 
-  it("sign-out wipes every owner's memory on the phone", async () => {
-    const home = writer(HOME);
+  it("keeps each owner's memory apart on a shared phone: only the one signed in sees theirs", async () => {
+    const phone = writer(HOME).storage;
+    const home = { ...writer(HOME), storage: new OwnerStorage(phone, HOME) };
+    const worker = { ...writer(WORKER), storage: new OwnerStorage(phone, WORKER) };
     await remember(home, job({ details: { rooms: "3" } }));
-    await remember({ ...home, me: { user: WORKER } }, job({ role: R.provider, details: { rooms: "3" } }));
-    await wipeMemory(home.storage);
-    expect(await home.storage.list(Collection.memory)).toEqual([]);
+    expect(await listMemory(worker)).toEqual([]);
+    expect(await worker.storage.list(Collection.memory)).toEqual([]);
+    expect(await listMemory(home)).not.toEqual([]);
   });
 });

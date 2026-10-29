@@ -20,7 +20,7 @@ interface Cursor {
  * `seq` order per (engagement, sender), and holds anything that arrives early until the gap is filled.
  * Verification of the signature happens before this, in the transport adapter.
  *
- * The key is only a channel id and a sender, so channels with no job behind them (two colleagues) order the same way.
+ * The key is only a channel id and a sender, so channels with no job behind them (a mentor link) order the same way.
  * Those live for months, so a gap that can never fill must not hold them forever: an envelope sent before a held one
  * expired before it too, so once a held envelope is past its own expiry, whatever it waits for is gone from the
  * mailbox and delivery resumes from it.

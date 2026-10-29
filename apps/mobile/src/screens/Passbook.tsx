@@ -5,7 +5,6 @@ import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { money } from "../ui/places.js";
 import type { GigView } from "../useGig.js";
-import { PaidToHelpers } from "./record/PaidToHelpers.js";
 import { WorkDone } from "./record/WorkDone.js";
 import "../payments/money.css";
 
@@ -28,8 +27,7 @@ interface Props {
 
 /**
  * Money and work from jobs both sides signed on GigSync: this week's and this month's totals, then every finished job
- * by month with where its money stands, then what the worker paid helpers they hired. A row opens to the job's own
- * card, one at a time.
+ * by month with where its money stands. A row opens to the job's own card, one at a time.
  */
 export function Passbook({ view, me, device, run, onAddPayee }: Props) {
   const { t } = useI18n();
@@ -70,7 +68,6 @@ export function Passbook({ view, me, device, run, onAddPayee }: Props) {
       </div>
 
       {record.signed === 0 ? <p className={C.empty}>{t("passbook.empty")}</p> : <WorkDone record={record} {...rows} />}
-      <PaidToHelpers hired={record.hired} {...rows} />
 
       <p className={C.faint}>{t("passbook.about")}</p>
     </>

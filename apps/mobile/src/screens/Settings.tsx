@@ -1,5 +1,5 @@
 import type { GigDevice, MessageKey, Ports } from "@gigsync/core";
-import { Lang, PAYEE_NAME_MAX } from "@gigsync/protocol";
+import { Lang, PAYEE_NAME_MAX, type UserId } from "@gigsync/protocol";
 import { useState } from "react";
 import type { Account } from "../adapters/account.js";
 import { useI18n } from "../i18n.js";
@@ -8,12 +8,10 @@ import { C } from "../ui/cls.js";
 import { InstallCard, InstallPlace } from "../ui/InstallCard.js";
 import { Look, savedLook, saveLook } from "../ui/look.js";
 import { AREAS, money } from "../ui/places.js";
-import { ColleaguesSection } from "./colleague/List.js";
-import type { ColleaguePlace } from "./colleague/place.js";
-import { SiteForm } from "./colleague/SiteForm.js";
 import { MovingEntry } from "./landing/MovingEntry.js";
 import { ModelSettings } from "./ModelSettings.js";
 import { MemorySection } from "./memory/MemorySection.js";
+import { LinksSection } from "./mentor/LinksSection.js";
 import { MentorSection } from "./mentor/MentorSection.js";
 import { SpeechSettings } from "./SpeechSettings.js";
 import { TranslationSettings } from "./TranslationSettings.js";
@@ -35,10 +33,8 @@ interface Props {
   onCard: () => void;
   /** Opens Talk on the card interview. */
   onTalkCard: () => void;
-  /** The account after the work site address changed. */
-  onAccount: (a: Account) => void;
-  /** Opens the Colleagues screen at one of its places. */
-  onColleagues: (place: ColleaguePlace) => void;
+  /** Opens one mentor link's thread. */
+  onOpenLink: (user: UserId) => void;
   /** Opens the landing journey: moving to a new city. */
   onMoving: () => void;
   device: GigDevice;
@@ -107,12 +103,12 @@ function LookPicker() {
 
 /**
  * Profile: everything that is not a job, each section saving as it changes. The worker's card, the one place their
- * UPI ID is entered, their colleagues and their work site come first, then language, voice and translation on this
+ * UPI ID is entered, their mentor links, moving and mentoring come first, then language, voice and translation on this
  * phone, then installing the web app; the look and the on-device model wait under "More settings". Everything here is
  * kept on this phone.
  */
 export function Settings(props: Props) {
-  const { ports, account, isWorker, platform, online, onSignOut, onCard, onTalkCard, onAccount, onColleagues } = props;
+  const { ports, account, isWorker, platform, online, onSignOut, onCard, onTalkCard, onOpenLink } = props;
   const { onMoving, device, run, onFindMentor } = props;
   const { lang, setLang, t } = useI18n();
   const name = account.contact.name;
@@ -132,8 +128,7 @@ export function Settings(props: Props) {
 
       {isWorker && <CardSummary account={account} onCard={onCard} onTalkCard={onTalkCard} />}
       {isWorker && <PayeeForm ports={ports} defaultName={name.slice(0, PAYEE_NAME_MAX)} />}
-      {isWorker && <ColleaguesSection onOpen={onColleagues} />}
-      {isWorker && <SiteForm ports={ports} account={account} onSaved={onAccount} />}
+      {isWorker && <LinksSection onOpen={onOpenLink} />}
       {isWorker && <MovingEntry onOpen={onMoving} />}
       {isWorker && <MentorSection account={account} device={device} run={run} onFind={onFindMentor} />}
 

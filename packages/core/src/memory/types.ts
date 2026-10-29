@@ -11,7 +11,8 @@ import type { Clock, Storage } from "../ports.js";
 
 /**
  * What the agent remembers from past jobs, so the next time it talks for its owner it need not ask again. It lives
- * only on this phone, one document per owner, is listed and forgettable in Profile, and is wiped at sign-out.
+ * only on this phone, one document per owner, is listed and forgettable in Profile, and stays when the owner signs out:
+ * hidden while they are away, theirs again when they sign back in (owner/storage.ts).
  *
  * Never kept: the other side's phone or address (their name only), payment references, and anything from a job that
  * both sides did not sign, except the owner's own facts.
@@ -77,10 +78,8 @@ export interface MemoryDoc {
   counted: EngagementId[];
 }
 
-/** What `recall` gives the agent's prompts and auto-answers. Prices are left out on purpose. */
+/** What `recall` gives the worker's agent's prompts. Prices are left out on purpose. */
 export interface Recall {
-  /** The owner's own stable facts (household side): what the household's agent may answer from. */
-  facts: Partial<Record<QuestionKey, string>>;
   /** The counterpart, when this owner did a signed job with them before. */
   person?: {
     name?: string;

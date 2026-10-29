@@ -1,40 +1,53 @@
-import type { Colleague, GigDevice, MessageKey } from "@gigsync/core";
-import { City } from "@gigsync/protocol";
+import type { GigDevice, KnownPerson, MessageKey } from "@gigsync/core";
+import { City, type UserId } from "@gigsync/protocol";
 import { useState } from "react";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
-import { linkedOnly, useColleagues } from "../colleague/context.js";
 import { mentorProblem } from "./problems.js";
 
 interface Props {
   device: GigDevice;
-  colleague: Colleague;
+  /** The person on this link or this signed job. */
+  person: { user: UserId; name: string };
   run: (work: () => Promise<unknown>) => Promise<unknown>;
-  /** After asking: the note just sent shows in the thread. */
-  onAsked: () => void;
+  /** Offer "Do you know someone in {city}?", asked of them. */
+  ask?: boolean;
+  /** Offer "Introduce {name} to someone": they are a worker. */
+  introduce?: boolean;
+  /** After asking: on a link, the note just sent shows in the thread. */
+  onAsked?: () => void;
 }
 
 /**
- * Introductions from a colleague's thread (round4-spec §2a): ask them whether they know someone in the city, or
- * introduce them to one of this owner's other linked colleagues, who knows it. No code to scan: both links vouch.
+ * Introductions from a mentor link or a finished signed job: ask them whether they know someone in the city, or
+ * introduce them to another worker this owner knows the same ways. Both sides' dealings with this owner vouch for the
+ * introduction; there is nothing to scan.
  */
-export function IntroActions({ device, colleague, run, onAsked }: Props) {
+export function IntroActions({ device, person, run, ask = false, introduce = false, onAsked }: Props) {
   const { t } = useI18n();
-  const { colleagues } = useColleagues();
-  const [picking, setPicking] = useState(false);
+  const [others, setOthers] = useState<KnownPerson[]>();
   const [said, setSaid] = useState<{ key: MessageKey; other?: string }>();
   const city = City.enum.bengaluru;
   const where = t(`mentor.city.${city}`);
-  const name = colleague.card.name;
-  const others = linkedOnly(colleagues).filter((c) => c.user !== colleague.user);
+  const { user, name } = person;
 
   async function act(what: string, work: () => Promise<unknown>, done: MessageKey, other?: string) {
     try {
       await run(work);
       setSaid({ key: done, ...(other ? { other } : {}) });
-      setPicking(false);
+      setOthers(undefined);
+      return true;
     } catch (err) {
       setSaid({ key: mentorProblem(what, err) });
+      return false;
+    }
+  }
+  async function pick() {
+    if (others) return setOthers(undefined);
+    try {
+      setOthers((await device.mentors.people()).filter((p) => p.worker && p.user !== user));
+    } catch (err) {
+      setSaid({ key: mentorProblem("reading people known failed", err) });
     }
   }
 
@@ -42,24 +55,26 @@ export function IntroActions({ device, colleague, run, onAsked }: Props) {
   return (
     <div className={C.stack}>
       <div className={C.row}>
-        <button
-          type={C.button}
-          className={C.quiet}
-          onClick={() =>
-            void act(
-              "asking around failed",
-              () => device.mentors.askAround(colleague.user, city),
-              "mentor.intro_asked",
-            ).then(onAsked)
-          }
-        >
-          {t("mentor.intro_ask", { city: where })}
-        </button>
-        <button type={C.button} className={C.quiet} onClick={() => setPicking(!picking)}>
-          {t("mentor.introduce", { name })}
-        </button>
+        {ask && (
+          <button
+            type={C.button}
+            className={C.quiet}
+            onClick={() =>
+              void act("asking around failed", () => device.mentors.askAround(user, city), "mentor.intro_asked").then(
+                (ok) => ok && onAsked?.(),
+              )
+            }
+          >
+            {t("mentor.intro_ask", { city: where })}
+          </button>
+        )}
+        {introduce && (
+          <button type={C.button} className={C.quiet} onClick={() => void pick()}>
+            {t("mentor.introduce", { name })}
+          </button>
+        )}
       </div>
-      {picking && (
+      {others && (
         <fieldset className={C.cardWait} aria-label={pickTitle}>
           <span className={C.label}>{pickTitle}</span>
           {others.length === 0 && <span className={C.muted}>{t("mentor.intro_none")}</span>}
@@ -72,7 +87,7 @@ export function IntroActions({ device, colleague, run, onAsked }: Props) {
                 onClick={() =>
                   void act(
                     "introducing failed",
-                    () => device.mentors.introduce({ newcomer: colleague.user, mentor: o.user, city }),
+                    () => device.mentors.introduce({ newcomer: user, mentor: o.user, city }),
                     "mentor.intro_sent",
                     o.card.name,
                   )

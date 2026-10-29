@@ -4,6 +4,8 @@ import type {
   EngagementId,
   Introduce,
   LandingRequest,
+  Lang,
+  LinkKind,
   MatchRequestInput,
   MentorCard,
   MentorListingInput,
@@ -112,11 +114,50 @@ export interface MentorChoices {
   vouched_by?: string | null;
 }
 
-/** What this phone keeps about a mentor link beyond the colleague link: whose side it is on, and the mentor's record. */
+/** What this phone keeps about a mentor link's sides: whose side it is on, and the mentor's record. */
 export interface MentorSide {
   /** This phone's owner's role on the link. */
   role: MentorRole;
   months?: number;
   jobs?: number;
   vouched_by?: string | null;
+}
+
+/**
+ * A mentor link: a 30-day channel between a newcomer and a mentor, opened by an introduction or a landing request,
+ * carrying notes both ways until it runs out, is ended, or either side blocks the other.
+ */
+export interface MentorLink {
+  user: UserId;
+  card: ColleagueCard;
+  /** The pair's channel: every envelope between the two carries it as its `engagement`. */
+  channel: EngagementId;
+  linked_at?: string;
+  /** Notes from them this phone has not shown yet. */
+  unread: number;
+  /** `mentor` on every link this build opens; a link made in person by an older build has another kind and is cleared. */
+  kind?: LinkKind;
+  /** When the link closes, unless either side renews it. */
+  expires_at?: string;
+  mentor?: MentorSide;
+}
+
+/** Who wrote a note on a mentor link, as this phone sees it. */
+export const NoteFrom = { me: "me", them: "them" } as const;
+export type NoteFrom = (typeof NoteFrom)[keyof typeof NoteFrom];
+
+/** One note on a mentor link, with the language it was written in. */
+export interface LinkNote {
+  id: string;
+  from: NoteFrom;
+  text: string;
+  lang: Lang;
+  at: string;
+}
+
+/** A mentor link that has ended: enough to know this owner knew them, and to introduce them to someone. */
+export interface PastLink {
+  user: UserId;
+  card: ColleagueCard;
+  ended_at: string;
 }

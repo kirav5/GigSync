@@ -1,7 +1,6 @@
 import type { Strings } from "../en/index.js";
 import { agent } from "./agent.js";
 import { ask } from "./ask.js";
-import { colleague } from "./colleague.js";
 import { home } from "./home.js";
 import { install } from "./install.js";
 import { interview } from "./interview.js";
@@ -33,7 +32,6 @@ export const kn: Strings = {
   ...install,
   ...net,
   ...record,
-  ...colleague,
   ...talk,
   ...need,
   ...memory,

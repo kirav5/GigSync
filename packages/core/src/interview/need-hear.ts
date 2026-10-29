@@ -6,6 +6,7 @@ import { Pick } from "./card.js";
 import { minAloud } from "./card-parse.js";
 import { areaIn, isSkip, yesNo } from "./lexicon.js";
 import {
+  answerMyself,
   DayWord,
   editNeed,
   firstQuestion,
@@ -15,10 +16,13 @@ import {
   type NeedField,
   NeedSlot,
   type NeedState,
+  offered,
   retryNeed,
   SEARCH_RADII_KM,
+  takeRecalled,
   withTrade,
 } from "./need.js";
+import { MemoryPick } from "./need-memory.js";
 import type { NeedHint } from "./need-model.js";
 import { amountIn, DETAIL_MAX, type NeedFill, parseNeed, withoutMoney } from "./need-parse.js";
 import { NEED_FIELD_WORDS } from "./need-words.js";
@@ -30,7 +34,12 @@ import { finder, firstIn, normalize } from "./normalize.js";
  */
 
 /** What the tap choices carry besides trades, areas, days, radii and fields. */
-export const NeedPick = { date: "date", change: "change", remembered: "remembered" } as const;
+export const NeedPick = { date: "date", change: "change" } as const;
+/** The Change chips under a question, by the field the agent filled in from memory. */
+const REDO = new Map<string, NeedField>([
+  [MemoryPick.redoDetail, NeedSlot.detail],
+  [MemoryPick.redoArea, NeedSlot.area],
+]);
 /** The When chips' values, in the order shown. */
 const WHEN_VALUES: readonly string[] = [DayWord.today, DayWord.tomorrow, EVERY_DAY];
 /** What `JobRequest.need` holds. */
@@ -125,8 +134,17 @@ function onSlot(s: NeedState, d: NeedDraft, text: string, fill: NeedFill, aloud:
   }
 }
 
+/** A yes or no to "From your last job: … Use it?"; any other answer is read as the question's own. */
+function onOffer(s: NeedState, text: string): NeedState | undefined {
+  const yes = offered(s) ? yesNo(text) : undefined;
+  if (yes === undefined) return undefined;
+  return yes ? takeRecalled(s) : answerMyself(s);
+}
+
 /** An answer to one of the questions: its field, anything else it said, then a model's gaps; or the question again. */
 function onAnswer(s: NeedState, text: string, aloud: boolean, hint: NeedHint): NeedState {
+  const offer = onOffer(s, text);
+  if (offer) return offer;
   const fill = parseNeed(text, options(s));
   const draft = fillFromHint(fillEmpty(s.draft, fill), hint, fill.words);
   const answered = onSlot(s, draft, text, fill, aloud);
@@ -192,15 +210,20 @@ export function hearNeed(s: NeedState, text: string, aloud = false, hint: NeedHi
 const flag = (value: string): boolean | undefined =>
   value === Pick.yes ? true : value === Pick.no ? false : undefined;
 
-/** What the owner gave last time for the trade's first question, from the agent's memory. */
-export function rememberedDetail(s: NeedState): string | undefined {
-  const first = firstQuestion(s.draft.trade);
-  return first ? s.config.remembered?.facts[first] : undefined;
+/** A tap on a memory chip: use the offer, answer it myself, or reopen a question the agent filled in. */
+function onMemoryPick(s: NeedState, value: string): NeedState | undefined {
+  if (value === MemoryPick.use) return takeRecalled(s);
+  if (value === MemoryPick.own) return answerMyself(s);
+  const redo = REDO.get(value);
+  if (redo) return s.filled.includes(redo) ? editNeed(s, redo) : s;
+  return undefined;
 }
 
 /** A tap on one of the prompt's choices. A value the prompt did not offer changes nothing. */
 export function chooseNeed(s: NeedState, value: string): NeedState {
   const d = s.draft;
+  const memory = onMemoryPick(s, value);
+  if (memory) return memory;
   switch (s.slot) {
     case NeedSlot.trade: {
       const trade = Trade.options.find((tr) => tr === value);
@@ -208,8 +231,6 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
     }
     case NeedSlot.detail: {
       if (value === Pick.skip) return moveOn(s, { ...d, detail: null });
-      const remembered = rememberedDetail(s);
-      if (value === NeedPick.remembered && remembered) return moveOn(s, { ...d, detail: remembered });
       const yes = flag(value);
       return yes === undefined ? s : moveOn(s, { ...d, detail: yes ? DetailFlag.enum.yes : DetailFlag.enum.no });
     }

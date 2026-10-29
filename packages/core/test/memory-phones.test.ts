@@ -1,6 +1,7 @@
 import { type EngagementId, Role } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import { Collection, recall, settle } from "../src/index.js";
+import { Collection, recall, SystemClock, settle } from "../src/index.js";
+import { factValues } from "./memory-fixtures.js";
 import { ASHA, cook, cookNeed, MemoryRelay, phone, RAVI_HOME } from "./phones.js";
 
 describe("agent memory on two phones", () => {
@@ -17,7 +18,11 @@ describe("agent memory on two phones", () => {
 
     const homeOwner = { storage: home.storage, me: { user: home.user } };
     const atHome = await recall(homeOwner, "cook", asha.user);
-    expect(atHome.facts).toEqual({ people: "4", meals: "2", pets: "no" });
+    expect(await factValues({ ...homeOwner, clock: new SystemClock() })).toEqual({
+      people: "4",
+      meals: "2",
+      pets: "no",
+    });
     expect(atHome.person).toMatchObject({ name: "Asha", role: Role.enum.provider, jobs: 1 });
 
     const ashaOwner = { storage: asha.storage, me: { user: asha.user } };

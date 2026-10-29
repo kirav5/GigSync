@@ -1,4 +1,4 @@
-import { questionText, YES_NO_QUESTIONS } from "@gigsync/core";
+import { questionText, type Suggested, YES_NO_QUESTIONS } from "@gigsync/core";
 import { AskKind, DetailFlag, isModelQuestion, type ModelQuestion, type Question, SKIPPED } from "@gigsync/protocol";
 import { type FormEvent, useState } from "react";
 import { useI18n } from "../i18n.js";
@@ -15,7 +15,25 @@ const ANSWER_MAX = 300;
 const A = AskKind.enum;
 
 /** What a field starts with: a standard yes-or-no detail starts at no, as its toggle always did; the rest empty. */
-const initial = (q: Question) => (!isModelQuestion(q) && YES_NO_QUESTIONS.has(q.key) ? DetailFlag.enum.no : "");
+const blank = (q: Question) => (!isModelQuestion(q) && YES_NO_QUESTIONS.has(q.key) ? DetailFlag.enum.no : "");
+
+/** A field starts with the answer the agent remembers, when it holds one for the owner; else blank. */
+const initial = (q: Question, suggested: Suggested | undefined) => suggested?.text ?? blank(q);
+
+/** "From your past jobs: 2. Send this?", or "still right?" for one given a year or more ago, with Change. */
+function Remembered({ suggested, onChange }: { suggested: Suggested; onChange: () => void }) {
+  const { t } = useI18n();
+  const flag = DetailFlag.safeParse(suggested.text);
+  const value = flag.success ? t(`flag.${flag.data}`) : suggested.text;
+  return (
+    <>
+      <span>{t(suggested.fresh ? "ask.memory_offer" : "ask.memory_old", { value })}</span>
+      <button type={C.button} className={C.quiet} onClick={onChange}>
+        {t("ask.change")}
+      </button>
+    </>
+  );
+}
 
 /** A written question's two answers, as two buttons; the chosen one is pressed. */
 function YesNo({ q, value, onChange }: { q: ModelQuestion; value: string; onChange: (v: string) => void }) {
@@ -78,10 +96,22 @@ function Input({ q, value, onChange }: { q: Question; value: string; onChange: (
   );
 }
 
-/** One question, in this owner's language, with its input and a Skip that answers "skipped" for them. */
-function Field({ q, value, onChange }: { q: Question; value: string; onChange: (v: string) => void }) {
+interface FieldProps {
+  q: Question;
+  value: string;
+  onChange: (v: string) => void;
+  suggested: Suggested | undefined;
+}
+
+/**
+ * One question, in this owner's language, with its input and a Skip that answers "skipped" for them. A remembered
+ * answer shows as a line to send as it is, until Change opens the input with it.
+ */
+function Field({ q, value, onChange, suggested }: FieldProps) {
   const { lang, t } = useI18n();
+  const [changing, setChanging] = useState(false);
   const skipped = value === SKIPPED;
+  const offered = suggested !== undefined && !changing && value === suggested.text;
   const asked = isModelQuestion(q) ? (
     <Said text={q.text} from={q.lang} />
   ) : (
@@ -94,16 +124,14 @@ function Field({ q, value, onChange }: { q: Question; value: string; onChange: (
           {asked}
         </span>
       </label>
-      {skipped ? (
-        <span className={C.faint}>{t("ask.skipped")}</span>
-      ) : (
-        <Input q={q} value={value} onChange={onChange} />
-      )}
+      {skipped && <span className={C.faint}>{t("ask.skipped")}</span>}
+      {offered && <Remembered suggested={suggested} onChange={() => setChanging(true)} />}
+      {!skipped && !offered && <Input q={q} value={value} onChange={onChange} />}
       <button
         type={C.button}
         className={C.quiet}
         aria-pressed={skipped}
-        onClick={() => onChange(skipped ? initial(q) : SKIPPED)}
+        onClick={() => onChange(skipped ? initial(q, suggested) : SKIPPED)}
       >
         {t("ask.skip")}
       </button>
@@ -114,20 +142,24 @@ function Field({ q, value, onChange }: { q: Question; value: string; onChange: (
 /**
  * The other side's agent's questions, in this owner's language: standard ones as they always were, a model's words
  * translated on this phone, yes-or-no as two buttons, a number as a number pad, the rest typed; each one skippable.
- * `say` names who is asking, shown and read aloud from the speaker button. Sending waits for every answer or skip.
+ * `say` names who is asking, shown and read aloud from the speaker button. Answers the agent remembers from past jobs
+ * (`suggested`, when the owner chose "Ask me first") come filled in, so one tap sends them. Sending waits for every
+ * answer or skip.
  */
 export function AnswerForm({
   questions,
   say,
+  suggested = {},
   onSend,
 }: {
   questions: Question[];
   say: string;
+  suggested?: Readonly<Record<string, Suggested>> | undefined;
   onSend: (a: Record<string, string>) => Promise<unknown>;
 }) {
   const { lang, t } = useI18n();
   const [values, setValues] = useState<Record<string, string>>(() =>
-    Object.fromEntries(questions.map((q) => [q.key, initial(q)])),
+    Object.fromEntries(questions.map((q) => [q.key, initial(q, suggested[q.key])])),
   );
   const answered = (q: Question) => (values[q.key] ?? "").trim().length > 0;
   const ready = questions.every(answered);
@@ -146,6 +178,7 @@ export function AnswerForm({
           key={q.key}
           q={q}
           value={values[q.key] ?? ""}
+          suggested={suggested[q.key]}
           onChange={(v) => setValues((all) => ({ ...all, [q.key]: v }))}
         />
       ))}

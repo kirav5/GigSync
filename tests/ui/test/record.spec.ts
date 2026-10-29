@@ -103,8 +103,6 @@ test("a finished job shows in Passbook's record under its month, and opens in pl
   for (const text of [amount, say("trade.carpenter"), say("record.state_not_asked")]) {
     await expect(row).toContainText(text);
   }
-  // A worker who hired nobody has no "Paid to helpers".
-  await expect(workerPage.getByRole("region", { name: say("record.hired") })).toHaveCount(0);
   await shoot("record-not-asked", shots, FOLDER);
 
   // ── The row opens in place to the job's own card, with its contact and money actions ───────────────────────────

@@ -1,10 +1,8 @@
 import { type MentorListingInput, MentorRole } from "@gigsync/protocol";
-import { ColleagueState } from "../colleague/types.js";
 import { apiOf, type MentorContext } from "./context.js";
 import { type MentorRecord, mentorRecord } from "./eligibility.js";
 import { MentorError, MentorRefusal } from "./errors.js";
-import { isExpired } from "./expiry.js";
-import { isMentorLink } from "./link.js";
+import { sweepExpired } from "./link.js";
 import type { MentorChoices } from "./types.js";
 
 /** What the owner chooses in Profile; whether they are listed follows from publishing or not. */
@@ -12,20 +10,13 @@ export type ListingChoices = Omit<MentorChoices, "listed" | "vouched_by">;
 
 /** This phone's own count of finished jobs both sides signed, and whether it reaches the minimum. */
 export async function myRecord(m: MentorContext): Promise<MentorRecord> {
-  return mentorRecord(await m.c.ctx.store.jobs(), m.c.ctx.clock.now());
+  return mentorRecord(await m.ctx.store.jobs(), m.ctx.clock.now());
 }
 
 /** Newcomers this owner is helping now: live mentor links where this phone is the mentor's. */
 async function helping(m: MentorContext): Promise<number> {
-  const now = m.c.ctx.clock.now();
-  const links = await m.c.store.list();
-  return links.filter(
-    (c) =>
-      c.state === ColleagueState.linked &&
-      isMentorLink(c) &&
-      c.mentor?.role === MentorRole.enum.mentor &&
-      !isExpired(c, now),
-  ).length;
+  const live = await sweepExpired(m.links, m.ctx.clock.now());
+  return live.filter((l) => l.mentor?.role === MentorRole.enum.mentor).length;
 }
 
 /**

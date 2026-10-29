@@ -62,14 +62,14 @@ export async function sendRequests(
   const body = LandingRequest.parse({ ...ask, arrival_week: mondayOf(ask.arrival_week), card });
   const [open, blocked] = await Promise.all([m.store.sent(), m.store.blocked()]);
   const asked = new Set(open.filter(isOpenRequest).map((r) => r.mentor));
-  const fresh = picks.filter((p) => p.user !== m.c.ctx.me.user && !blocked.has(p.user) && !asked.has(p.user));
+  const fresh = picks.filter((p) => p.user !== m.ctx.me.user && !blocked.has(p.user) && !asked.has(p.user));
   const reach = await Promise.all(fresh.map((p) => reachesMentor(m, p.user)));
   const sent: SentRequest[] = [];
   for (const [i, profile] of fresh.entries()) {
     if (!reach[i]) continue;
     const channel = newChannel(m);
-    await m.c.transport.send(profile.user, channel, K.landing_request, body);
-    const at = m.c.ctx.clock.now().toISOString();
+    await m.transport.send(profile.user, channel, K.landing_request, body);
+    const at = m.ctx.clock.now().toISOString();
     const r: SentRequest = { channel, mentor: profile.user, profile, state: S.sent, at };
     await m.store.saveSent(r);
     sent.push(r);
@@ -94,7 +94,7 @@ export async function offer(
   const vouched_by = choices?.vouched_by ?? null;
   const mine: MentorCard = { ...card, ...listed, months: record.months, jobs: record.jobs, vouched_by };
   const body: MentorOffer = { reply: R.accept, card: mine, ...(note?.trim() ? { note: note.trim() } : {}) };
-  await m.c.transport.send(r.from, channel, K.mentor_offer, body);
+  await m.transport.send(r.from, channel, K.mentor_offer, body);
   await m.store.saveReceived({ ...r, state: S.offered });
 }
 
@@ -103,7 +103,7 @@ export async function decline(m: MentorContext, channel: EngagementId): Promise<
   const r = await m.store.receivedOn(channel);
   if (r?.state !== S.sent) throw new MentorError(MentorRefusal.notFound);
   const body: MentorOffer = { reply: R.decline };
-  if (await reachesMentor(m, r.from)) await m.c.transport.send(r.from, channel, K.mentor_offer, body);
+  if (await reachesMentor(m, r.from)) await m.transport.send(r.from, channel, K.mentor_offer, body);
   await m.store.saveReceived({ ...r, state: S.declined });
 }
 
@@ -116,7 +116,7 @@ export async function confirm(m: MentorContext, channel: EngagementId): Promise<
   if (r?.state !== S.offered || !r.card) throw new MentorError(MentorRefusal.notFound);
   await mustReach(m, r.mentor);
   const yes: MentorAccept = { reply: R.accept };
-  await m.c.transport.send(r.mentor, channel, K.mentor_accept, yes);
+  await m.transport.send(r.mentor, channel, K.mentor_accept, yes);
   const { months, jobs, vouched_by, ...card } = r.card;
   const side = { role: MentorRole.enum.newcomer, months, jobs, vouched_by };
   await openMentorLink(m, { user: r.mentor, card, channel, side });
@@ -133,6 +133,6 @@ async function withdrawOthers(m: MentorContext, kept: EngagementId): Promise<voi
 /** Closes one request: tells the mentor when their phone can hear it, and marks it closed here either way. */
 export async function withdraw(m: MentorContext, r: SentRequest): Promise<void> {
   const body: MentorAccept = { reply: R.withdraw };
-  if (await reachesMentor(m, r.mentor)) await m.c.transport.send(r.mentor, r.channel, K.mentor_accept, body);
+  if (await reachesMentor(m, r.mentor)) await m.transport.send(r.mentor, r.channel, K.mentor_accept, body);
   await m.store.saveSent({ ...r, state: S.closed });
 }

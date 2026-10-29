@@ -1,30 +1,29 @@
-import { type Colleague, type GigDevice, isMentorLink, type MessageKey } from "@gigsync/core";
+import type { GigDevice, MentorLink, MessageKey } from "@gigsync/core";
 import { useState } from "react";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
-import { useColleagues } from "../colleague/context.js";
 import { BlockReport } from "./BlockReport.js";
 import { LinkChip } from "./LinkChip.js";
+import { useLinks } from "./links.js";
 import { mentorProblem } from "./problems.js";
 
 interface Props {
   device: GigDevice;
-  colleague: Colleague;
+  link: MentorLink;
   run: (work: () => Promise<unknown>) => Promise<unknown>;
   /** After a block the link is gone, and so is its thread. */
   onGone: () => void;
 }
 
 /** On a mentor link's thread: who they are to this owner, the days left, Renew for 30 days, and Block and Report. */
-export function MentorLinkBar({ device, colleague, run, onGone }: Props) {
+export function MentorLinkBar({ device, link, run, onGone }: Props) {
   const { t } = useI18n();
-  const { refresh } = useColleagues();
+  const { refresh } = useLinks();
   const [said, setSaid] = useState<MessageKey>();
-  if (!isMentorLink(colleague)) return null;
-  const name = colleague.card.name;
+  const name = link.card.name;
   async function renew() {
     try {
-      await run(() => device.mentors.renew(colleague.user));
+      await run(() => device.mentors.renew(link.user));
       refresh();
       setSaid("mentor.renewed");
     } catch (err) {
@@ -33,7 +32,7 @@ export function MentorLinkBar({ device, colleague, run, onGone }: Props) {
   }
   return (
     <div className={C.stack}>
-      <LinkChip colleague={colleague} now={new Date()} />
+      <LinkChip link={link} now={new Date()} />
       <div className={C.row}>
         <button type={C.button} className={C.secondary} onClick={() => void renew()}>
           {t("mentor.renew")}
@@ -42,7 +41,7 @@ export function MentorLinkBar({ device, colleague, run, onGone }: Props) {
       {said && <p role="status">{t(said, { name })}</p>}
       <BlockReport
         device={device}
-        user={colleague.user}
+        user={link.user}
         name={name}
         run={run}
         onBlocked={() => {

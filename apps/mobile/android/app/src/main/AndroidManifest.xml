@@ -38,8 +38,4 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Only to scan a colleague's code. Capacitor's web view asks for it at runtime when the page opens the camera;
-         without this line Android refuses at once. Phones without a camera can still install GigSync. -->
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
 </manifest>

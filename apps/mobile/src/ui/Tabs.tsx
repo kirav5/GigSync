@@ -4,7 +4,7 @@ import { useI18n } from "../i18n.js";
 import { Screen } from "../state.js";
 import { C } from "./cls.js";
 import { Icon, type IconName } from "./Icon.js";
-import "../screens/colleague/colleagues.css";
+import "../screens/mentor/mentor.css";
 
 export interface TabItem {
   screen: Screen;
@@ -31,7 +31,7 @@ export const CONSUMER_TABS: readonly TabItem[] = [
 
 /** The tabs that carry the count of decisions waiting for the owner. */
 const BADGED: ReadonlySet<Screen> = new Set([Screen.today, Screen.requests]);
-/** The tab with a dot while a colleague's note is unread: Profile, where Colleagues live. */
+/** The tab with a dot while a note on a mentor link is unread: Profile, where the links live. */
 const DOTTED: Screen = Screen.profile;
 
 interface Props {
@@ -41,7 +41,7 @@ interface Props {
   onScreen: (s: Screen) => void;
   /** Decisions waiting for the owner. */
   tasks: number;
-  /** Colleague notes not read yet. */
+  /** Notes on mentor links not read yet. */
   unread: number;
 }
 
@@ -74,7 +74,7 @@ export function Tabs({ tabs, current, onScreen, tasks, unread }: Props) {
                 {tasks}
               </span>
             )}
-            {dot && <span id={dot} className="dot" role="img" aria-label={plural("colleague.unread", unread)} />}
+            {dot && <span id={dot} className="dot" role="img" aria-label={plural("mentor.unread", unread)} />}
           </button>
         );
       })}

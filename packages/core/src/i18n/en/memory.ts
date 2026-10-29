@@ -1,7 +1,8 @@
-/** What the agent remembers from past jobs: the Profile section, and the Find chat's "same as last time" chips. */
+/** What the agent remembers from past jobs: the Profile section, what the agent says using it, and its setting. */
 export const memory = {
   "memory.title": "What my agent remembers",
-  "memory.about": "Kept only on this phone, so your agent does not ask again. Signing out wipes it.",
+  "memory.about":
+    "Kept only on this phone, so your agent does not ask again. It stays when you sign out; no one else signing in here sees it.",
   "memory.empty": "Nothing yet. After a job you both signed, what your agent learned shows here.",
   "memory.area": "Your area",
   "memory.unnamed": "Someone you worked with",
@@ -13,6 +14,17 @@ export const memory = {
   "memory.asked": "Asked for {trade} jobs",
   "memory.forget": "Forget",
   "memory.forget_all": "Forget everything",
-  "memory.same_area": "Same as last time ({area})",
-  "memory.same_value": "Same as last time: {value}",
+  "memory.offer_detail": "From your last job, {detail}: {value}. Use it?",
+  "memory.offer_detail_old": "I knew this a year ago, {detail}: {value}. Still right?",
+  "memory.filled_detail": "I've put {detail}: {value}, from your last job.",
+  "memory.offer_area": "From your last job, your area: {area}. Use it?",
+  "memory.offer_area_old": "A year ago your area was {area}. Still right?",
+  "memory.filled_area": "I've put {area} as your area, from your last job.",
+  "memory.use": "Yes, use it",
+  "memory.change": "Change",
+  "memory.change_detail": "Change {detail}",
+  "memory.change_area": "Change the area",
+  "memory.answer_label": "When my agent knows an answer from my past jobs",
+  "memory.answer_ask": "Ask me first",
+  "memory.answer_auto": "Answer for me",
 } as const;

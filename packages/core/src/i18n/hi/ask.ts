@@ -10,4 +10,7 @@ export const ask: Readonly<Record<keyof typeof en, string>> = {
   "ask.skip": "छोड़ें",
   "ask.skipped": "छोड़ दिया",
   "ask.number": "एक संख्या",
+  "ask.memory_offer": "आपके पिछले कामों से: {value}। यही भेजें?",
+  "ask.memory_old": "एक साल पहले यह पता था: {value}। क्या अब भी सही है?",
+  "ask.change": "बदलें",
 };

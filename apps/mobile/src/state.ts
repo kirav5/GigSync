@@ -7,8 +7,8 @@ export const Screen = {
   passbook: "passbook",
   profile: "profile",
   card: "card",
-  /** Colleagues linked in person, under Profile. */
-  colleagues: "colleagues",
+  /** One mentor link: its notes, renew, block and introductions, opened from Profile. */
+  link: "link",
   /** Moving to a new city: the landing journey and its city guide, under Profile. */
   landing: "landing",
   /** Find a mentor in a new city: the newcomer chooses from listed mentors, under Profile (and the landing journey). */

@@ -1,6 +1,5 @@
 import {
   type City,
-  type ColleagueCard,
   type EngagementId,
   EnvelopeKind,
   Introduce,
@@ -9,10 +8,9 @@ import {
   MentorRole,
   type UserId,
 } from "@gigsync/protocol";
-import { ColleagueState } from "../colleague/types.js";
 import { type MentorContext, mustReach, newChannel } from "./context.js";
 import { MentorError, MentorRefusal } from "./errors.js";
-import { isExpired } from "./expiry.js";
+import { known, knows } from "./known.js";
 import { openMentorLink } from "./link.js";
 import { mustHaveSeenSafety } from "./request.js";
 import type { Introduction } from "./types.js";
@@ -24,33 +22,24 @@ const { mentor: MENTOR, newcomer: NEWCOMER } = MentorRole.enum;
 /** The other role in a pair: a newcomer's other side is a mentor, and the other way round. */
 export const otherRole = (role: MentorRole): MentorRole => (role === MENTOR ? NEWCOMER : MENTOR);
 
-/** A colleague this phone is linked with now (in person, or a mentor link not yet run out), with their card. */
-async function linkedCard(m: MentorContext, user: UserId): Promise<ColleagueCard> {
-  const c = await m.c.store.get(user);
-  if (c?.state !== ColleagueState.linked || isExpired(c, m.c.ctx.clock.now()))
-    throw new MentorError(MentorRefusal.notLinked);
-  if (await m.store.isBlocked(user)) throw new MentorError(MentorRefusal.blocked);
-  return c.card;
-}
-
 /**
- * Introduces two of this owner's linked colleagues: `newcomer`, who is moving to `city`, and `mentor`, who knows it.
- * Each gets an `introduce` naming the other and who introduced them, on one fresh channel that the mentor link will
- * use if both say yes. No code to scan: this owner's own links vouch for both.
+ * Introduces two people this owner knows (a job both sides signed, or a mentor link, with each): `newcomer`, who is
+ * moving to `city`, and `mentor`, who knows it. Each gets an `introduce` naming the other and who introduced them, on
+ * one fresh channel that the mentor link will use if both say yes. This owner's own dealings with each vouch for both.
  */
 export async function introduce(
   m: MentorContext,
   pair: { newcomer: UserId; mentor: UserId; city: City; note?: string },
 ): Promise<void> {
-  if (pair.newcomer === pair.mentor) throw new MentorError(MentorRefusal.notLinked);
-  const [newcomerCard, mentorCard] = await Promise.all([linkedCard(m, pair.newcomer), linkedCard(m, pair.mentor)]);
+  if (pair.newcomer === pair.mentor) throw new MentorError(MentorRefusal.notKnown);
+  const [newcomer, mentor] = await Promise.all([known(m, pair.newcomer), known(m, pair.mentor)]);
   await Promise.all([mustReach(m, pair.newcomer), mustReach(m, pair.mentor)]);
   const channel = newChannel(m);
-  const by = { user: m.c.ctx.me.user, name: m.c.ctx.contact.name };
+  const by = { user: m.ctx.me.user, name: m.ctx.contact.name };
   const note = pair.note?.trim() ? { note: pair.note.trim() } : {};
   const toNewcomer = Introduce.parse({
     other: pair.mentor,
-    card: mentorCard,
+    card: mentor.card,
     city: pair.city,
     other_role: MENTOR,
     by,
@@ -58,14 +47,14 @@ export async function introduce(
   });
   const toMentor = Introduce.parse({
     other: pair.newcomer,
-    card: newcomerCard,
+    card: newcomer.card,
     city: pair.city,
     other_role: NEWCOMER,
     by,
     ...note,
   });
-  await m.c.transport.send(pair.newcomer, channel, K.introduce, toNewcomer);
-  await m.c.transport.send(pair.mentor, channel, K.introduce, toMentor);
+  await m.transport.send(pair.newcomer, channel, K.introduce, toNewcomer);
+  await m.transport.send(pair.mentor, channel, K.introduce, toMentor);
 }
 
 /** Both said yes: the mentor link opens on this phone, with this owner on their side of it. */
@@ -85,22 +74,24 @@ export async function answerIntro(m: MentorContext, channel: EngagementId, reply
   if (reply === R.accept) await mustHaveSeenSafety(m);
   await mustReach(m, i.other);
   const body: MentorAccept = { reply };
-  await m.c.transport.send(i.other, channel, K.mentor_accept, body);
+  await m.transport.send(i.other, channel, K.mentor_accept, body);
   const next = await m.store.updateIntro(channel, (old) => old && { ...old, mine: reply });
   if (next) await openIfBoth(m, next);
 }
 
-/** An introduction from a linked colleague, naming someone else; anything else is dropped without a trace. */
+/**
+ * An introduction from someone this owner knows (a signed job or a mentor link), naming someone else; anything else,
+ * a stranger's above all, is dropped without a trace.
+ */
 export async function onIntroduce(
   m: MentorContext,
   from: UserId,
   channel: EngagementId,
   body: Introduce,
 ): Promise<boolean> {
-  const now = m.c.ctx.clock.now();
-  const by = await m.c.store.get(from);
-  const fromColleague = by?.state === ColleagueState.linked && !isExpired(by, now) && body.by.user === from;
-  if (!fromColleague || body.other === m.c.ctx.me.user || (await m.store.isBlocked(body.other))) return false;
+  const now = m.ctx.clock.now();
+  if (body.by.user !== from || body.other === m.ctx.me.user || (await m.store.isBlocked(body.other))) return false;
+  if (!(await knows(m, from))) return false;
   const early = await m.store.takeEarly(channel);
   const theirs = early?.from === body.other ? { theirs: early.reply } : {};
   const kept = await m.store.updateIntro(channel, (old) =>

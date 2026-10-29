@@ -35,7 +35,7 @@ export function matchQuery(prefs: NewcomerPrefs, f: MentorFilters): MatchRequest
 export async function findMentors(m: MentorContext, f: MentorFilters): Promise<MentorProfile[]> {
   const prefs = (await m.store.newcomer()) ?? {};
   const [found, blocked] = await Promise.all([apiOf(m).matchMentors(matchQuery(prefs, f)), m.store.blocked()]);
-  return found.filter((p) => p.user !== m.c.ctx.me.user && !blocked.has(p.user));
+  return found.filter((p) => p.user !== m.ctx.me.user && !blocked.has(p.user));
 }
 
 /** Her answer, asked once and changeable: saying she is a woman turns women-only on, saying not turns it off. */

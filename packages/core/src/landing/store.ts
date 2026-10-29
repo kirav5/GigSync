@@ -18,12 +18,6 @@ export function removeJourney(storage: Storage, journey: Journey): Promise<void>
   return storage.delete(Collection.journeys, journey.id);
 }
 
-/** Wipes every move on this phone at sign-out (a shared phone); downloaded guides are public and stay. */
-export async function wipeJourneys(storage: Storage): Promise<void> {
-  const all = await storage.list<Journey>(Collection.journeys);
-  await Promise.all(all.map((j) => storage.delete(Collection.journeys, j.id)));
-}
-
 /** A guide as kept on the phone, with when it was downloaded. */
 interface SavedGuide {
   guide: CityGuide;

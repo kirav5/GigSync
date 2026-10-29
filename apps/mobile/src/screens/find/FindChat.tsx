@@ -51,8 +51,6 @@ interface Props {
   ports: Ports;
   account: Account;
   device: GigDevice;
-  /** A worker hiring a helper: their asks are followed on Today, not My jobs. */
-  hire: boolean;
   onAsked: () => void;
 }
 
@@ -63,7 +61,7 @@ const failure = (err: unknown) => ({ error: err instanceof Error ? err.message :
  * by voice or typing, and the agent asks only what is missing, reads it back, searches, and asks the workers they
  * pick. In English, the phone's own model (when there is one) helps read the first sentence; the word lists decide.
  */
-export function FindChat({ ports, account, device, hire, onAsked }: Props) {
+export function FindChat({ ports, account, device, onAsked }: Props) {
   const i18n = useI18n();
   const { lang, t } = i18n;
   const { state, turns } = useNeed();
@@ -78,7 +76,7 @@ export function FindChat({ ports, account, device, hire, onAsked }: Props) {
   const newest = [...turns].reverse().find((turn) => turn.who === NeedSpeaker.app);
 
   // Opening Find starts a new need, unless one is under way; it carries on where it was. What the agent remembers
-  // from past jobs comes along, to offer as "same as last time".
+  // from past jobs comes along, with the owner's setting: offered first ("Use it?"), or filled in and said.
   useEffect(() => {
     if (opened.current) return;
     opened.current = true;
@@ -156,7 +154,7 @@ export function FindChat({ ports, account, device, hire, onAsked }: Props) {
     setBusy(true);
     try {
       await askWorkers(ports, device, need, turn.workers, turn.picked);
-      const line: Line = { key: hire ? "need.asked_hire" : "need.asked" };
+      const line: Line = { key: "need.asked" };
       needAsked(line);
       leaving.current = true;
       void readAloud(lang, lineText(i18n, line));

@@ -2,7 +2,7 @@ import { PAYEE_NAME_MAX, Payee } from "@gigsync/protocol";
 import { Collection, type Storage } from "../ports.js";
 
 /**
- * The worker's UPI ID and the name payers see: one record in this phone's settings (`Collection.settings`), never in a
+ * The worker's UPI ID and the name payers see: one record in the owner's settings (`Collection.ownerSettings`), never in a
  * payment, on the card or on a server (ADR 0011, LLD 2.4a). Payment requests and the in-person QR both read it here, at
  * the moment they need it, so the two can never drift apart.
  */
@@ -23,7 +23,7 @@ export class PayeeMissingError extends Error {}
 
 /** The saved payee, checked again on the way out: a record that no longer passes the schema counts as none. */
 export async function loadPayee(storage: Storage): Promise<Payee | undefined> {
-  const parsed = Payee.safeParse(await storage.get<unknown>(Collection.settings, PAYEE_KEY));
+  const parsed = Payee.safeParse(await storage.get<unknown>(Collection.ownerSettings, PAYEE_KEY));
   return parsed.success ? parsed.data : undefined;
 }
 
@@ -38,13 +38,5 @@ export async function savePayee(storage: Storage, p: Payee): Promise<void> {
   if (name.length > PAYEE_NAME_MAX) throw new PayeeError(PayeeProblem.name_long);
   const parsed = Payee.safeParse({ vpa, name });
   if (!parsed.success) throw new PayeeError(PayeeProblem.name);
-  await storage.put(Collection.settings, PAYEE_KEY, parsed.data);
-}
-
-/**
- * Drops the saved payee, for signing out: the next person to sign in on this phone must give their own UPI ID, or
- * customers would pay the one who left, and the form would show it to a stranger.
- */
-export function forgetPayee(storage: Storage): Promise<void> {
-  return storage.delete(Collection.settings, PAYEE_KEY);
+  await storage.put(Collection.ownerSettings, PAYEE_KEY, parsed.data);
 }

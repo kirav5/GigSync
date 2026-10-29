@@ -1,4 +1,4 @@
-/* The worker's record inside Passbook: a summary line, finished jobs by month, and what was paid to helpers. Each row
+/* The worker's record inside Passbook: a summary line and finished jobs by month. Each row
    is one 48px button that opens the job's own card under it. Sizes and colours come from the tokens in styles.css, so
    Hindi and Kannada get their larger type and taller lines from :lang() there. */
 .record {

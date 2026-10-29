@@ -1,6 +1,6 @@
 import type { GigDevice, MessageKey, ReceivedRequest } from "@gigsync/core";
 import { useState } from "react";
-import { type Account, colleagueCard } from "../../adapters/account.js";
+import { type Account, personCard } from "../../adapters/account.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { areaLabel } from "../../ui/places.js";
@@ -37,7 +37,7 @@ export function AskCard({ account, device, run, refresh, ask }: Props) {
   });
   async function answer(yes: boolean) {
     try {
-      const card = colleagueCard(account, lang);
+      const card = personCard(account, lang);
       await run(() => (yes ? device.mentors.offer(ask.channel, card, note) : device.mentors.decline(ask.channel)));
       refresh();
     } catch (err) {

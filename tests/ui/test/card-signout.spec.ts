@@ -16,17 +16,19 @@ import {
 import { unlistCards } from "./journey.js";
 import { consent, mic, nextTurn, type } from "./talk.js";
 
-/** A shared phone: what one worker told the card interview, their UPI ID and their voice consent end at sign-out. */
+/**
+ * A shared phone: what one worker told the card interview and their voice consent end at sign-out; their UPI ID stays
+ * theirs, unseen by the next worker on the phone and back when they sign in again.
+ */
 
 const { hi } = Lang.enum;
 
 test.afterEach(unlistCards);
 
-test("signing out leaves the next worker on the phone nothing of the last: answers, UPI ID or voice consent", async ({
-  page,
-}) => {
+test("the next worker on the phone gets nothing of the last: answers, UPI ID or voice consent", async ({ page }) => {
   await fakeSpeech(page, ["मैं खाना बनाती हूँ"], FakeSpeechMode.cloud);
-  await signIn(page, { role: Role.worker, name: `Meena ${RUN}`, phone: newPhone(), lang: hi });
+  const meena = { role: Role.worker, name: `Meena ${RUN}`, phone: newPhone(), lang: hi };
+  await signIn(page, meena);
   const { ask, allow } = consent(page, hi);
   await mic(page, hi).click();
   await nextTurn(page, hi, "iv.ask.area", () => allow.click());
@@ -47,4 +49,10 @@ test("signing out leaves the next worker on the phone nothing of the last: answe
   await open(page, "nav.profile", hi);
   const paidTo = page.getByRole("form", { name: t(hi, "settings.paid_to") });
   await expect(paidTo.getByLabel(t(hi, "settings.vpa"), { exact: true })).toHaveValue("");
+
+  // Meena signs back in: her UPI ID was kept for her.
+  await page.getByRole("button", { name: t(hi, "shell.sign_out") }).click();
+  await completeSignIn(page, meena);
+  await open(page, "nav.profile", hi);
+  await expect(paidTo.getByLabel(t(hi, "settings.vpa"), { exact: true })).toHaveValue("meena.test@okaxis");
 });

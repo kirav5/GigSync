@@ -5,7 +5,6 @@ import {
   earningsIntent,
   edit,
   editIntent,
-  hireIntent,
   log,
   movingIntent,
   type Ports,
@@ -48,8 +47,6 @@ interface TalkProps {
   interview: boolean;
   /** The account after the interview published the card. */
   onSaved: (a: Account) => void;
-  /** Opens Find to hire someone (worker to worker, flow A). */
-  onHire: () => void;
   /** Opens the landing journey for a move to a new city, with the city Talk heard. */
   onMoving: (city?: City) => void;
   /** This phone's jobs and payments, for "what did I earn this week?". */
@@ -62,7 +59,7 @@ interface TalkProps {
  * Words that ask to change a field of the card ("मेरा रेट बदलो") open the interview at that field, below what was
  * said before.
  */
-export function AgentScreen({ agent, ports, account, interview, onSaved, onHire, onMoving, view }: TalkProps) {
+export function AgentScreen({ agent, ports, account, interview, onSaved, onMoving, view }: TalkProps) {
   const { lang, t } = useI18n();
   const { state, turns, paused } = useInterview();
   const [busy, setBusy] = useState(false);
@@ -101,9 +98,8 @@ export function AgentScreen({ agent, ports, account, interview, onSaved, onHire,
     noteAnswered(addNote(own), card);
   }
 
-  /** Up to three ways in for an empty Talk; changing the rate needs a card to change. */
+  /** Ways in for an empty Talk; changing the rate needs a card to change. */
   const suggestions: Suggestion[] = [
-    { label: "hire.chip", run: onHire },
     ...(account.worker
       ? [
           {
@@ -124,10 +120,6 @@ export function AgentScreen({ agent, ports, account, interview, onSaved, onHire,
     const moving = movingIntent(own, lang);
     if (moving) {
       onMoving(moving.city);
-      return;
-    }
-    if (hireIntent(own, lang)) {
-      onHire();
       return;
     }
     if (earningsIntent(own, lang)) {

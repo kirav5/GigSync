@@ -17,8 +17,9 @@ interface Props {
 }
 
 /**
- * An introduction from a colleague: who wants this owner to meet whom, and why (a mentor in the city, or someone
- * moving there); Meet or No thanks, once the safety words are read. After a yes, it waits for the other person.
+ * An introduction from someone this owner knows: who wants this owner to meet whom, and why (a mentor in the city,
+ * or someone moving there); Meet or No thanks, once the safety words are read. After a yes, it waits for the other
+ * person.
  */
 export function IntroCard({ device, run, refresh, intro, safetySeen }: Props) {
   const { t } = useI18n();

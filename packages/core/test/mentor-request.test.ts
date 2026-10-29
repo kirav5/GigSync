@@ -1,7 +1,6 @@
 import { DEFAULT_MENTOR_SLOTS, LinkKind, MENTOR_LINK_TTL_MS, MentorRole } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import { MentorError, MentorRefusal, RequestState, settle } from "../src/index.js";
-import { colleagueOf } from "./colleague-phones.js";
 import {
   ASHA_N,
   ASHA_N_CARD,
@@ -13,6 +12,7 @@ import {
   seedRecord,
   TestClock,
 } from "./mentor-phones.js";
+import { linkOf } from "./mentor-seeds.js";
 import { MemoryRelay, type Phone, phone } from "./phones.js";
 
 const DAYS_OF_WORK = 250;
@@ -99,8 +99,8 @@ describe("a newcomer finds a mentor from the list", () => {
 
     await asha.device.mentors.confirm(offered?.channel ?? ("" as never));
     await all(asha, mukesh, lata);
-    const onAsha = await colleagueOf(asha, mukesh.user);
-    const onMukesh = await colleagueOf(mukesh, asha.user);
+    const onAsha = await linkOf(asha, mukesh.user);
+    const onMukesh = await linkOf(mukesh, asha.user);
     expect(onAsha).toMatchObject({ kind: LinkKind.enum.mentor, mentor: { role: MentorRole.enum.newcomer, jobs: 24 } });
     expect(onMukesh).toMatchObject({ kind: LinkKind.enum.mentor, mentor: { role: MentorRole.enum.mentor } });
     expect(Date.parse(onAsha?.expires_at ?? "")).toBe(clock.now().getTime() + MENTOR_LINK_TTL_MS);
@@ -110,10 +110,10 @@ describe("a newcomer finds a mentor from the list", () => {
     expect(await lata.device.mentors.incoming()).toEqual([]);
     expect((await asha.device.mentors.requests()).find((r) => r.mentor === lata.user)?.state).toBe(RequestState.closed);
 
-    // The link carries notes like any colleague link.
-    await asha.device.colleagues.send(mukesh.user, "नमस्ते", "hi");
+    // The link carries notes both ways.
+    await asha.device.mentors.send(mukesh.user, "नमस्ते", "hi");
     await all(asha, mukesh);
-    expect((await mukesh.device.colleagues.notes(asha.user)).map((n) => n.text)).toEqual(["नमस्ते"]);
+    expect((await mukesh.device.mentors.notes(asha.user)).map((n) => n.text)).toEqual(["नमस्ते"]);
   });
 
   it("a mentor says no, and the newcomer's request reads as declined", async () => {
@@ -166,11 +166,11 @@ describe("mentor links: renew, expiry, block and report", () => {
     await mukesh.device.mentors.renew(asha.user);
     await all(mukesh, asha);
     const renewed = clock.now().getTime() + MENTOR_LINK_TTL_MS;
-    expect(Date.parse((await colleagueOf(asha, mukesh.user))?.expires_at ?? "")).toBe(renewed);
+    expect(Date.parse((await linkOf(asha, mukesh.user))?.expires_at ?? "")).toBe(renewed);
     clock.advance(31 * MS_PER_DAY);
-    expect(await colleagueOf(asha, mukesh.user)).toBeUndefined();
-    expect(await colleagueOf(mukesh, asha.user)).toBeUndefined();
-    await expect(asha.device.colleagues.send(mukesh.user, "hello", "en")).rejects.toThrow();
+    expect(await linkOf(asha, mukesh.user)).toBeUndefined();
+    expect(await linkOf(mukesh, asha.user)).toBeUndefined();
+    await expect(asha.device.mentors.send(mukesh.user, "hello", "en")).rejects.toThrow();
   });
 
   it("a block hides them everywhere on this phone, ends the link, and tells the server", async () => {
@@ -178,8 +178,8 @@ describe("mentor links: renew, expiry, block and report", () => {
     await asha.device.mentors.report(mukesh.user, "asked_money");
     await asha.device.mentors.block(mukesh.user);
     await all(asha, mukesh);
-    expect(await colleagueOf(asha, mukesh.user)).toBeUndefined();
-    expect(await colleagueOf(mukesh, asha.user)).toBeUndefined();
+    expect(await linkOf(asha, mukesh.user)).toBeUndefined();
+    expect(await linkOf(mukesh, asha.user)).toBeUndefined();
     expect(server.reports).toEqual([{ user: mukesh.user, reason: "asked_money", by: asha.user }]);
     expect(server.blocks).toEqual([{ by: asha.user, user: mukesh.user }]);
     expect((await asha.device.mentors.find(FIND)).some((p) => p.user === mukesh.user)).toBe(false);

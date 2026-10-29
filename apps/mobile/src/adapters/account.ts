@@ -1,10 +1,11 @@
 import {
   ApiClient,
   Collection,
-  forgetPayee,
+  claimLegacyRecords,
   GigDevice,
   loadPayee,
   log,
+  ownerPorts,
   PayeeError,
   type Ports,
   savePayee,
@@ -12,8 +13,7 @@ import {
 } from "@gigsync/core";
 import {
   type ColleagueCard,
-  ContactCard,
-  type EngagementId,
+  type ContactCard,
   type Lang,
   MAX_TRADES,
   MENTOR_PROTOCOL,
@@ -49,12 +49,16 @@ export interface Account {
 }
 
 const ACCOUNT_KEY = "account";
-/** Names the consumer saw on the board, so their jobs show who they are talking to. */
-const PEOPLE = "people";
+/** The owner's settings record holding their part of the account while they are signed out. */
+const PROFILE_KEY = "profile";
+
+/** What of an account is the owner's own, not the session's: their role, card rules and choices. */
+type Profile = Omit<Account, "session" | "contact" | "protocol">;
 /**
- * What this app understands, sent with the device's keys at sign-in: colleague and referral envelopes, questions a
- * worker's agent's model wrote, and the mentor envelopes. Each capability number includes the ones before it
- * (COLLEAGUE_PROTOCOL is 2, FREE_QUESTIONS_PROTOCOL 3).
+ * What this app understands, sent with the device's keys at sign-in: notes on a link, questions a worker's agent's
+ * model wrote, and the mentor envelopes. Each capability number includes the ones before it (COLLEAGUE_PROTOCOL is 2,
+ * FREE_QUESTIONS_PROTOCOL 3). An older phone may still send this one an in-person link ask or a referral, which the
+ * colleague number promised; both are dropped on arrival.
  */
 const PROTOCOL = MENTOR_PROTOCOL;
 
@@ -66,9 +70,12 @@ export function apiClient(session?: Session): ApiClient {
   return session ? api.as(session) : api;
 }
 
+/** Who is signed in on this phone, with the phone's records from before owners were kept apart made theirs. */
 export async function loadAccount(ports: Ports): Promise<Account | undefined> {
   const account = await ports.storage.get<Account>(Collection.settings, ACCOUNT_KEY);
-  return account ? moveLegacyVpa(ports, account) : undefined;
+  if (!account) return undefined;
+  await claimLegacyRecords(ports.storage, account.session.user, ports.clock.now());
+  return moveLegacyVpa(ownerPorts(ports, account.session.user), account);
 }
 
 /** A card published before the UPI ID moved to settings kept it, and the name payers see, in the worker's rules. */
@@ -103,12 +110,16 @@ export function saveAccount(ports: Ports, account: Account): Promise<void> {
 }
 
 /**
- * Forgets who is signed in, and their UPI ID with them: phones are shared, and the next worker to sign in here must
- * never have customers pay the one who left. The UPI ID goes first, so a failure leaves the owner still signed in
- * rather than leaving their UPI ID to a stranger.
+ * Forgets who is signed in, and nothing else: their jobs, money, memory, UPI ID, mentors and their card's rules stay
+ * on the phone under their name (owner storage, in core), out of sight of whoever signs in next, and back when they
+ * sign in again. The rules are kept first, so a failure leaves the owner signed in with nothing lost.
  */
 export async function signOut(ports: Ports): Promise<void> {
-  await forgetPayee(ports.storage);
+  const account = await ports.storage.get<Account>(Collection.settings, ACCOUNT_KEY);
+  if (account) {
+    const { session, contact: _contact, protocol: _protocol, ...profile } = account;
+    await ownerPorts(ports, session.user).storage.put<Profile>(Collection.ownerSettings, PROFILE_KEY, profile);
+  }
   await ports.storage.delete(Collection.settings, ACCOUNT_KEY);
 }
 
@@ -116,14 +127,25 @@ export async function sendCode(phone: string): Promise<void> {
   await apiClient().requestOtp(phone);
 }
 
-/** Verifies the code and registers this device's public keys; the private keys never leave the phone. */
+/**
+ * Verifies the code and registers this device's public keys; the private keys never leave the phone. Someone signing
+ * back in gets their card's rules and choices again, when they sign in with the role they had.
+ */
 export async function signIn(
   ports: Ports,
   input: { phone: string; code: string; role: AccountRole; contact: ContactCard },
 ): Promise<Account> {
   const keys = await ports.keys.publicKeys();
   const session = await apiClient().verifyOtp(input.phone, input.code, { ...keys, protocol: PROTOCOL });
-  const account: Account = { session, role: input.role, contact: input.contact, protocol: PROTOCOL };
+  await claimLegacyRecords(ports.storage, session.user, ports.clock.now());
+  const kept = await ownerPorts(ports, session.user).storage.get<Profile>(Collection.ownerSettings, PROFILE_KEY);
+  const account: Account = {
+    ...(kept?.role === input.role ? kept : {}),
+    session,
+    role: input.role,
+    contact: input.contact,
+    protocol: PROTOCOL,
+  };
   await saveAccount(ports, account);
   return account;
 }
@@ -142,7 +164,10 @@ export async function raiseDeviceProtocol(ports: Ports, account: Account): Promi
   }
 }
 
-/** This phone's agent for jobs, acting as the signed-in owner, tagging their free text with the phone's language. */
+/**
+ * This phone's agent for jobs, acting as the signed-in owner, tagging their free text with the phone's language.
+ * `ports` are the owner's (`ownerPorts`), so the agent keeps its jobs, mail and money under their name.
+ */
 export function deviceFor(ports: Ports, account: Account, lang: Lang): GigDevice {
   const api = apiClient(account.session);
   return new GigDevice({
@@ -161,47 +186,21 @@ export function deviceFor(ports: Ports, account: Account, lang: Lang): GigDevice
 }
 
 export function rememberName(ports: Ports, user: UserId, name: string): Promise<void> {
-  return ports.storage.put(PEOPLE, user, { name });
+  return ports.storage.put(Collection.people, user, { name });
 }
 
 export async function nameOf(ports: Ports, user: UserId): Promise<string | undefined> {
-  return (await ports.storage.get<{ name: string }>(PEOPLE, user))?.name;
+  return (await ports.storage.get<{ name: string }>(Collection.people, user))?.name;
 }
 
 /**
- * Saves where a worker's own work is, as the address on their contact card: a helper they hire gets it once both sign
- * (round2-spec §3.3 A). Empty takes it off the card. Throws AccountError when the card would not be valid.
+ * What another worker sees of this one on a landing request, a mentor's offer or an introduction: their contact
+ * card's name, their card's trades, the languages they speak.
  */
-export async function saveSite(ports: Ports, account: Account, address: string): Promise<Account> {
-  const { address: _old, ...rest } = account.contact;
-  const contact = ContactCard.safeParse(address ? { ...rest, address } : rest);
-  if (!contact.success) throw new AccountError("Work site address not valid");
-  const next: Account = { ...account, contact: contact.data };
-  await saveAccount(ports, next);
-  return next;
-}
-
-/** What a colleague sees of this worker: their contact card's name, their card's trades, the languages they speak. */
-export function colleagueCard(account: Account, lang: Lang): ColleagueCard {
+export function personCard(account: Account, lang: Lang): ColleagueCard {
   return {
     name: account.contact.name,
     trades: (account.worker?.trades ?? []).slice(0, MAX_TRADES),
     languages: [...new Set(account.languages ?? [lang])],
   };
-}
-
-/** What the owner said to a colleague suggestion on a declined job: asked the colleague, or no thanks. */
-export const ReferralAnswer = { asked: "asked", no: "no" } as const;
-export type ReferralAnswer = (typeof ReferralAnswer)[keyof typeof ReferralAnswer];
-
-/** Answers to colleague suggestions, by job, so an answered one leaves To decide on either phone. */
-const REFERRAL_ANSWERS = "referral_answers";
-
-export function answerReferral(ports: Ports, job: EngagementId, answer: ReferralAnswer): Promise<void> {
-  return ports.storage.put(REFERRAL_ANSWERS, job, { job, answer });
-}
-
-export async function referralAnswers(ports: Ports): Promise<Map<EngagementId, ReferralAnswer>> {
-  const rows = await ports.storage.list<{ job: EngagementId; answer: ReferralAnswer }>(REFERRAL_ANSWERS);
-  return new Map(rows.map((r) => [r.job, r.answer]));
 }

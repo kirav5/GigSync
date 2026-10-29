@@ -1,7 +1,9 @@
-import type { Lang, QuestionKey, RateCard, Trade } from "@gigsync/protocol";
+import { AnswerFromMemory, type Lang, type QuestionKey, type RateCard, type Trade } from "@gigsync/protocol";
 import { EVERY_DAY, isMonthly } from "../job/when.js";
 import { QUESTIONS } from "../job/worker.js";
+import type { Known } from "../memory/known.js";
 import type { AreaChoice, Line } from "./card.js";
+import type { Recalled } from "./need-memory.js";
 
 /**
  * The need interview's shape and how it moves: a household (or a worker hiring a helper) says what they need, in one
@@ -40,14 +42,15 @@ export interface NeedConfig {
   rates: RateCard;
   /** The phone's calendar day when the interview started, "YYYY-MM-DD", for dates said without a year. */
   today: string;
-  /** What the owner's agent remembers from past jobs, offered as "same as last time" chips; never the budget. */
+  /** What the owner's agent remembers from past jobs, and whether to ask before using it; never the budget. */
   remembered?: NeedMemory;
 }
 
-/** The household's remembered area (a key of `areas`) and stable facts, by question. */
+/** The household's remembered area (a key of `areas`) and stable facts by question, and the owner's setting. */
 export interface NeedMemory {
-  area?: string;
-  facts: Partial<Record<QuestionKey, string>>;
+  mode: AnswerFromMemory;
+  area?: Known;
+  facts: Partial<Record<QuestionKey, Known>>;
 }
 
 /** Where the interview is: a field being asked, the readback, the search, or what it found. */
@@ -92,6 +95,10 @@ export interface NeedState {
   /** Nothing answered yet: the first question invites the whole need in the owner's own words. */
   readonly fresh: boolean;
   readonly radius_km: number;
+  /** Fields the owner chose to answer themselves (Change, or picked from the readback): memory stays out of them. */
+  readonly ownAnswer: readonly NeedSlot[];
+  /** Fields the agent just filled from memory ("Answer for me"), offered to change under the next question. */
+  readonly filled: readonly NeedSlot[];
 }
 
 /** The trade's first question, which the request answers up front so the worker's agent need not ask it. */
@@ -128,26 +135,63 @@ export function startNeed(config: NeedConfig): NeedState {
     changing: false,
     fresh: true,
     radius_km: SEARCH_RADII_KM[0],
+    ownAnswer: [],
+    filled: [],
   };
 }
 
 /** The same question again, after a note saying why. */
 export const retryNeed = (s: NeedState, note: Line): NeedState => ({ ...s, notes: [note], fresh: false });
 
-/** An answer taken: on to whatever is still missing, or the readback. */
-export const moveOn = (s: NeedState, draft: NeedDraft, notes: Line[] = []): NeedState => ({
-  ...s,
-  draft,
-  slot: firstMissing(draft),
-  notes,
-  changing: false,
-  fresh: false,
-});
+/** The remembered answer for a field (the one asked now by default), unless the owner chose to answer it. */
+export function recalled(s: NeedState, field: NeedSlot = s.slot): Recalled | undefined {
+  const memory = s.config.remembered;
+  if (!memory || s.ownAnswer.includes(field)) return undefined;
+  const question = field === NeedSlot.detail ? firstQuestion(s.draft.trade) : undefined;
+  const fact = question ? memory.facts[question] : undefined;
+  if (question && fact) return { known: fact, question };
+  const area = field === NeedSlot.area ? memory.area : undefined;
+  return area && s.config.areas.some((a) => a.key === area.value) ? { known: area, area: area.value } : undefined;
+}
 
-/** Jumps to one field from the readback; once it is answered the readback comes again. */
+/** "Ask me first": the remembered answer for the question now asked, offered to use or change. */
+export const offered = (s: NeedState): Recalled | undefined =>
+  s.config.remembered?.mode === AnswerFromMemory.enum.ask ? recalled(s) : undefined;
+
+const withRecalled = (d: NeedDraft, field: NeedSlot, value: string): NeedDraft =>
+  field === NeedSlot.area ? { ...d, area: value } : { ...d, detail: value };
+
+/** "Answer for me": each fresh remembered answer fills its question as it comes up (the prompt says so). */
+function autoFilled(s: NeedState): NeedState {
+  if (s.config.remembered?.mode !== AnswerFromMemory.enum.auto) return s;
+  let next = s;
+  for (let r = recalled(next); r?.known.fresh; r = recalled(next)) {
+    const draft = withRecalled(next.draft, next.slot, r.known.value);
+    next = { ...next, draft, slot: firstMissing(draft), filled: [...next.filled, next.slot] };
+  }
+  return next;
+}
+
+/** An answer taken: on to whatever is still missing (filling what memory may), or the readback. */
+export const moveOn = (s: NeedState, draft: NeedDraft, notes: Line[] = []): NeedState =>
+  autoFilled({ ...s, draft, slot: firstMissing(draft), notes, changing: false, fresh: false, filled: [] });
+
+/** "Use it": the remembered answer offered for the question now asked; anything else changes nothing. */
+export function takeRecalled(s: NeedState): NeedState {
+  const r = offered(s);
+  return r ? moveOn(s, withRecalled(s.draft, s.slot, r.known.value)) : s;
+}
+
+/** "Change" on an offer: the owner answers the question themselves, asked as usual. */
+export const answerMyself = (s: NeedState): NeedState =>
+  offered(s) ? { ...s, ownAnswer: [...s.ownAnswer, s.slot], notes: [], fresh: false } : s;
+
+/** Jumps to one field from the readback (or a Change chip); once it is answered the readback comes again. */
 export function editNeed(s: NeedState, field: NeedField): NeedState {
   const usable = field !== NeedSlot.detail || firstQuestion(s.draft.trade) !== undefined;
-  return { ...s, slot: usable ? field : NeedSlot.confirm, notes: [], changing: !usable, fresh: false };
+  const ownAnswer = [...s.ownAnswer, field];
+  const slot = usable ? field : NeedSlot.confirm;
+  return { ...s, slot, notes: [], changing: !usable, fresh: false, ownAnswer, filled: [] };
 }
 
 /** What the board search found: workers to pick from, or nobody, with ways to look further. */

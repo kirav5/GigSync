@@ -1,5 +1,5 @@
-import { Agent, wipeJourneys, wipeMemory, wipeMentors } from "@gigsync/core";
-import type { City, Lang } from "@gigsync/protocol";
+import { Agent, ownerPorts } from "@gigsync/core";
+import type { City, Lang, UserId } from "@gigsync/protocol";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type Account, AccountRole, deviceFor, loadAccount, raiseDeviceProtocol, signOut } from "./adapters/account.js";
 import { apiReachable } from "./adapters/api.js";
@@ -11,16 +11,15 @@ import { forgetCloudConsent } from "./adapters/speech-settings.js";
 import { endInterview } from "./card/interviewStore.js";
 import { endNeed } from "./find/needStore.js";
 import { I18nProvider } from "./i18n.js";
-import { Shell, SUB_SCREENS, WORKER_SUB_SCREENS } from "./Shell.js";
+import { Shell, SUB_SCREENS } from "./Shell.js";
 import { AgentScreen } from "./screens/Agent.js";
-import { Colleagues } from "./screens/Colleagues.js";
-import { ColleagueProvider } from "./screens/colleague/context.js";
-import { COLLEAGUE_LIST, type ColleaguePlace } from "./screens/colleague/place.js";
 import { Find } from "./screens/Find.js";
 import { Landing } from "./screens/Landing.js";
 import { LanguageChooser } from "./screens/Language.js";
 import { MyCard } from "./screens/MyCard.js";
 import { FindMentor } from "./screens/mentor/FindMentor.js";
+import { LinkScreen } from "./screens/mentor/LinkScreen.js";
+import { LinksProvider } from "./screens/mentor/links.js";
 import { Passbook } from "./screens/Passbook.js";
 import { Requests } from "./screens/Requests.js";
 import { Settings } from "./screens/Settings.js";
@@ -48,11 +47,17 @@ function cardState(account: Account): CardState {
 /** GigSync on one phone: sign in, then a consumer finds and asks, a worker is found and answers; agents negotiate. */
 export function App() {
   const ports = useMemo(createPorts, []);
-  const agent = useMemo(() => new Agent(ports), [ports]);
   const [account, setAccount] = useState<Account | null>();
+  const owner = account?.session.user;
+  /**
+   * What the signed-in owner's agent and screens use: this phone, with its storage seen as theirs alone, so a shared
+   * phone never shows one owner's jobs, money or memory to the next. Signed out, only the phone's own settings are read.
+   */
+  const owned = useMemo(() => (owner ? ownerPorts(ports, owner) : ports), [ports, owner]);
+  const agent = useMemo(() => new Agent(owned), [owned]);
   /** undefined while loading; null until the owner picks one on the first screen. */
   const [lang, setLangState] = useState<Lang | null>();
-  const device = useMemo(() => (account && lang ? deviceFor(ports, account, lang) : undefined), [ports, account, lang]);
+  const device = useMemo(() => (account && lang ? deviceFor(owned, account, lang) : undefined), [owned, account, lang]);
   const setLang = useCallback(
     (next: Lang) => {
       setLangState(next);
@@ -60,16 +65,16 @@ export function App() {
     },
     [ports],
   );
-  const { view, run } = useGig(ports, device);
+  const { view, run } = useGig(owned, device);
   const [screen, setScreen] = useState<Screen>(Screen.find);
   /** Talk opens on the card interview: set by every way into it, cleared once the card is published. */
   const [interview, setInterview] = useState(false);
   const [platform, setPlatform] = useState("web");
   const [online, setOnline] = useState<boolean>();
-  const [colleaguePlace, setColleaguePlace] = useState<ColleaguePlace>(COLLEAGUE_LIST);
+  /** Whose mentor link is open on its own screen. */
+  const [openLink, setOpenLink] = useState<UserId>();
   /** The city Talk heard in "I'm moving to …", for the landing journey to start with. */
   const [movingTo, setMovingTo] = useState<City>();
-  const subs = account?.role === AccountRole.worker ? WORKER_SUB_SCREENS : SUB_SCREENS;
 
   const land = useCallback((a: Account) => {
     const home = landing(a);
@@ -92,19 +97,14 @@ export function App() {
     void chosenModel.load(ports.storage);
   }, [ports]);
 
-  // Back (Android's button, the browser's, or the one on screen): a colleague's notes, code or scanner opened from the
-  // Colleagues list back to it, a sub-screen back to its tab, any other tab back to the landing one, and from there the
-  // app goes to the background, or the browser leaves. One listener for the app's life, reading the current screen
+  // Back (Android's button, the browser's, or the one on screen): a sub-screen back to its tab, any other tab back to
+  // the landing one, and from there the app goes to the background, or the browser leaves. One listener for the app's life, reading the current screen
   // through a ref, so a press can never land between removing one listener and adding the next.
   const back = useRef<() => boolean>(() => false);
   useEffect(() => {
     back.current = () => {
       if (!account) return false;
-      if (screen === Screen.colleagues && colleaguePlace.fromList) {
-        setColleaguePlace(COLLEAGUE_LIST);
-        return true;
-      }
-      const to = subs[screen]?.parent ?? landing(account);
+      const to = SUB_SCREENS[screen]?.parent ?? landing(account);
       if (to === screen) return false;
       setScreen(to);
       return true;
@@ -148,36 +148,27 @@ export function App() {
     setMovingTo(city);
     setScreen(Screen.landing);
   };
-  const openColleagues = (place: ColleaguePlace) => {
-    setColleaguePlace(place);
-    setScreen(Screen.colleagues);
+  const showLink = (user: UserId) => {
+    setOpenLink(user);
+    setScreen(Screen.link);
   };
   return (
     <I18nProvider lang={lang} setLang={setLang}>
-      <ColleagueProvider ports={ports} device={device} syncedAt={view.syncedAt}>
+      <LinksProvider device={device} syncedAt={view.syncedAt}>
         <Shell
           tabs={isWorker ? WORKER_TABS : CONSUMER_TABS}
-          subs={subs}
           screen={screen}
           onScreen={setScreen}
           onBack={() => back.current()}
           tasks={view.tasks.length}
         >
           {screen === Screen.find && (
-            <Find
-              ports={ports}
-              account={account}
-              device={device}
-              hire={isWorker}
-              onAccount={setAccount}
-              // A worker's hire is followed on Today, under You hired; a household's request on My jobs.
-              onAsked={() => setScreen(isWorker ? Screen.today : Screen.requests)}
-            />
+            <Find ports={owned} account={account} device={device} onAsked={() => setScreen(Screen.requests)} />
           )}
           {screen === Screen.requests && <Requests view={view} device={device} run={run} />}
           {screen === Screen.today && (
             <Today
-              ports={ports}
+              ports={owned}
               view={view}
               device={device}
               run={run}
@@ -191,11 +182,10 @@ export function App() {
           {screen === Screen.talk && (
             <AgentScreen
               agent={agent}
-              ports={ports}
+              ports={owned}
               account={account}
               interview={interview}
               onSaved={saved}
-              onHire={() => setScreen(Screen.find)}
               onMoving={openLanding}
               view={view}
             />
@@ -211,28 +201,25 @@ export function App() {
           )}
           {screen === Screen.profile && (
             <Settings
-              ports={ports}
+              ports={owned}
               account={account}
               isWorker={isWorker}
               platform={platform}
               online={online}
               onSignOut={() =>
-                // The owner's memory, mentor records and moves go first: a failure leaves the owner signed in, never
-                // their data to the next person on a shared phone.
-                void Promise.all([wipeMemory(ports.storage), wipeMentors(ports.storage), wipeJourneys(ports.storage)])
-                  .then(() => signOut(ports))
-                  .then(() => {
-                    // What they told the card interview and Find's chat, and the companies they let hear them, were theirs alone.
-                    endInterview();
-                    endNeed();
-                    forgetCloudConsent();
-                    setAccount(null);
-                  })
+                // Their records stay on the phone under their name, for when they sign in again.
+                void signOut(ports).then(() => {
+                  // What they told the card interview and Find's chat (not yet saved), and the companies they let hear
+                  // them, were theirs alone.
+                  endInterview();
+                  endNeed();
+                  forgetCloudConsent();
+                  setAccount(null);
+                })
               }
               onCard={() => setScreen(Screen.card)}
               onTalkCard={talkCard}
-              onAccount={setAccount}
-              onColleagues={openColleagues}
+              onOpenLink={showLink}
               onMoving={() => openLanding()}
               device={device}
               run={run}
@@ -240,37 +227,29 @@ export function App() {
             />
           )}
           {screen === Screen.findMentor && (
-            <FindMentor
-              ports={ports}
-              account={account}
-              device={device}
-              run={run}
-              syncedAt={view.syncedAt}
-              onColleagues={openColleagues}
-            />
+            <FindMentor ports={owned} account={account} device={device} run={run} syncedAt={view.syncedAt} />
           )}
           {screen === Screen.landing && (
             <Landing
-              ports={ports}
+              ports={owned}
               account={account}
               jobs={view.jobs}
               city={movingTo}
               onFindMentor={() => setScreen(Screen.findMentor)}
             />
           )}
-          {screen === Screen.card && <MyCard ports={ports} account={account} onSaved={saved} onTalk={talkCard} />}
-          {screen === Screen.colleagues && (
-            <Colleagues
-              account={account}
+          {screen === Screen.card && <MyCard ports={owned} account={account} onSaved={saved} onTalk={talkCard} />}
+          {screen === Screen.link && (
+            <LinkScreen
               device={device}
               run={run}
               syncedAt={view.syncedAt}
-              place={colleaguePlace}
-              onPlace={setColleaguePlace}
+              user={openLink}
+              onGone={() => setScreen(Screen.profile)}
             />
           )}
         </Shell>
-      </ColleagueProvider>
+      </LinksProvider>
     </I18nProvider>
   );
 }

@@ -1,9 +1,10 @@
-import { loadGuide, log, type Ports } from "@gigsync/core";
+import { type GigDevice, loadGuide, log, type Ports } from "@gigsync/core";
 import type { City, Helpline, Session } from "@gigsync/protocol";
 import { useEffect, useState } from "react";
 import { apiClient } from "../../adapters/account.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
+import { AskPeople } from "./AskPeople.js";
 
 /** The city guide's helplines and the label it carries, from the copy on this phone or a fresh download. */
 function useHelplines(ports: Ports, session: Session, city: City) {
@@ -29,15 +30,16 @@ interface Props {
   session: Session;
   city: City;
   womenOnly: boolean;
-  /** Opens the Colleagues list, where a colleague can be asked whether they know someone. */
-  onColleagues: () => void;
+  device: GigDevice;
+  run: (work: () => Promise<unknown>) => Promise<unknown>;
 }
 
 /**
  * The match was empty: say so plainly (and, with women-only on, that no woman mentor is listed yet), offer asking a
- * colleague for an introduction, and the guide's helplines under its draft label.
+ * person they know (a household they worked for, their mentor) for an introduction, and the guide's helplines under
+ * its draft label.
  */
-export function NoMentor({ ports, session, city, womenOnly, onColleagues }: Props) {
+export function NoMentor({ ports, session, city, womenOnly, device, run }: Props) {
   const { t } = useI18n();
   const guide = useHelplines(ports, session, city);
   const where = t(`mentor.city.${city}`);
@@ -47,11 +49,7 @@ export function NoMentor({ ports, session, city, womenOnly, onColleagues }: Prop
       <strong>{title}</strong>
       {womenOnly && <span>{t("mentor.none_women", { city: where })}</span>}
       <span>{t("mentor.none_intro", { city: where })}</span>
-      <div className={C.actions}>
-        <button type={C.button} className={C.secondary} onClick={onColleagues}>
-          {t("colleague.title")}
-        </button>
-      </div>
+      <AskPeople device={device} run={run} city={city} />
       {guide && guide.helplines.length > 0 && (
         <div className={C.stack}>
           <span className={C.label}>{t("mentor.helplines")}</span>

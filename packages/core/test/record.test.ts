@@ -160,7 +160,7 @@ describe("workRecord", () => {
     expect(r.signed).toBe(1);
   });
 
-  it("puts jobs this phone hired only under hired, with what it paid out", () => {
+  it("leaves jobs this phone hired out of the record, whatever it paid", () => {
     const hired = job({ role: "requester", status: "closed", price: 50_000 });
     const unpaid = job({ role: "requester", status: "agreed", at: "2026-10-10T10:00:00+05:30" });
     const dropped = job({ role: "requester", status: "cancelled" });
@@ -176,11 +176,6 @@ describe("workRecord", () => {
     expect(r.months).toEqual([]);
     expect(r.jobs).toBe(0);
     expect(r.signed).toBe(0);
-    expect(ids(r.hired)).toEqual(idsOf([hired, unpaid]));
-    expect(r.hired.map((h) => [h.price_paise, h.paid_paise])).toEqual([
-      [50_000, 50_000],
-      [65_000, 0],
-    ]);
   });
 
   it("shows the confirmed payment on a job paid again after a dispute", () => {
@@ -242,7 +237,6 @@ describe("workRecord", () => {
       months: [],
       jobs: 0,
       households: 0,
-      hired: [],
       signed: 0,
     });
   });

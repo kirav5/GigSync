@@ -2,21 +2,21 @@ import {
   type City,
   type ColleagueCard,
   type EngagementId,
+  type Lang,
   type MentorProfile,
   MentorReply,
   type ReportReason,
   type UserId,
 } from "@gigsync/protocol";
-import * as links from "../colleague/link.js";
-import type { ColleagueContext } from "../colleague/store.js";
-import type { Colleague } from "../colleague/types.js";
-import { t } from "../i18n/t.js";
 import type { Received } from "../mail/transport.js";
-import type { MentorContext } from "./context.js";
+import { askAround } from "./ask.js";
+import type { MentorContext, MentorDeps } from "./context.js";
 import type { MentorRecord } from "./eligibility.js";
 import { MentorError, MentorRefusal } from "./errors.js";
 import * as intro from "./intro.js";
-import { renew } from "./link.js";
+import { type KnownPerson, people } from "./known.js";
+import * as link from "./link.js";
+import { LinkStore } from "./link-store.js";
 import * as listing from "./listing.js";
 import * as match from "./match.js";
 import { receive } from "./receive.js";
@@ -25,26 +25,32 @@ import * as safety from "./safety.js";
 import { MentorStore } from "./store.js";
 import {
   type Introduction,
+  type LinkNote,
   type MentorApi,
   type MentorChoices,
+  type MentorLink,
   type NewcomerPrefs,
   type ReceivedRequest,
   RequestState,
   type SentRequest,
 } from "./types.js";
 
+export type { KnownPerson } from "./known.js";
+
 const newestFirst = (a: { at: string }, b: { at: string }) => b.at.localeCompare(a.at);
 
 /**
- * Mentors for someone new to a city, with no steward or union to wait for (round4-spec §2): introductions through
- * linked colleagues, and mentors who list themselves once their own record shows enough signed work. The newcomer
- * browses and picks; the server only filters; no model picks anyone. Either way ends in a 30-day mentor link.
+ * Mentors for someone new to a city, with no steward or union to wait for (round4-spec §2): introductions by someone
+ * who knows both sides (a job each signed with them, or a mentor link), and mentors who list themselves once their own
+ * record shows enough signed work. The newcomer browses and picks; the server only filters; no model picks anyone.
+ * Either way ends in a 30-day mentor link, with notes both ways until it runs out.
  */
 export class Mentors {
   private readonly m: MentorContext;
 
-  constructor(colleagues: ColleagueContext, api?: MentorApi) {
-    this.m = { c: colleagues, store: new MentorStore(colleagues.ctx.storage), ...(api ? { api } : {}) };
+  constructor(deps: MentorDeps, api?: MentorApi) {
+    const storage = deps.ctx.storage;
+    this.m = { ...deps, links: new LinkStore(storage), store: new MentorStore(storage), ...(api ? { api } : {}) };
   }
 
   // ── Mentor ──────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -127,11 +133,14 @@ export class Mentors {
   }
 
   // ── Introductions ───────────────────────────────────────────────────────────────────────────────────────────────
-  /** Asks a linked colleague, as a note in the owner's language, whether they know someone in `city`. */
+  /** Everyone this owner knows through a signed job or a mentor link: whom they may ask, or introduce. */
+  people(): Promise<KnownPerson[]> {
+    return people(this.m);
+  }
+
+  /** Asks someone this owner knows, in the owner's language, whether they know someone in `city`. */
   askAround(user: UserId, city: City): Promise<void> {
-    const lang = this.m.c.ctx.lang;
-    const text = t(lang, "mentor.intro_ask_note", { city: t(lang, `mentor.city.${city}`) });
-    return links.send(this.m.c, user, text, lang);
+    return askAround(this.m, user, city);
   }
 
   introduce(pair: { newcomer: UserId; mentor: UserId; city: City; note?: string }): Promise<void> {
@@ -151,9 +160,37 @@ export class Mentors {
   }
 
   // ── Links and safety ────────────────────────────────────────────────────────────────────────────────────────────
+  /** Live mentor links by name; links that ran out end here as they are found, and anyone blocked is left out. */
+  async links(): Promise<MentorLink[]> {
+    const [live, blocked] = await Promise.all([
+      link.sweepExpired(this.m.links, this.m.ctx.clock.now()),
+      this.m.store.blocked(),
+    ]);
+    return live.filter((l) => !blocked.has(l.user)).sort((a, b) => a.card.name.localeCompare(b.card.name));
+  }
+
+  /** Both sides' notes on one link, oldest first. */
+  notes(user: UserId): Promise<LinkNote[]> {
+    return this.m.links.notes(user);
+  }
+
+  /** Marks one link's notes as shown. */
+  async read(user: UserId): Promise<void> {
+    await this.m.links.update(user, (old) => old && { ...old, unread: 0 });
+  }
+
+  send(user: UserId, text: string, lang: Lang): Promise<void> {
+    return link.sendNote(this.m, user, text, lang);
+  }
+
+  /** Ends a link on both phones and deletes its notes here. */
+  end(user: UserId): Promise<void> {
+    return link.endLink(this.m, user);
+  }
+
   /** Another 30 days on a live mentor link, on both phones. */
-  renew(user: UserId): Promise<Colleague> {
-    return renew(this.m, user);
+  renew(user: UserId): Promise<MentorLink> {
+    return link.renew(this.m, user);
   }
 
   block(user: UserId): Promise<void> {
@@ -164,7 +201,7 @@ export class Mentors {
     return safety.report(this.m, user, reason);
   }
 
-  /** Takes one mentor envelope the device received. The device's sync calls this; screens do not. */
+  /** Takes one mentor or link envelope the device received. The device's sync calls this; screens do not. */
   receive(item: Received): Promise<void> {
     return receive(this.m, item);
   }

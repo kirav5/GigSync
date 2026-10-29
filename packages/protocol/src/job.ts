@@ -98,6 +98,13 @@ export const SKIPPED = "skipped";
 export const Answers = z.object({ answers: z.record(DetailKey, shortText) });
 export type Answers = z.infer<typeof Answers>;
 
+/**
+ * The household's setting for answers its agent knows from past jobs: ask the owner first (the default), or answer
+ * and say so. Kept in the phone's settings only, never sent.
+ */
+export const AnswerFromMemory = z.enum(["ask", "auto"]);
+export type AnswerFromMemory = z.infer<typeof AnswerFromMemory>;
+
 /** `quote` (worker) and `counter` (consumer): one offer, numbered per side. */
 export const Offer = z.object({
   offer_id: OfferId,

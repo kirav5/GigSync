@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { agent } from "../src/i18n/en/agent.js";
 import { ask } from "../src/i18n/en/ask.js";
-import { colleague } from "../src/i18n/en/colleague.js";
 import { home } from "../src/i18n/en/home.js";
 import { install } from "../src/i18n/en/install.js";
 import { interview } from "../src/i18n/en/interview.js";
@@ -33,7 +32,6 @@ const AREAS: Readonly<Record<string, object>> = {
   install,
   net,
   record,
-  colleague,
   talk,
   need,
   memory,

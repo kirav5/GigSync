@@ -1,4 +1,4 @@
-/* Mentors: the safety words, a mentor's facts and badge, the chips on a mentor link, and the lists of requests and
+/* Mentors: the safety words, a mentor's facts and badge, mentor links and their notes, and the lists of requests and
    helplines. Sizes and colours come from the tokens in styles.css. */
 
 .mentor-safety ul {
@@ -56,4 +56,53 @@
 .mentor-safety-actions {
   display: grid;
   gap: 8px;
+}
+
+/* The Profile tab's dot: a note on a mentor link is not read yet. Beside the icon, where the Today count sits. */
+.tabs .dot {
+  position: absolute;
+  top: 8px;
+  left: calc(50% + 8px);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Profile's mentor links and one link's notes, which reuse the chat bubbles in styles.css. */
+.link-rows,
+.link-thread {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.link-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 6px 0;
+  border: 0;
+  border-bottom: 1px solid var(--hairline);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.link-unread {
+  margin-inline-start: auto;
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: var(--fs-tag);
+  font-weight: 600;
+}
+.link-thread .msg-user {
+  justify-self: end;
 }

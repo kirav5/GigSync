@@ -118,8 +118,8 @@ export async function onAgree(ctx: JobContext, r: JobRecord, theirs: Agree, from
 }
 
 /**
- * The card this side releases. The worker goes to the requester's place, so a provider never sends an address: a
- * worker's saved work site is for a helper they hire, never for the households they work for.
+ * The card this side releases. The worker goes to the requester's place, so a provider never sends an address, even
+ * one an older build saved on a worker's card as their own work site.
  */
 function releasedCard(ctx: JobContext, r: JobRecord): ContactCard {
   if (r.engagement.role === R.requester) return ctx.contact;

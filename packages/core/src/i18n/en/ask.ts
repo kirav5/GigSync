@@ -8,4 +8,7 @@ export const ask = {
   "ask.skip": "Skip",
   "ask.skipped": "Skipped",
   "ask.number": "A number",
+  "ask.memory_offer": "From your past jobs: {value}. Send this?",
+  "ask.memory_old": "I knew this a year ago: {value}. Still right?",
+  "ask.change": "Change",
 } as const;

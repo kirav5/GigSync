@@ -17,7 +17,6 @@ import { C } from "../ui/cls.js";
 import { money } from "../ui/places.js";
 import type { GigView } from "../useGig.js";
 import { AnswerForm } from "./AnswerForm.js";
-import { ReferralOffer, SuggestColleague } from "./colleague/Referral.js";
 import { ApproveCard, type ApproveDetail, SignCard } from "./JobDecide.js";
 
 export interface JobActionProps {
@@ -68,6 +67,7 @@ export function JobActions({ job, view, device, run, onAddPayee, them }: JobActi
       {questions && (
         <AnswerForm
           questions={questions.detail as Question[]}
+          suggested={job.suggested}
           say={t("home.say_answer", { name: them })}
           onSend={(a) => run(() => device.answer(id, a))}
         />
@@ -80,9 +80,6 @@ export function JobActions({ job, view, device, run, onAddPayee, them }: JobActi
           onDecline={() => void run(() => device.declineDeal(id))}
         />
       )}
-      {/* A request turned down: the worker may pass it on to a colleague; the household may ask that colleague. */}
-      {isWorker && status === S.declined && <SuggestColleague job={job} device={device} run={run} />}
-      {!isWorker && job.referral && <ReferralOffer job={job} device={device} run={run} them={them} />}
       {isWorker && WORKING.has(status) && (
         <div className={C.actions}>
           {status === S.agreed && (

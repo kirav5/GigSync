@@ -7,7 +7,7 @@ export function mentorExpiry(from: Date): string {
   return new Date(from.getTime() + MENTOR_LINK_TTL_MS).toISOString();
 }
 
-/** A link with no end date never expires (a colleague met in person); a mentor link does at `expires_at`. */
+/** A link with no end date never expires (one an older build made in person); a mentor link does at `expires_at`. */
 export function isExpired(link: { expires_at?: string | undefined }, now: Date): boolean {
   return link.expires_at !== undefined && Date.parse(link.expires_at) <= now.getTime();
 }

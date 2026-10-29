@@ -17,7 +17,7 @@ import { answersFound } from "./answer.js";
 import type { JobContext } from "./context.js";
 import { accept, cancel, termsFor } from "./deal.js";
 import { MoveKind, respond } from "./negotiate.js";
-import { AnswerSource, type JobRecord, type Need, TaskKind } from "./store.js";
+import { AnswerSource, type JobRecord, type Need, type Suggested, TaskKind } from "./store.js";
 
 const K = EnvelopeKind.enum;
 const R = Role.enum;
@@ -56,15 +56,18 @@ export async function startRequest(ctx: JobContext, need: Need, worker: UserId):
 
 /**
  * The worker asked questions: the agent answers what its owner already said (this need's words, or a past job's
- * stable facts) and asks the owner the rest, sending nothing until every question has an answer.
+ * stable facts when the owner lets it) and asks the owner the rest, with any remembered answer filled in for them to
+ * send, change or skip. Nothing is sent until every question has an answer.
  */
 export async function onClarify(ctx: JobContext, need: Need, job: JobRecord, body: Clarify): Promise<JobRecord> {
-  const found = await answersFound(ctx, need, body.questions);
+  const { found, suggested } = await answersFound(ctx, need, body.questions);
+  const { suggested: _before, ...rest } = job;
   const r: JobRecord = {
-    ...job,
+    ...rest,
     questions: body.questions,
     answers: { ...job.answers, ...mapValues(found, (f) => f.text) },
     answered_from: { ...job.answered_from, ...mapValues(found, (f) => f.source) },
+    ...(Object.keys(suggested).length > 0 ? { suggested } : {}),
   };
   const open = body.questions.filter((q) => found[q.key] === undefined);
   if (open.length > 0) {
@@ -88,9 +91,19 @@ export async function answer(ctx: JobContext, need: Need, r: JobRecord, given: R
   await ctx.store.saveNeed({ ...need, details: { ...need.details, ...Object.fromEntries(reusable) } });
   await ctx.store.removeTask(TaskKind.answerQuestions, r.engagement.id);
   const answers = { ...r.answers, ...typed };
-  const answered_from = { ...r.answered_from, ...mapValues(typed, () => AnswerSource.owner) };
-  return ctx.send({ ...r, answers, answered_from }, K.response, { answers } satisfies Answers);
+  const answered_from = { ...r.answered_from, ...sourcesOf(typed, r.suggested ?? {}) };
+  const { suggested: _sent, ...rest } = r;
+  return ctx.send({ ...rest, answers, answered_from }, K.response, { answers } satisfies Answers);
 }
+
+/** A remembered answer sent as it was filled in is still the past job's; one the owner changed is theirs. */
+const sourcesOf = (typed: Record<string, string>, suggested: Record<string, Suggested>) =>
+  Object.fromEntries(
+    Object.entries(typed).map(([key, text]) => [
+      key,
+      suggested[key]?.text === text ? AnswerSource.memory : AnswerSource.owner,
+    ]),
+  );
 
 const mapValues = <T, U>(o: Readonly<Record<string, T>>, f: (v: T) => U): Record<string, U> =>
   Object.fromEntries(Object.entries(o).map(([k, v]) => [k, f(v)]));

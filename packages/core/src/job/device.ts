@@ -12,8 +12,6 @@ import {
   type UserId,
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
-import { Colleagues } from "../colleague/colleagues.js";
-import { ColleagueStore } from "../colleague/store.js";
 import { apply } from "../engagement/machine.js";
 import { MailTransport } from "../mail/transport.js";
 import { Mentors } from "../mentor/mentors.js";
@@ -62,9 +60,7 @@ export class DeviceError extends Error {}
 export class GigDevice {
   readonly store: JobStore;
   readonly payments: PaymentBook;
-  /** Worker to worker: colleague links, their notes, and referrals on declined requests. */
-  readonly colleagues: Colleagues;
-  /** Mentors for someone new to a city: introductions, listings, landing requests and mentor links. */
+  /** Mentors for someone new to a city: introductions, listings, landing requests, mentor links and their notes. */
   readonly mentors: Mentors;
   private readonly transport: MailTransport;
   private readonly ctx: JobContext;
@@ -88,25 +84,19 @@ export class GigDevice {
       send: (r, kind, body) => this.send(r, kind, body),
       signingKeyOf: (user, device) => this.transport.signingKeyOf(user, device),
     };
-    const links = new ColleagueStore(o.storage);
-    this.colleagues = new Colleagues({ ctx: this.ctx, transport: this.transport, relay: o.relay }, links);
-    this.mentors = new Mentors(this.colleagues.context, o.mentorApi);
+    this.mentors = new Mentors({ ctx: this.ctx, transport: this.transport, relay: o.relay }, o.mentorApi);
   }
 
   /** Takes in what arrived, lets the agent answer it, and sends what is queued. */
   async sync(): Promise<{ received: number; sent: number }> {
     const received = await this.transport.receive();
     // In order on purpose: each envelope may depend on the one before it.
-    for (const item of received)
-      await dispatch(this.ctx, this.o.worker, item, { colleagues: this.colleagues, mentors: this.mentors });
+    for (const item of received) await dispatch(this.ctx, this.o.worker, item, { mentors: this.mentors });
     return { received: received.length, sent: await this.transport.flush() };
   }
 
   // ── Consumer ──────────────────────────────────────────────────────────────────────────────────────────────────────
-  /**
-   * Sends the need to one or more workers at once; agreeing with one cancels the rest. A worker's phone hires a helper
-   * the same way: it is the requester of that job.
-   */
+  /** Sends the need to one or more workers at once; agreeing with one cancels the rest. */
   async request(n: NewNeed, workers: readonly UserId[]): Promise<JobRecord[]> {
     if (workers.length === 0) throw new DeviceError("no workers to ask");
     if (workers.includes(this.o.me.user)) throw new DeviceError("a phone cannot hire its own owner");
@@ -215,7 +205,7 @@ export class GigDevice {
     return this.o.worker;
   }
 
-  /** A job this phone does as the worker: a worker's phone that hired a helper is the one who pays on that job. */
+  /** A job this phone does as the worker; on a job where it is the requester, it is the one who pays. */
   private async provided(id: EngagementId): Promise<JobRecord> {
     const r = await this.job(id);
     if (r.engagement.role !== Role.enum.provider) throw new DeviceError(`not the worker on ${id}`);

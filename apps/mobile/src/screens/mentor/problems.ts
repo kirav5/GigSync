@@ -13,6 +13,7 @@ const MENTOR: Readonly<Record<MentorRefusal, MessageKey>> = {
   [MentorRefusal.blocked]: GENERIC,
   [MentorRefusal.notFound]: GENERIC,
   [MentorRefusal.notLinked]: GENERIC,
+  [MentorRefusal.notKnown]: "mentor.intro_none",
   [MentorRefusal.expired]: GENERIC,
 };
 

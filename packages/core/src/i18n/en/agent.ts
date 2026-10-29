@@ -42,6 +42,4 @@ export const agent = {
   "tstate.downloadable": "can be downloaded",
   "tstate.downloading": "downloading",
   "tstate.unavailable": "not available",
-  "rates.seed":
-    "Seed rates written by the GigSync team from public sources; the union's own card replaces them before the pilot.",
 } as const;

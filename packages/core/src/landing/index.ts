@@ -38,5 +38,4 @@ export {
   removeJourney,
   savedGuide,
   saveJourney,
-  wipeJourneys,
 } from "./store.js";

@@ -27,6 +27,8 @@ const config = (own: Lang) => ({ own, areas: AREAS, rates: CITY_RATES });
 const run = (state: InterviewState, answers: readonly string[], aloud = false) =>
   answers.reduce((s, answer) => hear(s, answer, aloud), state);
 const keys = (state: InterviewState) => prompt(state).lines.map((l) => l.key);
+/** What a cook is shown under each rate question: the city's range, the legal minimum, and that it is unchecked. */
+const COOK_HINT = ["iv.band_month", "iv.legal_min", "iv.band_seed"];
 const FULL: CardDraft = {
   trades: [T.cook],
   area: "koramangala",
@@ -78,7 +80,7 @@ describe("the card interview, start to finish", () => {
     expect(keys(s)).toEqual(["iv.what_change"]);
     s = hear(s, "ದರ");
     expect(s.slot).toBe(Slot.rate);
-    expect(keys(s)).toEqual(["iv.ask.rate_month"]);
+    expect(keys(s)).toEqual(["iv.ask.rate_month", ...COOK_HINT]);
     s = hear(s, "ಎಂಟೂವರೆ ಸಾವಿರ");
     expect(s.slot).toBe(Slot.confirm);
     expect(keys(s)[0]).toBe("iv.got_rate");
@@ -122,13 +124,13 @@ describe("the card interview's checks", () => {
   const atRate = run(start(config("hi")), ["कुक", "कोरमंगला"]);
 
   it("asks a monthly trade for its monthly rate, and needs an amount", () => {
-    expect(keys(atRate)).toEqual(["iv.ask.rate_month"]);
+    expect(keys(atRate)).toEqual(["iv.ask.rate_month", ...COOK_HINT]);
     expect(prompt(atRate).numeric).toBe(true);
-    expect(keys(hear(atRate, "पता नहीं"))).toEqual(["iv.again.amount", "iv.ask.rate_month"]);
+    expect(keys(hear(atRate, "पता नहीं"))).toEqual(["iv.again.amount", "iv.ask.rate_month", ...COOK_HINT]);
   });
 
   it("reads the rate back before asking the minimum", () => {
-    expect(keys(hear(atRate, "नौ हज़ार"))).toEqual(["iv.got_rate", "iv.ask.min"]);
+    expect(keys(hear(atRate, "नौ हज़ार"))).toEqual(["iv.got_rate", "iv.ask.min", "iv.legal_min"]);
   });
 
   it("refuses a minimum above the rate", () => {
@@ -143,7 +145,7 @@ describe("the card interview's checks", () => {
     expect(prompt(check).lines).toEqual([{ key: "iv.check_amount", prices: { price: 12000000 } }]);
     expect(prompt(check).choices?.map((c) => c.key)).toEqual(["flag.yes", "flag.no"]);
     expect(draftOf(choose(check, "yes")).rate_paise).toBe(12000000);
-    expect(keys(hear(check, "नहीं"))).toEqual(["iv.again.amount", "iv.ask.rate_month"]);
+    expect(keys(hear(check, "नहीं"))).toEqual(["iv.again.amount", "iv.ask.rate_month", ...COOK_HINT]);
     expect(draftOf(hear(check, "नहीं, बारह हज़ार")).rate_paise).toBe(1200000);
     expect(draftOf(hear(check, "एक लाख बीस हज़ार")).rate_paise).toBe(12000000);
   });
@@ -264,7 +266,7 @@ describe("changing a card the owner already has", () => {
 
   it("asks the minimum again when a new rate falls below it", () => {
     const s = run(edit(start(config("hi"), FULL), Slot.rate), ["सात हज़ार"]);
-    expect(keys(s)).toEqual(["iv.got_rate", "iv.ask.min"]);
+    expect(keys(s)).toEqual(["iv.got_rate", "iv.ask.min", "iv.legal_min"]);
     expect(draftOf(hear(s, "छह हज़ार"))).toMatchObject({ rate_paise: 700000, limit_paise: 600000 });
     expect(hear(s, "छह हज़ार").slot).toBe(Slot.confirm);
   });

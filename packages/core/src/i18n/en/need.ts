@@ -26,7 +26,6 @@ export const need = {
   "need.nobody": "Nobody within {km} km yet. Look further, or change something?",
   "need.change": "Change something",
   "need.asked": "Asked. Their agents will talk to yours — follow it in My jobs.",
-  "need.asked_hire": "Asked. Their agents will talk to yours — follow it on Today, under You hired.",
   "need.use_form": "Use the form instead",
   "need.use_chat": "Say it instead",
   "need.composer": "Tell me what you need",

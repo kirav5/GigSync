@@ -1,6 +1,6 @@
 import { MentorReply, type ReportReason, type UserId } from "@gigsync/protocol";
-import * as links from "../colleague/link.js";
 import { apiOf, type MentorContext } from "./context.js";
+import { endLink } from "./link.js";
 import { isOpenRequest, withdraw } from "./request.js";
 import { RequestState } from "./types.js";
 
@@ -10,9 +10,9 @@ import { RequestState } from "./types.js";
  * even when the server cannot be reached; blocking again tells it later.
  */
 export async function block(m: MentorContext, user: UserId): Promise<void> {
-  const now = m.c.ctx.clock.now();
+  const now = m.ctx.clock.now();
   await m.store.block(user, now);
-  if (await m.c.store.get(user)) await links.unlink(m.c, user);
+  await endLink(m, user);
   const [sent, received, intros] = await Promise.all([m.store.sent(), m.store.received(), m.store.intros()]);
   for (const r of sent.filter((r) => r.mentor === user && isOpenRequest(r))) await withdraw(m, r);
   for (const r of received.filter((r) => r.from === user && isOpenRequest(r)))

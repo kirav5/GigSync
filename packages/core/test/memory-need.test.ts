@@ -1,13 +1,26 @@
-import { DetailFlag, type Lang, Trade } from "@gigsync/protocol";
+import { AnswerFromMemory, DetailFlag, type Lang, Trade } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import { CITY_RATES, chooseNeed, type NeedMemory, NeedPick, NeedSlot, needPrompt, startNeed } from "../src/index.js";
+import {
+  CITY_RATES,
+  chooseNeed,
+  hearNeed,
+  type NeedMemory,
+  NeedSlot,
+  type NeedState,
+  needPrompt,
+  startNeed,
+} from "../src/index.js";
 import { Pick } from "../src/interview/card.js";
+import { MemoryPick } from "../src/interview/need-memory.js";
 
 const T = Trade.enum;
+const { ask, auto } = AnswerFromMemory.enum;
 const AREAS = [
   { key: "koramangala", names: ["Koramangala"] },
   { key: "hsr_layout", names: ["HSR Layout"] },
 ];
+const fresh = (value: string) => ({ value, fresh: true });
+const old = (value: string) => ({ value, fresh: false });
 const config = (own: Lang, remembered?: NeedMemory) => ({
   own,
   areas: AREAS,
@@ -15,52 +28,116 @@ const config = (own: Lang, remembered?: NeedMemory) => ({
   today: "2026-10-29",
   ...(remembered ? { remembered } : {}),
 });
-const firstChoice = (s: ReturnType<typeof startNeed>) => needPrompt(s).choices?.[0];
+const start = (remembered?: NeedMemory, own: Lang = "en") => startNeed(config(own, remembered));
+const lines = (s: NeedState) => needPrompt(s).lines;
+const choiceValues = (s: NeedState) => needPrompt(s).choices?.map((c) => c.value);
 
-describe("the Find chat offers what the agent remembers", () => {
-  it("the remembered area comes first, in the owner's language, and a tap takes it", () => {
-    const remembered = { area: "hsr_layout", facts: {} };
-    const atArea = chooseNeed(startNeed(config("hi", remembered)), T.electrician);
-    expect(atArea.slot).toBe(NeedSlot.detail);
-    const s = chooseNeed(atArea, Pick.skip);
-    expect(s.slot).toBe(NeedSlot.area);
-    expect(firstChoice(s)).toEqual({ value: "hsr_layout", key: "memory.same_area", params: { area: "एचएसआर लेआउट" } });
-    expect(chooseNeed(s, "hsr_layout").draft.area).toBe("hsr_layout");
-  });
-
-  it("an area the catalog no longer has is not offered", () => {
-    const s = chooseNeed(chooseNeed(startNeed(config("en", { area: "gone", facts: {} })), T.electrician), Pick.skip);
-    expect(firstChoice(s)?.key).toBe("area.koramangala");
-  });
-
-  it("a remembered answer to the trade's first question is a chip, and a tap answers with it", () => {
-    const s = chooseNeed(startNeed(config("en", { facts: { rooms: "3 rooms, sweeping" } })), T.maid);
+describe("Ask me first: the Find chat offers what the agent remembers", () => {
+  it("asks 'From your last job … Use it?' for the first question, and Yes takes it", () => {
+    const s = chooseNeed(start({ mode: ask, facts: { rooms: fresh("3 rooms, sweeping") } }), T.maid);
     expect(s.slot).toBe(NeedSlot.detail);
-    expect(firstChoice(s)).toEqual({
-      value: NeedPick.remembered,
-      key: "memory.same_value",
-      params: { value: "3 rooms, sweeping" },
-    });
-    expect(chooseNeed(s, NeedPick.remembered).draft.detail).toBe("3 rooms, sweeping");
+    expect(lines(s)).toEqual([
+      { key: "memory.offer_detail", params: { value: "3 rooms, sweeping" }, names: { detail: ["detail.rooms"] } },
+    ]);
+    expect(choiceValues(s)).toEqual([MemoryPick.use, MemoryPick.own]);
+    const taken = chooseNeed(s, MemoryPick.use);
+    expect(taken.draft.detail).toBe("3 rooms, sweeping");
+    expect(taken.slot).toBe(NeedSlot.area);
   });
 
-  it("a remembered count shows as given; a yes or no in the owner's language", () => {
-    const s = chooseNeed(startNeed(config("kn", { facts: { people: "4" } })), T.cook);
-    expect(firstChoice(s)?.params).toEqual({ value: "4" });
-    const flag = chooseNeed(startNeed(config("hi", { facts: { rooms: DetailFlag.enum.no } })), T.maid);
-    expect(firstChoice(flag)?.params).toEqual({ value: "नहीं" });
+  it("Change asks the question as usual, and memory stays out of it", () => {
+    const s = chooseNeed(chooseNeed(start({ mode: ask, facts: { rooms: fresh("3") } }), T.maid), MemoryPick.own);
+    expect(s.slot).toBe(NeedSlot.detail);
+    expect(lines(s)).toEqual([{ key: "question.rooms" }]);
+    expect(choiceValues(s)).toEqual([Pick.skip]);
+    expect(hearNeed(s, "2 rooms").draft.detail).toBe("2 rooms");
   });
 
-  it("nothing remembered: the questions are as before, and a remembered tap does nothing", () => {
-    const s = chooseNeed(startNeed(config("en")), T.maid);
-    expect(firstChoice(s)?.key).toBe("iv.skip");
-    expect(chooseNeed(s, NeedPick.remembered)).toBe(s);
+  it("a yes or no said aloud answers the offer; other words answer the question", () => {
+    const s = chooseNeed(start({ mode: ask, facts: { rooms: fresh("3") } }), T.maid);
+    expect(hearNeed(s, "yes").draft.detail).toBe("3");
+    expect(lines(hearNeed(s, "no"))).toEqual([{ key: "question.rooms" }]);
+    expect(hearNeed(s, "4 rooms and the kitchen").draft.detail).toBe("4 rooms and the kitchen");
   });
 
-  it("never offers a budget", () => {
-    let s = chooseNeed(startNeed(config("en", { area: "hsr_layout", facts: { rooms: "3" } })), T.maid);
-    s = chooseNeed(chooseNeed(chooseNeed(s, NeedPick.remembered), "hsr_layout"), "today");
+  it("offers the area the same way, in the owner's language, only while the catalog still has it", () => {
+    const remembered = { mode: ask, area: fresh("hsr_layout"), facts: {} };
+    const atArea = chooseNeed(chooseNeed(start(remembered, "hi"), T.electrician), Pick.skip);
+    expect(lines(atArea)).toEqual([{ key: "memory.offer_area", names: { area: ["area.hsr_layout"] } }]);
+    expect(chooseNeed(atArea, MemoryPick.use).draft.area).toBe("hsr_layout");
+    const gone = chooseNeed(chooseNeed(start({ mode: ask, area: fresh("gone"), facts: {} }), T.electrician), Pick.skip);
+    expect(needPrompt(gone).choices?.[0]?.key).toBe("area.koramangala");
+  });
+
+  it("a yes or no fact is named in the reader's language", () => {
+    const s = chooseNeed(start({ mode: ask, facts: { rooms: fresh(DetailFlag.enum.no) } }), T.maid);
+    expect(lines(s)).toEqual([{ key: "memory.offer_detail", names: { value: ["flag.no"], detail: ["detail.rooms"] } }]);
+  });
+
+  it("a fact more than a year old is asked about as 'still right?', never used on its own", () => {
+    const s = chooseNeed(start({ mode: ask, facts: { rooms: old("3") } }), T.maid);
+    expect(lines(s)[0]?.key).toBe("memory.offer_detail_old");
+    expect(s.draft.detail).toBeUndefined();
+  });
+});
+
+describe("Answer for me: the agent fills in what it remembers, and says so", () => {
+  const remembered = { mode: auto, area: fresh("hsr_layout"), facts: { rooms: fresh("3") } };
+
+  it("fills the first question and the area, says each, and offers to change them", () => {
+    const s = chooseNeed(start(remembered), T.maid);
+    expect(s.draft.detail).toBe("3");
+    expect(s.draft.area).toBe("hsr_layout");
+    // A maid comes every day, so the next thing missing is the budget.
     expect(s.slot).toBe(NeedSlot.budget);
-    expect(needPrompt(s).choices).toBeUndefined();
+    expect(lines(s).slice(0, 2)).toEqual([
+      { key: "memory.filled_detail", params: { value: "3" }, names: { detail: ["detail.rooms"] } },
+      { key: "memory.filled_area", names: { area: ["area.hsr_layout"] } },
+    ]);
+    expect(needPrompt(s).choices).toEqual([
+      { value: MemoryPick.redoDetail, key: "memory.change_detail", params: { detail: "rooms" } },
+      { value: MemoryPick.redoArea, key: "memory.change_area" },
+    ]);
+  });
+
+  it("Change reopens that question, and the next answer goes on to what was missing", () => {
+    const s = chooseNeed(chooseNeed(start(remembered), T.maid), MemoryPick.redoDetail);
+    expect(s.slot).toBe(NeedSlot.detail);
+    expect(lines(s)).toEqual([{ key: "question.rooms" }]);
+    const answered = hearNeed(s, "2 rooms");
+    expect(answered.draft.detail).toBe("2 rooms");
+    expect(answered.slot).toBe(NeedSlot.budget);
+    expect(needPrompt(answered).choices).toBeUndefined();
+  });
+
+  it("what the owner's own words said is kept; memory fills only what is missing", () => {
+    const s = hearNeed(start(remembered), "maid for 2 rooms in Koramangala");
+    expect(s.draft.detail).toContain("2");
+    expect(s.draft.area).toBe("koramangala");
+    expect(lines(s).some((l) => l.key === "memory.filled_detail" || l.key === "memory.filled_area")).toBe(false);
+  });
+
+  it("a fact more than a year old is asked fresh", () => {
+    const s = chooseNeed(start({ mode: auto, facts: { rooms: old("3") } }), T.maid);
+    expect(s.slot).toBe(NeedSlot.detail);
+    expect(lines(s)).toEqual([{ key: "question.rooms" }]);
+  });
+});
+
+describe("the Find chat without memory, and the budget", () => {
+  it("nothing remembered: the questions are as before, and memory taps change nothing", () => {
+    const s = chooseNeed(start(), T.maid);
+    expect(choiceValues(s)).toEqual([Pick.skip]);
+    for (const pick of Object.values(MemoryPick)) expect(chooseNeed(s, pick)).toBe(s);
+  });
+
+  it("never offers or fills a budget", () => {
+    for (const mode of [ask, auto]) {
+      let s = chooseNeed(start({ mode, area: fresh("hsr_layout"), facts: { rooms: fresh("3") } }), T.maid);
+      if (mode === ask) s = chooseNeed(chooseNeed(s, MemoryPick.use), MemoryPick.use);
+      expect(s.slot).toBe(NeedSlot.budget);
+      expect(s.draft.budget_paise).toBeUndefined();
+      expect(needPrompt(s).lines.some((l) => l.key.startsWith("memory.offer"))).toBe(false);
+    }
   });
 });

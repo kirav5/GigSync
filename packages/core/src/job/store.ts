@@ -1,7 +1,6 @@
 import type {
   Agree,
   Cancel,
-  ColleagueCard,
   ContactCard,
   Engagement,
   EngagementId,
@@ -15,7 +14,6 @@ import type {
   QuestionKey,
   Role,
   Trade,
-  UserId,
 } from "@gigsync/protocol";
 import { Collection, type Storage } from "../ports.js";
 import type { Advice } from "./advice.js";
@@ -45,12 +43,11 @@ export interface JobRecord {
   contact?: ContactCard | undefined;
   cancel?: Cancel;
   review?: JobReview;
-  /** The worker's notes (on my way, done) as received, each with its language so the screen can translate it. */
+  /**
+   * Notes from the other side as received, each with its language so the screen can translate it: the worker's (on my
+   * way, done), and on a signed job either side asking whether this owner knows someone in a city.
+   */
   notes?: Note[];
-  /** Household side: the colleague a worker suggested after declining this request. */
-  referral?: { colleague: UserId; card: ColleagueCard; at: string };
-  /** Worker side: the colleague this phone suggested on this declined request. */
-  referred?: UserId;
   /**
    * The questions the worker's agent asked about this request, as sent: standard keys, or a model's words with their
    * kind. Both phones keep them for the job's story. Records saved before round 3 hold bare keys.
@@ -60,11 +57,22 @@ export interface JobRecord {
   answers?: Record<string, string>;
   /** Household side: where each answer came from, by question key. */
   answered_from?: Record<string, AnswerSource>;
+  /** Household side: answers the agent knows from past jobs, held for the owner to send, change or skip. */
+  suggested?: Record<string, Suggested>;
 }
 
 /** Where the household's agent found an answer: the owner typed it, it was in this need's words, or a past job's. */
 export const AnswerSource = { owner: "owner", words: "words", memory: "memory" } as const;
 export type AnswerSource = (typeof AnswerSource)[keyof typeof AnswerSource];
+
+/**
+ * A remembered answer the owner chose to see before it is sent ("Ask me first"); `fresh` is false for one given more
+ * than a year ago, which the screen asks about as "still right?".
+ */
+export interface Suggested {
+  text: string;
+  fresh: boolean;
+}
 
 /** What a consumer is looking for, shared by every request in one group. The budget stays on this phone. */
 export interface Need {

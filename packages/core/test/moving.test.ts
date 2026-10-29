@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { earningsIntent, hireIntent, movingIntent } from "../src/index.js";
+import { earningsIntent, movingIntent } from "../src/index.js";
 
 describe("movingIntent", () => {
   it("hears a move to Bengaluru in each language", () => {
@@ -29,7 +29,6 @@ describe("movingIntent", () => {
 
   it("does not take the other intents' words", () => {
     const moving = "I'm moving to Bengaluru";
-    expect(hireIntent(moving, "en")).toBe(false);
     expect(earningsIntent(moving, "en")).toBe(false);
   });
 });

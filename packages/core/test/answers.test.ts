@@ -1,14 +1,35 @@
-import { type EngagementId, FREE_QUESTIONS_PROTOCOL, type ModelQuestion, SKIPPED } from "@gigsync/protocol";
+import {
+  AnswerFromMemory,
+  type EngagementId,
+  FREE_QUESTIONS_PROTOCOL,
+  type ModelQuestion,
+  SKIPPED,
+} from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import { AnswerSource, agentTalk, settle, TalkKind, TaskKind } from "../src/index.js";
+import { AnswerSource, agentTalk, setAnswerFromMemory, settle, TalkKind, TaskKind } from "../src/index.js";
 import { groundedAnswers } from "../src/job/answer-model.js";
 import { FakeModel, questionsReply } from "./model-fakes.js";
-import { ASHA, cook, cookNeed, electrician, fanNeed, MemoryRelay, PRIYA, phone, RAVI, RAVI_HOME } from "./phones.js";
+import {
+  ASHA,
+  cook,
+  cookNeed,
+  electrician,
+  fanNeed,
+  MemoryRelay,
+  type Phone,
+  PRIYA,
+  phone,
+  RAVI,
+  RAVI_HOME,
+} from "./phones.js";
 
 const NEW = { protocol: FREE_QUESTIONS_PROTOCOL };
 const HUM = { text: "Does the fan hum when switched on?", kind: "yes_no" };
 const FANS = { text: "How many fans need checking?", kind: "number" };
 const PEOPLE = { text: "How many people will eat?", kind: "number" };
+/** The owner chose "Answer for me" in Profile. */
+const answerForMe = (p: Phone) =>
+  setAnswerFromMemory({ storage: p.storage, me: { user: p.user } }, AnswerFromMemory.enum.auto);
 
 describe("a written question between two phones", () => {
   it("reaches the household, is answered by the owner, and stays out of the price and the scope", async () => {
@@ -57,10 +78,11 @@ describe("a written question between two phones", () => {
   });
 });
 
-describe("the household's agent answers from its owner's words", () => {
+describe("the household's agent answers from its owner's words (and past jobs, with Answer for me)", () => {
   it("answers a written question about a detail remembered from a past job, as a number", async () => {
     const relay = new MemoryRelay();
     const home = await phone(relay, RAVI_HOME, { ...NEW, autoConfirm: true });
+    await answerForMe(home);
     const asha = await phone(relay, ASHA, { worker: cook(), autoConfirm: true });
     await home.device.request(cookNeed(1000000, { people: "4 ಜನ", meals: "2", pets: "no" }), [asha.user]);
     await settle([home.device, asha.device]);
@@ -98,6 +120,7 @@ describe("the household's agent answers from its owner's words", () => {
   it("answers standard questions from a past signed job, and says so", async () => {
     const relay = new MemoryRelay();
     const home = await phone(relay, RAVI_HOME, { autoConfirm: true });
+    await answerForMe(home);
     const asha = await phone(relay, ASHA, { worker: cook(), autoConfirm: true });
     await home.device.request(cookNeed(1000000, { people: "4", meals: "2", pets: "no" }), [asha.user]);
     await settle([home.device, asha.device]);

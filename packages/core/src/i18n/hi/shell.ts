@@ -16,4 +16,7 @@ export const shell: Readonly<Record<keyof typeof en, string>> = {
   "when.pick": "तारीख़ चुनें",
   "when.daily": "रोज़",
   "when.time": "समय (अगर ज़रूरी हो)",
+  "perm.mic_why": "आपकी बात सुनने के लिए GigSync को माइक्रोफ़ोन चाहिए। अब आपका फ़ोन इजाज़त माँगेगा।",
+  "perm.continue": "आगे बढ़ें",
+  "perm.not_now": "अभी नहीं",
 };

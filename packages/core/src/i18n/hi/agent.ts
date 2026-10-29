@@ -42,5 +42,4 @@ export const agent: Readonly<Record<keyof typeof en, string>> = {
   "tstate.downloadable": "डाउनलोड हो सकता है",
   "tstate.downloading": "डाउनलोड हो रहा है",
   "tstate.unavailable": "उपलब्ध नहीं",
-  "rates.seed": "ये रेट GigSync टीम ने सार्वजनिक स्रोतों से लिखे हैं; काम शुरू होने से पहले यूनियन का अपना कार्ड इनकी जगह लेगा।",
 };

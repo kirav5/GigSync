@@ -6,8 +6,9 @@ import { type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
  * What the agent remembers, through the real screens and the real API: after a job both signed, Profile lists what
- * the household's agent kept, Forget removes one item, and the next request offers the remembered detail as a chip
- * while the worker's question the household answered last time is answered from memory.
+ * the household's agent kept and Forget removes one item. With the default "Ask me first", the next request's agent
+ * asks "From your last job … Use it?" and the worker's question answered last time comes filled in, sent with one
+ * tap. Switched to "Answer for me" in Profile, the agent fills the detail in, says so, and offers to change it.
  */
 
 const { en } = Lang.enum;
@@ -45,6 +46,8 @@ async function askOnly(page: Page, name: string) {
 
 /** The household's Profile section that lists what their agent remembers. */
 const memorySection = (page: Page) => page.getByRole("region", { name: t(en, "memory.title") });
+/** The remembered rooms, as the agent names them. */
+const roomsParams = { detail: t(en, "detail.rooms"), value: ROOMS };
 
 test("after a signed job the agent remembers, forgets on request, and answers from memory next time", async ({
   browser,
@@ -81,7 +84,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await tap(priyaPage, t(en, "trade.maid"));
   await expect(log).toContainText(t(en, "question.rooms"));
   await say(priyaPage, ROOMS);
-  await expect(log.getByRole("button", { name: /^Same as last time/ })).toHaveCount(0);
+  await expect(log.getByRole("button", { name: t(en, "memory.use"), exact: true })).toHaveCount(0);
   await tap(priyaPage, t(en, "area.hsr_layout"));
   await say(priyaPage, BUDGET);
   await tap(priyaPage, t(en, "flag.yes"));
@@ -111,26 +114,52 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await expect(areaRow).toHaveCount(0);
   await expect(remembered).toContainText(ROOMS);
 
-  // ── Second request: the rooms are a "same as last time" chip; the forgotten area is not offered ──────────────
+  // ── Second request, "Ask me first": the agent asks about the rooms; the forgotten area is asked as usual ──────
+  await expect(remembered.getByRole("button", { name: t(en, "memory.answer_ask") })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   await open(priyaPage, "nav.find");
   await expect(log).toContainText(t(en, "need.start"));
   await tap(priyaPage, t(en, "trade.maid"));
-  const same = t(en, "memory.same_value", { value: ROOMS });
-  await expect(log.getByRole("button", { name: same, exact: true })).toBeVisible();
-  await shoot("same-as-last-time", { household: priyaPage }, FOLDER);
-  await tap(priyaPage, same);
-  await expect(log.getByRole("button", { name: /^Same as last time/ })).toHaveCount(0);
+  await expect(log).toContainText(t(en, "memory.offer_detail", roomsParams));
+  await shoot("ask-first", { household: priyaPage }, FOLDER);
+  await tap(priyaPage, t(en, "memory.use"));
+  await expect(log).toContainText(t(en, "need.ask.area"));
+  await expect(log).not.toContainText(t(en, "memory.offer_area", { area: t(en, "area.hsr_layout") }));
   await tap(priyaPage, t(en, "area.hsr_layout"));
   await say(priyaPage, BUDGET);
+  await expect(log).toContainText(ROOMS);
   await tap(priyaPage, t(en, "flag.yes"));
   await askOnly(priyaPage, meenaName);
 
-  // Meena's agent asks about pets again; Priya's agent answers from her past job, and says so in the agents' talk.
+  // Meena's agent asks about pets again; the answer comes filled in from Priya's past job, and one tap sends it.
+  await expect(answer).toContainText(t(en, "ask.memory_offer", { value: t(en, "flag.no") }));
+  await shoot("answer-filled-in", { household: priyaPage }, FOLDER);
+  await answer.getByRole("button", { name: t(en, "job.send_answers") }).click();
+  await expect(answer).toHaveCount(0);
   const fromMemory = priyaPage
     .getByRole("list", { name: t(en, "talk.title") })
     .getByText(t(en, "ask.from_memory"))
     .first();
   await reveal(priyaPage, fromMemory);
-  await expect(answer).toHaveCount(0);
   await shoot("answered-from-memory", { household: priyaPage }, FOLDER);
+
+  // ── "Answer for me": the agent fills the rooms in, says so, and Change asks the question again ───────────────
+  await open(priyaPage, "nav.profile");
+  await memorySection(priyaPage)
+    .getByRole("button", { name: t(en, "memory.answer_auto") })
+    .click();
+  await expect(memorySection(priyaPage).getByRole("button", { name: t(en, "memory.answer_auto") })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await open(priyaPage, "nav.find");
+  await expect(log).toContainText(t(en, "need.start"));
+  await tap(priyaPage, t(en, "trade.maid"));
+  await expect(log).toContainText(t(en, "memory.filled_detail", roomsParams));
+  await expect(log).toContainText(t(en, "need.ask.area"));
+  await shoot("answer-for-me", { household: priyaPage }, FOLDER);
+  await tap(priyaPage, t(en, "memory.change_detail", { detail: t(en, "detail.rooms") }));
+  await expect(log.getByText(t(en, "question.rooms"))).toHaveCount(1);
 });

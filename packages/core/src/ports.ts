@@ -7,7 +7,10 @@
 import type { DevicePublicKeys, Sealed } from "@gigsync/crypto";
 import type { DeviceId } from "@gigsync/protocol";
 
-/** Every storage collection the agent uses. One name per kind of record, so two features never share one by accident. */
+/**
+ * Every storage collection the agent uses. One name per kind of record, so two features never share one by accident.
+ * Each belongs to one owner (the person signed in), except the few kept per phone (`PHONE_COLLECTIONS`, owner/storage.ts).
+ */
 export const Collection = {
   chat: "chat",
   contacts: "contacts",
@@ -26,14 +29,22 @@ export const Collection = {
   outbox: "outbox",
   outboxSeq: "outbox_seq",
   payments: "payments",
+  /** Settings of the phone itself, shared by everyone who signs in on it: the account, language, model choice. */
   settings: "settings",
-  /** Workers this phone linked with in person, one record per colleague. */
-  colleagues: "colleagues",
-  /** The notes between this phone and one colleague, one document per colleague. */
-  colleagueNotes: "colleague_notes",
-  /** The single-use codes this phone showed as a colleague QR, until they run out. */
-  linkCodes: "link_codes",
-  /** What the agent remembers from past signed jobs, one document per owner; wiped at sign-out. */
+  /** Settings of one owner: their UPI ID, whether the agent asks before answering from memory. */
+  ownerSettings: "owner_settings",
+  /** Names a consumer saw on the board, by user id, so their jobs show who they are talking to. */
+  people: "people",
+  /**
+   * Live mentor links, one record per person. Kept under the name links had when workers also linked in person, so
+   * links opened before that went away still read.
+   */
+  mentorLinks: "colleagues",
+  /** The notes on one mentor link, one document per person; under their old name for the same reason. */
+  linkNotes: "colleague_notes",
+  /** Mentor links that ran out or were ended: who this owner knew, so they can still introduce them. */
+  pastLinks: "past_links",
+  /** What the agent remembers from past signed jobs, one document per owner; kept when they sign out. */
   memory: "memory",
   /** Landing requests this phone sent as a newcomer, one per mentor asked. */
   mentorRequests: "mentor_requests",
@@ -45,7 +56,7 @@ export const Collection = {
   mentorEarly: "mentor_early",
   /** The owner's own mentor choices and newcomer answers, kept on this phone only. */
   mentorSettings: "mentor_settings",
-  /** People this owner blocked: hidden everywhere on this phone. */
+  /** People this owner blocked: hidden everywhere this owner looks on this phone. */
   blocked: "blocked",
   /** Moves to a new city, one record per move, kept on this phone (the landing journey). */
   journeys: "journeys",
@@ -58,6 +69,8 @@ export interface Storage {
   put<T>(collection: string, id: string, value: T): Promise<void>;
   delete(collection: string, id: string): Promise<void>;
   list<T>(collection: string): Promise<T[]>;
+  /** The ids in a collection, for moving records between collections (see owner/claim.ts). */
+  ids(collection: string): Promise<string[]>;
 }
 
 /**
@@ -113,6 +126,9 @@ export class MemoryStorage implements Storage {
   }
   async list<T>(c: string) {
     return [...this.bucket(c).values()] as T[];
+  }
+  async ids(c: string) {
+    return [...this.bucket(c).keys()];
   }
 }
 

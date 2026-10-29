@@ -14,4 +14,7 @@ export const shell = {
   "when.pick": "Pick a date",
   "when.daily": "Every day",
   "when.time": "Time (if it matters)",
+  "perm.mic_why": "To hear you, GigSync needs the microphone. Your phone will ask you next.",
+  "perm.continue": "Continue",
+  "perm.not_now": "Not now",
 } as const;

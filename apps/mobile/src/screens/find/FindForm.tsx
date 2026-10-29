@@ -22,7 +22,7 @@ import { C } from "../../ui/cls.js";
 import { Dock } from "../../ui/Dock.js";
 import { errorKey } from "../../ui/errorKey.js";
 import { AREAS, areaNamed } from "../../ui/places.js";
-import { WorkerPick } from "../colleague/WorkerPick.js";
+import { WorkerPick } from "./WorkerPick.js";
 
 /** Ties the dock's Ask button, outside the form, to it. */
 const ASK_FORM = "ask-workers";

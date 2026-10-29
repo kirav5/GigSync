@@ -47,6 +47,18 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
   const [head, tail] = [HINDI.slice(0, 2), HINDI.slice(2)];
   for (const [, next] of head) await nextTurn(page, hi, next, () => mic(page, hi).click());
 
+  await test.step("under the rate question, Bengaluru's usual pay for a cook, the legal minimum and where they come from", async () => {
+    const cook = t(hi, "trade.cook");
+    const city = t(hi, "city.bengaluru");
+    await expect(
+      page.getByText(textOf(hi, "iv.band_month", { trade: cook, city, low: "₹7,000", high: "₹12,000" })),
+    ).toBeVisible();
+    await expect(
+      page.getByText(textOf(hi, "iv.legal_min", { trade: cook, hours: "2.5", min: "₹6,422" })),
+    ).toBeVisible();
+    await expect(page.getByText(textOf(hi, "iv.band_seed"))).toBeVisible();
+  });
+
   await test.step("switching tabs keeps her place", async () => {
     await open(page, "nav.profile", hi);
     await open(page, "nav.talk", hi);
@@ -75,7 +87,6 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
     await expect(page.getByText(NOTE, { exact: true })).toBeVisible();
     await expect(page.getByText(t(hi, "card.saved"), { exact: true })).toBeVisible();
     // Suggestions belong to an empty Talk only; changing the card lives in Profile and in what she says.
-    await expect(page.getByRole("button", { name: t(hi, "hire.chip"), exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: t(hi, "agent.suggest_rate"), exact: true })).toHaveCount(0);
   });
 
@@ -125,6 +136,11 @@ test("a Kannada electrician types and taps, says no at the summary, and changes 
   await nextTurn(page, kn, "iv.ask.area", () => type(page, kn, "ನಾನು ಎಲೆಕ್ಟ್ರಿಷಿಯನ್"));
   const hsr = page.getByRole("button", { name: t(kn, "area.hsr_layout"), exact: true });
   await nextTurn(page, kn, "iv.ask.rate_visit", () => hsr.last().click());
+  // No band for electricians yet: the app says so rather than guess, and shows no monthly number under a visit's rate.
+  const electrician = t(kn, "trade.electrician");
+  await expect(page.getByText(textOf(kn, "iv.band_none", { trade: electrician }))).toBeVisible();
+  await expect(page.getByText(textOf(kn, "iv.band_month"))).toHaveCount(0);
+  await expect(page.getByText(textOf(kn, "iv.legal_min"))).toHaveCount(0);
   await nextTurn(page, kn, "iv.ask.min", () => type(page, kn, "೫೦೦"));
   await nextTurn(page, kn, "iv.ask.languages", () => type(page, kn, "400"));
   await nextTurn(page, kn, "iv.ask.about", () => type(page, kn, "ಯಾವುದೂ ಇಲ್ಲ"));

@@ -3,9 +3,11 @@ import { UserId } from "./ids.js";
 import { Lang } from "./lang.js";
 import { Trade } from "./trade.js";
 
-/** A colleague code lives this long on the phone that shows it (ten minutes). */
-export const LINK_CODE_TTL_MS = 10 * 60 * 1000;
-/** The device capability number that understands `colleague`, `colleague_note` and `referral` envelopes. */
+/**
+ * The device capability number that understands `colleague`, `colleague_note` and `referral` envelopes. Linking in
+ * person and referrals are gone from the app; the kinds stay so a phone on an older build can still be read: an
+ * `ask`, an `ok` or a `referral` from one is dropped on arrival, while `end`, `renew` and notes carry mentor links.
+ */
 export const COLLEAGUE_PROTOCOL = 2;
 /** At most this many trades or languages travel on a colleague card. */
 const MAX_CARD_ITEMS = 5;
@@ -55,20 +57,3 @@ export type ColleagueNote = z.infer<typeof ColleagueNote>;
 /** `referral`: worker → household, on a request the worker declined: a colleague the household may ask instead. */
 export const Referral = z.object({ colleague: UserId, card: ColleagueCard, note: shortText.optional() });
 export type Referral = z.infer<typeof Referral>;
-
-/** The colleague QR: who shows it, the one-time code, and the name the scanner sees before anything is sent. */
-export const INVITE_PREFIX = "gigsync:colleague?";
-export const LinkInvite = z.object({ u: UserId, c: LinkCode, n: z.string().min(1).max(80) });
-export type LinkInvite = z.infer<typeof LinkInvite>;
-
-/** The QR text for an invite. */
-export function inviteText(invite: LinkInvite): string {
-  return `${INVITE_PREFIX}${new URLSearchParams(invite).toString()}`;
-}
-
-/** An invite from scanned text, or undefined when it is not a GigSync colleague code. */
-export function parseInvite(text: string): LinkInvite | undefined {
-  if (!text.startsWith(INVITE_PREFIX)) return undefined;
-  const params = new URLSearchParams(text.slice(INVITE_PREFIX.length));
-  return LinkInvite.safeParse({ u: params.get("u"), c: params.get("c"), n: params.get("n") }).data;
-}

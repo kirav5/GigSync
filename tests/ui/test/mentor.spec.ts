@@ -3,13 +3,13 @@ import { Lang, MENTOR_MIN_JOBS, MENTOR_MIN_MONTHS } from "@gigsync/protocol";
 import { type Browser, type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { newPhone, open, Role, RUN, shoot, signIn } from "./helpers.js";
 import { type Phone, publishCard, unlistCards } from "./journey.js";
-import { seedRecord } from "./mentor-seed.js";
+import { seedRecord, seedSignedJob } from "./mentor-seed.js";
 
 /**
  * Mentors without a gate (round4-spec §2) through the app's real screens. A worker whose own phone counts enough
  * signed work lists herself in Profile; a newcomer reads the safety words, says she is a woman (women-only turns on),
  * picks her, and asks; the mentor helps from Today; the newcomer accepts and a 30-day mentor link opens, with renew,
- * report and block. Then an introduction: a colleague introduces two of his own colleagues, no code scanned.
+ * report and block. Then an introduction: a household introduces two workers it signed jobs with, nothing scanned.
  */
 
 const { hi, kn, en } = Lang.enum;
@@ -168,37 +168,14 @@ test("a newcomer picks a woman mentor from the list, they link for 30 days, then
   await shoot("blocked", shots, folder);
 });
 
-/** Dev builds only: the colleague code's text, on its QR (screens/colleague/ShowCode.tsx). */
-const INVITE = "data-invite";
-const colleaguesOn = ({ page, lang }: Phone) => page.getByRole("region", { name: t(lang, "colleague.title") });
+/** Profile's mentor links, in the owner's language. */
+const linksOn = ({ page, lang }: Phone) => page.getByRole("region", { name: t(lang, "mentor.links") });
 
-/** `shower` shows a colleague code and `scanner` pastes it (a test browser has no camera), as two workers who met. */
-async function linkInPerson(shower: Phone, scanner: Phone, showerName: string) {
-  await open(shower.page, "nav.profile", shower.lang);
-  await colleaguesOn(shower)
-    .getByRole("button", { name: t(shower.lang, "colleague.show_code") })
-    .click();
-  const code = (await shower.page.locator(`[${INVITE}]`).getAttribute(INVITE)) ?? "";
-  await open(scanner.page, "nav.profile", scanner.lang);
-  await colleaguesOn(scanner)
-    .getByRole("button", { name: t(scanner.lang, "colleague.scan") })
-    .click();
-  const paste = scanner.page.getByRole("form", { name: t(scanner.lang, "colleague.paste") });
-  await paste.getByRole("textbox").fill(code);
-  await paste.getByRole("button", { name: t(scanner.lang, "colleague.link") }).click();
-  const confirm = scanner.page.getByRole("dialog", {
-    name: t(scanner.lang, "colleague.confirm", { name: showerName }),
-  });
-  await confirm.getByRole("button", { name: t(scanner.lang, "colleague.link") }).click();
-  await expect(statusOn(scanner.page, t(scanner.lang, "colleague.linked", { name: showerName }))).toBeVisible();
-}
-
-/** Opens one colleague's thread from Profile. */
-async function thread(p: Phone, name: string) {
-  await open(p.page, "nav.profile", p.lang);
-  await colleaguesOn(p)
-    .getByRole("button", { name: new RegExp(name) })
-    .click();
+/** One finished job's card, unfolded from under Earlier on Today (a worker) or My jobs (a household). */
+async function pastJob(p: Phone, tab: "nav.today" | "nav.my_jobs", them: string) {
+  await open(p.page, tab, p.lang);
+  await p.page.getByText(t(p.lang, "home.earlier"), { exact: true }).click();
+  return p.page.getByRole("article", { name: t(p.lang, "a11y.job_with", { name: them }) });
 }
 
 /** On Today: the introduction's safety words, then Meet. */
@@ -209,44 +186,46 @@ async function meet(p: Phone, name: string) {
   await intros.getByRole("button", { name: t(p.lang, "mentor.intro_meet", { name }) }).click();
 }
 
-test("a colleague introduces two people he knows, both say yes, and a mentor link opens with no code", async ({
+test("a household introduces two workers it signed jobs with, both say yes, and a mentor link opens", async ({
   browser,
 }) => {
   const folder = "mentor-intro";
   const [suresh, asha, mukesh] = (await phones(browser, [en, hi, kn])) as [Phone, Phone, Phone];
   const shots = { introducer: suresh.page, newcomer: asha.page, mentor: mukesh.page };
-  const sureshName = `Suresh ${RUN}`;
-  const ashaName = `Asha ${RUN}`;
-  const mukeshName = `Mukesh ${RUN}`;
-  await signIn(suresh.page, { role: Role.worker, name: sureshName, phone: newPhone(), lang: en });
-  await signIn(asha.page, { role: Role.worker, name: ashaName, phone: newPhone(), lang: hi });
-  await signIn(mukesh.page, { role: Role.worker, name: mukeshName, phone: newPhone(), lang: kn });
-  await linkInPerson(suresh, asha, sureshName);
-  await linkInPerson(suresh, mukesh, sureshName);
+  const people = {
+    suresh: { page: suresh.page, name: `Suresh ${RUN}`, phone: newPhone() },
+    asha: { page: asha.page, name: `Asha ${RUN}`, phone: newPhone() },
+    mukesh: { page: mukesh.page, name: `Mukesh ${RUN}`, phone: newPhone() },
+  };
+  const { suresh: s, asha: a, mukesh: m } = people;
+  await signIn(suresh.page, { role: Role.consumer, name: s.name, phone: s.phone, address: "Indiranagar", lang: en });
+  await signIn(asha.page, { role: Role.worker, name: a.name, phone: a.phone, lang: hi });
+  await signIn(mukesh.page, { role: Role.worker, name: m.name, phone: m.phone, lang: kn });
+  // Suresh's household had Asha (now moving to Bengaluru) and Mukesh (who works there) cook for it, both signed.
+  await seedSignedJob(s, a);
+  await seedSignedJob(s, m);
 
-  // ── Asha asks Suresh whether he knows someone in Bengaluru: a note in his thread ───────────────────────────────
-  await thread(asha, sureshName);
-  await asha.page.getByRole("button", { name: t(hi, "mentor.intro_ask", { city: city(hi) }) }).click();
-  await expect(statusOn(asha.page, t(hi, "mentor.intro_asked", { name: sureshName }))).toBeVisible();
+  // ── Asha asks Suresh whether he knows someone in Bengaluru, from the job they signed ───────────────────────────
+  const withSuresh = await pastJob(asha, "nav.today", s.name);
+  await withSuresh.getByRole("button", { name: t(hi, "mentor.intro_ask", { city: city(hi) }) }).click();
+  await expect(statusOn(asha.page, t(hi, "mentor.intro_asked", { name: s.name }))).toBeVisible();
 
-  // ── Suresh introduces Mukesh to her from her thread ────────────────────────────────────────────────────────────
-  await thread(suresh, ashaName);
-  await expect(suresh.page.getByRole("list", { name: t(en, "a11y.notes") })).toBeVisible();
-  await suresh.page.getByRole("button", { name: t(en, "mentor.introduce", { name: ashaName }) }).click();
-  await suresh.page.getByRole("button", { name: t(en, "mentor.intro_send", { name: mukeshName }) }).click();
-  await expect(statusOn(suresh.page, t(en, "mentor.intro_sent", { name: ashaName, other: mukeshName }))).toBeVisible();
+  // ── Suresh reads her ask with that job, and introduces Mukesh to her from it ───────────────────────────────────
+  const withAsha = await pastJob(suresh, "nav.my_jobs", a.name);
+  await expect(withAsha.getByRole("list", { name: t(en, "a11y.notes") })).toBeVisible();
+  await withAsha.getByRole("button", { name: t(en, "mentor.introduce", { name: a.name }) }).click();
+  await withAsha.getByRole("button", { name: t(en, "mentor.intro_send", { name: m.name }) }).click();
+  await expect(statusOn(suresh.page, t(en, "mentor.intro_sent", { name: a.name, other: m.name }))).toBeVisible();
   await shoot("introduced", shots, folder);
 
   // ── Each says yes on their own phone, after the safety words; the link opens on both ───────────────────────────
-  await meet(asha, mukeshName);
-  await expect(asha.page.getByText(t(hi, "mentor.intro_waiting", { name: mukeshName }))).toBeVisible();
-  await meet(mukesh, ashaName);
+  await meet(asha, m.name);
+  await expect(asha.page.getByText(t(hi, "mentor.intro_waiting", { name: m.name }))).toBeVisible();
+  await meet(mukesh, a.name);
   await open(asha.page, "nav.profile", hi);
-  await expect(colleaguesOn(asha).getByRole("button", { name: new RegExp(mukeshName) })).toContainText(
-    t(hi, "mentor.chip"),
-  );
+  await expect(linksOn(asha).getByRole("button", { name: new RegExp(m.name) })).toContainText(t(hi, "mentor.chip"));
   await open(mukesh.page, "nav.profile", kn);
-  await expect(colleaguesOn(mukesh).getByRole("button", { name: new RegExp(ashaName) })).toContainText(
+  await expect(linksOn(mukesh).getByRole("button", { name: new RegExp(a.name) })).toContainText(
     t(kn, "mentor.chip_newcomer"),
   );
   await shoot("mentor-link", shots, folder);

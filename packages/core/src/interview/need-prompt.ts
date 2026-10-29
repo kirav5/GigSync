@@ -1,4 +1,4 @@
-import { DetailFlag, Trade } from "@gigsync/protocol";
+import { Trade } from "@gigsync/protocol";
 import { type MessageKey, t } from "../i18n/t.js";
 import { YES_NO_QUESTIONS } from "../job/details.js";
 import { EVERY_DAY, isMonthly } from "../job/when.js";
@@ -11,9 +11,12 @@ import {
   type NeedField,
   NeedSlot,
   type NeedState,
+  offered,
+  recalled,
   SEARCH_RADII_KM,
 } from "./need.js";
-import { NeedPick, rememberedDetail } from "./need-hear.js";
+import { NeedPick } from "./need-hear.js";
+import { OFFER_CHOICES, recalledLine, redoChoice } from "./need-memory.js";
 import { needWords } from "./need-request.js";
 
 /**
@@ -103,36 +106,40 @@ function confirmPrompt(s: NeedState): Prompt {
   };
 }
 
-/** "Same as last time: …" for the trade's first question, when the agent remembers the owner's answer. */
-function sameDetail(s: NeedState): Choice[] {
-  const value = rememberedDetail(s);
-  if (!value) return [];
-  const flag = DetailFlag.safeParse(value);
-  const shown = flag.success ? t(s.config.own, `flag.${flag.data}`) : value;
-  return [{ value: NeedPick.remembered, key: "memory.same_value", params: { value: shown } }];
-}
-
 function detailPrompt(s: NeedState): Prompt {
   const first = firstQuestion(s.draft.trade);
   if (!first) return { lines: [], hints: [] };
   const yesNo = YES_NO_QUESTIONS.has(first);
   return {
     lines: [{ key: `question.${first}` }],
-    choices: [...sameDetail(s), ...(yesNo ? YES_NO : [{ value: CardPick.skip, key: "iv.skip" } as const])],
+    choices: yesNo ? YES_NO : [{ value: CardPick.skip, key: "iv.skip" }],
     hints: yesNo ? yesNoHints(s) : [],
   };
 }
 
-/** "Same as last time (area)" first among the areas, when the agent remembers one the catalog still has. */
-function sameArea(s: NeedState): Choice[] {
-  const area = s.config.remembered?.area;
-  const key = `area.${area ?? ""}`;
-  if (!area || !s.config.areas.some((a) => a.key === area) || !isMessageKey(key)) return [];
-  return [{ value: area, key: "memory.same_area", params: { area: t(s.config.own, key) } }];
+/** "From your last job: … Use it?" in place of the question, when the owner asked to be asked first. */
+function offerPrompt(s: NeedState): Prompt | undefined {
+  const r = offered(s);
+  return r ? { lines: [recalledLine(r, false)], choices: OFFER_CHOICES, hints: yesNoHints(s) } : undefined;
 }
+
+/** "I've put …, from your last job." for each question the agent just filled in from memory. */
+const filledLines = (s: NeedState): Line[] =>
+  s.filled.flatMap((field) => {
+    const r = recalled(s, field);
+    return r ? [recalledLine(r, true)] : [];
+  });
+
+/** A Change chip for each of those, shown under the next question. */
+const redoChoices = (s: NeedState): Choice[] =>
+  s.filled.map((field) =>
+    redoChoice(s.config.own, field === NeedSlot.detail ? firstQuestion(s.draft.trade) : undefined),
+  );
 
 function question(s: NeedState): Prompt {
   const own = s.config.own;
+  const offer = offerPrompt(s);
+  if (offer) return offer;
   switch (s.slot) {
     case NeedSlot.trade:
       return {
@@ -145,7 +152,7 @@ function question(s: NeedState): Prompt {
     case NeedSlot.area:
       return {
         lines: [{ key: "need.ask.area" }],
-        choices: [...sameArea(s), ...areaChoices(s.config.areas)],
+        choices: areaChoices(s.config.areas),
         hints: areaHints(s.config.areas, own),
       };
     case NeedSlot.when:
@@ -178,8 +185,10 @@ function question(s: NeedState): Prompt {
   }
 }
 
-/** Whatever is current: the notes (a retry, a readback, why a search failed), then the question. */
+/** Whatever is current: the notes (a retry, a readback, what memory filled in), then the question. */
 export function needPrompt(s: NeedState): Prompt {
   const ask = question(s);
-  return { ...ask, lines: [...s.notes, ...ask.lines] };
+  const redo = redoChoices(s);
+  const choices = redo.length > 0 ? { choices: [...redo, ...(ask.choices ?? [])] } : {};
+  return { ...ask, lines: [...s.notes, ...filledLines(s), ...ask.lines], ...choices };
 }

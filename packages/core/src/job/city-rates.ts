@@ -3,13 +3,8 @@ import { QuestionKey, RateCard, ScopeKind, SEED_SIGNER, Trade } from "@gigsync/p
 /**
  * The city pack's going rates that ship with the pilot app, until the union signs its own card (ADR 0016 §2). Monthly
  * rates for live-out household work in Bengaluru, researched 2026-10-28. Every number below names its source; none
- * comes from a survey newer than 2022, so the card is marked as a seed and the app says so (`signed_by`).
- *
- * Statutory floor (Karnataka, "Residential houses incl. domestic helpers", Zone I, 1 Apr 2026 – 31 Mar 2027,
- * notification KAE 68 LWA 2022 with VDA; karmikaspandana.karnataka.gov.in): cooking ₹790.32/day, housekeeping and
- * dishes ₹717.12/day, for an 8-hour day. There is no part-time rate; the lows below sit above those day rates
- * pro-rated to 2.5 hours (cook, ₹6,420) and 1.5 hours (maid, ₹3,496). A 22 May 2026 revision (KA 411 LWA 2023) is
- * before the High Court and may raise them: check before the pilot.
+ * comes from a survey newer than 2022, so the card is marked as a seed and the app says so (`signed_by`). Every low
+ * sits above the statutory floor (`LEGAL_MINIMUM` below).
  */
 const Q = QuestionKey.enum;
 const FLAG = ScopeKind.enum.flag;
@@ -48,3 +43,37 @@ export const CITY_RATES: RateCard = RateCard.parse({
     },
   ],
 });
+
+/** One trade's statutory floor: the notified rate for a full day, and the part-time hours the band's low is for. */
+export interface DayRate {
+  day_paise: number;
+  hours: number;
+}
+
+/** A state's minimum wage for the rate card's trades, pro-rated by hours since the law names no part-time rate. */
+export interface LegalMinimum {
+  /** The rate card city it holds in; another city's card shows no minimum rather than the wrong state's. */
+  city: string;
+  /** Hours in the notified day. */
+  day_hours: number;
+  /** Working days a month, the usual conversion of a day rate to a monthly wage. */
+  days_per_month: number;
+  trades: Readonly<Partial<Record<Trade, DayRate>>>;
+}
+
+/**
+ * Statutory floor (Karnataka, "Residential houses incl. domestic helpers", Zone I, 1 Apr 2026 – 31 Mar 2027,
+ * notification KAE 68 LWA 2022 with VDA; karmikaspandana.karnataka.gov.in): cooking ₹790.32/day, housekeeping and
+ * dishes ₹717.12/day, for an 8-hour day. There is no part-time rate; pro-rated to 2.5 hours a day for a cook and
+ * 1.5 hours for a maid, at 26 working days, that is ₹6,421.35 and ₹3,495.96 a month. A 22 May 2026 revision (KA 411
+ * LWA 2023) is before the High Court and may raise them: check before the pilot.
+ */
+export const LEGAL_MINIMUM: LegalMinimum = {
+  city: CITY_RATES.city,
+  day_hours: 8,
+  days_per_month: 26,
+  trades: {
+    [Trade.enum.cook]: { day_paise: 79032, hours: 2.5 },
+    [Trade.enum.maid]: { day_paise: 71712, hours: 1.5 },
+  },
+};

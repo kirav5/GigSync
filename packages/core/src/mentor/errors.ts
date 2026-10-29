@@ -12,8 +12,10 @@ export const MentorRefusal = {
   blocked: "blocked",
   /** No request, offer or introduction like that on this phone, or it has moved on. */
   notFound: "not_found",
-  /** Only linked colleagues can be introduced, or asked. */
+  /** No live mentor link with that person on this phone: nothing to write to or renew. */
   notLinked: "not_linked",
+  /** Neither a job both sides signed nor a mentor link with that person: they cannot be introduced or asked. */
+  notKnown: "not_known",
   /** A mentor link that has run out cannot be renewed or written to. */
   expired: "expired",
   /** The safety words come before any contact: `mentor.safety_title`. */

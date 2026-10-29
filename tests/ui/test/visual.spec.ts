@@ -1,4 +1,3 @@
-import { t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { APP, newPhone, open, Role, RUN, SHOTS, signIn } from "./helpers.js";
@@ -51,11 +50,6 @@ for (const lang of Lang.options)
       await snap(worker, dir, "03-worker-passbook");
       await open(worker, "nav.profile", lang);
       await snap(worker, dir, "04-worker-profile");
-      await worker
-        .getByRole("region", { name: t(lang, "colleague.title") })
-        .getByRole("button", { name: t(lang, "colleague.show_code") })
-        .click();
-      await snap(worker, dir, "05-worker-colleague-code");
 
       await signIn(household, {
         role: Role.consumer,
@@ -64,8 +58,8 @@ for (const lang of Lang.options)
         address: "Indiranagar",
         lang,
       });
-      await snap(household, dir, "06-household-find");
+      await snap(household, dir, "05-household-find");
       await open(household, "nav.my_jobs", lang);
-      await snap(household, dir, "07-household-my-jobs");
+      await snap(household, dir, "06-household-my-jobs");
       await household.context().close();
     });

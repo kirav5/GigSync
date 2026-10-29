@@ -2,7 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import { Preferences } from "@capacitor/preferences";
 
 /** The phone permissions GigSync explains in its own words before the phone asks for them. */
-export const Permission = { mic: "mic", camera: "camera" } as const;
+export const Permission = { mic: "mic" } as const;
 export type Permission = (typeof Permission)[keyof typeof Permission];
 
 const KEY_PREFIX = "permission-explained-";

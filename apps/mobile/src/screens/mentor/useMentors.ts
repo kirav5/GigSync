@@ -8,7 +8,7 @@ import {
 } from "@gigsync/core";
 import { useCallback, useEffect, useState } from "react";
 
-/** What the mentor parts of Today, Find a mentor and Colleagues show, read from this phone. */
+/** What the mentor parts of Today and Find a mentor show, read from this phone. */
 export interface MentorView {
   /** Landing requests waiting for this owner's yes or no, as a mentor. */
   incoming: ReceivedRequest[];

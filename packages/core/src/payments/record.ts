@@ -10,7 +10,7 @@ import {
 import type { JobRecord } from "../job/store.js";
 import { dayOf, EVERY_DAY, localDay } from "../job/when.js";
 import { OPEN_PAYMENT } from "./book.js";
-import { bothSigned, FINISHED_WORK, monthOf, type SignedJob } from "./passbook.js";
+import { bothSigned, FINISHED_WORK, monthOf } from "./passbook.js";
 
 /** Where a finished job stands with its money, as one chip on its row. */
 export const RecordState = {
@@ -39,14 +39,6 @@ export interface RecordMonth {
   rows: RecordRow[];
 }
 
-/** A job this phone hired as requester, and what it paid out. Never earnings. */
-export interface HiredRow {
-  job: JobRecord;
-  day: Date;
-  price_paise: number;
-  paid_paise: number;
-}
-
 export interface WorkRecord {
   /** Newest month first, newest row first inside each month. */
   months: RecordMonth[];
@@ -56,7 +48,6 @@ export interface WorkRecord {
   households: number;
   /** The day of the oldest finished job; undefined with none. */
   since?: Date;
-  hired: HiredRow[];
   /** Jobs this phone signed as provider, finished or not: none means there is nothing to show yet. */
   signed: number;
 }
@@ -140,32 +131,9 @@ function intoMonths(filed: readonly Filed<RecordRow>[]): RecordMonth[] {
   return months;
 }
 
-/** What one job paid out: the confirmed payments this phone made for it. */
-const paidOut = (fromMe: readonly Payment[]) =>
-  fromMe.filter((p) => p.status === S.confirmed).reduce((sum, p) => sum + p.amount_paise, 0);
-
-/**
- * Jobs this phone hired as requester, newest first. One cancelled with nothing paid is left out: nothing was owed
- * and nothing went out, so it has no place in a list of money paid.
- */
-function hiredRows(signed: readonly SignedJob[], payments: readonly Payment[], me: UserId, dated: Dating): HiredRow[] {
-  const fromMe = byJob(payments.filter((p) => p.payer === me));
-  return signed
-    .filter((job) => job.engagement.role === Role.enum.requester)
-    .map((job): Filed<HiredRow> => {
-      const { key, day } = dated(job);
-      const paid_paise = paidOut(fromMe.get(job.engagement.id) ?? []);
-      return { key, row: { job, day, price_paise: job.mine.terms.price_paise, paid_paise } };
-    })
-    .filter(({ row }) => row.job.engagement.status !== E.cancelled || row.paid_paise > 0)
-    .sort(newestFirst)
-    .map(({ row }) => row);
-}
-
 /**
  * The worker's record (round2-spec §2): every job this phone did as provider that both sides signed and that is
- * finished or was cancelled after signing, grouped by local month; and the jobs it hired as requester. Only what both
- * sides signed counts, and nothing here counts days or claims anything beyond the jobs themselves.
+ * finished or was cancelled after signing, grouped by local month. Only what both sides signed counts, and nothing here counts days or claims anything beyond the jobs themselves.
  */
 export function workRecord(
   jobs: readonly JobRecord[],
@@ -199,7 +167,6 @@ export function workRecord(
     jobs: done.length,
     households: new Set(done.map(({ row }) => row.job.engagement.counterpart)).size,
     ...(oldest ? { since: oldest.row.day } : {}),
-    hired: hiredRows(signed, payments, me, dated),
     signed: provided.length,
   };
 }

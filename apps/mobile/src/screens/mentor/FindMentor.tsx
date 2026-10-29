@@ -1,11 +1,10 @@
 import { type GigDevice, type MessageKey, type Ports, womenOnly } from "@gigsync/core";
 import { City, Lang, type MentorProfile, Trade } from "@gigsync/protocol";
 import { useState } from "react";
-import { type Account, colleagueCard } from "../../adapters/account.js";
+import { type Account, personCard } from "../../adapters/account.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import "./mentor.css";
-import { COLLEAGUE_LIST, type ColleaguePlace } from "../colleague/place.js";
 import { CheckRow } from "./CheckRow.js";
 import { ChipPick } from "./ChipPick.js";
 import { MentorResults } from "./MentorResults.js";
@@ -22,8 +21,6 @@ interface Props {
   device: GigDevice;
   run: (work: () => Promise<unknown>) => Promise<unknown>;
   syncedAt: Date | undefined;
-  /** Opens the Colleagues screen, for an introduction through someone the owner knows. */
-  onColleagues: (place: ColleaguePlace) => void;
 }
 
 /**
@@ -31,7 +28,7 @@ interface Props {
  * the "are you a woman" question once (kept on this phone), then filters, the matched mentors to choose from (up to
  * three), the request, and the answers. An empty match offers introductions and the guide's helplines.
  */
-export function FindMentor({ ports, account, device, run, syncedAt, onColleagues }: Props) {
+export function FindMentor({ ports, account, device, run, syncedAt }: Props) {
   const { lang, t } = useI18n();
   const { prefs, requests, refresh } = useMentors(device, syncedAt);
   const [trade, setTrade] = useState<Trade>(account.worker?.trades[0] ?? Trade.enum.cook);
@@ -58,7 +55,7 @@ export function FindMentor({ ports, account, device, run, syncedAt, onColleagues
   async function send(draft: RequestDraft) {
     setBusy(true);
     setProblem(undefined);
-    const card = colleagueCard(account, lang);
+    const card = personCard(account, lang);
     const ask = { city, trade, languages: card.languages, ...draft };
     let tooOld: MentorProfile[] = [];
     try {
@@ -141,13 +138,7 @@ export function FindMentor({ ports, account, device, run, syncedAt, onColleagues
         </div>
       </div>
       {found && found.length === 0 && (
-        <NoMentor
-          ports={ports}
-          session={account.session}
-          city={city}
-          womenOnly={onlyWomen}
-          onColleagues={() => onColleagues(COLLEAGUE_LIST)}
-        />
+        <NoMentor ports={ports} session={account.session} city={city} womenOnly={onlyWomen} device={device} run={run} />
       )}
       {found && found.length > 0 && (
         <MentorResults

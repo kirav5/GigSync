@@ -1,5 +1,5 @@
-import { askable, type CardDraft, CITY_RATES, log, type Ports, parseAmount } from "@gigsync/core";
-import { Lang, PAISE_PER_RUPEE, SEED_SIGNER, Trade } from "@gigsync/protocol";
+import { askable, type CardDraft, CITY_RATES, log, type Ports, parseAmount, rateHint, rateNote } from "@gigsync/core";
+import { Lang, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
 import { type FormEvent, useState } from "react";
 import { type Account, apiClient, saveAccount } from "../adapters/account.js";
 import { closeInterview } from "../card/interviewStore.js";
@@ -10,6 +10,7 @@ import { Dock } from "../ui/Dock.js";
 import { errorKey } from "../ui/errorKey.js";
 import { Icon } from "../ui/Icon.js";
 import { AREAS, money } from "../ui/places.js";
+import { lineText } from "./talk/Bubbles.js";
 
 /** The form's id, so Publish can sit in the dock, outside it. */
 const FORM_ID = "my-card";
@@ -18,8 +19,6 @@ const ASK_FIELD = "ask.";
 /** What the board keeps of the line about their work. */
 const ABOUT_MAX = 300;
 const rupeesOf = (paise?: number) => (paise ? String(paise / PAISE_PER_RUPEE) : "");
-/** The rate card's city, as a key for its name in each language. */
-const CITY_KEY = "city.bengaluru";
 
 /**
  * The worker's card, to review and change: the public half goes on the board (name, trades, area, usual rate,
@@ -38,7 +37,8 @@ export function MyCard({
   /** Opens Talk to fill the card in by voice. */
   onTalk: () => void;
 }) {
-  const { lang, t } = useI18n();
+  const i18n = useI18n();
+  const { lang, t } = i18n;
   const draft = accountDraft(account);
   const [trades, setTrades] = useState<Trade[]>(draft.trades ?? []);
   const [spoken, setSpoken] = useState<Lang[]>(account.languages ?? [lang]);
@@ -111,7 +111,7 @@ export function MyCard({
     }
   }
 
-  const bands = CITY_RATES.bands.filter((b) => trades.includes(b.trade));
+  const banded = CITY_RATES.bands.some((b) => trades.includes(b.trade));
   return (
     <>
       <div className={C.stack}>
@@ -140,19 +140,19 @@ export function MyCard({
             </button>
           ))}
         </div>
-        {bands.map((b) => (
-          <span key={b.trade} className={C.faint}>
-            {t("card.band", {
-              trade: t(`trade.${b.trade}`),
-              city: t(CITY_KEY),
-              low: money(b.low_paise),
-              high: money(b.high_paise),
-            })}
+        {trades.flatMap((tr) =>
+          rateHint(CITY_RATES, tr).map((line) => (
+            <span key={`${tr}.${line.key}`} className={C.faint}>
+              {lineText(i18n, line)}
+            </span>
+          )),
+        )}
+        {banded && <span className={C.faint}>{t("card.band_use")}</span>}
+        {rateNote(CITY_RATES, trades).map((line) => (
+          <span key={line.key} className={C.faint}>
+            {lineText(i18n, line)}
           </span>
         ))}
-        {bands.length > 0 && CITY_RATES.signed_by === SEED_SIGNER && (
-          <span className={C.faint}>{t("card.rates_note", { source: t("rates.seed") })}</span>
-        )}
         <label className={C.fieldLabel}>
           <span className={C.muted}>{t("card.where")}</span>
           <select className={C.field} name={Field.area} defaultValue={draft.area}>

@@ -16,13 +16,10 @@ import {
   type Offer,
   type PaymentRecord,
   type PaymentRequest,
-  type Referral,
   Role,
   SIDE_CHANNEL_KINDS,
   type UserId,
 } from "@gigsync/protocol";
-import type { Colleagues } from "../colleague/colleagues.js";
-import { onReferral } from "../colleague/referral.js";
 import { apply, TransitionError } from "../engagement/machine.js";
 import { log } from "../log.js";
 import type { Received } from "../mail/transport.js";
@@ -59,7 +56,6 @@ const RECEIVES: Readonly<Record<Role, ReadonlySet<EnvelopeKind>>> = {
     K.delivery,
     K.payment_request,
     K.payment_record,
-    K.referral,
   ]),
 };
 
@@ -72,19 +68,19 @@ export async function needOf(ctx: JobContext, r: JobRecord): Promise<Need> {
   return need;
 }
 
-/** Where envelopes between colleagues, and toward mentor links, go: they belong to no job. */
+/** Where envelopes toward and on mentor links go: they belong to no job. */
 export interface SideInboxes {
-  colleagues: Pick<Colleagues, "receive">;
   mentors: Pick<Mentors, "receive">;
 }
 
 /**
  * Takes one verified, opened envelope into its job: only from the job's counterpart, only kinds this side may
- * receive, only moves the engagement allows. Then lets the right agent answer it. Colleague and mentor envelopes go
- * to their own inboxes and never reach a job or the engagement machine.
+ * receive, only moves the engagement allows. Then lets the right agent answer it. Mentor and mentor-link envelopes go
+ * to their own inbox and never reach the engagement machine. A `referral` (a colleague suggested on a declined
+ * request) can still come from an older build; no side receives it any more, so it is dropped like any stray kind.
  *
- * Roles are per engagement: a worker's phone that hires someone is the requester of that job, found in the store
- * like any other. Only an incoming `request` for an engagement this phone does not have makes a new worker job.
+ * Roles are per engagement: a phone that asked for the work is the requester of that job, found in the store like
+ * any other. Only an incoming `request` for an engagement this phone does not have makes a new worker job.
  */
 export async function dispatch(
   ctx: JobContext,
@@ -93,8 +89,7 @@ export async function dispatch(
   side: SideInboxes,
 ): Promise<void> {
   const { envelope: e, body } = item;
-  if (COLLEAGUE_KINDS.has(e.kind)) return side.colleagues.receive(item);
-  if (MENTOR_KINDS.has(e.kind)) return side.mentors.receive(item);
+  if (COLLEAGUE_KINDS.has(e.kind) || MENTOR_KINDS.has(e.kind)) return side.mentors.receive(item);
   const existing = await ctx.store.job(e.engagement);
   const r =
     existing ??
@@ -158,9 +153,6 @@ async function react(
       return;
     case K.review:
       await ctx.store.saveJob({ ...r, review: body as JobReview });
-      return;
-    case K.referral:
-      await onReferral(ctx, r, body as Referral);
       return;
     case K.update:
     case K.delivery:

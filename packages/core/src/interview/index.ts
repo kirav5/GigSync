@@ -3,6 +3,7 @@ import { type MessageKey, t } from "../i18n/t.js";
 import { isMonthly } from "../job/when.js";
 import { askable, FIELDS, type InterviewState, type Line, Pick, type Prompt, Slot } from "./card.js";
 import { minAloud } from "./card-parse.js";
+import { rateLines } from "./card-rates.js";
 import { areaChoices, areaHints, isMessageKey, YES_NO } from "./choices.js";
 import type { Field } from "./lexicon.js";
 
@@ -29,6 +30,7 @@ export {
   withConfig,
 } from "./card.js";
 export { aboutIsPrivate, choose, hear } from "./card-parse.js";
+export { legalLines, legalMonthly, rateHint, rateNote } from "./card-rates.js";
 export { editIntent } from "./lexicon.js";
 
 /** The chip for each field the owner can change from confirm, labelled as on the My card form. */
@@ -107,7 +109,8 @@ function question(state: InterviewState): Prompt {
       const first = draft.trades?.[0];
       const monthly = first !== undefined && isMonthly(first);
       const ask = min ? "iv.ask.min" : monthly ? "iv.ask.rate_month" : "iv.ask.rate_visit";
-      return { lines: [{ key: ask }], numeric: true, hints: [], ...secret };
+      // The city's usual pay is public, so it is read aloud with the question; the worker's own amounts never are.
+      return { lines: [{ key: ask }, ...rateLines(config.rates, first, min)], numeric: true, hints: [], ...secret };
     }
     case Slot.languages:
       return {
