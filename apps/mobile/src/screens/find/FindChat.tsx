@@ -5,10 +5,15 @@ import {
   type Line,
   log,
   NeedSlot,
+  type NeedState,
+  needDetails,
+  needEstimate,
   needPrompt,
+  needRequest,
   needToSend,
   needWords,
   type Ports,
+  perJob,
   resolveDay,
   startNeed,
   understandNeed,
@@ -18,6 +23,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
 import { readAloud, stopSpeaking } from "../../adapters/speech.js";
 import { needConfig } from "../../card/choices.js";
+import { fetchEstimate } from "../../estimate/useEstimate.js";
 import { askWorkers, dayLabel, searchBoard } from "../../find/ask.js";
 import {
   answerNeed,
@@ -25,6 +31,7 @@ import {
   claimSearch,
   NeedSpeaker,
   needAsked,
+  needEstimateFound,
   needFound,
   needSay,
   needSearchFailed,
@@ -37,7 +44,7 @@ import { Composer, Via } from "../../ui/Composer.js";
 import { C } from "../../ui/cls.js";
 import { Dock } from "../../ui/Dock.js";
 import { errorKey } from "../../ui/errorKey.js";
-import { AREAS } from "../../ui/places.js";
+import { AREAS, PILOT_CITY } from "../../ui/places.js";
 import { phoneDay } from "../jobGroups.js";
 import { lineText, spoken } from "../talk/Bubbles.js";
 import { type FoundTurn, NeedTurns } from "./NeedTurns.js";
@@ -55,6 +62,12 @@ interface Props {
 }
 
 const failure = (err: unknown) => ({ error: err instanceof Error ? err.message : String(err) });
+
+/** The estimate the owner saw beside the budget, for the whole job, kept with the need for notes on far-off offers. */
+const estimateFor = (state: NeedState) => {
+  const found = needEstimate(state);
+  return found && perJob(found.estimate, needDetails(state.draft));
+};
 
 /**
  * Find as a conversation, the way workers make their card in Talk: the owner says what they need in their own words,
@@ -109,6 +122,15 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     [],
   );
 
+  // The job as described so far, once the trade is known: the usual range for it, shown beside the budget question.
+  const request = state ? needRequest(PILOT_CITY, state.draft) : undefined;
+  const requestKey = request && JSON.stringify(request);
+  const session = account.session;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the request's JSON, not its identity
+  useEffect(() => {
+    if (request) void fetchEstimate(session, request).then(needEstimateFound);
+  }, [requestKey, session]);
+
   // The owner said yes to the readback: search the board, once, wherever they are by the time it answers.
   useEffect(() => {
     const trade = state?.draft.trade;
@@ -150,6 +172,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       details: draftDetails(d),
       budget_paise: d.budget_paise,
       area,
+      estimate: estimateFor(state),
     });
     setBusy(true);
     try {

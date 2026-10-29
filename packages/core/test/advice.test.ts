@@ -28,11 +28,11 @@ describe("the price plan", () => {
     expect(a.reasons.map((r) => r.kind)).toEqual([ReasonKind.band, ReasonKind.floor, ReasonKind.plan]);
   });
 
-  it("pets add 15% to the whole band, so the limit rises above the floor, rounded up to ₹10", () => {
+  it("pets add 15% to the whole band and to the owner's floor, rounded up to ₹10", () => {
     const a = plan({ pets: "yes" });
-    expect(a.mandate).toEqual({ opening_paise: 1093000, limit_paise: 863000 });
+    expect(a.mandate).toEqual({ opening_paise: 1093000, limit_paise: 920000 });
     expect(a.reasons).toContainEqual({ kind: ReasonKind.scope, key: "pets", percent: 15 });
-    expect(a.reasons.map((r) => r.kind)).not.toContain(ReasonKind.floor);
+    expect(a.reasons.map((r) => r.kind)).toContain(ReasonKind.floor);
   });
 
   it("people past the three the band covers add 10% each, in any script", () => {
@@ -68,9 +68,11 @@ describe("the price plan", () => {
   });
 
   it("reads its reasons in the owner's language, with rupees as price tags show them", () => {
-    const [bandReason, scope, last] = [...plan({ pets: "yes" }).reasons];
+    const reasons = plan({ pets: "yes" }).reasons;
+    const [bandReason, scope] = reasons;
+    const last = reasons.at(-1);
     expect(reasonText(Lang.enum.en, bandReason as never)).toBe("The going rate for this work here is ₹8,630–₹10,930.");
     expect(reasonText(Lang.enum.hi, scope as never)).toBe("पालतू जानवर: 15% ज़्यादा।");
-    expect(reasonText(Lang.enum.kn, last as never)).toBe("₹10,930 ರಿಂದ ಶುರು ಮಾಡುತ್ತೇವೆ, ₹8,630 ಗಿಂತ ಕಡಿಮೆ ಹೋಗುವುದಿಲ್ಲ.");
+    expect(reasonText(Lang.enum.kn, last as never)).toBe("₹10,930 ರಿಂದ ಶುರು ಮಾಡುತ್ತೇವೆ, ₹9,200 ಗಿಂತ ಕಡಿಮೆ ಹೋಗುವುದಿಲ್ಲ.");
   });
 });

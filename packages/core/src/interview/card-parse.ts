@@ -3,6 +3,7 @@ import type { MessageKey } from "../i18n/t.js";
 import { asciiDigits } from "../job/details.js";
 import { parseAmount } from "./amount.js";
 import { advance, askable, edit, FIELDS, type InterviewState, Pick, retry, Slot } from "./card.js";
+import { cardEstimate, suggestedAmount } from "./card-estimate.js";
 import { areaIn, editIntent, type Field, fieldIn, isNone, isSkip, languagesIn, tradesIn, yesNo } from "./lexicon.js";
 
 /**
@@ -56,9 +57,12 @@ function onArea(s: InterviewState, area: string | undefined): InterviewState {
   return area === undefined ? retry(s, { key: "iv.again.area" }) : advance(s, { ...s.draft, area });
 }
 
-/** Whether an amount sits within the usual range for the worker's first trade, or a wide one when there is none. */
+/**
+ * Whether an amount sits within the usual range for the worker's first trade (the estimate's, else the city band's),
+ * or a wide one when there is neither.
+ */
 function plausible(s: InterviewState, paise: number): boolean {
-  const band = s.config.rates.bands.find((b) => b.trade === s.draft.trades?.[0]);
+  const band = cardEstimate(s)?.estimate ?? s.config.rates.bands.find((b) => b.trade === s.draft.trades?.[0]);
   const low = band ? band.low_paise / BAND_SPREAD : NO_BAND_LOW;
   const high = band ? band.high_paise * BAND_SPREAD : NO_BAND_HIGH;
   return paise >= low && paise <= high;
@@ -201,10 +205,12 @@ export function choose(state: InterviewState, value: string): InterviewState {
     case Slot.area:
       return state.config.areas.some((a) => a.key === value) ? onArea(state, value) : state;
     case Slot.rate:
-    case Slot.min:
-      return state.pending !== undefined && flag(value) !== undefined
-        ? onCheck(state, flag(value), undefined, false)
-        : state;
+    case Slot.min: {
+      if (state.pending !== undefined)
+        return flag(value) === undefined ? state : onCheck(state, flag(value), undefined, false);
+      const suggested = value === Pick.suggested ? suggestedAmount(state, state.slot === Slot.min) : undefined;
+      return suggested === undefined ? state : onAmount(state, suggested, false);
+    }
     case Slot.languages: {
       const lang = Lang.options.find((l) => l === value);
       return lang || value === Pick.none ? onLanguages(state, lang ? [lang] : []) : state;

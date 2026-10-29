@@ -15,6 +15,7 @@ import {
   recalled,
   SEARCH_RADII_KM,
 } from "./need.js";
+import { budgetEstimate } from "./need-estimate.js";
 import { NeedPick } from "./need-hear.js";
 import { OFFER_CHOICES, recalledLine, redoChoice } from "./need-memory.js";
 import { needWords } from "./need-request.js";
@@ -161,8 +162,12 @@ function question(s: NeedState): Prompt {
         choices: WHEN_CHOICES,
         hints: WHEN_CHOICES.map((c) => t(own, c.key)),
       };
-    case NeedSlot.budget:
-      return { lines: [{ key: "need.ask.budget" }, ...bandLine(s)], numeric: true, hints: [], secret: true };
+    case NeedSlot.budget: {
+      // The estimate, when there is one for this job, in place of the city band; the budget itself stays secret.
+      const estimate = budgetEstimate(s);
+      const shown = estimate ?? { lines: bandLine(s) };
+      return { ...shown, lines: [{ key: "need.ask.budget" }, ...shown.lines], numeric: true, hints: [], secret: true };
+    }
     case NeedSlot.confirm:
       return confirmPrompt(s);
     case NeedSlot.done: {

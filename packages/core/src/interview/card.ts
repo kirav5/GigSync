@@ -1,7 +1,8 @@
-import type { Lang, QuestionKey, RateCard, Trade } from "@gigsync/protocol";
+import type { EstimateSource, Lang, QuestionKey, RateCard, Trade } from "@gigsync/protocol";
 import type { MessageKey } from "../i18n/t.js";
-import { YES_NO_QUESTIONS } from "../job/details.js";
+import { ASK_FIRST_DETAILS } from "../job/details.js";
 import { QUESTIONS } from "../job/worker.js";
+import type { FoundEstimate } from "./estimate-lines.js";
 import type { Field } from "./lexicon.js";
 
 /**
@@ -84,6 +85,8 @@ export interface Prompt {
    * whatever the owner allowed for the other questions. Typing and the tap choices still work.
    */
   secret?: true;
+  /** The pages the estimate in `lines` rests on, for a Sources list under them. */
+  sources?: readonly EstimateSource[];
 }
 
 /** The interview between turns. Treat as opaque outside this module. */
@@ -107,10 +110,12 @@ export interface InterviewState {
   readonly changing: boolean;
   /** Nothing answered yet: the first prompt says what is about to happen. */
   readonly fresh: boolean;
+  /** The rate estimate the app found for the worker's first trade (`card-estimate.ts`), if any. */
+  readonly estimate?: FoundEstimate | undefined;
 }
 
 /** The values tap choices carry besides trades, areas, languages and fields. */
-export const Pick = { yes: "yes", no: "no", none: "none", skip: "skip" } as const;
+export const Pick = { yes: "yes", no: "no", none: "none", skip: "skip", suggested: "suggested" } as const;
 
 /** The fields an owner can change from confirm, in the order the chips show them. */
 export const FIELDS: readonly Field[] = [
@@ -136,7 +141,7 @@ const ORDER: readonly Slot[] = [
 
 /** Yes-or-no details these trades' agents ask about, which the worker may want to see before any quote. */
 export const askable = (trades: readonly Trade[]): QuestionKey[] =>
-  [...YES_NO_QUESTIONS].filter((k) => trades.some((tr) => QUESTIONS[tr].includes(k)));
+  [...ASK_FIRST_DETAILS].filter((k) => trades.some((tr) => QUESTIONS[tr].includes(k)));
 
 const complete = (d: CardDraft): boolean =>
   !!d.trades?.length &&

@@ -1,4 +1,4 @@
-import type { Lang, Place, Trade } from "@gigsync/protocol";
+import type { Estimate, Lang, Place, Trade } from "@gigsync/protocol";
 import { t } from "../i18n/t.js";
 import { YES_NO_QUESTIONS } from "../job/details.js";
 import type { NewNeed } from "../job/device.js";
@@ -30,6 +30,8 @@ export interface NeedParts {
   budget_paise: number;
   /** The area's centre: the only point ever shared. */
   area: Place;
+  /** The estimate for the whole job the owner saw beside the budget, if any; it stays on this phone. */
+  estimate?: Estimate | undefined;
 }
 
 /** The request for `device.request`. Older phones and the agent read `when`; it becomes the signed slot. */
@@ -45,6 +47,7 @@ export function needToSend(p: NeedParts): NewNeed {
       ...(p.time ? { [WhenDetail.time]: p.time } : {}),
     },
     budget: { opening_paise: Math.round(p.budget_paise * OPENING_SHARE), limit_paise: p.budget_paise },
+    ...(p.estimate ? { estimate: p.estimate } : {}),
   };
 }
 

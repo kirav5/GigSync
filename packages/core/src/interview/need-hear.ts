@@ -2,7 +2,7 @@ import { DetailFlag, QuestionKey, Trade } from "@gigsync/protocol";
 import type { MessageKey } from "../i18n/t.js";
 import { countIn, YES_NO_QUESTIONS } from "../job/details.js";
 import { EVERY_DAY } from "../job/when.js";
-import { Pick } from "./card.js";
+import { type Line, Pick } from "./card.js";
 import { minAloud } from "./card-parse.js";
 import { areaIn, isSkip, yesNo } from "./lexicon.js";
 import {
@@ -22,6 +22,7 @@ import {
   takeRecalled,
   withTrade,
 } from "./need.js";
+import { suggestedBudget } from "./need-estimate.js";
 import { MemoryPick } from "./need-memory.js";
 import type { NeedHint } from "./need-model.js";
 import { amountIn, DETAIL_MAX, type NeedFill, parseNeed, withoutMoney } from "./need-parse.js";
@@ -77,6 +78,13 @@ function fillEmpty(d: NeedDraft, fill: NeedFill): NeedDraft {
   };
 }
 
+/** Like the lowest rate on a card: the budget is read back aloud only if the owner said it aloud. */
+const budgetReadback = (paise: number, aloud: boolean): Line => ({
+  key: "need.got_budget",
+  prices: { price: paise },
+  ...minAloud(aloud),
+});
+
 /** A model's reading, only where the words lists found nothing (`understandNeed` has checked every value). */
 function fillFromHint(d: NeedDraft, hint: NeedHint, words: string): NeedDraft {
   const problem = QuestionKey.enum.problem;
@@ -125,9 +133,7 @@ function onSlot(s: NeedState, d: NeedDraft, text: string, fill: NeedFill, aloud:
     case NeedSlot.budget: {
       const paise = amountIn(text, false);
       if (paise === undefined) return undefined;
-      // Like the lowest rate on a card: read back aloud only if the owner said it aloud.
-      const readback = { key: "need.got_budget", prices: { price: paise }, ...minAloud(aloud) } as const;
-      return moveOn(s, { ...d, budget_paise: paise }, [readback]);
+      return moveOn(s, { ...d, budget_paise: paise }, [budgetReadback(paise, aloud)]);
     }
     default:
       return undefined;
@@ -238,6 +244,11 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
       return s.config.areas.some((a) => a.key === value) ? moveOn(s, { ...d, area: value }) : s;
     case NeedSlot.when:
       return WHEN_VALUES.includes(value) ? moveOn(s, { ...d, day: value }) : s;
+    case NeedSlot.budget: {
+      // The estimate's suggested budget, tapped: kept like a typed one, so it is not read back aloud.
+      const budget = value === Pick.suggested ? suggestedBudget(s) : undefined;
+      return budget === undefined ? s : moveOn(s, { ...d, budget_paise: budget }, [budgetReadback(budget, false)]);
+    }
     case NeedSlot.confirm: {
       if (s.changing) {
         const field = NEED_FIELDS.find((f) => f === value);

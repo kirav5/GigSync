@@ -25,9 +25,10 @@ export const QUESTIONS: Readonly<Record<Trade, readonly QuestionKey[]>> = {
   [T.maid]: [Q.rooms, Q.pets],
   [T.carpenter]: [Q.problem],
   [T.ac_technician]: [Q.problem],
-  [T.painter]: [Q.area_sqft],
+  // Rooms and who buys the paint set the estimate's scope (ADR 0030); a household gives the rooms up front.
+  [T.painter]: [Q.rooms, Q.labour_only],
   [T.cook]: [Q.people, Q.meals, Q.pets],
-  [T.driver]: [Q.route],
+  [T.driver]: [Q.route, Q.hours],
 };
 
 /** A detail one of the worker's own rules reads: the city band's scope rules (price) or their "show me first" list. */

@@ -6,6 +6,7 @@ import { money } from "../ui/places.js";
 import { Said } from "../ui/Said.js";
 import { AgentTalk } from "./AgentTalk.js";
 import { DetailValue } from "./DetailValue.js";
+import { ShareCard } from "./estimate/ShareCard.js";
 import { type JobActionProps, JobActions } from "./JobActions.js";
 import { PlanCard } from "./JobDecide.js";
 import { dayDate } from "./jobGroups.js";
@@ -90,6 +91,7 @@ export function JobThread(props: JobActionProps) {
       <When request={job.request} from={theirs} />
 
       <JobActions {...props} them={them} />
+      <ShareCard job={job} device={device} run={run} />
 
       {job.contact && (
         <fieldset className="contact" aria-label={t("a11y.contact")}>

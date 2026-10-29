@@ -1,5 +1,12 @@
 export * from "./agent.js";
 export * from "./engagement/machine.js";
+export * from "./estimate/band.js";
+export * from "./estimate/lookup.js";
+export * from "./estimate/note.js";
+export * from "./estimate/scope.js";
+export * from "./estimate/setting.js";
+export { shareDue, sharedPriceOf } from "./estimate/share.js";
+export * from "./estimate/suggest.js";
 export * from "./experts.js";
 export * from "./http.js";
 export * from "./i18n/reasons.js";
@@ -20,6 +27,7 @@ export {
   searchFailed,
   startNeed,
 } from "./interview/need.js";
+export { needDetails, needEstimate, needRequest, needWithEstimate } from "./interview/need-estimate.js";
 export { chooseNeed, chooseNeedDate, hearNeed, NeedPick } from "./interview/need-hear.js";
 export { type NeedHint, understandNeed } from "./interview/need-model.js";
 export { type NeedFill, parseNeed, TIME_MAX } from "./interview/need-parse.js";

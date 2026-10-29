@@ -3,6 +3,7 @@ import {
   CardKind,
   type Choice,
   draftOf,
+  estimateRequest,
   type Line,
   log,
   type MessageKey,
@@ -14,6 +15,7 @@ import type { Account } from "../adapters/account.js";
 import { readAloud, stopSpeaking } from "../adapters/speech.js";
 import {
   claimPublish,
+  interviewEstimate,
   interviewFailed,
   interviewPublished,
   pauseInterview,
@@ -23,10 +25,11 @@ import {
   useInterview,
 } from "../card/interviewStore.js";
 import { AboutPrivateError, publishCard } from "../card/publish.js";
+import { fetchEstimate } from "../estimate/useEstimate.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { errorKey } from "../ui/errorKey.js";
-import { AREAS } from "../ui/places.js";
+import { AREAS, PILOT_CITY } from "../ui/places.js";
 import { Said } from "../ui/Said.js";
 import { Ask, lineText, Own, spoken } from "./talk/Bubbles.js";
 import "./talk.css";
@@ -80,8 +83,13 @@ function Choices({ choices }: { choices: readonly Choice[] }) {
   return (
     <div className={`${C.row} iv-choices`}>
       {choices.map((c) => (
-        <button key={c.value} type={C.button} className={C.chip} onClick={() => tapInterview(c.value, t(c.key))}>
-          {t(c.key)}
+        <button
+          key={c.value}
+          type={C.button}
+          className={C.chip}
+          onClick={() => tapInterview(c.value, t(c.key, c.params))}
+        >
+          {t(c.key, c.params)}
         </button>
       ))}
       <button type={C.button} className={`${C.chip} iv-later`} onClick={later}>
@@ -120,6 +128,15 @@ export function Interview({
     void readAloud(lang, spoken(i18n, newest.lines));
   }, [active, newest, lang, i18n]);
 
+  // A trade named: the usual range for it in the city, at its default scope, for the rate questions (ADR 0030).
+  const trade = state?.draft.trades?.[0];
+  const session = account.session;
+  useEffect(() => {
+    const request = trade && estimateRequest(PILOT_CITY, trade);
+    if (!request) return;
+    void fetchEstimate(session, request).then(interviewEstimate);
+  }, [trade, session]);
+
   // Leaving Talk (another tab, Back) ends what is being read out.
   useEffect(
     () => () => {
@@ -154,7 +171,7 @@ export function Interview({
     if (turn.who === Speaker.owner) return <Own key={turn.id} text={turn.text} />;
     if (turn.who === Speaker.note) return <Note key={turn.id} text={turn.text} card={turn.card} />;
     return (
-      <Ask key={turn.id} lines={turn.lines}>
+      <Ask key={turn.id} lines={turn.lines} sources={turn.sources}>
         {asking && turn.id === newest?.id && <Choices choices={turn.choices} />}
       </Ask>
     );

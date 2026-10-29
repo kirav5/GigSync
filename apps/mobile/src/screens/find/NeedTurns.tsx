@@ -116,7 +116,7 @@ export function NeedTurns({
       return <Found key={turn.id} turn={turn} active={active} busy={busy} onAsk={onAsk} />;
     }
     return (
-      <Ask key={turn.id} lines={turn.lines}>
+      <Ask key={turn.id} lines={turn.lines} sources={turn.sources}>
         {asking && turn.id === lastQuestion && turn.choices.length > 0 && (
           <Choices choices={turn.choices} today={state.config.today} />
         )}

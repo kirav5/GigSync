@@ -13,6 +13,9 @@ import {
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
 import { apply } from "../engagement/machine.js";
+import type { EstimateOptions } from "../estimate/lookup.js";
+import { type SharePrices, sharePrices } from "../estimate/setting.js";
+import * as share from "../estimate/share.js";
 import { MailTransport } from "../mail/transport.js";
 import { Mentors } from "../mentor/mentors.js";
 import type { MentorApi } from "../mentor/types.js";
@@ -46,6 +49,8 @@ export interface DeviceOptions {
   model?: Model;
   /** The server's mentor routes; without them the phone can still introduce, answer and use mentor links. */
   mentorApi?: MentorApi;
+  /** The server's rate estimates and price sharing; without them plans come from the city's rates, as before. */
+  estimates?: EstimateOptions;
 }
 
 /** A consumer's need before it is sent: the budget is a private mandate and never leaves the phone. */
@@ -80,6 +85,7 @@ export class GigDevice {
       keys: o.keys,
       clock: o.clock,
       ...(o.model ? { model: o.model } : {}),
+      ...(o.estimates ? { estimates: o.estimates } : {}),
       speaks: (user, protocol) => everyDeviceSpeaks(o.relay, user, protocol),
       send: (r, kind, body) => this.send(r, kind, body),
       signingKeyOf: (user, device) => this.transport.signingKeyOf(user, device),
@@ -92,6 +98,8 @@ export class GigDevice {
     const received = await this.transport.receive();
     // In order on purpose: each envelope may depend on the one before it.
     for (const item of received) await dispatch(this.ctx, this.o.worker, item, { mentors: this.mentors });
+    // A job may have become signed by both here (this owner signed last) or by what arrived.
+    await share.shareBySetting(this.ctx, await this.store.jobs());
     return { received: received.length, sent: await this.transport.flush() };
   }
 
@@ -183,6 +191,16 @@ export class GigDevice {
 
   async declineDeal(id: EngagementId): Promise<JobRecord> {
     return deal.decline(this.ctx, await this.job(id));
+  }
+
+  /** The owner's answer to sharing a signed job's price anonymously; yes sends it (ADR 0030 §3). */
+  async answerShare(id: EngagementId, yes: boolean): Promise<JobRecord> {
+    return (await share.answerShare(this.ctx, id, yes)) ?? this.job(id);
+  }
+
+  /** Whether the owner shares signed prices: asked per job, always, or never. */
+  sharePrices(): Promise<SharePrices> {
+    return sharePrices(this.o.storage);
   }
 
   async cancelJob(id: EngagementId, note?: string): Promise<JobRecord> {

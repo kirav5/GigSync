@@ -22,6 +22,7 @@ import {
   type UserId,
   Vpa,
 } from "@gigsync/protocol";
+import { areaKeyOf, PILOT_CITY } from "../ui/places.js";
 import { API_BASE } from "./api.js";
 
 /** Which side of a job this phone's owner is on. One account, one role, in this first version. */
@@ -181,6 +182,7 @@ export function deviceFor(ports: Ports, account: Account, lang: Lang): GigDevice
     ...(account.worker ? { worker: account.worker } : {}),
     ...(account.autoConfirm ? { autoConfirm: true } : {}),
     model: ports.model,
+    estimates: { api, city: PILOT_CITY, areaKey: areaKeyOf },
     lang,
   });
 }

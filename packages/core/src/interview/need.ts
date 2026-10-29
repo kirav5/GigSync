@@ -3,6 +3,7 @@ import { EVERY_DAY, isMonthly } from "../job/when.js";
 import { QUESTIONS } from "../job/worker.js";
 import type { Known } from "../memory/known.js";
 import type { AreaChoice, Line } from "./card.js";
+import type { FoundEstimate } from "./estimate-lines.js";
 import type { Recalled } from "./need-memory.js";
 
 /**
@@ -99,6 +100,8 @@ export interface NeedState {
   readonly ownAnswer: readonly NeedSlot[];
   /** Fields the agent just filled from memory ("Answer for me"), offered to change under the next question. */
   readonly filled: readonly NeedSlot[];
+  /** The rate estimate the app found for the job as described (`need-estimate.ts`), if any. */
+  readonly estimate?: FoundEstimate | undefined;
 }
 
 /** The trade's first question, which the request answers up front so the worker's agent need not ask it. */

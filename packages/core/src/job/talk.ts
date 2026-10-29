@@ -1,4 +1,5 @@
 import { type CancelReason, Question, Role } from "@gigsync/protocol";
+import { type OfferNote, offerNote } from "../estimate/note.js";
 import { QUESTIONS } from "./ask.js";
 import type { AnswerSource, JobRecord } from "./store.js";
 
@@ -25,7 +26,8 @@ export type TalkStep =
   | { kind: typeof TalkKind.request; by: Role }
   | { kind: typeof TalkKind.questions; by: Role; questions: Question[] }
   | { kind: typeof TalkKind.answers; by: Role; answers: TalkAnswer[] }
-  | { kind: typeof TalkKind.offer; by: Role; price_paise: number }
+  /** `note`: the offer is far outside the job's estimate, as this owner sees it (ADR 0030 §5); never a block. */
+  | { kind: typeof TalkKind.offer; by: Role; price_paise: number; note?: OfferNote }
   | { kind: typeof TalkKind.agreed; price_paise: number }
   | { kind: typeof TalkKind.signed; by: Role }
   | { kind: typeof TalkKind.contacts }
@@ -71,7 +73,10 @@ export function agentTalk(job: JobRecord): TalkStep[] {
     const answers = answersOf(job, questions);
     if (answers.length > 0) steps.push({ kind: TalkKind.answers, by: R.requester, answers });
   }
-  for (const { by, offer } of job.offers) steps.push({ kind: TalkKind.offer, by, price_paise: offer.price_paise });
+  for (const { by, offer } of job.offers) {
+    const note = job.estimate && offerNote(job.estimate, job.engagement.role, offer.price_paise);
+    steps.push({ kind: TalkKind.offer, by, price_paise: offer.price_paise, ...(note ? { note } : {}) });
+  }
   const signed = job.mine ?? job.theirs;
   if (signed) steps.push({ kind: TalkKind.agreed, price_paise: signed.terms.price_paise });
   if (job.mine) steps.push({ kind: TalkKind.signed, by: job.engagement.role });

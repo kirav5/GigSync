@@ -16,6 +16,7 @@ import { auth } from "./routes/auth.js";
 import { board } from "./routes/board.js";
 import { content } from "./routes/content.js";
 import { devices } from "./routes/devices.js";
+import { estimates } from "./routes/estimates.js";
 import { mail } from "./routes/mail.js";
 import { mentors } from "./routes/mentors.js";
 
@@ -88,12 +89,13 @@ app.get(`${V1}/directory/:${USER_PARAM}`, async (c) => {
   return c.json({ user: user.data, devices });
 });
 
-// ── Mailbox, inbox, the job board, mentors and city guides ────────────────────────────────────────────────────────
+// ── Mailbox, inbox, the job board, mentors, city guides and rate estimates ────────────────────────────────────────
 app.route(V1, mail);
 app.route(`${V1}/board`, board);
 app.route(`${V1}/mentors`, mentors);
 app.route(`${V1}/content`, content);
 app.route(`${V1}/devices`, devices);
+app.route(`${V1}/estimates`, estimates);
 
 app.notFound((c) => c.json({ error: ApiError.notFound }, 404));
 

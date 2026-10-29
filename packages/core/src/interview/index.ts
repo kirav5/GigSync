@@ -2,6 +2,7 @@ import { Lang, Trade } from "@gigsync/protocol";
 import { type MessageKey, t } from "../i18n/t.js";
 import { isMonthly } from "../job/when.js";
 import { askable, FIELDS, type InterviewState, type Line, Pick, type Prompt, Slot } from "./card.js";
+import { estimatePrompt } from "./card-estimate.js";
 import { minAloud } from "./card-parse.js";
 import { rateLines } from "./card-rates.js";
 import { areaChoices, areaHints, isMessageKey, YES_NO } from "./choices.js";
@@ -29,8 +30,10 @@ export {
   start,
   withConfig,
 } from "./card.js";
+export { cardEstimate, withEstimate } from "./card-estimate.js";
 export { aboutIsPrivate, choose, hear } from "./card-parse.js";
 export { legalLines, legalMonthly, rateHint, rateNote } from "./card-rates.js";
+export { estimateLines, type FoundEstimate } from "./estimate-lines.js";
 export { editIntent } from "./lexicon.js";
 
 /** The chip for each field the owner can change from confirm, labelled as on the My card form. */
@@ -109,7 +112,10 @@ function question(state: InterviewState): Prompt {
       const first = draft.trades?.[0];
       const monthly = first !== undefined && isMonthly(first);
       const ask = min ? "iv.ask.min" : monthly ? "iv.ask.rate_month" : "iv.ask.rate_visit";
-      // The city's usual pay is public, so it is read aloud with the question; the worker's own amounts never are.
+      // The usual pay is public, so it is read aloud with the question; the worker's own amounts never are.
+      const estimate = estimatePrompt(state, min);
+      if (estimate)
+        return { ...estimate, lines: [{ key: ask }, ...estimate.lines], numeric: true, hints: [], ...secret };
       return { lines: [{ key: ask }, ...rateLines(config.rates, first, min)], numeric: true, hints: [], ...secret };
     }
     case Slot.languages:

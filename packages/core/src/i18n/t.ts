@@ -26,10 +26,13 @@ export function t(lang: Lang, key: MessageKey, params: Params = {}): string {
 /** Keys that come in a `.one` and an `.other` form. */
 export type PluralKey = { [K in MessageKey]: K extends `${infer B}.one` ? B : never }[MessageKey];
 
+/** The `.one` or `.other` form of `key` that the language's own plural rules pick for `count`. */
+export const pluralKey = (lang: Lang, key: PluralKey, count: number): MessageKey =>
+  new Intl.PluralRules(LOCALE[lang]).select(count) === ONE ? `${key}.one` : `${key}.other`;
+
 /** A counted string, in the form the language's own plural rules pick for `count`; `{count}` is filled in. */
 export function plural(lang: Lang, key: PluralKey, count: number, params: Params = {}): string {
-  const form = new Intl.PluralRules(LOCALE[lang]).select(count) === ONE ? "one" : "other";
-  return t(lang, `${key}.${form}`, { ...params, count });
+  return t(lang, pluralKey(lang, key, count), { ...params, count });
 }
 
 /** "7:03 pm" in the owner's locale. */

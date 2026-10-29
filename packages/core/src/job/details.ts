@@ -45,4 +45,13 @@ export function present(value: string | undefined): boolean {
 }
 
 /** Questions the consumer's app answers with a yes-or-no toggle, writing a `DetailFlag`, never typed text. */
-export const YES_NO_QUESTIONS: ReadonlySet<QuestionKey> = new Set([QuestionKey.enum.pets]);
+export const YES_NO_QUESTIONS: ReadonlySet<QuestionKey> = new Set([
+  QuestionKey.enum.pets,
+  QuestionKey.enum.labour_only,
+]);
+
+/**
+ * The yes-or-no details a worker may ask to see a request for before any quote (pets). Who buys the paint is not one:
+ * it changes the price, not whether the worker takes the job.
+ */
+export const ASK_FIRST_DETAILS: ReadonlySet<QuestionKey> = new Set([QuestionKey.enum.pets]);

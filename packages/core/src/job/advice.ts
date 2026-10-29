@@ -13,9 +13,10 @@ import type { JobRecord } from "./store.js";
 
 /**
  * The worker's agent proposes a price plan (an opening price and a private limit) from three kinds of data: the
- * city's band for the trade, adjusted for this job's scope; what this worker was actually paid before; and the floor
- * they set. Plain arithmetic, the same for every worker and checkable by a union steward. No model produces a number;
- * a model may only reword the reasons (agent-flows §1.1).
+ * band for the job (the estimate for its scope when there is one, ADR 0030, else the city's band for the trade),
+ * adjusted for scope the band does not already price; what this worker was actually paid before; and the floor they
+ * set. Plain arithmetic, the same for every worker and checkable by a union steward. No model produces a number here:
+ * an estimate's figures are computed by code from sourced quotes, and a model may only reword the reasons.
  */
 
 /** Open a little above what the worker usually gets, so there is room to concede. */
@@ -28,7 +29,7 @@ export const ReasonKind = { band: "band", scope: "scope", history: "history", fl
 
 /** Why the agent proposes what it proposes, as data. Each phone renders it in its owner's language (`reasonText`). */
 export type Reason =
-  | { kind: typeof ReasonKind.band; low_paise: number; high_paise: number }
+  | { kind: typeof ReasonKind.band; low_paise: number; high_paise: number; sources?: number }
   | { kind: typeof ReasonKind.scope; key: QuestionKey; percent: number }
   | { kind: typeof ReasonKind.history; median_paise: number; count: number }
   | { kind: typeof ReasonKind.floor; floor_paise: number }
@@ -47,6 +48,8 @@ export interface AdviceInput {
   history: readonly number[];
   /** The least the worker will take for any job of this trade. */
   floor_paise: number;
+  /** When the band is an estimate: how many sources it rests on, for the reasons. */
+  sources?: number;
 }
 
 /**
@@ -79,21 +82,26 @@ function scopeApplied(rules: readonly ScopeRule[], details: Readonly<Record<stri
   return applied;
 }
 
-/** The plan: limit = the higher of the floor and the scoped band's low; opening from history, capped by the band. */
+/**
+ * The plan: limit = the owner's own minimum scaled by this job's scope (a dog, more people: more work than the job they
+ * priced), never raised to the band's low: the owner set it after seeing the usual range and it stays theirs (ADR 0030
+ * §5). Opening from history, capped by the band's high, never below the limit.
+ */
 export function proposeMandate(i: AdviceInput): Advice {
   const applied = scopeApplied(i.band.scope, i.details);
   const factor = Math.max(MIN_SCOPE_FACTOR, 1 + applied.reduce((sum, a) => sum + a.percent, 0) / PERCENT);
   const low = roundUp(i.band.low_paise * factor);
   const high = roundUp(i.band.high_paise * factor);
-  const limit = roundUp(Math.max(i.floor_paise, low));
+  const limit = roundUp(i.floor_paise * factor);
   const usual = median(i.history);
   const fromHistory = usual === undefined ? undefined : roundUp(usual * factor * (1 + HISTORY_UPLIFT));
   const opening = Math.max(limit, Math.min(high, fromHistory ?? high));
 
-  const reasons: Reason[] = [{ kind: ReasonKind.band, low_paise: low, high_paise: high }];
+  const sources = i.sources === undefined ? {} : { sources: i.sources };
+  const reasons: Reason[] = [{ kind: ReasonKind.band, low_paise: low, high_paise: high, ...sources }];
   for (const a of applied) reasons.push({ kind: ReasonKind.scope, ...a });
   if (usual !== undefined) reasons.push({ kind: ReasonKind.history, median_paise: usual, count: i.history.length });
-  if (i.floor_paise >= low) reasons.push({ kind: ReasonKind.floor, floor_paise: i.floor_paise });
+  reasons.push({ kind: ReasonKind.floor, floor_paise: i.floor_paise });
   reasons.push({ kind: ReasonKind.plan, opening_paise: opening, limit_paise: limit });
   return { mandate: { opening_paise: opening, limit_paise: limit }, reasons };
 }

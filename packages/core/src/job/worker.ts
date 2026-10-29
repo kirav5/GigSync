@@ -3,6 +3,7 @@ import {
   CancelReason,
   type Clarify,
   EnvelopeKind,
+  type Estimate,
   type Offer,
   type Place,
   QuestionKey,
@@ -13,6 +14,9 @@ import {
   type Trade,
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
+import { estimateBand } from "../estimate/band.js";
+import { lookupEstimate } from "../estimate/lookup.js";
+import { estimateRequest, perJob, sourceCount } from "../estimate/scope.js";
 import { pastPrices, proposeMandate } from "./advice.js";
 import { questionsFor } from "./ask.js";
 import type { JobContext } from "./context.js";
@@ -93,14 +97,34 @@ export async function refuse(ctx: JobContext, r: JobRecord): Promise<JobRecord> 
   return cancel(ctx, r, { reason: CancelReason.enum.declined_by_owner });
 }
 
-/** This job's plan: from the city's band for the trade when there is one, else the worker's own rate. */
+/** The estimate for this job's scope, for the whole job; undefined when there is none or it cannot be had. */
+async function jobEstimate(ctx: JobContext, r: JobRecord): Promise<Estimate | undefined> {
+  const { trade, details } = r.request;
+  const request = ctx.estimates && estimateRequest(ctx.estimates.city, trade, details);
+  if (!ctx.estimates || !request) return undefined;
+  const found = await lookupEstimate(ctx.estimates.api, request);
+  return found && perJob(found, details);
+}
+
+/**
+ * This job's plan: from the estimate for its scope when there is one (ADR 0030), else the city's band for the trade,
+ * else the worker's own rate. The estimate is kept on the job, for the note on an offer far outside it.
+ */
 async function planFor(ctx: JobContext, rules: WorkerRules, r: JobRecord): Promise<JobRecord> {
   if (r.mandate) return r;
-  const band = rules.rates?.bands.find((b) => b.trade === r.request.trade);
+  const cityBand = rules.rates?.bands.find((b) => b.trade === r.request.trade);
+  const estimate = await jobEstimate(ctx, r);
+  const band = estimate ? estimateBand(estimate, r.request.trade, cityBand) : cityBand;
   if (!band) return { ...r, mandate: rules.rate };
   const history = pastPrices(await ctx.store.jobs(), r.request.trade);
-  const advice = proposeMandate({ band, details: r.request.details, history, floor_paise: rules.rate.limit_paise });
-  return { ...r, mandate: advice.mandate, advice };
+  const advice = proposeMandate({
+    band,
+    details: r.request.details,
+    history,
+    floor_paise: rules.rate.limit_paise,
+    ...(estimate ? { sources: sourceCount(estimate) } : {}),
+  });
+  return { ...r, mandate: advice.mandate, advice, ...(estimate ? { estimate } : {}) };
 }
 
 /** Plans the job, shows it to the worker first if a flagged detail is present, otherwise makes the next offer. */

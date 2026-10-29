@@ -50,6 +50,7 @@ export async function startRequest(ctx: JobContext, need: Need, worker: UserId):
     offers: [],
     offers_made: 0,
     asked: false,
+    ...(need.estimate ? { estimate: need.estimate } : {}),
   };
   return ctx.send(r, K.request, request);
 }

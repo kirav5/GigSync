@@ -1,4 +1,13 @@
-import { AnswerSource, agentTalk, type JobRecord, questionText, TalkKind, type TalkStep } from "@gigsync/core";
+import {
+  AnswerSource,
+  agentTalk,
+  type JobRecord,
+  type MessageKey,
+  OfferNote,
+  questionText,
+  TalkKind,
+  type TalkStep,
+} from "@gigsync/core";
 import { EngagementStatus, isModelQuestion, type Lang, type Question, Role } from "@gigsync/protocol";
 import type { ReactNode } from "react";
 import { useI18n } from "../i18n.js";
@@ -8,6 +17,11 @@ import { Said } from "../ui/Said.js";
 import { DetailValue } from "./DetailValue.js";
 
 const S = EngagementStatus.enum;
+/** The note beside an offer far outside the job's estimate (ADR 0030 §5). */
+const NOTE: Readonly<Record<OfferNote, MessageKey>> = {
+  [OfferNote.below]: "estimate.below",
+  [OfferNote.above]: "estimate.above",
+};
 /** The space between a line's words and its faint note, which JSX would otherwise drop. */
 const GAP = " ";
 /** While the agents are still at it, their talk is open on the card; once it is settled it folds away. */
@@ -76,7 +90,19 @@ export function AgentTalk({ job, them, from }: { job: JobRecord; them: string; f
         );
       case TalkKind.offer: {
         const price = money(s.price_paise);
-        return mine(s.by) ? t("talk.offer_mine", { price }) : t("talk.offer_theirs", { name: them, price });
+        const said = mine(s.by) ? t("talk.offer_mine", { price }) : t("talk.offer_theirs", { name: them, price });
+        const range = job.estimate && { low: money(job.estimate.low_paise), high: money(job.estimate.high_paise) };
+        return (
+          <>
+            {said}
+            {s.note && range && (
+              <span className="offer-note" role="note">
+                {GAP}
+                {t(NOTE[s.note], range)}
+              </span>
+            )}
+          </>
+        );
       }
       case TalkKind.agreed:
         return t("talk.agreed", { price: money(s.price_paise) });

@@ -8,6 +8,7 @@ import { C } from "../ui/cls.js";
 import { InstallCard, InstallPlace } from "../ui/InstallCard.js";
 import { Look, savedLook, saveLook } from "../ui/look.js";
 import { AREAS, money } from "../ui/places.js";
+import { ShareSetting } from "./estimate/ShareSetting.js";
 import { MovingEntry } from "./landing/MovingEntry.js";
 import { ModelSettings } from "./ModelSettings.js";
 import { MemorySection } from "./memory/MemorySection.js";
@@ -151,6 +152,7 @@ export function Settings(props: Props) {
       </section>
 
       <MemorySection ports={ports} account={account} />
+      <ShareSetting ports={ports} />
 
       {isWorker && <SpeechSettings />}
       <TranslationSettings />

@@ -2,6 +2,7 @@ import {
   type Choice,
   chooseNeed,
   chooseNeedDate,
+  type FoundEstimate,
   hearNeed,
   type Line,
   MAX_ASK,
@@ -10,12 +11,14 @@ import {
   type NeedHint,
   NeedSlot,
   type NeedState,
+  needEstimate,
   needPrompt,
   needWithConfig,
+  needWithEstimate,
   searchedNeed,
   searchFailed,
 } from "@gigsync/core";
-import type { BoardWorker } from "@gigsync/protocol";
+import type { BoardWorker, EstimateSource } from "@gigsync/protocol";
 import { useSyncExternalStore } from "react";
 
 /**
@@ -27,7 +30,14 @@ import { useSyncExternalStore } from "react";
 export const NeedSpeaker = { app: "app", owner: "owner", found: "found" } as const;
 
 export type NeedTurn =
-  | { id: number; who: typeof NeedSpeaker.app; lines: readonly Line[]; choices: readonly Choice[] }
+  | {
+      id: number;
+      who: typeof NeedSpeaker.app;
+      lines: readonly Line[];
+      choices: readonly Choice[];
+      /** The pages an estimate in `lines` rests on. */
+      sources?: readonly EstimateSource[] | undefined;
+    }
   | { id: number; who: typeof NeedSpeaker.owner; text: string }
   /** What a search found, and the ones the owner picked to ask (the nearest, until they choose). */
   | { id: number; who: typeof NeedSpeaker.found; workers: readonly BoardWorker[]; picked: readonly string[] };
@@ -62,18 +72,17 @@ function subscribe(listener: () => void): () => void {
 }
 
 const owner = (text: string): NeedTurn => ({ id: ++lastId, who: NeedSpeaker.owner, text });
-const app = (lines: readonly Line[], choices: readonly Choice[] = []): NeedTurn => ({
-  id: ++lastId,
-  who: NeedSpeaker.app,
-  lines,
-  choices,
-});
+const app = (
+  lines: readonly Line[],
+  choices: readonly Choice[] = [],
+  sources?: readonly EstimateSource[],
+): NeedTurn => ({ id: ++lastId, who: NeedSpeaker.app, lines, choices, sources });
 
 /** The question a state asks, as a turn; none while the found workers are on screen. */
 function asked(state: NeedState): NeedTurn[] {
   if (state.slot === NeedSlot.found) return [];
   const p = needPrompt(state);
-  return [app(p.lines, p.choices ?? [])];
+  return [app(p.lines, p.choices ?? [], p.sources)];
 }
 
 export function useNeed(): NeedSnapshot {
@@ -121,6 +130,24 @@ export function pickNeedDate(day: string, label: string): void {
 export function relanguageNeed(config: NeedConfig): void {
   const { state } = snapshot;
   if (state && state.config.own !== config.own) set({ ...snapshot, state: needWithConfig(state, config) });
+}
+
+/**
+ * The rate estimate for the job as described arrived (or none did). A budget question already on screen, with nothing
+ * said after it, shows it in place, so the range and the suggested budget appear before the owner answers.
+ */
+export function needEstimateFound(found: FoundEstimate | undefined): void {
+  const { state, turns } = snapshot;
+  if (!state || state.estimate === found) return;
+  const next = needWithEstimate(state, found);
+  const last = turns.at(-1);
+  if (next.slot !== NeedSlot.budget || last?.who !== NeedSpeaker.app || needEstimate(next) === needEstimate(state)) {
+    set({ ...snapshot, state: next });
+    return;
+  }
+  const p = needPrompt(next);
+  const shown: NeedTurn = { ...last, lines: p.lines, choices: p.choices ?? [], sources: p.sources };
+  set({ ...snapshot, state: next, turns: [...turns.slice(0, -1), shown] });
 }
 
 /** For the one caller that may run the search the owner just said yes to; undefined while one is under way. */

@@ -4,6 +4,7 @@ import type {
   ContactCard,
   Engagement,
   EngagementId,
+  Estimate,
   JobRequest,
   JobReview,
   JobTerms,
@@ -59,7 +60,15 @@ export interface JobRecord {
   answered_from?: Record<string, AnswerSource>;
   /** Household side: answers the agent knows from past jobs, held for the owner to send, change or skip. */
   suggested?: Record<string, Suggested>;
+  /** The estimate for this job's scope (ADR 0030), when there was one: offers far outside it get a note. */
+  estimate?: Estimate;
+  /** The owner's answer to sharing this job's price anonymously, once both signed; unset until they answer. */
+  price_share?: ShareAnswer;
 }
+
+/** Whether the owner shared a signed job's price: asked once per job, or answered by their setting. */
+export const ShareAnswer = { yes: "yes", no: "no" } as const;
+export type ShareAnswer = (typeof ShareAnswer)[keyof typeof ShareAnswer];
 
 /** Where the household's agent found an answer: the owner typed it, it was in this need's words, or a past job's. */
 export const AnswerSource = { owner: "owner", words: "words", memory: "memory" } as const;
@@ -84,6 +93,8 @@ export interface Need {
   /** Answers given up front or later; used to answer the worker's questions. */
   details: Record<string, string>;
   budget: Mandate;
+  /** The estimate the owner saw beside the budget, kept on each request's job for the note on far-off offers. */
+  estimate?: Estimate;
 }
 
 export const TaskKind = {

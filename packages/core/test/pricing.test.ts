@@ -40,7 +40,7 @@ describe("the worker's agent prices each job from the city's rates and the worke
     expect(show?.kind).toBe(TaskKind.approveRequest);
     const { flagged, advice } = (show?.detail ?? {}) as { flagged: string[]; advice: Advice };
     expect(flagged).toEqual(["pets"]);
-    expect(advice.mandate).toEqual({ opening_paise: 1093000, limit_paise: 863000 });
+    expect(advice.mandate).toEqual({ opening_paise: 1093000, limit_paise: 920000 });
     expect(advice.reasons).toContainEqual({ kind: ReasonKind.scope, key: "pets", percent: 15 });
     expect((await asha.device.job(id)).offers).toEqual([]);
 
@@ -55,12 +55,12 @@ describe("the worker's agent prices each job from the city's rates and the worke
     expect([onAsha.engagement.status, onRavi.engagement.status]).toEqual(["agreed", "agreed"]);
     expect(onAsha.mine?.terms_hash).toBe(onRavi.mine?.terms_hash);
     const price = onAsha.mine?.terms.price_paise as number;
-    expect(price).toBeGreaterThanOrEqual(863000); // Asha's scoped limit
+    expect(price).toBeGreaterThanOrEqual(920000); // Asha's floor, scaled for the dog
     expect(price).toBeLessThanOrEqual(950000); // Ravi's private limit
     // Every offer Asha's agent made followed her plan's curve: it opened at the plan and never went below the limit.
     const hers = onAsha.offers.filter((o) => o.by === "provider").map((o) => o.offer.price_paise);
     expect(hers[0]).toBe(1093000);
-    for (const p of hers) expect(p).toBeGreaterThanOrEqual(863000);
+    for (const p of hers) expect(p).toBeGreaterThanOrEqual(920000);
   });
 
   it("the worker declines: declined on both phones, no offer made, nothing shared", async () => {

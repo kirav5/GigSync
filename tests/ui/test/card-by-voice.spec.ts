@@ -47,16 +47,19 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
   const [head, tail] = [HINDI.slice(0, 2), HINDI.slice(2)];
   for (const [, next] of head) await nextTurn(page, hi, next, () => mic(page, hi).click());
 
-  await test.step("under the rate question, Bengaluru's usual pay for a cook, the legal minimum and where they come from", async () => {
+  await test.step("under the rate question, the estimate for a cook in Bengaluru, its sources and the legal minimum", async () => {
+    // The API's fixture quote source (ADR 0030): 3–4 people, two meals, ₹10,000–₹12,000 a month from three pages.
     const cook = t(hi, "trade.cook");
     const city = t(hi, "city.bengaluru");
+    const scope = t(hi, "estimate.scope", {
+      scope: `${t(hi, "estimate.people.3_4")}, ${t(hi, "estimate.meals.2")}`,
+    });
     await expect(
-      page.getByText(textOf(hi, "iv.band_month", { trade: cook, city, low: "₹7,000", high: "₹12,000" })),
+      page.getByText(textOf(hi, "estimate.range_month", { trade: cook, city, scope, low: "₹10,000", high: "₹12,000" })),
     ).toBeVisible();
-    await expect(
-      page.getByText(textOf(hi, "iv.legal_min", { trade: cook, hours: "2.5", min: "₹6,422" })),
-    ).toBeVisible();
-    await expect(page.getByText(textOf(hi, "iv.band_seed"))).toBeVisible();
+    await expect(page.getByText(textOf(hi, "estimate.basis.other", { count: 3 }))).toBeVisible();
+    await expect(page.getByText(textOf(hi, "estimate.legal_min", { min: "₹6,430" }))).toBeVisible();
+    await expect(page.getByText(textOf(hi, "estimate.suggest_rate", { price: "₹11,000" }))).toBeVisible();
   });
 
   await test.step("switching tabs keeps her place", async () => {

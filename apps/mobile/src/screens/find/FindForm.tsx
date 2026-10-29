@@ -1,5 +1,6 @@
 import {
   EVERY_DAY,
+  estimateRequest,
   type GigDevice,
   isMonthly,
   localDay,
@@ -8,20 +9,24 @@ import {
   needToSend,
   type Ports,
   parseAmount,
+  perJob,
   QUESTIONS,
   questionText,
   SEARCH_RADII_KM,
+  suggestForHousehold,
   TIME_MAX,
 } from "@gigsync/core";
 import { type BoardWorker, Trade } from "@gigsync/protocol";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
+import { useEstimate } from "../../estimate/useEstimate.js";
 import { askWorkers, dayLabel, searchBoard } from "../../find/ask.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { Dock } from "../../ui/Dock.js";
 import { errorKey } from "../../ui/errorKey.js";
-import { AREAS, areaNamed } from "../../ui/places.js";
+import { AREAS, areaNamed, PILOT_CITY, rupeesOf } from "../../ui/places.js";
+import { EstimateBox } from "../estimate/EstimateBox.js";
 import { WorkerPick } from "./WorkerPick.js";
 
 /** Ties the dock's Ask button, outside the form, to it. */
@@ -63,6 +68,9 @@ export function FindForm({ ports, account, device, onAsked }: Props) {
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
   const when = chosen ?? (isMonthly(trade) ? When.daily : When.today);
+  /** The detail as typed, once the owner leaves the field: what the estimate beside the budget is for. */
+  const [detail, setDetail] = useState("");
+  const budgetField = useRef<HTMLInputElement>(null);
 
   /** The phone's calendar day, `days` from now: what "Today" and "Tomorrow" mean where the owner is. */
   const dayFromNow = (days: number) => {
@@ -86,15 +94,22 @@ export function FindForm({ ports, account, device, onAsked }: Props) {
 
   const first = QUESTIONS[trade][0];
   const firstQuestion = first ? questionText(lang, first) : "";
+  const details = first && detail ? { [first]: detail } : {};
+  const estimated = useEstimate(account.session, estimateRequest(PILOT_CITY, trade, details));
+  const budget =
+    estimated && suggestForHousehold({ estimate: estimated.estimate, trade, city: PILOT_CITY }).budget_paise;
+  const fillBudget = (paise: number) => {
+    if (budgetField.current) budgetField.current.value = rupeesOf(paise);
+  };
 
   async function ask(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (busy) return;
     const v = new FormData(e.currentTarget);
-    const budget = parseAmount(String(v.get(F.budget) ?? ""));
-    const detail = String(v.get(F.detail) ?? "").trim();
+    const owned = parseAmount(String(v.get(F.budget) ?? ""));
+    const typed = String(v.get(F.detail) ?? "").trim();
     const time = String(v.get(F.time) ?? "").trim();
-    if (!budget) return setError(t("find.err_budget"));
+    if (!owned) return setError(t("find.err_budget"));
     if (picked.length === 0) return setError(t("find.err_pick"));
     const pickedDay = String(v.get(F.day) ?? "");
     const day =
@@ -107,9 +122,10 @@ export function FindForm({ ports, account, device, onAsked }: Props) {
         day,
         label: dayLabel(i18n, day),
         time,
-        details: first && detail ? { [first]: detail } : {},
-        budget_paise: budget,
+        details: first && typed ? { [first]: typed } : {},
+        budget_paise: owned,
         area: areaNamed(area),
+        estimate: estimated && perJob(estimated.estimate, details),
       });
       await askWorkers(ports, device, need, found ?? [], picked);
       onAsked();
@@ -187,6 +203,7 @@ export function FindForm({ ports, account, device, onAsked }: Props) {
               name={F.detail}
               aria-label={firstQuestion}
               placeholder={t("find.optional", { question: firstQuestion })}
+              onBlur={(e) => setDetail(e.currentTarget.value.trim())}
             />
             <span className={C.label}>{t("find.when")}</span>
             <fieldset className={C.row} aria-label={t("find.when")}>
@@ -226,7 +243,11 @@ export function FindForm({ ports, account, device, onAsked }: Props) {
               inputMode="numeric"
               aria-label={t("find.budget")}
               placeholder={t("find.budget")}
+              ref={budgetField}
             />
+            {estimated && budget !== undefined && (
+              <EstimateBox found={estimated} suggested={[{ field: F.budget, paise: budget, onUse: fillBudget }]} />
+            )}
           </div>
           <Dock>
             <p className={C.dockError} role="status" aria-live="polite">

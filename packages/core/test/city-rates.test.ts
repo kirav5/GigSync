@@ -25,7 +25,7 @@ describe("the rates the pilot app ships with", () => {
       history: [],
       floor_paise: 500000,
     });
-    expect(plan.mandate).toEqual({ opening_paise: 920000, limit_paise: 500000 });
+    expect(plan.mandate).toEqual({ opening_paise: 920000, limit_paise: 575000 });
   });
 
   it("yes-or-no questions are asked by some trade, and each language can say yes and no", () => {

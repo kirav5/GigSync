@@ -1,4 +1,5 @@
 import type { ContactCard, DeviceId, EnvelopeKind, Lang, UserId } from "@gigsync/protocol";
+import type { EstimateOptions } from "../estimate/lookup.js";
 import type { PaymentBook } from "../payments/book.js";
 import type { Clock, Keys, Model, Storage } from "../ports.js";
 import type { JobRecord, JobStore } from "./store.js";
@@ -19,6 +20,8 @@ export interface JobContext {
   clock: Clock;
   /** The phone's model, when it has one: it may propose questions and match answers, never set a price. */
   model?: Model;
+  /** The server's rate estimates and price sharing, when the phone can reach them (ADR 0030). */
+  estimates?: EstimateOptions;
   /** True when every phone of `user` reports at least this capability number. */
   speaks(user: UserId, protocol: number): Promise<boolean>;
   /** Queues an envelope to the other party, applies it to the engagement (unless side-channel) and saves. */

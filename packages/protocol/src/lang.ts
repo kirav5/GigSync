@@ -15,7 +15,21 @@ export const DEFAULT_LANG: Lang = Lang.enum.en;
  * What the worker's agent may ask before quoting. Keys only: the receiving phone shows each in its owner's language,
  * so a Hindi-speaking worker's agent can ask a Kannada-speaking household and both read it natively.
  */
-export const QuestionKey = z.enum(["problem", "rooms", "area_sqft", "people", "meals", "pets", "route"]);
+export const QuestionKey = z.enum([
+  "problem",
+  "rooms",
+  "area_sqft",
+  "people",
+  "meals",
+  "pets",
+  "route",
+  /** Painting: "yes" when the household buys the paint (a `DetailFlag`). */
+  "labour_only",
+  /** A maid's visits: a `MaidFrequency` value. */
+  "frequency",
+  /** A driver's hours a day, as a number. */
+  "hours",
+]);
 export type QuestionKey = z.infer<typeof QuestionKey>;
 
 /**

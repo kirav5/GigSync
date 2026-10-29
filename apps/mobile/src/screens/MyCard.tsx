@@ -1,6 +1,6 @@
-import { askable, type CardDraft, CITY_RATES, log, type Ports, parseAmount, rateHint, rateNote } from "@gigsync/core";
-import { Lang, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
-import { type FormEvent, useState } from "react";
+import { askable, type CardDraft, log, type Ports, parseAmount } from "@gigsync/core";
+import { Lang, Trade } from "@gigsync/protocol";
+import { type FormEvent, useRef, useState } from "react";
 import { type Account, apiClient, saveAccount } from "../adapters/account.js";
 import { closeInterview } from "../card/interviewStore.js";
 import { AboutPrivateError, accountDraft, publishCard } from "../card/publish.js";
@@ -9,8 +9,8 @@ import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
 import { errorKey } from "../ui/errorKey.js";
 import { Icon } from "../ui/Icon.js";
-import { AREAS, money } from "../ui/places.js";
-import { lineText } from "./talk/Bubbles.js";
+import { AREAS, money, rupeesOf } from "../ui/places.js";
+import { CardRates } from "./estimate/CardRates.js";
 
 /** The form's id, so Publish can sit in the dock, outside it. */
 const FORM_ID = "my-card";
@@ -18,7 +18,6 @@ const Field = { area: "area", rate: "rate", min: "min", about: "about", auto: "a
 const ASK_FIELD = "ask.";
 /** What the board keeps of the line about their work. */
 const ABOUT_MAX = 300;
-const rupeesOf = (paise?: number) => (paise ? String(paise / PAISE_PER_RUPEE) : "");
 
 /**
  * The worker's card, to review and change: the public half goes on the board (name, trades, area, usual rate,
@@ -46,6 +45,12 @@ export function MyCard({
   const [status, setStatus] = useState<string>();
   /** A publish or unlist is on its way: a second tap must not send the card twice. */
   const [busy, setBusy] = useState(false);
+  const rateField = useRef<HTMLInputElement>(null);
+  const minField = useRef<HTMLInputElement>(null);
+  /** A suggested amount, tapped: put in the field for the worker to keep or change. */
+  const fill = (field: typeof rateField) => (paise: number) => {
+    if (field.current) field.current.value = rupeesOf(paise);
+  };
 
   const toggle = <T,>(list: T[], item: T) => (list.includes(item) ? list.filter((x) => x !== item) : [...list, item]);
 
@@ -111,7 +116,6 @@ export function MyCard({
     }
   }
 
-  const banded = CITY_RATES.bands.some((b) => trades.includes(b.trade));
   return (
     <>
       <div className={C.stack}>
@@ -140,19 +144,7 @@ export function MyCard({
             </button>
           ))}
         </div>
-        {trades.flatMap((tr) =>
-          rateHint(CITY_RATES, tr).map((line) => (
-            <span key={`${tr}.${line.key}`} className={C.faint}>
-              {lineText(i18n, line)}
-            </span>
-          )),
-        )}
-        {banded && <span className={C.faint}>{t("card.band_use")}</span>}
-        {rateNote(CITY_RATES, trades).map((line) => (
-          <span key={line.key} className={C.faint}>
-            {lineText(i18n, line)}
-          </span>
-        ))}
+        <CardRates trades={trades} session={account.session} onRate={fill(rateField)} onMin={fill(minField)} />
         <label className={C.fieldLabel}>
           <span className={C.muted}>{t("card.where")}</span>
           <select className={C.field} name={Field.area} defaultValue={draft.area}>
@@ -168,6 +160,7 @@ export function MyCard({
           <input
             className={C.field}
             name={Field.rate}
+            ref={rateField}
             inputMode="numeric"
             required
             defaultValue={rupeesOf(draft.rate_paise)}
@@ -178,6 +171,7 @@ export function MyCard({
           <input
             className={C.field}
             name={Field.min}
+            ref={minField}
             inputMode="numeric"
             required
             defaultValue={rupeesOf(draft.limit_paise)}

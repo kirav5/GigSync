@@ -15,6 +15,7 @@ import {
 import { ulid } from "ulid";
 import {
   type Clock,
+  type EstimateOptions,
   GigDevice,
   HttpError,
   MemoryStorage,
@@ -89,6 +90,8 @@ export async function phone(
     clock?: Clock;
     /** The server's mentor routes, faked in memory. */
     mentorApi?: MentorApi;
+    /** The server's rate estimates and price sharing, faked in memory. */
+    estimates?: EstimateOptions;
   } = {},
 ): Promise<Phone> {
   const { payee, protocol, ...options } = opts;

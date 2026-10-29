@@ -1,7 +1,9 @@
 import {
   type Card,
   type Choice,
+  cardEstimate,
   choose,
+  type FoundEstimate,
   hear,
   type InterviewConfig,
   type InterviewState,
@@ -9,7 +11,9 @@ import {
   prompt,
   Slot,
   withConfig,
+  withEstimate,
 } from "@gigsync/core";
+import type { EstimateSource } from "@gigsync/protocol";
 import { useSyncExternalStore } from "react";
 
 /**
@@ -25,7 +29,14 @@ import { useSyncExternalStore } from "react";
 export const Speaker = { app: "app", owner: "owner", note: "note" } as const;
 
 export type Turn =
-  | { id: number; who: typeof Speaker.app; lines: readonly Line[]; choices: readonly Choice[] }
+  | {
+      id: number;
+      who: typeof Speaker.app;
+      lines: readonly Line[];
+      choices: readonly Choice[];
+      /** The pages an estimate in `lines` rests on. */
+      sources?: readonly EstimateSource[] | undefined;
+    }
   | { id: number; who: typeof Speaker.owner; text: string }
   /** A note and, once the agent has answered, its card. */
   | { id: number; who: typeof Speaker.note; text: string; card?: Card };
@@ -62,18 +73,19 @@ function subscribe(listener: () => void): () => void {
 }
 
 const owner = (text: string): Turn => ({ id: ++lastId, who: Speaker.owner, text });
-const app = (lines: readonly Line[], choices: readonly Choice[] = []): Turn => ({
+const app = (lines: readonly Line[], choices: readonly Choice[] = [], sources?: readonly EstimateSource[]): Turn => ({
   id: ++lastId,
   who: Speaker.app,
   lines,
   choices,
+  sources,
 });
 
 /** The question a state asks, as a turn; none once the owner has said yes to publishing. */
 const asked = (state: InterviewState): Turn[] => {
   if (state.slot === Slot.done) return [];
   const p = prompt(state);
-  return [app(p.lines, p.choices ?? [])];
+  return [app(p.lines, p.choices ?? [], p.sources)];
 };
 
 export function useInterview(): InterviewSnapshot {
@@ -144,6 +156,25 @@ export function relanguageInterview(config: InterviewConfig): void {
   if (beforeDone) beforeDone = withConfig(beforeDone, config);
   const next = withConfig(state, config);
   set({ ...snapshot, state: next, turns: [...turns, ...asked(next)] });
+}
+
+/**
+ * The rate estimate for the worker's first trade arrived (or none did). A rate question already on screen, with
+ * nothing said after it, shows it in place, so the range and the suggested amount appear without a second question.
+ */
+export function interviewEstimate(found: FoundEstimate | undefined): void {
+  const { state, turns } = snapshot;
+  if (!state || state.estimate === found) return;
+  const next = withEstimate(state, found);
+  const last = turns.at(-1);
+  const open = (next.slot === Slot.rate || next.slot === Slot.min) && next.pending === undefined;
+  if (!open || last?.who !== Speaker.app || cardEstimate(next) === cardEstimate(state)) {
+    set({ ...snapshot, state: next });
+    return;
+  }
+  const p = prompt(next);
+  const shown: Turn = { ...last, lines: p.lines, choices: p.choices ?? [], sources: p.sources };
+  set({ ...snapshot, state: next, turns: [...turns.slice(0, -1), shown] });
 }
 
 /** Drops the interview's draft (it holds the lowest rate), so a publish still on its way lands nowhere. */

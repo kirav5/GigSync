@@ -8,6 +8,8 @@ import {
   type DeviceRegistration,
   DirectoryEntry,
   Envelope,
+  type EstimateRequest,
+  EstimateResponse,
   type MatchRequestInput,
   MatchResponse,
   type MentorListingInput,
@@ -16,9 +18,11 @@ import {
   MessageId,
   MyMentorListing,
   Session,
+  type SharedPrice,
   type UserId,
 } from "@gigsync/protocol";
 import { z } from "zod";
+import type { EstimateApi } from "../estimate/lookup.js";
 import { BEARER_PREFIX, ContentType, Header, HttpMethod } from "../http.js";
 import { log } from "../log.js";
 import type { MentorApi } from "../mentor/types.js";
@@ -41,6 +45,10 @@ export const ApiPath = {
   content: "/v1/content/",
   /** This device now speaks a newer protocol: `PUT /v1/devices/me/protocol`. */
   deviceProtocol: "/v1/devices/me/protocol",
+  /** The usual range for a job (ADR 0030): `POST /v1/estimates`. */
+  estimates: "/v1/estimates",
+  /** One agreed price shared anonymously: `POST /v1/estimates/prices`. */
+  sharedPrices: "/v1/estimates/prices",
 } as const;
 
 /** A non-2xx answer from the API: the status and its safe `{ error }` message. */
@@ -110,7 +118,7 @@ async function withDeadline<T>(ms: number, work: (signal: AbortSignal) => Promis
 }
 
 /** Typed calls to workers/api. Every response is parsed with its protocol schema before it is used. */
-export class ApiClient implements Relay, MentorApi {
+export class ApiClient implements Relay, MentorApi, EstimateApi {
   constructor(
     private readonly base: string,
     private readonly fetchFn: Fetch = (input, init) => fetch(input, init),
@@ -214,12 +222,22 @@ export class ApiClient implements Relay, MentorApi {
     return this.call(HttpMethod.post, ApiPath.mentorBlock, { user });
   }
 
-  /** A city's guide, checked against its schema before the landing journey keeps it. */
   /** Tells the directory this device speaks `protocol` now, after an app update. */
   raiseProtocol(protocol: number): Promise<unknown> {
     return this.call(HttpMethod.put, ApiPath.deviceProtocol, { protocol });
   }
 
+  /** The usual range for a job, or why there is none ("no estimate" is an answer, not an error). */
+  async estimate(request: EstimateRequest): Promise<EstimateResponse> {
+    return EstimateResponse.parse(await this.call(HttpMethod.post, ApiPath.estimates, request));
+  }
+
+  /** Shares one agreed price anonymously; answers 204. */
+  async sharePrice(price: SharedPrice): Promise<void> {
+    await this.call(HttpMethod.post, ApiPath.sharedPrices, price);
+  }
+
+  /** A city's guide, checked against its schema before the landing journey keeps it. */
   async cityGuide(city: City): Promise<CityGuide> {
     return CityGuide.parse(await this.call(HttpMethod.get, `${ApiPath.content}${city}`));
   }

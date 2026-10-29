@@ -1,5 +1,6 @@
 import { agent } from "./agent.js";
 import { ask } from "./ask.js";
+import { estimate } from "./estimate.js";
 import { home } from "./home.js";
 import { install } from "./install.js";
 import { interview } from "./interview.js";
@@ -42,6 +43,7 @@ export const en = {
   ...ask,
   ...landing,
   ...mentor,
+  ...estimate,
 } as const;
 
 export type MessageKey = keyof typeof en;
