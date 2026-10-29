@@ -1,7 +1,7 @@
 import { type MessageKey, type Params, plural, questionText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { completeSignIn, newPhone, open, Role, RUN, shoot, signIn, tabs } from "./helpers.js";
+import { completeSignIn, newPhone, open, openFold, Role, RUN, shoot, signIn, tabs } from "./helpers.js";
 import { fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -44,6 +44,7 @@ async function seesHisOwn(page: Page) {
   await expect(workDone(page)).toBeVisible();
   await expect(page.getByText(say("passbook.empty"))).toHaveCount(0);
   await open(page, "nav.profile");
+  await openFold(page, "profile.agent");
   await expect(memory(page)).toContainText(householdName);
 }
 
@@ -99,6 +100,7 @@ test("two workers on one phone each see only their own jobs, memory and Passbook
   await expect(phonePage.getByText(say("passbook.empty"))).toBeVisible();
   await expect(workDone(phonePage)).toHaveCount(0);
   await open(phonePage, "nav.profile");
+  await openFold(phonePage, "profile.agent");
   await expect(memory(phonePage)).toContainText(say("memory.empty"));
   await expect(memory(phonePage)).not.toContainText(householdName);
   await shoot("kiran", shots, FOLDER);

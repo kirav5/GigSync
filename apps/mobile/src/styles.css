@@ -819,22 +819,50 @@ html[data-keyboard="open"] .dock {
   font-weight: 600;
 }
 
-/* Profile: More settings folded away, and the footer that says where the record lives. */
+/* Profile: what is not needed every day, folded into one list of rows with a chevron each, then sign-out. */
+.profile-folds {
+  display: grid;
+  border-top: 1px solid var(--hairline);
+}
+.profile-folds > .more {
+  border-bottom: 1px solid var(--hairline);
+}
 .more > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   min-height: var(--tap);
   padding-block: 12px;
+  list-style: none;
   cursor: pointer;
-  color: var(--text2);
   font-size: var(--fs-2);
+  font-weight: 500;
 }
-.more[open] > summary {
-  margin-bottom: 10px;
+.more > summary::-webkit-details-marker {
+  display: none;
+}
+/* The browser's marker differs on every engine: one chevron at the end, turning when open. */
+.more > summary::after {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-right: 4px;
+  border-right: 2px solid var(--text3);
+  border-bottom: 2px solid var(--text3);
+  transform: rotate(45deg);
+}
+.more[open] > summary::after {
+  transform: rotate(-135deg);
+}
+.more > .stack {
+  padding-bottom: 16px;
 }
 .profile-foot {
   display: grid;
   gap: 6px;
-  padding-top: 14px;
-  border-top: 1px solid var(--hairline);
+  padding-top: 4px;
 }
 
 /* Agent chat */

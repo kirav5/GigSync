@@ -105,6 +105,15 @@ export async function open(page: Page, screen: MessageKey, lang: Lang = DEFAULT_
   await expect(tab).toHaveAttribute("aria-current", "page");
 }
 
+/** Opens one of Profile's folds ("Your agent", "New city", "More settings") by its title, unless it is open. */
+export async function openFold(page: Page, title: MessageKey, lang: Lang = DEFAULT_LANG) {
+  // Its own title row only: a fold may hold another fold (what the agent remembers sits inside "Your agent").
+  const summary = page.locator("details > summary", { hasText: t(lang, title) });
+  const fold = summary.locator("..");
+  if ((await fold.getAttribute("open")) === null) await summary.click();
+  await expect(fold).toHaveAttribute("open", "");
+}
+
 /** My card, under Profile. */
 export async function openCard(page: Page, lang: Lang = DEFAULT_LANG) {
   await open(page, "nav.profile", lang);

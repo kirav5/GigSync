@@ -31,13 +31,4 @@ export const agent: Readonly<Record<keyof typeof en, string>> = {
   "said.translating": "ಈ ಫೋನ್‌ನಲ್ಲೇ ಅನುವಾದಿಸಲಾಗುತ್ತಿದೆ…",
   "said.cannot": "ಭಾಷೆ: {lang}. ಈ ಫೋನ್ ಇನ್ನೂ ಇದನ್ನು ಅನುವಾದಿಸಲಾರದು.",
   "said.unsafe": "ಭಾಷೆ: {lang}. ಅನುವಾದದಲ್ಲಿ ಸಂಖ್ಯೆ ಬದಲಾಯಿತು, ಆದ್ದರಿಂದ ತೋರಿಸಿಲ್ಲ.",
-  "translation.title": "ಈ ಫೋನ್‌ನಲ್ಲಿ ಅನುವಾದ",
-  "translation.about": "ಬೇರೆ ಭಾಷೆಯ ಸಂದೇಶಗಳನ್ನು ಇಲ್ಲೇ, ಈ ಫೋನ್‌ನಲ್ಲಿ ಅನುವಾದಿಸಲಾಗುತ್ತದೆ. ಯಾವುದನ್ನೂ ಅನುವಾದ ಸೇವೆಗೆ ಕಳುಹಿಸುವುದಿಲ್ಲ.",
-  "translation.engine": "ಎಂಜಿನ್: {engine}",
-  "translation.none": "ಈ ಫೋನ್‌ನಲ್ಲಿ ಇನ್ನೂ ಅನುವಾದ ಮಾಡುವ ಎಂಜಿನ್ ಇಲ್ಲ.",
-  "translation.download": "ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
-  "tstate.available": "ಸಿದ್ಧ",
-  "tstate.downloadable": "ಡೌನ್‌ಲೋಡ್ ಮಾಡಬಹುದು",
-  "tstate.downloading": "ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ",
-  "tstate.unavailable": "ಲಭ್ಯವಿಲ್ಲ",
 };

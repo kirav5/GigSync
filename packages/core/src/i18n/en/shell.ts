@@ -7,6 +7,8 @@ export const shell = {
   "a11y.back": "Back",
   "profile.card_off": "Your card is not on the board",
   "profile.talk_card": "Change it by talking",
+  "profile.agent": "Your agent",
+  "profile.new_city": "New city",
   "profile.more": "More settings",
   "profile.language": "Language",
   "when.today": "Today",

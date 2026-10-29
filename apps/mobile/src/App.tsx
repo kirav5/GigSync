@@ -2,7 +2,6 @@ import { Agent, ownerPorts } from "@gigsync/core";
 import type { City, Lang, UserId } from "@gigsync/protocol";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type Account, AccountRole, deviceFor, loadAccount, raiseDeviceProtocol, signOut } from "./adapters/account.js";
-import { apiReachable } from "./adapters/api.js";
 import { keepBackInApp, onBackButton } from "./adapters/back.js";
 import { loadLang, saveLang, suggestedLang } from "./adapters/lang.js";
 import { chosenModel } from "./adapters/model.js";
@@ -72,8 +71,6 @@ export function App() {
   const [screen, setScreen] = useState<Screen>(Screen.find);
   /** Talk opens on the card interview: set by every way into it, cleared once the card is published. */
   const [interview, setInterview] = useState(false);
-  const [platform, setPlatform] = useState("web");
-  const [online, setOnline] = useState<boolean>();
   /** Whose mentor link is open on its own screen. */
   const [openLink, setOpenLink] = useState<UserId>();
   /** The city Talk heard in "I'm moving to …", for the landing journey to start with. */
@@ -86,8 +83,6 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    import("@capacitor/core").then(({ Capacitor }) => setPlatform(Capacitor.getPlatform()));
-    void apiReachable().then(setOnline);
     void loadLang(ports).then((l) => setLangState(l ?? null));
     void loadAccount(ports).then((a) => {
       setAccount(a ?? null);
@@ -209,8 +204,6 @@ export function App() {
               ports={owned}
               account={account}
               isWorker={isWorker}
-              platform={platform}
-              online={online}
               onSignOut={() =>
                 // Their records stay on the phone under their name, for when they sign in again.
                 void signOut(ports).then(() => {

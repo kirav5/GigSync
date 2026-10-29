@@ -1,7 +1,7 @@
 import { plural, t } from "@gigsync/core";
 import { Lang, MENTOR_MIN_JOBS, MENTOR_MIN_MONTHS } from "@gigsync/protocol";
 import { type Browser, type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { newPhone, open, Role, RUN, shoot, signIn } from "./helpers.js";
+import { newPhone, open, openFold, Role, RUN, shoot, signIn } from "./helpers.js";
 import { type Phone, publishCard, unlistCards } from "./journey.js";
 import { seedRecord, seedSignedJob } from "./mentor-seed.js";
 
@@ -40,6 +40,7 @@ async function unlistMentors() {
     if (m.page.isClosed()) continue;
     try {
       await open(m.page, "nav.profile", m.lang);
+      await openFold(m.page, "profile.new_city", m.lang);
       const toggle = mentorSection(m).getByRole("checkbox", {
         name: t(m.lang, "mentor.offer_toggle", { city: city(m.lang) }),
       });
@@ -72,6 +73,7 @@ test("a newcomer picks a woman mentor from the list, they link for 30 days, then
 
   // ── Asha's own record is too short: the toggle is off, with the reason ─────────────────────────────────────────
   await open(asha.page, "nav.profile", hi);
+  await openFold(asha.page, "profile.new_city", hi);
   const ashaToggle = mentorSection(asha).getByRole("checkbox");
   await expect(ashaToggle).toBeDisabled();
   await expect(mentorSection(asha)).toContainText(
@@ -82,6 +84,7 @@ test("a newcomer picks a woman mentor from the list, they link for 30 days, then
   await seedRecord(lata.page, JOBS_DONE, DAYS_OF_WORK);
   await open(lata.page, "nav.today", kn);
   await open(lata.page, "nav.profile", kn);
+  await openFold(lata.page, "profile.new_city", kn);
   const toggle = mentorSection(lata).getByRole("checkbox", { name: t(kn, "mentor.offer_toggle", { city: city(kn) }) });
   await expect(toggle).toBeEnabled();
   await toggle.check();

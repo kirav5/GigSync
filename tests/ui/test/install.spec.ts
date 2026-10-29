@@ -76,7 +76,7 @@ test("Chrome: Profile shows Chrome's install prompt from a tap, and Not now stay
   await page.reload();
   await expect(tabs(page)).toBeVisible();
   await open(page, "nav.profile");
-  await expect(page.getByRole("region", { name: t(en, "translation.title") })).toBeVisible();
+  await expect(page.getByRole("region", { name: t(en, "profile.language") })).toBeVisible();
   await expect(install).toHaveCount(0);
   await context.close();
 });

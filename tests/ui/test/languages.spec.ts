@@ -186,7 +186,7 @@ test("Hindi cook, Kannada household: every screen in its own language, free text
   await expect(job).not.toContainText(OLD_NOTE);
 
   await open(asha.page, "nav.profile", hi);
-  await expect(asha.page.getByRole("region", { name: t(hi, "translation.title") })).toBeVisible();
+  await expect(asha.page.getByRole("region", { name: t(hi, "profile.language") })).toBeVisible();
   await shoot("settings", shots, folder);
   await openCard(asha.page, hi);
   await asha.page.getByRole("button", { name: t(hi, "card.unlist") }).click();

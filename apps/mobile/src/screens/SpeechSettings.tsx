@@ -1,4 +1,4 @@
-import type { SpeechState, SpeechStatus } from "@gigsync/plugin-speech";
+import type { SpeechStatus } from "@gigsync/plugin-speech";
 import { useEffect, useState } from "react";
 import {
   listenState,
@@ -13,12 +13,6 @@ import { useCloudConsent, withdrawCloud } from "../adapters/speech-settings.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 
-/** On-device engines by name; a cloud recognizer is named by its company instead (`speech.vendor_*`). */
-const ENGINE_NAMES: Readonly<Record<string, string>> = {
-  "android-ondevice": "Android",
-  "apple-ondevice": "Apple",
-  "chrome-ondevice": "Chrome",
-};
 /** A link-styled button at the end of its row. */
 const LINK_END = `${C.linkBtn} end`;
 
@@ -61,43 +55,25 @@ export function SpeechSettings() {
     setSay(await prepareSpeak(lang));
   }
 
-  const word = (s: SpeechState | undefined) =>
-    s === undefined ? "…" : s === VoiceState.denied ? t("speech.state_denied") : t(`tstate.${s}`);
   const langName = t(`lang.${lang}`);
-  const onDevice = hear?.state === VoiceState.available;
-  const vendor = hear?.cloud?.vendor;
-  const cloud = !onDevice && hear?.state !== VoiceState.denied && vendor !== undefined && allowed.includes(vendor);
-  const vendorName = vendor ? t(`speech.vendor_${vendor}`) : "";
-  const engine = onDevice && hear ? (ENGINE_NAMES[hear.engine] ?? hear.engine) : cloud ? vendorName : undefined;
+  const fetchListen = waitsForDownload(hear);
+  const fetchSpeak = waitsForDownload(say);
+  // Only what the owner can act on: a voice to fetch, or a company they allowed to hear them and may stop.
+  if (!fetchListen && !fetchSpeak && allowed.length === 0) return null;
 
   return (
     <section className={C.card} aria-label={t("speech.title")}>
       <span className={C.label}>{t("speech.title")}</span>
-      <span className={C.muted}>{t("speech.about")}</span>
-      <div className={C.row}>
-        <span className={C.muted}>
-          {t("speech.listen_state", { lang: langName, state: word(cloud ? VoiceState.available : hear?.state) })}
-        </span>
-        {waitsForDownload(hear) && (
-          <button type={C.button} className={LINK_END} disabled={hearLoading} onClick={() => void getListen()}>
-            {t("speech.download", { lang: langName })}
-          </button>
-        )}
-      </div>
-      {engine && (
-        <span className={C.muted}>
-          {t("translation.engine", { engine })} ·{" "}
-          {cloud ? t("speech.where_cloud", { vendor: vendorName }) : t("speech.where_device")}
-        </span>
+      {fetchListen && (
+        <button type={C.button} className={C.linkBtn} disabled={hearLoading} onClick={() => void getListen()}>
+          {t("speech.download", { lang: langName })}
+        </button>
       )}
-      <div className={C.row}>
-        <span className={C.muted}>{t("speech.speak_state", { lang: langName, state: word(say?.state) })}</span>
-        {waitsForDownload(say) && (
-          <button type={C.button} className={LINK_END} disabled={sayLoading} onClick={() => void getSpeak()}>
-            {t("translation.download")}
-          </button>
-        )}
-      </div>
+      {fetchSpeak && (
+        <button type={C.button} className={C.linkBtn} disabled={sayLoading} onClick={() => void getSpeak()}>
+          {t("speech.download_voice", { lang: langName })}
+        </button>
+      )}
       {allowed.map((v) => (
         <div key={v} className={C.row}>
           <span className={C.muted}>{t("speech.cloud_on", { vendor: t(`speech.vendor_${v}`) })}</span>

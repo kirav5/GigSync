@@ -30,14 +30,4 @@ export const agent = {
   "said.translating": "Translating on this phone…",
   "said.cannot": "In {lang}. This phone can't translate it yet.",
   "said.unsafe": "In {lang}. The translation changed a number, so it is not shown.",
-  "translation.title": "Translation on this phone",
-  "translation.about":
-    "Messages in other languages are translated here, on this phone. Nothing is sent to a translation service.",
-  "translation.engine": "Engine: {engine}",
-  "translation.none": "No on-device translator on this phone yet.",
-  "translation.download": "Download",
-  "tstate.available": "ready",
-  "tstate.downloadable": "can be downloaded",
-  "tstate.downloading": "downloading",
-  "tstate.unavailable": "not available",
 } as const;

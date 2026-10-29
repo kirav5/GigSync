@@ -1,7 +1,7 @@
 import { plural, questionText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { newPhone, open, Role, RUN, reveal, shoot, signIn } from "./helpers.js";
+import { newPhone, open, openFold, Role, RUN, reveal, shoot, signIn } from "./helpers.js";
 import { type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -77,6 +77,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
 
   // ── First job: nothing remembered yet, so the chat asks the rooms and the area blind ─────────────────────────
   await open(priyaPage, "nav.profile");
+  await openFold(priyaPage, "profile.agent");
   await expect(memorySection(priyaPage)).toContainText(t(en, "memory.empty"));
   await open(priyaPage, "nav.find");
   const log = priyaPage.getByRole("log");
@@ -103,6 +104,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
 
   // ── Profile lists what her agent kept: the rooms, the pets, the area and Meena by name, never Meena's phone ──
   await open(priyaPage, "nav.profile");
+  await openFold(priyaPage, "profile.agent");
   const remembered = memorySection(priyaPage);
   for (const text of [ROOMS, t(en, "area.hsr_layout"), meenaName, plural(en, "memory.jobs", 1)])
     await expect(remembered).toContainText(text);
@@ -151,6 +153,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
 
   // ── "Answer for me": the agent fills the rooms in, says so, and Change asks the question again ───────────────
   await open(priyaPage, "nav.profile");
+  await openFold(priyaPage, "profile.agent");
   await memorySection(priyaPage)
     .getByRole("button", { name: t(en, "memory.answer_auto") })
     .click();

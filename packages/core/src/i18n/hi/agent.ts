@@ -31,13 +31,4 @@ export const agent: Readonly<Record<keyof typeof en, string>> = {
   "said.translating": "इसी फ़ोन पर अनुवाद हो रहा है…",
   "said.cannot": "{lang} में। यह फ़ोन अभी इसका अनुवाद नहीं कर सकता।",
   "said.unsafe": "{lang} में। अनुवाद में कोई अंक बदल गया, इसलिए नहीं दिखाया।",
-  "translation.title": "इस फ़ोन पर अनुवाद",
-  "translation.about": "दूसरी भाषाओं के संदेशों का अनुवाद यहीं, इसी फ़ोन पर होता है। कुछ भी किसी अनुवाद सेवा को नहीं भेजा जाता।",
-  "translation.engine": "इंजन: {engine}",
-  "translation.none": "इस फ़ोन पर अभी अनुवाद करने वाला कोई इंजन नहीं है।",
-  "translation.download": "डाउनलोड करें",
-  "tstate.available": "तैयार",
-  "tstate.downloadable": "डाउनलोड हो सकता है",
-  "tstate.downloading": "डाउनलोड हो रहा है",
-  "tstate.unavailable": "उपलब्ध नहीं",
 };

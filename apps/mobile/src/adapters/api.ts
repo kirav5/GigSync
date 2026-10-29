@@ -4,19 +4,3 @@
  */
 export const API_BASE: string | undefined =
   import.meta.env.VITE_API_BASE?.replace(/\/+$/, "") || (import.meta.env.DEV ? "http://localhost:8787" : undefined);
-
-/** How long the health check may take: it only decides whether to say "offline", so it gives up sooner than a call. */
-const HEALTH_TIMEOUT_MS = 5_000;
-
-/** True when the API answers its health check in time. */
-export async function apiReachable(): Promise<boolean> {
-  if (!API_BASE) return false;
-  try {
-    // A web view older than AbortSignal.timeout (iOS 15) checks without a deadline, as before.
-    const res = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout?.(HEALTH_TIMEOUT_MS) ?? null });
-    const body: unknown = res.ok ? await res.json() : undefined;
-    return typeof body === "object" && body !== null && "ok" in body && body.ok === true;
-  } catch {
-    return false;
-  }
-}

@@ -2,14 +2,8 @@ import { type TranslateEngine, TranslateState, Translations } from "@gigsync/cor
 import { GigSyncTranslate, type PairStatus } from "@gigsync/plugin-translate";
 import { Lang } from "@gigsync/protocol";
 
-/** What runs translation on this device: Chrome's translator on the web, ML Kit on Android, Apple's on iPhone. */
-export const ENGINE_NAMES: Readonly<Record<string, string>> = {
-  "chrome-built-in": "Chrome (on this computer)",
-  mlkit: "ML Kit (on this phone)",
-  "apple-translation": "Apple Translation (on this phone)",
-};
 /** The engine name the plugin reports when nothing on this device can translate. */
-export const NO_ENGINE = "none";
+const NO_ENGINE = "none";
 const NONE: PairStatus = { state: TranslateState.unavailable, engine: NO_ENGINE };
 
 /** The pair's state and engine as the plugin reports them; "unavailable" when the plugin is missing or fails. */

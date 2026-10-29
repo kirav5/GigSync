@@ -9,6 +9,8 @@ export const shell: Readonly<Record<keyof typeof en, string>> = {
   "a11y.back": "वापस",
   "profile.card_off": "आपका कार्ड अभी बोर्ड पर नहीं है",
   "profile.talk_card": "बोलकर बदलें",
+  "profile.agent": "आपका एजेंट",
+  "profile.new_city": "नया शहर",
   "profile.more": "और सेटिंग्स",
   "profile.language": "भाषा",
   "when.today": "आज",

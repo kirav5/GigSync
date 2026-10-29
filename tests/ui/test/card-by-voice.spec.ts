@@ -212,11 +212,11 @@ test("with only a cloud recognizer, the mic asks before her voice leaves the pho
   await nextTurn(page, hi, "iv.ask.area", () => allow.click());
   await nextTurn(page, hi, "iv.ask.rate_month", () => mic(page, hi).click());
 
-  // Profile says where her voice goes, and stops it; the mic then asks again.
+  // Profile's More settings say where her voice goes, and stop it; the mic then asks again.
   await open(page, "nav.profile", hi);
+  await page.getByText(t(hi, "profile.more"), { exact: true }).click();
   const sending = page.getByText(textOf(hi, "speech.cloud_on", { vendor: google(hi) }));
   await expect(sending).toBeVisible();
-  await expect(page.getByText(textOf(hi, "speech.where_cloud", { vendor: google(hi) }))).toBeVisible();
   await page.getByRole("button", { name: t(hi, "speech.cloud_withdraw") }).click();
   await expect(sending).toBeHidden();
   await open(page, "nav.talk", hi);

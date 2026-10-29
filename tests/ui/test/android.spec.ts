@@ -108,7 +108,7 @@ test("Hindi cook on Android, Kannada household: ML Kit translates his words on h
   await expect(ravi.page.getByRole("list", { name: t(kn, "a11y.notes") })).toContainText("गेट पर 10 मिनट");
 
   await open(asha.page, "nav.profile", hi);
-  await expect(asha.page.getByRole("region", { name: t(hi, "translation.title") })).toContainText("ML Kit");
+  await expect(asha.page.getByRole("region", { name: t(hi, "profile.language") })).toBeVisible();
   await deviceShot("05-settings");
   await openCard(asha.page, hi);
   await asha.page.getByRole("button", { name: t(hi, "card.unlist") }).click();

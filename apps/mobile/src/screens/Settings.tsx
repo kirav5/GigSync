@@ -16,7 +16,6 @@ import { LinksSection } from "./mentor/LinksSection.js";
 import { MentorSection } from "./mentor/MentorSection.js";
 import { SpeechSettings } from "./SpeechSettings.js";
 import { TacticSetting } from "./TacticSetting.js";
-import { TranslationSettings } from "./TranslationSettings.js";
 
 const LOOKS: readonly { look: Look; label: MessageKey }[] = [
   { look: Look.auto, label: "look.auto" },
@@ -28,8 +27,6 @@ interface Props {
   ports: Ports;
   account: Account;
   isWorker: boolean;
-  platform: string;
-  online: boolean | undefined;
   onSignOut: () => void;
   /** Opens My card, the form that reviews and changes the card. */
   onCard: () => void;
@@ -44,6 +41,9 @@ interface Props {
   /** Opens Find a mentor. */
   onFindMentor: () => void;
 }
+
+/** Profile's folds: what is not looked at every day waits behind a row. */
+const FOLD = "more";
 
 /** The worker's card at a glance: what customers see on the board, or that it is not there, and two ways to change it. */
 function CardSummary({ account, onCard, onTalkCard }: Pick<Props, "account" | "onCard" | "onTalkCard">) {
@@ -104,18 +104,17 @@ function LookPicker() {
 }
 
 /**
- * Profile: everything that is not a job, each section saving as it changes. The worker's card, the one place their
- * UPI ID is entered, their mentor links, moving and mentoring come first, then language, voice and translation on this
- * phone, then installing the web app; the look and the on-device model wait under "More settings". Everything here is
- * kept on this phone.
+ * Profile, kept lean: what a person comes here for stays in view (the worker's card, the UPI ID they are paid to,
+ * live mentor links, the language, installing the app); everything else waits in three folds: what the agent
+ * remembers and how it bargains, moving to a new city and mentoring, and the rest (voice actions, look, model).
+ * Each section saves as it changes, and everything is kept on this phone.
  */
 export function Settings(props: Props) {
-  const { ports, account, isWorker, platform, online, onSignOut, onCard, onTalkCard, onOpenLink } = props;
+  const { ports, account, isWorker, onSignOut, onCard, onTalkCard, onOpenLink } = props;
   const { onMoving, device, run, onFindMentor } = props;
   const { lang, setLang, t } = useI18n();
   const name = account.contact.name;
   const role = t(isWorker ? "role.worker" : "role.customer");
-  const net = online === undefined ? "…" : t(online ? "net.online" : "net.offline");
   return (
     <>
       <div className={C.stack}>
@@ -131,8 +130,6 @@ export function Settings(props: Props) {
       {isWorker && <CardSummary account={account} onCard={onCard} onTalkCard={onTalkCard} />}
       {isWorker && <PayeeForm ports={ports} defaultName={name.slice(0, PAYEE_NAME_MAX)} />}
       {isWorker && <LinksSection onOpen={onOpenLink} />}
-      {isWorker && <MovingEntry onOpen={onMoving} />}
-      {isWorker && <MentorSection account={account} device={device} run={run} onFind={onFindMentor} />}
 
       <section className={C.card} aria-label={t("profile.language")}>
         <span className={C.label}>{t("profile.language")}</span>
@@ -152,27 +149,39 @@ export function Settings(props: Props) {
         </fieldset>
       </section>
 
-      <MemorySection ports={ports} account={account} />
-      <ShareSetting ports={ports} />
-      <TacticSetting ports={ports} />
-
-      {isWorker && <SpeechSettings />}
-      <TranslationSettings />
       <InstallCard place={InstallPlace.settings} lang={lang} />
 
-      <details className="more">
-        <summary>{t("profile.more")}</summary>
-        <div className={C.stack}>
-          <LookPicker />
-          <ModelSettings ports={ports} />
-        </div>
-      </details>
+      <div className="profile-folds">
+        <details className={FOLD}>
+          <summary>{t("profile.agent")}</summary>
+          <div className={C.stack}>
+            <MemorySection ports={ports} account={account} />
+            <ShareSetting ports={ports} />
+            <TacticSetting ports={ports} />
+          </div>
+        </details>
+
+        {isWorker && (
+          <details className={FOLD}>
+            <summary>{t("profile.new_city")}</summary>
+            <div className={C.stack}>
+              <MovingEntry onOpen={onMoving} />
+              <MentorSection account={account} device={device} run={run} onFind={onFindMentor} />
+            </div>
+          </details>
+        )}
+
+        <details className={FOLD}>
+          <summary>{t("profile.more")}</summary>
+          <div className={C.stack}>
+            {isWorker && <SpeechSettings />}
+            <LookPicker />
+            <ModelSettings ports={ports} />
+          </div>
+        </details>
+      </div>
 
       <footer className="profile-foot">
-        <span className={C.label}>{t("shell.record_here")}</span>
-        <span className={C.faint}>
-          {name} · {role} · {platform} · {net}
-        </span>
         <div>
           <button type={C.button} className={C.secondary} onClick={onSignOut}>
             {t("shell.sign_out")}

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { cashPlan, FixedItem, t } from "@gigsync/core";
 import { CityGuide, Lang, PAISE_PER_RUPEE } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { newPhone, open, Role, RUN, shoot, signIn } from "./helpers.js";
+import { newPhone, open, openFold, Role, RUN, shoot, signIn } from "./helpers.js";
 import { type } from "./talk.js";
 
 /**
@@ -103,6 +103,7 @@ test("a worker moving to Bengaluru gets the journey, the guide's answers and pla
   // ── Offline: the move and the guide downloaded earlier open again and still answer ────────────────────────
   await context.setOffline(true);
   await open(page, "nav.profile");
+  await openFold(page, "profile.new_city");
   await page.getByRole("button", { name: t(en, "landing.open") }).click();
   await expect(page.getByRole("note")).toContainText(t(en, "landing.draft"));
   await expect(steps.getByRole("checkbox", { name: t(en, `landing.fixed_${FixedItem.money}`) })).toBeChecked();
