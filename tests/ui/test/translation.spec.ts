@@ -3,7 +3,7 @@ import { Lang } from "@gigsync/protocol";
 import { expect, test } from "@playwright/test";
 import { listWorker, newPhone, Role, RUN, signIn } from "./helpers.js";
 import { switchToForm } from "./journey.js";
-import { pairKey, useDownloadableTranslator, useSilentTranslator } from "./translator.js";
+import { pairKey, useDownloadableTranslator, useSilentTranslator, useUnfetchableTranslator } from "./translator.js";
 
 /**
  * When the phone's translator never answers (Chrome 156 headless leaves `Translator.availability()` pending), the
@@ -89,5 +89,37 @@ test("language packs come by themselves: choosing a language fetches them, and a
   const card = page.getByLabel(t(kn, "a11y.worker", { name }));
   await expect(card.locator('[data-said="translated"]')).toHaveText(KN_ABOUT);
   await expect(page.getByRole("button", { name: /download|ಡೌನ್‌ಲೋಡ್/i })).toHaveCount(0);
+  await context.close();
+});
+
+test("a pack that never arrives ends on the original with the reason, not an endless Translating", async ({
+  browser,
+}) => {
+  const context = await browser.newContext();
+  await useUnfetchableTranslator(context);
+  const page = await context.newPage();
+  const name = `Kavya ${RUN}`;
+  other = await listWorker(name, ["cook"], { lat: 12.9116, lon: 77.6474 }, 900000, {
+    area_name: "HSR Layout",
+    languages: [hi],
+  });
+  await other.publishProfile({
+    display_name: name,
+    trades: ["cook"],
+    area: { lat: 12.9116, lon: 77.6474 },
+    area_name: "HSR Layout",
+    rate_paise: 900000,
+    languages: [hi],
+    about: ABOUT,
+  });
+  await signIn(page, { role: Role.consumer, name: `Ravi ${RUN}`, phone: newPhone(), address: "HSR", lang: kn });
+  await switchToForm({ page, lang: kn });
+  const search = page.getByRole("form", { name: t(kn, "a11y.search") });
+  await search.getByLabel(t(kn, "find.trade")).selectOption("cook");
+  await search.getByLabel(t(kn, "find.area")).selectOption("HSR Layout");
+  await search.getByRole("button", { name: t(kn, "find.search") }).click();
+  const card = page.getByLabel(t(kn, "a11y.worker", { name }));
+  await expect(card).toContainText(t(kn, "said.cannot", { lang: t(kn, "lang.hi") }), { timeout: 10_000 });
+  await expect(card).not.toContainText(t(kn, "said.translating"));
   await context.close();
 });

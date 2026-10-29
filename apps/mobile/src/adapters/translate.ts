@@ -35,8 +35,16 @@ export const packsChanged = {
   version: () => packs,
 };
 
+/** Pairs this app has asked the engine to fetch since it opened: one still missing after that is not coming. */
+const tried = new Set<string>();
+const keyOf = (from: Lang, to: Lang) => `${from}>${to}`;
+
+/** Whether a pack for the pair was already asked for, so a line still without it stops waiting and says so. */
+export const packTried = (from: Lang, to: Lang): boolean => tried.has(keyOf(from, to));
+
 /** Fetches a language pack. Only from an owner's tap: engines refuse downloads without one. */
 export async function preparePair(from: Lang, to: Lang): Promise<PairStatus> {
+  tried.add(keyOf(from, to));
   try {
     return await GigSyncTranslate.prepare({ from, to });
   } catch {
@@ -60,7 +68,7 @@ export function prepareLanguage(to: Lang): void {
 const wanted = new Map<string, readonly [Lang, Lang]>();
 
 export function wantPair(from: Lang, to: Lang): void {
-  wanted.set(`${from}>${to}`, [from, to]);
+  if (!packTried(from, to)) wanted.set(keyOf(from, to), [from, to]);
 }
 
 /** Once per app: any tap fetches the packs lines on screen are waiting for. Returns how to stop. */

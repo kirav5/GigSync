@@ -15,6 +15,8 @@ export const memory: Readonly<Record<keyof typeof en, string>> = {
   "memory.they_said": "ಅವರು ಹೇಳಿದ್ದು",
   "memory.asked": "{trade} ಕೆಲಸಗಳಲ್ಲಿ ಕೇಳಿದ್ದು",
   "memory.forget": "ಮರೆತುಬಿಡಿ",
+  "memory.show.one": "ನೆನಪಿನಲ್ಲಿರುವುದನ್ನು ನೋಡಿ ({count})",
+  "memory.show.other": "ನೆನಪಿನಲ್ಲಿರುವುದನ್ನು ನೋಡಿ ({count})",
   "memory.forget_all": "ಎಲ್ಲವನ್ನೂ ಮರೆತುಬಿಡಿ",
   "memory.offer_detail": "ಹಿಂದಿನ ಕೆಲಸದಿಂದ, {detail}: {value}. ಇದನ್ನೇ ಬಳಸಲೇ?",
   "memory.offer_detail_old": "ಒಂದು ವರ್ಷದ ಹಿಂದೆ ಇದು ತಿಳಿದಿತ್ತು, {detail}: {value}. ಈಗಲೂ ಸರಿಯೇ?",

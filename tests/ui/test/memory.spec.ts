@@ -107,6 +107,10 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   for (const text of [ROOMS, t(en, "area.hsr_layout"), meenaName, plural(en, "memory.jobs", 1)])
     await expect(remembered).toContainText(text);
   await expect(remembered).not.toContainText(meenaPhone);
+  // The list is folded away so a long history never fills Profile; it opens from a row that counts what is kept.
+  const fold = remembered.locator("details");
+  await expect(fold).not.toHaveAttribute("open", "");
+  await fold.locator("summary").click();
   await shoot("profile-remembers", { household: priyaPage }, FOLDER);
   // She forgets the area; the rest stays.
   const areaRow = remembered.locator('[data-memory="area:area"]');

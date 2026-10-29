@@ -13,6 +13,8 @@ export const memory = {
   "memory.they_said": "They told you",
   "memory.asked": "Asked for {trade} jobs",
   "memory.forget": "Forget",
+  "memory.show.one": "See what it remembers ({count} item)",
+  "memory.show.other": "See what it remembers ({count} items)",
   "memory.forget_all": "Forget everything",
   "memory.offer_detail": "From your last job, {detail}: {value}. Use it?",
   "memory.offer_detail_old": "I knew this a year ago, {detail}: {value}. Still right?",

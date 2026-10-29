@@ -1,7 +1,7 @@
 import { TranslateState, type Translation, TranslationKind } from "@gigsync/core";
 import type { Lang } from "@gigsync/protocol";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { packsChanged, wantPair } from "../adapters/translate.js";
+import { packsChanged, packTried, wantPair } from "../adapters/translate.js";
 import { useI18n } from "../i18n.js";
 import { C } from "./cls.js";
 
@@ -58,9 +58,11 @@ export function Said({ text, from }: { text: string; from?: Lang | undefined }) 
     );
   // Asking the engine takes a moment, and a pack on its way (or wanted at the next tap) will be asked again: no
   // foreign words meanwhile.
+  // A pack already asked for and still missing is not coming: then the original shows, with the reason.
   const waiting =
     result?.kind === TranslationKind.unavailable &&
-    (result.state === TranslateState.downloading || result.state === TranslateState.downloadable);
+    (result.state === TranslateState.downloading ||
+      (result.state === TranslateState.downloadable && !packTried(from, lang)));
   if (!result || waiting)
     return (
       <span className={C.faint} data-said={DataSaid.pending}>

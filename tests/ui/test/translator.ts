@@ -67,3 +67,15 @@ export async function useDownloadableTranslator(context: BrowserContext, table: 
     };
   }, table);
 }
+
+/** Chrome offering a pack it then fails to fetch: every pair stays "downloadable" and `create()` always fails. */
+export async function useUnfetchableTranslator(context: BrowserContext): Promise<void> {
+  await context.addInitScript(() => {
+    (globalThis as Record<string, unknown>).Translator = {
+      availability: async () => "downloadable",
+      create: async () => {
+        throw new Error("pack not fetched");
+      },
+    };
+  });
+}

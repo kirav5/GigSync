@@ -6,16 +6,18 @@ import { C } from "../../ui/cls.js";
 import { AnswerSetting } from "./AnswerSetting.js";
 import { MemoryRow } from "./MemoryRow.js";
 import { memoryOwner } from "./owner.js";
+import "../jobs.css";
 import "./memory.css";
 
 const failure = (err: unknown) => ({ error: err instanceof Error ? err.name : typeof err });
 
 /**
- * Profile's "What my agent remembers": every fact, place, person and question the agent kept from past signed jobs,
- * each with Forget, and Forget everything, and whether the agent asks before using any of it. It is all on this phone.
+ * Profile's "What my agent remembers": whether the agent asks before using what it remembers, then, folded away so a
+ * long history never fills Profile, every fact, place, person and question it kept from past signed jobs, each with
+ * Forget, and Forget everything. It is all on this phone.
  */
 export function MemorySection({ ports, account }: { ports: Ports; account: Account }) {
-  const { t } = useI18n();
+  const { t, plural } = useI18n();
   const [items, setItems] = useState<MemoryItem[]>();
   const owner = useMemo(() => memoryOwner(ports, account), [ports, account]);
 
@@ -41,18 +43,21 @@ export function MemorySection({ ports, account }: { ports: Ports; account: Accou
       <AnswerSetting owner={owner} />
       {items?.length === 0 && <span className={C.empty}>{t("memory.empty")}</span>}
       {items && items.length > 0 && (
-        <>
-          <ul className="memory-rows">
-            {items.map((item) => (
-              <MemoryRow key={item.key} item={item} onForget={forget} />
-            ))}
-          </ul>
-          <div>
-            <button type={C.button} className={C.secondary} onClick={() => forget(FORGET_ALL)}>
-              {t("memory.forget_all")}
-            </button>
+        <details className="job-fold memory-fold">
+          <summary>{plural("memory.show", items.length)}</summary>
+          <div className="stack">
+            <ul className="memory-rows">
+              {items.map((item) => (
+                <MemoryRow key={item.key} item={item} onForget={forget} />
+              ))}
+            </ul>
+            <div>
+              <button type={C.button} className={C.secondary} onClick={() => forget(FORGET_ALL)}>
+                {t("memory.forget_all")}
+              </button>
+            </div>
           </div>
-        </>
+        </details>
       )}
     </section>
   );

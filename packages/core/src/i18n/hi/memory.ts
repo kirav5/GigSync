@@ -15,6 +15,8 @@ export const memory: Readonly<Record<keyof typeof en, string>> = {
   "memory.they_said": "उन्होंने बताया",
   "memory.asked": "{trade} के कामों में पूछा गया",
   "memory.forget": "भूल जाएँ",
+  "memory.show.one": "याद रखी बातें देखें ({count})",
+  "memory.show.other": "याद रखी बातें देखें ({count})",
   "memory.forget_all": "सब भूल जाएँ",
   "memory.offer_detail": "पिछले काम से, {detail}: {value}। यही रखें?",
   "memory.offer_detail_old": "एक साल पहले यह पता था, {detail}: {value}। क्या अब भी सही है?",
