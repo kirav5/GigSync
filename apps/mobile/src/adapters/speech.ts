@@ -12,7 +12,7 @@ import {
   type SpeechStatus,
 } from "@gigsync/plugin-speech";
 import type { Lang } from "@gigsync/protocol";
-import { cloudAllowed, readAloudWanted } from "./speech-settings.js";
+import { cloudAllowed } from "./speech-settings.js";
 
 /**
  * Voice for the screens, in the owner's language (spec §3.3, ADR 0023): speech to text on the device first, a cloud
@@ -224,15 +224,6 @@ export async function canSpeak(lang: Lang): Promise<boolean> {
 
 export function stopSpeaking(): Promise<void> {
   return quietly((e) => e.stopSpeaking());
-}
-
-/** Speaks only when reading aloud is on and a local voice exists. Never rejects. */
-export async function readAloud(lang: Lang, text: string): Promise<void> {
-  try {
-    if ((await readAloudWanted()) && (await canSpeak(lang))) await speak(lang, text);
-  } catch {
-    // Not allowed before a tap on this page, or the voice went away: reading aloud helps, it never fails a screen.
-  }
 }
 
 /** How often a language download the phone finishes in the background is checked on. */

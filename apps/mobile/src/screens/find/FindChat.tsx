@@ -21,7 +21,7 @@ import {
 import { Lang } from "@gigsync/protocol";
 import { useEffect, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
-import { readAloud, stopSpeaking } from "../../adapters/speech.js";
+import { stopSpeaking } from "../../adapters/speech.js";
 import { needConfig } from "../../card/choices.js";
 import { fetchEstimate } from "../../estimate/useEstimate.js";
 import { askWorkers, dayLabel, searchBoard } from "../../find/ask.js";
@@ -29,7 +29,6 @@ import {
   answerNeed,
   beginNeed,
   claimSearch,
-  NeedSpeaker,
   needAsked,
   needEstimateFound,
   needFound,
@@ -46,7 +45,6 @@ import { Dock } from "../../ui/Dock.js";
 import { errorKey } from "../../ui/errorKey.js";
 import { AREAS, PILOT_CITY } from "../../ui/places.js";
 import { phoneDay } from "../jobGroups.js";
-import { lineText, spoken } from "../talk/Bubbles.js";
 import { type FoundTurn, NeedTurns } from "./NeedTurns.js";
 import { needMemory, withMemory } from "./remembered.js";
 import "../talk.css";
@@ -81,12 +79,8 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   const [busy, setBusy] = useState(false);
   const [reading, setReading] = useState(false);
   const opened = useRef(false);
-  /** The workers were asked: the last line plays on while My jobs opens. */
-  const leaving = useRef(false);
-  const heard = useRef<number>(undefined);
   const end = useRef<HTMLDivElement>(null);
   const current = state ? needPrompt(state) : undefined;
-  const newest = [...turns].reverse().find((turn) => turn.who === NeedSpeaker.app);
 
   // Opening Find starts a new need, unless one is under way; it carries on where it was. What the agent remembers
   // from past jobs comes along, with the owner's setting: offered first ("Use it?"), or filled in and said.
@@ -108,16 +102,10 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     if (turns.length > 0) end.current?.scrollIntoView({ block: "end" });
   }, [turns]);
 
-  // Each question is read aloud once, when it appears.
-  useEffect(() => {
-    if (!state || newest?.who !== NeedSpeaker.app || heard.current === newest.id) return;
-    heard.current = newest.id;
-    void readAloud(lang, spoken(i18n, newest.lines));
-  }, [state, newest, lang, i18n]);
-
+  // Leaving Find ends a question the owner asked to hear again.
   useEffect(
     () => () => {
-      if (!leaving.current) void stopSpeaking();
+      void stopSpeaking();
     },
     [],
   );
@@ -179,8 +167,6 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       await askWorkers(ports, device, need, turn.workers, turn.picked);
       const line: Line = { key: "need.asked" };
       needAsked(line);
-      leaving.current = true;
-      void readAloud(lang, lineText(i18n, line));
       onAsked();
     } catch (err) {
       log.warn("asking workers failed", failure(err));

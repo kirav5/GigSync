@@ -13,7 +13,6 @@ export const speech: Readonly<Record<keyof typeof en, string>> = {
   "speech.about": "ನೀವು ಹೇಳಿದ್ದು ಬರಹವಾಗುತ್ತದೆ. ಸಾಧ್ಯವಾದಾಗ ಈ ಫೋನೇ ಅದನ್ನು ಮಾಡುತ್ತದೆ; ಇಲ್ಲದಿದ್ದರೆ ನೀವು ಅನುಮತಿ ಕೊಟ್ಟ ಮೇಲೆ ಮಾತ್ರ.",
   "speech.listen_state": "{lang} ಭಾಷೆಯ ಧ್ವನಿ ಟೈಪಿಂಗ್: {state}",
   "speech.speak_state": "{lang} ಭಾಷೆಯಲ್ಲಿ ಓದಿ ಹೇಳುವುದು: {state}",
-  "speech.read_aloud": "ಪ್ರಶ್ನೆಗಳನ್ನು ಓದಿ ಹೇಳಲಿ",
   "speech.replay": "ಮತ್ತೆ ಕೇಳಿ",
   "speech.state_denied": "ಮೈಕ್‌ಗೆ ಅನುಮತಿ ಇಲ್ಲ",
   "speech.cloud_ask":

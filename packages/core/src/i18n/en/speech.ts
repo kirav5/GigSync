@@ -12,7 +12,6 @@ export const speech = {
     "What you say becomes text. This phone does it itself when it can; otherwise only after you allow it.",
   "speech.listen_state": "Voice typing in {lang}: {state}",
   "speech.speak_state": "Reading aloud in {lang}: {state}",
-  "speech.read_aloud": "Read questions aloud",
   "speech.replay": "Hear it again",
   "speech.state_denied": "microphone not allowed",
   "speech.cloud_ask":

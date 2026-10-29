@@ -9,7 +9,7 @@ import {
   waitsForDownload,
   watchDownload,
 } from "../adapters/speech.js";
-import { useCloudConsent, useReadAloudPref, withdrawCloud } from "../adapters/speech-settings.js";
+import { useCloudConsent, withdrawCloud } from "../adapters/speech-settings.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 
@@ -31,7 +31,6 @@ export function SpeechSettings() {
   const { lang, t } = useI18n();
   const [hear, setHear] = useState<SpeechStatus>();
   const [say, setSay] = useState<SpeechStatus>();
-  const [readAloud, setReadAloud] = useReadAloudPref();
   const allowed = useCloudConsent();
 
   useEffect(() => {
@@ -99,10 +98,6 @@ export function SpeechSettings() {
           </button>
         )}
       </div>
-      <label className={C.checkRow}>
-        <input type="checkbox" checked={readAloud} onChange={(e) => setReadAloud(e.target.checked)} />
-        <span>{t("speech.read_aloud")}</span>
-      </label>
       {allowed.map((v) => (
         <div key={v} className={C.row}>
           <span className={C.muted}>{t("speech.cloud_on", { vendor: t(`speech.vendor_${v}`) })}</span>

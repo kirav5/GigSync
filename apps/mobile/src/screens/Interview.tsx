@@ -10,9 +10,9 @@ import {
   type Ports,
   Slot,
 } from "@gigsync/core";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import type { Account } from "../adapters/account.js";
-import { readAloud, stopSpeaking } from "../adapters/speech.js";
+import { stopSpeaking } from "../adapters/speech.js";
 import {
   claimPublish,
   interviewEstimate,
@@ -31,7 +31,7 @@ import { C } from "../ui/cls.js";
 import { errorKey } from "../ui/errorKey.js";
 import { AREAS, PILOT_CITY } from "../ui/places.js";
 import { Said } from "../ui/Said.js";
-import { Ask, lineText, Own, spoken } from "./talk/Bubbles.js";
+import { Ask, Own } from "./talk/Bubbles.js";
 import "./talk.css";
 
 /** "Later": the voice stops with the questions, so a summary half read out does not carry on over the next screen. */
@@ -113,21 +113,12 @@ export function Interview({
   account: Account;
   onSaved: (a: Account) => void;
 }) {
-  const i18n = useI18n();
-  const { lang } = i18n;
+  const { lang } = useI18n();
   const { state, turns, paused } = useInterview();
   const active = state !== undefined && !paused;
   /** Choices are offered while a question is open, not once the owner has said yes and the card is being sent. */
   const asking = active && state.slot !== Slot.done;
   const newest = [...turns].reverse().find((turn) => turn.who === Speaker.app);
-  const heard = useRef<number>(undefined);
-
-  useEffect(() => {
-    if (!active || newest?.who !== Speaker.app || heard.current === newest.id) return;
-    heard.current = newest.id;
-    void readAloud(lang, spoken(i18n, newest.lines));
-  }, [active, newest, lang, i18n]);
-
   // A trade named: the usual range for it in the city, at its default scope, for the rate questions (ADR 0030).
   const trade = state?.draft.trades?.[0];
   const session = account.session;
@@ -137,7 +128,7 @@ export function Interview({
     void fetchEstimate(session, request).then(interviewEstimate);
   }, [trade, session]);
 
-  // Leaving Talk (another tab, Back) ends what is being read out.
+  // Leaving Talk (another tab, Back) ends a question the owner asked to hear again.
   useEffect(
     () => () => {
       void stopSpeaking();
@@ -157,7 +148,6 @@ export function Interview({
         const line: Line = { key: "iv.published", ...where };
         // Signed out while the card was on its way: the next owner hears nothing of it.
         if (!interviewPublished(claim, line)) return;
-        void readAloud(lang, lineText(i18n, line));
         onSaved(saved);
       })
       .catch((err: unknown) => {
@@ -165,7 +155,7 @@ export function Interview({
         // A line kept from an older card can carry a phone number; say so, so the owner knows what to change.
         interviewFailed(claim, { key: err instanceof AboutPrivateError ? "iv.err_private" : errorKey(err) });
       });
-  }, [state, ports, account, lang, i18n, onSaved]);
+  }, [state, ports, account, lang, onSaved]);
 
   const show = (turn: Turn) => {
     if (turn.who === Speaker.owner) return <Own key={turn.id} text={turn.text} />;

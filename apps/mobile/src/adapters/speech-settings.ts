@@ -45,24 +45,12 @@ function setting<T>(key: string, fallback: T, parse: (raw: unknown) => T | undef
   };
 }
 
-/** Whether questions are read aloud; on by default. */
-const readAloudOn = setting("speech:read-aloud", true, (raw) => (typeof raw === "boolean" ? raw : undefined));
 /** The companies the owner allowed to turn their voice into text (amendment A1); empty until they allow one. */
 const cloudConsent = setting<readonly SpeechVendor[]>("speech:cloud-consent", [], (raw) =>
   Array.isArray(raw) ? VENDORS.filter((v) => raw.includes(v)) : undefined,
 );
 
 const hasConsent = (vendor: SpeechVendor) => cloudConsent.get().includes(vendor);
-
-/** Whether questions should be read aloud; waits for the stored answer. */
-export async function readAloudWanted(): Promise<boolean> {
-  await readAloudOn.loaded;
-  return readAloudOn.get();
-}
-
-export function useReadAloudPref(): [boolean, (on: boolean) => void] {
-  return [useSyncExternalStore(readAloudOn.subscribe, readAloudOn.get), readAloudOn.set];
-}
 
 /** Whether the owner has allowed `vendor` to hear them; waits for the stored answer. */
 export async function cloudAllowed(vendor: SpeechVendor): Promise<boolean> {
