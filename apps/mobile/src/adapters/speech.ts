@@ -1,3 +1,5 @@
+import { App } from "@capacitor/app";
+import { Capacitor } from "@capacitor/core";
 import {
   GigSyncSpeech,
   type ListenOptions,
@@ -231,4 +233,54 @@ export async function readAloud(lang: Lang, text: string): Promise<void> {
   } catch {
     // Not allowed before a tap on this page, or the voice went away: reading aloud helps, it never fails a screen.
   }
+}
+
+/** How often a language download the phone finishes in the background is checked on. */
+const DOWNLOAD_POLL_MS = 3000;
+/** Checking on a timer stops after this long; coming back to the app still checks. */
+const DOWNLOAD_WATCH_MS = 15 * 60 * 1000;
+const RESUME = "resume";
+const VISIBILITY = "visibilitychange";
+
+/** Calls `fn` each time the app comes back to the front: Capacitor's resume on a phone, the page shown on the web. */
+function onReturn(fn: () => void): () => void {
+  if (Capacitor.isNativePlatform()) {
+    const listening = App.addListener(RESUME, fn);
+    return () => void listening.then((l) => l.remove());
+  }
+  const shown = () => {
+    if (!document.hidden) fn();
+  };
+  document.addEventListener(VISIBILITY, shown);
+  return () => document.removeEventListener(VISIBILITY, shown);
+}
+
+/**
+ * Follows a download the phone finishes in the background (round2-spec §1.5): re-reads the state with `read` every
+ * DOWNLOAD_POLL_MS for at most DOWNLOAD_WATCH_MS, and whenever the app comes back to the front, until it is no longer
+ * downloading; then hands the new state to `onChange` once and stops. Returns a stop function for a screen that goes
+ * away first. A read that fails is tried again at the next check.
+ */
+export function watchDownload(read: () => Promise<SpeechStatus>, onChange: (s: SpeechStatus) => void): () => void {
+  let stopped = false;
+  const check = async () => {
+    try {
+      const now = await read();
+      if (stopped || now.state === VoiceState.downloading) return;
+      stop();
+      onChange(now);
+    } catch {
+      // The next check reads again.
+    }
+  };
+  const poll = setInterval(() => void check(), DOWNLOAD_POLL_MS);
+  const deadline = setTimeout(() => clearInterval(poll), DOWNLOAD_WATCH_MS);
+  const forget = onReturn(() => void check());
+  function stop() {
+    stopped = true;
+    clearInterval(poll);
+    clearTimeout(deadline);
+    forget();
+  }
+  return stop;
 }

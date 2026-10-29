@@ -1,4 +1,4 @@
-import { EngagementStatus, type Payment, PaymentStatus, Role, type UserId } from "@gigsync/protocol";
+import { type Agree, EngagementStatus, type Payment, PaymentStatus, Role, type UserId } from "@gigsync/protocol";
 import type { JobRecord } from "../job/store.js";
 import { isMonthly, localDay } from "../job/when.js";
 import { OPEN_PAYMENT } from "./book.js";
@@ -36,17 +36,21 @@ const MONDAY = 1;
 /** Length of "YYYY-MM" at the start of a "YYYY-MM-DD" day. */
 const MONTH_LENGTH = 7;
 /** Work that is finished, so money is due whether or not anyone has asked for it. */
-const DONE: ReadonlySet<EngagementStatus> = new Set([E.delivered, E.closed]);
+export const FINISHED_WORK: ReadonlySet<EngagementStatus> = new Set([E.delivered, E.closed]);
 
-/** A job is GigSync evidence once both sides signed the same terms, and it is this phone's own work. */
-function signedWork(r: JobRecord): boolean {
-  return (
-    r.engagement.role === Role.enum.provider &&
-    r.mine !== undefined &&
-    r.theirs !== undefined &&
-    r.mine.terms_hash === r.theirs.terms_hash
-  );
+/** The calendar month ("YYYY-MM") of a "YYYY-MM-DD" day. */
+export const monthOf = (day: string): string => day.slice(0, MONTH_LENGTH);
+
+/** A job both sides signed, on the same terms. */
+export type SignedJob = JobRecord & { mine: Agree; theirs: Agree };
+
+/** Both sides signed the same terms: only then is a job GigSync evidence, whichever side this phone was on. */
+export function bothSigned(r: JobRecord): r is SignedJob {
+  return r.mine !== undefined && r.theirs !== undefined && r.mine.terms_hash === r.theirs.terms_hash;
 }
+
+/** Signed work that is this phone's own: it was the provider. */
+const signedWork = (r: JobRecord): r is SignedJob => r.engagement.role === Role.enum.provider && bothSigned(r);
 
 const filedAt = (p: Payment, r: JobRecord) =>
   new Date(p.confirmed_at ?? p.paid_at ?? p.requested_at ?? r.engagement.created_at);
@@ -77,19 +81,19 @@ export function passbook(
   rows.sort((a, b) => b.at.getTime() - a.at.getTime() || b.payment.id.localeCompare(a.payment.id));
 
   const week = weekOf(now, offsetMinutes);
-  const month = localDay(now, offsetMinutes).slice(0, MONTH_LENGTH);
+  const month = monthOf(localDay(now, offsetMinutes));
   const totals: PassbookTotals = { week: 0, month: 0, waiting: 0, notAsked: 0 };
   for (const { payment: p } of rows) {
     if (OPEN_PAYMENT.has(p.status)) totals.waiting += p.amount_paise;
     if (p.status !== S.confirmed || !p.confirmed_at) continue;
     const day = localDay(new Date(p.confirmed_at), offsetMinutes);
     if (day >= week.first && day <= week.last) totals.week += p.amount_paise;
-    if (day.slice(0, MONTH_LENGTH) === month) totals.month += p.amount_paise;
+    if (monthOf(day) === month) totals.month += p.amount_paise;
   }
   const asked = new Set(rows.filter((row) => row.payment.status !== S.disputed).map((row) => row.job.engagement.id));
   for (const job of signed.values()) {
-    if (DONE.has(job.engagement.status) && !asked.has(job.engagement.id))
-      totals.notAsked += job.mine?.terms.price_paise ?? 0;
+    if (FINISHED_WORK.has(job.engagement.status) && !asked.has(job.engagement.id))
+      totals.notAsked += job.mine.terms.price_paise;
   }
   return { rows, totals };
 }

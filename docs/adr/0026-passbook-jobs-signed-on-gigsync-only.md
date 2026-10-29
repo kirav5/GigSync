@@ -45,3 +45,13 @@ the record could not tell evidence from self-report.
 - **The 28-day rule is a heuristic.** A household that pays on a different date each month will see the ask button a
   few days late (decision (h)); revisit with pilot data. ADR 0022's payment schedules would replace it with the
   signed schedule.
+
+## Addendum (2026-10-29): the worker's record, and no eligibility wording
+
+- Passbook now also lists **Work done**: every finished job both sides signed, grouped by month, each with its payment
+  state, and **Paid to helpers** for jobs the worker hired (ADR 0029). Built by `workRecord()` in
+  `packages/core/src/payments/record.ts`. The newest live payment decides a job's chip, so monthly work asked again
+  shows as waiting.
+- Because the record holds only GigSync-signed work, it **never shows day counts or welfare eligibility** ("days from
+  eligible"). Until outside work can enter signed (or ADR 0018 §3 and ADR 0019 are decided), such a figure would
+  undercount a worker's real days and could put them off registering.

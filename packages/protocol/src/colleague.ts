@@ -37,8 +37,10 @@ export const ColleagueLink = z
   .refine((b) => b.step !== LinkStep.enum.ok || b.card !== undefined, "ok needs a card");
 export type ColleagueLink = z.infer<typeof ColleagueLink>;
 
+/** The longest colleague note, in characters. */
+export const COLLEAGUE_NOTE_MAX = 300;
 /** `colleague_note`: a message between linked colleagues, tagged with the language it is in. */
-export const ColleagueNote = z.object({ text: shortText, lang: Lang });
+export const ColleagueNote = z.object({ text: z.string().min(1).max(COLLEAGUE_NOTE_MAX), lang: Lang });
 export type ColleagueNote = z.infer<typeof ColleagueNote>;
 
 /** `referral`: worker → household, on a request the worker declined: a colleague the household may ask instead. */

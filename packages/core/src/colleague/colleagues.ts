@@ -1,99 +1,85 @@
 import type { ColleagueCard, EngagementId, Lang, UserId } from "@gigsync/protocol";
-import type { JobContext } from "../job/context.js";
 import type { JobRecord } from "../job/store.js";
-import type { MailTransport } from "../mail/transport.js";
-import type { Relay } from "../net/api.js";
-import { NotBuiltError } from "../not-built.js";
+import type { Received } from "../mail/transport.js";
+import * as links from "./link.js";
+import { receive } from "./receive.js";
+import * as referrals from "./referral.js";
+import { type ColleagueContext, ColleagueStore, publicView } from "./store.js";
+import type { Colleague, ColleagueDeps, ColleagueNoteRecord } from "./types.js";
 
-/** A colleague link waits for the other phone (`asked`) until its `ok` arrives (`linked`). */
-export const ColleagueState = { asked: "asked", linked: "linked" } as const;
-export type ColleagueState = (typeof ColleagueState)[keyof typeof ColleagueState];
-
-/** Who wrote a colleague note, as this phone sees it. */
-export const NoteFrom = { me: "me", them: "them" } as const;
-export type NoteFrom = (typeof NoteFrom)[keyof typeof NoteFrom];
-
-/** A worker this phone linked with in person. */
-export interface Colleague {
-  user: UserId;
-  card: ColleagueCard;
-  /** The pair's channel: every envelope between the two carries it as its `engagement`. */
-  channel: EngagementId;
-  state: ColleagueState;
-  linked_at?: string;
-  /** Notes from them this phone has not shown yet. */
-  unread: number;
-}
-
-/** One message between two colleagues, with the language it was written in. */
-export interface ColleagueNoteRecord {
-  id: string;
-  from: NoteFrom;
-  text: string;
-  lang: Lang;
-  at: string;
-}
-
-/** What the colleague code needs from the device it lives on. */
-export interface ColleagueDeps {
-  ctx: JobContext;
-  transport: MailTransport;
-  relay: Relay;
-}
+export {
+  type Colleague,
+  type ColleagueDeps,
+  type ColleagueNoteRecord,
+  ColleagueState,
+  NoteFrom,
+} from "./types.js";
 
 /**
  * Worker to worker on one phone: linking in person by QR, private notes between linked colleagues, suggesting a
  * colleague on a declined request, and the household asking the suggested colleague (round2-spec §3.2).
  */
 export class Colleagues {
-  constructor(private readonly deps: ColleagueDeps) {}
+  private readonly c: ColleagueContext;
+
+  constructor(deps: ColleagueDeps) {
+    this.c = { ...deps, store: new ColleagueStore(deps.ctx.storage) };
+  }
 
   /** A fresh single-use code, valid for LINK_CODE_TTL_MS, as the QR text that carries it. */
-  async invite(_card: ColleagueCard): Promise<string> {
-    void this.deps;
-    throw new NotBuiltError("Colleagues.invite");
+  async invite(card: ColleagueCard): Promise<string> {
+    return links.invite(this.c, card);
   }
 
-  /** Asks the phone that showed `payload` to link; refuses its own code and an expired or malformed one. */
-  async link(_payload: string, _card: ColleagueCard): Promise<Colleague> {
-    throw new NotBuiltError("Colleagues.link");
+  /**
+   * Asks the phone that showed `payload` to link; refuses its own code and a malformed one (ColleagueError). An
+   * expired or used code is refused by the other phone, silently: the colleague then stays `asked`.
+   */
+  async link(payload: string, card: ColleagueCard): Promise<Colleague> {
+    return links.link(this.c, payload, card);
   }
 
+  /** Every colleague, asked or linked, by name. */
   async list(): Promise<Colleague[]> {
-    throw new NotBuiltError("Colleagues.list");
+    return (await this.c.store.list()).map(publicView).sort((a, b) => a.card.name.localeCompare(b.card.name));
   }
 
-  async send(_user: UserId, _text: string, _lang: Lang): Promise<void> {
-    throw new NotBuiltError("Colleagues.send");
+  async send(user: UserId, text: string, lang: Lang): Promise<void> {
+    await links.send(this.c, user, text, lang);
   }
 
   /** Both sides' notes with one colleague, oldest first. */
-  async notes(_user: UserId): Promise<ColleagueNoteRecord[]> {
-    throw new NotBuiltError("Colleagues.notes");
+  async notes(user: UserId): Promise<ColleagueNoteRecord[]> {
+    return this.c.store.notes(user);
   }
 
   /** Marks a colleague's notes as shown. */
-  async read(_user: UserId): Promise<void> {
-    throw new NotBuiltError("Colleagues.read");
+  async read(user: UserId): Promise<void> {
+    await this.c.store.update(user, (old) => old && { ...old, unread: 0 });
   }
 
   /** Ends the link on both phones and deletes its notes here. */
-  async unlink(_user: UserId): Promise<void> {
-    throw new NotBuiltError("Colleagues.unlink");
+  async unlink(user: UserId): Promise<void> {
+    await links.unlink(this.c, user);
   }
 
   /** True when every active device of `user` understands colleague and referral envelopes (COLLEAGUE_PROTOCOL). */
-  async canReach(_user: UserId): Promise<boolean> {
-    throw new NotBuiltError("Colleagues.canReach");
+  async canReach(user: UserId): Promise<boolean> {
+    return links.canReach(this.c.relay, user);
   }
 
   /** On a request this phone declined as provider: suggests a linked colleague to the household. */
-  async suggest(_id: EngagementId, _colleague: UserId): Promise<JobRecord> {
-    throw new NotBuiltError("Colleagues.suggest");
+  async suggest(id: EngagementId, colleague: UserId): Promise<JobRecord> {
+    return referrals.suggest(this.c, id, colleague);
   }
 
   /** On the household's phone: sends the same need, as a fresh request, to the colleague a worker suggested. */
-  async askReferred(_id: EngagementId): Promise<JobRecord[]> {
-    throw new NotBuiltError("Colleagues.askReferred");
+  async askReferred(id: EngagementId): Promise<JobRecord[]> {
+    return referrals.askReferred(this.c.ctx, id);
+  }
+
+  /** Takes one colleague envelope the device received. The device's sync calls this; screens do not. */
+  async receive(item: Received): Promise<void> {
+    await receive(this.c, item);
   }
 }

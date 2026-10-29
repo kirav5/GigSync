@@ -4,6 +4,11 @@
   display: grid;
   gap: 10px;
 }
+/* "It's already in my bank": there for money paid without "I paid", but quieter than the buttons above it. */
+.worker-pay .pay-quiet {
+  justify-self: start;
+  color: var(--text2);
+}
 
 /* Their own UPI QR, shown to the customer standing in front of them. */
 .worker-qr {
@@ -59,36 +64,4 @@
   font-size: 22px;
   font-weight: 600;
   letter-spacing: -0.02em;
-}
-
-.passbook-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  border: 1px solid var(--hairline);
-  border-radius: 6px;
-  overflow: hidden;
-}
-.passbook-list > li {
-  padding: 12px 14px;
-  background: var(--surface);
-  border-top: 1px solid var(--hairline);
-}
-.passbook-list > li:first-child {
-  border-top: 0;
-}
-.passbook-list li > div {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 4px 10px;
-  align-items: center;
-}
-.passbook-list .meta {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 10px;
-  font-size: var(--fs-2, 15px);
-  color: var(--text2);
 }

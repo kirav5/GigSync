@@ -1,5 +1,6 @@
 export * from "./agent.js";
 export * from "./colleague/colleagues.js";
+export * from "./colleague/errors.js";
 export * from "./engagement/machine.js";
 export * from "./experts.js";
 export * from "./http.js";

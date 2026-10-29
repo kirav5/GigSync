@@ -1,4 +1,5 @@
 import {
+  type Card,
   type Choice,
   choose,
   hear,
@@ -12,21 +13,28 @@ import {
 import { useSyncExternalStore } from "react";
 
 /**
- * The card interview in progress and the turns shown so far, kept outside any screen so it survives switching tabs:
- * the owner can look at Profile mid-interview and come back to the same question. It does not survive an app restart;
- * the questions are short enough to answer again. Over once the card is published, and wiped when the My card form
- * publishes instead (its answers would be stale) or the owner signs out (they belong to them alone).
+ * Talk's conversation, kept outside any screen so it survives switching tabs: notes to the agent with their answers,
+ * and the card interview's questions and answers, in one list in the order they happened. The owner can look at
+ * Profile mid-interview and come back to the same question. It does not survive an app restart; the questions are
+ * short enough to answer again. A new interview adds to the conversation; the interview is over once the card is
+ * published, or closed when the My card form publishes instead (its draft would be stale, and holds the lowest rate),
+ * with the words already on screen left there. Signing out wipes all of it (it belongs to the owner alone).
  */
 
-/** Who a turn is from: the app asking or telling, or the owner answering. */
-export const Speaker = { app: "app", owner: "owner" } as const;
+/** Who a turn is from: the interview asking or telling, the owner answering it, or the owner's note to the agent. */
+export const Speaker = { app: "app", owner: "owner", note: "note" } as const;
 
 export type Turn =
   | { id: number; who: typeof Speaker.app; lines: readonly Line[]; choices: readonly Choice[] }
-  | { id: number; who: typeof Speaker.owner; text: string };
+  | { id: number; who: typeof Speaker.owner; text: string }
+  /** A note and, once the agent has answered, its card. */
+  | { id: number; who: typeof Speaker.note; text: string; card?: Card };
+
+/** Talk keeps this many turns; older ones are dropped first. */
+const MAX_TURNS = 100;
 
 export interface InterviewSnapshot {
-  /** The interview being answered; undefined before one starts and after the card is published. */
+  /** The interview being answered; undefined before one starts and after it ends. */
   state?: InterviewState;
   turns: readonly Turn[];
   /** "Later": the interview waits, and Talk offers to carry on. */
@@ -38,13 +46,13 @@ let snapshot: InterviewSnapshot = { turns: [], paused: false };
 let beforeDone: InterviewState | undefined;
 /** A publish is under way; Talk may be left and opened again meanwhile, and must not send the card twice. */
 let sending = false;
-/** Counts wiped interviews: a publish that finishes after its interview was wiped (a sign-out) changes nothing. */
+/** Counts closed and wiped interviews: a publish that finishes after its interview was closed or wiped changes nothing. */
 let round = 0;
 let lastId = 0;
 const listeners = new Set<() => void>();
 
 function set(next: InterviewSnapshot): void {
-  snapshot = next;
+  snapshot = next.turns.length > MAX_TURNS ? { ...next, turns: next.turns.slice(-MAX_TURNS) } : next;
   for (const listener of listeners) listener();
 }
 
@@ -72,9 +80,28 @@ export function useInterview(): InterviewSnapshot {
   return useSyncExternalStore(subscribe, () => snapshot);
 }
 
-/** Starts an interview, replacing any other; `said` is the owner's words that asked for it, shown first. */
+/**
+ * Starts an interview in place of any other, after everything already said; `said` is the owner's words that asked
+ * for it, shown first.
+ */
 export function beginInterview(state: InterviewState, said?: string): void {
-  set({ state, paused: false, turns: [...(said ? [owner(said)] : []), ...asked(state)] });
+  set({ state, paused: false, turns: [...snapshot.turns, ...(said ? [owner(said)] : []), ...asked(state)] });
+}
+
+/** A note to the agent, shown at once; returns its id, for the answer. */
+export function addNote(text: string): number {
+  const turn: Turn = { id: ++lastId, who: Speaker.note, text };
+  set({ ...snapshot, turns: [...snapshot.turns, turn] });
+  return turn.id;
+}
+
+/** The agent's answer to note `id`; nothing when the note is gone (signed out since, or dropped as old). */
+export function noteAnswered(id: number, card: Card): void {
+  if (!snapshot.turns.some((turn) => turn.id === id)) return;
+  set({
+    ...snapshot,
+    turns: snapshot.turns.map((turn) => (turn.id === id && turn.who === Speaker.note ? { ...turn, card } : turn)),
+  });
 }
 
 function answered(next: InterviewState, label: string): void {
@@ -98,8 +125,12 @@ export function pauseInterview(): void {
   if (snapshot.state) set({ ...snapshot, paused: true });
 }
 
+/** "Carry on": when notes came after the open question, it is asked again below them. */
 export function resumeInterview(): void {
-  if (snapshot.state) set({ ...snapshot, paused: false });
+  const { state, turns } = snapshot;
+  if (!state) return;
+  const last = turns.at(-1);
+  set({ ...snapshot, paused: false, turns: last?.who === Speaker.app ? turns : [...turns, ...asked(state)] });
 }
 
 /**
@@ -115,11 +146,22 @@ export function relanguageInterview(config: InterviewConfig): void {
   set({ ...snapshot, state: next, turns: [...turns, ...asked(next)] });
 }
 
-/** Wipes the interview and everything said in it: after the My card form publishes, and at sign-out. */
-export function endInterview(): void {
+/** Drops the interview's draft (it holds the lowest rate), so a publish still on its way lands nowhere. */
+function forgetDraft(): void {
   round += 1;
   beforeDone = undefined;
   sending = false;
+}
+
+/** Ends the interview without its card, after the My card form publishes or unlists; the words already shown stay. */
+export function closeInterview(): void {
+  forgetDraft();
+  set({ turns: snapshot.turns, paused: false });
+}
+
+/** Wipes the interview and the whole conversation: at sign-out. */
+export function endInterview(): void {
+  forgetDraft();
   set({ turns: [], paused: false });
 }
 
@@ -135,7 +177,7 @@ export function claimPublish(): number | undefined {
 
 /**
  * The card is on the board: the interview is over, and its last word stays on screen. False when the interview was
- * wiped while the card was on its way, so the caller tells nobody.
+ * closed or wiped while the card was on its way, so the caller tells nobody.
  */
 export function interviewPublished(claim: number, line: Line): boolean {
   if (claim !== round) return false;

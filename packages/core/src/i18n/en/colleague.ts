@@ -40,7 +40,7 @@ export const colleague = {
   "hire.chip": "Hire someone",
   "hire.title": "Hire someone for your work",
   "hire.site": "Where is the work?",
-  "hire.site_help": "Shared only after you both sign.",
+  "hire.site_help": "Shared only with the person you hire, after you both sign.",
   "hire.site_save": "Save and continue",
   "hire.site_profile": "Work site address",
   "hire.section": "You hired",

@@ -8,6 +8,9 @@ import { C } from "../ui/cls.js";
 import { InstallCard, InstallPlace } from "../ui/InstallCard.js";
 import { Look, savedLook, saveLook } from "../ui/look.js";
 import { AREAS, money } from "../ui/places.js";
+import { ColleaguesSection } from "./colleague/List.js";
+import type { ColleaguePlace } from "./colleague/place.js";
+import { SiteForm } from "./colleague/SiteForm.js";
 import { ModelSettings } from "./ModelSettings.js";
 import { SpeechSettings } from "./SpeechSettings.js";
 import { TranslationSettings } from "./TranslationSettings.js";
@@ -29,6 +32,10 @@ interface Props {
   onCard: () => void;
   /** Opens Talk on the card interview. */
   onTalkCard: () => void;
+  /** The account after the work site address changed. */
+  onAccount: (a: Account) => void;
+  /** Opens the Colleagues screen at one of its places. */
+  onColleagues: (place: ColleaguePlace) => void;
 }
 
 /** The worker's card at a glance: what customers see on the board, or that it is not there, and two ways to change it. */
@@ -90,11 +97,13 @@ function LookPicker() {
 }
 
 /**
- * Profile: everything that is not a job, each section saving as it changes. The worker's card and the one place their
- * UPI ID is entered come first, then language, voice and translation on this phone, then installing the web app;
- * the look and the on-device model wait under "More settings". Everything here is kept on this phone.
+ * Profile: everything that is not a job, each section saving as it changes. The worker's card, the one place their
+ * UPI ID is entered, their colleagues and their work site come first, then language, voice and translation on this
+ * phone, then installing the web app; the look and the on-device model wait under "More settings". Everything here is
+ * kept on this phone.
  */
-export function Settings({ ports, account, isWorker, platform, online, onSignOut, onCard, onTalkCard }: Props) {
+export function Settings(props: Props) {
+  const { ports, account, isWorker, platform, online, onSignOut, onCard, onTalkCard, onAccount, onColleagues } = props;
   const { lang, setLang, t } = useI18n();
   const name = account.contact.name;
   const role = t(isWorker ? "role.worker" : "role.customer");
@@ -113,6 +122,8 @@ export function Settings({ ports, account, isWorker, platform, online, onSignOut
 
       {isWorker && <CardSummary account={account} onCard={onCard} onTalkCard={onTalkCard} />}
       {isWorker && <PayeeForm ports={ports} defaultName={name.slice(0, PAYEE_NAME_MAX)} />}
+      {isWorker && <ColleaguesSection onOpen={onColleagues} />}
+      {isWorker && <SiteForm ports={ports} account={account} onSaved={onAccount} />}
 
       <section className={C.card} aria-label={t("profile.language")}>
         <span className={C.label}>{t("profile.language")}</span>

@@ -1,5 +1,6 @@
 import type { SpeechStatus, SpeechVendor } from "@gigsync/plugin-speech";
 import { type FormEvent, useEffect, useId, useRef, useState } from "react";
+import { needsExplaining, Permission } from "../adapters/permissions.js";
 import {
   ListenRefusal,
   listen,
@@ -9,11 +10,13 @@ import {
   stopListening,
   VoiceState,
   waitsForDownload,
+  watchDownload,
 } from "../adapters/speech.js";
 import { allowCloud, cloudAllowed } from "../adapters/speech-settings.js";
 import { useI18n } from "../i18n.js";
 import { C } from "./cls.js";
 import { Icon } from "./Icon.js";
+import { PermissionSheet } from "./PermissionSheet.js";
 import "./composer.css";
 
 /** How the words came in: heard by the mic, or typed. */
@@ -33,6 +36,8 @@ export interface ComposerProps {
   numeric?: boolean;
   /** True while the answer is private (the lowest rate): only a recognizer on the phone may hear it, never a company's. */
   onDeviceOnly?: boolean;
+  /** The longest message the receiver accepts; longer words stay in the field to shorten, typed or heard. */
+  maxLength?: number;
 }
 
 /** What the line above the field says after a listen that heard nothing or could not start. */
@@ -53,7 +58,8 @@ const NO_HINTS: readonly string[] = [];
  * Where the owner answers: a big mic first, then the field and send (spec §3.3). Heard words fill the field while the
  * owner speaks (it is read-only then, so typing is never overwritten) and are sent by themselves at the end, because
  * many owners cannot proofread and every answer is read back. The mic's state is honest: a download button, "please
- * type", or the phone's mic setting. Before the first listen that would go to a company's servers, a sheet asks.
+ * type", or the phone's mic setting. Before the first listen that would go to a company's servers, a sheet asks; before
+ * the first listen at all on a phone, a sheet says in the app's language why the phone is about to ask for the mic.
  */
 export function Composer({
   label,
@@ -63,6 +69,7 @@ export function Composer({
   hints = NO_HINTS,
   numeric = false,
   onDeviceOnly = false,
+  maxLength,
 }: ComposerProps) {
   const { lang, t } = useI18n();
   const [text, setText] = useState("");
@@ -70,6 +77,7 @@ export function Composer({
   const [status, setStatus] = useState<SpeechStatus>();
   const [note, setNote] = useState<Note>();
   const [asking, setAsking] = useState<SpeechVendor>();
+  const [why, setWhy] = useState(false);
   const field = useRef<HTMLInputElement>(null);
   const allow = useRef<HTMLButtonElement>(null);
   /** Bumped by every listen and by leaving or sending by hand; a listen whose number is stale is ignored. */
@@ -88,6 +96,10 @@ export function Composer({
     };
   }, [lang]);
 
+  // A download finishing in the background shows up by itself (round2-spec §1.5).
+  const downloading = status?.state === VoiceState.downloading;
+  useEffect(() => (downloading ? watchDownload(() => listenState(lang), setStatus) : undefined), [downloading, lang]);
+
   // The consent sheet takes focus when it opens, so a screen reader says the question and lands on its answer.
   useEffect(() => {
     if (asking) allow.current?.focus();
@@ -101,6 +113,12 @@ export function Composer({
     },
     [],
   );
+
+  /** Listens, once the owner has heard why the phone is about to ask for the microphone. */
+  async function start() {
+    if (await needsExplaining(Permission.mic).catch(() => false)) return setWhy(true);
+    return hear();
+  }
 
   async function hear() {
     const mine = ++session.current;
@@ -120,9 +138,10 @@ export function Composer({
       ).trim();
       if (mine !== session.current) return;
       setListening(false);
-      setText("");
-      if (heard) onSend(heard, Via.voice);
-      else setNote(Note.unheard);
+      const tooLong = maxLength !== undefined && heard.length > maxLength;
+      setText(tooLong ? heard : "");
+      if (!heard) setNote(Note.unheard);
+      else if (!tooLong) onSend(heard, Via.voice);
     } catch (e) {
       if (mine !== session.current) return;
       setListening(false);
@@ -166,8 +185,8 @@ export function Composer({
     // Read before the first state check came back: keep it, so what the line says names the right company.
     if (!status) setStatus(s);
     const vendor = s.cloud?.vendor;
-    if (s.state === VoiceState.available) return hear();
-    if (!onDeviceOnly && s.state !== VoiceState.denied && vendor && (await cloudAllowed(vendor))) return hear();
+    if (s.state === VoiceState.available) return start();
+    if (!onDeviceOnly && s.state !== VoiceState.denied && vendor && (await cloudAllowed(vendor))) return start();
     return explain(s);
   }
 
@@ -176,12 +195,19 @@ export function Composer({
     setAsking(undefined);
     // Asked before the private question came up: allowed for the others, but this answer is still typed.
     if (onDeviceOnly) return typeInstead(Note.private);
-    void hear();
+    void start();
   }
 
   function decline() {
     setAsking(undefined);
     field.current?.focus();
+  }
+
+  /** The permission sheet's answer: on to the phone's own prompt, or the field. */
+  function explained(go: boolean) {
+    setWhy(false);
+    if (go) void hear();
+    else field.current?.focus();
   }
 
   async function download() {
@@ -192,7 +218,7 @@ export function Composer({
   function submit(e: FormEvent) {
     e.preventDefault();
     const words = text.trim();
-    if (!words || busy) return;
+    if (!words || busy || (maxLength !== undefined && words.length > maxLength)) return;
     const via = listening ? Via.voice : Via.typed;
     if (listening) {
       // Sent by hand mid-listen: what the field shows goes, and the recognizer's last words are dropped.
@@ -224,6 +250,7 @@ export function Composer({
           </div>
         </div>
       )}
+      {why && <PermissionSheet permission={Permission.mic} onAnswer={explained} />}
       {!listening && waitsForDownload(status) && (
         <button
           type={C.button}
@@ -257,6 +284,7 @@ export function Composer({
             enterKeyHint={SEND}
             inputMode={numeric ? NUMERIC : undefined}
             readOnly={listening}
+            maxLength={maxLength}
           />
           <button type={C.submit} className={SEND} disabled={busy || !text.trim()} aria-label={t("a11y.send")}>
             →

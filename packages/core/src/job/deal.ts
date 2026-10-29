@@ -3,6 +3,7 @@ import {
   type Agree,
   type Cancel,
   CancelReason,
+  type ContactCard,
   type ContactRelease,
   type DeviceId,
   EngagementStatus,
@@ -115,10 +116,21 @@ export async function onAgree(ctx: JobContext, r: JobRecord, theirs: Agree, from
   return accept(ctx, next, theirs.terms);
 }
 
+/**
+ * The card this side releases. The worker goes to the requester's place, so a provider never sends an address: a
+ * worker's saved work site is for a helper they hire, never for the households they work for.
+ */
+function releasedCard(ctx: JobContext, r: JobRecord): ContactCard {
+  if (r.engagement.role === R.requester) return ctx.contact;
+  const { address: _site, ...card } = ctx.contact;
+  return card;
+}
+
 /** Both signed: send this owner's card, and (consumer) release every other request in the group. */
 async function onAgreed(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
   const hash = r.mine?.terms_hash as string;
-  const out = await ctx.send(r, K.contact_release, { terms_hash: hash, contact: ctx.contact } satisfies ContactRelease);
+  const contact = releasedCard(ctx, r);
+  const out = await ctx.send(r, K.contact_release, { terms_hash: hash, contact } satisfies ContactRelease);
   if (r.engagement.role === R.requester) {
     for (const other of await ctx.store.group(r.engagement.group)) {
       if (other.engagement.id === r.engagement.id || TERMINAL_STATUSES.has(other.engagement.status)) continue;

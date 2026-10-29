@@ -4,6 +4,7 @@ import { useI18n } from "../i18n.js";
 import { Screen } from "../state.js";
 import { C } from "./cls.js";
 import { Icon, type IconName } from "./Icon.js";
+import "../screens/colleague/colleagues.css";
 
 export interface TabItem {
   screen: Screen;
@@ -30,6 +31,8 @@ export const CONSUMER_TABS: readonly TabItem[] = [
 
 /** The tabs that carry the count of decisions waiting for the owner. */
 const BADGED: ReadonlySet<Screen> = new Set([Screen.today, Screen.requests]);
+/** The tab with a dot while a colleague's note is unread: Profile, where Colleagues live. */
+const DOTTED: Screen = Screen.profile;
 
 interface Props {
   tabs: readonly TabItem[];
@@ -38,26 +41,29 @@ interface Props {
   onScreen: (s: Screen) => void;
   /** Decisions waiting for the owner. */
   tasks: number;
+  /** Colleague notes not read yet. */
+  unread: number;
 }
 
 /**
  * Icon-and-label tabs along the bottom, as in WhatsApp, PhonePe and GPay: every destination in sight, none behind a
  * menu. A left rail on wide screens, and hidden while the keyboard is open so the dock sits on the keys (styles.css).
  */
-export function Tabs({ tabs, current, onScreen, tasks }: Props) {
-  const { t } = useI18n();
+export function Tabs({ tabs, current, onScreen, tasks, unread }: Props) {
+  const { t, plural } = useI18n();
   const id = useId();
   return (
     <nav className="tabs" aria-label={t("a11y.tabs")}>
       {tabs.map((tab) => {
         const badge = BADGED.has(tab.screen) && tasks > 0 ? `${id}-${tab.screen}` : undefined;
-        // The tab is named by its label alone, so it stays findable by name; the count is its description.
+        const dot = tab.screen === DOTTED && unread > 0 ? `${id}-${tab.screen}-dot` : undefined;
+        // The tab is named by its label alone, so it stays findable by name; the counts are its description.
         return (
           <button
             key={tab.screen}
             type={C.button}
             aria-label={t(tab.label)}
-            aria-describedby={badge}
+            aria-describedby={badge ?? dot}
             aria-current={tab.screen === current ? "page" : undefined}
             onClick={() => onScreen(tab.screen)}
           >
@@ -68,6 +74,7 @@ export function Tabs({ tabs, current, onScreen, tasks }: Props) {
                 {tasks}
               </span>
             )}
+            {dot && <span id={dot} className="dot" role="img" aria-label={plural("colleague.unread", unread)} />}
           </button>
         );
       })}

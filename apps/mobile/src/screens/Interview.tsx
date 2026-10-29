@@ -1,5 +1,15 @@
-import { type Choice, draftOf, type Line, log, type Ports, Slot } from "@gigsync/core";
-import { useEffect, useRef } from "react";
+import {
+  type Card,
+  CardKind,
+  type Choice,
+  draftOf,
+  type Line,
+  log,
+  type MessageKey,
+  type Ports,
+  Slot,
+} from "@gigsync/core";
+import { type ReactNode, useEffect, useRef } from "react";
 import type { Account } from "../adapters/account.js";
 import { readAloud, stopSpeaking } from "../adapters/speech.js";
 import {
@@ -8,13 +18,16 @@ import {
   interviewPublished,
   pauseInterview,
   Speaker,
+  type Turn,
   tapInterview,
   useInterview,
 } from "../card/interviewStore.js";
 import { AboutPrivateError, publishCard } from "../card/publish.js";
 import { type I18n, useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
+import { errorKey } from "../ui/errorKey.js";
 import { AREAS, money } from "../ui/places.js";
+import { Said } from "../ui/Said.js";
 import { SpeakButton } from "../ui/SpeakButton.js";
 import "./talk.css";
 
@@ -40,6 +53,70 @@ const spoken = (t: I18n["t"], lines: readonly Line[]) =>
     .map((l) => lineText(t, l))
     .join(" ");
 
+/** The heading each card kind gets on screen. */
+const KIND_LABEL: Readonly<Record<Card["kind"], MessageKey>> = {
+  [CardKind.text]: "card.text",
+  [CardKind.saved]: "card.saved",
+  [CardKind.answer]: "card.answer",
+  [CardKind.draft]: "card.draft",
+  [CardKind.needsModel]: "card.needs_model",
+};
+
+/** A card's words: a phrase in the owner's language, or quoted words translated on the phone when needed. */
+function CardText({ card }: { card: Card }) {
+  const { t } = useI18n();
+  if ("say" in card) return <>{t(card.say.key, card.say.params)}</>;
+  return <Said text={card.words.text} from={card.words.lang} />;
+}
+
+/** The owner's own words, on their side of the conversation. */
+function Own({ text }: { text: string }) {
+  return (
+    <div className="msg-user">
+      <div className="bubble">{text}</div>
+    </div>
+  );
+}
+
+/** A note to the agent and, once it has answered, its card. */
+function Note({ text, card }: { text: string; card: Card | undefined }) {
+  const { t, plural } = useI18n();
+  return (
+    <div className={C.stack}>
+      <Own text={text} />
+      {card && (
+        <div className="msg-agent">
+          <span className={C.label}>{t(KIND_LABEL[card.kind])}</span>
+          <div className="text">
+            <CardText card={card} />
+          </div>
+          {card.kind === CardKind.answer && card.sources.length > 0 && (
+            <span className={C.faint}>{plural("agent.sources", card.sources.length)}</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** An interview question or readback, with its replay button; the silent lines are shown but never spoken. */
+function Ask({ lines, children }: { lines: readonly Line[]; children?: ReactNode }) {
+  const { lang, t } = useI18n();
+  return (
+    <div className="msg-agent iv-ask">
+      <div className="iv-say">
+        <div className="text">
+          {lines.map((line) => (
+            <p key={line.key}>{lineText(t, line)}</p>
+          ))}
+        </div>
+        <SpeakButton lang={lang} text={spoken(t, lines)} />
+      </div>
+      {children}
+    </div>
+  );
+}
+
 /** The tap answers under the newest question, and "Later", which pauses the interview. */
 function Choices({ choices }: { choices: readonly Choice[] }) {
   const { t } = useI18n();
@@ -58,8 +135,9 @@ function Choices({ choices }: { choices: readonly Choice[] }) {
 }
 
 /**
- * The card interview as a conversation: each question in a bubble with a replay button, read aloud once when it
- * appears, the owner's answers opposite. When the owner says yes to the summary, the card is published from here.
+ * Talk's conversation, in the order it happened: notes to the agent with its answers, and the card interview, each
+ * question with a replay button, read aloud once when it appears, the owner's answers opposite. When the owner says
+ * yes to the summary, the card is published from here.
  */
 export function Interview({
   ports,
@@ -110,32 +188,23 @@ export function Interview({
       .catch((err: unknown) => {
         log.warn("card interview publish failed", { error: err instanceof Error ? err.message : String(err) });
         // A line kept from an older card can carry a phone number; say so, so the owner knows what to change.
-        interviewFailed(claim, { key: err instanceof AboutPrivateError ? "iv.err_private" : "error.generic" });
+        interviewFailed(claim, { key: err instanceof AboutPrivateError ? "iv.err_private" : errorKey(err) });
       });
   }, [state, ports, account, lang, t, onSaved]);
 
-  // A log, so a screen reader announces each new question and readback as it arrives; focus stays in the composer.
+  const show = (turn: Turn) => {
+    if (turn.who === Speaker.owner) return <Own key={turn.id} text={turn.text} />;
+    if (turn.who === Speaker.note) return <Note key={turn.id} text={turn.text} card={turn.card} />;
+    return (
+      <Ask key={turn.id} lines={turn.lines}>
+        {asking && turn.id === newest?.id && <Choices choices={turn.choices} />}
+      </Ask>
+    );
+  };
+  // A log, so a screen reader announces each new question, readback and answer; focus stays in the composer.
   return (
     <div className="iv" role="log" aria-live="polite">
-      {turns.map((turn) =>
-        turn.who === Speaker.owner ? (
-          <div key={turn.id} className="msg-user">
-            <div className="bubble">{turn.text}</div>
-          </div>
-        ) : (
-          <div key={turn.id} className="msg-agent iv-ask">
-            <div className="iv-say">
-              <div className="text">
-                {turn.lines.map((line) => (
-                  <p key={line.key}>{lineText(t, line)}</p>
-                ))}
-              </div>
-              <SpeakButton lang={lang} text={spoken(t, turn.lines)} />
-            </div>
-            {asking && turn.id === newest?.id && <Choices choices={turn.choices} />}
-          </div>
-        ),
-      )}
+      {turns.map(show)}
     </div>
   );
 }

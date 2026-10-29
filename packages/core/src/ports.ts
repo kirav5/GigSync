@@ -27,6 +27,12 @@ export const Collection = {
   outboxSeq: "outbox_seq",
   payments: "payments",
   settings: "settings",
+  /** Workers this phone linked with in person, one record per colleague. */
+  colleagues: "colleagues",
+  /** The notes between this phone and one colleague, one document per colleague. */
+  colleagueNotes: "colleague_notes",
+  /** The single-use codes this phone showed as a colleague QR, until they run out. */
+  linkCodes: "link_codes",
 } as const;
 
 export interface Storage {

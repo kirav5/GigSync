@@ -10,7 +10,18 @@ import {
   savePayee,
   type WorkerRules,
 } from "@gigsync/core";
-import { type ContactCard, type Lang, PAYEE_NAME_MAX, type Session, type UserId, Vpa } from "@gigsync/protocol";
+import {
+  COLLEAGUE_PROTOCOL,
+  type ColleagueCard,
+  ContactCard,
+  type EngagementId,
+  type Lang,
+  MAX_TRADES,
+  PAYEE_NAME_MAX,
+  type Session,
+  type UserId,
+  Vpa,
+} from "@gigsync/protocol";
 import { API_BASE } from "./api.js";
 
 /** Which side of a job this phone's owner is on. One account, one role, in this first version. */
@@ -38,8 +49,8 @@ export interface Account {
 const ACCOUNT_KEY = "account";
 /** Names the consumer saw on the board, so their jobs show who they are talking to. */
 const PEOPLE = "people";
-/** The protocol's version this app speaks, sent with the device's keys at sign-in. */
-const PROTOCOL = 1;
+/** What this app understands, sent with the device's keys at sign-in: colleague and referral envelopes. */
+const PROTOCOL = COLLEAGUE_PROTOCOL;
 
 export class AccountError extends Error {}
 
@@ -132,4 +143,42 @@ export function rememberName(ports: Ports, user: UserId, name: string): Promise<
 
 export async function nameOf(ports: Ports, user: UserId): Promise<string | undefined> {
   return (await ports.storage.get<{ name: string }>(PEOPLE, user))?.name;
+}
+
+/**
+ * Saves where a worker's own work is, as the address on their contact card: a helper they hire gets it once both sign
+ * (round2-spec §3.3 A). Empty takes it off the card. Throws AccountError when the card would not be valid.
+ */
+export async function saveSite(ports: Ports, account: Account, address: string): Promise<Account> {
+  const { address: _old, ...rest } = account.contact;
+  const contact = ContactCard.safeParse(address ? { ...rest, address } : rest);
+  if (!contact.success) throw new AccountError("Work site address not valid");
+  const next: Account = { ...account, contact: contact.data };
+  await saveAccount(ports, next);
+  return next;
+}
+
+/** What a colleague sees of this worker: their contact card's name, their card's trades, the languages they speak. */
+export function colleagueCard(account: Account, lang: Lang): ColleagueCard {
+  return {
+    name: account.contact.name,
+    trades: (account.worker?.trades ?? []).slice(0, MAX_TRADES),
+    languages: [...new Set(account.languages ?? [lang])],
+  };
+}
+
+/** What the owner said to a colleague suggestion on a declined job: asked the colleague, or no thanks. */
+export const ReferralAnswer = { asked: "asked", no: "no" } as const;
+export type ReferralAnswer = (typeof ReferralAnswer)[keyof typeof ReferralAnswer];
+
+/** Answers to colleague suggestions, by job, so an answered one leaves To decide on either phone. */
+const REFERRAL_ANSWERS = "referral_answers";
+
+export function answerReferral(ports: Ports, job: EngagementId, answer: ReferralAnswer): Promise<void> {
+  return ports.storage.put(REFERRAL_ANSWERS, job, { job, answer });
+}
+
+export async function referralAnswers(ports: Ports): Promise<Map<EngagementId, ReferralAnswer>> {
+  const rows = await ports.storage.list<{ job: EngagementId; answer: ReferralAnswer }>(REFERRAL_ANSWERS);
+  return new Map(rows.map((r) => [r.job, r.answer]));
 }

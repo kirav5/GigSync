@@ -24,6 +24,8 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>GigSync uses the camera only to scan a colleague's code.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>GigSync listens only while you tap the mic.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

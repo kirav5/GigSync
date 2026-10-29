@@ -7,6 +7,7 @@ import {
   type EnvelopeKind,
   type Lang,
   type Payment,
+  Role,
   SIDE_CHANNEL_KINDS,
   type UserId,
 } from "@gigsync/protocol";
@@ -82,14 +83,18 @@ export class GigDevice {
   async sync(): Promise<{ received: number; sent: number }> {
     const received = await this.transport.receive();
     // In order on purpose: each envelope may depend on the one before it.
-    for (const item of received) await dispatch(this.ctx, this.o.worker, item);
+    for (const item of received) await dispatch(this.ctx, this.o.worker, item, this.colleagues);
     return { received: received.length, sent: await this.transport.flush() };
   }
 
   // ── Consumer ──────────────────────────────────────────────────────────────────────────────────────────────────────
-  /** Sends the need to one or more workers at once; agreeing with one cancels the rest. */
+  /**
+   * Sends the need to one or more workers at once; agreeing with one cancels the rest. A worker's phone hires a helper
+   * the same way: it is the requester of that job.
+   */
   async request(n: NewNeed, workers: readonly UserId[]): Promise<JobRecord[]> {
     if (workers.length === 0) throw new DeviceError("no workers to ask");
+    if (workers.includes(this.o.me.user)) throw new DeviceError("a phone cannot hire its own owner");
     const need: Need = { ...n, details: n.details ?? {}, group: `eng_${ulid(this.o.clock.now().getTime())}` };
     await this.store.saveNeed(need);
     // Each request is its own engagement with its own worker, so they can be prepared and queued together.
@@ -128,13 +133,13 @@ export class GigDevice {
   /** Asks for the signed price, with the UPI ID saved in settings; throws `PayeeMissingError` when there is none. */
   async requestPayment(id: EngagementId, note: string): Promise<Payment> {
     this.rules();
-    return after.requestPayment(this.ctx, await this.job(id), note);
+    return after.requestPayment(this.ctx, await this.provided(id), note);
   }
 
   /** The customer paid in cash: recorded as cash and confirmed on both phones, asking first if nobody had asked. */
   async recordCash(id: EngagementId): Promise<Payment> {
     this.rules();
-    return after.recordCash(this.ctx, await this.job(id));
+    return after.recordCash(this.ctx, await this.provided(id));
   }
 
   /** The UPI link for the worker's own QR on an open payment, from the payee saved in settings. */
@@ -193,6 +198,13 @@ export class GigDevice {
   private rules(): worker.WorkerRules {
     if (!this.o.worker) throw new DeviceError("only a worker's phone does this");
     return this.o.worker;
+  }
+
+  /** A job this phone does as the worker: a worker's phone that hired a helper is the one who pays on that job. */
+  private async provided(id: EngagementId): Promise<JobRecord> {
+    const r = await this.job(id);
+    if (r.engagement.role !== Role.enum.provider) throw new DeviceError(`not the worker on ${id}`);
+    return r;
   }
 
   private async settlePayment(paymentId: string, change: (id: string) => Promise<Payment>): Promise<Payment> {

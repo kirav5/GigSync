@@ -2,11 +2,12 @@ import { askable, type CardDraft, CITY_RATES, log, type Ports, parseAmount } fro
 import { Lang, PAISE_PER_RUPEE, SEED_SIGNER, Trade } from "@gigsync/protocol";
 import { type FormEvent, useState } from "react";
 import { type Account, apiClient, saveAccount } from "../adapters/account.js";
-import { endInterview } from "../card/interviewStore.js";
+import { closeInterview } from "../card/interviewStore.js";
 import { AboutPrivateError, accountDraft, publishCard } from "../card/publish.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
+import { errorKey } from "../ui/errorKey.js";
 import { Icon } from "../ui/Icon.js";
 import { AREAS, money } from "../ui/places.js";
 
@@ -43,6 +44,8 @@ export function MyCard({
   const [spoken, setSpoken] = useState<Lang[]>(account.languages ?? [lang]);
   const [error, setError] = useState<string>();
   const [status, setStatus] = useState<string>();
+  /** A publish or unlist is on its way: a second tap must not send the card twice. */
+  const [busy, setBusy] = useState(false);
 
   const toggle = <T,>(list: T[], item: T) => (list.includes(item) ? list.filter((x) => x !== item) : [...list, item]);
 
@@ -54,6 +57,7 @@ export function MyCard({
     const min = parseAmount(String(v.get(Field.min) ?? ""));
     if (trades.length === 0) return setError(t("card.err_trade"));
     if (rate === undefined || min === undefined || !(min > 0 && rate >= min)) return setError(t("card.err_rate"));
+    if (busy) return;
     const next: CardDraft = {
       trades,
       area: String(v.get(Field.area)),
@@ -64,6 +68,7 @@ export function MyCard({
       ask_me: askable(trades).filter((k) => v.has(ASK_FIELD + k)),
       auto: v.has(Field.auto),
     };
+    setBusy(true);
     try {
       const saved = await publishCard(ports, account, next, lang);
       const area = AREAS.find((a) => a.key === next.area) ?? AREAS[0];
@@ -76,27 +81,33 @@ export function MyCard({
         }),
       );
       // A card interview left half-way would carry on from the card as it was, and could publish that over this.
-      endInterview();
+      closeInterview();
       onSaved(saved);
     } catch (err) {
       if (err instanceof AboutPrivateError) return setError(t("iv.err_private"));
       log.warn("publish failed", { error: err instanceof Error ? err.message : String(err) });
-      setError(t("error.generic"));
+      setError(t(errorKey(err)));
+    } finally {
+      setBusy(false);
     }
   }
 
   async function unlist() {
+    if (busy) return;
+    setBusy(true);
     try {
       await apiClient(account.session).removeProfile();
       const next: Account = { ...account, listed: false };
       await saveAccount(ports, next);
       setError(undefined);
       setStatus(t("card.off_board"));
-      endInterview();
+      closeInterview();
       onSaved(next);
     } catch (err) {
       log.warn("unlist failed", { error: err instanceof Error ? err.message : String(err) });
-      setError(t("error.generic"));
+      setError(t(errorKey(err)));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -210,7 +221,7 @@ export function MyCard({
       </form>
       {account.worker && account.listed !== false && (
         <div className={C.row}>
-          <button type={C.button} className={C.quiet} onClick={() => void unlist()}>
+          <button type={C.button} className={C.quiet} disabled={busy} onClick={() => void unlist()}>
             {t("card.unlist")}
           </button>
         </div>
@@ -219,7 +230,7 @@ export function MyCard({
         <p role="status" aria-live="polite" className={error ? C.dockError : C.dockStatus}>
           {error ?? status}
         </p>
-        <button type={C.submit} form={FORM_ID} className={C.wide}>
+        <button type={C.submit} form={FORM_ID} className={C.wide} disabled={busy} aria-busy={busy}>
           {t("card.publish")}
         </button>
       </Dock>

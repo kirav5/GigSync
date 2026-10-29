@@ -1,0 +1,78 @@
+/* Colleagues: the list, the code and the scanner, a colleague's notes, and the Profile tab's dot for unread notes.
+   Sizes and colours come from the tokens in styles.css; the notes reuse its chat bubbles. */
+
+/* The Profile tab's dot: a colleague wrote and it is not read yet. Beside the icon, where the Today count sits. */
+.tabs .dot {
+  position: absolute;
+  top: 8px;
+  left: calc(50% + 8px);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.colleague-rows,
+.colleague-thread {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.colleague-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 6px 0;
+  border: 0;
+  border-bottom: 1px solid var(--hairline);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+button.colleague-row {
+  cursor: pointer;
+}
+.colleague-unread {
+  margin-inline-start: auto;
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: var(--fs-tag);
+  font-weight: 600;
+}
+
+/* This worker's code, shown to a colleague standing in front of them. */
+.colleague-code {
+  justify-items: center;
+  text-align: center;
+}
+.colleague-code img {
+  width: 100%;
+  max-width: 280px;
+  aspect-ratio: 1;
+  background: #fff;
+  padding: 6px;
+  border-radius: 6px;
+}
+
+/* The camera's picture while scanning: square, as the code is. */
+.qr-scanner {
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1;
+  justify-self: center;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--inverse);
+}
+
+.colleague-thread .msg-user {
+  justify-self: end;
+}

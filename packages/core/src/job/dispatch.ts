@@ -3,6 +3,7 @@ import {
   type Answers,
   type Cancel as CancelBody,
   type Clarify,
+  COLLEAGUE_KINDS,
   type ContactRelease,
   type DeviceId,
   type EngagementId,
@@ -14,10 +15,13 @@ import {
   type Offer,
   type PaymentRecord,
   type PaymentRequest,
+  type Referral,
   Role,
   SIDE_CHANNEL_KINDS,
   type UserId,
 } from "@gigsync/protocol";
+import type { Colleagues } from "../colleague/colleagues.js";
+import { onReferral } from "../colleague/referral.js";
 import { apply, TransitionError } from "../engagement/machine.js";
 import { log } from "../log.js";
 import type { Received } from "../mail/transport.js";
@@ -53,6 +57,7 @@ const RECEIVES: Readonly<Record<Role, ReadonlySet<EnvelopeKind>>> = {
     K.delivery,
     K.payment_request,
     K.payment_record,
+    K.referral,
   ]),
 };
 
@@ -65,12 +70,25 @@ export async function needOf(ctx: JobContext, r: JobRecord): Promise<Need> {
   return need;
 }
 
+/** Where envelopes between colleagues go: they belong to no job. */
+export type ColleagueInbox = Pick<Colleagues, "receive">;
+
 /**
  * Takes one verified, opened envelope into its job: only from the job's counterpart, only kinds this side may
- * receive, only moves the engagement allows. Then lets the right agent answer it.
+ * receive, only moves the engagement allows. Then lets the right agent answer it. Colleague envelopes go to the
+ * colleague inbox and never reach a job or the engagement machine.
+ *
+ * Roles are per engagement: a worker's phone that hires someone is the requester of that job, found in the store
+ * like any other. Only an incoming `request` for an engagement this phone does not have makes a new worker job.
  */
-export async function dispatch(ctx: JobContext, rules: worker.WorkerRules | undefined, item: Received): Promise<void> {
+export async function dispatch(
+  ctx: JobContext,
+  rules: worker.WorkerRules | undefined,
+  item: Received,
+  colleagues: ColleagueInbox,
+): Promise<void> {
   const { envelope: e, body } = item;
+  if (COLLEAGUE_KINDS.has(e.kind)) return colleagues.receive(item);
   const existing = await ctx.store.job(e.engagement);
   const r =
     existing ??
@@ -134,6 +152,9 @@ async function react(
       return;
     case K.review:
       await ctx.store.saveJob({ ...r, review: body as JobReview });
+      return;
+    case K.referral:
+      await onReferral(ctx, r, body as Referral);
       return;
     case K.update:
     case K.delivery:

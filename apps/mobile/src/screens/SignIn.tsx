@@ -4,6 +4,7 @@ import { type Account, AccountRole, sendCode, signIn } from "../adapters/account
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
+import { errorKey } from "../ui/errorKey.js";
 
 /** The form's field names. */
 const F = { name: "name", phone: "phone", address: "address", code: "code" } as const;
@@ -51,7 +52,7 @@ export function SignIn({
       onSignedIn(await signIn(ports, { phone, code: String(v.get(F.code) ?? "").trim(), role, contact }));
     } catch (err) {
       log.warn("sign-in failed", { error: err instanceof Error ? err.message : String(err) });
-      setError(t("error.generic"));
+      setError(t(errorKey(err)));
     } finally {
       setBusy(false);
     }

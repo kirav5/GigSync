@@ -6,12 +6,13 @@ import {
   type DeviceRegistration,
   DirectoryEntry,
   Envelope,
-  type MessageId,
+  MessageId,
   Session,
   type UserId,
 } from "@gigsync/protocol";
 import { z } from "zod";
 import { BEARER_PREFIX, ContentType, Header, HttpMethod } from "../http.js";
+import { log } from "../log.js";
 
 /** The routes of workers/api this client calls. */
 export const ApiPath = {
@@ -54,9 +55,42 @@ export interface Relay {
   ack(ids: MessageId[]): Promise<unknown>;
 }
 
+/** How long one API call may take, answer included: a reply lost on a bad network must not leave a screen busy. */
+export const REQUEST_TIMEOUT_MS = 15_000;
+
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 const ErrorBody = z.object({ error: z.string() });
 const Removed = z.object({ removed: z.boolean() });
+/** Just enough of an envelope this phone cannot read to acknowledge it. */
+const Identified = z.object({ id: MessageId });
+
+/** AbortSignal.timeout where the web view has it (Safari 16, Chrome 103 on), else the same from a timer. */
+function timeoutSignal(ms: number): AbortSignal {
+  if (typeof AbortSignal.timeout === "function") return AbortSignal.timeout(ms);
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), ms);
+  return controller.signal;
+}
+
+/**
+ * Runs one request with a deadline. The signal stops a fetch that honours it; the race stops one that does not. No
+ * answer by the deadline is a timeout; the TypeError fetch throws without a network is offline.
+ */
+async function withDeadline<T>(ms: number, work: (signal: AbortSignal) => Promise<T>): Promise<T> {
+  const signal = timeoutSignal(ms);
+  const late = new Promise<never>((_, reject) =>
+    signal.addEventListener("abort", () => reject(new NetError(NetReason.timeout)), { once: true }),
+  );
+  // The deadline fires after a call that answered in time too; nothing is listening then.
+  late.catch(() => undefined);
+  try {
+    return await Promise.race([work(signal), late]);
+  } catch (err) {
+    if (signal.aborted) throw new NetError(NetReason.timeout);
+    if (err instanceof TypeError) throw new NetError(NetReason.offline);
+    throw err;
+  }
+}
 
 /** Typed calls to workers/api. Every response is parsed with its protocol schema before it is used. */
 export class ApiClient implements Relay {
@@ -87,8 +121,38 @@ export class ApiClient implements Relay {
     return this.call(HttpMethod.post, `${ApiPath.mailbox}${envelope.to.user}`, envelope);
   }
 
+  /**
+   * What the mailbox holds, envelope by envelope: one this phone cannot read (a kind from a newer app) is skipped and
+   * acknowledged here, so it neither blocks the others nor comes back.
+   */
   async inbox(): Promise<Envelope[]> {
-    return z.array(Envelope).parse(await this.call(HttpMethod.get, ApiPath.inbox));
+    const fetched = z.array(z.unknown()).parse(await this.call(HttpMethod.get, ApiPath.inbox));
+    const readable: Envelope[] = [];
+    const unreadable: MessageId[] = [];
+    for (const raw of fetched) {
+      const parsed = Envelope.safeParse(raw);
+      if (parsed.success) {
+        readable.push(parsed.data);
+        continue;
+      }
+      const id = Identified.safeParse(raw).data?.id;
+      log.warn("unreadable envelope skipped", { messageId: id });
+      if (id) unreadable.push(id);
+    }
+    if (unreadable.length > 0) await this.ackUnreadable(unreadable);
+    return readable;
+  }
+
+  /** A failed acknowledgement only means the skipped envelopes come back once more; the readable ones still go on. */
+  private async ackUnreadable(ids: MessageId[]): Promise<void> {
+    try {
+      await this.ack(ids);
+    } catch (err) {
+      log.warn("ack of unreadable envelopes failed", {
+        count: ids.length,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
 
   ack(ids: MessageId[]): Promise<unknown> {
@@ -115,12 +179,12 @@ export class ApiClient implements Relay {
   private async call(method: string, path: string, body?: unknown): Promise<unknown> {
     const headers: Record<string, string> = { [Header.contentType]: ContentType.json };
     if (this.session) headers[Header.authorization] = `${BEARER_PREFIX}${this.session.token}`;
-    const res = await this.fetchFn(`${this.base}${path}`, {
-      method,
-      headers,
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    const init: RequestInit = { method, headers, ...(body === undefined ? {} : { body: JSON.stringify(body) }) };
+    const { res, json } = await withDeadline(REQUEST_TIMEOUT_MS, async (signal) => {
+      const res = await this.fetchFn(`${this.base}${path}`, { ...init, signal });
+      const json: unknown = await res.json().catch(() => null);
+      return { res, json };
     });
-    const json: unknown = await res.json().catch(() => null);
     if (!res.ok) throw new HttpError(res.status, ErrorBody.safeParse(json).data?.error ?? res.statusText);
     return json;
   }

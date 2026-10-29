@@ -1,10 +1,10 @@
 import {
-  type Card,
   CardKind,
   type Agent as CoreAgent,
   edit,
   editIntent,
   hireIntent,
+  log,
   type MessageKey,
   type Ports,
   prompt,
@@ -15,10 +15,13 @@ import { useEffect, useRef, useState } from "react";
 import type { Account } from "../adapters/account.js";
 import { interviewConfig } from "../card/choices.js";
 import {
+  addNote,
   answerInterview,
   beginInterview,
+  noteAnswered,
   relanguageInterview,
   resumeInterview,
+  Speaker,
   useInterview,
 } from "../card/interviewStore.js";
 import { accountDraft } from "../card/publish.js";
@@ -26,40 +29,18 @@ import { useI18n } from "../i18n.js";
 import { Composer, Via } from "../ui/Composer.js";
 import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
-import { Said } from "../ui/Said.js";
+import { errorKey } from "../ui/errorKey.js";
 import { Interview } from "./Interview.js";
 import "./talk.css";
 
-interface Turn {
-  id: number;
-  own: string;
-  card?: Card;
-}
-
 /** Ready notes for a gig worker's agent, in each language, matching what the on-phone router understands. */
 const STARTERS: readonly MessageKey[] = ["agent.starter_1", "agent.starter_2"];
-
-/** The heading each card kind gets on screen. */
-const KIND_LABEL: Readonly<Record<Card["kind"], MessageKey>> = {
-  [CardKind.text]: "card.text",
-  [CardKind.saved]: "card.saved",
-  [CardKind.answer]: "card.answer",
-  [CardKind.draft]: "card.draft",
-  [CardKind.needsModel]: "card.needs_model",
-};
-
-/** A card's words: a phrase in the owner's language, or quoted words translated on the phone when needed. */
-function CardText({ card }: { card: Card }) {
-  const { t } = useI18n();
-  if ("say" in card) return <>{t(card.say.key, card.say.params)}</>;
-  return <Said text={card.words.text} from={card.words.lang} />;
-}
 
 interface TalkProps {
   agent: CoreAgent;
   ports: Ports;
   account: Account;
-  /** Start (or resume) the card interview instead of the notes chat. */
+  /** Start (or resume) the card interview on opening Talk. */
   interview: boolean;
   /** The account after the interview published the card. */
   onSaved: (a: Account) => void;
@@ -68,20 +49,21 @@ interface TalkProps {
 }
 
 /**
- * Talk: the card interview when there is no card yet or the owner asked to change it by talking, otherwise notes and
- * answers from the worker's agent, on this phone (lite mode without a model). Words that ask to change a field of the
- * card ("मेरा रेट बदलो") open the interview at that field.
+ * Talk: one conversation with the worker's agent, kept across tabs: notes and its answers, on this phone (lite mode
+ * without a model), and the card interview when there is no card yet or the owner asked to change it by talking.
+ * Words that ask to change a field of the card ("मेरा रेट बदलो") open the interview at that field, below what was
+ * said before.
  */
 export function AgentScreen({ agent, ports, account, interview, onSaved, onHire }: TalkProps) {
-  const { lang, t, plural } = useI18n();
+  const { lang, t } = useI18n();
   const { state, turns, paused } = useInterview();
-  const [notes, setNotes] = useState<Turn[]>([]);
   const [busy, setBusy] = useState(false);
   const opened = useRef(false);
   const end = useRef<HTMLDivElement>(null);
   const active = state !== undefined && !paused;
   const current = active ? prompt(state) : undefined;
   const wanted = interview || !account.worker;
+  const noted = turns.some((turn) => turn.who === Speaker.note);
 
   // Opening Talk to make or change the card starts the interview; one already under way carries on where it was.
   // One paused with "Later" stays paused across tabs until the owner taps "Carry on".
@@ -96,9 +78,10 @@ export function AgentScreen({ agent, ports, account, interview, onSaved, onHire 
     if (state && state.config.own !== lang) relanguageInterview(interviewConfig(lang));
   }, [state, lang]);
 
+  // The newest turn, or the answer that just came to a note, stays in view.
   useEffect(() => {
-    if (turns.length + notes.length > 0) end.current?.scrollIntoView({ block: "end" });
-  }, [turns.length, notes.length]);
+    if (turns.length > 0) end.current?.scrollIntoView({ block: "end" });
+  }, [turns]);
 
   const fresh = () => start(interviewConfig(lang), accountDraft(account));
 
@@ -114,11 +97,13 @@ export function AgentScreen({ agent, ports, account, interview, onSaved, onHire 
     }
     if (busy) return;
     setBusy(true);
-    const id = Date.now();
-    setNotes((n) => [...n, { id, own }]);
+    // Kept outside the screen: an answer that comes after the owner switched tabs still lands under its note.
+    const id = addNote(own);
     try {
-      const { card } = await agent.handle(own);
-      setNotes((n) => n.map((x) => (x.id === id ? { ...x, card } : x)));
+      noteAnswered(id, (await agent.handle(own)).card);
+    } catch (err) {
+      log.warn("note failed", { error: err instanceof Error ? err.message : String(err) });
+      noteAnswered(id, { kind: CardKind.text, say: { key: errorKey(err) } });
     } finally {
       setBusy(false);
     }
@@ -135,50 +120,27 @@ export function AgentScreen({ agent, ports, account, interview, onSaved, onHire 
         </h1>
       </div>
       {turns.length > 0 && <Interview ports={ports} account={account} onSaved={onSaved} />}
-      {/* Notes and their starters, while no interview is being answered. */}
+      {/* What the owner can start while no interview is being answered; the ready notes only before the first. */}
       {!active && (
-        <>
-          <div className={C.row}>
-            {paused && (
-              <button type={C.button} className={C.chipOn} onClick={resumeInterview}>
-                {t("iv.resume")}
+        <div className={C.row}>
+          {paused && (
+            <button type={C.button} className={C.chipOn} onClick={resumeInterview}>
+              {t("iv.resume")}
+            </button>
+          )}
+          <button type={C.button} className={C.chip} onClick={() => beginInterview(fresh())}>
+            {t("iv.change_card")}
+          </button>
+          <button type={C.button} className={C.chip} onClick={onHire}>
+            {t("hire.chip")}
+          </button>
+          {!noted &&
+            STARTERS.map((s) => (
+              <button key={s} type={C.button} className={C.chip} onClick={() => void sendNote(t(s))}>
+                {t(s)}
               </button>
-            )}
-            {notes.length === 0 && (
-              <>
-                <button type={C.button} className={C.chip} onClick={() => beginInterview(fresh())}>
-                  {t("iv.change_card")}
-                </button>
-                <button type={C.button} className={C.chip} onClick={onHire}>
-                  {t("hire.chip")}
-                </button>
-                {STARTERS.map((s) => (
-                  <button key={s} type={C.button} className={C.chip} onClick={() => void sendNote(t(s))}>
-                    {t(s)}
-                  </button>
-                ))}
-              </>
-            )}
-          </div>
-          {notes.map((turn) => (
-            <div key={turn.id} className={C.stack}>
-              <div className="msg-user">
-                <div className="bubble">{turn.own}</div>
-              </div>
-              {turn.card && (
-                <div className="msg-agent">
-                  <span className={C.label}>{t(KIND_LABEL[turn.card.kind])}</span>
-                  <div className="text">
-                    <CardText card={turn.card} />
-                  </div>
-                  {turn.card.kind === CardKind.answer && turn.card.sources.length > 0 && (
-                    <span className={C.faint}>{plural("agent.sources", turn.card.sources.length)}</span>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </>
+            ))}
+        </div>
       )}
       <div ref={end} />
       <Dock>

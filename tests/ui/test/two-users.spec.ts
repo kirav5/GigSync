@@ -158,6 +158,12 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await setUpi(anil, en, "anil.test@okaxis");
   await open(anil, "nav.today");
   await askPayment.click();
+  // Asked and waiting on her: he sees whom he waits for, and nothing to confirm or dispute until she says she paid.
+  const waiting = job.getByText(say("money.waiting", { name: priyaName, price: `₹${deal}` }));
+  await expect(waiting).toBeVisible();
+  await expect(job.getByRole("button", { name: say("money.show_qr") })).toBeVisible();
+  await expect(job.getByRole("button", { name: say("job.money_received") })).toHaveCount(0);
+  await expect(job.getByRole("button", { name: say("job.not_received") })).toHaveCount(0);
 
   const payBox = priya.getByRole("form", { name: say("a11y.pay") });
   await expect(payBox.getByRole("img", { name: say("a11y.qr") })).toBeVisible();
@@ -172,14 +178,20 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   // Her "paid", with its UPI reference, is what he confirms.
   const confirm = anil.getByRole("group", { name: say("a11y.confirm_payment") });
   await expect(confirm).toBeVisible();
+  await expect(waiting).toHaveCount(0);
   await shoot("confirm-payment", phones);
   await confirm.getByRole("button", { name: say("job.money_received") }).click();
 
   // ── His passbook: the job both signed, her reference, this week's total; nothing left to ask for ───────────────
   const amount = `₹${deal}`;
   await open(anil, "nav.passbook");
-  const rows = anil.getByRole("list", { name: say("nav.passbook") });
-  for (const text of [amount, priyaName, say("payrow.confirmed"), say("payrow.ref", { utr: UTR })]) {
+  const rows = anil.getByRole("region", { name: say("record.title") });
+  for (const text of [
+    amount,
+    priyaName,
+    say("record.state_received", { price: amount }),
+    say("payrow.ref", { utr: UTR }),
+  ]) {
     await expect(rows).toContainText(text);
   }
   await expect(anil.getByText(say("passbook.week"), { exact: true }).locator("xpath=..")).toContainText(amount);

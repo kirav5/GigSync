@@ -42,7 +42,7 @@ export const colleague: Readonly<Record<keyof typeof en, string>> = {
   "hire.chip": "किसी को काम पर रखें",
   "hire.title": "अपने काम के लिए किसी को रखें",
   "hire.site": "काम कहाँ है?",
-  "hire.site_help": "पता तभी भेजा जाएगा जब आप दोनों दस्तख़त कर दें।",
+  "hire.site_help": "यह पता सिर्फ़ उसी को भेजा जाएगा जिसे आप काम पर रखें, और आप दोनों के दस्तख़त के बाद ही।",
   "hire.site_save": "सेव करके आगे बढ़ें",
   "hire.site_profile": "काम की जगह का पता",
   "hire.section": "आपने काम पर रखा",

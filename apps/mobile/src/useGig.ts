@@ -1,4 +1,4 @@
-import { type GigDevice, type JobRecord, log, type OwnerTask, type Ports } from "@gigsync/core";
+import { type GigDevice, type JobRecord, log, NetError, type OwnerTask, type Ports } from "@gigsync/core";
 import type { Payment } from "@gigsync/protocol";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { nameOf } from "./adapters/account.js";
@@ -22,7 +22,8 @@ const EMPTY: GigView = { jobs: [], tasks: [], payments: [], names: {} };
  * Keeps the job screens in step with the agent: syncs on a timer and after every owner action, one at a time, so an
  * action never races a sync over the same job. A slow phone must not pile up timer syncs, and a sync queued for a
  * replaced device (publishing a card makes a new one, with the worker's rules) must not run: the old device would
- * take a request it has no rules for and drop it.
+ * take a request it has no rules for and drop it. A sync the server did not answer (timed out, or no network) is
+ * nothing to report: the next tick tries again, and every call has a deadline, so the queue never stays stuck.
  */
 export function useGig(ports: Ports, device: GigDevice | undefined) {
   const [view, setView] = useState<GigView>(EMPTY);
@@ -46,11 +47,16 @@ export function useGig(ports: Ports, device: GigDevice | undefined) {
     (work?: () => Promise<unknown>) => {
       const next = queue.current.then(async () => {
         if (!device || current.current !== device) return;
+        let acted = false;
         try {
           if (work) await work();
+          acted = true;
           await device.sync();
         } catch (err) {
+          // Done on the phone, but the server did not answer the sync: what is queued goes out on a later tick.
+          if (acted && err instanceof NetError) return log.info("sync deferred: no answer", { reason: err.reason });
           log.warn("sync failed", { error: err instanceof Error ? err.message : String(err) });
+          // The owner's action itself failed: their screen says so.
           if (work) throw err;
         } finally {
           await read();
@@ -70,9 +76,11 @@ export function useGig(ports: Ports, device: GigDevice | undefined) {
     const timer = setInterval(() => {
       if (timerQueued.current) return;
       timerQueued.current = true;
-      void run().finally(() => {
-        timerQueued.current = false;
-      });
+      void run()
+        .catch(() => undefined)
+        .finally(() => {
+          timerQueued.current = false;
+        });
     }, SYNC_MS);
     return () => clearInterval(timer);
   }, [device, run]);

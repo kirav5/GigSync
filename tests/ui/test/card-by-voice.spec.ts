@@ -64,6 +64,24 @@ async function nextTurn(page: Page, lang: Lang, key: MessageKey, act: () => Prom
   await expect(lines).toHaveCount(before + 1);
 }
 
+/** Where `re` first matches `text` at or after `from`; -1 when it does not. */
+function searchFrom(text: string, re: RegExp, from: number): number {
+  const find = new RegExp(re.source, "g");
+  find.lastIndex = from;
+  return find.exec(text)?.index ?? -1;
+}
+
+/** Asserts that each mark appears in Talk's conversation after the one before it: the turns are in the order said. */
+async function inOrder(page: Page, marks: readonly (string | RegExp)[]) {
+  const text = (await page.getByRole("log").textContent()) ?? "";
+  let from = 0;
+  for (const mark of marks) {
+    const at = typeof mark === "string" ? text.indexOf(mark, from) : searchFrom(text, mark, from);
+    expect(at, `${mark} after the turns before it`).toBeGreaterThanOrEqual(from);
+    from = at + 1;
+  }
+}
+
 /** Types an answer into Talk's composer and sends it. */
 async function type(page: Page, lang: Lang, text: string) {
   await field(page, lang).fill(text);
@@ -109,15 +127,32 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
   await open(page, "nav.profile", hi);
   await expect(page.getByText(textOf(hi, "card.on_board", { price: "₹9,000" }))).toBeVisible();
 
-  await test.step("saying 'change my rate' on Talk asks the rate again", async () => {
+  await test.step("a note on Talk stays there across tabs", async () => {
     await open(page, "nav.talk", hi);
+    await page.getByRole("button", { name: t(hi, "agent.starter_1"), exact: true }).click();
+    await expect(page.getByText(t(hi, "card.saved"), { exact: true })).toBeVisible();
+    await open(page, "nav.profile", hi);
+    await open(page, "nav.talk", hi);
+    await expect(page.getByText(t(hi, "agent.starter_1"), { exact: true })).toBeVisible();
+    await expect(page.getByText(t(hi, "card.saved"), { exact: true })).toBeVisible();
+  });
+
+  await test.step("saying 'change my rate' on Talk asks the rate again, below everything said before", async () => {
     const said = "मेरा रेट बदलो";
     await type(page, hi, said);
-    // A new interview replaces the finished one on screen: her words, then the rate question, open to answer.
+    // The new interview is added after the finished one and the note: her words, then the rate question, open.
     await expect(page.getByText(said, { exact: true })).toBeVisible();
-    await expect(page.getByText(textOf(hi, "iv.published"))).toHaveCount(0);
-    await expect(page.getByText(textOf(hi, "iv.ask.rate_month"))).toHaveCount(1);
+    await expect(page.getByText(textOf(hi, "iv.published"))).toHaveCount(1);
+    await expect(page.getByText(textOf(hi, "iv.ask.rate_month"))).toHaveCount(2);
     await expect(page.getByRole("button", { name: t(hi, "iv.later"), exact: true })).toBeVisible();
+    await inOrder(page, [
+      textOf(hi, "iv.ask.trade"),
+      textOf(hi, "iv.published"),
+      t(hi, "agent.starter_1"),
+      t(hi, "card.saved"),
+      said,
+      textOf(hi, "iv.ask.rate_month"),
+    ]);
   });
   await unlist(page, hi);
 });

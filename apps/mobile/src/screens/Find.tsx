@@ -11,14 +11,16 @@ import {
   questionText,
   WhenDetail,
 } from "@gigsync/core";
-import { type BoardWorker, Lang, Trade } from "@gigsync/protocol";
+import { type BoardWorker, Trade } from "@gigsync/protocol";
 import { type FormEvent, useState } from "react";
 import { type Account, apiClient, rememberName } from "../adapters/account.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
-import { AREAS, areaLabel, areaNamed, money } from "../ui/places.js";
-import { Said } from "../ui/Said.js";
+import { errorKey } from "../ui/errorKey.js";
+import { AREAS, areaNamed } from "../ui/places.js";
+import { SiteForm } from "./colleague/SiteForm.js";
+import { WorkerPick } from "./colleague/WorkerPick.js";
 import { dayDate } from "./jobGroups.js";
 
 const RADII_KM = [5, 10, 25] as const;
@@ -47,13 +49,17 @@ interface Props {
   account: Account;
   device: GigDevice;
   onAsked: () => void;
+  /** A worker hiring a helper for their own work (round2-spec §3.3 A), opened from Talk. */
+  hire?: boolean;
+  /** The account after the work site was saved. */
+  onAccount: (a: Account) => void;
 }
 
-/** The language a worker writes their card in: the first one they listed that the app knows. */
-const cardLang = (w: BoardWorker) => w.languages.map((l) => Lang.safeParse(l)).find((p) => p.success)?.data;
-
-/** Find workers near you for one need, then let your agent ask the ones you pick. Your budget stays here. */
-export function Find({ ports, account, device, onAsked }: Props) {
+/**
+ * Find workers near you for one need, then let your agent ask the ones you pick. Your budget stays here. A worker
+ * hiring is asked first where the work is, if their card has no address; their own card never shows.
+ */
+export function Find({ ports, account, device, onAsked, hire = false, onAccount }: Props) {
   const { lang, t, plural, date } = useI18n();
   const [trade, setTrade] = useState<Trade>(Trade.enum.electrician);
   const [area, setArea] = useState<string>(AREAS[0].name);
@@ -64,12 +70,6 @@ export function Find({ ports, account, device, onAsked }: Props) {
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
   const when = chosen ?? (isMonthly(trade) ? When.daily : When.today);
-
-  /** A listed language, named in the owner's language when the app knows it, else its code. */
-  const languageName = (code: string) => {
-    const known = Lang.safeParse(code);
-    return known.success ? t(`lang.${known.data}`) : code;
-  };
 
   /** The phone's calendar day, `days` from now: what "Today" and "Tomorrow" mean where the owner is. */
   const dayFromNow = (days: number) => {
@@ -82,13 +82,14 @@ export function Find({ ports, account, device, onAsked }: Props) {
     const radius = Number(new FormData(e.currentTarget).get(F.radius));
     const { lat, lon } = areaNamed(area);
     try {
-      const workers = await apiClient(account.session).searchWorkers({ trade, lat, lon, radius_km: radius });
+      const board = await apiClient(account.session).searchWorkers({ trade, lat, lon, radius_km: radius });
+      const workers = board.filter((w) => w.user !== account.session.user);
       setFound(workers);
       setPicked(workers.slice(0, 1).map((w) => w.user));
       setError(undefined);
     } catch (err) {
       log.warn("search failed", { error: err instanceof Error ? err.message : String(err) });
-      setError(t("error.generic"));
+      setError(t(errorKey(err)));
     }
   }
 
@@ -132,19 +133,24 @@ export function Find({ ports, account, device, onAsked }: Props) {
       onAsked();
     } catch (err) {
       log.warn("asking workers failed", { error: err instanceof Error ? err.message : String(err) });
-      setError(t("error.generic"));
+      setError(t(errorKey(err)));
     } finally {
       setBusy(false);
     }
   }
 
+  if (hire && !account.contact.address) return <SiteForm ports={ports} account={account} ask onSaved={onAccount} />;
   return (
     <>
       <div className={C.stack}>
         <span className={C.labelSq}>{t("nav.find")}</span>
-        <h1 className={C.headline}>
-          {t("find.headline")} <span className={C.soft}>{t("find.soft")}</span>
-        </h1>
+        {hire ? (
+          <h1 className={C.headline}>{t("hire.title")}</h1>
+        ) : (
+          <h1 className={C.headline}>
+            {t("find.headline")} <span className={C.soft}>{t("find.soft")}</span>
+          </h1>
+        )}
       </div>
       <form className={C.card} onSubmit={(e) => void search(e)} aria-label={t("a11y.search")}>
         <div className={C.row}>
@@ -189,37 +195,12 @@ export function Find({ ports, account, device, onAsked }: Props) {
       {found && found.length > 0 && (
         <form id={ASK_FORM} className={C.stack} onSubmit={(e) => void ask(e)} aria-label={t("a11y.ask_workers")}>
           {found.map((w) => (
-            <label key={w.user} className={C.card} aria-label={t("a11y.worker", { name: w.display_name })}>
-              <div className={C.row}>
-                <input
-                  type="checkbox"
-                  aria-label={t("a11y.ask_worker", { name: w.display_name })}
-                  checked={picked.includes(w.user)}
-                  onChange={() =>
-                    setPicked((p) => (p.includes(w.user) ? p.filter((x) => x !== w.user) : [...p, w.user]))
-                  }
-                />
-                <span className="avatar" aria-hidden="true">
-                  {w.display_name.slice(0, 1).toUpperCase()}
-                </span>
-                <div className="who">
-                  <strong>{w.display_name}</strong>
-                  <span className={C.muted}>
-                    {w.trades.map((tr) => t(`trade.${tr}`)).join(", ")} · {areaLabel(lang, w.area_name)} ·{" "}
-                    {t("find.distance", { km: w.distance_km })}
-                  </span>
-                  {w.languages.length > 0 && (
-                    <span className={C.faint}>{w.languages.map(languageName).join(", ")}</span>
-                  )}
-                </div>
-                <span className={`${C.money} end`}>{t("find.from", { price: money(w.rate_paise) })}</span>
-              </div>
-              {w.about && (
-                <span className={C.faint}>
-                  <Said text={w.about} from={cardLang(w)} />
-                </span>
-              )}
-            </label>
+            <WorkerPick
+              key={w.user}
+              worker={w}
+              picked={picked.includes(w.user)}
+              onToggle={() => setPicked((p) => (p.includes(w.user) ? p.filter((x) => x !== w.user) : [...p, w.user]))}
+            />
           ))}
           <div className={C.card}>
             <span className={C.label}>{t("find.need_label")}</span>

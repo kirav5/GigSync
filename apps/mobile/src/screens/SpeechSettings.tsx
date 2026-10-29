@@ -7,6 +7,7 @@ import {
   speakState,
   VoiceState,
   waitsForDownload,
+  watchDownload,
 } from "../adapters/speech.js";
 import { useCloudConsent, useReadAloudPref, withdrawCloud } from "../adapters/speech-settings.js";
 import { useI18n } from "../i18n.js";
@@ -45,6 +46,12 @@ export function SpeechSettings() {
     };
   }, [lang]);
 
+  // Downloads finish in the background: while one runs, its state is read again until it changes (round2-spec §1.5).
+  const hearLoading = hear?.state === VoiceState.downloading;
+  const sayLoading = say?.state === VoiceState.downloading;
+  useEffect(() => (hearLoading ? watchDownload(() => listenState(lang), setHear) : undefined), [hearLoading, lang]);
+  useEffect(() => (sayLoading ? watchDownload(() => speakState(lang), setSay) : undefined), [sayLoading, lang]);
+
   async function getListen() {
     if (hear) setHear({ ...hear, state: VoiceState.downloading });
     setHear(await prepareListen(lang));
@@ -73,12 +80,7 @@ export function SpeechSettings() {
           {t("speech.listen_state", { lang: langName, state: word(cloud ? VoiceState.available : hear?.state) })}
         </span>
         {waitsForDownload(hear) && (
-          <button
-            type={C.button}
-            className={LINK_END}
-            disabled={hear?.state === VoiceState.downloading}
-            onClick={() => void getListen()}
-          >
+          <button type={C.button} className={LINK_END} disabled={hearLoading} onClick={() => void getListen()}>
             {t("speech.download", { lang: langName })}
           </button>
         )}
@@ -92,12 +94,7 @@ export function SpeechSettings() {
       <div className={C.row}>
         <span className={C.muted}>{t("speech.speak_state", { lang: langName, state: word(say?.state) })}</span>
         {waitsForDownload(say) && (
-          <button
-            type={C.button}
-            className={LINK_END}
-            disabled={say?.state === VoiceState.downloading}
-            onClick={() => void getSpeak()}
-          >
+          <button type={C.button} className={LINK_END} disabled={sayLoading} onClick={() => void getSpeak()}>
             {t("translation.download")}
           </button>
         )}
