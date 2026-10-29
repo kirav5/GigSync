@@ -28,6 +28,12 @@ export const EnvelopeKind = z.enum([
   "payment_request",
   /** Either side → the other: a payment was made (UPI ref) or confirmed. Does not move the engagement. */
   "payment_record",
+  /** Worker ↔ worker met in person: ask to link (with the scanned code), ok, or end. Not part of any engagement. */
+  "colleague",
+  /** Linked colleague → colleague: a message. Not part of any engagement. */
+  "colleague_note",
+  /** Worker → household, on a request the worker declined: a colleague to ask instead. Does not move the engagement. */
+  "referral",
 ]);
 export type EnvelopeKind = z.infer<typeof EnvelopeKind>;
 
@@ -38,7 +44,14 @@ export const SIDE_CHANNEL_KINDS: ReadonlySet<EnvelopeKind> = new Set([
   K.payment_request,
   K.payment_record,
   K.key_change,
+  K.referral,
 ]);
+
+/**
+ * Kinds between colleagues, outside any job: their `engagement` is the pair's channel id, and the engagement state
+ * table never sees them.
+ */
+export const COLLEAGUE_KINDS: ReadonlySet<EnvelopeKind> = new Set([K.colleague, K.colleague_note]);
 
 export const Base64 = z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/, "base64");
 /** A person has at most this many devices to seal one envelope to. */

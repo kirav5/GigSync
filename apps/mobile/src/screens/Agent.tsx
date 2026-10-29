@@ -4,6 +4,7 @@ import {
   type Agent as CoreAgent,
   edit,
   editIntent,
+  hireIntent,
   type MessageKey,
   type Ports,
   prompt,
@@ -62,6 +63,8 @@ interface TalkProps {
   interview: boolean;
   /** The account after the interview published the card. */
   onSaved: (a: Account) => void;
+  /** Opens Find to hire someone (worker to worker, flow A). */
+  onHire: () => void;
 }
 
 /**
@@ -69,7 +72,7 @@ interface TalkProps {
  * answers from the worker's agent, on this phone (lite mode without a model). Words that ask to change a field of the
  * card ("मेरा रेट बदलो") open the interview at that field.
  */
-export function AgentScreen({ agent, ports, account, interview, onSaved }: TalkProps) {
+export function AgentScreen({ agent, ports, account, interview, onSaved, onHire }: TalkProps) {
   const { lang, t, plural } = useI18n();
   const { state, turns, paused } = useInterview();
   const [notes, setNotes] = useState<Turn[]>([]);
@@ -103,6 +106,10 @@ export function AgentScreen({ agent, ports, account, interview, onSaved }: TalkP
     const field = editIntent(own);
     if (field) {
       beginInterview(account.worker ? edit(fresh(), field) : fresh(), own);
+      return;
+    }
+    if (hireIntent(own, lang)) {
+      onHire();
       return;
     }
     if (busy) return;
@@ -141,6 +148,9 @@ export function AgentScreen({ agent, ports, account, interview, onSaved }: TalkP
               <>
                 <button type={C.button} className={C.chip} onClick={() => beginInterview(fresh())}>
                   {t("iv.change_card")}
+                </button>
+                <button type={C.button} className={C.chip} onClick={onHire}>
+                  {t("hire.chip")}
                 </button>
                 {STARTERS.map((s) => (
                   <button key={s} type={C.button} className={C.chip} onClick={() => void sendNote(t(s))}>

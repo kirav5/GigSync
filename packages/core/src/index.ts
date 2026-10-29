@@ -1,4 +1,5 @@
 export * from "./agent.js";
+export * from "./colleague/colleagues.js";
 export * from "./engagement/machine.js";
 export * from "./experts.js";
 export * from "./http.js";
@@ -27,7 +28,9 @@ export * from "./net/api.js";
 export * from "./payments/book.js";
 export * from "./payments/passbook.js";
 export * from "./payments/payee.js";
+export * from "./payments/record.js";
 export * from "./payments/upi.js";
 export * from "./policy/engine.js";
 export * from "./ports.js";
+export * from "./router/hire.js";
 export * from "./router/keyword.js";

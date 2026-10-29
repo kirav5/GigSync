@@ -7,6 +7,8 @@ export const Screen = {
   passbook: "passbook",
   profile: "profile",
   card: "card",
+  /** Colleagues linked in person, under Profile. */
+  colleagues: "colleagues",
 } as const;
 export type Screen = (typeof Screen)[keyof typeof Screen];
 

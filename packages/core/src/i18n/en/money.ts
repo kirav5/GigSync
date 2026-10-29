@@ -15,4 +15,8 @@ export const money = {
   "money.need_upi": "Add the UPI ID customers pay you on, in Profile.",
   "money.add_upi": "Add UPI ID",
   "money.nudge": "Add your UPI ID before this job ends, so the customer can pay you straight away.",
+  "money.waiting": "Waiting for {name} to pay {price}.",
+  "money.asked_at": "Asked {time}",
+  "money.already_in_bank": "It's already in my bank",
+  "money.bank_confirm": "Mark {price} as received?",
 } as const;

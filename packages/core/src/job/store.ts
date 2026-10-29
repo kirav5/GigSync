@@ -1,6 +1,7 @@
 import type {
   Agree,
   Cancel,
+  ColleagueCard,
   ContactCard,
   Engagement,
   EngagementId,
@@ -12,6 +13,7 @@ import type {
   Place,
   Role,
   Trade,
+  UserId,
 } from "@gigsync/protocol";
 import { Collection, type Storage } from "../ports.js";
 import type { Advice } from "./advice.js";
@@ -43,6 +45,10 @@ export interface JobRecord {
   review?: JobReview;
   /** The worker's notes (on my way, done) as received, each with its language so the screen can translate it. */
   notes?: Note[];
+  /** Household side: the colleague a worker suggested after declining this request. */
+  referral?: { colleague: UserId; card: ColleagueCard; at: string };
+  /** Worker side: the colleague this phone suggested on this declined request. */
+  referred?: UserId;
 }
 
 /** What a consumer is looking for, shared by every request in one group. The budget stays on this phone. */

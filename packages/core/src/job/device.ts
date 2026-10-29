@@ -11,6 +11,7 @@ import {
   type UserId,
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
+import { Colleagues } from "../colleague/colleagues.js";
 import { apply } from "../engagement/machine.js";
 import { MailTransport } from "../mail/transport.js";
 import type { Relay } from "../net/api.js";
@@ -52,6 +53,8 @@ export class DeviceError extends Error {}
 export class GigDevice {
   readonly store: JobStore;
   readonly payments: PaymentBook;
+  /** Worker to worker: colleague links, their notes, and referrals on declined requests. */
+  readonly colleagues: Colleagues;
   private readonly transport: MailTransport;
   private readonly ctx: JobContext;
 
@@ -72,6 +75,7 @@ export class GigDevice {
       send: (r, kind, body) => this.send(r, kind, body),
       signingKeyOf: (user, device) => this.transport.signingKeyOf(user, device),
     };
+    this.colleagues = new Colleagues({ ctx: this.ctx, transport: this.transport, relay: o.relay });
   }
 
   /** Takes in what arrived, lets the agent answer it, and sends what is queued. */

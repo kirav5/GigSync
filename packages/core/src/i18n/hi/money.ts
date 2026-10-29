@@ -17,4 +17,8 @@ export const money: Readonly<Record<keyof typeof en, string>> = {
   "money.need_upi": "ग्राहक जिस यूपीआई आईडी पर पैसे भेजते हैं, उसे प्रोफ़ाइल में जोड़ें।",
   "money.add_upi": "यूपीआई आईडी जोड़ें",
   "money.nudge": "काम ख़त्म होने से पहले अपना यूपीआई आईडी जोड़ लें, ताकि ग्राहक तुरंत पैसे दे सकें।",
+  "money.waiting": "{name} के {price} भेजने का इंतज़ार है।",
+  "money.asked_at": "{time} पर माँगे",
+  "money.already_in_bank": "पैसे मेरे बैंक में आ चुके हैं",
+  "money.bank_confirm": "{price} मिल गए, यह दर्ज करें?",
 };

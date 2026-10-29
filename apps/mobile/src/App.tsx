@@ -153,7 +153,14 @@ export function App() {
           />
         )}
         {screen === Screen.talk && (
-          <AgentScreen agent={agent} ports={ports} account={account} interview={interview} onSaved={saved} />
+          <AgentScreen
+            agent={agent}
+            ports={ports}
+            account={account}
+            interview={interview}
+            onSaved={saved}
+            onHire={() => setScreen(Screen.find)}
+          />
         )}
         {screen === Screen.passbook && <Passbook view={view} me={account.session.user} />}
         {screen === Screen.profile && (

@@ -1,27 +1,18 @@
 import { z } from "zod";
 import { Phone } from "./auth.js";
+import { ColleagueLink, ColleagueNote, Referral } from "./colleague.js";
 import { Base64, EnvelopeKind } from "./envelope.js";
 import { EngagementId, prefixedId, UserId } from "./ids.js";
 import { DEFAULT_LANG, Lang, QuestionKey } from "./lang.js";
 import { Paise, PaymentRecord, PaymentRequest } from "./payment.js";
+import { Trade } from "./trade.js";
+
+export { Trade };
 
 /**
  * What travels inside a job's sealed envelopes, one body per envelope kind. The server never sees any of it: the
  * consumer's need, the offers, the agreed terms and each side's contact card exist only on the two phones.
  */
-
-/** The trades GigSync lists. A worker offers one or more; a consumer asks for exactly one. */
-export const Trade = z.enum([
-  "electrician",
-  "plumber",
-  "maid",
-  "carpenter",
-  "ac_technician",
-  "painter",
-  "cook",
-  "driver",
-]);
-export type Trade = z.infer<typeof Trade>;
 
 /** An approximate place (a neighbourhood, never a door): what discovery and the request use. */
 export const Place = z.object({ lat: z.number().min(-90).max(90), lon: z.number().min(-180).max(180) });
@@ -164,4 +155,7 @@ export const BODY: Readonly<Record<EnvelopeKind, z.ZodType>> = {
   [K.key_change]: Empty,
   [K.payment_request]: PaymentRequest,
   [K.payment_record]: PaymentRecord,
+  [K.colleague]: ColleagueLink,
+  [K.colleague_note]: ColleagueNote,
+  [K.referral]: Referral,
 };
