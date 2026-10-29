@@ -17,14 +17,17 @@ export default defineConfig({
   use: {
     baseURL: APP,
     headless: true,
-    // Tall enough that every step fits on one screen: the app scrolls inside its own panel, not the page.
+    // The journeys: tall enough that every step fits on one screen, as the app scrolls inside its own panel, not the
+    // page. layout.spec.ts sets a 360×640 phone itself, and install.spec.ts an iPhone.
     viewport: { width: 400, height: 1400 },
     deviceScaleFactor: 2,
   },
   // Chrome's engine and Safari's, as Playwright ships them (`pnpm exec playwright install chromium webkit`): a
   // Homebrew or downloaded Chrome may be quarantined by macOS and refuse to start headless. Pick one with --project.
+  // Chromium runs as the full browser in its new headless mode, not the lighter headless shell: the shell has no
+  // speech service, and its renderer crashes on `SpeechRecognition.available()`, which Talk calls on every visit.
   projects: [
-    { name: "chromium", use: { browserName: "chromium" } },
+    { name: "chromium", use: { browserName: "chromium", channel: "chromium" } },
     { name: "webkit", use: { browserName: "webkit" } },
   ],
   webServer: [

@@ -1,4 +1,4 @@
-import { asciiDigits, t } from "@gigsync/core";
+import { t } from "@gigsync/core";
 import { type Lang, PAISE_PER_RUPEE, type Place } from "@gigsync/protocol";
 
 /**
@@ -27,6 +27,3 @@ export function money(paise: number): string {
   const rupees = paise / PAISE_PER_RUPEE;
   return `₹${rupees.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 }
-
-/** Rupees as typed, in any script's digits, to paise. */
-export const toPaise = (rupees: string) => Math.round(Number(asciiDigits(rupees.trim())) * PAISE_PER_RUPEE);

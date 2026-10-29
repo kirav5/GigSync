@@ -1,4 +1,4 @@
-import { TaskKind } from "@gigsync/core";
+import { passbook, TaskKind } from "@gigsync/core";
 import type { EngagementId } from "@gigsync/protocol";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { near, need, newCentre, type Person, person, talk, worker } from "./world.js";
@@ -33,6 +33,10 @@ afterAll(async () => {
 });
 
 const status = async (p: Person, id: EngagementId) => (await p.device.job(id)).engagement.status;
+/** This computer's offset from UTC, as a phone would use it for its week and month. */
+const LOCAL_OFFSET = -new Date().getTimezoneOffset();
+const passbookOf = async (w: Person) =>
+  passbook(await w.device.jobs(), await w.device.payments.all(), w.session.user, new Date(), LOCAL_OFFSET);
 
 describe("consumer and worker, end to end through the real API and Neon", () => {
   it("Priya finds the nearest electrician, answers his question, both sign, they swap contacts, he is paid and rated", async () => {
@@ -96,6 +100,12 @@ describe("consumer and worker, end to end through the real API and Neon", () => 
     expect((await priya.device.payments.get(asked.id))?.status).toBe("confirmed");
     expect((await anil.device.job(id)).review).toEqual({ stars: 5, text: "Quick and tidy" });
     expect([await status(priya, id), await status(anil, id)]).toEqual(["closed", "closed"]);
+
+    const book = await passbookOf(anil);
+    expect(book.rows.map((r) => [r.payment.id, r.payment.status, r.payment.utr])).toEqual([
+      [asked.id, "confirmed", "412345678901"],
+    ]);
+    expect(book.totals).toMatchObject({ week: price, waiting: 0, notAsked: 0 });
   });
 
   it("Rahul asks the three nearest electricians at once and ends up with exactly one", async () => {
@@ -188,6 +198,24 @@ describe("consumer and worker, end to end through the real API and Neon", () => 
     await talk(neha, imran);
     expect((await neha.device.payments.get(asked.id))?.status).toBe("disputed");
     expect((await imran.device.payments.get(asked.id))?.status).toBe("disputed");
+  });
+
+  it("the plumber is paid in cash before asking: recorded as cash on both phones and in her passbook", async () => {
+    const lata = await person("Lata", { autoConfirm: true, address: "Flat 12, 2nd floor" });
+    const [job] = await lata.device.request(
+      need("plumber", centre, 60000, "Bathroom tap leaks", { problem: "tap drips all night" }),
+      [esha.session.user],
+    );
+    const id = job?.engagement.id as EngagementId;
+    await talk(lata, esha);
+    expect(await status(lata, id)).toBe("agreed");
+    const price = (await esha.device.job(id)).mine?.terms.price_paise as number;
+    await esha.device.deliver(id, "Washer replaced");
+    const cash = await esha.device.recordCash(id);
+    await talk(lata, esha);
+    for (const p of [await esha.device.payments.get(cash.id), await lata.device.payments.get(cash.id)])
+      expect(p).toMatchObject({ status: "confirmed", method: "cash", amount_paise: price });
+    expect((await passbookOf(esha)).totals).toMatchObject({ week: price, waiting: 0, notAsked: 0 });
   });
 
   it("a worker who was offline catches up in order; a cancel after signing makes him forget the address", async () => {

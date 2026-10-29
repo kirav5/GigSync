@@ -1,6 +1,106 @@
-import type { Ports } from "@gigsync/core";
+import { loadPayee, log, type MessageKey, PayeeError, PayeeProblem, type Ports, savePayee } from "@gigsync/core";
+import { PAYEE_NAME_MAX } from "@gigsync/protocol";
+import { type FormEvent, useEffect, useId, useState } from "react";
+import { useI18n } from "../i18n.js";
+import { C } from "../ui/cls.js";
+import "./money.css";
 
-/** Profile's "Get paid to": the one place the UPI ID and the name payers see are entered. */
-export function PayeeForm(_props: { ports: Ports; defaultName: string }) {
-  return null;
+/** UPI IDs are typed as-is: no capitals or corrections added by the phone keyboard. */
+const NO_CAPS = "none";
+
+/** Each problem with the details, as the line that says it. */
+const PROBLEM: Readonly<Record<PayeeProblem, MessageKey>> = {
+  [PayeeProblem.vpa]: "settings.err_vpa",
+  [PayeeProblem.name]: "settings.err_name",
+  [PayeeProblem.name_long]: "settings.err_name_long",
+};
+
+/**
+ * Profile's "Get paid to": the one place the UPI ID and the name payers see are entered. Payment requests and the QR
+ * read them from there when they are needed, so a change here applies to the next one at once.
+ */
+export function PayeeForm({ ports, defaultName }: { ports: Ports; defaultName: string }) {
+  const { t } = useI18n();
+  const heading = useId();
+  const [vpa, setVpa] = useState("");
+  const [name, setName] = useState(defaultName);
+  const [edited, setEdited] = useState(false);
+  const [status, setStatus] = useState<{ saved: boolean; text: string }>();
+
+  // Fill in what is saved, unless the owner has started typing first. Nothing saved keeps their own name.
+  useEffect(() => {
+    let live = true;
+    loadPayee(ports.storage)
+      .then((saved) => {
+        if (!live || edited || !saved) return;
+        setVpa(saved.vpa);
+        setName(saved.name);
+      })
+      .catch((err: unknown) => log.warn("loading payee failed", { error: err instanceof Error ? err.message : "" }));
+    return () => {
+      live = false;
+    };
+  }, [ports, edited]);
+
+  function edit(set: (v: string) => void, value: string) {
+    set(value);
+    setEdited(true);
+    setStatus(undefined);
+  }
+
+  async function onSave(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    try {
+      await savePayee(ports.storage, { vpa, name });
+      setStatus({ saved: true, text: t("settings.saved") });
+    } catch (err) {
+      if (err instanceof PayeeError)
+        return setStatus({ saved: false, text: t(PROBLEM[err.problem], { max: PAYEE_NAME_MAX }) });
+      log.warn("saving payee failed", { error: err instanceof Error ? err.message : String(err) });
+      setStatus({ saved: false, text: t("error.generic") });
+    }
+  }
+
+  return (
+    <form className={`${C.card} payee-form`} aria-labelledby={heading} onSubmit={(e) => void onSave(e)} noValidate>
+      <h2 id={heading} className={C.label}>
+        {t("settings.paid_to")}
+      </h2>
+      <label className={C.fieldLabel}>
+        <span className={C.muted}>{t("settings.vpa")}</span>
+        <input
+          className={C.field}
+          name="vpa"
+          inputMode="email"
+          placeholder="name@bank"
+          value={vpa}
+          onChange={(e) => edit(setVpa, e.target.value)}
+          autoComplete={C.off}
+          autoCapitalize={NO_CAPS}
+          autoCorrect={C.off}
+          spellCheck={false}
+        />
+      </label>
+      <label className={C.fieldLabel}>
+        <span className={C.muted}>{t("settings.name")}</span>
+        <input
+          className={C.field}
+          name="name"
+          autoComplete="name"
+          maxLength={PAYEE_NAME_MAX}
+          value={name}
+          onChange={(e) => edit(setName, e.target.value)}
+        />
+      </label>
+      <p role="status" className={status?.saved ? `${C.label} saved` : C.error}>
+        {status?.text}
+      </p>
+      <div>
+        <button type={C.submit} className={C.btn}>
+          {t("settings.save")}
+        </button>
+      </div>
+      <span className={C.faint}>{t("settings.vpa_about")}</span>
+    </form>
+  );
 }

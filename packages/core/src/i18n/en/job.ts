@@ -53,7 +53,6 @@ export const job = {
   "job.decline": "Decline",
   "job.mark_done": "Mark done",
   "job.ask_payment": "Ask for payment",
-  "job.said_in": "in {lang}",
   "lang.en": "English",
   "lang.hi": "Hindi",
   "lang.kn": "Kannada",

@@ -30,4 +30,11 @@ export const C = {
   off: "off",
   chip: "chip",
   chipOn: "chip on",
+  /** A checkbox and its words as one 48px row, the box big enough to hit. */
+  checkRow: "check-row",
+  /** Body size and line height from the type tokens, re-read at this element: for a `lang` set below `<html>`. */
+  textRoot: "text-root",
+  /** The dock's status line above its button (`role="status"`); empty takes no room. */
+  dockStatus: "dock-status",
+  dockError: "dock-status error",
 } as const;

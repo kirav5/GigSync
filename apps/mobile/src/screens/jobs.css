@@ -1,0 +1,53 @@
+/* Today and My jobs: the day's sections, the folds that hold the agents' talks and past jobs, and the folded details
+   inside a job card. Sizes and colours come from the tokens in styles.css. */
+.job-section {
+  display: grid;
+  gap: 10px;
+}
+.job-section > h2 {
+  margin: 0;
+  font-size: var(--fs-body);
+  font-weight: 600;
+  line-height: var(--lh-head);
+}
+.job-fold {
+  border-top: 1px solid var(--hairline);
+}
+
+/* A fold opens from a full-height row with its own chevron: the browser's marker differs on every engine. */
+.job-fold > summary,
+.job-more > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--tap);
+  list-style: none;
+  cursor: pointer;
+  color: var(--text2);
+  font-size: var(--fs-2);
+}
+.job-fold > summary::-webkit-details-marker,
+.job-more > summary::-webkit-details-marker {
+  display: none;
+}
+.job-fold > summary::before,
+.job-more > summary::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+}
+.job-fold[open] > summary::before,
+.job-more[open] > summary::before {
+  transform: rotate(45deg);
+}
+.job-fold[open] > summary,
+.job-more[open] > summary {
+  margin-bottom: 10px;
+}
+.job-more > .stack {
+  padding-bottom: 4px;
+}

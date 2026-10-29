@@ -1,5 +1,5 @@
-import { Collection, type GigDevice, type JobRecord, log, type OwnerTask, type Ports } from "@gigsync/core";
-import type { Payment, PaymentRequest } from "@gigsync/protocol";
+import { type GigDevice, type JobRecord, log, type OwnerTask, type Ports } from "@gigsync/core";
+import type { Payment } from "@gigsync/protocol";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { nameOf } from "./adapters/account.js";
 
@@ -11,14 +11,12 @@ export interface GigView {
   jobs: JobRecord[];
   tasks: OwnerTask[];
   payments: Payment[];
-  /** Payment requests received (consumer), with the worker's UPI ID, by payment id. */
-  requests: Record<string, PaymentRequest>;
   /** Display names the consumer saw on the board, by user id. */
   names: Record<string, string>;
   syncedAt?: Date;
 }
 
-const EMPTY: GigView = { jobs: [], tasks: [], payments: [], requests: {}, names: {} };
+const EMPTY: GigView = { jobs: [], tasks: [], payments: [], names: {} };
 
 /**
  * Keeps the job screens in step with the agent: syncs on a timer and after every owner action, one at a time, so an
@@ -34,25 +32,13 @@ export function useGig(ports: Ports, device: GigDevice | undefined) {
 
   const read = useCallback(async () => {
     if (!device) return;
-    const [jobs, tasks, payments, requests] = await Promise.all([
-      device.jobs(),
-      device.tasks(),
-      device.payments.all(),
-      ports.storage.list<PaymentRequest>(Collection.paymentRequests),
-    ]);
+    const [jobs, tasks, payments] = await Promise.all([device.jobs(), device.tasks(), device.payments.all()]);
     const names = Object.fromEntries(
       await Promise.all(
         jobs.map(async (j) => [j.engagement.counterpart, (await nameOf(ports, j.engagement.counterpart)) ?? ""]),
       ),
     );
-    setView({
-      jobs,
-      tasks,
-      payments,
-      requests: Object.fromEntries(requests.map((r) => [r.id, r])),
-      names,
-      syncedAt: new Date(),
-    });
+    setView({ jobs, tasks, payments, names, syncedAt: new Date() });
   }, [ports, device]);
 
   /** Runs `work` (an owner action, or nothing), then syncs and refreshes, after whatever is already running. */

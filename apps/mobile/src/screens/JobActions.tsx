@@ -3,6 +3,7 @@ import {
   EngagementStatus,
   type JobTerms,
   type Payment,
+  PaymentMethod,
   PaymentStatus,
   type Question,
   Role,
@@ -11,122 +12,98 @@ import {
 import { type FormEvent, useEffect, useState } from "react";
 import { useI18n } from "../i18n.js";
 import { qrDataUrl } from "../payments/qr.js";
+import { WorkerPay } from "../payments/WorkerPay.js";
 import { C } from "../ui/cls.js";
 import { money } from "../ui/places.js";
 import type { GigView } from "../useGig.js";
-import { AnswerForm, ApproveCard, type ApproveDetail } from "./JobDecide.js";
+import { AnswerForm, ApproveCard, type ApproveDetail, SignCard } from "./JobDecide.js";
 
 export interface JobActionProps {
   job: JobRecord;
   view: GigView;
   device: GigDevice;
   run: (work: () => Promise<unknown>) => Promise<unknown>;
+  /** Opens Profile to add a UPI ID. The worker's Today passes it; the consumer's My jobs has no use for it. */
+  onAddPayee?: () => void;
 }
 
 const S = EngagementStatus.enum;
 const P = PaymentStatus.enum;
 const U = UpdateCode.enum;
-/** A worker may say they are on the way, mark the job done, or ask to be paid, once both have signed. */
+/** Once both have signed, a worker may leave a note for the customer. */
 const SIGNED: ReadonlySet<EngagementStatus> = new Set([S.agreed, S.in_progress, S.delivered]);
+/** Before the work is handed over, a worker may say they are on the way or mark it done. */
+const WORKING: ReadonlySet<EngagementStatus> = new Set([S.agreed, S.in_progress]);
 const STARS = [5, 4, 3, 2, 1] as const;
 
-/** The decisions and moves open to this owner on this job, and nothing else. */
-export function JobActions({ job, view, device, run }: JobActionProps) {
+/**
+ * The decisions and moves open to this owner on this job, and nothing else: decisions first, each with a speaker
+ * button that reads it aloud (committing stays a tap), then the work, the money and the note box. `them` is the
+ * other side's name as the card shows it.
+ */
+export function JobActions({ job, view, device, run, onAddPayee, them }: JobActionProps & { them: string }) {
   const { t } = useI18n();
   const id = job.engagement.id;
   const status = job.engagement.status;
   const isWorker = job.engagement.role === Role.enum.provider;
   const task = (kind: TaskKind) => view.tasks.find((k) => k.kind === kind && k.engagement === id);
   const payments = view.payments.filter((p) => p.engagement === id);
-  const confirm = task(TaskKind.confirmDeal);
+  /** The terms the agents reached, waiting for this owner's signature. */
+  const terms = task(TaskKind.confirmDeal)?.detail as JobTerms | undefined;
   const questions = task(TaskKind.answerQuestions);
-  const paid = task(TaskKind.confirmPayment);
   const approve = task(TaskKind.approveRequest);
-  const price = (paise: number) => ({ price: money(paise) });
 
   return (
     <div className={C.stack}>
       {approve && (
         <ApproveCard
           detail={approve.detail as ApproveDetail}
+          say={t("home.say_approve", { name: them, trade: t(`trade.${job.request.trade}`) })}
           onApprove={() => void run(() => device.approveRequest(id))}
           onDecline={() => void run(() => device.declineRequest(id))}
         />
       )}
       {questions && (
-        <AnswerForm questions={questions.detail as Question[]} onSend={(a) => run(() => device.answer(id, a))} />
+        <AnswerForm
+          questions={questions.detail as Question[]}
+          say={t("home.say_answer", { name: them })}
+          onSend={(a) => run(() => device.answer(id, a))}
+        />
       )}
-      {confirm && (
-        <fieldset className={C.stack} aria-label={t("a11y.sign")}>
-          <span className={C.muted}>{t("job.reached", price((confirm.detail as JobTerms).price_paise))}</span>
-          <div className={C.actions}>
-            <button type={C.button} className={C.accent} onClick={() => void run(() => device.confirmDeal(id))}>
-              {t("job.sign", price((confirm.detail as JobTerms).price_paise))}
-            </button>
-            <button type={C.button} className={C.secondary} onClick={() => void run(() => device.declineDeal(id))}>
-              {t("job.decline")}
-            </button>
-          </div>
-        </fieldset>
+      {terms && (
+        <SignCard
+          price={terms.price_paise}
+          say={t("home.say_sign", { name: them, price: money(terms.price_paise) })}
+          onSign={() => void run(() => device.confirmDeal(id))}
+          onDecline={() => void run(() => device.declineDeal(id))}
+        />
       )}
-      {isWorker && SIGNED.has(status) && (
-        <>
-          <div className={C.actions}>
-            {status === S.agreed && (
-              <button
-                type={C.button}
-                className={C.secondary}
-                onClick={() => void run(() => device.update(id, { code: U.on_my_way }))}
-              >
-                {t("update.on_my_way")}
-              </button>
-            )}
-            {status !== S.delivered && (
-              <button
-                type={C.button}
-                className={C.secondary}
-                onClick={() => void run(() => device.deliver(id, { code: U.done }))}
-              >
-                {t("job.mark_done")}
-              </button>
-            )}
-            {payments.length === 0 && (
-              <button
-                type={C.button}
-                className={C.accent}
-                onClick={() => void run(() => device.requestPayment(id, job.request.need.slice(0, 40)))}
-              >
-                {t("job.ask_payment")}
-              </button>
-            )}
-          </div>
-          <NoteBox onSend={(text) => run(() => device.update(id, text))} />
-        </>
-      )}
-      {paid && (
-        <fieldset className={C.stack} aria-label={t("a11y.confirm_payment")}>
-          <span className={C.muted}>{t("job.customer_paid", price((paid.detail as Payment).amount_paise))}</span>
-          <div className={C.actions}>
+      {isWorker && WORKING.has(status) && (
+        <div className={C.actions}>
+          {status === S.agreed && (
             <button
               type={C.button}
-              className={C.accent}
-              onClick={() => void run(() => device.confirmPayment((paid.detail as Payment).id))}
+              className={C.secondary}
+              onClick={() => void run(() => device.update(id, { code: U.on_my_way }))}
             >
-              {t("job.money_received")}
+              {t("update.on_my_way")}
             </button>
-            <button
-              type={C.button}
-              className={C.danger}
-              onClick={() => void run(() => device.disputePayment((paid.detail as Payment).id))}
-            >
-              {t("job.not_received")}
-            </button>
-          </div>
-        </fieldset>
+          )}
+          <button
+            type={C.button}
+            className={C.secondary}
+            onClick={() => void run(() => device.deliver(id, { code: U.done }))}
+          >
+            {t("job.mark_done")}
+          </button>
+        </div>
       )}
+      {/* Only Today lists a worker's jobs, and it always passes onAddPayee. */}
+      {isWorker && onAddPayee && <WorkerPay job={job} view={view} device={device} run={run} onAddPayee={onAddPayee} />}
+      {isWorker && SIGNED.has(status) && <NoteBox onSend={(text) => run(() => device.update(id, text))} />}
       {!isWorker &&
         payments
-          .filter((p) => p.status === P.requested)
+          .filter((p) => p.status === P.requested && p.method === PaymentMethod.enum.upi)
           .map((p) => <PayBox key={p.id} payment={p} device={device} run={run} />)}
       {!isWorker && status === S.delivered && !job.review && payments.some((p) => p.status === P.confirmed) && (
         <ReviewForm onSend={(stars, text) => run(() => device.review(id, { stars, text }))} />
@@ -155,16 +132,32 @@ function NoteBox({ onSend }: { onSend: (text: string) => Promise<unknown> }) {
   );
 }
 
-/** The consumer pays in their own UPI app; GigSync only shows the QR and records the reference they paste back. */
+/**
+ * The consumer pays in their own UPI app; GigSync only shows the QR and records the reference they paste back. When
+ * the link cannot be built (this phone never got the worker's sealed payment request) it says so instead of a dead QR.
+ */
 function PayBox({ payment, device, run }: { payment: Payment; device: GigDevice; run: JobActionProps["run"] }) {
   const { t } = useI18n();
   const [link, setLink] = useState<string>();
   const [qr, setQr] = useState<string>();
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
-    void device.upiLink(payment.id).then(async (l) => {
-      setLink(l);
-      setQr(await qrDataUrl(l));
-    });
+    let live = true;
+    setFailed(false);
+    void (async () => {
+      try {
+        const l = await device.upiLink(payment.id);
+        const image = await qrDataUrl(l);
+        if (!live) return;
+        setLink(l);
+        setQr(image);
+      } catch {
+        if (live) setFailed(true);
+      }
+    })();
+    return () => {
+      live = false;
+    };
   }, [device, payment.id]);
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -174,9 +167,10 @@ function PayBox({ payment, device, run }: { payment: Payment; device: GigDevice;
   return (
     <form className={C.stack} onSubmit={submit} aria-label={t("a11y.pay")}>
       <span className={C.label}>{t("job.pay_by_upi", { price: money(payment.amount_paise) })}</span>
+      {failed && <p className={C.error}>{t("error.generic")}</p>}
       {qr && <img src={qr} alt={t("a11y.qr")} width={160} height={160} />}
       {link && (
-        <a className={C.linkBtn} href={link}>
+        <a className={C.secondary} href={link}>
           {t("job.open_upi")}
         </a>
       )}
@@ -187,7 +181,7 @@ function PayBox({ payment, device, run }: { payment: Payment; device: GigDevice;
         placeholder={t("job.utr_placeholder")}
         inputMode="numeric"
       />
-      <div>
+      <div className={C.actions}>
         <button type={C.submit} className={C.accent}>
           {t("job.paid")}
         </button>

@@ -25,6 +25,9 @@ export function canRequestPayment(e: Engagement): boolean {
   return e.role === Role.enum.provider && PAYABLE.has(e.status);
 }
 
+/** Asked for, or marked paid, and not yet settled: while one is open on a job, the worker does not ask again. */
+export const OPEN_PAYMENT: ReadonlySet<PaymentStatus> = new Set([S.requested, S.paid]);
+
 /** Which statuses each change may start from. */
 const FROM: Readonly<Record<"paid" | "confirmed" | "disputed", ReadonlySet<PaymentStatus>>> = {
   paid: new Set([S.requested]),
@@ -96,6 +99,19 @@ export class PaymentBook {
     return this.change(id, S.confirmed, (p, at) => ({ ...p, confirmed_at: at, paid_at: p.paid_at ?? at }));
   }
 
+  /**
+   * The worker took the money in cash: the payment becomes a cash payment, received now. A UPI reference the customer
+   * may have typed is dropped, since no UPI transfer is what settled it.
+   */
+  confirmCash(id: string): Promise<Payment> {
+    return this.change(id, S.confirmed, ({ utr: _utr, ...p }, at) => ({
+      ...p,
+      method: PaymentMethod.enum.cash,
+      paid_at: p.paid_at ?? at,
+      confirmed_at: at,
+    }));
+  }
+
   /** The worker says the money did not arrive, or was wrong. */
   dispute(id: string): Promise<Payment> {
     return this.change(id, S.disputed, (p, at) => ({ ...p, disputed_at: at }));
@@ -103,8 +119,9 @@ export class PaymentBook {
 
   /**
    * A payment the other side sent, from `from`; it replaces ours only if it moves the status forward and the sender
-   * may make that move: only the payer says "paid", only the payee (the worker) says "confirmed" or "disputed". A new
-   * payment is taken only as the payee's request.
+   * may make that move: only the payer says "paid", only the payee (the worker) says "confirmed" or "disputed", and
+   * only the payee turns a payment into cash, together with confirming it. A new payment is taken only as the payee's
+   * request.
    */
   async receive(theirs: Payment, from: UserId): Promise<Payment> {
     const ours = await this.storage.get<Payment>(Collection.payments, theirs.id);
@@ -117,7 +134,8 @@ export class PaymentBook {
     if (theirs.payee !== ours.payee || theirs.payer !== ours.payer) return ours;
     if (theirs.status === S.paid && from === ours.payer && FROM.paid.has(ours.status))
       return this.markPaid(ours.id, theirs.utr);
-    if (theirs.status === S.confirmed && byPayee && FROM.confirmed.has(ours.status)) return this.confirm(ours.id);
+    if (theirs.status === S.confirmed && byPayee && FROM.confirmed.has(ours.status))
+      return theirs.method === PaymentMethod.enum.cash ? this.confirmCash(ours.id) : this.confirm(ours.id);
     if (theirs.status === S.disputed && byPayee && FROM.disputed.has(ours.status)) return this.dispute(ours.id);
     return ours;
   }

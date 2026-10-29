@@ -1,0 +1,36 @@
+/* The install card (InstallCard.tsx): Profile and, on iPhone or where Chrome offered it, the language screen. */
+.install .install-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: var(--fs-body);
+  line-height: var(--lh-head);
+}
+.install .install-title .ic {
+  color: var(--accent-ink);
+}
+.install .install-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--fs-2);
+  line-height: var(--lh-body);
+}
+.install .install-step .ic {
+  margin-top: 0.15em;
+}
+/* The reason to do it before signing in carries the weight on iPhone, so it reads as a notice, not small print. */
+.install .install-first {
+  border-left: 3px solid var(--wait);
+  padding-left: 10px;
+  font-size: var(--fs-2);
+  line-height: var(--lh-body);
+}
+.install .btn {
+  min-height: var(--tap);
+}
+.install .install-later {
+  justify-self: start;
+  min-height: var(--tap);
+}

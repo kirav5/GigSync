@@ -1,29 +1,35 @@
-import { CITY_RATES, log, type Ports, QUESTIONS, type WorkerRules, YES_NO_QUESTIONS } from "@gigsync/core";
-import { type BoardProfile, Lang, PAISE_PER_RUPEE, type QuestionKey, SEED_SIGNER, Trade } from "@gigsync/protocol";
+import { askable, type CardDraft, CITY_RATES, log, type Ports, parseAmount } from "@gigsync/core";
+import { Lang, PAISE_PER_RUPEE, SEED_SIGNER, Trade } from "@gigsync/protocol";
 import { type FormEvent, useState } from "react";
 import { type Account, apiClient, saveAccount } from "../adapters/account.js";
+import { endInterview } from "../card/interviewStore.js";
+import { AboutPrivateError, accountDraft, publishCard } from "../card/publish.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
-import { AREAS, areaNamed, money, toPaise } from "../ui/places.js";
+import { Dock } from "../ui/Dock.js";
+import { Icon } from "../ui/Icon.js";
+import { AREAS, money } from "../ui/places.js";
 
-const DEFAULT_RADIUS_KM = 10;
-const rupeesOf = (paise?: number) => (paise ? String(paise / PAISE_PER_RUPEE) : "");
+/** The form's id, so Publish can sit in the dock, outside it. */
+const FORM_ID = "my-card";
+const Field = { area: "area", rate: "rate", min: "min", about: "about", auto: "auto" } as const;
 const ASK_FIELD = "ask.";
+/** What the board keeps of the line about their work. */
+const ABOUT_MAX = 300;
+const rupeesOf = (paise?: number) => (paise ? String(paise / PAISE_PER_RUPEE) : "");
 /** The rate card's city, as a key for its name in each language. */
 const CITY_KEY = "city.bengaluru";
 
-/** Yes-or-no details these trades' agents ask about, which the worker may want to see before any quote. */
-const askable = (trades: readonly Trade[]): QuestionKey[] =>
-  [...YES_NO_QUESTIONS].filter((k) => trades.some((tr) => QUESTIONS[tr].includes(k)));
-
 /**
- * The worker's card: the public half goes on the board (name, trades, area, usual rate, languages); the private half
- * stays here (lowest rate, UPI ID, how far they travel, what to see first) and is what their agent negotiates with.
+ * The worker's card, to review and change: the public half goes on the board (name, trades, area, usual rate,
+ * languages, a line about their work); the private half stays here (lowest rate, what to see first, signing) and is
+ * what their agent negotiates with. The UPI ID is not on the card: payment requests read it from Profile.
  */
 export function MyCard({
   ports,
   account,
   onSaved,
+  onTalk,
 }: {
   ports: Ports;
   account: Account;
@@ -32,8 +38,8 @@ export function MyCard({
   onTalk: () => void;
 }) {
   const { lang, t } = useI18n();
-  const rules = account.worker;
-  const [trades, setTrades] = useState<Trade[]>(rules?.trades ?? []);
+  const draft = accountDraft(account);
+  const [trades, setTrades] = useState<Trade[]>(draft.trades ?? []);
   const [spoken, setSpoken] = useState<Lang[]>(account.languages ?? [lang]);
   const [error, setError] = useState<string>();
   const [status, setStatus] = useState<string>();
@@ -43,36 +49,24 @@ export function MyCard({
   async function publish(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const v = new FormData(e.currentTarget);
-    const area = areaNamed(String(v.get("area")));
-    const rate = toPaise(String(v.get("rate")));
-    const min = toPaise(String(v.get("min")));
+    // Amounts as people type them: "7,000", "₹7000", "७०००", "7k".
+    const rate = parseAmount(String(v.get(Field.rate) ?? ""));
+    const min = parseAmount(String(v.get(Field.min) ?? ""));
     if (trades.length === 0) return setError(t("card.err_trade"));
-    if (!(min > 0 && rate >= min)) return setError(t("card.err_rate"));
-    // The owner's own language first: it is the one their card's free text is written in.
-    const languages = [lang, ...spoken.filter((l) => l !== lang)];
-    const card: BoardProfile = {
-      display_name: account.contact.name,
+    if (rate === undefined || min === undefined || !(min > 0 && rate >= min)) return setError(t("card.err_rate"));
+    const next: CardDraft = {
       trades,
-      area: { lat: area.lat, lon: area.lon },
-      area_name: area.name,
+      area: String(v.get(Field.area)),
       rate_paise: rate,
-      languages,
-      about: String(v.get("about") ?? "").trim(),
-    };
-    const worker: WorkerRules = {
-      trades,
-      rate: { opening_paise: rate, limit_paise: min },
-      base: card.area,
-      radius_km: DEFAULT_RADIUS_KM,
-      vpa: String(v.get("vpa") ?? "").trim(),
-      payee_name: account.contact.name,
-      rates: CITY_RATES,
+      limit_paise: min,
+      languages: spoken,
+      about: String(v.get(Field.about) ?? ""),
       ask_me: askable(trades).filter((k) => v.has(ASK_FIELD + k)),
+      auto: v.has(Field.auto),
     };
     try {
-      await apiClient(account.session).publishProfile(card);
-      const next: Account = { ...account, worker, languages, autoConfirm: v.has("auto") };
-      await saveAccount(ports, next);
+      const saved = await publishCard(ports, account, next, lang);
+      const area = AREAS.find((a) => a.key === next.area) ?? AREAS[0];
       setError(undefined);
       setStatus(
         t("card.on_board", {
@@ -81,19 +75,31 @@ export function MyCard({
           price: money(rate),
         }),
       );
-      onSaved(next);
+      // A card interview left half-way would carry on from the card as it was, and could publish that over this.
+      endInterview();
+      onSaved(saved);
     } catch (err) {
+      if (err instanceof AboutPrivateError) return setError(t("iv.err_private"));
       log.warn("publish failed", { error: err instanceof Error ? err.message : String(err) });
       setError(t("error.generic"));
     }
   }
 
   async function unlist() {
-    await apiClient(account.session).removeProfile();
-    setStatus(t("card.off_board"));
+    try {
+      await apiClient(account.session).removeProfile();
+      const next: Account = { ...account, listed: false };
+      await saveAccount(ports, next);
+      setError(undefined);
+      setStatus(t("card.off_board"));
+      endInterview();
+      onSaved(next);
+    } catch (err) {
+      log.warn("unlist failed", { error: err instanceof Error ? err.message : String(err) });
+      setError(t("error.generic"));
+    }
   }
 
-  const areaName = AREAS.find((a) => a.lat === rules?.base.lat)?.name;
   const bands = CITY_RATES.bands.filter((b) => trades.includes(b.trade));
   return (
     <>
@@ -102,8 +108,13 @@ export function MyCard({
         <h1 className={C.headline}>
           {t("card.headline")} <span className={C.soft}>{t("card.soft")}</span>
         </h1>
+        <div className={C.row}>
+          <button type={C.button} className={C.secondary} onClick={onTalk}>
+            <Icon name="mic" /> {t("iv.by_voice")}
+          </button>
+        </div>
       </div>
-      <form className={C.card} onSubmit={(e) => void publish(e)} aria-label={t("a11y.my_card")}>
+      <form id={FORM_ID} className={C.card} onSubmit={(e) => void publish(e)} aria-label={t("a11y.my_card")}>
         <span className={C.label}>{t("card.what")}</span>
         <div className={C.row}>
           {Trade.options.map((tr) => (
@@ -133,9 +144,9 @@ export function MyCard({
         )}
         <label className={C.fieldLabel}>
           <span className={C.muted}>{t("card.where")}</span>
-          <select className={C.field} name="area" defaultValue={areaName}>
+          <select className={C.field} name={Field.area} defaultValue={draft.area}>
             {AREAS.map((a) => (
-              <option key={a.key} value={a.name}>
+              <option key={a.key} value={a.key}>
                 {t(`area.${a.key}`)}
               </option>
             ))}
@@ -145,36 +156,31 @@ export function MyCard({
           <span className={C.muted}>{t("card.rate")}</span>
           <input
             className={C.field}
-            name="rate"
+            name={Field.rate}
             inputMode="numeric"
             required
-            defaultValue={rupeesOf(rules?.rate.opening_paise)}
+            defaultValue={rupeesOf(draft.rate_paise)}
           />
         </label>
         <label className={C.fieldLabel}>
           <span className={C.muted}>{t("card.min")}</span>
           <input
             className={C.field}
-            name="min"
+            name={Field.min}
             inputMode="numeric"
             required
-            defaultValue={rupeesOf(rules?.rate.limit_paise)}
-          />
-        </label>
-        <label className={C.fieldLabel}>
-          <span className={C.muted}>{t("card.vpa")}</span>
-          <input
-            className={C.field}
-            name="vpa"
-            required
-            placeholder="name@bank"
-            defaultValue={rules?.vpa}
-            autoComplete={C.off}
+            defaultValue={rupeesOf(draft.limit_paise)}
           />
         </label>
         <label className={C.fieldLabel}>
           <span className={C.muted}>{t("card.about")}</span>
-          <input className={C.field} name="about" placeholder={t("card.about_example")} />
+          <input
+            className={C.field}
+            name={Field.about}
+            maxLength={ABOUT_MAX}
+            placeholder={t("card.about_example")}
+            defaultValue={draft.about}
+          />
         </label>
         <span className={C.label}>{t("card.languages")}</span>
         <div className={C.row}>
@@ -192,28 +198,31 @@ export function MyCard({
           ))}
         </div>
         {askable(trades).map((k) => (
-          <label key={k} className={C.row}>
-            <input type="checkbox" name={ASK_FIELD + k} defaultChecked={rules?.ask_me?.includes(k)} />
+          <label key={k} className={C.checkRow}>
+            <input type="checkbox" name={ASK_FIELD + k} defaultChecked={draft.ask_me?.includes(k)} />
             <span className={C.muted}>{t("card.ask_first", { item: t(`detail.${k}`) })}</span>
           </label>
         ))}
-        <label className={C.row}>
-          <input type="checkbox" name="auto" defaultChecked={account.autoConfirm} />
+        <label className={C.checkRow}>
+          <input type="checkbox" name={Field.auto} defaultChecked={draft.auto} />
           <span className={C.muted}>{t("card.auto")}</span>
         </label>
-        {error && <p className={C.error}>{error}</p>}
-        {status && <span className="label fresh">{status}</span>}
-        <div className={C.row}>
-          <button type="submit" className={C.accent}>
-            {t("card.publish")}
-          </button>
-          {rules && (
-            <button type={C.button} className={C.secondary} onClick={() => void unlist()}>
-              {t("card.unlist")}
-            </button>
-          )}
-        </div>
       </form>
+      {account.worker && account.listed !== false && (
+        <div className={C.row}>
+          <button type={C.button} className={C.quiet} onClick={() => void unlist()}>
+            {t("card.unlist")}
+          </button>
+        </div>
+      )}
+      <Dock>
+        <p role="status" aria-live="polite" className={error ? C.dockError : C.dockStatus}>
+          {error ?? status}
+        </p>
+        <button type={C.submit} form={FORM_ID} className={C.wide}>
+          {t("card.publish")}
+        </button>
+      </Dock>
     </>
   );
 }

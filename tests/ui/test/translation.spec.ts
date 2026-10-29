@@ -6,7 +6,8 @@ import { useSilentTranslator } from "./translator.js";
 
 /**
  * When the phone's translator never answers (Chrome 156 headless leaves `Translator.availability()` pending), the
- * reader still gets the original, named by language, instead of a spinner that never ends.
+ * reader still gets the original, named by language, instead of a spinner that never ends. This is the one case where
+ * other people's words show in their language: beside the reason.
  */
 
 const { hi, kn } = Lang.enum;
@@ -43,7 +44,7 @@ test("a translator that never answers falls back to the original, labelled, with
   await search.getByLabel(t(kn, "find.area")).selectOption("HSR Layout");
   await search.getByRole("button", { name: t(kn, "find.search") }).click();
   const card = page.getByLabel(t(kn, "a11y.worker", { name }));
-  await expect(card).toContainText(ABOUT);
   await expect(card).toContainText(t(kn, "said.cannot", { lang: t(kn, "lang.hi") }), { timeout: 10_000 });
+  await expect(card.locator('[data-said="original"]')).toHaveText(ABOUT);
   await context.close();
 });

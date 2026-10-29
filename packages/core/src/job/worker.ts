@@ -23,7 +23,10 @@ const K = EnvelopeKind.enum;
 const T = Trade.enum;
 const R = Role.enum;
 
-/** A worker's private rules: what they do, where, and at what price. Only the public part is on the board. */
+/**
+ * A worker's private rules: what they do, where, and at what price. Only the public part is on the board. Their UPI ID
+ * is not a rule: it lives once in settings (`payments/payee.ts`), read when a payment is asked for.
+ */
 export interface WorkerRules {
   trades: Trade[];
   /**
@@ -38,12 +41,6 @@ export interface WorkerRules {
   /** Where they work from and how far they go. Requests from further away are declined. */
   base: Place;
   radius_km: number;
-  /**
-   * Their UPI ID and the name payers see. Leaving the card for the payee store in settings (`payments/payee.ts`), which
-   * payment requests will read at send time; optional until then.
-   */
-  vpa?: string;
-  payee_name?: string;
 }
 
 const Q = QuestionKey.enum;

@@ -1,7 +1,7 @@
-import { t } from "@gigsync/core";
+import { type MessageKey, t } from "@gigsync/core";
 import type { Lang } from "@gigsync/protocol";
 import { expect, type Page } from "@playwright/test";
-import { shoot } from "./helpers.js";
+import { openCard, shoot, tabs, textOf } from "./helpers.js";
 
 /** A phone in a journey, with the language its owner chose. */
 export interface Phone {
@@ -9,27 +9,79 @@ export interface Phone {
   lang: Lang;
 }
 
-/** The worker publishes their card through My card, in their language; `askFirst` ticks "ask me first" for pets. */
+/** Cleaning up after a failed journey waits this long for each step, so a stuck page cannot hold the run. */
+const CLEANUP_MS = 15_000;
+/** Phones that put a card on the shared board in this test and have not taken it off yet. */
+const listed = new Set<Phone>();
+
+/** A pilot area by its key ("hsr_layout"), as the `area.*` strings name it. */
+type AreaKey = Extract<MessageKey, `area.${string}`> extends `area.${infer K}` ? K : never;
+
+/**
+ * The worker publishes their card through My card (under Profile), in their language; `askFirst` ticks "ask me first"
+ * for pets. The area is picked by its name in that language, as the worker reads it. The card has no UPI field: that
+ * lives in Profile alone. Publish and its status are in the dock.
+ */
 export async function publishCard(
   { page, lang }: Phone,
-  card: { trade: string; area: string; rate: string; min: string; vpa: string; about: string; askFirst?: boolean },
+  card: { trade: string; area: AreaKey; rate: string; min: string; about: string; askFirst?: boolean },
 ) {
+  await openCard(page, lang);
   const form = page.getByRole("form", { name: t(lang, "a11y.my_card") });
   await form.getByRole("button", { name: card.trade, exact: true }).click();
-  await form.getByLabel(t(lang, "card.where")).selectOption(card.area);
+  await form.getByLabel(t(lang, "card.where")).selectOption({ label: t(lang, `area.${card.area}`) });
   await form.getByLabel(t(lang, "card.rate")).fill(card.rate);
   await form.getByLabel(t(lang, "card.min")).fill(card.min);
-  await form.getByLabel(t(lang, "card.vpa")).fill(card.vpa);
   await form.getByLabel(t(lang, "card.about")).fill(card.about);
   if (card.askFirst) await form.getByLabel(t(lang, "card.ask_first", { item: t(lang, "detail.pets") })).check();
-  await form.getByRole("button", { name: t(lang, "card.publish") }).click();
-  await expect(form.locator(".label.fresh")).toBeVisible();
+  await page.getByRole("button", { name: t(lang, "card.publish"), exact: true }).click();
+  cleanUpLater({ page, lang });
+  await expect(page.getByRole("status").filter({ hasText: textOf(lang, "card.on_board") })).toBeVisible();
 }
 
-/** The household searches, picks only `worker`, and fills the ask; the caller presses the button after a screenshot. */
+/** Marks a phone whose card went on the board some other way (the card interview), for `unlistCards`. */
+export function cleanUpLater(phone: Phone) {
+  listed.add(phone);
+}
+
+/**
+ * Takes off the board every card a journey published, for an `afterEach` before its contexts close. A journey that
+ * ends well has already done it on screen; one that failed half-way would otherwise leave its worker on the shared
+ * board, and enough of those at the same place and rate push the next run's worker out of the household's results.
+ */
+export async function unlistCards() {
+  for (const { page, lang } of listed) {
+    if (page.isClosed()) continue;
+    try {
+      await tabs(page, lang)
+        .getByRole("button", { name: t(lang, "nav.profile") })
+        .click({ timeout: CLEANUP_MS });
+      await page.getByRole("button", { name: t(lang, "nav.card"), exact: true }).click({ timeout: CLEANUP_MS });
+      const form = page.getByRole("form", { name: t(lang, "a11y.my_card") });
+      await expect(form).toBeVisible({ timeout: CLEANUP_MS });
+      const unlist = page.getByRole("button", { name: t(lang, "card.unlist") });
+      // Shown only while the card is listed: a journey that finished has taken it off already.
+      if (!(await unlist.isVisible())) continue;
+      await unlist.click({ timeout: CLEANUP_MS });
+      const off = page.getByRole("status").filter({ hasText: t(lang, "card.off_board") });
+      await expect(off).toBeVisible({ timeout: CLEANUP_MS });
+    } catch {
+      // The page is gone or stuck; nothing more can be done from here.
+    }
+  }
+  listed.clear();
+}
+
+/** Find's When chips that write a day the test can predict ("Pick a date" needs a date input). */
+export type WhenChip = "when.today" | "when.tomorrow" | "when.daily";
+
+/**
+ * The household searches, picks only `worker`, and fills the ask: the need, a When chip and, if given, the time. The
+ * caller presses the dock's Ask button after a screenshot.
+ */
 export async function fillAsk(
   { page, lang }: Phone,
-  ask: { trade: string; area: string; worker: string; need: string; when: string; budget: string },
+  ask: { trade: string; area: string; worker: string; need: string; when: WhenChip; time?: string; budget: string },
 ) {
   const search = page.getByRole("form", { name: t(lang, "a11y.search") });
   await search.getByLabel(t(lang, "find.trade")).selectOption(ask.trade);
@@ -39,11 +91,15 @@ export async function fillAsk(
   for (const box of await page.getByRole("checkbox", { checked: true }).all()) await box.uncheck();
   await page.getByRole("checkbox", { name: t(lang, "a11y.ask_worker", { name: ask.worker }) }).check();
   await page.getByLabel(t(lang, "find.need_label"), { exact: true }).fill(ask.need);
-  await page.getByLabel(t(lang, "find.when"), { exact: true }).fill(ask.when);
+  const when = page.getByRole("group", { name: t(lang, "find.when") });
+  await when.getByRole("button", { name: t(lang, ask.when), exact: true }).click();
+  if (ask.time) await page.getByLabel(t(lang, "when.time")).fill(ask.time);
   await page.getByLabel(t(lang, "find.budget")).fill(ask.budget);
 }
 
 const signGroup = ({ page, lang }: Phone) => page.getByRole("group", { name: t(lang, "a11y.sign") });
+/** The sign button by its words: a decision now starts with a "hear it again" button. */
+const signButton = (phone: Phone) => signGroup(phone).getByRole("button", { name: textOf(phone.lang, "job.sign") });
 
 /** Each owner signs when their phone asks, in their language: whichever agent accepted first, then the other. */
 export async function signBoth(phones: Record<string, Phone>, folder: string) {
@@ -56,10 +112,10 @@ export async function signBoth(phones: Record<string, Phone>, folder: string) {
   const first = (await Promise.all(all.map((p) => signGroup(p).isVisible()))).indexOf(true);
   const [a, b] = [all[first] as Phone, all[1 - first] as Phone];
   await shoot("agents-agree", pages, folder);
-  await signGroup(a).getByRole("button").first().click();
+  await signButton(a).click();
   await expect(signGroup(b)).toBeVisible();
   await shoot("one-signed", pages, folder);
-  await signGroup(b).getByRole("button").first().click();
+  await signButton(b).click();
 }
 
 /** The signed price in paise, read from the deal line in any language ("₹9,200"). */

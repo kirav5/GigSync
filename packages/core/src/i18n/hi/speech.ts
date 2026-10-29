@@ -27,4 +27,5 @@ export const speech: Readonly<Record<keyof typeof en, string>> = {
   "speech.vendor_google": "गूगल",
   "speech.vendor_apple": "ऐपल",
   "speech.vendor_browser": "आपके ब्राउज़र की कंपनी",
+  "speech.type_private": "यह वाला टाइप कीजिए। यह इसी फ़ोन पर रहता है, इसलिए इसे {vendor} को नहीं भेजा जाता।",
 };

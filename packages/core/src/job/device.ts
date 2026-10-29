@@ -14,7 +14,6 @@ import { ulid } from "ulid";
 import { apply } from "../engagement/machine.js";
 import { MailTransport } from "../mail/transport.js";
 import type { Relay } from "../net/api.js";
-import { NotBuiltError } from "../not-built.js";
 import { PaymentBook } from "../payments/book.js";
 import type { Clock, Keys, Storage } from "../ports.js";
 import * as after from "./aftercare.js";
@@ -122,18 +121,22 @@ export class GigDevice {
     return after.sendDelivery(this.ctx, await this.job(id), say);
   }
 
+  /** Asks for the signed price, with the UPI ID saved in settings; throws `PayeeMissingError` when there is none. */
   async requestPayment(id: EngagementId, note: string): Promise<Payment> {
-    return after.requestPayment(this.ctx, this.rules(), await this.job(id), note);
+    this.rules();
+    return after.requestPayment(this.ctx, await this.job(id), note);
   }
 
   /** The customer paid in cash: recorded as cash and confirmed on both phones, asking first if nobody had asked. */
-  async recordCash(_id: EngagementId): Promise<Payment> {
-    throw new NotBuiltError("GigDevice.recordCash");
+  async recordCash(id: EngagementId): Promise<Payment> {
+    this.rules();
+    return after.recordCash(this.ctx, await this.job(id));
   }
 
   /** The UPI link for the worker's own QR on an open payment, from the payee saved in settings. */
-  async myUpiLink(_paymentId: string): Promise<string> {
-    throw new NotBuiltError("GigDevice.myUpiLink");
+  async myUpiLink(paymentId: string): Promise<string> {
+    this.rules();
+    return after.myUpiLink(this.ctx, paymentId);
   }
 
   /** Takes a request the worker's rules said to show them first; the agent then quotes. */

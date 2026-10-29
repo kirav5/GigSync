@@ -1,0 +1,30 @@
+/* Talk: the card interview as a conversation. Questions sit on a hairline with their replay button beside them; the
+   tap answers wrap under the newest question; the owner's answers use the chat bubbles from styles.css. */
+.iv {
+  display: grid;
+  gap: 16px;
+}
+.iv-ask {
+  border-left: 2px solid var(--hairline);
+  padding-left: 12px;
+}
+.iv-say {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.iv-say .text {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+.iv-say .text p {
+  margin: 0;
+}
+.iv-choices {
+  padding-top: 4px;
+}
+.iv-later {
+  color: var(--text2);
+}

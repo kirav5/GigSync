@@ -10,7 +10,6 @@ const PATHS = {
   check: "M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM8 12l3 3 5-6",
   rupee: "M6 4h12M6 9h12M6 4h3a5 5 0 0 1 0 10H6l8 7",
   plus: "M12 5v14M5 12h14",
-  menu: "M4 7h16M4 12h16M4 17h16",
   close: "M6 6l12 12M18 6 6 18",
   phone: "M6.5 2.5h11v19h-11zM11 18h2",
   wall: "M12 3v18M5 7h4M15 7h4M5 12h4M15 12h4M5 17h4M15 17h4",

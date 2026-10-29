@@ -1,35 +1,51 @@
 import { WebPlugin } from "@capacitor/core";
-import type { GigSyncSpeechPlugin, ListenResult, SpeechErrorCode, SpeechState, SpeechStatus } from "./definitions.js";
+import type {
+  GigSyncSpeechPlugin,
+  ListenOptions,
+  ListenResult,
+  PartialEvent,
+  SpeakOptions,
+  SpeechLangOptions,
+  SpeechMode,
+  SpeechStatus,
+} from "./definitions.js";
+import { WebListener } from "./web-listen.js";
+import { WebSpeaker } from "./web-speak.js";
 
 /**
- * Placeholder web engine: every language is unavailable, so the app offers typing and tap choices. The real engines
- * (Chrome's on-device recognizer, then the browser's own recognizer after consent, and local voices) replace it.
+ * The browser engines: speech to text in `web-listen.ts` (Chrome's on-device recognizer, or the browser's own after
+ * the owner allowed its company) and reading aloud in `web-speak.ts` (local voices only). The Android WebView never
+ * gets here: the native plugin answers there.
  */
-/** Both a state and an error code. */
-const UNAVAILABLE = "unavailable" satisfies SpeechState & SpeechErrorCode;
-const NONE: SpeechStatus = { state: UNAVAILABLE, engine: "none" };
-
-/** A rejection carrying the plugin's error code, the same shape the native plugins reject with. */
-const refusal = (message: string) => Object.assign(new Error(message), { code: UNAVAILABLE });
+const LISTEN = "listen" satisfies SpeechMode;
+const PARTIAL = "partial";
 
 export class GigSyncSpeechWeb extends WebPlugin implements GigSyncSpeechPlugin {
-  async state(): Promise<SpeechStatus> {
-    return NONE;
+  private readonly ears = new WebListener();
+  private readonly voice = new WebSpeaker();
+
+  async state({ lang, mode }: SpeechLangOptions): Promise<SpeechStatus> {
+    return mode === LISTEN ? this.ears.state(lang) : this.voice.state(lang);
   }
 
-  async prepare(): Promise<SpeechStatus> {
-    return NONE;
+  /** Local voices need no download in a browser, so for speaking this only reports the state. */
+  async prepare({ lang, mode }: SpeechLangOptions): Promise<SpeechStatus> {
+    return mode === LISTEN ? this.ears.prepare(lang) : this.voice.state(lang);
   }
 
-  async listen(): Promise<ListenResult> {
-    throw refusal("no speech recognizer in this browser");
+  async listen(options: ListenOptions): Promise<ListenResult> {
+    return this.ears.listen(options, (text) => this.notifyListeners(PARTIAL, { text } satisfies PartialEvent));
   }
 
-  async stop(): Promise<void> {}
-
-  async speak(): Promise<void> {
-    throw refusal("no local voice in this browser");
+  async stop(): Promise<void> {
+    this.ears.stop();
   }
 
-  async stopSpeaking(): Promise<void> {}
+  async speak(options: SpeakOptions): Promise<void> {
+    return this.voice.speak(options);
+  }
+
+  async stopSpeaking(): Promise<void> {
+    this.voice.stop();
+  }
 }

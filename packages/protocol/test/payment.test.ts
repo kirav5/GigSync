@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Payment, PaymentRequest, UPI_MAX_PAISE, Utr, Vpa } from "../src/index.js";
+import { PAYEE_NAME_MAX, Payee, Payment, PaymentRequest, UPI_MAX_PAISE, Utr, Vpa } from "../src/index.js";
 
 const ULID = "01J0000000000000000000AAAA";
 const request = {
@@ -30,6 +30,20 @@ describe("payments", () => {
   it("UTR is exactly 12 digits", () => {
     expect(Utr.safeParse("412345678901").success).toBe(true);
     expect(Utr.safeParse("41234567890").success).toBe(false);
+  });
+  it("a payee is a UPI ID and a name payers see, trimmed, up to the name limit", () => {
+    expect(Payee.parse({ vpa: "sita.devi@okaxis", name: "  Sita Devi " })).toEqual({
+      vpa: "sita.devi@okaxis",
+      name: "Sita Devi",
+    });
+    expect(Payee.safeParse({ vpa: "sita@okaxis", name: "S".repeat(PAYEE_NAME_MAX) }).success).toBe(true);
+    for (const bad of [
+      { vpa: "sita", name: "Sita" },
+      { vpa: "sita@okaxis", name: "   " },
+      { vpa: "sita@okaxis", name: "S".repeat(PAYEE_NAME_MAX + 1) },
+      { vpa: "sita@okaxis" },
+    ])
+      expect(Payee.safeParse(bad).success).toBe(false);
   });
   it("a payment record carries no UPI ID", () => {
     const { payee_vpa: _v, payee_name: _n, ...rest } = request;

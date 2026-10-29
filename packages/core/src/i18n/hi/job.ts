@@ -55,7 +55,6 @@ export const job: Readonly<Record<keyof typeof en, string>> = {
   "job.decline": "मना करें",
   "job.mark_done": "काम पूरा कर दिया",
   "job.ask_payment": "पैसे माँगें",
-  "job.said_in": "भाषा: {lang}",
   "lang.en": "अंग्रेज़ी",
   "lang.hi": "हिन्दी",
   "lang.kn": "कन्नड़",

@@ -2,6 +2,7 @@ import { configureLog, LOCAL_ENVIRONMENT, LogFormat, LogLevel } from "@gigsync/c
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.js";
+import { registerServiceWorker, watchInstall } from "./adapters/install.js";
 import { keepFocusedFieldVisible } from "./adapters/keyboard.js";
 import "./styles.css";
 import { applyLook, watchDeviceLook } from "./ui/look.js";
@@ -19,6 +20,9 @@ configureLog(
 applyLook();
 watchDeviceLook();
 keepFocusedFieldVisible();
+// Before the first render: Chrome can offer its install prompt as soon as the page loads.
+watchInstall();
+registerServiceWorker();
 
 const root = document.getElementById("root");
 if (!root) throw new Error("no #root");

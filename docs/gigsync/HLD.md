@@ -38,7 +38,7 @@ piece work come later on the same core.
 | A worker-held signed ledger of jobs and payments                       | A central database of workers that the worker cannot see |
 | Contact released only after both sides sign; it expires                | Holding or moving money (UPI goes straight to them)      |
 | Consented, partial exports to a union, helpline or welfare board       | Ratings or ranking of workers by GigSync                 |
-| Voice first in Hindi, Telugu and Hinglish                              | Full literacy-dependent UI                               |
+| Voice first in Hindi, Kannada and English (Hinglish understood)        | Full literacy-dependent UI                               |
 | Shared-phone mode: one device, a separate locked store per worker      | Multi-tenant SaaS for platforms                          |
 | Open formats and test vectors that others can implement                | Lock-in through proprietary formats                      |
 
@@ -129,7 +129,7 @@ Silicon Macs and Linux, and GigSync must run on phones and in the browser
 | Agent core           | TypeScript, no platform imports (`packages/core`)         | Router, experts, job machine, policy, edge check, ledger, mail                           |
 | Protocol             | zod schemas (`packages/protocol`)                         | Envelopes, job terms, receipts, grants, evidence packs, public records                   |
 | Offline model        | `plugins/gigsync-llm`: LiteRT-LM, Foundation Models, web  | Optional intent help and phrasing; lite mode without it                                  |
-| Speech / translation | IndicConformer (ASR), IndicTrans2-dist (MT), ONNX Runtime | Speech in and translation, optional and on device                                        |
+| Speech / translation | Speech, translation plugins; IndicConformer ASR (phase 2) | On the phone; cloud speech to text only with the owner's consent (ADR 0023)              |
 | Encrypted store      | SQLCipher (native), encrypted IndexedDB (web)             | Ledger, rules, audit, keys metadata, shared-context store                                |
 | Background responder | Kotlin, FCM-woken                                         | Answers routine requests while the app is closed, using the same rules                   |
 | API Worker           | Cloudflare Workers + Hono + D1                            | OTP sign-in, device keys, directory, rate limits, mailbox front door                     |

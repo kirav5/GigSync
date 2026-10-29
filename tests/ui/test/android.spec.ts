@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { plural, questionText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { _android, type AndroidDevice, expect, type Page, test } from "@playwright/test";
-import { API, APP, newPhone, open, Role, RUN, SHOTS, screenSizeShots, signIn } from "./helpers.js";
+import { API, APP, newPhone, open, openCard, Role, RUN, SHOTS, screenSizeShots, signIn, textOf } from "./helpers.js";
 import { fillAsk, type Phone, publishCard, sendNote, signBoth } from "./journey.js";
 
 /**
@@ -19,6 +19,11 @@ const { hi, kn } = Lang.enum;
 const KN_NEED = "ಬೆಳಗ್ಗೆ ಅಡುಗೆ ಮಾಡುವವರು ಬೇಕು";
 const KN_MEALS = "ಬೆಳಗ್ಗೆ ಮತ್ತು ರಾತ್ರಿ";
 const DEVANAGARI = /[ऀ-ॿ]/;
+const KANNADA = /[ಀ-೿]/;
+/** A line of his the phone translated (ui/Said.tsx); `[lang=hi]` would also match the page and the job card. */
+const TRANSLATED = '[data-said="translated"]';
+/** The note every translated line used to carry ("machine translated from Kannada"), gone for good. */
+const OLD_NOTE = "मशीन अनुवाद";
 /** ML Kit fetches two ~30 MB language packs on the first translation. */
 const DOWNLOAD_MS = 240_000;
 
@@ -74,10 +79,9 @@ test("Hindi cook on Android, Kannada household: ML Kit translates his words on h
   });
   await publishCard(asha, {
     trade: t(hi, "trade.cook"),
-    area: "Koramangala",
+    area: "koramangala",
     rate: "9500",
     min: "8000",
-    vpa: "asha.test@okaxis",
     about: "उत्तर और दक्षिण भारतीय खाना",
     askFirst: true,
   });
@@ -87,12 +91,13 @@ test("Hindi cook on Android, Kannada household: ML Kit translates his words on h
     area: "Koramangala",
     worker: ashaName,
     need: KN_NEED,
-    when: "ಸೋಮ–ಶನಿ 7–10",
+    when: "when.daily",
+    time: "ಸೋಮ–ಶನಿ 7–10",
     budget: "9500",
   });
   await ravi.page.getByRole("button", { name: plural(kn, "find.ask", 1) }).click();
 
-  await open(asha.page, "nav.requests", hi);
+  await open(asha.page, "nav.today", hi);
   const answer = ravi.page.getByRole("form", { name: t(kn, "a11y.answer") });
   await answer.getByLabel(questionText(kn, "people")).fill("3");
   await answer.getByLabel(questionText(kn, "meals")).fill(KN_MEALS);
@@ -105,27 +110,29 @@ test("Hindi cook on Android, Kannada household: ML Kit translates his words on h
   await expect(fetch).toBeVisible({ timeout: 60_000 });
   await deviceShot("02-offer-download");
   await fetch.click();
-  const translated = job.locator(".said", { hasText: t(hi, "said.translated", { lang: t(hi, "lang.kn") }) }).first();
+  const translated = job.locator(TRANSLATED).first();
   await expect(translated).toBeVisible({ timeout: DOWNLOAD_MS });
-  // Every line of his reads in Hindi alone once the pack is here; his Kannada is not shown.
+  // Every line of his reads in Hindi alone once the pack is here: no Kannada, and no note saying it was translated.
   await expect(job.getByRole("button", { name: t(hi, "said.download", { lang: t(hi, "lang.kn") }) })).toHaveCount(0);
   await expect(job).not.toContainText(KN_NEED);
+  await expect(job).not.toContainText(KANNADA);
+  await expect(job).not.toContainText(OLD_NOTE);
   expect(await translated.textContent()).toMatch(DEVANAGARI);
-  console.log("ML Kit kn→hi:", KN_NEED, "→", (await translated.locator("[lang=hi]").first().textContent())?.trim());
+  console.log("ML Kit kn→hi:", KN_NEED, "→", (await translated.textContent())?.trim());
   await deviceShot("03-mlkit-translated");
 
   const check = asha.page.getByRole("group", { name: t(hi, "a11y.approve") });
-  await check.getByRole("button").first().click();
+  await check.getByRole("button", { name: textOf(hi, "approve.yes") }).click();
   await signBoth({ worker: asha, customer: ravi }, "android");
   await expect(asha.page.getByLabel(t(hi, "a11y.contact"))).toContainText("Koramangala");
   await deviceShot("04-signed");
   await sendNote(asha, "गेट पर 10 मिनट में पहुँचूँगी");
   await expect(ravi.page.getByRole("list", { name: t(kn, "a11y.notes") })).toContainText("गेट पर 10 मिनट");
 
-  await open(asha.page, "nav.settings", hi);
+  await open(asha.page, "nav.profile", hi);
   await expect(asha.page.getByRole("region", { name: t(hi, "translation.title") })).toContainText("ML Kit");
   await deviceShot("05-settings");
-  await open(asha.page, "nav.card", hi);
+  await openCard(asha.page, hi);
   await asha.page.getByRole("button", { name: t(hi, "card.unlist") }).click();
   await ctx.close();
   await phone.close();

@@ -26,4 +26,5 @@ export const speech = {
   "speech.vendor_google": "Google",
   "speech.vendor_apple": "Apple",
   "speech.vendor_browser": "your browser's company",
+  "speech.type_private": "Please type this one. It stays on this phone, so it isn't sent to {vendor}.",
 } as const;

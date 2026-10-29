@@ -4,6 +4,7 @@ import type { FormEvent } from "react";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { money } from "../ui/places.js";
+import { SpeakButton } from "../ui/SpeakButton.js";
 
 const ANSWER_ID = "answer-";
 
@@ -30,21 +31,29 @@ export function PlanCard({ advice }: { advice: Advice }) {
   );
 }
 
-/** The job has something the worker asked to see first: nothing is quoted until they say go ahead or no. */
+/**
+ * The job has something the worker asked to see first: nothing is quoted until they say go ahead or no. `say` is the
+ * decision in a sentence, read aloud from the speaker button; taking or declining stays a tap.
+ */
 export function ApproveCard({
   detail,
+  say,
   onApprove,
   onDecline,
 }: {
   detail: ApproveDetail;
+  say: string;
   onApprove: () => void;
   onDecline: () => void;
 }) {
-  const { t } = useI18n();
+  const { lang, t } = useI18n();
   const items = detail.flagged.map((k) => t(`detail.${k}`)).join(", ");
   return (
     <fieldset className={C.stack} aria-label={t("a11y.approve")}>
-      <span className={C.label}>{t("approve.title")}</span>
+      <div className={C.row}>
+        <SpeakButton lang={lang} text={say} />
+        <span className={C.label}>{t("approve.title")}</span>
+      </div>
       <span>{t("approve.flagged", { items })}</span>
       <div className={C.actions}>
         <button type={C.button} className={C.accent} onClick={onApprove}>
@@ -58,12 +67,49 @@ export function ApproveCard({
   );
 }
 
-/** The other side's agent's questions, in this owner's language: yes-or-no ones as a toggle, the rest typed. */
+/** Both agents reached terms: sign at that price, or decline. `say` reads the decision aloud; signing stays a tap. */
+export function SignCard({
+  price,
+  say,
+  onSign,
+  onDecline,
+}: {
+  price: number;
+  say: string;
+  onSign: () => void;
+  onDecline: () => void;
+}) {
+  const { lang, t } = useI18n();
+  const deal = { price: money(price) };
+  return (
+    <fieldset className={C.stack} aria-label={t("a11y.sign")}>
+      <div className={C.row}>
+        <SpeakButton lang={lang} text={say} />
+        <span className={C.muted}>{t("job.reached", deal)}</span>
+      </div>
+      <div className={C.actions}>
+        <button type={C.button} className={C.accent} onClick={onSign}>
+          {t("job.sign", deal)}
+        </button>
+        <button type={C.button} className={C.secondary} onClick={onDecline}>
+          {t("job.decline")}
+        </button>
+      </div>
+    </fieldset>
+  );
+}
+
+/**
+ * The other side's agent's questions, in this owner's language: yes-or-no ones as a toggle, the rest typed. `say`
+ * names who is asking, shown and read aloud from the speaker button.
+ */
 export function AnswerForm({
   questions,
+  say,
   onSend,
 }: {
   questions: Question[];
+  say: string;
   onSend: (a: Record<string, string>) => Promise<unknown>;
 }) {
   const { lang, t } = useI18n();
@@ -74,6 +120,10 @@ export function AnswerForm({
   }
   return (
     <form className={C.stack} onSubmit={submit} aria-label={t("a11y.answer")}>
+      <div className={C.row}>
+        <SpeakButton lang={lang} text={say} />
+        <span className={C.muted}>{say}</span>
+      </div>
       {questions.map((q) => {
         const text = questionText(lang, q.key);
         const id = ANSWER_ID + q.key;
@@ -94,7 +144,7 @@ export function AnswerForm({
           </label>
         );
       })}
-      <div>
+      <div className={C.actions}>
         <button type={C.submit} className={C.btn}>
           {t("job.send_answers")}
         </button>

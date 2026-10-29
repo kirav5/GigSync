@@ -6,6 +6,7 @@ import {
   type Envelope,
   type Lang,
   type MessageId,
+  type Payee,
   type RateCard,
   SEED_SIGNER,
   signingBytes,
@@ -20,6 +21,7 @@ import {
   type Relay,
   SecretKeys,
   SystemClock,
+  savePayee,
   type WorkerRules,
 } from "../src/index.js";
 
@@ -65,22 +67,26 @@ export interface Phone {
   device: GigDevice;
 }
 
+/** One phone. `payee` is the UPI ID saved in its settings, as the owner would in Profile. */
 export async function phone(
   relay: MemoryRelay,
   contact: ContactCard,
-  opts: { worker?: WorkerRules; autoConfirm?: boolean; lang?: Lang } = {},
+  opts: { worker?: WorkerRules; autoConfirm?: boolean; lang?: Lang; payee?: Payee } = {},
 ): Promise<Phone> {
+  const { payee, ...options } = opts;
   const keys = new SecretKeys(newDeviceSecrets());
   const me = { user: `usr_${ulid()}` as UserId, device: `dev_${ulid()}` as DeviceId };
   relay.register(me.user, me.device, await keys.publicKeys());
+  const storage = new MemoryStorage();
+  if (payee) await savePayee(storage, payee);
   const device = new GigDevice({
     relay: relay.for(me),
-    storage: new MemoryStorage(),
+    storage,
     keys,
     clock: new SystemClock(),
     me,
     contact,
-    ...opts,
+    ...options,
   });
   return { user: me.user, device };
 }
@@ -93,10 +99,11 @@ export function electrician(min = 55000, rate = 70000): WorkerRules {
     rate: { opening_paise: rate, limit_paise: min },
     base: BENGALURU,
     radius_km: 10,
-    vpa: "ravi.test@okaxis",
-    payee_name: "Ravi Electricals",
   };
 }
+
+/** The UPI ID Ravi saved in Profile. */
+export const RAVI_PAYEE: Payee = { vpa: "ravi.test@okaxis", name: "Ravi Electricals" };
 
 export const fanNeed = (budget = 65000, details: Record<string, string> = {}): NewNeed => ({
   trade: "electrician",
@@ -117,8 +124,6 @@ export function cook(min = 800000, rate = 950000): WorkerRules {
     rate: { opening_paise: rate, limit_paise: min },
     base: BENGALURU,
     radius_km: 5,
-    vpa: "asha.test@okaxis",
-    payee_name: "Asha",
   };
 }
 

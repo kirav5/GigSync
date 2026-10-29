@@ -1,7 +1,7 @@
 import { type Advice, questionText, ReasonKind, reasonText, TaskKind, type WorkerRules } from "@gigsync/core";
 import { type Clarify, type EngagementId, Lang, type RateCard, SEED_SIGNER } from "@gigsync/protocol";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { near, newCentre, type Person, person, talk } from "./world.js";
+import { near, newCentre, type Person, person, talk, testPayee } from "./world.js";
 
 /**
  * Agent-flows §1 through the real API: a Hindi-speaking cook and a Kannada-speaking household find each other on the
@@ -47,11 +47,10 @@ async function cook(name: string, north: number, rules: Partial<WorkerRules> = {
       rate: { opening_paise: 950000, limit_paise: FLOOR },
       base: where,
       radius_km: 5,
-      vpa: `${name.toLowerCase()}.test@okaxis`,
-      payee_name: name,
       rates: RATES,
       ...rules,
     },
+    payee: testPayee(name),
   });
   await p.api.publishProfile({
     display_name: name,

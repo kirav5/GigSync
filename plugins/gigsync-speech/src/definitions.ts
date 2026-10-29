@@ -5,7 +5,10 @@ export type SpeechState = "available" | "downloadable" | "downloading" | "unavai
 export type SpeechMode = "listen" | "speak";
 /** Why listen() rejected; carried as the rejection's `code`. */
 export type SpeechErrorCode = "unavailable" | "downloadable" | "denied" | "busy";
-/** Who runs a cloud recognizer: "google" (Android's default service, Chrome), "apple" (iPhone, Safari), "browser" (unknown vendor). */
+/**
+ * Who runs a cloud recognizer: "google" (Android, bound to Google's recognizer by name; desktop and Android Chrome),
+ * "apple" (iPhone, any browser there, and Safari), "browser" (a company we cannot name, such as Edge's Microsoft).
+ */
 export type SpeechVendor = "google" | "apple" | "browser";
 
 export interface SpeechLangOptions {
@@ -17,7 +20,11 @@ export interface SpeechLangOptions {
 export interface SpeechStatus {
   /** The on-device engine's state for this language (unchanged meaning). */
   state: SpeechState;
-  /** Which engine answered: "android-ondevice", "apple-ondevice", "chrome-ondevice", "android-cloud", "apple-cloud", "browser-cloud", or "none". */
+  /**
+   * Which engine answered. Listening: "android-ondevice", "apple-ondevice", "chrome-ondevice", "android-cloud",
+   * "apple-cloud", "browser-cloud". Speaking: "android-ondevice", "apple-ondevice", "browser-ondevice". The DEV fake:
+   * "fake", "fake-cloud". Otherwise "none".
+   */
   engine: string;
   /** Present only for mode "listen" when the on-device state is not "available" but a cloud recognizer exists for the language. */
   cloud?: { engine: string; vendor: SpeechVendor };

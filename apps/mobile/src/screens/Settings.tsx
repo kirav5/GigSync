@@ -1,12 +1,15 @@
-import { log, type MessageKey, type Ports } from "@gigsync/core";
+import type { MessageKey, Ports } from "@gigsync/core";
 import { Lang, PAYEE_NAME_MAX } from "@gigsync/protocol";
-import { type FormEvent, useEffect, useState } from "react";
+import { useState } from "react";
+import type { Account } from "../adapters/account.js";
 import { useI18n } from "../i18n.js";
-import { PayeeError, savePayee } from "../payments/store.js";
-import type { GigData } from "../state.js";
+import { PayeeForm } from "../payments/PayeeForm.js";
 import { C } from "../ui/cls.js";
+import { InstallCard, InstallPlace } from "../ui/InstallCard.js";
 import { Look, savedLook, saveLook } from "../ui/look.js";
+import { AREAS, money } from "../ui/places.js";
 import { ModelSettings } from "./ModelSettings.js";
+import { SpeechSettings } from "./SpeechSettings.js";
 import { TranslationSettings } from "./TranslationSettings.js";
 
 const LOOKS: readonly { look: Look; label: MessageKey }[] = [
@@ -14,56 +17,105 @@ const LOOKS: readonly { look: Look; label: MessageKey }[] = [
   { look: Look.light, label: "look.light" },
   { look: Look.dark, label: "look.dark" },
 ];
-/** UPI IDs are typed as-is: no capitals or corrections added by the phone keyboard. */
-const NO_CAPS = "none";
 
-/** The language, the worker's UPI ID and name (kept only on this device), translation, the model, and the look. */
-export function Settings({ ports, data, changed }: { ports: Ports; data: GigData; changed: () => Promise<void> }) {
-  const { lang, setLang, t } = useI18n();
-  const [vpa, setVpa] = useState(data.payee?.vpa ?? "");
-  const [name, setName] = useState(data.payee?.name ?? "");
-  const [error, setError] = useState<string>();
-  const [saved, setSaved] = useState(false);
+interface Props {
+  ports: Ports;
+  account: Account;
+  isWorker: boolean;
+  platform: string;
+  online: boolean | undefined;
+  onSignOut: () => void;
+  /** Opens My card, the form that reviews and changes the card. */
+  onCard: () => void;
+  /** Opens Talk on the card interview. */
+  onTalkCard: () => void;
+}
+
+/** The worker's card at a glance: what customers see on the board, or that it is not there, and two ways to change it. */
+function CardSummary({ account, onCard, onTalkCard }: Pick<Props, "account" | "onCard" | "onTalkCard">) {
+  const { t } = useI18n();
+  const rules = account.worker;
+  const listed = rules && account.listed !== false;
+  const area = rules && AREAS.find((a) => a.lat === rules.base.lat && a.lon === rules.base.lon);
+  const title = t("nav.card");
+  return (
+    <section className={C.card} aria-label={title}>
+      <span className={C.label}>{title}</span>
+      <span>
+        {listed
+          ? t("card.on_board", {
+              trades: rules.trades.map((tr) => t(`trade.${tr}`)).join(", "),
+              area: area ? t(`area.${area.key}`) : "",
+              price: money(rules.rate.opening_paise),
+            })
+          : t("profile.card_off")}
+      </span>
+      <div className={C.actions}>
+        <button type={C.button} className={C.accent} onClick={onTalkCard}>
+          {t("profile.talk_card")}
+        </button>
+        <button type={C.button} className={C.secondary} onClick={onCard}>
+          {title}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/** Light, dark, or the phone's own setting. */
+function LookPicker() {
+  const { t } = useI18n();
   const [look, setLook] = useState<Look>(savedLook());
+  return (
+    <div className={C.card}>
+      <span className={C.label}>{t("settings.look")}</span>
+      <div className={C.row}>
+        {LOOKS.map((l) => (
+          <button
+            key={l.look}
+            type={C.button}
+            aria-pressed={look === l.look}
+            className={look === l.look ? C.chipOn : C.chip}
+            onClick={() => {
+              saveLook(l.look);
+              setLook(l.look);
+            }}
+          >
+            {t(l.label)}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-  // Fill the fields when the saved details arrive (the screen can open before they have loaded).
-  useEffect(() => {
-    setVpa(data.payee?.vpa ?? "");
-    setName(data.payee?.name ?? "");
-  }, [data.payee?.vpa, data.payee?.name]);
-
-  function edit(set: (v: string) => void, value: string) {
-    set(value);
-    setSaved(false);
-    setError(undefined);
-  }
-
-  async function onSave(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    try {
-      await savePayee(ports.storage, { vpa, name });
-      setError(undefined);
-      setSaved(true);
-      await changed();
-    } catch (err) {
-      setSaved(false);
-      if (err instanceof PayeeError) return setError(t(err.key, err.params));
-      log.warn("saving payee failed", { error: err instanceof Error ? err.message : String(err) });
-      setError(t("error.generic"));
-    }
-  }
-
+/**
+ * Profile: everything that is not a job, each section saving as it changes. The worker's card and the one place their
+ * UPI ID is entered come first, then language, voice and translation on this phone, then installing the web app;
+ * the look and the on-device model wait under "More settings". Everything here is kept on this phone.
+ */
+export function Settings({ ports, account, isWorker, platform, online, onSignOut, onCard, onTalkCard }: Props) {
+  const { lang, setLang, t } = useI18n();
+  const name = account.contact.name;
+  const role = t(isWorker ? "role.worker" : "role.customer");
+  const net = online === undefined ? "…" : t(online ? "net.online" : "net.offline");
   return (
     <>
       <div className={C.stack}>
-        <span className={C.labelSq}>{t("nav.settings")}</span>
+        <span className={C.labelSq}>{t("nav.profile")}</span>
         <h1 className={C.headline}>
           {t("settings.headline")} <span className={C.soft}>{t("settings.soft")}</span>
         </h1>
+        <span className={C.muted}>
+          {name} · {role}
+        </span>
       </div>
 
-      <div className={C.card}>
-        <span className={C.label}>{t("a11y.language")}</span>
+      {isWorker && <CardSummary account={account} onCard={onCard} onTalkCard={onTalkCard} />}
+      {isWorker && <PayeeForm ports={ports} defaultName={name.slice(0, PAYEE_NAME_MAX)} />}
+
+      <section className={C.card} aria-label={t("profile.language")}>
+        <span className={C.label}>{t("profile.language")}</span>
         <fieldset className={C.row} aria-label={t("a11y.language")}>
           {Lang.options.map((l) => (
             <button
@@ -78,69 +130,31 @@ export function Settings({ ports, data, changed }: { ports: Ports; data: GigData
             </button>
           ))}
         </fieldset>
-      </div>
+      </section>
 
-      <form className={C.card} onSubmit={(e) => void onSave(e)} noValidate>
-        <span className={C.label}>{t("settings.paid_to")}</span>
-        <label className={C.fieldLabel}>
-          <span className={C.muted}>{t("settings.vpa")}</span>
-          <input
-            className={C.field}
-            name="vpa"
-            inputMode="email"
-            placeholder="name@bank"
-            value={vpa}
-            onChange={(e) => edit(setVpa, e.target.value)}
-            autoComplete={C.off}
-            autoCapitalize={NO_CAPS}
-            autoCorrect={C.off}
-            spellCheck={false}
-          />
-        </label>
-        <label className={C.fieldLabel}>
-          <span className={C.muted}>{t("settings.name")}</span>
-          <input
-            className={C.field}
-            name="name"
-            placeholder={t("signin.name")}
-            maxLength={PAYEE_NAME_MAX}
-            value={name}
-            onChange={(e) => edit(setName, e.target.value)}
-          />
-        </label>
-        {error && <p className={C.error}>{error}</p>}
-        {saved && <span className="label fresh">{t("settings.saved")}</span>}
+      {isWorker && <SpeechSettings />}
+      <TranslationSettings />
+      <InstallCard place={InstallPlace.settings} lang={lang} />
+
+      <details className="more">
+        <summary>{t("profile.more")}</summary>
+        <div className={C.stack}>
+          <LookPicker />
+          <ModelSettings ports={ports} />
+        </div>
+      </details>
+
+      <footer className="profile-foot">
+        <span className={C.label}>{t("shell.record_here")}</span>
+        <span className={C.faint}>
+          {name} · {role} · {platform} · {net}
+        </span>
         <div>
-          <button type="submit" className={C.btn}>
-            {t("settings.save")}
+          <button type={C.button} className={C.secondary} onClick={onSignOut}>
+            {t("shell.sign_out")}
           </button>
         </div>
-        <span className={C.faint}>{t("settings.vpa_about")}</span>
-      </form>
-
-      <TranslationSettings />
-
-      <ModelSettings ports={ports} />
-
-      <div className={C.card}>
-        <span className={C.label}>{t("settings.look")}</span>
-        <div className={C.row}>
-          {LOOKS.map((l) => (
-            <button
-              key={l.look}
-              type={C.button}
-              aria-pressed={look === l.look}
-              className={look === l.look ? C.chipOn : C.chip}
-              onClick={() => {
-                saveLook(l.look);
-                setLook(l.look);
-              }}
-            >
-              {t(l.label)}
-            </button>
-          ))}
-        </div>
-      </div>
+      </footer>
     </>
   );
 }

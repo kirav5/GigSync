@@ -8,10 +8,14 @@ import { C } from "./cls.js";
 /** While a pack is downloading, how often a line checks whether it can translate yet. */
 const DOWNLOAD_POLL_MS = 3000;
 
+/** What a line of someone else's words is showing, on `data-said`, for tests and styles. */
+const DataSaid = { translated: "translated", original: "original", pending: "pending" } as const;
+
 /**
- * Words someone else wrote, read only in the owner's language: the phone's translation, marked as a machine
- * translation. The original shows only when there is nothing safe to show instead (no pack yet, no engine, or a
- * translation that changed a number), with a note saying why. The original is still what both sides sign.
+ * Words someone else wrote, read only in the owner's language: the phone's translation, with no note about the
+ * language it came from. While the phone is still translating (or fetching a pack) a faint line says so. The original
+ * shows only when there is nothing safe to show instead, always beside the reason: the translation changed a number,
+ * there is a pack to fetch, or this phone cannot translate the pair. The original is still what both sides sign.
  * With no `from`, or the owner's own language, it is plain text.
  */
 export function Said({ text, from }: { text: string; from?: Lang | undefined }) {
@@ -43,40 +47,44 @@ export function Said({ text, from }: { text: string; from?: Lang | undefined }) 
   // An engine echoes what it cannot or need not translate (a name, a number): nothing to add then.
   const same = result?.kind === TranslationKind.translated && result.text === text.trim();
   if (!foreign || from === undefined || same) return <span>{text}</span>;
-  const name = t(`lang.${from}`);
 
+  if (result?.kind === TranslationKind.translated)
+    return (
+      <span lang={lang} data-said={DataSaid.translated}>
+        {result.text}
+      </span>
+    );
+  // Asking the engine takes a moment, and a pack on its way will be asked again: no foreign words meanwhile.
+  const downloading = result?.kind === TranslationKind.unavailable && result.state === TranslateState.downloading;
+  if (!result || downloading)
+    return (
+      <span className={C.faint} data-said={DataSaid.pending}>
+        {t("said.translating")}
+      </span>
+    );
+
+  const name = t(`lang.${from}`);
   async function download() {
     if (from === undefined) return;
     await preparePair(from, lang);
     setResult(await translations.translate(text, from, lang));
   }
-
-  if (result?.kind === TranslationKind.translated)
-    return (
-      <span className="said">
-        <span lang={lang}>{result.text}</span>
-        <span className={C.faint}>{t("said.translated", { lang: name })}</span>
-      </span>
+  const why =
+    result.kind === TranslationKind.unsafe ? (
+      <span className={C.faint}>{t("said.unsafe", { lang: name })}</span>
+    ) : result.state === TranslateState.downloadable ? (
+      <button type={C.button} className={C.linkBtn} onClick={() => void download()}>
+        {t("said.download", { lang: name })}
+      </button>
+    ) : (
+      <span className={C.faint}>{t("said.cannot", { lang: name })}</span>
     );
-  // Asking the engine takes a moment; the foreign words appear only if no translation comes.
-  if (!result) return <span className={`said ${C.faint}`}>{t("said.translating")}</span>;
-
   return (
-    <span className="said">
-      <span lang={from}>{text}</span>
-      {result.kind === TranslationKind.unavailable && result.state === TranslateState.downloading && (
-        <span className={C.faint}>{t("said.translating")}</span>
-      )}
-      {result.kind === TranslationKind.unsafe && <span className={C.faint}>{t("said.unsafe", { lang: name })}</span>}
-      {result.kind === TranslationKind.unavailable &&
-        result.state !== TranslateState.downloading &&
-        (result.state === TranslateState.downloadable ? (
-          <button type={C.button} className={C.linkBtn} onClick={() => void download()}>
-            {t("said.download", { lang: name })}
-          </button>
-        ) : (
-          <span className={C.faint}>{t("said.cannot", { lang: name })}</span>
-        ))}
-    </span>
+    <>
+      <span lang={from} data-said={DataSaid.original}>
+        {text}
+      </span>{" "}
+      {why}
+    </>
   );
 }

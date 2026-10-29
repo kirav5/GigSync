@@ -1,15 +1,46 @@
-import { type GigDevice, log, type Ports, QUESTIONS, questionText } from "@gigsync/core";
+import {
+  EVERY_DAY,
+  type GigDevice,
+  isMonthly,
+  localDay,
+  log,
+  type MessageKey,
+  type Ports,
+  parseAmount,
+  QUESTIONS,
+  questionText,
+  WhenDetail,
+} from "@gigsync/core";
 import { type BoardWorker, Lang, Trade } from "@gigsync/protocol";
 import { type FormEvent, useState } from "react";
 import { type Account, apiClient, rememberName } from "../adapters/account.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
-import { AREAS, areaLabel, areaNamed, money, toPaise } from "../ui/places.js";
+import { Dock } from "../ui/Dock.js";
+import { AREAS, areaLabel, areaNamed, money } from "../ui/places.js";
 import { Said } from "../ui/Said.js";
+import { dayDate } from "./jobGroups.js";
 
 const RADII_KM = [5, 10, 25] as const;
 /** The consumer's agent opens at this share of their budget and concedes toward the full budget. */
 const OPENING_SHARE = 0.7;
+/** Ties the dock's Ask button, outside the form, to it. */
+const ASK_FORM = "ask-workers";
+/** The forms' field names. */
+const F = { radius: "radius", need: "need", detail: "detail", day: "day", time: "time", budget: "budget" } as const;
+/** `JobRequest.when` holds at most 100 characters: the chip's words, then this much time text. */
+const TIME_MAX = 60;
+const MS_PER_DAY = 86_400_000;
+
+/** The When chips. Each writes `details.day`, which each phone files under Today or Coming up itself. */
+const When = { today: "today", tomorrow: "tomorrow", pick: "pick", daily: "daily" } as const;
+type When = (typeof When)[keyof typeof When];
+const WHEN_CHIPS: readonly { when: When; label: MessageKey }[] = [
+  { when: When.today, label: "when.today" },
+  { when: When.tomorrow, label: "when.tomorrow" },
+  { when: When.pick, label: "when.pick" },
+  { when: When.daily, label: "when.daily" },
+];
 
 interface Props {
   ports: Ports;
@@ -23,12 +54,16 @@ const cardLang = (w: BoardWorker) => w.languages.map((l) => Lang.safeParse(l)).f
 
 /** Find workers near you for one need, then let your agent ask the ones you pick. Your budget stays here. */
 export function Find({ ports, account, device, onAsked }: Props) {
-  const { lang, t, plural } = useI18n();
+  const { lang, t, plural, date } = useI18n();
   const [trade, setTrade] = useState<Trade>(Trade.enum.electrician);
   const [area, setArea] = useState<string>(AREAS[0].name);
   const [found, setFound] = useState<BoardWorker[]>();
   const [picked, setPicked] = useState<string[]>([]);
+  /** The chip the owner tapped; until then monthly work defaults to every day, anything else to today. */
+  const [chosen, setChosen] = useState<When>();
   const [error, setError] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  const when = chosen ?? (isMonthly(trade) ? When.daily : When.today);
 
   /** A listed language, named in the owner's language when the app knows it, else its code. */
   const languageName = (code: string) => {
@@ -36,17 +71,18 @@ export function Find({ ports, account, device, onAsked }: Props) {
     return known.success ? t(`lang.${known.data}`) : code;
   };
 
+  /** The phone's calendar day, `days` from now: what "Today" and "Tomorrow" mean where the owner is. */
+  const dayFromNow = (days: number) => {
+    const now = ports.clock.now();
+    return localDay(new Date(now.getTime() + days * MS_PER_DAY), -now.getTimezoneOffset());
+  };
+
   async function search(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const radius = Number(new FormData(e.currentTarget).get("radius"));
-    const at = areaNamed(area);
+    const radius = Number(new FormData(e.currentTarget).get(F.radius));
+    const { lat, lon } = areaNamed(area);
     try {
-      const workers = await apiClient(account.session).searchWorkers({
-        trade,
-        lat: at.lat,
-        lon: at.lon,
-        radius_km: radius,
-      });
+      const workers = await apiClient(account.session).searchWorkers({ trade, lat, lon, radius_km: radius });
       setFound(workers);
       setPicked(workers.slice(0, 1).map((w) => w.user));
       setError(undefined);
@@ -61,25 +97,45 @@ export function Find({ ports, account, device, onAsked }: Props) {
 
   async function ask(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (busy) return;
     const v = new FormData(e.currentTarget);
-    const budget = toPaise(String(v.get("budget")));
-    const detail = String(v.get("detail") ?? "").trim();
-    if (!(budget > 0)) return setError(t("find.err_budget"));
+    const budget = parseAmount(String(v.get(F.budget) ?? ""));
+    const detail = String(v.get(F.detail) ?? "").trim();
+    const time = String(v.get(F.time) ?? "").trim();
+    if (!budget) return setError(t("find.err_budget"));
     if (picked.length === 0) return setError(t("find.err_pick"));
+    const pickedDay = String(v.get(F.day) ?? "");
+    const day =
+      when === When.pick ? pickedDay : when === When.daily ? EVERY_DAY : dayFromNow(when === When.today ? 0 : 1);
+    // Older phones and the agent read `when`, and it becomes the signed slot: the date itself, never "Today" or
+    // "Tomorrow", which are true only on the day they are sent ("कल" is also yesterday). Then the time.
+    const label = when === When.daily ? t("when.daily") : date(dayDate(day));
     const at = areaNamed(area);
-    for (const w of found ?? []) if (picked.includes(w.user)) await rememberName(ports, w.user, w.display_name);
-    await device.request(
-      {
-        trade,
-        need: String(v.get("need") ?? "").trim(),
-        when: String(v.get("when") ?? "").trim(),
-        area: { lat: at.lat, lon: at.lon },
-        details: first && detail ? { [first]: detail } : {},
-        budget: { opening_paise: Math.round(budget * OPENING_SHARE), limit_paise: budget },
-      },
-      picked as BoardWorker["user"][],
-    );
-    onAsked();
+    setBusy(true);
+    try {
+      for (const w of found ?? []) if (picked.includes(w.user)) await rememberName(ports, w.user, w.display_name);
+      await device.request(
+        {
+          trade,
+          need: String(v.get(F.need) ?? "").trim(),
+          when: time ? `${label} ${time}` : label,
+          area: { lat: at.lat, lon: at.lon },
+          details: {
+            ...(first && detail ? { [first]: detail } : {}),
+            [WhenDetail.day]: day,
+            ...(time ? { [WhenDetail.time]: time } : {}),
+          },
+          budget: { opening_paise: Math.round(budget * OPENING_SHARE), limit_paise: budget },
+        },
+        picked as BoardWorker["user"][],
+      );
+      onAsked();
+    } catch (err) {
+      log.warn("asking workers failed", { error: err instanceof Error ? err.message : String(err) });
+      setError(t("error.generic"));
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -116,14 +172,14 @@ export function Find({ ports, account, device, onAsked }: Props) {
               </option>
             ))}
           </select>
-          <select className={C.field} aria-label={t("find.within")} name="radius" defaultValue={RADII_KM[0]}>
+          <select className={C.field} aria-label={t("find.within")} name={F.radius} defaultValue={RADII_KM[0]}>
             {RADII_KM.map((r) => (
               <option key={r} value={r}>
                 {t("find.within_km", { km: r })}
               </option>
             ))}
           </select>
-          <button type="submit" className={C.btn}>
+          <button type={C.submit} className={C.btn}>
             {t("find.search")}
           </button>
         </div>
@@ -131,7 +187,7 @@ export function Find({ ports, account, device, onAsked }: Props) {
 
       {found && found.length === 0 && <div className={C.empty}>{t("find.nobody")}</div>}
       {found && found.length > 0 && (
-        <form className={C.stack} onSubmit={(e) => void ask(e)} aria-label={t("a11y.ask_workers")}>
+        <form id={ASK_FORM} className={C.stack} onSubmit={(e) => void ask(e)} aria-label={t("a11y.ask_workers")}>
           {found.map((w) => (
             <label key={w.user} className={C.card} aria-label={t("a11y.worker", { name: w.display_name })}>
               <div className={C.row}>
@@ -169,42 +225,68 @@ export function Find({ ports, account, device, onAsked }: Props) {
             <span className={C.label}>{t("find.need_label")}</span>
             <input
               className={C.field}
-              name="need"
+              name={F.need}
               required
               aria-label={t("find.need_label")}
               placeholder={t("find.need_example")}
             />
             <input
               className={C.field}
-              name="detail"
+              name={F.detail}
               aria-label={firstQuestion}
               placeholder={t("find.optional", { question: firstQuestion })}
             />
+            <span className={C.label}>{t("find.when")}</span>
+            <fieldset className={C.row} aria-label={t("find.when")}>
+              {WHEN_CHIPS.map((c) => (
+                <button
+                  key={c.when}
+                  type={C.button}
+                  aria-pressed={when === c.when}
+                  className={when === c.when ? C.chipOn : C.chip}
+                  onClick={() => setChosen(c.when)}
+                >
+                  {t(c.label)}
+                </button>
+              ))}
+            </fieldset>
+            {when === When.pick && (
+              <input
+                className={C.field}
+                type="date"
+                name={F.day}
+                required
+                min={dayFromNow(0)}
+                aria-label={t("when.pick")}
+              />
+            )}
             <input
               className={C.field}
-              name="when"
-              required
-              aria-label={t("find.when")}
-              placeholder={t("find.when_example")}
+              name={F.time}
+              maxLength={TIME_MAX}
+              aria-label={t("when.time")}
+              placeholder={t("when.time")}
             />
             <input
               className={C.field}
-              name="budget"
+              name={F.budget}
               required
               inputMode="numeric"
               aria-label={t("find.budget")}
               placeholder={t("find.budget")}
             />
-            {error && <p className={C.error}>{error}</p>}
-            <div>
-              <button type="submit" className={C.accent}>
-                {plural("find.ask", picked.length)}
-              </button>
-            </div>
           </div>
+          <Dock>
+            <p className={C.dockError} role="status" aria-live="polite">
+              {error}
+            </p>
+            <button type={C.submit} form={ASK_FORM} className={C.wide} disabled={busy}>
+              {plural("find.ask", picked.length)}
+            </button>
+          </Dock>
         </form>
       )}
-      {error && !found && <p className={C.error}>{error}</p>}
+      {error && !found?.length && <p className={C.error}>{error}</p>}
     </>
   );
 }

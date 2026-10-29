@@ -3,9 +3,12 @@ import { type FormEvent, useState } from "react";
 import { type Account, AccountRole, sendCode, signIn } from "../adapters/account.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
+import { Dock } from "../ui/Dock.js";
 
 /** The form's field names. */
 const F = { name: "name", phone: "phone", address: "address", code: "code" } as const;
+/** Ties the dock's button, outside the form, to it. */
+const FORM_ID = "signin";
 /** The code the development API accepts, shown only in dev builds. */
 const DEV_CODE = "000000";
 
@@ -68,7 +71,7 @@ export function SignIn({
           </button>
         </span>
       </div>
-      <form className={C.card} onSubmit={(e) => void submit(e)} aria-label={t("signin.label")}>
+      <form id={FORM_ID} className={C.card} onSubmit={(e) => void submit(e)} aria-label={t("signin.label")}>
         <fieldset className={C.actions} aria-label={t("a11y.role")}>
           {ROLES.map((r) => (
             <label key={r.role} className={role === r.role ? C.chipOn : C.chip}>
@@ -99,13 +102,15 @@ export function SignIn({
             <input className={C.field} name={F.code} required inputMode="numeric" autoComplete="one-time-code" />
           </label>
         )}
-        {error && <p className={C.error}>{error}</p>}
-        <div>
-          <button type={C.submit} className={C.accent} disabled={busy}>
-            {t(sent ? "signin.submit" : "signin.send_code")}
-          </button>
-        </div>
       </form>
+      <Dock>
+        <p className={C.dockError} role="status" aria-live="polite">
+          {error}
+        </p>
+        <button type={C.submit} form={FORM_ID} className={C.wide} disabled={busy}>
+          {t(sent ? "signin.submit" : "signin.send_code")}
+        </button>
+      </Dock>
     </>
   );
 }

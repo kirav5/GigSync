@@ -1,10 +1,33 @@
-import { type Card, CardKind, type Agent as CoreAgent, type MessageKey, type Ports } from "@gigsync/core";
-import { type FormEvent, useState } from "react";
+import {
+  type Card,
+  CardKind,
+  type Agent as CoreAgent,
+  edit,
+  editIntent,
+  type MessageKey,
+  type Ports,
+  prompt,
+  Slot,
+  start,
+} from "@gigsync/core";
+import { useEffect, useRef, useState } from "react";
 import type { Account } from "../adapters/account.js";
-import { useChosenModel } from "../adapters/model.js";
+import { interviewConfig } from "../card/choices.js";
+import {
+  answerInterview,
+  beginInterview,
+  relanguageInterview,
+  resumeInterview,
+  useInterview,
+} from "../card/interviewStore.js";
+import { accountDraft } from "../card/publish.js";
 import { useI18n } from "../i18n.js";
+import { Composer, Via } from "../ui/Composer.js";
 import { C } from "../ui/cls.js";
+import { Dock } from "../ui/Dock.js";
 import { Said } from "../ui/Said.js";
+import { Interview } from "./Interview.js";
+import "./talk.css";
 
 interface Turn {
   id: number;
@@ -12,8 +35,8 @@ interface Turn {
   card?: Card;
 }
 
-/** Ready requests for a gig worker's agent, in each language, matching what the on-phone router understands. */
-const STARTERS: readonly MessageKey[] = ["agent.starter_1", "agent.starter_2", "agent.starter_3"];
+/** Ready notes for a gig worker's agent, in each language, matching what the on-phone router understands. */
+const STARTERS: readonly MessageKey[] = ["agent.starter_1", "agent.starter_2"];
 
 /** The heading each card kind gets on screen. */
 const KIND_LABEL: Readonly<Record<Card["kind"], MessageKey>> = {
@@ -41,84 +64,124 @@ interface TalkProps {
   onSaved: (a: Account) => void;
 }
 
-/** The worker's agent: notes and answers from them, on this phone (lite mode without a model). */
-export function AgentScreen({ agent }: TalkProps) {
-  const { t, plural } = useI18n();
-  const model = useChosenModel();
-  const [turns, setTurns] = useState<Turn[]>([]);
-  const [text, setText] = useState("");
+/**
+ * Talk: the card interview when there is no card yet or the owner asked to change it by talking, otherwise notes and
+ * answers from the worker's agent, on this phone (lite mode without a model). Words that ask to change a field of the
+ * card ("मेरा रेट बदलो") open the interview at that field.
+ */
+export function AgentScreen({ agent, ports, account, interview, onSaved }: TalkProps) {
+  const { lang, t, plural } = useI18n();
+  const { state, turns, paused } = useInterview();
+  const [notes, setNotes] = useState<Turn[]>([]);
   const [busy, setBusy] = useState(false);
+  const opened = useRef(false);
+  const end = useRef<HTMLDivElement>(null);
+  const active = state !== undefined && !paused;
+  const current = active ? prompt(state) : undefined;
+  const wanted = interview || !account.worker;
 
-  async function send(message: string) {
-    const own = message.trim();
-    if (!own || busy) return;
-    setText("");
+  // Opening Talk to make or change the card starts the interview; one already under way carries on where it was.
+  // One paused with "Later" stays paused across tabs until the owner taps "Carry on".
+  useEffect(() => {
+    if (opened.current || !wanted) return;
+    opened.current = true;
+    if (!state) beginInterview(start(interviewConfig(lang), accountDraft(account)));
+  }, [wanted, state, lang, account]);
+
+  // A language picked in Profile part-way: the questions from here on, and what the mic listens for, follow it.
+  useEffect(() => {
+    if (state && state.config.own !== lang) relanguageInterview(interviewConfig(lang));
+  }, [state, lang]);
+
+  useEffect(() => {
+    if (turns.length + notes.length > 0) end.current?.scrollIntoView({ block: "end" });
+  }, [turns.length, notes.length]);
+
+  const fresh = () => start(interviewConfig(lang), accountDraft(account));
+
+  async function sendNote(own: string) {
+    const field = editIntent(own);
+    if (field) {
+      beginInterview(account.worker ? edit(fresh(), field) : fresh(), own);
+      return;
+    }
+    if (busy) return;
     setBusy(true);
     const id = Date.now();
-    setTurns((t) => [...t, { id, own }]);
+    setNotes((n) => [...n, { id, own }]);
     try {
       const { card } = await agent.handle(own);
-      setTurns((t) => t.map((x) => (x.id === id ? { ...x, card } : x)));
+      setNotes((n) => n.map((x) => (x.id === id ? { ...x, card } : x)));
     } finally {
       setBusy(false);
     }
   }
 
-  function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    void send(text);
-  }
+  const send = (text: string, via: Via) => (active ? answerInterview(text, via === Via.voice) : void sendNote(text));
 
   return (
     <>
       <div className={C.stack}>
-        <span className={C.labelSq}>{t("nav.agent")}</span>
+        <span className={C.labelSq}>{t("nav.talk")}</span>
         <h1 className={C.headline}>
           {t("agent.headline")} <span className={C.soft}>{t("agent.soft")}</span>
         </h1>
-        <span className={C.faint}>{t("agent.model_line", { model: model.label(t) })}</span>
       </div>
-      {turns.length === 0 && (
-        <div className={C.row}>
-          {STARTERS.map((s) => (
-            <button key={s} type={C.button} className={C.chip} onClick={() => void send(t(s))}>
-              {t(s)}
-            </button>
-          ))}
-        </div>
-      )}
-      {turns.map((turn) => (
-        <div key={turn.id} className={C.stack}>
-          <div className="msg-user">
-            <div className="bubble">{turn.own}</div>
+      {turns.length > 0 && <Interview ports={ports} account={account} onSaved={onSaved} />}
+      {/* Notes and their starters, while no interview is being answered. */}
+      {!active && (
+        <>
+          <div className={C.row}>
+            {paused && (
+              <button type={C.button} className={C.chipOn} onClick={resumeInterview}>
+                {t("iv.resume")}
+              </button>
+            )}
+            {notes.length === 0 && (
+              <>
+                <button type={C.button} className={C.chip} onClick={() => beginInterview(fresh())}>
+                  {t("iv.change_card")}
+                </button>
+                {STARTERS.map((s) => (
+                  <button key={s} type={C.button} className={C.chip} onClick={() => void sendNote(t(s))}>
+                    {t(s)}
+                  </button>
+                ))}
+              </>
+            )}
           </div>
-          {turn.card && (
-            <div className="msg-agent">
-              <span className={C.label}>{t(KIND_LABEL[turn.card.kind])}</span>
-              <div className="text">
-                <CardText card={turn.card} />
+          {notes.map((turn) => (
+            <div key={turn.id} className={C.stack}>
+              <div className="msg-user">
+                <div className="bubble">{turn.own}</div>
               </div>
-              {turn.card.kind === CardKind.answer && turn.card.sources.length > 0 && (
-                <span className={C.faint}>{plural("agent.sources", turn.card.sources.length)}</span>
+              {turn.card && (
+                <div className="msg-agent">
+                  <span className={C.label}>{t(KIND_LABEL[turn.card.kind])}</span>
+                  <div className="text">
+                    <CardText card={turn.card} />
+                  </div>
+                  {turn.card.kind === CardKind.answer && turn.card.sources.length > 0 && (
+                    <span className={C.faint}>{plural("agent.sources", turn.card.sources.length)}</span>
+                  )}
+                </div>
               )}
             </div>
-          )}
-        </div>
-      ))}
-      <form className="composer" onSubmit={onSubmit}>
-        <div className="bar">
-          <input
-            id="message"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder={t("agent.placeholder")}
-            autoComplete={C.off}
-          />
-          <button type="submit" className="send" disabled={busy || !text.trim()} aria-label={t("a11y.send")}>
-            →
-          </button>
-        </div>
-      </form>
+          ))}
+        </>
+      )}
+      <div ref={end} />
+      <Dock>
+        <Composer
+          label={t("nav.talk")}
+          placeholder={t("agent.placeholder")}
+          onSend={send}
+          busy={busy || state?.slot === Slot.done}
+          hints={current?.hints ?? []}
+          numeric={current?.numeric ?? false}
+          onDeviceOnly={current?.secret ?? false}
+        />
+      </Dock>
     </>
   );
 }

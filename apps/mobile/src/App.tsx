@@ -1,39 +1,48 @@
 import { Agent } from "@gigsync/core";
-import type { Engagement, Lang } from "@gigsync/protocol";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import type { Lang } from "@gigsync/protocol";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type Account, AccountRole, deviceFor, loadAccount, signOut } from "./adapters/account.js";
 import { apiReachable } from "./adapters/api.js";
+import { keepBackInApp, onBackButton } from "./adapters/back.js";
 import { loadLang, saveLang, suggestedLang } from "./adapters/lang.js";
 import { chosenModel } from "./adapters/model.js";
 import { createPorts } from "./adapters/ports.js";
+import { forgetCloudConsent } from "./adapters/speech-settings.js";
+import { endInterview } from "./card/interviewStore.js";
 import { I18nProvider } from "./i18n.js";
-import { JobStep, jobStep } from "./payments/store.js";
-import { CONSUMER_NAV, Shell, WORKER_NAV } from "./Shell.js";
+import { Shell, SUB_SCREENS } from "./Shell.js";
 import { AgentScreen } from "./screens/Agent.js";
 import { Find } from "./screens/Find.js";
-import { Jobs } from "./screens/Jobs.js";
 import { LanguageChooser } from "./screens/Language.js";
 import { MyCard } from "./screens/MyCard.js";
-import { Pay } from "./screens/Pay.js";
-import { Record } from "./screens/Record.js";
+import { Passbook } from "./screens/Passbook.js";
 import { Requests } from "./screens/Requests.js";
 import { Settings } from "./screens/Settings.js";
 import { SignIn } from "./screens/SignIn.js";
 import { Today } from "./screens/Today.js";
-import { CardState, Screen, useGigData } from "./state.js";
+import { CardState, Screen } from "./state.js";
+import { Frame } from "./ui/Frame.js";
+import { CONSUMER_TABS, WORKER_TABS } from "./ui/Tabs.js";
 import { useGig } from "./useGig.js";
 
-/** Where each role lands after signing in. */
-const HOME: Readonly<Record<AccountRole, Screen>> = {
-  [AccountRole.consumer]: Screen.find,
-  [AccountRole.worker]: Screen.card,
-};
+/**
+ * Where an owner lands, and where Back leads from any other tab: a consumer on Find; a worker on Today once they have
+ * a card (even one off the board), and on Talk, to make one by talking, before that.
+ */
+function landing(account: Account): Screen {
+  if (account.role === AccountRole.consumer) return Screen.find;
+  return account.worker ? Screen.today : Screen.talk;
+}
+
+function cardState(account: Account): CardState {
+  if (!account.worker) return CardState.none;
+  return account.listed === false ? CardState.off : CardState.on;
+}
 
 /** GigSync on one phone: sign in, then a consumer finds and asks, a worker is found and answers; agents negotiate. */
 export function App() {
   const ports = useMemo(createPorts, []);
   const agent = useMemo(() => new Agent(ports), [ports]);
-  const gig = useGigData(ports);
   const [account, setAccount] = useState<Account | null>();
   /** undefined while loading; null until the owner picks one on the first screen. */
   const [lang, setLangState] = useState<Lang | null>();
@@ -47,10 +56,16 @@ export function App() {
   );
   const { view, run } = useGig(ports, device);
   const [screen, setScreen] = useState<Screen>(Screen.find);
-  const [navOpen, setNavOpen] = useState(false);
-  const [payJob, setPayJob] = useState<string>();
+  /** Talk opens on the card interview: set by every way into it, cleared once the card is published. */
+  const [interview, setInterview] = useState(false);
   const [platform, setPlatform] = useState("web");
   const [online, setOnline] = useState<boolean>();
+
+  const land = useCallback((a: Account) => {
+    const home = landing(a);
+    setScreen(home);
+    setInterview(home === Screen.talk);
+  }, []);
 
   useEffect(() => {
     import("@capacitor/core").then(({ Capacitor }) => setPlatform(Capacitor.getPlatform()));
@@ -58,93 +73,109 @@ export function App() {
     void loadLang(ports).then((l) => setLangState(l ?? null));
     void loadAccount(ports).then((a) => {
       setAccount(a ?? null);
-      if (a) setScreen(a.role === AccountRole.worker && a.worker ? Screen.requests : HOME[a.role]);
+      if (a) land(a);
     });
-  }, [ports]);
+  }, [ports, land]);
 
   useEffect(() => {
     void chosenModel.load(ports.storage);
   }, [ports]);
 
+  // Back (Android's button, or the browser's): a sub-screen back to its tab, any other tab back to the landing one,
+  // and from there the app goes to the background, or the browser leaves. One listener for the app's life, reading the
+  // current screen through a ref, so a press can never land between removing one listener and adding the next.
+  const back = useRef<() => boolean>(() => false);
+  useEffect(() => {
+    back.current = () => {
+      if (!account) return false;
+      const to = SUB_SCREENS[screen]?.parent ?? landing(account);
+      if (to === screen) return false;
+      setScreen(to);
+      return true;
+    };
+  });
+  useEffect(() => onBackButton(() => back.current()), []);
+  useEffect(() => keepBackInApp(account ? screen !== landing(account) : false), [account, screen]);
+
   if (account === undefined || lang === undefined) return null;
   if (lang === null || account === null || !device) {
     return (
-      <div className="app">
-        <main className="main">
-          <div className="content">
-            <div className="inner">
-              {lang === null ? (
-                <LanguageChooser suggested={suggestedLang()} onChoose={setLang} />
-              ) : (
-                <I18nProvider lang={lang} setLang={setLang}>
-                  <SignIn
-                    ports={ports}
-                    onLanguage={() => setLangState(null)}
-                    onSignedIn={(a) => {
-                      setAccount(a);
-                      setScreen(HOME[a.role]);
-                    }}
-                  />
-                </I18nProvider>
-              )}
-            </div>
-          </div>
-        </main>
-      </div>
+      <Frame>
+        {lang === null ? (
+          <LanguageChooser suggested={suggestedLang()} onChoose={setLang} />
+        ) : (
+          <I18nProvider lang={lang} setLang={setLang}>
+            <SignIn
+              ports={ports}
+              onLanguage={() => setLangState(null)}
+              onSignedIn={(a) => {
+                setAccount(a);
+                land(a);
+              }}
+            />
+          </I18nProvider>
+        )}
+      </Frame>
     );
   }
 
   const isWorker = account.role === AccountRole.worker;
-  const pay = (job: Engagement) => {
-    setPayJob(job.id);
-    setScreen(Screen.pay);
+  const saved = (a: Account) => {
+    setAccount(a);
+    setInterview(false);
   };
-  const due = gig.jobs.filter((j) => jobStep(j, gig.payments) === JobStep.done).length;
-  const card = !account.worker ? CardState.none : account.listed === false ? CardState.off : CardState.on;
-  const waiting = view.tasks.length;
+  const talkCard = () => {
+    setInterview(true);
+    setScreen(Screen.talk);
+  };
   return (
     <I18nProvider lang={lang} setLang={setLang}>
       <Shell
-        nav={isWorker ? WORKER_NAV : CONSUMER_NAV}
-        name={account.contact.name}
-        isWorker={isWorker}
-        onSignOut={() => void signOut(ports).then(() => setAccount(null))}
+        tabs={isWorker ? WORKER_TABS : CONSUMER_TABS}
         screen={screen}
         onScreen={setScreen}
-        navOpen={navOpen}
-        onNav={setNavOpen}
-        counts={{ waiting, jobs: view.jobs.length, inPerson: gig.jobs.length, due }}
-        platform={platform}
-        online={online}
+        tasks={view.tasks.length}
       >
         {screen === Screen.find && (
           <Find ports={ports} account={account} device={device} onAsked={() => setScreen(Screen.requests)} />
         )}
-        {screen === Screen.requests && <Requests isWorker={isWorker} view={view} device={device} run={run} />}
-        {screen === Screen.card && (
-          <MyCard ports={ports} account={account} onSaved={setAccount} onTalk={() => setScreen(Screen.talk)} />
-        )}
+        {screen === Screen.requests && <Requests view={view} device={device} run={run} />}
         {screen === Screen.today && (
           <Today
             ports={ports}
             view={view}
             device={device}
             run={run}
-            card={card}
-            onMakeCard={() => setScreen(Screen.talk)}
+            card={cardState(account)}
+            onMakeCard={talkCard}
             onOpenCard={() => setScreen(Screen.card)}
             onAddPayee={() => setScreen(Screen.profile)}
           />
         )}
-        {screen === Screen.jobs && <Jobs ports={ports} data={gig} changed={gig.reload} pay={pay} />}
-        {screen === Screen.pay && (
-          <Pay data={gig} book={gig.book} jobId={payJob} onJob={setPayJob} go={setScreen} changed={gig.reload} />
-        )}
-        {screen === Screen.record && <Record data={gig} />}
         {screen === Screen.talk && (
-          <AgentScreen agent={agent} ports={ports} account={account} interview={false} onSaved={setAccount} />
+          <AgentScreen agent={agent} ports={ports} account={account} interview={interview} onSaved={saved} />
         )}
-        {screen === Screen.profile && <Settings ports={ports} data={gig} changed={gig.reload} />}
+        {screen === Screen.passbook && <Passbook view={view} me={account.session.user} />}
+        {screen === Screen.profile && (
+          <Settings
+            ports={ports}
+            account={account}
+            isWorker={isWorker}
+            platform={platform}
+            online={online}
+            onSignOut={() =>
+              void signOut(ports).then(() => {
+                // What they told the card interview, and the companies they let hear them, were theirs alone.
+                endInterview();
+                forgetCloudConsent();
+                setAccount(null);
+              })
+            }
+            onCard={() => setScreen(Screen.card)}
+            onTalkCard={talkCard}
+          />
+        )}
+        {screen === Screen.card && <MyCard ports={ports} account={account} onSaved={saved} onTalk={talkCard} />}
       </Shell>
     </I18nProvider>
   );

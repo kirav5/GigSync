@@ -1,36 +1,80 @@
-import type { GigDevice } from "@gigsync/core";
+import type { GigDevice, JobRecord } from "@gigsync/core";
+import { useState } from "react";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import type { GigView } from "../useGig.js";
+import type { JobActionProps } from "./JobActions.js";
 import { JobThread } from "./JobThread.js";
+import { groupJobs, phoneDay } from "./jobGroups.js";
+import "./jobs.css";
 
 interface Props {
-  isWorker: boolean;
   view: GigView;
   device: GigDevice;
   run: (work: () => Promise<unknown>) => Promise<unknown>;
 }
 
-/** Every job this phone is in, newest first: requests to a worker, or a consumer's asks. */
-export function Requests({ isWorker, view, device, run }: Props) {
-  const { t, time } = useI18n();
-  const jobs = [...view.jobs].reverse();
+/** What every job card in a list needs, besides the job. */
+type ListProps = Omit<JobActionProps, "job"> & { jobs: readonly JobRecord[] };
+
+/**
+ * The consumer's jobs: what to decide now (answer the worker, sign), the jobs agreed (pay, review), then folded away
+ * the requests the agents are still talking over, and the past.
+ */
+export function Requests({ view, device, run }: Props) {
+  const { t, time, plural } = useI18n();
+  const g = groupJobs({ jobs: view.jobs, tasks: view.tasks, payments: view.payments, day: phoneDay(new Date()) });
+  const list = { view, device, run };
   return (
     <>
       <div className={C.stack}>
-        <span className={C.labelSq}>{t(isWorker ? "nav.requests" : "nav.my_jobs")}</span>
+        <span className={C.labelSq}>{t("nav.my_jobs")}</span>
         <h1 className={C.headline}>
-          {t(isWorker ? "requests.headline_worker" : "requests.headline_consumer")}{" "}
-          <span className={C.soft}>{t("requests.soft")}</span>
+          {t("requests.headline_consumer")} <span className={C.soft}>{t("requests.soft")}</span>
         </h1>
         {view.syncedAt && <span className={C.faint}>{t("requests.checked", { time: time(view.syncedAt) })}</span>}
       </div>
-      {jobs.length === 0 && (
-        <div className={C.empty}>{t(isWorker ? "requests.empty_worker" : "requests.empty_consumer")}</div>
-      )}
-      {jobs.map((job) => (
-        <JobThread key={job.engagement.id} job={job} view={view} device={device} run={run} />
-      ))}
+      {view.jobs.length === 0 && <div className={C.empty}>{t("requests.empty_consumer")}</div>}
+      <JobSection title={t("home.decide")} jobs={g.decide} {...list} />
+      <JobSection title={t("home.jobs")} jobs={[...g.today, ...g.upcoming, ...g.other]} {...list} />
+      <JobFold summary={plural("home.talking_workers", g.talking.length)} jobs={g.talking} {...list} />
+      <JobFold summary={t("home.earlier")} jobs={g.earlier} {...list} />
     </>
+  );
+}
+
+/** A headed list of job cards. Empty, it shows `empty` under the heading, or nothing at all when there is none. */
+export function JobSection({ title, jobs, empty, ...card }: ListProps & { title: string; empty?: string }) {
+  if (jobs.length === 0 && empty === undefined) return null;
+  return (
+    <section className="job-section">
+      <h2>{title}</h2>
+      {jobs.length === 0 ? (
+        <span className={C.muted}>{empty}</span>
+      ) : (
+        jobs.map((job) => <JobThread key={job.engagement.id} job={job} {...card} />)
+      )}
+    </section>
+  );
+}
+
+/**
+ * Jobs that need nothing from the owner now, folded under `summary`. The cards are built only once it is opened:
+ * each one translates the other side's words on this phone, and history only grows.
+ */
+export function JobFold({ summary, jobs, ...card }: ListProps & { summary: string }) {
+  const [open, setOpen] = useState(false);
+  if (jobs.length === 0) return null;
+  return (
+    <details className="job-fold" open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
+      <summary>{summary}</summary>
+      {open && (
+        <div className={C.stack}>
+          {jobs.map((job) => (
+            <JobThread key={job.engagement.id} job={job} {...card} />
+          ))}
+        </div>
+      )}
+    </details>
   );
 }
