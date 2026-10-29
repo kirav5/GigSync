@@ -11,6 +11,7 @@ export * from "./experts.js";
 export * from "./http.js";
 export * from "./i18n/reasons.js";
 export * from "./i18n/t.js";
+export * from "./i18n/terms-text.js";
 export * from "./i18n/translate.js";
 export * from "./interview/index.js";
 export {
@@ -41,6 +42,9 @@ export {
   OPENING_SHARE,
   resolveDay,
 } from "./interview/need-request.js";
+export { chipChoice, ScopePick, scopeDetails } from "./interview/need-scope.js";
+export { needTerms, windowOf } from "./interview/need-terms.js";
+export { readScope, SCOPE_READ, type ScopeChip, ScopeKey, scopeFromWords } from "./interview/scope-read.js";
 export * from "./job/advice.js";
 export * from "./job/aftercare.js";
 export { QUESTIONS } from "./job/ask.js";
@@ -48,10 +52,16 @@ export * from "./job/city-rates.js";
 export * from "./job/deal.js";
 export { asciiDigits, countIn, YES_NO_QUESTIONS } from "./job/details.js";
 export * from "./job/device.js";
+export * from "./job/explain.js";
+export * from "./job/explain-model.js";
 export * from "./job/negotiate.js";
 export * from "./job/settle.js";
 export * from "./job/store.js";
+export * from "./job/strategy.js";
+export { setUsualTactic, usualTactic } from "./job/tactic.js";
 export * from "./job/talk.js";
+export * from "./job/terms.js";
+export { type TermsTrack, termDetails } from "./job/terms-flow.js";
 export * from "./job/when.js";
 export type { WorkerRules } from "./job/worker.js";
 export * from "./keys.js";

@@ -1,7 +1,9 @@
 import type { Strings } from "../en/index.js";
 import { agent } from "./agent.js";
 import { ask } from "./ask.js";
+import { bargain } from "./bargain.js";
 import { estimate } from "./estimate.js";
+import { explain } from "./explain.js";
 import { home } from "./home.js";
 import { install } from "./install.js";
 import { interview } from "./interview.js";
@@ -17,6 +19,7 @@ import { screens } from "./screens.js";
 import { shell } from "./shell.js";
 import { speech } from "./speech.js";
 import { talk } from "./talk.js";
+import { terms } from "./terms.js";
 import { worker } from "./worker.js";
 
 /** Hindi. Written by the team, to be checked by a native-speaking organiser before the pilot (docs/gigsync/i18n-review.md). */
@@ -40,4 +43,7 @@ export const hi: Strings = {
   ...landing,
   ...mentor,
   ...estimate,
+  ...bargain,
+  ...terms,
+  ...explain,
 };

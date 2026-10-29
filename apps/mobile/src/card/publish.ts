@@ -1,4 +1,11 @@
-import { aboutIsPrivate, type CardDraft, CITY_RATES, type Ports, type WorkerRules } from "@gigsync/core";
+import {
+  aboutIsPrivate,
+  type CardDraft,
+  CITY_RATES,
+  type Ports,
+  type TermPrefs,
+  type WorkerRules,
+} from "@gigsync/core";
 import type { BoardProfile, Lang } from "@gigsync/protocol";
 import { type Account, apiClient, saveAccount } from "../adapters/account.js";
 import { AREAS } from "../ui/places.js";
@@ -46,6 +53,8 @@ export async function publishCard(ports: Ports, account: Account, draft: CardDra
     radius_km: account.worker?.radius_km ?? DEFAULT_RADIUS_KM,
     rates: CITY_RATES,
     ask_me: draft.ask_me ?? [],
+    // The card interview does not ask them: keep what the form set.
+    ...withPrefs(draft.terms ?? account.worker?.terms),
   };
   await apiClient(account.session).publishProfile(card);
   const next: Account = { ...account, worker, languages, autoConfirm: draft.auto ?? false, about, listed: true };
@@ -67,5 +76,9 @@ export function accountDraft(account: Account): CardDraft {
     ...(account.about ? { about: account.about } : {}),
     ask_me: rules.ask_me ?? [],
     auto: account.autoConfirm ?? false,
+    ...withPrefs(rules.terms),
   };
 }
+
+/** `{ terms }` when the worker set any preference for terms besides the price. */
+const withPrefs = (terms: TermPrefs | undefined): { terms?: TermPrefs } => (terms ? { terms } : {});

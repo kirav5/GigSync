@@ -16,8 +16,10 @@ import { ulid } from "ulid";
 import { answersFound } from "./answer.js";
 import type { JobContext } from "./context.js";
 import { accept, cancel, termsFor } from "./deal.js";
+import { planHousehold } from "./household-plan.js";
 import { MoveKind, respond } from "./negotiate.js";
 import { AnswerSource, type JobRecord, type Need, type Suggested, TaskKind } from "./store.js";
+import { householdTerms, nextTerms, requestTerms, speaksTerms, termsField, withTerms } from "./terms-flow.js";
 
 const K = EnvelopeKind.enum;
 const R = Role.enum;
@@ -27,6 +29,7 @@ export async function startRequest(ctx: JobContext, need: Need, worker: UserId):
   const now = ctx.clock.now();
   const at = now.toISOString();
   const id = `eng_${ulid(now.getTime())}` as EngagementId;
+  const terms = await speaksTerms(ctx, worker);
   const request: JobRequest = {
     trade: need.trade,
     need: need.need,
@@ -34,6 +37,7 @@ export async function startRequest(ctx: JobContext, need: Need, worker: UserId):
     area: need.area,
     details: need.details,
     lang: ctx.lang,
+    ...requestTerms(need, terms),
   };
   const r: JobRecord = {
     engagement: {
@@ -51,6 +55,7 @@ export async function startRequest(ctx: JobContext, need: Need, worker: UserId):
     offers_made: 0,
     asked: false,
     ...(need.estimate ? { estimate: need.estimate } : {}),
+    terms: { on: terms },
   };
   return ctx.send(r, K.request, request);
 }
@@ -111,8 +116,13 @@ const mapValues = <T, U>(o: Readonly<Record<string, T>>, f: (v: T) => U): Record
 
 /** The worker quoted: accept, counter one step, or walk away when rounds run out. */
 export async function onQuote(ctx: JobContext, need: Need, r: JobRecord, offer: Offer): Promise<JobRecord> {
-  const withOffer = { ...r, offers: [...r.offers, { by: R.provider, offer }] };
-  const move = respond(R.requester, need.budget, r.offers_made, offer.price_paise);
+  const planned = await planHousehold(ctx, need, r);
+  const quoted = { ...planned, offers: [...r.offers, { by: R.provider, offer }] };
+  const termed = await householdTerms(ctx, need, quoted, offer.terms);
+  const withOffer = termed.r;
+  const plan = planned.mandate ?? need.budget;
+  const priced = respond(R.requester, plan, r.offers_made, offer.price_paise, planned.strategy);
+  const move = withTerms(priced, termed.agreed, offer.price_paise, r.offers_made);
   if (move.kind === MoveKind.accept) return accept(ctx, withOffer, termsFor(ctx, withOffer, offer));
   if (move.kind === MoveKind.walk) return cancel(ctx, withOffer, { reason: CancelReason.enum.no_deal });
   const counter: Offer = {
@@ -121,6 +131,7 @@ export async function onQuote(ctx: JobContext, need: Need, r: JobRecord, offer: 
     price_paise: move.price_paise,
     slot: offer.slot,
     scope: offer.scope,
+    ...termsField(r.request.trade, nextTerms(withOffer)),
   };
   const next = {
     ...withOffer,

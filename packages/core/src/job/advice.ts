@@ -15,8 +15,9 @@ import type { JobRecord } from "./store.js";
  * The worker's agent proposes a price plan (an opening price and a private limit) from three kinds of data: the
  * band for the job (the estimate for its scope when there is one, ADR 0030, else the city's band for the trade),
  * adjusted for scope the band does not already price; what this worker was actually paid before; and the floor they
- * set. Plain arithmetic, the same for every worker and checkable by a union steward. No model produces a number here:
- * an estimate's figures are computed by code from sourced quotes, and a model may only reword the reasons.
+ * set. Plain arithmetic, checkable by a union steward; only where the opening falls in its range is drawn at random
+ * per job (ADR 0033), so the opening says nothing about the floor. No model produces a number here: an estimate's
+ * figures are computed by code from sourced quotes, and a model may only reword the reasons.
  */
 
 /** Open a little above what the worker usually gets, so there is room to concede. */
@@ -50,6 +51,15 @@ export interface AdviceInput {
   floor_paise: number;
   /** When the band is an estimate: how many sources it rests on, for the reasons. */
   sources?: number;
+  /** The usual price for the job (the estimate's typical figure); the middle of the band when there is none. */
+  typical_paise?: number;
+  /** The statutory minimum for the job, when known; kept on the mandate so no offer goes below it. */
+  legal_paise?: number;
+  /**
+   * Where the opening falls in its range, 0 to 1: the job's drawn strategy (strategy.ts). The range is the usual price
+   * to the band's high, or, with a history, what the worker usually gets to that plus HISTORY_UPLIFT. 1 when omitted.
+   */
+  opening_at?: number;
 }
 
 /**
@@ -85,7 +95,8 @@ function scopeApplied(rules: readonly ScopeRule[], details: Readonly<Record<stri
 /**
  * The plan: limit = the owner's own minimum scaled by this job's scope (a dog, more people: more work than the job they
  * priced), never raised to the band's low: the owner set it after seeing the usual range and it stays theirs (ADR 0030
- * §5). Opening from history, capped by the band's high, never below the limit.
+ * §5). Opening at `opening_at` in its range (from history when there is one), capped by the band's high, never below
+ * the limit.
  */
 export function proposeMandate(i: AdviceInput): Advice {
   const applied = scopeApplied(i.band.scope, i.details);
@@ -94,8 +105,11 @@ export function proposeMandate(i: AdviceInput): Advice {
   const high = roundUp(i.band.high_paise * factor);
   const limit = roundUp(i.floor_paise * factor);
   const usual = median(i.history);
-  const fromHistory = usual === undefined ? undefined : roundUp(usual * factor * (1 + HISTORY_UPLIFT));
-  const opening = Math.max(limit, Math.min(high, fromHistory ?? high));
+  const typical = (i.typical_paise ?? (i.band.low_paise + i.band.high_paise) / 2) * factor;
+  const from = usual === undefined ? typical : Math.min(high, usual * factor);
+  const to = usual === undefined ? high : Math.min(high, usual * factor * (1 + HISTORY_UPLIFT));
+  const at = Math.min(1, Math.max(0, i.opening_at ?? 1));
+  const opening = Math.max(limit, Math.min(high, roundUp(from + (to - from) * at)));
 
   const sources = i.sources === undefined ? {} : { sources: i.sources };
   const reasons: Reason[] = [{ kind: ReasonKind.band, low_paise: low, high_paise: high, ...sources }];
@@ -103,7 +117,8 @@ export function proposeMandate(i: AdviceInput): Advice {
   if (usual !== undefined) reasons.push({ kind: ReasonKind.history, median_paise: usual, count: i.history.length });
   reasons.push({ kind: ReasonKind.floor, floor_paise: i.floor_paise });
   reasons.push({ kind: ReasonKind.plan, opening_paise: opening, limit_paise: limit });
-  return { mandate: { opening_paise: opening, limit_paise: limit }, reasons };
+  const legal = i.legal_paise ? { legal_paise: i.legal_paise } : {};
+  return { mandate: { opening_paise: opening, limit_paise: limit, ...legal }, reasons };
 }
 
 /** What this worker was paid in jobs of the trade that both sides signed and nobody cancelled. */

@@ -1,6 +1,8 @@
 import { agent } from "./agent.js";
 import { ask } from "./ask.js";
+import { bargain } from "./bargain.js";
 import { estimate } from "./estimate.js";
+import { explain } from "./explain.js";
 import { home } from "./home.js";
 import { install } from "./install.js";
 import { interview } from "./interview.js";
@@ -16,6 +18,7 @@ import { screens } from "./screens.js";
 import { shell } from "./shell.js";
 import { speech } from "./speech.js";
 import { talk } from "./talk.js";
+import { terms } from "./terms.js";
 import { worker } from "./worker.js";
 
 /**
@@ -44,6 +47,9 @@ export const en = {
   ...landing,
   ...mentor,
   ...estimate,
+  ...bargain,
+  ...terms,
+  ...explain,
 } as const;
 
 export type MessageKey = keyof typeof en;

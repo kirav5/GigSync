@@ -1,12 +1,14 @@
 import {
   AnswerSource,
   agentTalk,
+  type GigDevice,
   type JobRecord,
   type MessageKey,
   OfferNote,
   questionText,
   TalkKind,
   type TalkStep,
+  termsLines,
 } from "@gigsync/core";
 import { EngagementStatus, isModelQuestion, type Lang, type Question, Role } from "@gigsync/protocol";
 import type { ReactNode } from "react";
@@ -15,6 +17,7 @@ import { C } from "../ui/cls.js";
 import { money } from "../ui/places.js";
 import { Said } from "../ui/Said.js";
 import { DetailValue } from "./DetailValue.js";
+import { Explain } from "./terms/Explain.js";
 
 const S = EngagementStatus.enum;
 /** The note beside an offer far outside the job's estimate (ADR 0030 §5). */
@@ -24,6 +27,8 @@ const NOTE: Readonly<Record<OfferNote, MessageKey>> = {
 };
 /** The space between a line's words and its faint note, which JSX would otherwise drop. */
 const GAP = " ";
+/** Between the terms of one proposal. */
+const LIST = ", ";
 /** While the agents are still at it, their talk is open on the card; once it is settled it folds away. */
 const TALKING: ReadonlySet<EngagementStatus> = new Set([
   S.sent,
@@ -38,7 +43,17 @@ const TALKING: ReadonlySet<EngagementStatus> = new Set([
  * the household's answers (translated when the other side wrote them), every offer, the agreement, each signature and
  * the contacts. It ends by saying the reader's own limit never left the phone.
  */
-export function AgentTalk({ job, them, from }: { job: JobRecord; them: string; from: Lang | undefined }) {
+export function AgentTalk({
+  job,
+  them,
+  from,
+  device,
+}: {
+  job: JobRecord;
+  them: string;
+  from: Lang | undefined;
+  device: GigDevice;
+}) {
   const { lang, t } = useI18n();
   const steps = agentTalk(job);
   // The request alone is already on the card.
@@ -92,6 +107,7 @@ export function AgentTalk({ job, them, from }: { job: JobRecord; them: string; f
         const price = money(s.price_paise);
         const said = mine(s.by) ? t("talk.offer_mine", { price }) : t("talk.offer_theirs", { name: them, price });
         const range = job.estimate && { low: money(job.estimate.low_paise), high: money(job.estimate.high_paise) };
+        const terms = termsLines(lang, s.terms).join(LIST);
         return (
           <>
             {said}
@@ -101,11 +117,16 @@ export function AgentTalk({ job, them, from }: { job: JobRecord; them: string; f
                 {t(NOTE[s.note], range)}
               </span>
             )}
+            {terms && <span className="offer-terms">{t("terms.proposed", { terms })}</span>}
+            <Explain device={device} job={job} index={s.index} them={them} />
           </>
         );
       }
-      case TalkKind.agreed:
-        return t("talk.agreed", { price: money(s.price_paise) });
+      case TalkKind.agreed: {
+        const terms = termsLines(lang, s.terms).join(LIST);
+        const agreed = t("talk.agreed", { price: money(s.price_paise) });
+        return terms ? `${agreed} ${t("terms.proposed", { terms })}` : agreed;
+      }
       case TalkKind.signed:
         return mine(s.by) ? t("talk.signed_mine") : t("talk.signed_theirs", { name: them });
       case TalkKind.contacts:

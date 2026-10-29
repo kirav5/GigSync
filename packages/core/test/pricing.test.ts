@@ -1,6 +1,6 @@
 import { Lang } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import { type Advice, ReasonKind, settle, TaskKind, type WorkerRules } from "../src/index.js";
+import { type Advice, type JobRecord, ReasonKind, settle, TaskKind, type WorkerRules } from "../src/index.js";
 import { ASHA, BENGALURU_RATES, cook, cookNeed, MemoryRelay, phone, RAVI_HOME } from "./phones.js";
 
 /** Asha with the Bengaluru pack, asking to see any household with pets first. */
@@ -10,6 +10,11 @@ const ashaRules = (askMe = true): WorkerRules => ({
   ...(askMe ? { ask_me: ["pets" as const] } : {}),
 });
 const answers = { people: "3", meals: "breakfast, dinner", pets: "yes" };
+/** Whole ₹10s up, after whole paise, as advice.ts rounds. */
+const roundUp = (paise: number) => Math.ceil(Math.round(paise) / 1000) * 1000;
+/** The opening the job's drawn strategy puts between `from` and `to` (ADR 0033). */
+const drawnOpening = (r: JobRecord, from: number, to: number) =>
+  roundUp(from + (to - from) * (r.strategy?.opening ?? 1));
 
 async function pair(rules: WorkerRules) {
   const relay = new MemoryRelay();
@@ -40,7 +45,14 @@ describe("the worker's agent prices each job from the city's rates and the worke
     expect(show?.kind).toBe(TaskKind.approveRequest);
     const { flagged, advice } = (show?.detail ?? {}) as { flagged: string[]; advice: Advice };
     expect(flagged).toEqual(["pets"]);
-    expect(advice.mandate).toEqual({ opening_paise: 1093000, limit_paise: 920000 });
+    // Limit: her floor plus 15%; opening: drawn for this job between the usual price (the band's middle, plus 15%)
+    // and the band's high plus 15%.
+    expect(advice.mandate.limit_paise).toBe(920000);
+    const planned = await asha.device.job(id);
+    expect(planned.strategy).toBeDefined();
+    expect(advice.mandate.opening_paise).toBe(drawnOpening(planned, 850000 * 1.15, 1093000));
+    expect(advice.mandate.opening_paise).toBeGreaterThanOrEqual(977500);
+    expect(advice.mandate.opening_paise).toBeLessThanOrEqual(1093000);
     expect(advice.reasons).toContainEqual({ kind: ReasonKind.scope, key: "pets", percent: 15 });
     expect((await asha.device.job(id)).offers).toEqual([]);
 
@@ -59,7 +71,7 @@ describe("the worker's agent prices each job from the city's rates and the worke
     expect(price).toBeLessThanOrEqual(950000); // Ravi's private limit
     // Every offer Asha's agent made followed her plan's curve: it opened at the plan and never went below the limit.
     const hers = onAsha.offers.filter((o) => o.by === "provider").map((o) => o.offer.price_paise);
-    expect(hers[0]).toBe(1093000);
+    expect(hers[0]).toBe(advice.mandate.opening_paise);
     for (const p of hers) expect(p).toBeGreaterThanOrEqual(920000);
   });
 
@@ -84,8 +96,9 @@ describe("the worker's agent prices each job from the city's rates and the worke
     const [job] = await ravi.device.request(cookNeed(950000, { ...answers, pets: "no" }), [asha.user]);
     await talk();
     const onAsha = await asha.device.job(job?.engagement.id as never);
-    expect(onAsha.advice?.mandate).toEqual({ opening_paise: 950000, limit_paise: 800000 });
-    expect(onAsha.offers[0]?.offer.price_paise).toBe(950000);
+    expect(onAsha.advice?.mandate.limit_paise).toBe(800000);
+    expect(onAsha.advice?.mandate.opening_paise).toBe(drawnOpening(onAsha, 850000, 950000));
+    expect(onAsha.offers[0]?.offer.price_paise).toBe(onAsha.advice?.mandate.opening_paise);
   });
 
   it("a second job's plan opens from what the first one actually paid", async () => {
@@ -99,8 +112,10 @@ describe("the worker's agent prices each job from the city's rates and the worke
 
     const [second] = await ravi.device.request(cookNeed(950000, noPets), [asha.user]);
     await talk();
-    const advice = (await asha.device.job(second?.engagement.id as never)).advice;
-    expect(advice?.reasons).toContainEqual({ kind: ReasonKind.history, median_paise: paid, count: 1 });
-    expect(advice?.mandate.opening_paise).toBe(Math.min(950000, Math.ceil((paid * 1.1) / 1000) * 1000));
+    const again = await asha.device.job(second?.engagement.id as never);
+    expect(again.advice?.reasons).toContainEqual({ kind: ReasonKind.history, median_paise: paid, count: 1 });
+    // Opening: drawn between what she was paid and 10% more, never above the band's high.
+    const opening = drawnOpening(again, Math.min(950000, paid), Math.min(950000, paid * 1.1));
+    expect(again.advice?.mandate.opening_paise).toBe(opening);
   });
 });

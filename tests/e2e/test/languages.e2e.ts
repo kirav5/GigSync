@@ -30,8 +30,11 @@ const RATES: RateCard = {
   ],
 };
 const FLOOR = 800000;
-/** Pets add 15% to the band: ₹8,630–₹10,930, rounded up to ₹10. */
-const SCOPED = { opening_paise: 1093000, limit_paise: 863000 };
+/**
+ * Pets add 15% to the band (₹8,630–₹10,930) and to her ₹8,000 floor (₹9,200), rounded up to ₹10. Her agent opens at a
+ * point drawn per job between the usual price (the band's middle, ₹9,775 with the dog) and the band's high (ADR 0033).
+ */
+const SCOPED = { usual_paise: 977500, high_paise: 1093000, limit_paise: 920000 };
 const RAVI_LIMIT = 950000;
 
 const centre = newCentre();
@@ -116,7 +119,9 @@ describe("a Hindi-speaking cook and a Kannada-speaking household, end to end", (
     const [show] = await asha.device.tasks();
     expect(show?.kind).toBe(TaskKind.approveRequest);
     const { advice } = (show?.detail ?? {}) as { advice: Advice };
-    expect(advice.mandate).toEqual(SCOPED);
+    expect(advice.mandate.limit_paise).toBe(SCOPED.limit_paise);
+    expect(advice.mandate.opening_paise).toBeGreaterThanOrEqual(SCOPED.usual_paise);
+    expect(advice.mandate.opening_paise).toBeLessThanOrEqual(SCOPED.high_paise);
     const spoken = advice.reasons.map((r) => reasonText(Lang.enum.hi, r));
     for (const line of spoken) expect(line).toMatch(DEVANAGARI);
     expect(spoken.join(" ")).toContain("₹10,930");
@@ -142,7 +147,7 @@ describe("a Hindi-speaking cook and a Kannada-speaking household, end to end", (
     expect(price).toBeGreaterThanOrEqual(SCOPED.limit_paise);
     expect(price).toBeLessThanOrEqual(RAVI_LIMIT);
     const hers = onAsha.offers.filter((o) => o.by === "provider").map((o) => o.offer.price_paise);
-    expect(hers[0]).toBe(SCOPED.opening_paise);
+    expect(hers[0]).toBe(advice.mandate.opening_paise);
     expect(onRavi.contact).toEqual(asha.contact);
     expect(onAsha.contact).toEqual(ravi.contact);
 

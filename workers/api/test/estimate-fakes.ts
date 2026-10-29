@@ -51,7 +51,10 @@ export class FakeSource implements QuoteSource {
   readonly name = "fake";
   calls = 0;
 
-  constructor(private readonly make: () => Promise<SourcedQuotes> | SourcedQuotes) {}
+  constructor(
+    private readonly make: () => Promise<SourcedQuotes> | SourcedQuotes,
+    readonly cached = true,
+  ) {}
 
   async quotes(): Promise<SourcedQuotes> {
     this.calls += 1;

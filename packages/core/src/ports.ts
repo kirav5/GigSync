@@ -98,6 +98,14 @@ export interface Clock {
   now(): Date;
 }
 
+/**
+ * Uniform numbers in [0, 1). The app's comes from the platform's cryptographic source (`crypto.getRandomValues`), so
+ * nobody can predict a job's hidden negotiation settings (ADR 0033); tests pass a seeded one. Never `Math.random`.
+ */
+export interface Random {
+  next(): number;
+}
+
 export interface Ports {
   storage: Storage;
   keys: Keys;

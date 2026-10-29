@@ -14,11 +14,15 @@ import type {
   Question,
   QuestionKey,
   Role,
+  TermKey,
+  Terms,
   Trade,
 } from "@gigsync/protocol";
 import { Collection, type Storage } from "../ports.js";
 import type { Advice } from "./advice.js";
 import type { Mandate } from "./negotiate.js";
+import type { Strategy, Tactic } from "./strategy.js";
+import type { TermsTrack } from "./terms-flow.js";
 
 /** One job as this device sees it: the engagement plus everything said in it. Never leaves the phone. */
 export interface JobRecord {
@@ -30,8 +34,16 @@ export interface JobRecord {
   offers_made: number;
   /** Questions this side's agent has asked (worker) so it asks only once. */
   asked: boolean;
-  /** The worker's price plan for this job, fixed at the first quote so every round follows the same curve. */
+  /**
+   * This side's price plan for this job, fixed when first planned so every round follows the same curve: the worker's
+   * from the rates (advice.ts), the household's from its budget and strategy (household-plan.ts).
+   */
   mandate?: Mandate;
+  /**
+   * This side's hidden negotiation settings, drawn at random when the job was first planned (ADR 0033). Never sent.
+   * Jobs planned before strategies have none and keep the old fixed curve.
+   */
+  strategy?: Strategy;
   /** Why the agent proposed that plan, when it came from the city's rates. */
   advice?: Advice;
   /** The worker said yes to a request their own rules said to show them first. */
@@ -64,6 +76,8 @@ export interface JobRecord {
   estimate?: Estimate;
   /** The owner's answer to sharing this job's price anonymously, once both signed; unset until they answer. */
   price_share?: ShareAnswer;
+  /** Whether this job's offers carry terms other than price, and the terms this side proposes next (ADR 0033). */
+  terms?: TermsTrack;
 }
 
 /** Whether the owner shared a signed job's price: asked once per job, or answered by their setting. */
@@ -93,8 +107,14 @@ export interface Need {
   /** Answers given up front or later; used to answer the worker's questions. */
   details: Record<string, string>;
   budget: Mandate;
+  /** How the owner wants this need bargained: chosen once, from their own words, for every request in the group. */
+  tactic?: Tactic;
   /** The estimate the owner saw beside the budget, kept on each request's job for the note on far-off offers. */
   estimate?: Estimate;
+  /** The terms the owner asked for, from their own words and the chips they confirmed (ADR 0033 §3). */
+  terms?: Terms;
+  /** Terms the owner said they do not mind changing a little ("any time that day"). */
+  flexible?: TermKey[];
 }
 
 export const TaskKind = {

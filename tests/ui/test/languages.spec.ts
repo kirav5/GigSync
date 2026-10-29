@@ -1,7 +1,7 @@
 import { type ApiClient, plural, questionText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type Browser, type BrowserContext, expect, test } from "@playwright/test";
-import { listWorker, newPhone, open, openCard, Role, RUN, reveal, shoot, signIn } from "./helpers.js";
+import { listWorker, newPhone, open, openCard, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
 import { dealPaise, fillAsk, type Phone, publishCard, sendNote, signBoth, unlistCards } from "./journey.js";
 import { pairKey, type TranslationTable, useTableTranslator } from "./translator.js";
 
@@ -151,9 +151,10 @@ test("Hindi cook, Kannada household: every screen in its own language, free text
   // The plan is under the card's Details.
   const plan = asha.page.getByRole("group", { name: t(hi, "a11y.plan") });
   await reveal(asha.page, plan);
-  await expect(plan).toContainText("₹12,600");
+  await expect(plan).toContainText("₹12,600"); // the band's high with the dog and the extra person
   await shoot("asha-checks-the-dog", shots, folder);
-  await check.getByRole("button", { name: t(hi, "approve.yes", { price: "₹12,600" }) }).click();
+  // Her agent opens at a point drawn for this job inside that range (ADR 0033), so the button's price varies.
+  await check.getByRole("button", { name: textOf(hi, "approve.yes") }).click();
 
   await signBoth(phones, folder);
   await expect(ravi.page.getByLabel(t(kn, "a11y.contact"))).toContainText(ashaName);

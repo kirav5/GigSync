@@ -4,6 +4,7 @@ import {
   Header,
   MemoryStorage,
   type NewNeed,
+  type Random,
   SecretKeys,
   SystemClock,
   savePayee,
@@ -18,6 +19,10 @@ export const API = process.env.API_BASE ?? "http://localhost:8787";
 const DEV_OTP = process.env.DEV_OTP ?? "000000";
 const KM_PER_DEGREE = 111;
 const IP_OCTET = 250;
+
+const UINT32 = 2 ** 32;
+/** Each job's hidden negotiation settings come from the platform's cryptographic source, as on a phone. */
+const cryptoRandom: Random = { next: () => (crypto.getRandomValues(new Uint32Array(1))[0] as number) / UINT32 };
 
 /** A fresh 10-digit Indian mobile number, so runs never collide in the shared directory. */
 const digits = (n: number) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join("");
@@ -79,6 +84,7 @@ export async function person(
     storage,
     keys,
     clock: new SystemClock(),
+    random: cryptoRandom,
     me: { user: session.user, device: session.device },
     contact,
     ...(opts.worker ? { worker: opts.worker } : {}),

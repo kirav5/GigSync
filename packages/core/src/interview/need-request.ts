@@ -4,6 +4,7 @@ import { YES_NO_QUESTIONS } from "../job/details.js";
 import type { NewNeed } from "../job/device.js";
 import { localDay, WhenDetail } from "../job/when.js";
 import { DayWord, firstQuestion, type NeedDraft } from "./need.js";
+import { scopeDetails } from "./need-scope.js";
 
 /**
  * The request a household sends, built the same way whether they filled in Find's form or said it in the chat: the
@@ -11,7 +12,10 @@ import { DayWord, firstQuestion, type NeedDraft } from "./need.js";
  * private mandate that never leaves the phone.
  */
 
-/** The consumer's agent opens at this share of their budget and concedes toward the full budget. */
+/**
+ * The opening the old fixed curve used, as a share of the budget. Each request now opens at a share drawn at random
+ * when its first quote arrives (job/household-plan.ts, ADR 0033); this stays on the need so it is a whole mandate.
+ */
 export const OPENING_SHARE = 0.7;
 /** How many workers one need may ask at once. */
 export const MAX_ASK = 3;
@@ -32,6 +36,8 @@ export interface NeedParts {
   area: Place;
   /** The estimate for the whole job the owner saw beside the budget, if any; it stays on this phone. */
   estimate?: Estimate | undefined;
+  /** The terms the owner asked for and what they are flexible about (`needTerms`); their agent negotiates them. */
+  terms?: Pick<NewNeed, "terms" | "flexible">;
 }
 
 /** The request for `device.request`. Older phones and the agent read `when`; it becomes the signed slot. */
@@ -48,6 +54,7 @@ export function needToSend(p: NeedParts): NewNeed {
     },
     budget: { opening_paise: Math.round(p.budget_paise * OPENING_SHARE), limit_paise: p.budget_paise },
     ...(p.estimate ? { estimate: p.estimate } : {}),
+    ...p.terms,
   };
 }
 
@@ -61,10 +68,10 @@ export function resolveDay(day: string, now: Date, offsetMinutes: number): strin
   return day;
 }
 
-/** The detail the chat gathered, by its question's key; nothing when skipped. */
+/** The details the chat gathered, by question key: the scope chips the owner confirmed, and the first question's answer. */
 export function draftDetails(d: NeedDraft): Record<string, string> {
   const first = firstQuestion(d.trade);
-  return first && d.detail ? { [first]: d.detail } : {};
+  return { ...scopeDetails(d), ...(first && d.detail ? { [first]: d.detail } : {}) };
 }
 
 /**

@@ -12,6 +12,11 @@ import type { SourcedQuotes } from "./verify.js";
  */
 export interface QuoteSource {
   readonly name: string;
+  /**
+   * Whether its readings go into the shared cache. The fixture's do not: local development may run against the same
+   * database a deployment reads, and a canned reading cached there would be served as a real one for a week.
+   */
+  readonly cached: boolean;
   quotes(req: EstimateRequest): Promise<SourcedQuotes>;
 }
 

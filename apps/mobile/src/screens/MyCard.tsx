@@ -1,4 +1,4 @@
-import { askable, type CardDraft, log, type Ports, parseAmount } from "@gigsync/core";
+import { askable, type CardDraft, log, type Ports, parseAmount, type TermPrefs } from "@gigsync/core";
 import { Lang, Trade } from "@gigsync/protocol";
 import { type FormEvent, useRef, useState } from "react";
 import { type Account, apiClient, saveAccount } from "../adapters/account.js";
@@ -10,6 +10,7 @@ import { Dock } from "../ui/Dock.js";
 import { errorKey } from "../ui/errorKey.js";
 import { Icon } from "../ui/Icon.js";
 import { AREAS, money, rupeesOf } from "../ui/places.js";
+import { TermPrefsField } from "./card/TermPrefsField.js";
 import { CardRates } from "./estimate/CardRates.js";
 
 /** The form's id, so Publish can sit in the dock, outside it. */
@@ -41,6 +42,7 @@ export function MyCard({
   const draft = accountDraft(account);
   const [trades, setTrades] = useState<Trade[]>(draft.trades ?? []);
   const [spoken, setSpoken] = useState<Lang[]>(account.languages ?? [lang]);
+  const [prefs, setPrefs] = useState<TermPrefs>(draft.terms ?? {});
   const [error, setError] = useState<string>();
   const [status, setStatus] = useState<string>();
   /** A publish or unlist is on its way: a second tap must not send the card twice. */
@@ -72,6 +74,7 @@ export function MyCard({
       about: String(v.get(Field.about) ?? ""),
       ask_me: askable(trades).filter((k) => v.has(ASK_FIELD + k)),
       auto: v.has(Field.auto),
+      terms: prefs,
     };
     setBusy(true);
     try {
@@ -202,6 +205,7 @@ export function MyCard({
             </button>
           ))}
         </div>
+        <TermPrefsField trades={trades} prefs={prefs} onChange={setPrefs} />
         {askable(trades).map((k) => (
           <label key={k} className={C.checkRow}>
             <input type="checkbox" name={ASK_FIELD + k} defaultChecked={draft.ask_me?.includes(k)} />

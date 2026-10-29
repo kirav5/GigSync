@@ -93,8 +93,15 @@ async function freshReading({ db, source, requestId }: EstimateContext, req: Est
  * reading: those are "no estimate" with a reason.
  */
 export async function serveEstimate(ctx: EstimateContext, req: EstimateRequest, now: Date): Promise<EstimateResponse> {
-  const { db } = ctx;
+  const { db, source } = ctx;
   const key = keyOf(req);
+  // A source that is not cached (the local fixture) is read every time and never touches the cache.
+  if (source && !source.cached) {
+    const result = webBand(req, await source.quotes(req)).result;
+    const web = typeof result === "string" ? undefined : result;
+    const estimate = assembleEstimate(req, { web, readAt: now, shared: [] }, now);
+    return estimate ?? { none: typeof result === "string" ? result : NONE.too_few_quotes };
+  }
   const [cached, shared] = await Promise.all([
     lastReading(db, key),
     sharedPrices(db, key, firstMonthCounted(now), MAX_SHARED_READ),

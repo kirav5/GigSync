@@ -5,6 +5,7 @@ import type { Known } from "../memory/known.js";
 import type { AreaChoice, Line } from "./card.js";
 import type { FoundEstimate } from "./estimate-lines.js";
 import type { Recalled } from "./need-memory.js";
+import type { ScopeChip } from "./scope-read.js";
 
 /**
  * The need interview's shape and how it moves: a household (or a worker hiring a helper) says what they need, in one
@@ -33,6 +34,8 @@ export interface NeedDraft {
   time?: string | undefined;
   /** The most they will pay. Never leaves the phone; the agent negotiates up to it. */
   budget_paise?: number | undefined;
+  /** Scope read from the owner's description: chips to confirm before the estimate is asked (`need-scope.ts`). */
+  scope?: { chips: readonly ScopeChip[]; confirmed: boolean } | undefined;
 }
 
 export interface NeedConfig {
@@ -57,6 +60,8 @@ export interface NeedMemory {
 /** Where the interview is: a field being asked, the readback, the search, or what it found. */
 export const NeedSlot = {
   trade: "trade",
+  /** The scope read from the owner's words, as chips to confirm. */
+  scope: "scope",
   detail: "detail",
   area: "area",
   when: "when",
@@ -111,6 +116,7 @@ export const firstQuestion = (trade: Trade | undefined): QuestionKey | undefined
 /** The next field still missing, in the order asked; confirm once the need is whole. */
 export function firstMissing(d: NeedDraft): NeedSlot {
   if (!d.trade) return NeedSlot.trade;
+  if (d.scope && !d.scope.confirmed) return NeedSlot.scope;
   if (firstQuestion(d.trade) && d.detail === undefined) return NeedSlot.detail;
   if (d.area === undefined) return NeedSlot.area;
   if (d.day === undefined) return NeedSlot.when;

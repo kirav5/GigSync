@@ -1,9 +1,10 @@
 import { type Advice, reasonText } from "@gigsync/core";
-import type { QuestionKey } from "@gigsync/protocol";
+import type { QuestionKey, Terms } from "@gigsync/protocol";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { money } from "../ui/places.js";
 import { SpeakButton } from "../ui/SpeakButton.js";
+import { TermsList } from "./terms/TermsList.js";
 
 /** What the worker's agent puts on the approval task: what tripped the rule, and the plan it would quote from. */
 export interface ApproveDetail {
@@ -64,14 +65,21 @@ export function ApproveCard({
   );
 }
 
-/** Both agents reached terms: sign at that price, or decline. `say` reads the decision aloud; signing stays a tap. */
+/**
+ * Both agents reached terms: sign at that price and those terms, or decline. `asked` is what the household asked for,
+ * so a term its agent took that differs is marked. `say` reads the decision aloud; signing stays a tap.
+ */
 export function SignCard({
   price,
+  terms,
+  asked,
   say,
   onSign,
   onDecline,
 }: {
   price: number;
+  terms?: Terms | undefined;
+  asked?: Terms | undefined;
   say: string;
   onSign: () => void;
   onDecline: () => void;
@@ -84,6 +92,7 @@ export function SignCard({
         <SpeakButton lang={lang} text={say} />
         <span className={C.muted}>{t("job.reached", deal)}</span>
       </div>
+      <TermsList terms={terms} asked={asked} />
       <div className={C.actions}>
         <button type={C.button} className={C.accent} onClick={onSign}>
           {t("job.sign", deal)}

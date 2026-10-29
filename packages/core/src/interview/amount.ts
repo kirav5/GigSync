@@ -1,5 +1,5 @@
 import { PAISE_PER_RUPEE } from "@gigsync/protocol";
-import { asciiDigits } from "../job/details.js";
+import { asciiDigits, numbersIn } from "../job/details.js";
 import { HALF_MARK, normalize, SPACE } from "./normalize.js";
 import { EN_NUMBERS } from "./numbers-en.js";
 import { HI_NUMBERS } from "./numbers-hi.js";
@@ -35,6 +35,23 @@ const CURRENCY = new Set(
 );
 /** Words that may join two parts of one amount ("nine thousand and five hundred"). */
 const CONNECTORS = new Set(["and", "और", "ಮತ್ತು"].map((w) => normalize(w)));
+/** The number a single word says in any of the three languages ("twelve", "बारह", "ಸಾವಿರ"); undefined for other words. */
+export const numberWordValue = (word: string): number | undefined => {
+  const w = normalize(word);
+  return VALUES.get(w) ?? MULTIPLIERS.get(w);
+};
+
+/** "1,25,000" is one number: commas between digits, in any script, group it. */
+const DIGIT_GROUPING = /(?<=[0-9०-९೦-೯]),(?=[0-9०-९೦-೯])/g;
+const WORD = /[\p{L}\p{M}]+/gu;
+
+/** Every number a text states: digit runs in any script once grouping commas are gone, and number words. */
+export function statedNumbers(text: string): number[] {
+  const digits = numbersIn(text.replace(DIGIT_GROUPING, ""));
+  const words = (text.match(WORD) ?? []).flatMap((w) => numberWordValue(w) ?? []);
+  return [...digits, ...words];
+}
+
 /** "k" alone is a multiplier only straight after a number. */
 const K = normalize("k");
 const THOUSAND = 1000;

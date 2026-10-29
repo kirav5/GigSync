@@ -1,4 +1,5 @@
 import { HttpMethod } from "@gigsync/core";
+import { MENTOR_PROTOCOL, TERMS_PROTOCOL } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import { call } from "./mentor-helpers.js";
 import { signIn } from "./people.js";
@@ -12,6 +13,13 @@ describe("a device raises its protocol after an app update", () => {
     expect((await p.api.directory(p.session.user)).devices[0]?.protocol).toBe(4);
     expect((await call(p, HttpMethod.put, PATH, { protocol: 2 })).status).toBe(204);
     expect((await p.api.directory(p.session.user)).devices[0]?.protocol).toBe(4);
+  });
+
+  it("lists a phone that understands terms besides the price, so other phones send it terms", async () => {
+    const p = await signIn("+919844400103");
+    expect((await call(p, HttpMethod.put, PATH, { protocol: MENTOR_PROTOCOL })).status).toBe(204);
+    expect((await call(p, HttpMethod.put, PATH, { protocol: TERMS_PROTOCOL })).status).toBe(204);
+    expect((await p.api.directory(p.session.user)).devices[0]?.protocol).toBe(TERMS_PROTOCOL);
   });
 
   it("refuses a bad number", async () => {

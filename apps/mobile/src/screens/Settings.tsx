@@ -15,6 +15,7 @@ import { MemorySection } from "./memory/MemorySection.js";
 import { LinksSection } from "./mentor/LinksSection.js";
 import { MentorSection } from "./mentor/MentorSection.js";
 import { SpeechSettings } from "./SpeechSettings.js";
+import { TacticSetting } from "./TacticSetting.js";
 import { TranslationSettings } from "./TranslationSettings.js";
 
 const LOOKS: readonly { look: Look; label: MessageKey }[] = [
@@ -153,6 +154,7 @@ export function Settings(props: Props) {
 
       <MemorySection ports={ports} account={account} />
       <ShareSetting ports={ports} />
+      <TacticSetting ports={ports} />
 
       {isWorker && <SpeechSettings />}
       <TranslationSettings />

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { agent } from "../src/i18n/en/agent.js";
 import { ask } from "../src/i18n/en/ask.js";
+import { bargain } from "../src/i18n/en/bargain.js";
 import { estimate } from "../src/i18n/en/estimate.js";
+import { explain } from "../src/i18n/en/explain.js";
 import { home } from "../src/i18n/en/home.js";
 import { install } from "../src/i18n/en/install.js";
 import { interview } from "../src/i18n/en/interview.js";
@@ -17,6 +19,7 @@ import { screens } from "../src/i18n/en/screens.js";
 import { shell } from "../src/i18n/en/shell.js";
 import { speech } from "../src/i18n/en/speech.js";
 import { talk } from "../src/i18n/en/talk.js";
+import { terms } from "../src/i18n/en/terms.js";
 import { worker } from "../src/i18n/en/worker.js";
 
 /** Every English area file. Each language's index spreads them into one object, where a repeated key wins silently. */
@@ -40,6 +43,9 @@ const AREAS: Readonly<Record<string, object>> = {
   landing,
   mentor,
   estimate,
+  bargain,
+  terms,
+  explain,
 };
 
 describe("string areas", () => {

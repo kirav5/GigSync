@@ -22,12 +22,14 @@ import {
   type MentorApi,
   type Model,
   type NewNeed,
+  type Random,
   type Relay,
   SecretKeys,
   SystemClock,
   savePayee,
   type WorkerRules,
 } from "../src/index.js";
+import { nextPhoneRandom } from "./random.js";
 
 /** The mailbox and directory in memory, checking signatures as workers/api does. */
 export class MemoryRelay {
@@ -92,6 +94,8 @@ export async function phone(
     mentorApi?: MentorApi;
     /** The server's rate estimates and price sharing, faked in memory. */
     estimates?: EstimateOptions;
+    /** Where the phone draws each job's hidden negotiation settings; a seeded source per phone unless given. */
+    random?: Random;
   } = {},
 ): Promise<Phone> {
   const { payee, protocol, ...options } = opts;
@@ -105,6 +109,7 @@ export async function phone(
     storage,
     keys,
     clock: new SystemClock(),
+    random: nextPhoneRandom(),
     me,
     contact,
     ...options,

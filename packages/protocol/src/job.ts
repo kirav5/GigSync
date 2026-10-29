@@ -6,6 +6,7 @@ import { EngagementId, prefixedId, UserId } from "./ids.js";
 import { DEFAULT_LANG, Lang, QuestionKey } from "./lang.js";
 import { Introduce, LandingRequest, MentorAccept, MentorOffer } from "./mentor-envelopes.js";
 import { Paise, PaymentRecord, PaymentRequest } from "./payment.js";
+import { Terms, termsFit } from "./terms.js";
 import { Trade } from "./trade.js";
 
 export { Trade };
@@ -41,6 +42,8 @@ export const JobRequest = z.object({
   details: z.record(DetailKey, shortText).default({}),
   /** The language `need` and any free-text detail are written in, so the worker's phone can translate on receipt. */
   lang: Lang.default(DEFAULT_LANG),
+  /** The terms the household asks for, from its own words and chips; only to phones at `TERMS_PROTOCOL`. */
+  terms: Terms.optional(),
 });
 export type JobRequest = z.infer<typeof JobRequest>;
 
@@ -112,20 +115,29 @@ export const Offer = z.object({
   price_paise: Paise,
   slot: z.string().min(1).max(SLOT_MAX),
   scope: z.string().min(1).max(SCOPE_MAX),
+  /** The terms this side proposes with the price; only between phones at `TERMS_PROTOCOL`. */
+  terms: Terms.optional(),
 });
 export type Offer = z.infer<typeof Offer>;
 
-/** What both sides sign. Canonical JSON of this, hashed, is the `terms_hash`. */
-export const JobTerms = z.object({
-  engagement: EngagementId,
-  offer_id: OfferId,
-  worker: UserId,
-  consumer: UserId,
-  trade: Trade,
-  scope: z.string().min(1).max(SCOPE_MAX),
-  slot: z.string().min(1).max(SLOT_MAX),
-  price_paise: Paise,
-});
+/**
+ * What both sides sign. Canonical JSON of this, hashed, is the `terms_hash`. Without `terms` the hash is the same as
+ * before terms existed (canonical JSON leaves out what is undefined), so deals between older phones still match.
+ */
+export const JobTerms = z
+  .object({
+    engagement: EngagementId,
+    offer_id: OfferId,
+    worker: UserId,
+    consumer: UserId,
+    trade: Trade,
+    scope: z.string().min(1).max(SCOPE_MAX),
+    slot: z.string().min(1).max(SLOT_MAX),
+    price_paise: Paise,
+    /** The terms other than price the two agents agreed; only those the trade negotiates. */
+    terms: Terms.optional(),
+  })
+  .refine((t) => t.terms === undefined || termsFit(t.trade, t.terms), "a term this trade does not negotiate");
 export type JobTerms = z.infer<typeof JobTerms>;
 
 export const TermsHash = z.string().regex(/^[0-9a-f]{64}$/, "sha-256 hex");

@@ -7,6 +7,7 @@ import type { AreaChoice } from "./card.js";
 import { areaIn } from "./lexicon.js";
 import { DETAIL_MAX, TIME_MAX, timeIn } from "./need-parse.js";
 import { normalize } from "./normalize.js";
+import type { ScopeChip } from "./scope-read.js";
 
 /**
  * A model's help reading a need ("models propose, code decides"): when the phone has one and the owner writes in
@@ -26,6 +27,8 @@ export interface NeedHint {
   budget_paise?: number;
   /** The sentence says what is wrong: the owner's own words answer the problem question. */
   problem?: true;
+  /** The job's scope read from the words (`readScope`), each value already grounded in them. */
+  scope?: readonly ScopeChip[];
 }
 
 /** The on-device models read and answer English only today (HLD 7.6). */

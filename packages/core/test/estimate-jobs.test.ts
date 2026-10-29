@@ -67,8 +67,13 @@ describe("the worker's agent plans from the estimate for the job's scope", () =>
       high_paise: 1_800_000,
       sources: 5,
     });
-    // Limit: his own floor, never raised to the estimate's low (ADR 0030 §5); opening: the estimate's high.
-    expect(mine.mandate).toEqual({ opening_paise: 1_800_000, limit_paise: 1_200_000 });
+    // Limit: his own floor, never raised to the estimate's low (ADR 0030 §5); opening: drawn for this job between the
+    // estimate's typical and high figures (ADR 0033).
+    expect(mine.mandate?.limit_paise).toBe(1_200_000);
+    const at = mine.strategy?.opening ?? 1;
+    const typical = PAINT_2BHK.typical_paise;
+    const opening = Math.ceil(Math.round(typical + (1_800_000 - typical) * at) / 1000) * 1000;
+    expect(mine.mandate?.opening_paise).toBe(opening);
   });
 
   it("the worker's own floor above the estimate still wins", async () => {

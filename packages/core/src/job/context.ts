@@ -1,7 +1,7 @@
 import type { ContactCard, DeviceId, EnvelopeKind, Lang, UserId } from "@gigsync/protocol";
 import type { EstimateOptions } from "../estimate/lookup.js";
 import type { PaymentBook } from "../payments/book.js";
-import type { Clock, Keys, Model, Storage } from "../ports.js";
+import type { Clock, Keys, Model, Random, Storage } from "../ports.js";
 import type { JobRecord, JobStore } from "./store.js";
 
 /** What the job modules need from the device they run on. GigDevice provides it. */
@@ -18,6 +18,8 @@ export interface JobContext {
   payments: PaymentBook;
   keys: Keys;
   clock: Clock;
+  /** The source each job's hidden negotiation settings are drawn from: cryptographic on a phone (ADR 0033). */
+  random: Random;
   /** The phone's model, when it has one: it may propose questions and match answers, never set a price. */
   model?: Model;
   /** The server's rate estimates and price sharing, when the phone can reach them (ADR 0030). */

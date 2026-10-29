@@ -159,6 +159,7 @@ export const TOPIC: Readonly<Record<QuestionKey, readonly RegExp[]>> = {
   labour_only: [latin(["buy (?:the )?paint", "materials?", "labour only"]), indic(["पेंट ख़रीद", "ಪೇಂಟ್ ಖರೀದಿ"])],
   frequency: [latin(["how often", "every day", "daily", "weekly", "alternate days?"]), indic(["रोज़", "ಪ್ರತಿದಿನ"])],
   hours: [latin(["hours?"]), indic(["घंटे", "ಗಂಟೆ"])],
+  coats: [latin(["coats?"]), indic(["कोट", "ಕೋಟ್"])],
 };
 
 /** The standard detail a question's words are about, if any. */

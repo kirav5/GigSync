@@ -26,6 +26,7 @@ import { suggestedBudget } from "./need-estimate.js";
 import { MemoryPick } from "./need-memory.js";
 import type { NeedHint } from "./need-model.js";
 import { amountIn, DETAIL_MAX, type NeedFill, parseNeed, withoutMoney } from "./need-parse.js";
+import { chooseScope, hearScope, withScopeRead } from "./need-scope.js";
 import { NEED_FIELD_WORDS } from "./need-words.js";
 import { finder, firstIn, normalize } from "./normalize.js";
 
@@ -89,7 +90,7 @@ const budgetReadback = (paise: number, aloud: boolean): Line => ({
 function fillFromHint(d: NeedDraft, hint: NeedHint, words: string): NeedDraft {
   const problem = QuestionKey.enum.problem;
   const seen = hint.problem && words && !d.seen[problem] ? { ...d.seen, [problem]: words } : d.seen;
-  const next = { ...d, seen };
+  const next = withScopeRead({ ...d, seen }, hint.scope);
   return fillEmpty(next, { ...hint, details: {}, words });
 }
 
@@ -203,6 +204,8 @@ export function hearNeed(s: NeedState, text: string, aloud = false, hint: NeedHi
   switch (s.slot) {
     case NeedSlot.confirm:
       return onConfirm(s, text);
+    case NeedSlot.scope:
+      return hearScope(s, text);
     case NeedSlot.nobody:
       return onNobody(s, text);
     case NeedSlot.done:
@@ -230,6 +233,7 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
   const d = s.draft;
   const memory = onMemoryPick(s, value);
   if (memory) return memory;
+  if (s.slot === NeedSlot.scope) return chooseScope(s, value) ?? s;
   switch (s.slot) {
     case NeedSlot.trade: {
       const trade = Trade.options.find((tr) => tr === value);

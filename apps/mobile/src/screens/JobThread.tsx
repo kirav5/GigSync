@@ -11,6 +11,7 @@ import { type JobActionProps, JobActions } from "./JobActions.js";
 import { PlanCard } from "./JobDecide.js";
 import { dayDate } from "./jobGroups.js";
 import { IntroActions } from "./mentor/IntroActions.js";
+import { TermsList } from "./terms/TermsList.js";
 import "./jobs.css";
 
 const S = EngagementStatus.enum;
@@ -86,6 +87,7 @@ export function JobThread(props: JobActionProps) {
             </>
           )}
           {t(job.theirs ? "job.both_signed" : "job.their_signature")}
+          <TermsList terms={terms.terms} />
         </fieldset>
       )}
       <When request={job.request} from={theirs} />
@@ -140,7 +142,7 @@ export function JobThread(props: JobActionProps) {
         </fieldset>
       )}
 
-      <AgentTalk job={job} them={them} from={theirs} />
+      <AgentTalk job={job} them={them} from={theirs} device={device} />
       <More job={job} from={theirs} />
     </article>
   );

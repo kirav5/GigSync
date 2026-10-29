@@ -10,15 +10,17 @@ import {
   needEstimate,
   needPrompt,
   needRequest,
+  needTerms,
   needToSend,
   needWords,
   type Ports,
+  parseNeed,
   perJob,
+  readScope,
   resolveDay,
   startNeed,
   understandNeed,
 } from "@gigsync/core";
-import { Lang } from "@gigsync/protocol";
 import { useEffect, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
 import { stopSpeaking } from "../../adapters/speech.js";
@@ -48,9 +50,6 @@ import { phoneDay } from "../jobGroups.js";
 import { type FoundTurn, NeedTurns } from "./NeedTurns.js";
 import { needMemory, withMemory } from "./remembered.js";
 import "../talk.css";
-
-/** The language the phone's model reads; other languages go by the word lists alone. */
-const MODEL_LANG = Lang.enum.en;
 
 interface Props {
   ports: Ports;
@@ -134,15 +133,20 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       });
   }, [state, account]);
 
+  // The first answer, the need in the owner's words: in English the phone's model helps read it, and in every
+  // language its scope is read into chips the owner confirms before the estimate is asked (ADR 0033 §5).
   async function send(text: string, via: Via) {
     if (!state || busy) return;
     const aloud = via === Via.voice;
-    if (state.slot !== NeedSlot.trade || lang !== MODEL_LANG) return answerNeed(text, aloud);
+    if (state.slot !== NeedSlot.trade) return answerNeed(text, aloud);
     showOwner(text);
     setReading(true);
-    const hint = await understandNeed(ports.model, text, { areas: state.config.areas, lang });
+    const { areas, today } = state.config;
+    const hint = await understandNeed(ports.model, text, { areas, lang });
+    const trade = parseNeed(text, { areas, today }).trade ?? hint.trade ?? state.draft.trade;
+    const scope = trade ? await readScope(ports.model, text, { trade, lang }) : [];
     setReading(false);
-    answerNeed(text, aloud, hint, true);
+    answerNeed(text, aloud, { ...hint, scope }, true);
   }
 
   async function ask(turn: FoundTurn) {
@@ -161,6 +165,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       budget_paise: d.budget_paise,
       area,
       estimate: estimateFor(state),
+      terms: needTerms(d, d.trade, day),
     });
     setBusy(true);
     try {

@@ -24,6 +24,10 @@ import { accept, cancel, termsFor } from "./deal.js";
 import { present } from "./details.js";
 import { type Mandate, MoveKind, priceAt, respond } from "./negotiate.js";
 import { type JobRecord, TaskKind } from "./store.js";
+import { drawStrategy, type Strategy } from "./strategy.js";
+import { usualTactic } from "./tactic.js";
+import type { TermPrefs } from "./terms.js";
+import { nextTerms, termsField, withTermDetails, withTerms, workerTerms } from "./terms-flow.js";
 
 /** The standard questions live with the rest of the asking; screens and the interview read them from here. */
 export { QUESTIONS } from "./ask.js";
@@ -49,6 +53,8 @@ export interface WorkerRules {
   /** Where they work from and how far they go. Requests from further away are declined. */
   base: Place;
   radius_km: number;
+  /** When they take work, who buys materials, a day's hours: what their agent agrees besides the price. */
+  terms?: TermPrefs;
 }
 
 const EARTH_RADIUS_KM = 6371;
@@ -65,12 +71,14 @@ export async function onRequest(ctx: JobContext, rules: WorkerRules, r: JobRecor
   const req = r.request;
   if (!rules.trades.includes(req.trade) || distanceKm(rules.base, req.area) > rules.radius_km)
     return cancel(ctx, r, { reason: CancelReason.enum.no_match });
-  if (!r.asked) {
-    const questions = await questionsFor(ctx, rules, r);
+  // The household's terms answer the details they decide (who buys the paint): its agent need not ask them.
+  const told = withTermDetails(r, req.terms);
+  if (!told.asked) {
+    const questions = await questionsFor(ctx, rules, told);
     if (questions.length > 0)
-      return ctx.send({ ...r, asked: true, questions }, K.clarify, { questions } satisfies Clarify);
+      return ctx.send({ ...told, asked: true, questions }, K.clarify, { questions } satisfies Clarify);
   }
-  return quoteNext(ctx, rules, r);
+  return quoteNext(ctx, rules, told);
 }
 
 /**
@@ -107,29 +115,46 @@ async function jobEstimate(ctx: JobContext, r: JobRecord): Promise<Estimate | un
 }
 
 /**
+ * The job's hidden strategy (ADR 0033), drawn once when it is first planned, with the tactic the worker chose in
+ * Settings; nothing the household wrote picks it. A job that already made offers on the old fixed curve keeps it.
+ */
+async function strategyFor(ctx: JobContext, r: JobRecord): Promise<Strategy | undefined> {
+  if (r.strategy || r.offers_made > 0) return r.strategy;
+  return drawStrategy(R.provider, await usualTactic(ctx.storage), ctx.random);
+}
+
+/**
  * This job's plan: from the estimate for its scope when there is one (ADR 0030), else the city's band for the trade,
  * else the worker's own rate. The estimate is kept on the job, for the note on an offer far outside it.
  */
 async function planFor(ctx: JobContext, rules: WorkerRules, r: JobRecord): Promise<JobRecord> {
   if (r.mandate) return r;
+  const strategy = await strategyFor(ctx, r);
+  const drawn = { ...r, ...(strategy ? { strategy } : {}) };
   const cityBand = rules.rates?.bands.find((b) => b.trade === r.request.trade);
   const estimate = await jobEstimate(ctx, r);
   const band = estimate ? estimateBand(estimate, r.request.trade, cityBand) : cityBand;
-  if (!band) return { ...r, mandate: rules.rate };
+  if (!band) return { ...drawn, mandate: rules.rate };
   const history = pastPrices(await ctx.store.jobs(), r.request.trade);
+  const legal = estimate?.basis.legal_minimum_paise;
   const advice = proposeMandate({
     band,
     details: r.request.details,
     history,
     floor_paise: rules.rate.limit_paise,
-    ...(estimate ? { sources: sourceCount(estimate) } : {}),
+    ...(estimate ? { sources: sourceCount(estimate), typical_paise: estimate.typical_paise } : {}),
+    ...(legal ? { legal_paise: legal } : {}),
+    ...(strategy ? { opening_at: strategy.opening } : {}),
   });
-  return { ...r, mandate: advice.mandate, advice, ...(estimate ? { estimate } : {}) };
+  return { ...drawn, mandate: advice.mandate, advice, ...(estimate ? { estimate } : {}) };
 }
 
 /** Plans the job, shows it to the worker first if a flagged detail is present, otherwise makes the next offer. */
 async function quoteNext(ctx: JobContext, rules: WorkerRules, r: JobRecord): Promise<JobRecord> {
-  const planned = await planFor(ctx, rules, r);
+  // Terms first: what the worker proposes sets the job's scope, which the plan is priced from.
+  const { r: termed, stuck } = await workerTerms(ctx, rules.terms, r, r.request.terms);
+  if (stuck) return cancel(ctx, termed, { reason: CancelReason.enum.no_deal });
+  const planned = await planFor(ctx, rules, termed);
   const flagged = (rules.ask_me ?? []).filter((key) => present(planned.request.details[key]));
   if (flagged.length > 0 && !planned.owner_ok) {
     const detail = { flagged, mandate: planned.mandate, advice: planned.advice };
@@ -137,13 +162,23 @@ async function quoteNext(ctx: JobContext, rules: WorkerRules, r: JobRecord): Pro
     await ctx.store.saveJob(planned);
     return planned;
   }
-  return quote(ctx, planned, priceAt(R.provider, planned.mandate ?? rules.rate, planned.offers_made + 1));
+  const plan = planned.mandate ?? rules.rate;
+  return quote(ctx, planned, priceAt(R.provider, plan, planned.offers_made + 1, planned.strategy));
 }
 
 /** The consumer countered: accept, concede one step, or walk away when rounds run out. */
 export async function onCounter(ctx: JobContext, rules: WorkerRules, r: JobRecord, offer: Offer): Promise<JobRecord> {
-  const withOffer = { ...r, offers: [...r.offers, { by: R.requester, offer }] };
-  const move = respond(R.provider, r.mandate ?? rules.rate, r.offers_made, offer.price_paise);
+  const termed = await workerTerms(
+    ctx,
+    rules.terms,
+    { ...r, offers: [...r.offers, { by: R.requester, offer }] },
+    offer.terms,
+  );
+  if (termed.stuck) return cancel(ctx, termed.r, { reason: CancelReason.enum.no_deal });
+  const withOffer = await planFor(ctx, rules, termed.r);
+  const plan = withOffer.mandate ?? rules.rate;
+  const priced = respond(R.provider, plan, r.offers_made, offer.price_paise, withOffer.strategy);
+  const move = withTerms(priced, termed.agreed, offer.price_paise, r.offers_made);
   if (move.kind === MoveKind.accept) return accept(ctx, withOffer, termsFor(ctx, withOffer, offer));
   if (move.kind === MoveKind.walk) return cancel(ctx, withOffer, { reason: CancelReason.enum.no_deal });
   return quote(ctx, withOffer, move.price_paise);
@@ -162,6 +197,7 @@ function quote(ctx: JobContext, r: JobRecord, price: number): Promise<JobRecord>
     price_paise: price,
     slot: r.request.when,
     scope: scopeOf(r),
+    ...termsField(r.request.trade, nextTerms(r)),
   };
   return ctx.send({ ...r, offers: [...r.offers, { by: R.provider, offer }], offers_made: round }, K.quote, offer);
 }

@@ -17,6 +17,7 @@ import { log } from "../log.js";
 import { remember } from "../memory/remember.js";
 import type { JobContext } from "./context.js";
 import { type JobRecord, TaskKind } from "./store.js";
+import { mustReview, termsField } from "./terms-flow.js";
 
 const K = EnvelopeKind.enum;
 const S = EngagementStatus.enum;
@@ -45,6 +46,7 @@ export function termsFor(ctx: JobContext, r: JobRecord, offer: Offer): JobTerms 
     scope: offer.scope,
     slot: offer.slot,
     price_paise: offer.price_paise,
+    ...termsField(r.request.trade, offer.terms),
   };
 }
 
@@ -58,11 +60,15 @@ async function signingAnother(ctx: JobContext, r: JobRecord): Promise<boolean> {
   return group.some((o) => o.engagement.id !== r.engagement.id && o.mine && o.engagement.status === S.confirming);
 }
 
-/** The agent accepts the other side's offer: the owner signs it, or it is signed at once under auto-confirm. */
+/**
+ * The agent accepts the other side's offer: the owner signs it, or it is signed at once under auto-confirm, unless
+ * the terms change one the owner asked for (`mustReview`).
+ */
 export async function accept(ctx: JobContext, r: JobRecord, terms: JobTerms): Promise<JobRecord> {
   const next = { ...r, pending: terms };
   await ctx.store.saveJob(next);
-  if (ctx.autoConfirm && !(await signingAnother(ctx, next))) return sign(ctx, next);
+  const own = ctx.autoConfirm && !(await signingAnother(ctx, next)) && !(await mustReview(ctx, next, terms.terms));
+  if (own) return sign(ctx, next);
   await ctx.store.addTask(TaskKind.confirmDeal, r.engagement.id, terms, ctx.clock.now());
   return next;
 }

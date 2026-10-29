@@ -45,6 +45,14 @@ describe("estimate cache", () => {
     expect(source.calls).toBe(1);
   });
 
+  it("never caches a source that is not cached (the local fixture), and reads it every time", async () => {
+    const source = new FakeSource(() => quotesAt([9000, 10000, 11000, 12000, 14000], SITES), false);
+    expect(isEstimate(await serve(source, COOK))).toBe(true);
+    expect(isEstimate(await serve(source, COOK))).toBe(true);
+    expect(source.calls).toBe(2);
+    expect(await sql("SELECT 1 FROM estimate_cache")).toHaveLength(0);
+  });
+
   it("reads again once the reading is older than the TTL", async () => {
     const source = cooks();
     await serve(source, COOK);

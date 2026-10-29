@@ -1,6 +1,7 @@
 import type { EstimateSource, Lang, QuestionKey, RateCard, Trade } from "@gigsync/protocol";
 import type { MessageKey } from "../i18n/t.js";
 import { ASK_FIRST_DETAILS } from "../job/details.js";
+import type { TermPrefs } from "../job/terms.js";
 import { QUESTIONS } from "../job/worker.js";
 import type { FoundEstimate } from "./estimate-lines.js";
 import type { Field } from "./lexicon.js";
@@ -21,6 +22,8 @@ export interface CardDraft {
   about?: string;
   ask_me?: QuestionKey[];
   auto?: boolean;
+  /** When they take work, who buys materials, a day's hours: what their agent agrees besides the price. */
+  terms?: TermPrefs;
 }
 
 /** A pilot area by key, with every name it may be spoken or typed as, in each script and in English. */

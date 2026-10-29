@@ -116,6 +116,7 @@ function quotesIn(content: readonly BetaContentBlock[]): unknown[] {
  */
 export class AnthropicQuoteSource implements QuoteSource {
   readonly name = SourceName.anthropic;
+  readonly cached = true;
 
   /** `fetch` is the platform's unless a test hands in its own; the SDK makes every call through it. */
   constructor(

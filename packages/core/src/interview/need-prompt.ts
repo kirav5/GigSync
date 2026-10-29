@@ -19,6 +19,7 @@ import { budgetEstimate } from "./need-estimate.js";
 import { NeedPick } from "./need-hear.js";
 import { OFFER_CHOICES, recalledLine, redoChoice } from "./need-memory.js";
 import { needWords } from "./need-request.js";
+import { scopeQuestion } from "./need-scope.js";
 
 /**
  * What the need interview shows and reads aloud now: the question for the field still missing, with its tap choices
@@ -148,6 +149,8 @@ function question(s: NeedState): Prompt {
         choices: Trade.options.map((tr) => ({ value: tr, key: `trade.${tr}` as const })),
         hints: Trade.options.map((tr) => t(own, `trade.${tr}`)),
       };
+    case NeedSlot.scope:
+      return scopeQuestion(s);
     case NeedSlot.detail:
       return detailPrompt(s);
     case NeedSlot.area:

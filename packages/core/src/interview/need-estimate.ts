@@ -9,7 +9,8 @@ import { draftDetails } from "./need-request.js";
 /**
  * The estimate beside the household's budget question (ADR 0030 §5): the range for the job as described so far, with
  * its sources, and the budget it suggests, which the owner taps to use or answers with their own. Never filled in
- * silently: the budget stays the owner's, and stays on the phone.
+ * silently: the budget stays the owner's, and stays on the phone. Not asked while scope read from the owner's words
+ * waits for them to confirm it.
  */
 
 /** What the estimate is asked for: the details the chat gathered (the first question's answer, and counts said). */
@@ -17,7 +18,7 @@ export const needDetails = (d: NeedDraft): Record<string, string> => ({ ...d.see
 
 /** The request for this need's estimate in `city`, once the trade is known. */
 export const needRequest = (city: City, d: NeedDraft): EstimateRequest | undefined =>
-  d.trade ? estimateRequest(city, d.trade, needDetails(d)) : undefined;
+  d.trade && (!d.scope || d.scope.confirmed) ? estimateRequest(city, d.trade, needDetails(d)) : undefined;
 
 /** The need with the estimate the app found for it, or without one. */
 export const needWithEstimate = (s: NeedState, found: FoundEstimate | undefined): NeedState => ({

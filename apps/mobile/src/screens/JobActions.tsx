@@ -1,4 +1,4 @@
-import { asciiDigits, type GigDevice, type JobRecord, TaskKind } from "@gigsync/core";
+import { asciiDigits, type GigDevice, type JobRecord, TaskKind, termsLines } from "@gigsync/core";
 import {
   EngagementStatus,
   type JobTerms,
@@ -36,6 +36,8 @@ const SIGNED: ReadonlySet<EngagementStatus> = new Set([S.agreed, S.in_progress, 
 /** Before the work is handed over, a worker may say they are on the way or mark it done. */
 const WORKING: ReadonlySet<EngagementStatus> = new Set([S.agreed, S.in_progress]);
 const STARS = [5, 4, 3, 2, 1] as const;
+/** Between the sentence read aloud and each term after it. */
+const SAY_PAUSE = ". ";
 
 /**
  * The decisions and moves open to this owner on this job, and nothing else: decisions first, each with a speaker
@@ -43,7 +45,7 @@ const STARS = [5, 4, 3, 2, 1] as const;
  * other side's name as the card shows it.
  */
 export function JobActions({ job, view, device, run, onAddPayee, them }: JobActionProps & { them: string }) {
-  const { t } = useI18n();
+  const { lang, t } = useI18n();
   const id = job.engagement.id;
   const status = job.engagement.status;
   const isWorker = job.engagement.role === Role.enum.provider;
@@ -75,7 +77,12 @@ export function JobActions({ job, view, device, run, onAddPayee, them }: JobActi
       {terms && (
         <SignCard
           price={terms.price_paise}
-          say={t("home.say_sign", { name: them, price: money(terms.price_paise) })}
+          terms={terms.terms}
+          asked={isWorker ? undefined : job.request.terms}
+          say={[
+            t("home.say_sign", { name: them, price: money(terms.price_paise) }),
+            ...termsLines(lang, terms.terms),
+          ].join(SAY_PAUSE)}
           onSign={() => void run(() => device.confirmDeal(id))}
           onDecline={() => void run(() => device.declineDeal(id))}
         />

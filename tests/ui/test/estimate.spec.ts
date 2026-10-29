@@ -1,5 +1,5 @@
 import { type MessageKey, plural, questionText, t } from "@gigsync/core";
-import { Lang } from "@gigsync/protocol";
+import { Lang, SharedPrice } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { newPhone, open, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
 import { type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
@@ -24,6 +24,8 @@ const RANGE = {
 };
 /** The fixture's five quotes come from three pages; the app counts pages. */
 const SOURCES = 3;
+/** All a shared price carries: no user, name, contact or exact day. */
+const SHARED_KEYS = ["area_key", "city", "month", "price_paise", "scope", "trade"];
 
 let contexts: BrowserContext[] = [];
 
@@ -143,11 +145,16 @@ test("a household sees the range beside its budget; after both sign each is aske
   await reveal(homePage, card);
   await expect(card).toContainText(t(en, "estimate.share_what"));
   await shoot("share-card", { household: homePage }, FOLDER);
-  const sent = homePage.waitForResponse(
-    (r) => r.url().endsWith("/v1/estimates/prices") && r.request().method() === "POST",
-  );
+  // Answered here, never stored: this suite runs against the shared database, and a test price kept there would be
+  // blended into real estimates. Storing a shared price is covered by the API tests on a local database.
+  let shared: Record<string, unknown> | undefined;
+  await homePage.route("**/v1/estimates/prices", async (route) => {
+    shared = route.request().postDataJSON() as Record<string, unknown>;
+    await route.fulfill({ status: 204 });
+  });
   await card.getByRole("button", { name: t(en, "estimate.share_yes") }).click();
-  expect((await sent).status()).toBe(204);
+  await expect.poll(() => shared && Object.keys(shared).sort()).toEqual(SHARED_KEYS);
+  expect(SharedPrice.safeParse(shared).success).toBe(true);
   await expect(homePage.getByText(t(en, "estimate.shared"))).toBeVisible();
   await expect(card).toHaveCount(0);
 

@@ -29,6 +29,8 @@ export const QuestionKey = z.enum([
   "frequency",
   /** A driver's hours a day, as a number. */
   "hours",
+  /** Painting: coats of paint, as a number; set from the agreed terms, never asked as a standard question. */
+  "coats",
 ]);
 export type QuestionKey = z.infer<typeof QuestionKey>;
 

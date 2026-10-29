@@ -141,6 +141,7 @@ const CANNED: Readonly<Partial<Record<Trade, Canned>>> = { [T.painter]: PAINTER,
 /** The canned pages and quotes for a trade, whatever the scope: the checks decide what fits. */
 export class FixtureQuoteSource implements QuoteSource {
   readonly name = SourceName.fixture;
+  readonly cached = false;
 
   quotes(req: EstimateRequest): Promise<SourcedQuotes> {
     const canned = CANNED[req.trade];

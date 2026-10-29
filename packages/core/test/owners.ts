@@ -3,6 +3,7 @@ import type { ContactCard, DeviceId, UserId } from "@gigsync/protocol";
 import { ulid } from "ulid";
 import { GigDevice, MemoryStorage, OwnerStorage, SecretKeys, SystemClock } from "../src/index.js";
 import type { MemoryRelay } from "./phones.js";
+import { nextPhoneRandom } from "./random.js";
 
 /** Two people who sign in, one after the other, on one shared phone. */
 export function phoneOwners() {
@@ -46,6 +47,7 @@ export async function signInOn(
     storage: new OwnerStorage(phone.storage, me.user),
     keys: phone.keys,
     clock: new SystemClock(),
+    random: nextPhoneRandom(),
     me,
     contact,
   });

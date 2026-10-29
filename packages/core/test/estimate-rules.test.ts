@@ -150,7 +150,8 @@ describe("an estimate as the agent's band", () => {
     expect(band).toMatchObject({ low_paise: 1_000_000, high_paise: 1_200_000 });
     expect(band.scope.map((r) => r.key)).toEqual(["pets"]);
     expect(SCOPE_KEYS[T.cook]).toContain("people");
-    expect(estimateBand(PAINT_2BHK, T.painter).scope).toEqual([]);
+    // Without a city band, only the rule the agreed terms add: coats past two (ADR 0033 §3).
+    expect(estimateBand(PAINT_2BHK, T.painter).scope.map((r) => r.key)).toEqual(["coats"]);
   });
 
   it("says how many sources the band rests on", () => {

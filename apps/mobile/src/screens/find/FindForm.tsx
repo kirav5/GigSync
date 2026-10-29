@@ -6,13 +6,17 @@ import {
   localDay,
   log,
   type MessageKey,
+  type NeedDraft,
+  needTerms,
   needToSend,
   type Ports,
   parseAmount,
   perJob,
   QUESTIONS,
   questionText,
+  type ScopeChip,
   SEARCH_RADII_KM,
+  scopeDetails,
   suggestForHousehold,
   TIME_MAX,
 } from "@gigsync/core";
@@ -27,6 +31,7 @@ import { Dock } from "../../ui/Dock.js";
 import { errorKey } from "../../ui/errorKey.js";
 import { AREAS, areaNamed, PILOT_CITY, rupeesOf } from "../../ui/places.js";
 import { EstimateBox } from "../estimate/EstimateBox.js";
+import { ScopeChips } from "./ScopeChips.js";
 import { WorkerPick } from "./WorkerPick.js";
 
 /** Ties the dock's Ask button, outside the form, to it. */
@@ -70,6 +75,9 @@ export function FindForm({ ports, account, device, onAsked }: Props) {
   const when = chosen ?? (isMonthly(trade) ? When.daily : When.today);
   /** The detail as typed, once the owner leaves the field: what the estimate beside the budget is for. */
   const [detail, setDetail] = useState("");
+  /** The description as typed, once the owner leaves the field, and the scope chips they confirmed from it. */
+  const [needText, setNeedText] = useState("");
+  const [scope, setScope] = useState<readonly ScopeChip[]>();
   const budgetField = useRef<HTMLInputElement>(null);
 
   /** The phone's calendar day, `days` from now: what "Today" and "Tomorrow" mean where the owner is. */
@@ -94,7 +102,9 @@ export function FindForm({ ports, account, device, onAsked }: Props) {
 
   const first = QUESTIONS[trade][0];
   const firstQuestion = first ? questionText(lang, first) : "";
-  const details = first && detail ? { [first]: detail } : {};
+  // Confirmed chips only: what was read from the words counts once the owner says it is right (ADR 0033 §5).
+  const draft: NeedDraft = { seen: {}, trade, ...(scope ? { scope: { chips: scope, confirmed: true } } : {}) };
+  const details = { ...scopeDetails(draft), ...(first && detail ? { [first]: detail } : {}) };
   const estimated = useEstimate(account.session, estimateRequest(PILOT_CITY, trade, details));
   const budget =
     estimated && suggestForHousehold({ estimate: estimated.estimate, trade, city: PILOT_CITY }).budget_paise;
@@ -122,10 +132,11 @@ export function FindForm({ ports, account, device, onAsked }: Props) {
         day,
         label: dayLabel(i18n, day),
         time,
-        details: first && typed ? { [first]: typed } : {},
+        details: { ...scopeDetails(draft), ...(first && typed ? { [first]: typed } : {}) },
         budget_paise: owned,
         area: areaNamed(area),
         estimate: estimated && perJob(estimated.estimate, details),
+        terms: needTerms({ ...draft, detail: typed || undefined, time }, trade, day),
       });
       await askWorkers(ports, device, need, found ?? [], picked);
       onAsked();
@@ -197,7 +208,9 @@ export function FindForm({ ports, account, device, onAsked }: Props) {
               required
               aria-label={t("find.need_label")}
               placeholder={t("find.need_example")}
+              onBlur={(e) => setNeedText(e.currentTarget.value.trim())}
             />
+            <ScopeChips ports={ports} trade={trade} text={needText} onConfirm={setScope} />
             <input
               className={C.field}
               name={F.detail}

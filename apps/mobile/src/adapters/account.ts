@@ -16,14 +16,15 @@ import {
   type ContactCard,
   type Lang,
   MAX_TRADES,
-  MENTOR_PROTOCOL,
   PAYEE_NAME_MAX,
   type Session,
+  TERMS_PROTOCOL,
   type UserId,
   Vpa,
 } from "@gigsync/protocol";
 import { areaKeyOf, PILOT_CITY } from "../ui/places.js";
 import { API_BASE } from "./api.js";
+import { cryptoRandom } from "./random.js";
 
 /** Which side of a job this phone's owner is on. One account, one role, in this first version. */
 export const AccountRole = { consumer: "consumer", worker: "worker" } as const;
@@ -57,11 +58,12 @@ const PROFILE_KEY = "profile";
 type Profile = Omit<Account, "session" | "contact" | "protocol">;
 /**
  * What this app understands, sent with the device's keys at sign-in: notes on a link, questions a worker's agent's
- * model wrote, and the mentor envelopes. Each capability number includes the ones before it (COLLEAGUE_PROTOCOL is 2,
- * FREE_QUESTIONS_PROTOCOL 3). An older phone may still send this one an in-person link ask or a referral, which the
- * colleague number promised; both are dropped on arrival.
+ * model wrote, the mentor envelopes, and terms besides the price in offers and signed deals. Each capability number
+ * includes the ones before it (COLLEAGUE_PROTOCOL is 2, FREE_QUESTIONS_PROTOCOL 3, MENTOR_PROTOCOL 4). An older phone
+ * may still send this one an in-person link ask or a referral, which the colleague number promised; both are dropped
+ * on arrival.
  */
-const PROTOCOL = MENTOR_PROTOCOL;
+const PROTOCOL = TERMS_PROTOCOL;
 
 export class AccountError extends Error {}
 
@@ -177,6 +179,7 @@ export function deviceFor(ports: Ports, account: Account, lang: Lang): GigDevice
     storage: ports.storage,
     keys: ports.keys,
     clock: ports.clock,
+    random: cryptoRandom,
     me: { user: account.session.user, device: account.session.device },
     contact: account.contact,
     ...(account.worker ? { worker: account.worker } : {}),
