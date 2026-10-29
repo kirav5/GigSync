@@ -13,9 +13,8 @@ Status: **G0, design.** Start with the [HLD](docs/gigsync/HLD.md) and [LLD](docs
 GigSync is derived from [collabai.network](https://github.com/kirav5/collabai.network) (git remote `upstream`),
 renamed throughout (`@gigsync/*`, `gigsync-*` Workers, app id `app.gigsync`). It reuses Collab's agent core,
 protocol, mailbox, policy engine and offline model plugin; the code below is still Collab's M0 foundation, and
-the GigSync features in the HLD/LLD are planned. `gigsync.app` is a placeholder domain: custom domains are
-commented out in the `wrangler.toml` files and the D1 ids are placeholders until GigSync's own Cloudflare
-resources exist.
+the GigSync features in the HLD/LLD are planned. The pilot runs on `gigsync.network`: the app on
+`gigsync.network` and `www.`, the API on `api.gigsync.network`.
 
 The skeleton builds, tests and deploys end to end. See also [docs/design.md](docs/design.md) (Collab's design) and
 the decisions in [docs/adr](docs/adr).

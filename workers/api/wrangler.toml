@@ -3,9 +3,8 @@ main = "src/index.ts"
 compatibility_date = "2026-08-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Custom domain: uncomment once the GigSync domain is chosen and in this Cloudflare account (gigsync.app is a
-# placeholder). Cloudflare creates the DNS record and certificate on deploy.
-# routes = [{ pattern = "api.gigsync.app", custom_domain = true }]
+# Custom domain on the gigsync.network zone. Cloudflare creates the DNS record and certificate on deploy.
+routes = [{ pattern = "api.gigsync.network", custom_domain = true }]
 workers_dev = true
 
 # Directory: users, devices, keys, phone hashes, sessions, in Neon Postgres (ADR 0013), reached through Hyperdrive.
@@ -14,8 +13,7 @@ workers_dev = true
 # Local dev never uses the id: wrangler dev connects to CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_DIRECTORY.
 [[hyperdrive]]
 binding = "DIRECTORY"
-# Placeholder until GigSync's Cloudflare account exists.
-id = "00000000000000000000000000000000"
+id = "8ab7b3197cf14c4eac5c17ab6f0b75fa"
 
 # One Durable Object per user, class from workers/mailbox, re-exported from src/index.ts.
 [[durable_objects.bindings]]
@@ -40,7 +38,7 @@ LOG_LEVEL = "info"
 LOG_PII = "false"
 # Who may call the API from a browser: the website, then the iOS and Android webviews (capacitor://localhost,
 # https://localhost). Local dev overrides this in .dev.vars.
-ALLOWED_ORIGINS = "https://gigsync.app,https://www.gigsync.app,https://gigsync-app.gigsync.workers.dev,capacitor://localhost,https://localhost"
+ALLOWED_ORIGINS = "https://gigsync.network,https://www.gigsync.network,capacitor://localhost,https://localhost"
 # DEV_OTP is a secret, not a var: the code that always verifies until the SMS gateway exists.
 # Local dev reads it from .dev.vars (see .dev.vars.example); the deployed Worker from `wrangler secret put DEV_OTP`.
 
