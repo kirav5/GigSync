@@ -3,16 +3,25 @@ import {
   type BoardQueryInput,
   BoardResult,
   type BoardWorker,
+  type City,
+  CityGuide,
   type DeviceRegistration,
   DirectoryEntry,
   Envelope,
+  type MatchRequestInput,
+  MatchResponse,
+  type MentorListingInput,
+  type MentorProfile,
+  type MentorReport,
   MessageId,
+  MyMentorListing,
   Session,
   type UserId,
 } from "@gigsync/protocol";
 import { z } from "zod";
 import { BEARER_PREFIX, ContentType, Header, HttpMethod } from "../http.js";
 import { log } from "../log.js";
+import type { MentorApi } from "../mentor/types.js";
 
 /** The routes of workers/api this client calls. */
 export const ApiPath = {
@@ -24,6 +33,14 @@ export const ApiPath = {
   ack: "/v1/inbox/ack",
   boardProfile: "/v1/board/profile",
   boardWorkers: "/v1/board/workers",
+  mentorMe: "/v1/mentors/me",
+  mentorMatch: "/v1/mentors/match",
+  mentorReport: "/v1/mentors/report",
+  mentorBlock: "/v1/mentors/block",
+  /** A city's guide for the landing journey: `GET /v1/content/:city`. */
+  content: "/v1/content/",
+  /** This device now speaks a newer protocol: `PUT /v1/devices/me/protocol`. */
+  deviceProtocol: "/v1/devices/me/protocol",
 } as const;
 
 /** A non-2xx answer from the API: the status and its safe `{ error }` message. */
@@ -93,7 +110,7 @@ async function withDeadline<T>(ms: number, work: (signal: AbortSignal) => Promis
 }
 
 /** Typed calls to workers/api. Every response is parsed with its protocol schema before it is used. */
-export class ApiClient implements Relay {
+export class ApiClient implements Relay, MentorApi {
   constructor(
     private readonly base: string,
     private readonly fetchFn: Fetch = (input, init) => fetch(input, init),
@@ -174,6 +191,37 @@ export class ApiClient implements Relay {
         .map(([k, v]) => [k, String(v)]),
     );
     return BoardResult.parse(await this.call(HttpMethod.get, `${ApiPath.boardWorkers}?${params}`)).workers;
+  }
+
+  async publishMentor(listing: MentorListingInput): Promise<MyMentorListing> {
+    return MyMentorListing.parse(await this.call(HttpMethod.put, ApiPath.mentorMe, listing));
+  }
+
+  /** Answers 204 whether or not a listing was there: either way the owner is off the list. */
+  async removeMentor(): Promise<void> {
+    await this.call(HttpMethod.delete, ApiPath.mentorMe);
+  }
+
+  async matchMentors(query: MatchRequestInput): Promise<MentorProfile[]> {
+    return MatchResponse.parse(await this.call(HttpMethod.post, ApiPath.mentorMatch, query)).mentors;
+  }
+
+  reportMentor(report: MentorReport): Promise<unknown> {
+    return this.call(HttpMethod.post, ApiPath.mentorReport, report);
+  }
+
+  blockMentor(user: UserId): Promise<unknown> {
+    return this.call(HttpMethod.post, ApiPath.mentorBlock, { user });
+  }
+
+  /** A city's guide, checked against its schema before the landing journey keeps it. */
+  /** Tells the directory this device speaks `protocol` now, after an app update. */
+  raiseProtocol(protocol: number): Promise<unknown> {
+    return this.call(HttpMethod.put, ApiPath.deviceProtocol, { protocol });
+  }
+
+  async cityGuide(city: City): Promise<CityGuide> {
+    return CityGuide.parse(await this.call(HttpMethod.get, `${ApiPath.content}${city}`));
   }
 
   private async call(method: string, path: string, body?: unknown): Promise<unknown> {

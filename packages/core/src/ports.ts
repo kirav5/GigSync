@@ -35,6 +35,22 @@ export const Collection = {
   linkCodes: "link_codes",
   /** What the agent remembers from past signed jobs, one document per owner; wiped at sign-out. */
   memory: "memory",
+  /** Landing requests this phone sent as a newcomer, one per mentor asked. */
+  mentorRequests: "mentor_requests",
+  /** Landing requests this phone received as a mentor. */
+  mentorAsks: "mentor_asks",
+  /** Introductions toward a mentor link this phone is one of the two sides of. */
+  mentorIntros: "mentor_intros",
+  /** Answers to an introduction that came before the introduction itself, until it arrives. */
+  mentorEarly: "mentor_early",
+  /** The owner's own mentor choices and newcomer answers, kept on this phone only. */
+  mentorSettings: "mentor_settings",
+  /** People this owner blocked: hidden everywhere on this phone. */
+  blocked: "blocked",
+  /** Moves to a new city, one record per move, kept on this phone (the landing journey). */
+  journeys: "journeys",
+  /** City guides as last downloaded, one per city, so the landing journey works offline. */
+  guides: "guides",
 } as const;
 
 export interface Storage {

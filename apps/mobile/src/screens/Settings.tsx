@@ -1,4 +1,4 @@
-import type { MessageKey, Ports } from "@gigsync/core";
+import type { GigDevice, MessageKey, Ports } from "@gigsync/core";
 import { Lang, PAYEE_NAME_MAX } from "@gigsync/protocol";
 import { useState } from "react";
 import type { Account } from "../adapters/account.js";
@@ -11,8 +11,10 @@ import { AREAS, money } from "../ui/places.js";
 import { ColleaguesSection } from "./colleague/List.js";
 import type { ColleaguePlace } from "./colleague/place.js";
 import { SiteForm } from "./colleague/SiteForm.js";
+import { MovingEntry } from "./landing/MovingEntry.js";
 import { ModelSettings } from "./ModelSettings.js";
 import { MemorySection } from "./memory/MemorySection.js";
+import { MentorSection } from "./mentor/MentorSection.js";
 import { SpeechSettings } from "./SpeechSettings.js";
 import { TranslationSettings } from "./TranslationSettings.js";
 
@@ -37,6 +39,12 @@ interface Props {
   onAccount: (a: Account) => void;
   /** Opens the Colleagues screen at one of its places. */
   onColleagues: (place: ColleaguePlace) => void;
+  /** Opens the landing journey: moving to a new city. */
+  onMoving: () => void;
+  device: GigDevice;
+  run: (work: () => Promise<unknown>) => Promise<unknown>;
+  /** Opens Find a mentor. */
+  onFindMentor: () => void;
 }
 
 /** The worker's card at a glance: what customers see on the board, or that it is not there, and two ways to change it. */
@@ -105,6 +113,7 @@ function LookPicker() {
  */
 export function Settings(props: Props) {
   const { ports, account, isWorker, platform, online, onSignOut, onCard, onTalkCard, onAccount, onColleagues } = props;
+  const { onMoving, device, run, onFindMentor } = props;
   const { lang, setLang, t } = useI18n();
   const name = account.contact.name;
   const role = t(isWorker ? "role.worker" : "role.customer");
@@ -125,6 +134,8 @@ export function Settings(props: Props) {
       {isWorker && <PayeeForm ports={ports} defaultName={name.slice(0, PAYEE_NAME_MAX)} />}
       {isWorker && <ColleaguesSection onOpen={onColleagues} />}
       {isWorker && <SiteForm ports={ports} account={account} onSaved={onAccount} />}
+      {isWorker && <MovingEntry onOpen={onMoving} />}
+      {isWorker && <MentorSection account={account} device={device} run={run} onFind={onFindMentor} />}
 
       <section className={C.card} aria-label={t("profile.language")}>
         <span className={C.label}>{t("profile.language")}</span>

@@ -14,7 +14,10 @@ import type { Env } from "./env.js";
 import { requestLog } from "./log.js";
 import { auth } from "./routes/auth.js";
 import { board } from "./routes/board.js";
+import { content } from "./routes/content.js";
+import { devices } from "./routes/devices.js";
 import { mail } from "./routes/mail.js";
+import { mentors } from "./routes/mentors.js";
 
 export type { Env };
 export { Mailbox };
@@ -85,9 +88,12 @@ app.get(`${V1}/directory/:${USER_PARAM}`, async (c) => {
   return c.json({ user: user.data, devices });
 });
 
-// ── Mailbox, inbox and the job board ──────────────────────────────────────────────────────────────────────────────
+// ── Mailbox, inbox, the job board, mentors and city guides ────────────────────────────────────────────────────────
 app.route(V1, mail);
 app.route(`${V1}/board`, board);
+app.route(`${V1}/mentors`, mentors);
+app.route(`${V1}/content`, content);
+app.route(`${V1}/devices`, devices);
 
 app.notFound((c) => c.json({ error: ApiError.notFound }, 404));
 

@@ -1,0 +1,59 @@
+/* Mentors: the safety words, a mentor's facts and badge, the chips on a mentor link, and the lists of requests and
+   helplines. Sizes and colours come from the tokens in styles.css. */
+
+.mentor-safety ul {
+  margin: 0;
+  padding-inline-start: 20px;
+  display: grid;
+  gap: 4px;
+}
+
+.mentor-facts {
+  display: grid;
+  gap: 2px;
+}
+
+.mentor-vouched {
+  justify-self: start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 0.85em;
+}
+
+.mentor-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.mentor-note {
+  margin: 0;
+  padding-inline-start: 10px;
+  border-inline-start: 3px solid var(--hairline);
+}
+
+.mentor-results,
+.mentor-helplines {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mentor-request-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--tap);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.mentor-safety-actions {
+  display: grid;
+  gap: 8px;
+}

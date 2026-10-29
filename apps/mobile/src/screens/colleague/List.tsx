@@ -1,6 +1,7 @@
 import { type Colleague, ColleagueState } from "@gigsync/core";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
+import { LinkChip } from "../mentor/LinkChip.js";
 import { useColleagues } from "./context.js";
 import { COLLEAGUE_LIST, ColleagueMode, type ColleaguePlace } from "./place.js";
 import "./colleagues.css";
@@ -35,6 +36,7 @@ export function ColleagueRows({
               <span className={C.muted}>
                 {linked ? c.card.trades.map((tr) => t(`trade.${tr}`)).join(", ") : t("colleague.asked", { name })}
               </span>
+              <LinkChip colleague={c} now={new Date()} />
             </span>
             {c.unread > 0 && <span className="colleague-unread">{plural("colleague.unread", c.unread)}</span>}
           </>

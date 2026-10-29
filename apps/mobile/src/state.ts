@@ -9,6 +9,10 @@ export const Screen = {
   card: "card",
   /** Colleagues linked in person, under Profile. */
   colleagues: "colleagues",
+  /** Moving to a new city: the landing journey and its city guide, under Profile. */
+  landing: "landing",
+  /** Find a mentor in a new city: the newcomer chooses from listed mentors, under Profile (and the landing journey). */
+  findMentor: "find_mentor",
 } as const;
 export type Screen = (typeof Screen)[keyof typeof Screen];
 

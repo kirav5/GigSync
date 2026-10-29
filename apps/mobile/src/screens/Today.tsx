@@ -1,5 +1,6 @@
 import type { GigDevice, JobRecord, Ports } from "@gigsync/core";
 import { Role } from "@gigsync/protocol";
+import type { Account } from "../adapters/account.js";
 import { useI18n } from "../i18n.js";
 import { PayeeNudge } from "../payments/PayeeNudge.js";
 import { CardState } from "../state.js";
@@ -7,6 +8,7 @@ import { C } from "../ui/cls.js";
 import type { GigView } from "../useGig.js";
 import { linkedOnly, useColleagues } from "./colleague/context.js";
 import { groupJobs, phoneDay, referralsOpen } from "./jobGroups.js";
+import { MentorToday } from "./mentor/MentorToday.js";
 import { JobFold, JobSection } from "./Requests.js";
 
 interface Props {
@@ -20,6 +22,8 @@ interface Props {
   onOpenCard: () => void;
   /** Opens Profile, where the UPI ID is added. */
   onAddPayee: () => void;
+  /** Whose phone this is: a mentor's answer to a newcomer carries their card. */
+  account: Account;
 }
 
 const isHire = (job: JobRecord) => job.engagement.role === Role.enum.requester;
@@ -29,7 +33,7 @@ const isHire = (job: JobRecord) => job.engagement.role === Role.enum.requester;
  * for today, coming up, and with no day, then the helpers they hired; the agents' talks and past jobs are folded away.
  * Each job card carries its own actions, so the screen has no dock.
  */
-export function Today({ ports, view, device, run, card, onMakeCard, onOpenCard, onAddPayee }: Props) {
+export function Today({ ports, view, device, run, card, onMakeCard, onOpenCard, onAddPayee, account }: Props) {
   const { t, date, time, plural } = useI18n();
   const { colleagues, answers } = useColleagues();
   const now = ports.clock.now();
@@ -47,6 +51,7 @@ export function Today({ ports, view, device, run, card, onMakeCard, onOpenCard, 
         {view.syncedAt && <span className={C.faint}>{t("requests.checked", { time: time(view.syncedAt) })}</span>}
       </div>
       <PayeeNudge ports={ports} view={view} onAdd={onAddPayee} />
+      <MentorToday account={account} device={device} run={run} syncedAt={view.syncedAt} />
       {card === CardState.none && (
         <div className={C.card}>
           <span>{t("home.no_card")}</span>

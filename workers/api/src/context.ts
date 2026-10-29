@@ -11,6 +11,8 @@ export type AppEnv = { Bindings: Env; Variables: Vars };
 /** Route prefixes. Everything under V1 needs a session except V1_AUTH. */
 export const V1 = "/v1";
 export const V1_AUTH = `${V1}/auth`;
+/** Header carrying the admin key for admin-only routes (the vouch route); compared with env ADMIN_KEY. */
+export const ADMIN_HEADER = "x-gigsync-admin";
 /** Path parameter naming the user a directory or mailbox route is about. */
 export const USER_PARAM = "user";
 
@@ -22,6 +24,7 @@ export const ApiError = {
   badPhone: "phone must be E.164",
   badSignature: "bad signature",
   envelopeMismatch: "envelope does not match route",
+  forbidden: "forbidden",
   internal: "internal error",
   notFound: "not found",
   recipientNotFound: "recipient not found",

@@ -14,9 +14,9 @@ import {
   type ColleagueCard,
   ContactCard,
   type EngagementId,
-  FREE_QUESTIONS_PROTOCOL,
   type Lang,
   MAX_TRADES,
+  MENTOR_PROTOCOL,
   PAYEE_NAME_MAX,
   type Session,
   type UserId,
@@ -44,16 +44,19 @@ export interface Account {
   about?: string;
   /** False once the worker takes their card off the board; absent or true while it is listed. */
   listed?: boolean;
+  /** The protocol the directory has for this device; absent on accounts signed in before it was kept. */
+  protocol?: number;
 }
 
 const ACCOUNT_KEY = "account";
 /** Names the consumer saw on the board, so their jobs show who they are talking to. */
 const PEOPLE = "people";
 /**
- * What this app understands, sent with the device's keys at sign-in: colleague and referral envelopes, and questions
- * a worker's agent's model wrote. Each capability number includes the ones before it (COLLEAGUE_PROTOCOL is 2).
+ * What this app understands, sent with the device's keys at sign-in: colleague and referral envelopes, questions a
+ * worker's agent's model wrote, and the mentor envelopes. Each capability number includes the ones before it
+ * (COLLEAGUE_PROTOCOL is 2, FREE_QUESTIONS_PROTOCOL 3).
  */
-const PROTOCOL = FREE_QUESTIONS_PROTOCOL;
+const PROTOCOL = MENTOR_PROTOCOL;
 
 export class AccountError extends Error {}
 
@@ -120,15 +123,31 @@ export async function signIn(
 ): Promise<Account> {
   const keys = await ports.keys.publicKeys();
   const session = await apiClient().verifyOtp(input.phone, input.code, { ...keys, protocol: PROTOCOL });
-  const account: Account = { session, role: input.role, contact: input.contact };
+  const account: Account = { session, role: input.role, contact: input.contact, protocol: PROTOCOL };
   await saveAccount(ports, account);
   return account;
 }
 
+/**
+ * After an app update, tells the directory this device speaks the newer protocol, so other phones send it the newer
+ * kinds (model questions, mentors) without the owner signing in again. Offline or failed: tried again next launch.
+ */
+export async function raiseDeviceProtocol(ports: Ports, account: Account): Promise<void> {
+  if ((account.protocol ?? 0) >= PROTOCOL) return;
+  try {
+    await apiClient(account.session).raiseProtocol(PROTOCOL);
+    await saveAccount(ports, { ...account, protocol: PROTOCOL });
+  } catch (err) {
+    log.warn("device protocol not raised", { error: err instanceof Error ? err.name : String(err) });
+  }
+}
+
 /** This phone's agent for jobs, acting as the signed-in owner, tagging their free text with the phone's language. */
 export function deviceFor(ports: Ports, account: Account, lang: Lang): GigDevice {
+  const api = apiClient(account.session);
   return new GigDevice({
-    relay: apiClient(account.session),
+    relay: api,
+    mentorApi: api,
     storage: ports.storage,
     keys: ports.keys,
     clock: ports.clock,

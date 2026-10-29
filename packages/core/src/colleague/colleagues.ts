@@ -1,6 +1,8 @@
 import type { ColleagueCard, EngagementId, Lang, UserId } from "@gigsync/protocol";
 import type { JobRecord } from "../job/store.js";
 import type { Received } from "../mail/transport.js";
+import { sweepExpired } from "../mentor/link.js";
+import { MentorStore } from "../mentor/store.js";
 import * as links from "./link.js";
 import { receive } from "./receive.js";
 import * as referrals from "./referral.js";
@@ -22,8 +24,14 @@ export {
 export class Colleagues {
   private readonly c: ColleagueContext;
 
-  constructor(deps: ColleagueDeps) {
-    this.c = { ...deps, store: new ColleagueStore(deps.ctx.storage) };
+  /** `store` is shared with the mentor code, whose links are colleague links too, so both queue on one store. */
+  constructor(deps: ColleagueDeps, store = new ColleagueStore(deps.ctx.storage)) {
+    this.c = { ...deps, store };
+  }
+
+  /** The parts the mentor code works with: mentor links are colleague links. */
+  get context(): ColleagueContext {
+    return this.c;
   }
 
   /** A fresh single-use code, valid for LINK_CODE_TTL_MS, as the QR text that carries it. */
@@ -39,9 +47,19 @@ export class Colleagues {
     return links.link(this.c, payload, card);
   }
 
-  /** Every colleague, asked or linked, by name. */
+  /**
+   * Every colleague, asked or linked, by name: mentor links that have run out are closed here as they are found, and
+   * anyone blocked on this phone is left out.
+   */
   async list(): Promise<Colleague[]> {
-    return (await this.c.store.list()).map(publicView).sort((a, b) => a.card.name.localeCompare(b.card.name));
+    const [live, blocked] = await Promise.all([
+      sweepExpired(this.c.store, this.c.ctx.clock.now()),
+      new MentorStore(this.c.ctx.storage).blocked(),
+    ]);
+    return live
+      .filter((c) => !blocked.has(c.user))
+      .map(publicView)
+      .sort((a, b) => a.card.name.localeCompare(b.card.name));
   }
 
   async send(user: UserId, text: string, lang: Lang): Promise<void> {

@@ -7,12 +7,14 @@ import {
   editIntent,
   hireIntent,
   log,
+  movingIntent,
   type Ports,
   passbook,
   prompt,
   Slot,
   start,
 } from "@gigsync/core";
+import type { City } from "@gigsync/protocol";
 import { useEffect, useRef, useState } from "react";
 import type { Account } from "../adapters/account.js";
 import { interviewConfig } from "../card/choices.js";
@@ -48,6 +50,8 @@ interface TalkProps {
   onSaved: (a: Account) => void;
   /** Opens Find to hire someone (worker to worker, flow A). */
   onHire: () => void;
+  /** Opens the landing journey for a move to a new city, with the city Talk heard. */
+  onMoving: (city?: City) => void;
   /** This phone's jobs and payments, for "what did I earn this week?". */
   view: GigView;
 }
@@ -58,7 +62,7 @@ interface TalkProps {
  * Words that ask to change a field of the card ("मेरा रेट बदलो") open the interview at that field, below what was
  * said before.
  */
-export function AgentScreen({ agent, ports, account, interview, onSaved, onHire, view }: TalkProps) {
+export function AgentScreen({ agent, ports, account, interview, onSaved, onHire, onMoving, view }: TalkProps) {
   const { lang, t } = useI18n();
   const { state, turns, paused } = useInterview();
   const [busy, setBusy] = useState(false);
@@ -117,6 +121,11 @@ export function AgentScreen({ agent, ports, account, interview, onSaved, onHire,
       beginInterview(account.worker ? edit(fresh(), field) : fresh(), own);
       return;
     }
+    const moving = movingIntent(own, lang);
+    if (moving) {
+      onMoving(moving.city);
+      return;
+    }
     if (hireIntent(own, lang)) {
       onHire();
       return;
@@ -139,7 +148,16 @@ export function AgentScreen({ agent, ports, account, interview, onSaved, onHire,
     }
   }
 
-  const send = (text: string, via: Via) => (active ? answerInterview(text, via === Via.voice) : void sendNote(text));
+  /**
+   * Mid-interview, words go to the interview, except words that only mean moving: a newcomer often has no card yet, and
+   * "I work in Bengaluru" stays an answer.
+   */
+  function send(text: string, via: Via) {
+    if (!active) return void sendNote(text);
+    const moving = movingIntent(text, lang);
+    if (moving?.certain) return onMoving(moving.city);
+    answerInterview(text, via === Via.voice);
+  }
 
   return (
     <>

@@ -4,6 +4,7 @@ import { ColleagueLink, ColleagueNote, Referral } from "./colleague.js";
 import { Base64, EnvelopeKind } from "./envelope.js";
 import { EngagementId, prefixedId, UserId } from "./ids.js";
 import { DEFAULT_LANG, Lang, QuestionKey } from "./lang.js";
+import { Introduce, LandingRequest, MentorAccept, MentorOffer } from "./mentor-envelopes.js";
 import { Paise, PaymentRecord, PaymentRequest } from "./payment.js";
 import { Trade } from "./trade.js";
 
@@ -200,4 +201,8 @@ export const BODY: Readonly<Record<EnvelopeKind, z.ZodType>> = {
   [K.colleague]: ColleagueLink,
   [K.colleague_note]: ColleagueNote,
   [K.referral]: Referral,
+  [K.introduce]: Introduce,
+  [K.landing_request]: LandingRequest,
+  [K.mentor_offer]: MentorOffer,
+  [K.mentor_accept]: MentorAccept,
 };

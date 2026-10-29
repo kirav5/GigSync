@@ -14,9 +14,11 @@ import {
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
 import {
+  type Clock,
   GigDevice,
   HttpError,
   MemoryStorage,
+  type MentorApi,
   type Model,
   type NewNeed,
   type Relay,
@@ -83,6 +85,10 @@ export async function phone(
     model?: Model;
     /** The capability number this phone registers; 1 unless a test needs a newer phone. */
     protocol?: number;
+    /** The phone's clock; the system's unless a test needs to move time. */
+    clock?: Clock;
+    /** The server's mentor routes, faked in memory. */
+    mentorApi?: MentorApi;
   } = {},
 ): Promise<Phone> {
   const { payee, protocol, ...options } = opts;

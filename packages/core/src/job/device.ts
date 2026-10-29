@@ -13,8 +13,11 @@ import {
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
 import { Colleagues } from "../colleague/colleagues.js";
+import { ColleagueStore } from "../colleague/store.js";
 import { apply } from "../engagement/machine.js";
 import { MailTransport } from "../mail/transport.js";
+import { Mentors } from "../mentor/mentors.js";
+import type { MentorApi } from "../mentor/types.js";
 import type { Relay } from "../net/api.js";
 import { everyDeviceSpeaks } from "../net/reach.js";
 import { PaymentBook } from "../payments/book.js";
@@ -43,6 +46,8 @@ export interface DeviceOptions {
   worker?: worker.WorkerRules;
   /** The phone's model, if any: the worker's agent asks it what to ask, the household's agent what was already said. */
   model?: Model;
+  /** The server's mentor routes; without them the phone can still introduce, answer and use mentor links. */
+  mentorApi?: MentorApi;
 }
 
 /** A consumer's need before it is sent: the budget is a private mandate and never leaves the phone. */
@@ -59,6 +64,8 @@ export class GigDevice {
   readonly payments: PaymentBook;
   /** Worker to worker: colleague links, their notes, and referrals on declined requests. */
   readonly colleagues: Colleagues;
+  /** Mentors for someone new to a city: introductions, listings, landing requests and mentor links. */
+  readonly mentors: Mentors;
   private readonly transport: MailTransport;
   private readonly ctx: JobContext;
 
@@ -81,14 +88,17 @@ export class GigDevice {
       send: (r, kind, body) => this.send(r, kind, body),
       signingKeyOf: (user, device) => this.transport.signingKeyOf(user, device),
     };
-    this.colleagues = new Colleagues({ ctx: this.ctx, transport: this.transport, relay: o.relay });
+    const links = new ColleagueStore(o.storage);
+    this.colleagues = new Colleagues({ ctx: this.ctx, transport: this.transport, relay: o.relay }, links);
+    this.mentors = new Mentors(this.colleagues.context, o.mentorApi);
   }
 
   /** Takes in what arrived, lets the agent answer it, and sends what is queued. */
   async sync(): Promise<{ received: number; sent: number }> {
     const received = await this.transport.receive();
     // In order on purpose: each envelope may depend on the one before it.
-    for (const item of received) await dispatch(this.ctx, this.o.worker, item, this.colleagues);
+    for (const item of received)
+      await dispatch(this.ctx, this.o.worker, item, { colleagues: this.colleagues, mentors: this.mentors });
     return { received: received.length, sent: await this.transport.flush() };
   }
 

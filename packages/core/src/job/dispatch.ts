@@ -11,6 +11,7 @@ import {
   EnvelopeKind,
   type JobRequest,
   type JobReview,
+  MENTOR_KINDS,
   type Note,
   type Offer,
   type PaymentRecord,
@@ -25,6 +26,7 @@ import { onReferral } from "../colleague/referral.js";
 import { apply, TransitionError } from "../engagement/machine.js";
 import { log } from "../log.js";
 import type { Received } from "../mail/transport.js";
+import type { Mentors } from "../mentor/mentors.js";
 import * as after from "./aftercare.js";
 import * as consumer from "./consumer.js";
 import type { JobContext } from "./context.js";
@@ -70,13 +72,16 @@ export async function needOf(ctx: JobContext, r: JobRecord): Promise<Need> {
   return need;
 }
 
-/** Where envelopes between colleagues go: they belong to no job. */
-export type ColleagueInbox = Pick<Colleagues, "receive">;
+/** Where envelopes between colleagues, and toward mentor links, go: they belong to no job. */
+export interface SideInboxes {
+  colleagues: Pick<Colleagues, "receive">;
+  mentors: Pick<Mentors, "receive">;
+}
 
 /**
  * Takes one verified, opened envelope into its job: only from the job's counterpart, only kinds this side may
- * receive, only moves the engagement allows. Then lets the right agent answer it. Colleague envelopes go to the
- * colleague inbox and never reach a job or the engagement machine.
+ * receive, only moves the engagement allows. Then lets the right agent answer it. Colleague and mentor envelopes go
+ * to their own inboxes and never reach a job or the engagement machine.
  *
  * Roles are per engagement: a worker's phone that hires someone is the requester of that job, found in the store
  * like any other. Only an incoming `request` for an engagement this phone does not have makes a new worker job.
@@ -85,10 +90,11 @@ export async function dispatch(
   ctx: JobContext,
   rules: worker.WorkerRules | undefined,
   item: Received,
-  colleagues: ColleagueInbox,
+  side: SideInboxes,
 ): Promise<void> {
   const { envelope: e, body } = item;
-  if (COLLEAGUE_KINDS.has(e.kind)) return colleagues.receive(item);
+  if (COLLEAGUE_KINDS.has(e.kind)) return side.colleagues.receive(item);
+  if (MENTOR_KINDS.has(e.kind)) return side.mentors.receive(item);
   const existing = await ctx.store.job(e.engagement);
   const r =
     existing ??

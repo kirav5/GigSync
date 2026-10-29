@@ -23,18 +23,27 @@ export const ColleagueCard = z.object({
 });
 export type ColleagueCard = z.infer<typeof ColleagueCard>;
 
-/** The three steps of a link: the scanner asks (with the code it scanned), the shower answers ok, either side ends it. */
-export const LinkStep = z.enum(["ask", "ok", "end"]);
+/**
+ * The steps of a link: the scanner asks (with the code it scanned), the shower answers ok, either side ends it.
+ * `renew` (mentor links only, so only between phones at `MENTOR_PROTOCOL`) moves the link's expiry to `expires_at`.
+ */
+export const LinkStep = z.enum(["ask", "ok", "end", "renew"]);
 export type LinkStep = z.infer<typeof LinkStep>;
 
 /** `colleague`: one step of linking two colleagues met in person, or ending the link. */
 export const ColleagueLink = z
-  .object({ step: LinkStep, code: LinkCode.optional(), card: ColleagueCard.optional() })
+  .object({
+    step: LinkStep,
+    code: LinkCode.optional(),
+    card: ColleagueCard.optional(),
+    expires_at: z.iso.datetime({ offset: true }).optional(),
+  })
   .refine(
     (b) => b.step !== LinkStep.enum.ask || (b.code !== undefined && b.card !== undefined),
     "ask needs code and card",
   )
-  .refine((b) => b.step !== LinkStep.enum.ok || b.card !== undefined, "ok needs a card");
+  .refine((b) => b.step !== LinkStep.enum.ok || b.card !== undefined, "ok needs a card")
+  .refine((b) => b.step !== LinkStep.enum.renew || b.expires_at !== undefined, "renew needs expires_at");
 export type ColleagueLink = z.infer<typeof ColleagueLink>;
 
 /** The longest colleague note, in characters. */

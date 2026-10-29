@@ -1,6 +1,7 @@
-import type { ColleagueCard, EngagementId, Lang, UserId } from "@gigsync/protocol";
+import type { ColleagueCard, EngagementId, Lang, LinkKind, UserId } from "@gigsync/protocol";
 import type { JobContext } from "../job/context.js";
 import type { MailTransport } from "../mail/transport.js";
+import type { MentorSide } from "../mentor/types.js";
 import type { Relay } from "../net/api.js";
 
 /** A colleague link waits for the other phone (`asked`) until its `ok` arrives (`linked`). */
@@ -21,6 +22,12 @@ export interface Colleague {
   linked_at?: string;
   /** Notes from them this phone has not shown yet. */
   unread: number;
+  /** `mentor` for a link opened through an introduction or a landing request; absent for one made in person. */
+  kind?: LinkKind;
+  /** When a mentor link closes, unless either side renews it. */
+  expires_at?: string;
+  /** A mentor link's sides and the mentor's own record. */
+  mentor?: MentorSide;
 }
 
 /** One message between two colleagues, with the language it was written in. */

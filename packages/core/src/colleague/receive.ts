@@ -4,10 +4,13 @@ import {
   type EngagementId,
   type Envelope,
   EnvelopeKind,
+  LinkKind,
   LinkStep,
 } from "@gigsync/protocol";
 import { log } from "../log.js";
 import type { Received } from "../mail/transport.js";
+import { isExpired, renewedExpiry } from "../mentor/expiry.js";
+import { MentorStore } from "../mentor/store.js";
 import type { ColleagueContext } from "./store.js";
 import { ColleagueState, NoteFrom } from "./types.js";
 
@@ -29,6 +32,8 @@ function dropped(e: Envelope, reason: string): void {
  * without a reply and without storing anything, so probing a phone learns nothing.
  */
 export async function receive(c: ColleagueContext, { envelope: e, body }: Received): Promise<void> {
+  // Someone this owner blocked is hidden everywhere: nothing they send is kept.
+  if (await new MentorStore(c.ctx.storage).isBlocked(e.from.user)) return dropped(e, "blocked");
   if (e.kind === K.colleague_note) return onNote(c, e, body as ColleagueNote);
   const link = body as ColleagueLink;
   switch (link.step) {
@@ -38,6 +43,8 @@ export async function receive(c: ColleagueContext, { envelope: e, body }: Receiv
       return onOk(c, e, link);
     case S.end:
       return onEnd(c, e);
+    case S.renew:
+      return onRenew(c, e, link);
   }
 }
 
@@ -86,10 +93,25 @@ async function onEnd(c: ColleagueContext, e: Envelope): Promise<void> {
   await c.store.remove(e.from.user);
 }
 
-/** A note counts only from a linked colleague, on the pair's channel. */
+/**
+ * They renewed a live mentor link. Its end moves forward, never back, and never past a full term from now on this
+ * phone's clock, whatever theirs says.
+ */
+async function onRenew(c: ColleagueContext, e: Envelope, renew: ColleagueLink): Promise<void> {
+  const now = c.ctx.clock.now();
+  const proposed = renew.expires_at;
+  const next = await c.store.update(e.from.user, (old) => {
+    const live = old?.kind === LinkKind.enum.mentor && old.channel === e.engagement && !isExpired(old, now);
+    return live && proposed ? { ...old, expires_at: renewedExpiry(old.expires_at, proposed, now) } : undefined;
+  });
+  if (!next) dropped(e, "no live mentor link");
+}
+
+/** A note counts only from a linked colleague, on the pair's channel, while a mentor link has not run out. */
 async function onNote(c: ColleagueContext, e: Envelope, note: ColleagueNote): Promise<void> {
   const old = await c.store.get(e.from.user);
   if (old?.state !== ColleagueState.linked || old.channel !== e.engagement) return dropped(e, "not linked");
+  if (isExpired(old, c.ctx.clock.now())) return dropped(e, "mentor link ended");
   // Their clock may run ahead; a note is never placed later than the moment it arrived.
   const now = c.ctx.clock.now().getTime();
   const at = new Date(Math.min(Date.parse(e.sent_at), now)).toISOString();

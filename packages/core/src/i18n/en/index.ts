@@ -5,7 +5,9 @@ import { home } from "./home.js";
 import { install } from "./install.js";
 import { interview } from "./interview.js";
 import { job } from "./job.js";
+import { landing } from "./landing.js";
 import { memory } from "./memory.js";
+import { mentor } from "./mentor.js";
 import { money } from "./money.js";
 import { need } from "./need.js";
 import { net } from "./net.js";
@@ -40,6 +42,8 @@ export const en = {
   ...need,
   ...memory,
   ...ask,
+  ...landing,
+  ...mentor,
 } as const;
 
 export type MessageKey = keyof typeof en;

@@ -1,7 +1,7 @@
-import { Agent, wipeMemory } from "@gigsync/core";
-import type { Lang } from "@gigsync/protocol";
+import { Agent, wipeJourneys, wipeMemory, wipeMentors } from "@gigsync/core";
+import type { City, Lang } from "@gigsync/protocol";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { type Account, AccountRole, deviceFor, loadAccount, signOut } from "./adapters/account.js";
+import { type Account, AccountRole, deviceFor, loadAccount, raiseDeviceProtocol, signOut } from "./adapters/account.js";
 import { apiReachable } from "./adapters/api.js";
 import { keepBackInApp, onBackButton } from "./adapters/back.js";
 import { loadLang, saveLang, suggestedLang } from "./adapters/lang.js";
@@ -17,8 +17,10 @@ import { Colleagues } from "./screens/Colleagues.js";
 import { ColleagueProvider } from "./screens/colleague/context.js";
 import { COLLEAGUE_LIST, type ColleaguePlace } from "./screens/colleague/place.js";
 import { Find } from "./screens/Find.js";
+import { Landing } from "./screens/Landing.js";
 import { LanguageChooser } from "./screens/Language.js";
 import { MyCard } from "./screens/MyCard.js";
+import { FindMentor } from "./screens/mentor/FindMentor.js";
 import { Passbook } from "./screens/Passbook.js";
 import { Requests } from "./screens/Requests.js";
 import { Settings } from "./screens/Settings.js";
@@ -65,6 +67,8 @@ export function App() {
   const [platform, setPlatform] = useState("web");
   const [online, setOnline] = useState<boolean>();
   const [colleaguePlace, setColleaguePlace] = useState<ColleaguePlace>(COLLEAGUE_LIST);
+  /** The city Talk heard in "I'm moving to …", for the landing journey to start with. */
+  const [movingTo, setMovingTo] = useState<City>();
   const subs = account?.role === AccountRole.worker ? WORKER_SUB_SCREENS : SUB_SCREENS;
 
   const land = useCallback((a: Account) => {
@@ -80,6 +84,7 @@ export function App() {
     void loadAccount(ports).then((a) => {
       setAccount(a ?? null);
       if (a) land(a);
+      if (a) void raiseDeviceProtocol(ports, a);
     });
   }, [ports, land]);
 
@@ -139,6 +144,10 @@ export function App() {
     setInterview(true);
     setScreen(Screen.talk);
   };
+  const openLanding = (city?: City) => {
+    setMovingTo(city);
+    setScreen(Screen.landing);
+  };
   const openColleagues = (place: ColleaguePlace) => {
     setColleaguePlace(place);
     setScreen(Screen.colleagues);
@@ -176,6 +185,7 @@ export function App() {
               onMakeCard={talkCard}
               onOpenCard={() => setScreen(Screen.card)}
               onAddPayee={() => setScreen(Screen.profile)}
+              account={account}
             />
           )}
           {screen === Screen.talk && (
@@ -186,6 +196,7 @@ export function App() {
               interview={interview}
               onSaved={saved}
               onHire={() => setScreen(Screen.find)}
+              onMoving={openLanding}
               view={view}
             />
           )}
@@ -206,8 +217,9 @@ export function App() {
               platform={platform}
               online={online}
               onSignOut={() =>
-                // The agent's memory goes first: a failure leaves the owner signed in, never their memory to the next.
-                void wipeMemory(ports.storage)
+                // The owner's memory, mentor records and moves go first: a failure leaves the owner signed in, never
+                // their data to the next person on a shared phone.
+                void Promise.all([wipeMemory(ports.storage), wipeMentors(ports.storage), wipeJourneys(ports.storage)])
                   .then(() => signOut(ports))
                   .then(() => {
                     // What they told the card interview and Find's chat, and the companies they let hear them, were theirs alone.
@@ -221,6 +233,29 @@ export function App() {
               onTalkCard={talkCard}
               onAccount={setAccount}
               onColleagues={openColleagues}
+              onMoving={() => openLanding()}
+              device={device}
+              run={run}
+              onFindMentor={() => setScreen(Screen.findMentor)}
+            />
+          )}
+          {screen === Screen.findMentor && (
+            <FindMentor
+              ports={ports}
+              account={account}
+              device={device}
+              run={run}
+              syncedAt={view.syncedAt}
+              onColleagues={openColleagues}
+            />
+          )}
+          {screen === Screen.landing && (
+            <Landing
+              ports={ports}
+              account={account}
+              jobs={view.jobs}
+              city={movingTo}
+              onFindMentor={() => setScreen(Screen.findMentor)}
             />
           )}
           {screen === Screen.card && <MyCard ports={ports} account={account} onSaved={saved} onTalk={talkCard} />}

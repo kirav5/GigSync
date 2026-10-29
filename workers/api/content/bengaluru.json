@@ -1,0 +1,621 @@
+{
+  "city": "bengaluru",
+  "status": "draft",
+  "drafted": "2026-10-29",
+  "label": "Draft from public sources. Not yet checked by a union.",
+  "sections": [
+    {
+      "id": "emergency-numbers",
+      "step": "travelling",
+      "title": "Save these numbers before you travel",
+      "body": "In any emergency in Karnataka, call 112. For help as a woman, call the women's helpline 181. For problems with pay or an employer, call the Karnataka labour helpline 155214. It runs day and night and is free. Save these numbers in your phone before you leave home.",
+      "sources": [
+        {
+          "title": "Karnataka State Police (Emergency Number: 112)",
+          "url": "https://ksp.karnataka.gov.in/english",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "Ministry of Women and Child Development (Women Helpline Toll free No. 181)",
+          "url": "https://wcd.gov.in/",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "Karnataka Labour Department: 24x7 Helpline",
+          "url": "https://labour.karnataka.gov.in/18/24x7-helpline/en",
+          "read": "2026-10-29"
+        }
+      ],
+      "keywords": ["112", "181", "155214", "emergency", "helpline", "police", "women helpline", "labour helpline"]
+    },
+    {
+      "id": "first-nights-women-hostels",
+      "step": "arrived",
+      "title": "A safe place for the first nights",
+      "body": "In 2019 the Karnataka women and child department said women coming to Bengaluru for work could stay free for up to three days. It named 13 working women's hostels for this. We have not been able to confirm that this still runs. Ask the union, or the office of the Deputy Director of Women and Child Development, before you go. Do not pay anyone who says they can get you a bed in these hostels.",
+      "sources": [
+        {
+          "title": "Star of Mysore, 9 Jun 2019: Transit hostel facility for women travellers, job-seekers in Bengaluru",
+          "url": "https://starofmysore.com/?p=174663",
+          "read": "2026-10-29"
+        }
+      ],
+      "keywords": [
+        "hostel",
+        "first night",
+        "transit hostel",
+        "working women hostel",
+        "stay",
+        "bed",
+        "women and child development"
+      ]
+    },
+    {
+      "id": "bus-travel",
+      "step": "arrived",
+      "title": "Getting around by city bus",
+      "body": "BMTC is the city bus. An ordinary day pass costs Rs 80 and an ordinary weekly pass costs Rs 350. You can show any photo ID for these. An ordinary monthly pass costs Rs 1,200 and needs a BMTC ID. Free bus travel for women, called Shakti, was only for women domiciled in Karnataka when it started in 2023. A woman from another state should expect to pay the fare.",
+      "sources": [
+        {
+          "title": "BMTC: Daily, Weekly, Monthly Passes",
+          "url": "https://mybmtc.karnataka.gov.in/50/daily-weekly-monthly-passes/en",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "The South First, 6 Jun 2023: Conditions apply - who can avail free bus rides (Shakti order of 5 Jun 2023)",
+          "url": "https://thesouthfirst.com/news/conditions-apply-karnataka-spells-out-who-can-and-cannot-avail-free-bus-rides-free-electricity",
+          "read": "2026-10-29"
+        }
+      ],
+      "keywords": ["bus", "BMTC", "bus pass", "day pass", "monthly pass", "Shakti", "free bus", "travel"]
+    },
+    {
+      "id": "sim-card",
+      "step": "arrived",
+      "title": "Getting a SIM card with Aadhaar",
+      "body": "A shop can give you a SIM using your Aadhaar and your fingerprint. This is called e-KYC. If your Aadhaar address is in another state, you are an outstation customer. You must give your local address in Bengaluru. You must also give the name, address and phone number of a local person, who confirms with an OTP on their phone. Later, you can check how many SIMs are in your name on the Sanchar Saathi website.",
+      "quote": "DoT instruction of 21 September 2021 on Aadhaar e-KYC for mobile connections says: \"The outstation customer shall also provide his/her local residential address.\" and \"For local reference, the name, address and contact number of local reference shall be provided by the outstation customer.\"",
+      "sources": [
+        {
+          "title": "DoT letter 800-14/2019-AS.II dated 21.09.2021: Aadhaar e-KYC for mobile connections incl. outstation customers (Annexure, item vi)",
+          "url": "https://eservices.dot.gov.in/sites/default/files/circular-notifications/s.no-6-21.9.2021.pdf",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "Sanchar Saathi (DoT): Know Mobile Connections In Your Name; helpline numbers 112, 181, 1930",
+          "url": "https://sancharsaathi.gov.in/",
+          "read": "2026-10-29"
+        }
+      ],
+      "keywords": ["SIM", "mobile", "e-KYC", "Aadhaar", "outstation", "local reference", "OTP", "Sanchar Saathi"]
+    },
+    {
+      "id": "bank-account-current-address",
+      "step": "documented",
+      "title": "Opening a bank account when your Aadhaar has your village address",
+      "body": "You can open a bank account in Bengaluru even if your Aadhaar shows your home state address. Give the bank your Aadhaar number so it can check you with Aadhaar e-KYC. Then you can write down your Bengaluru address yourself as your current address. This is called a self-declaration. RBI rules allow it. If the bank says no, show the rule below and ask to speak to the branch manager.",
+      "quote": "RBI (Commercial Banks - Know Your Customer) Directions, 2025, paragraph 23, first proviso (i): when the customer has given an Aadhaar number and the bank has done e-KYC, \"if the customer wants to provide a current address, different from the address as per the identity information available in the Central Identities Data Repository, they may give a self-declaration to that effect to the bank.\"",
+      "sources": [
+        {
+          "title": "RBI (Commercial Banks - Know Your Customer) Directions, 2025, updated 1 Oct 2026 (para 23 and para 28)",
+          "url": "https://www.rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=13141",
+          "read": "2026-10-29"
+        }
+      ],
+      "keywords": [
+        "bank account",
+        "KYC",
+        "current address",
+        "self-declaration",
+        "Aadhaar",
+        "RBI",
+        "refused",
+        "branch manager"
+      ]
+    },
+    {
+      "id": "small-account",
+      "step": "documented",
+      "title": "If you have no documents at all: a small account",
+      "body": "If you cannot show the usual documents, the bank can still open a small account. It needs a photo you have signed, and your signature or thumb print in front of a bank officer. The limits are: up to Rs 1 lakh coming in a year, up to Rs 10,000 going out in a month, and up to Rs 50,000 balance at any time. It works for 12 months at first. It can be extended for 12 more months if you show that you have applied for an ID document.",
+      "quote": "RBI (Commercial Banks - Know Your Customer) Directions, 2025, paragraph 28: \"in case an individual who desires to open a bank account, the bank shall open a 'Small Account'\", with a self-attested photograph and signature or thumb impression certified by a bank officer.",
+      "sources": [
+        {
+          "title": "RBI (Commercial Banks - Know Your Customer) Directions, 2025, updated 1 Oct 2026 (para 23 and para 28)",
+          "url": "https://www.rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=13141",
+          "read": "2026-10-29"
+        }
+      ],
+      "keywords": ["small account", "no documents", "bank account", "thumb impression", "RBI", "limits"]
+    },
+    {
+      "id": "aadhaar-address-update",
+      "step": "documented",
+      "title": "Changing the address on your Aadhaar",
+      "body": "You can change your Aadhaar address online on the myAadhaar website if your mobile number is linked to Aadhaar. You log in with an OTP and upload a proof of address. Without a linked mobile, go to an Aadhaar enrolment centre, where an operator does it with your fingerprint. UIDAI's list of address proofs includes a rent agreement, registered or unregistered. The UIDAI website shows a fee of Rs 75 for address update. UIDAI's free helpline is 1947.",
+      "quote": "UIDAI List of acceptable documents for Aadhaar update (List IV), item 24: \"Valid sale agreement/ gift deed registered with the Registrar Office, or registered or unregistered rent, lease agreement or leave and licence agreement\".",
+      "sources": [
+        {
+          "title": "UIDAI: Updating data on Aadhaar",
+          "url": "https://uidai.gov.in/en/updating-data-on-aadhaar",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "UIDAI: List of acceptable documents for Aadhaar enrolment and update (List IV)",
+          "url": "https://backend.uidai.gov.in/get/files/media/document/2026-05/List_of_Supporting_Document_for_Aadhaar_Enrolment_and_Update.pdf",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "UIDAI home page (Address Update card shows a Rs 75 fee; toll-free 1947)",
+          "url": "https://uidai.gov.in/en/",
+          "read": "2026-10-29"
+        }
+      ],
+      "keywords": [
+        "Aadhaar",
+        "address update",
+        "myAadhaar",
+        "rent agreement",
+        "proof of address",
+        "enrolment centre",
+        "1947",
+        "fee"
+      ]
+    },
+    {
+      "id": "upi-id",
+      "step": "documented",
+      "title": "Getting a UPI ID after your bank account opens",
+      "body": "Once you have a bank account, you can use UPI to get paid and to pay. You need to set a UPI PIN in a UPI app. You can set the PIN with your debit card, with an Aadhaar OTP, or with Aadhaar face check. If you use a basic phone without internet, UPI 123PAY lets you pay by calling a number. Never tell anyone your UPI PIN. If you lose money to a fraud, call 1930 at once.",
+      "sources": [
+        {
+          "title": "NPCI press release, 7 Oct 2025: Aadhaar based Face Authentication in UPI",
+          "url": "https://www.npci.org.in/uploads/DFS_Secretary_Launches_Initiatives_to_Simplify_Digital_Payment_Experience_at_GFF_2025_c74afc4dd6.pdf",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "PIB factsheet, 24 Aug 2026: UPI: Transforming India's Payment Landscape (UPI 123PAY for feature phones)",
+          "url": "https://www.pib.gov.in/FactsheetDetails.aspx?Id=150962&reg=48&lang=2",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "Indian Cybercrime Coordination Centre, MHA (Report a Cybercrime on 1930)",
+          "url": "https://i4c.mha.gov.in/",
+          "read": "2026-10-29"
+        }
+      ],
+      "keywords": [
+        "UPI",
+        "UPI PIN",
+        "debit card",
+        "Aadhaar OTP",
+        "face authentication",
+        "UPI 123PAY",
+        "feature phone",
+        "1930",
+        "fraud"
+      ]
+    },
+    {
+      "id": "police-verification",
+      "step": "documented",
+      "title": "Police verification for domestic work",
+      "body": "Some households ask for police verification before they hire a domestic worker. In Karnataka this is done online on the Seva Sindhu website. The police have said they aim to finish it within 21 days. In 2023 the state police chief said no convenience fee is charged for the online service. Keep a copy of the certificate.",
+      "sources": [
+        {
+          "title": "Deccan Herald, 24 Mar 2023: Background verification in Karnataka goes digital",
+          "url": "https://www.deccanherald.com/india/karnataka/bengaluru/background-verification-in-karnataka-goes-digital-1202957.html",
+          "read": "2026-10-29"
+        }
+      ],
+      "keywords": ["police verification", "Seva Sindhu", "domestic worker", "employer", "certificate", "21 days"]
+    },
+    {
+      "id": "e-shram",
+      "step": "registered",
+      "title": "Registering on e-Shram",
+      "body": "e-Shram is the national list of unorganised workers, and domestic workers register on it. You can register if you are 16 or older, do unorganised work, and are not a member of EPFO or ESIC. You need your Aadhaar number and a mobile number linked to Aadhaar. If your mobile is not linked, go to a Common Service Centre and register with your fingerprint. Registration is free. The helpdesk number is 14434.",
+      "quote": "eShram FAQ, Q34: \"Registration on eShram portal is totally free. Workers are not required to pay any charges to any registering entity.\"",
+      "sources": [
+        {
+          "title": "eShram FAQs (Q3, Q30, Q31, Q33, Q34)",
+          "url": "https://eshram.gov.in/faqs",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "eShram portal main page (helpdesk numbers, registration links)",
+          "url": "https://eshram.gov.in/indexmain",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "PIB, March 2023: 2.67 crore domestic and household women workers registered on e-Shram portal",
+          "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=1907685&reg=48&lang=2",
+          "read": "2026-10-29"
+        }
+      ],
+      "keywords": ["e-Shram", "eShram", "registration", "UAN", "unorganised worker", "CSC", "free", "14434"]
+    },
+    {
+      "id": "karnataka-gig-board",
+      "step": "registered",
+      "title": "If you get work through an app: Karnataka's gig workers board",
+      "body": "Karnataka has a law for platform-based gig workers, passed in 2025, and a welfare board set up in January 2026. It covers people who get work through an app or platform. The rules say the app company must send the board a list of its workers. Registered workers get a unique number. A worker with a complaint can go to the company's dispute committee within seven working days. We have not found a way for a worker to register directly.",
+      "sources": [
+        {
+          "title": "The South First, 31 Mar 2026: Karnataka Platform-based Gig Workers Act 2025 rules notified",
+          "url": "https://thesouthfirst.com/karnataka/karnataka-platform-based-gig-workers-act-2025-rules-notified-board-to-meet-at-least-once-every-three-months",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "Drishti IAS, 30 Jan 2026: Karnataka notifies Gig Workers' Welfare Board",
+          "url": "https://www.drishtiias.com/state-pcs-current-affairs/karnataka-notifies-gig-workers-welfare-board/print_manually",
+          "read": "2026-10-29"
+        }
+      ],
+      "keywords": [
+        "gig worker",
+        "platform",
+        "app",
+        "welfare board",
+        "Karnataka",
+        "unique number",
+        "complaint",
+        "aggregator"
+      ]
+    },
+    {
+      "id": "karnataka-domestic-workers-bill",
+      "step": "registered",
+      "title": "Karnataka's domestic workers law is not yet in force",
+      "body": "In October 2025 Karnataka published a draft law for domestic workers. It proposes registration, a written agreement, minimum wages and a weekly holiday. In February 2026 it was still reported as a draft. So there is no state registration for domestic workers under it yet. Ask the union for the latest news.",
+      "sources": [
+        {
+          "title": "Deccan Herald, 15 Oct 2025: Karnataka Domestic Workers draft bill mandates written agreement, registration and minimum wage",
+          "url": "https://www.deccanherald.com/india/karnataka/karnataka-domestic-workers-draft-bill-mandates-written-agreement-registration-and-minimum-wage-3765607",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "Deccan Herald, 3 Feb 2026: Workers' unions in Bengaluru vow to continue fight after SC dismisses minimum wage plea",
+          "url": "https://www.deccanherald.com/india/karnataka/bengaluru/workers-unions-in-bengaluru-vow-to-continue-fight-after-sc-dismisses-minimum-wage-plea-3884149",
+          "read": "2026-10-29"
+        }
+      ],
+      "keywords": [
+        "domestic workers bill",
+        "draft law",
+        "Karnataka",
+        "registration",
+        "written agreement",
+        "weekly holiday"
+      ]
+    },
+    {
+      "id": "join-a-union",
+      "step": "working",
+      "title": "Domestic workers' unions in Bengaluru",
+      "body": "The Domestic Workers Rights Union, or DWRU, works in Bengaluru. Its members bring work problems to the union and register complaints through it. It works together with Stree Jagruti Samiti. Other domestic workers' groups named in the news are Bruhat Bangalore Gruhakarmika Sangha and Manegelasa Kaarmikara Union. Ask a union before you take a job, and if you are not paid.",
+      "sources": [
+        {
+          "title": "Deccan Herald, 23 Feb 2023: Unite and fight injustice, Bengaluru union tells domestic workers",
+          "url": "https://www.deccanherald.com/india/karnataka/bengaluru/unite-and-fight-injustice-bengaluru-union-tells-domestic-workers-1193963.html",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "Deccan Herald, 3 Feb 2026: Workers' unions in Bengaluru vow to continue fight after SC dismisses minimum wage plea",
+          "url": "https://www.deccanherald.com/india/karnataka/bengaluru/workers-unions-in-bengaluru-vow-to-continue-fight-after-sc-dismisses-minimum-wage-plea-3884149",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "The News Minute, 20 Mar 2025: Urban Company's InstaMaid sparks controversy (DWRU and Stree Jagruti Samiti)",
+          "url": "https://www.thenewsminute.com/karnataka/urban-companys-instamaid-sparks-controversy-workers-union-calls-it-exploitation",
+          "read": "2026-10-29"
+        }
+      ],
+      "keywords": [
+        "union",
+        "DWRU",
+        "Domestic Workers Rights Union",
+        "Stree Jagruti Samiti",
+        "complaint",
+        "domestic worker"
+      ]
+    },
+    {
+      "id": "pay-and-minimum-wage",
+      "step": "working",
+      "title": "What domestic workers are paid",
+      "body": "In 2024, Deccan Herald reported that domestic workers in Bengaluru city areas were entitled to a minimum wage between Rs 17,300 and Rs 19,500 a month. Karnataka raised minimum wages in May 2026, and we have not yet confirmed the new figure for domestic work. A 2022 survey found that pay from one household was between Rs 2,000 and Rs 13,000 a month. So many workers work in several homes. Agree the pay, hours and weekly day off before you start.",
+      "sources": [
+        {
+          "title": "Deccan Herald, 22 Sep 2024: Underpaid and overworked, Bengaluru's domestic workers face exploitation",
+          "url": "https://www.deccanherald.com/india/karnataka/bengaluru/underpaid-and-overworked-city-s-domestic-workers-face-exploitation-3201225",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "ThePrint (PTI), 23 May 2026: Minimum wages hiked by 60 per cent in Karnataka",
+          "url": "https://theprint.in/india/minimum-wages-of-labourers-hiked-by-60-per-cent-in-karnataka-says-minister-lad/2939801/",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "Deccan Herald, 14 Dec 2022: Domestic workers have to work in 6 households to make minimum wage (IIHS survey)",
+          "url": "https://www.deccanherald.com/india/domestic-workers-have-to-work-in-6-households-to-make-minimum-wage-survey-shows-1171621.html",
+          "read": "2026-10-29"
+        }
+      ],
+      "keywords": ["wage", "minimum wage", "pay", "salary", "per month", "cook", "domestic work"]
+    },
+    {
+      "id": "legal-help",
+      "step": "settled",
+      "title": "Free legal help",
+      "body": "If you need a lawyer and cannot pay, call the National Legal Services Authority helpline 15100. It is free. For pay problems, you can also call the Karnataka labour helpline 155214, or message it on WhatsApp.",
+      "sources": [
+        {
+          "title": "National Legal Services Authority (NALSA Helpline 15100)",
+          "url": "https://nalsa.gov.in/",
+          "read": "2026-10-29"
+        },
+        {
+          "title": "Karnataka Labour Department: 24x7 Helpline",
+          "url": "https://labour.karnataka.gov.in/18/24x7-helpline/en",
+          "read": "2026-10-29"
+        }
+      ],
+      "keywords": ["legal aid", "lawyer", "15100", "NALSA", "free legal help", "labour helpline"]
+    }
+  ],
+  "helplines": [
+    {
+      "name": "Emergency (police, fire, ambulance), Karnataka",
+      "number": "112",
+      "source": "https://ksp.karnataka.gov.in/english"
+    },
+    {
+      "name": "Women Helpline (national, toll free)",
+      "number": "181",
+      "source": "https://wcd.gov.in/"
+    },
+    {
+      "name": "Karnataka Labour Department 24x7 helpline (toll free)",
+      "number": "155214",
+      "source": "https://labour.karnataka.gov.in/18/24x7-helpline/en"
+    },
+    {
+      "name": "Karnataka Labour Department helpline on WhatsApp / Telegram",
+      "number": "+91 9333333684",
+      "source": "https://labour.karnataka.gov.in/18/24x7-helpline/en"
+    },
+    {
+      "name": "eShram helpdesk (9 am to 6 pm, every day including Sundays)",
+      "number": "14434",
+      "source": "https://eshram.gov.in/indexmain"
+    },
+    {
+      "name": "eShram helpdesk, second number",
+      "number": "18008896811",
+      "source": "https://eshram.gov.in/indexmain"
+    },
+    {
+      "name": "UIDAI (Aadhaar) toll free",
+      "number": "1947",
+      "source": "https://uidai.gov.in/en/"
+    },
+    {
+      "name": "Cyber crime and online money fraud",
+      "number": "1930",
+      "source": "https://i4c.mha.gov.in/"
+    },
+    {
+      "name": "NALSA legal aid helpline (toll free)",
+      "number": "15100",
+      "source": "https://nalsa.gov.in/"
+    }
+  ],
+  "places": [
+    {
+      "kind": "housing",
+      "name": "Karnataka State Children Welfare Committee Working Women's Hostel",
+      "area": "Jayamahal Extension",
+      "detail": "Named in a 2019 Karnataka Women and Child Development list of hostels offering women job-seekers up to 3 free nights. Not confirmed since 2019.",
+      "source": "https://starofmysore.com/?p=174663"
+    },
+    {
+      "kind": "housing",
+      "name": "Sharada Kuteera Working Women's Hostel",
+      "area": "Shankarapura",
+      "detail": "Named in a 2019 Karnataka Women and Child Development list of hostels offering women job-seekers up to 3 free nights. Not confirmed since 2019.",
+      "source": "https://starofmysore.com/?p=174663"
+    },
+    {
+      "kind": "housing",
+      "name": "YWCA hostel, CSI Compound, Mission Road",
+      "area": "Mission Road",
+      "detail": "Named in a 2019 Karnataka Women and Child Development list of hostels offering women job-seekers up to 3 free nights. Not confirmed since 2019.",
+      "source": "https://starofmysore.com/?p=174663"
+    },
+    {
+      "kind": "housing",
+      "name": "University's Working Women's Hostel",
+      "area": "Sampangirama Nagar",
+      "detail": "Named in a 2019 Karnataka Women and Child Development list of hostels offering women job-seekers up to 3 free nights. Not confirmed since 2019.",
+      "source": "https://starofmysore.com/?p=174663"
+    },
+    {
+      "kind": "housing",
+      "name": "Mahatma Gandhi Vidyapeetha Working Women's Hostel",
+      "area": "Kumaraswamy Layout",
+      "detail": "Named in a 2019 Karnataka Women and Child Development list of hostels offering women job-seekers up to 3 free nights. Not confirmed since 2019.",
+      "source": "https://starofmysore.com/?p=174663"
+    },
+    {
+      "kind": "housing",
+      "name": "Jayanagar Stree Samaj Working Women's Hostel",
+      "area": "Jayanagar 1st Block",
+      "detail": "Named in a 2019 Karnataka Women and Child Development list of hostels offering women job-seekers up to 3 free nights. Not confirmed since 2019.",
+      "source": "https://starofmysore.com/?p=174663"
+    },
+    {
+      "kind": "housing",
+      "name": "Basava Samithi Working Women's Hostel",
+      "area": "near Kengeri, Mysuru Road",
+      "detail": "Named in a 2019 Karnataka Women and Child Development list of hostels offering women job-seekers up to 3 free nights. Not confirmed since 2019.",
+      "source": "https://starofmysore.com/?p=174663"
+    },
+    {
+      "kind": "housing",
+      "name": "Vishala Vidyasamsthe Working Women's Hostel",
+      "area": "Jaraganahalli, Kanakapura Main Road",
+      "detail": "Named in a 2019 Karnataka Women and Child Development list of hostels offering women job-seekers up to 3 free nights. Not confirmed since 2019.",
+      "source": "https://starofmysore.com/?p=174663"
+    },
+    {
+      "kind": "housing",
+      "name": "Karnataka Rural Poor and Disabled Development Association Working Women's Hostel",
+      "area": "Peenya 1st Stage",
+      "detail": "Named in a 2019 Karnataka Women and Child Development list of hostels offering women job-seekers up to 3 free nights. Not confirmed since 2019.",
+      "source": "https://starofmysore.com/?p=174663"
+    },
+    {
+      "kind": "housing",
+      "name": "National Law School of India University Working Women's Hostel",
+      "area": "Nagarabhavi",
+      "detail": "Named in a 2019 Karnataka Women and Child Development list of hostels offering women job-seekers up to 3 free nights. Not confirmed since 2019.",
+      "source": "https://starofmysore.com/?p=174663"
+    },
+    {
+      "kind": "housing",
+      "name": "YWCA Working Women's Hostel",
+      "area": "Koramangala",
+      "detail": "Named in a 2019 Karnataka Women and Child Development list of hostels offering women job-seekers up to 3 free nights. Not confirmed since 2019.",
+      "source": "https://starofmysore.com/?p=174663"
+    },
+    {
+      "kind": "housing",
+      "name": "Regional Institute of English South India Working Women's Hostel",
+      "area": "Jnanabharathi Campus",
+      "detail": "Named in a 2019 Karnataka Women and Child Development list of hostels offering women job-seekers up to 3 free nights. Not confirmed since 2019.",
+      "source": "https://starofmysore.com/?p=174663"
+    },
+    {
+      "kind": "union",
+      "name": "Domestic Workers Rights Union (DWRU)",
+      "area": "Bengaluru (office address not verified)",
+      "detail": "Bengaluru domestic workers' union; general secretary Geeta Menon (Deccan Herald, Feb 2026). Held its 2023 general body meeting at BES College, Jayanagar 4th Block. No official website found.",
+      "source": "https://www.deccanherald.com/india/karnataka/bengaluru/workers-unions-in-bengaluru-vow-to-continue-fight-after-sc-dismisses-minimum-wage-plea-3884149"
+    },
+    {
+      "kind": "union",
+      "name": "Stree Jagruti Samiti",
+      "area": "Bengaluru (office address not verified)",
+      "detail": "Works with DWRU on domestic workers' issues (The News Minute, Mar 2025). No official website found.",
+      "source": "https://www.thenewsminute.com/karnataka/urban-companys-instamaid-sparks-controversy-workers-union-calls-it-exploitation"
+    },
+    {
+      "kind": "office",
+      "name": "Seva Sindhu (Karnataka government online services)",
+      "area": "Online",
+      "detail": "Police verification for domestic workers is applied for here, online (Deccan Herald, Mar 2023).",
+      "source": "https://www.deccanherald.com/india/karnataka/bengaluru/background-verification-in-karnataka-goes-digital-1202957.html"
+    }
+  ],
+  "rates": [
+    {
+      "work": "Domestic work, full-time (minimum wage entitlement)",
+      "amount": "Rs 17,300 to Rs 19,500",
+      "unit": "per month",
+      "area": "BBMP (Bengaluru city) areas",
+      "year": 2024,
+      "what_it_is": "Minimum wage domestic workers are entitled to, as reported by Deccan Herald. Karnataka revised minimum wages in May 2026; the new domestic-work figure is not yet confirmed, so this is likely out of date.",
+      "source": "https://www.deccanherald.com/india/karnataka/bengaluru/underpaid-and-overworked-city-s-domestic-workers-face-exploitation-3201225"
+    },
+    {
+      "work": "Domestic work, pay from one household",
+      "amount": "Rs 2,000 to Rs 13,000",
+      "unit": "per month, per household",
+      "area": "Bengaluru",
+      "year": 2022,
+      "what_it_is": "Range found by an Indian Institute for Human Settlements survey of employers, as reported by Deccan Herald. Not a union rate card.",
+      "source": "https://www.deccanherald.com/india/domestic-workers-have-to-work-in-6-households-to-make-minimum-wage-survey-shows-1171621.html"
+    }
+  ],
+  "costs": [
+    {
+      "item": "BMTC ordinary day pass (any photo ID)",
+      "amount": "Rs 80",
+      "amount_paise": 8000,
+      "year": 2026,
+      "detail": "Unlimited non-AC BMTC travel for one calendar day.",
+      "source": "https://mybmtc.karnataka.gov.in/50/daily-weekly-monthly-passes/en",
+      "per": "day",
+      "choice": "bmtc-pass"
+    },
+    {
+      "item": "BMTC ordinary weekly pass (any photo ID)",
+      "amount": "Rs 350",
+      "amount_paise": 35000,
+      "year": 2026,
+      "detail": "Unlimited non-AC BMTC travel for 7 days.",
+      "source": "https://mybmtc.karnataka.gov.in/50/daily-weekly-monthly-passes/en",
+      "per": "week",
+      "choice": "bmtc-pass"
+    },
+    {
+      "item": "BMTC ordinary monthly pass (needs BMTC ID)",
+      "amount": "Rs 1,200",
+      "amount_paise": 120000,
+      "year": 2026,
+      "detail": "Unlimited non-AC BMTC travel for a calendar month. Cost of the BMTC ID card itself not found.",
+      "source": "https://mybmtc.karnataka.gov.in/50/daily-weekly-monthly-passes/en",
+      "per": "month",
+      "choice": "bmtc-pass"
+    },
+    {
+      "item": "Aadhaar address update",
+      "amount": "Rs 75",
+      "amount_paise": 7500,
+      "year": 2026,
+      "detail": "Fee shown on the UIDAI home page for the Address Update service.",
+      "source": "https://uidai.gov.in/en/",
+      "per": "once"
+    },
+    {
+      "item": "e-Shram registration",
+      "amount": "Free",
+      "amount_paise": 0,
+      "year": 2026,
+      "detail": "Workers are not required to pay any registering entity.",
+      "source": "https://eshram.gov.in/faqs",
+      "per": "once"
+    },
+    {
+      "item": "Police verification on Seva Sindhu",
+      "amount": "No convenience fee (service fee not stated)",
+      "year": 2023,
+      "detail": "State police chief said no convenience fee is charged for the online service; the verification fee itself was not stated.",
+      "source": "https://www.deccanherald.com/india/karnataka/bengaluru/background-verification-in-karnataka-goes-digital-1202957.html",
+      "per": "once"
+    }
+  ],
+  "needs_checking": [
+    "Transit/working women's hostels: the free 3-night stay and the 13 hostels come from a 2019 news report. Whether the scheme still runs, current rent, and the 2019 phone numbers (in the Star of Mysore article) must be confirmed by calling. Phone numbers were deliberately left out of the pack.",
+    "Office address and phone of the Deputy Director, Women and Child Development, Bengaluru Urban: not found on an official page.",
+    "BBMP/GBA night shelters for homeless women: news reports (2016-2023) disagree on how many exist (three or five for women) and give no verified current addresses. Left out.",
+    "Savithri Vasathi hostels for unorganised-sector women (BBMP budget, March 2023): announced; no source found on whether any opened. Left out.",
+    "Nia.one: the Inc42 article (6 May 2026) gives no per-bed price (the Rs 1,500 figure is a worked example of rent for a worker earning Rs 15,000), names no Bengaluru locality and no booking channel, and says residents must have employment through a staffing company. It is not a fit for a domestic worker without a staffing agency and was left out. ADR 0016's 'about Rs 1,500 a bed' should be rechecked against the article.",
+    "Shared room or bed rent in Bengaluru for a migrant worker: no reliable 2025-2026 survey found. One Deccan Herald (Sep 2024) example of a domestic worker paying Rs 2,500 a month is a single case, not a typical cost. Left out.",
+    "Cheapest prepaid SIM recharge: no official or reliable 2026 source found; prices vary by operator and circle. Left out.",
+    "SIM e-KYC: the rule quoted is DoT's 21.09.2021 instruction. Whether a later DoT instruction (for example under the Telecommunications Act, 2023) changed the outstation-customer steps was not checked.",
+    "Aadhaar address update fee: UIDAI's home page shows Rs 75 for Address Update, but news reports describe periods of free online document update. Whether online address change is free on any given date should be checked on myAadhaar.",
+    "Aadhaar address proofs: the UIDAI PDF's tick marks did not extract, so which columns (PoI/PoA) each item counts for was inferred from the item text. Item 24 (rent agreement) clearly concerns address; a union or UIDAI should confirm.",
+    "Aadhaar Seva Kendra locations in Bengaluru: not checked on an official page. Left out.",
+    "Police verification for domestic workers: the service fee on Seva Sindhu is not stated in any source found; the 21-day Sakala timeline and 'no convenience fee' come from a March 2023 news report. Who applies (employer or worker) was not confirmed.",
+    "UPI: no official NPCI page stating the setup steps could be read (the NPCI FAQ is rendered by JavaScript). The section relies on an NPCI press release (Oct 2025) and a PIB factsheet (Aug 2026). Which banks support Aadhaar OTP or face PIN setup varies and was not checked.",
+    "Current minimum wage for domestic workers in Bengaluru after the May 2026 single notification (Rs 23,376 a month reported for labourers in Bengaluru): whether domestic work is among the 81 scheduled employments, and its rate, is not confirmed. The 2024 figure in the pack is probably out of date.",
+    "Union rate card for cooks or cleaners in Bengaluru (per hour or per task): none found. A worker quoted by The News Minute (Mar 2025) said unions had fought to get Rs 150 per hour; this is a single statement, not a published rate card, and was left out.",
+    "DWRU, Stree Jagruti Samiti, Bruhat Bangalore Gruhakarmika Sangha and Manegelasa Kaarmikara Union: no official websites, office addresses or phone numbers found. BBGS and MKU are named only in 2020 reports.",
+    "Karnataka platform gig workers board: no official worker registration portal, URL or helpline found; facts come from news reports (Jan and Mar 2026), not the gazette. Whether app-based domestic work (for example cleaning apps) counts under this Act was not confirmed.",
+    "Karnataka Domestic Workers (Social Security and Welfare) Bill, 2025: last confirmed as a draft in February 2026. Current status not found.",
+    "Shakti free bus travel: the Karnataka-domicile condition comes from a June 2023 report on the original order; whether it has changed was not checked on an official page.",
+    "Karnataka-specific women's helpline numbers (for example a state Vanitha Sahayavani) were not found on an official page and were left out."
+  ]
+}

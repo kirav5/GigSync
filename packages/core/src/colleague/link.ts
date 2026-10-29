@@ -13,6 +13,7 @@ import {
   type UserId,
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
+import { isExpired } from "../mentor/expiry.js";
 import type { Relay } from "../net/api.js";
 import { everyDeviceSpeaks } from "../net/reach.js";
 import { newLinkCode } from "./code.js";
@@ -67,7 +68,8 @@ export async function link(c: ColleagueContext, payload: string, card: Colleague
 /** A note to a linked colleague, kept on this phone in the language it was written in. */
 export async function send(c: ColleagueContext, user: UserId, text: string, lang: Lang): Promise<void> {
   const linked = await c.store.get(user);
-  if (linked?.state !== ColleagueState.linked) throw new ColleagueError(ColleagueRefusal.notLinked);
+  const live = linked?.state === ColleagueState.linked && !isExpired(linked, c.ctx.clock.now());
+  if (!linked || !live) throw new ColleagueError(ColleagueRefusal.notLinked);
   const note = ColleagueNote.parse({ text: text.trim(), lang });
   const e = await c.transport.send(user, linked.channel, K.colleague_note, note);
   await c.store.addNote(user, { id: e.id, from: NoteFrom.me, text: note.text, lang: note.lang, at: e.sent_at });

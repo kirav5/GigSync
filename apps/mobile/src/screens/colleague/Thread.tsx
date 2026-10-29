@@ -13,6 +13,8 @@ import { Composer } from "../../ui/Composer.js";
 import { C } from "../../ui/cls.js";
 import { Dock } from "../../ui/Dock.js";
 import { Said } from "../../ui/Said.js";
+import { IntroActions } from "../mentor/IntroActions.js";
+import { MentorLinkBar } from "../mentor/MentorLinkBar.js";
 import { useColleagues } from "./context.js";
 import { colleagueProblem } from "./problems.js";
 
@@ -101,6 +103,8 @@ export function Thread({ device, colleague, run, syncedAt, onUnlinked }: Props) 
         <h1 className={C.headline}>{name}</h1>
         <span className={C.muted}>{colleague.card.trades.map((tr) => t(`trade.${tr}`)).join(", ")}</span>
       </div>
+      <MentorLinkBar device={device} colleague={colleague} run={run} onGone={onUnlinked} />
+      <IntroActions device={device} colleague={colleague} run={run} onAsked={() => setSent((n) => n + 1)} />
       {unlinking ? (
         <div className={C.cardWait} role="dialog" aria-label={unlinkLabel}>
           <p>{t("colleague.unlink_confirm", { name })}</p>

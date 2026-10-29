@@ -49,3 +49,13 @@ export async function insertDevice(
     [device, user, reg.signing_key, reg.encryption_key, reg.protocol, reg.push_token ?? null, at],
   );
 }
+
+/** Records that the caller's own device now speaks `protocol`; never lowers it. False when the device is unknown or revoked. */
+export async function raiseProtocol(db: Db, device: DeviceId, user: UserId, protocol: number): Promise<boolean> {
+  const { rowCount } = await db.query(
+    `UPDATE devices SET protocol = GREATEST(protocol, $3)
+     WHERE device_id = $1 AND user_id = $2 AND revoked_at IS NULL`,
+    [device, user, protocol],
+  );
+  return (rowCount ?? 0) > 0;
+}

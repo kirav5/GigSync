@@ -34,6 +34,14 @@ export const EnvelopeKind = z.enum([
   "colleague_note",
   /** Worker → household, on a request the worker declined: a colleague to ask instead. Does not move the engagement. */
   "referral",
+  /** A colleague → two of their linked colleagues: an introduction naming the other, toward a mentor link. */
+  "introduce",
+  /** Newcomer → a mentor they picked: help me move to this city. */
+  "landing_request",
+  /** Mentor → newcomer: yes (with the mentor's card) or no to a landing request. */
+  "mentor_offer",
+  /** Newcomer → mentor, or each side of an introduction → the other: confirm (opens the mentor link) or close. */
+  "mentor_accept",
 ]);
 export type EnvelopeKind = z.infer<typeof EnvelopeKind>;
 
@@ -52,6 +60,17 @@ export const SIDE_CHANNEL_KINDS: ReadonlySet<EnvelopeKind> = new Set([
  * table never sees them.
  */
 export const COLLEAGUE_KINDS: ReadonlySet<EnvelopeKind> = new Set([K.colleague, K.colleague_note]);
+
+/**
+ * Kinds that lead to a mentor link, outside any job: their `engagement` is the channel the link will use. Only sent
+ * when every device of the recipient reports `MENTOR_PROTOCOL`.
+ */
+export const MENTOR_KINDS: ReadonlySet<EnvelopeKind> = new Set([
+  K.introduce,
+  K.landing_request,
+  K.mentor_offer,
+  K.mentor_accept,
+]);
 
 export const Base64 = z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/, "base64");
 /** A person has at most this many devices to seal one envelope to. */

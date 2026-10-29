@@ -14,6 +14,8 @@ export type SubScreens = Partial<Record<Screen, { title: MessageKey; parent: Scr
 export const SUB_SCREENS: SubScreens = {
   [Screen.card]: { title: "nav.card", parent: Screen.profile },
   [Screen.colleagues]: { title: "colleague.title", parent: Screen.profile },
+  [Screen.landing]: { title: "landing.title", parent: Screen.profile },
+  [Screen.findMentor]: { title: "mentor.find", parent: Screen.profile },
 };
 
 /** A worker's: Find is not one of their tabs but where Talk's "Hire someone" leads, and back. */
