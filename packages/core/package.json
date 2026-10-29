@@ -2,7 +2,7 @@
   "name": "@gigsync/core",
   "version": "0.1.0",
   "private": true,
-  "description": "The agent itself, in plain TypeScript: routing, experts, engagements, policy, mail. No browser or Capacitor imports.",
+  "description": "The agent itself, in plain TypeScript: routing, experts, engagements, jobs, policy, mail, the API client. No browser or Capacitor imports.",
   "type": "module",
   "exports": {
     ".": {
@@ -30,8 +30,10 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@gigsync/crypto": "workspace:*",
     "@gigsync/protocol": "workspace:*",
-    "ulid": "3.0.2"
+    "ulid": "3.0.2",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "typescript": "5.9.3",

@@ -1,6 +1,7 @@
 /** Class names and attribute values used across screens, named once (the lint bans repeated bare strings). */
 export const C = {
   button: "button",
+  submit: "submit",
   btn: "btn",
   accent: "btn accent",
   secondary: "btn secondary",

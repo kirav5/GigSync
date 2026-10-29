@@ -11,6 +11,10 @@ export const EngagementStatus = z.enum([
   "sent",
   "clarifying",
   "responded",
+  /** Offers going back and forth (quote / counter). */
+  "negotiating",
+  /** One side has signed the terms (`agree`); waiting for the other's signature on the same terms. */
+  "confirming",
   "agreed",
   "in_progress",
   "delivered",
@@ -32,9 +36,24 @@ export type Role = z.infer<typeof Role>;
 /** Which envelope kinds move an engagement from each status, and where to. */
 export const TRANSITIONS: Readonly<Record<EngagementStatus, Partial<Record<EnvelopeKind, EngagementStatus>>>> = {
   draft: { request: S.sent },
-  sent: { clarify: S.clarifying, response: S.responded, quote: S.responded, cancel: S.declined, receipt: S.expired },
+  sent: { clarify: S.clarifying, response: S.responded, quote: S.negotiating, cancel: S.declined, receipt: S.expired },
   clarifying: { response: S.sent, cancel: S.declined, receipt: S.expired },
   responded: { agree: S.agreed, review: S.closed, cancel: S.cancelled, receipt: S.expired },
+  negotiating: {
+    quote: S.negotiating,
+    counter: S.negotiating,
+    agree: S.confirming,
+    cancel: S.cancelled,
+    receipt: S.expired,
+  },
+  // The second `agree` (the other side's signature) completes the deal; a new offer reopens negotiation.
+  confirming: {
+    agree: S.agreed,
+    quote: S.negotiating,
+    counter: S.negotiating,
+    cancel: S.cancelled,
+    receipt: S.expired,
+  },
   agreed: { update: S.in_progress, delivery: S.delivered, cancel: S.cancelled },
   in_progress: { update: S.in_progress, delivery: S.delivered, cancel: S.cancelled },
   delivered: { review: S.closed, clarify: S.revision, receipt: S.closed },
@@ -69,6 +88,8 @@ export const A2A_STATE: Readonly<Record<EngagementStatus, A2aTaskState>> = {
   sent: A.submitted,
   clarifying: inputRequired,
   responded: inputRequired,
+  negotiating: inputRequired,
+  confirming: inputRequired,
   agreed: A.working,
   in_progress: A.working,
   delivered: inputRequired,

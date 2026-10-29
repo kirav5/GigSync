@@ -3,12 +3,11 @@
 name = "gigsync-app"
 compatibility_date = "2026-08-01"
 
-# Custom domains: uncomment once the GigSync domain is chosen and in this Cloudflare account (gigsync.app is a
-# placeholder). Cloudflare creates the DNS records and certificates on deploy.
-# routes = [
-#   { pattern = "gigsync.app", custom_domain = true },
-#   { pattern = "www.gigsync.app", custom_domain = true },
-# ]
+# Custom domains on the gigsync.network zone. Cloudflare creates the DNS records and certificates on deploy.
+routes = [
+  { pattern = "gigsync.network", custom_domain = true },
+  { pattern = "www.gigsync.network", custom_domain = true },
+]
 workers_dev = true
 
 [assets]

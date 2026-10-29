@@ -13,9 +13,8 @@ Status: **G0, design.** Start with the [HLD](docs/gigsync/HLD.md) and [LLD](docs
 GigSync is derived from [collabai.network](https://github.com/kirav5/collabai.network) (git remote `upstream`),
 renamed throughout (`@gigsync/*`, `gigsync-*` Workers, app id `app.gigsync`). It reuses Collab's agent core,
 protocol, mailbox, policy engine and offline model plugin; the code below is still Collab's M0 foundation, and
-the GigSync features in the HLD/LLD are planned. `gigsync.app` is a placeholder domain: custom domains are
-commented out in the `wrangler.toml` files and the D1 ids are placeholders until GigSync's own Cloudflare
-resources exist.
+the GigSync features in the HLD/LLD are planned. The pilot runs on `gigsync.network`: the app on
+`gigsync.network` and `www.`, the API on `api.gigsync.network`.
 
 The skeleton builds, tests and deploys end to end. See also [docs/design.md](docs/design.md) (Collab's design) and
 the decisions in [docs/adr](docs/adr).
@@ -23,15 +22,18 @@ the decisions in [docs/adr](docs/adr).
 ## Layout
 
 ```
-packages/protocol   zod schemas shared by the app and every Worker (envelope, engagement, grant, records)
-packages/core       the agent: router, experts, engagement machine, policy engine, outbox/inbox (plain TS)
-workers/api         sign-in, directory, mailbox and inbox routes (Hono on Workers, D1); deploys the Mailbox DO
+packages/protocol   zod schemas shared by the app and every Worker (envelope, job bodies, board, engagement, records)
+packages/crypto     device keys, sealing to devices (X25519 + XChaCha20-Poly1305), Ed25519 signatures, terms hash
+packages/core       the agent: jobs (negotiate, deal, payment), mail transport, API client, policy (plain TS)
+workers/api         sign-in, directory, job board, mailbox and inbox routes (Hono on Workers, Neon); deploys the Mailbox DO
 workers/mailbox     the Mailbox Durable Object, one per user
 workers/index       search index over public records (Workers + D1), carried over from the Swift app
 apps/mobile         the Capacitor app: React UI + adapters that implement core's ports; android/ and ios/ inside
 plugins/gigsync-llm Capacitor plugin for the offline model: LiteRT-LM (Android), Foundation Models (Apple), web
 infra/              directory migrations for Neon Postgres (ADR 0013); an unused PDS docker-compose (ADR 0005)
 neon.ts             the Neon services the project's branches get (Postgres)
+tests/e2e           consumers and workers on real devices against a running API and Neon (ADR 0014)
+tests/ui            the same journey through the app's screens, two browser profiles side by side (Playwright)
 docs/               design and ADRs
 ```
 
@@ -94,6 +96,29 @@ Try the local API:
 
 ```bash
 curl -s -X POST localhost:8787/v1/auth/otp/verify -H 'content-type: application/json' -d '{"phone":"+919800000001","code":"000000","device":{"signing_key":"a","encryption_key":"b","protocol":1}}'
+```
+
+### Two people, end to end
+
+Consumers find workers on the board, and their agents negotiate, sign, swap contacts and settle payment through the
+API, sealed and signed on each device ([ADR 0014](docs/adr/0014-agent-to-agent-jobs.md)). With `pnpm dev:workers`
+running (it needs the Neon directory migrated, above), play several electricians, plumbers, maids and their customers
+against it:
+
+```bash
+pnpm test:e2e
+```
+
+Each run lists its workers at a random spot in India and unlists them afterwards; a run takes several minutes locally,
+since every call crosses to Neon in Singapore.
+
+The same journey through the app's screens: a customer and an electrician, each in their own browser profile, from
+search to signed deal, contacts, UPI payment and review. It drives the Chrome installed on this machine, starts
+`pnpm dev:app` and `pnpm dev:workers` if they are not running, and saves both screens at every step in
+`tests/ui/screenshots/`:
+
+```bash
+pnpm test:ui
 ```
 
 ### A local model (optional)
