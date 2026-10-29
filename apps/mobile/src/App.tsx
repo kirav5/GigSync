@@ -185,6 +185,7 @@ export function App() {
               interview={interview}
               onSaved={saved}
               onHire={() => setScreen(Screen.find)}
+              view={view}
             />
           )}
           {screen === Screen.passbook && (

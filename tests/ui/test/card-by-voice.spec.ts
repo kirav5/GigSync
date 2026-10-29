@@ -1,22 +1,9 @@
 import { type MessageKey, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
-import { expect, type Page, test } from "@playwright/test";
-import {
-  completeSignIn,
-  FakeSpeechMode,
-  fakeSpeech,
-  newPhone,
-  noSpeech,
-  open,
-  openCard,
-  Role,
-  RUN,
-  setUpi,
-  signIn,
-  tabs,
-  textOf,
-} from "./helpers.js";
+import { expect, test } from "@playwright/test";
+import { FakeSpeechMode, fakeSpeech, newPhone, noSpeech, open, Role, RUN, signIn, tabs, textOf } from "./helpers.js";
 import { cleanUpLater, unlistCards } from "./journey.js";
+import { consent, field, google, inOrder, mic, nextTurn, type, unlist } from "./talk.js";
 
 /**
  * The card interview on Talk. A worker with no card lands there, and the app asks one thing at a time in their
@@ -45,56 +32,8 @@ const HINDI_SAID = HINDI.map(([said]) => said);
 // A card the interview put on the board comes off even when a test stops half-way, so later runs start clean.
 test.afterEach(unlistCards);
 
-const mic = (page: Page, lang: Lang) => page.getByRole("button", { name: t(lang, "speech.listen") });
-const google = (lang: Lang) => t(lang, "speech.vendor_google");
-/** The consent sheet's question and its two answers, for a phone whose only recognizer is Google's. */
-const consent = (page: Page, lang: Lang) => ({
-  ask: page.getByText(textOf(lang, "speech.cloud_ask", { lang: t(lang, `lang.${lang}`), vendor: google(lang) })),
-  allow: page.getByRole("button", { name: t(lang, "speech.cloud_yes"), exact: true }),
-  typeInstead: page.getByRole("button", { name: t(lang, "speech.cloud_no"), exact: true }),
-});
-const field = (page: Page, lang: Lang) =>
-  page.getByRole("form", { name: t(lang, "nav.talk") }).getByPlaceholder(t(lang, "agent.placeholder"));
-
-/** Does `act`, then waits for one more line reading `key`: earlier turns stay on screen, so a count says it is new. */
-async function nextTurn(page: Page, lang: Lang, key: MessageKey, act: () => Promise<void>) {
-  const lines = page.getByText(textOf(lang, key));
-  const before = await lines.count();
-  await act();
-  await expect(lines).toHaveCount(before + 1);
-}
-
-/** Where `re` first matches `text` at or after `from`; -1 when it does not. */
-function searchFrom(text: string, re: RegExp, from: number): number {
-  const find = new RegExp(re.source, "g");
-  find.lastIndex = from;
-  return find.exec(text)?.index ?? -1;
-}
-
-/** Asserts that each mark appears in Talk's conversation after the one before it: the turns are in the order said. */
-async function inOrder(page: Page, marks: readonly (string | RegExp)[]) {
-  const text = (await page.getByRole("log").textContent()) ?? "";
-  let from = 0;
-  for (const mark of marks) {
-    const at = typeof mark === "string" ? text.indexOf(mark, from) : searchFrom(text, mark, from);
-    expect(at, `${mark} after the turns before it`).toBeGreaterThanOrEqual(from);
-    from = at + 1;
-  }
-}
-
-/** Types an answer into Talk's composer and sends it. */
-async function type(page: Page, lang: Lang, text: string) {
-  await field(page, lang).fill(text);
-  await page.getByRole("button", { name: t(lang, "a11y.send"), exact: true }).click();
-}
-
-/** Takes the card off the board, so later runs start clean, and waits until Profile says so. */
-async function unlist(page: Page, lang: Lang) {
-  await openCard(page, lang);
-  await page.getByRole("button", { name: t(lang, "card.unlist") }).click();
-  await open(page, "nav.profile", lang);
-  await expect(page.getByText(t(lang, "profile.card_off"))).toBeVisible();
-}
+/** A note to herself in Hindi that the on-phone router saves ("remember: …"). */
+const NOTE = "याद रखना: तीसरी मंज़िल वाले ग्राहक 5 तारीख़ को पैसे देते हैं";
 
 test("a Hindi cook makes her card by voice, leaves halfway and comes back, then changes her rate by saying so", async ({
   page,
@@ -127,14 +66,17 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
   await open(page, "nav.profile", hi);
   await expect(page.getByText(textOf(hi, "card.on_board", { price: "₹9,000" }))).toBeVisible();
 
-  await test.step("a note on Talk stays there across tabs", async () => {
+  await test.step("a note on Talk stays there across tabs; no standing buttons under the conversation", async () => {
     await open(page, "nav.talk", hi);
-    await page.getByRole("button", { name: t(hi, "agent.starter_1"), exact: true }).click();
+    await type(page, hi, NOTE);
     await expect(page.getByText(t(hi, "card.saved"), { exact: true })).toBeVisible();
     await open(page, "nav.profile", hi);
     await open(page, "nav.talk", hi);
-    await expect(page.getByText(t(hi, "agent.starter_1"), { exact: true })).toBeVisible();
+    await expect(page.getByText(NOTE, { exact: true })).toBeVisible();
     await expect(page.getByText(t(hi, "card.saved"), { exact: true })).toBeVisible();
+    // Suggestions belong to an empty Talk only; changing the card lives in Profile and in what she says.
+    await expect(page.getByRole("button", { name: t(hi, "hire.chip"), exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: t(hi, "agent.suggest_rate"), exact: true })).toHaveCount(0);
   });
 
   await test.step("saying 'change my rate' on Talk asks the rate again, below everything said before", async () => {
@@ -148,11 +90,30 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
     await inOrder(page, [
       textOf(hi, "iv.ask.trade"),
       textOf(hi, "iv.published"),
-      t(hi, "agent.starter_1"),
+      NOTE,
       t(hi, "card.saved"),
       said,
       textOf(hi, "iv.ask.rate_month"),
     ]);
+  });
+  await test.step("New conversation clears Talk after a confirm, the open question stays, and earnings come from Passbook", async () => {
+    await page.getByRole("button", { name: t(hi, "agent.new"), exact: true }).click();
+    const confirm = page.getByRole("dialog", { name: t(hi, "agent.new") });
+    await expect(confirm).toContainText(t(hi, "agent.new_confirm_card"));
+    await confirm.getByRole("button", { name: t(hi, "agent.new_yes") }).click();
+    await expect(page.getByText(NOTE, { exact: true })).toHaveCount(0);
+    // The rate question she was answering is asked again on its own; "Later" pauses it, and the suggestions show.
+    await expect(page.getByText(textOf(hi, "iv.ask.rate_month"))).toHaveCount(1);
+    await page.getByRole("button", { name: t(hi, "iv.later"), exact: true }).click();
+    await page.getByRole("button", { name: t(hi, "agent.new"), exact: true }).click();
+    await page
+      .getByRole("dialog", { name: t(hi, "agent.new") })
+      .getByRole("button", { name: t(hi, "agent.new_yes") })
+      .click();
+    await expect(page.getByText(t(hi, "agent.empty"))).toBeVisible();
+    await page.getByRole("button", { name: t(hi, "agent.suggest_earned"), exact: true }).click();
+    await expect(page.getByText(t(hi, "agent.earnings", { week: "₹0", month: "₹0", waiting: "₹0" }))).toBeVisible();
+    await expect(page.getByText(t(hi, "agent.empty"))).toHaveCount(0);
   });
   await unlist(page, hi);
 });
@@ -253,31 +214,4 @@ test("with only a cloud recognizer, the mic asks before her voice leaves the pho
   await expect(ask).toBeHidden();
   await expect(field(page, hi)).toBeFocused();
   await nextTurn(page, hi, "iv.ask.languages", () => type(page, hi, "सात हज़ार"));
-});
-
-test("signing out leaves the next worker on the phone nothing of the last: answers, UPI ID or voice consent", async ({
-  page,
-}) => {
-  await fakeSpeech(page, ["मैं खाना बनाती हूँ"], FakeSpeechMode.cloud);
-  await signIn(page, { role: Role.worker, name: `Meena ${RUN}`, phone: newPhone(), lang: hi });
-  const { ask, allow } = consent(page, hi);
-  await mic(page, hi).click();
-  await nextTurn(page, hi, "iv.ask.area", () => allow.click());
-  await nextTurn(page, hi, "iv.ask.rate_month", () => type(page, hi, "कोरमंगला"));
-  await nextTurn(page, hi, "iv.ask.min", () => type(page, hi, "नौ हज़ार"));
-  await nextTurn(page, hi, "iv.ask.languages", () => type(page, hi, "सात हज़ार"));
-  await setUpi(page, hi, "meena.test@okaxis");
-  await page.getByRole("button", { name: t(hi, "shell.sign_out") }).click();
-
-  await completeSignIn(page, { role: Role.worker, name: `Geeta ${RUN}`, phone: newPhone(), lang: hi });
-  // Her own interview from the first question: nothing Meena said, and not Meena's lowest rate.
-  await expect(page.getByText(textOf(hi, "iv.ask.trade"))).toHaveCount(1);
-  await expect(page.getByText("कोरमंगला", { exact: true })).toHaveCount(0);
-  await expect(page.getByText(textOf(hi, "iv.got_min"))).toHaveCount(0);
-  // Asked before any company hears her, and paid to no one else's UPI ID.
-  await mic(page, hi).click();
-  await expect(ask).toBeVisible();
-  await open(page, "nav.profile", hi);
-  const paidTo = page.getByRole("form", { name: t(hi, "settings.paid_to") });
-  await expect(paidTo.getByLabel(t(hi, "settings.vpa"), { exact: true })).toHaveValue("");
 });

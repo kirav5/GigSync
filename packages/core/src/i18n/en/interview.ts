@@ -34,5 +34,4 @@ export const interview = {
   "iv.later": "Later",
   "iv.resume": "Carry on making my card",
   "iv.by_voice": "Fill in by talking",
-  "iv.change_card": "Change my card by talking",
 } as const;

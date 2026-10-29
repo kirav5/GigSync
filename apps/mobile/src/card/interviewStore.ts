@@ -153,10 +153,23 @@ function forgetDraft(): void {
   sending = false;
 }
 
-/** Ends the interview without its card, after the My card form publishes or unlists; the words already shown stay. */
+/**
+ * "New conversation": clears what is on screen. An unfinished card interview keeps its answers: an open one asks its
+ * question again, a paused one waits for "Carry on".
+ */
+export function clearTalk(): void {
+  const { state, paused } = snapshot;
+  const open = state !== undefined && state.slot !== Slot.done && !paused;
+  set({ ...snapshot, turns: open ? asked(state) : [] });
+}
+
+/**
+ * Ends the interview without its card, after the My card form publishes or unlists. Its questions and answers go,
+ * since the card was made another way and they would only stand there unanswered; the owner's own notes stay.
+ */
 export function closeInterview(): void {
   forgetDraft();
-  set({ turns: snapshot.turns, paused: false });
+  set({ turns: snapshot.turns.filter((turn) => turn.who === Speaker.note), paused: false });
 }
 
 /** Wipes the interview and the whole conversation: at sign-out. */

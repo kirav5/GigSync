@@ -33,5 +33,6 @@ export * from "./payments/record.js";
 export * from "./payments/upi.js";
 export * from "./policy/engine.js";
 export * from "./ports.js";
+export * from "./router/earnings.js";
 export * from "./router/hire.js";
 export * from "./router/keyword.js";

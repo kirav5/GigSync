@@ -28,3 +28,9 @@
 .iv-later {
   color: var(--text2);
 }
+
+/* Talk's label and its "New conversation" button share one line. */
+.talk-head {
+  justify-content: space-between;
+  align-items: center;
+}

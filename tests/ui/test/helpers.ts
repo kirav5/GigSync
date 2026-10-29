@@ -8,6 +8,8 @@ export const API = process.env.API_BASE ?? "http://localhost:8787";
 /** The app as the dev server serves it; absolute, so pages without a base URL (a phone over DevTools) work too. */
 export const APP = process.env.APP_URL ?? "http://localhost:5173";
 const DEV_OTP = process.env.DEV_OTP ?? "000000";
+/** The API's sign-in rate window (OTP_RATE_LIMIT in workers/api/wrangler.toml), plus a second. */
+const RATE_WINDOW_MS = 61_000;
 export const SHOTS = new URL("../screenshots/", import.meta.url).pathname;
 mkdirSync(SHOTS, { recursive: true });
 
@@ -83,7 +85,16 @@ export async function completeSignIn(page: Page, who: Person) {
   if (who.address) await form.getByLabel(t(lang, "signin.address")).fill(who.address);
   await page.getByRole("button", { name: t(lang, "signin.send_code"), exact: true }).click();
   await form.getByLabel(new RegExp(`^${escapeRe(t(lang, "signin.code"))}`)).fill(DEV_OTP);
-  await page.getByRole("button", { name: t(lang, "signin.submit"), exact: true }).click();
+  const submit = page.getByRole("button", { name: t(lang, "signin.submit"), exact: true });
+  await submit.click();
+  // The API lets one network address check 10 codes a minute, and a test run signs many people in from one machine:
+  // when it says so, wait the minute out and try the same code again.
+  const tooMany = page.getByText(t(lang, "net.too_many"));
+  await expect(tabs(page, lang).or(tooMany)).toBeVisible();
+  if (await tooMany.isVisible()) {
+    await page.waitForTimeout(RATE_WINDOW_MS);
+    await submit.click();
+  }
   await expect(tabs(page, lang)).toBeVisible();
 }
 

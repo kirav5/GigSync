@@ -1,12 +1,14 @@
 import {
+  type Card,
   CardKind,
   type Agent as CoreAgent,
+  earningsIntent,
   edit,
   editIntent,
   hireIntent,
   log,
-  type MessageKey,
   type Ports,
+  passbook,
   prompt,
   Slot,
   start,
@@ -18,10 +20,10 @@ import {
   addNote,
   answerInterview,
   beginInterview,
+  clearTalk,
   noteAnswered,
   relanguageInterview,
   resumeInterview,
-  Speaker,
   useInterview,
 } from "../card/interviewStore.js";
 import { accountDraft } from "../card/publish.js";
@@ -30,11 +32,11 @@ import { Composer, Via } from "../ui/Composer.js";
 import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
 import { errorKey } from "../ui/errorKey.js";
+import { money } from "../ui/places.js";
+import type { GigView } from "../useGig.js";
 import { Interview } from "./Interview.js";
+import { NewConversation, type Suggestion, Suggestions } from "./talk/TalkStart.js";
 import "./talk.css";
-
-/** Ready notes for a gig worker's agent, in each language, matching what the on-phone router understands. */
-const STARTERS: readonly MessageKey[] = ["agent.starter_1", "agent.starter_2"];
 
 interface TalkProps {
   agent: CoreAgent;
@@ -46,6 +48,8 @@ interface TalkProps {
   onSaved: (a: Account) => void;
   /** Opens Find to hire someone (worker to worker, flow A). */
   onHire: () => void;
+  /** This phone's jobs and payments, for "what did I earn this week?". */
+  view: GigView;
 }
 
 /**
@@ -54,7 +58,7 @@ interface TalkProps {
  * Words that ask to change a field of the card ("मेरा रेट बदलो") open the interview at that field, below what was
  * said before.
  */
-export function AgentScreen({ agent, ports, account, interview, onSaved, onHire }: TalkProps) {
+export function AgentScreen({ agent, ports, account, interview, onSaved, onHire, view }: TalkProps) {
   const { lang, t } = useI18n();
   const { state, turns, paused } = useInterview();
   const [busy, setBusy] = useState(false);
@@ -63,7 +67,6 @@ export function AgentScreen({ agent, ports, account, interview, onSaved, onHire 
   const active = state !== undefined && !paused;
   const current = active ? prompt(state) : undefined;
   const wanted = interview || !account.worker;
-  const noted = turns.some((turn) => turn.who === Speaker.note);
 
   // Opening Talk to make or change the card starts the interview; one already under way carries on where it was.
   // One paused with "Later" stays paused across tabs until the owner taps "Carry on".
@@ -85,6 +88,29 @@ export function AgentScreen({ agent, ports, account, interview, onSaved, onHire 
 
   const fresh = () => start(interviewConfig(lang), accountDraft(account));
 
+  /** The owner's words and the answer from this phone's passbook: received this week and month, and still to come. */
+  function answerEarnings(own: string) {
+    const now = new Date();
+    const { totals } = passbook(view.jobs, view.payments, account.session.user, now, -now.getTimezoneOffset());
+    const params = { week: money(totals.week), month: money(totals.month), waiting: money(totals.waiting) };
+    const card: Card = { kind: CardKind.text, say: { key: "agent.earnings", params } };
+    noteAnswered(addNote(own), card);
+  }
+
+  /** Up to three ways in for an empty Talk; changing the rate needs a card to change. */
+  const suggestions: Suggestion[] = [
+    { label: "hire.chip", run: onHire },
+    ...(account.worker
+      ? [
+          {
+            label: "agent.suggest_rate",
+            run: (said: string) => beginInterview(edit(fresh(), Slot.rate), said),
+          } as const,
+        ]
+      : []),
+    { label: "agent.suggest_earned", run: answerEarnings },
+  ];
+
   async function sendNote(own: string) {
     const field = editIntent(own);
     if (field) {
@@ -93,6 +119,10 @@ export function AgentScreen({ agent, ports, account, interview, onSaved, onHire 
     }
     if (hireIntent(own, lang)) {
       onHire();
+      return;
+    }
+    if (earningsIntent(own, lang)) {
+      answerEarnings(own);
       return;
     }
     if (busy) return;
@@ -114,34 +144,23 @@ export function AgentScreen({ agent, ports, account, interview, onSaved, onHire 
   return (
     <>
       <div className={C.stack}>
-        <span className={C.labelSq}>{t("nav.talk")}</span>
+        <div className={`${C.row} talk-head`}>
+          <span className={C.labelSq}>{t("nav.talk")}</span>
+          {turns.length > 0 && <NewConversation unfinished={state !== undefined} onClear={clearTalk} />}
+        </div>
         <h1 className={C.headline}>
           {t("agent.headline")} <span className={C.soft}>{t("agent.soft")}</span>
         </h1>
       </div>
       {turns.length > 0 && <Interview ports={ports} account={account} onSaved={onSaved} />}
-      {/* What the owner can start while no interview is being answered; the ready notes only before the first. */}
-      {!active && (
+      {paused && (
         <div className={C.row}>
-          {paused && (
-            <button type={C.button} className={C.chipOn} onClick={resumeInterview}>
-              {t("iv.resume")}
-            </button>
-          )}
-          <button type={C.button} className={C.chip} onClick={() => beginInterview(fresh())}>
-            {t("iv.change_card")}
+          <button type={C.button} className={C.chipOn} onClick={resumeInterview}>
+            {t("iv.resume")}
           </button>
-          <button type={C.button} className={C.chip} onClick={onHire}>
-            {t("hire.chip")}
-          </button>
-          {!noted &&
-            STARTERS.map((s) => (
-              <button key={s} type={C.button} className={C.chip} onClick={() => void sendNote(t(s))}>
-                {t(s)}
-              </button>
-            ))}
         </div>
       )}
+      {turns.length === 0 && !active && <Suggestions items={suggestions} />}
       <div ref={end} />
       <Dock>
         <Composer
