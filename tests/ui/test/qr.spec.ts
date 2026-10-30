@@ -1,31 +1,30 @@
-import { t } from "@gigsync/core";
-import { type BoardProfile, Lang } from "@gigsync/protocol";
+import { HttpMethod, t } from "@gigsync/core";
+import { Lang, MyQr, type QrCode } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { APP, chooseLanguage, completeSignIn, newPhone, open, Role, RUN, shoot, signIn, tabs } from "./helpers.js";
+import { API, APP, chooseLanguage, completeSignIn, newPhone, open, Role, RUN, shoot, signIn, tabs } from "./helpers.js";
 import { publishCard, unlistCards } from "./journey.js";
-import { FakeQr } from "./qr-fake.js";
 
 /**
- * Personal QR codes (ADR 0034) through the app's screens: my QR shows, downloads and is replaced; a household opens a
- * worker's QR link and asks them; a worker opens a household's link and offers, and the household asks from My jobs.
- * The QR routes and the offer's mailbox check are answered in the browser (qr-fake.ts) until migration 0005 is on
- * Neon; the requests that follow go through the real API and mailbox.
+ * Personal QR codes (ADR 0034) through the app's screens, against the real API and mailbox: my QR shows, downloads and
+ * is replaced; a household opens a worker's QR link and asks them; a worker opens a household's link and offers, and the
+ * household asks from My jobs. Each test signs in new numbers, well inside the API's caps on lookups and offers.
  */
 
 const en = Lang.enum.en;
-const INDIRANAGAR = { lat: 12.9719, lon: 77.6412 };
 const anilName = `Anil ${RUN}`;
 const priyaFirst = "Priya";
 const priyaName = `${priyaFirst} ${RUN}`;
 const ADDRESS = `Flat 7, 2nd Cross (${RUN})`;
 const ABOUT = "Wiring, fans and switchboards";
 const FOLDER = "qr";
+/** The routes that answer the owner's live code: `PUT` gets it (made on first ask), `POST` replaces it. */
+const MY_QR = `${API}/v1/qr/me`;
+const REPLACE_QR = `${MY_QR}/replace`;
 
 let contexts: BrowserContext[] = [];
 
 test.afterEach(async () => {
   await unlistCards();
-  for (const c of contexts) for (const p of c.pages()) await p.unrouteAll({ behavior: "ignoreErrors" });
   await Promise.all(contexts.map((c) => c.close()));
   contexts = [];
 });
@@ -35,34 +34,34 @@ async function pages(browser: { newContext: () => Promise<BrowserContext> }): Pr
   return (await Promise.all(contexts.map((c) => c.newPage()))) as [Page, Page];
 }
 
-/** Anil, an electrician with a card on the board, and the card his QR shows. */
-async function anilWithCard(page: Page, fake: FakeQr) {
+/**
+ * The code the API gives this page's next `method` request to `url`, the one its QR then shows: the picture carries it
+ * only as pixels, and copying the link is not allowed in every browser. Call before the step that sends it. A dev
+ * build's StrictMode sends the screen's first request twice; the API keeps one live code a person, so either answer
+ * that succeeded carries it.
+ */
+async function codeFrom(page: Page, method: string, url: string): Promise<QrCode> {
+  const res = await page.waitForResponse((r) => r.url() === url && r.request().method() === method && r.ok());
+  return MyQr.parse(await res.json()).code;
+}
+
+/** Anil, an electrician with a card on the board, which his QR shows. */
+async function anilWithCard(page: Page) {
   await signIn(page, { role: Role.worker, name: anilName, phone: newPhone() });
   await publishCard(
     { page, lang: en },
     { trade: "Electrician", area: "indiranagar", rate: "700", min: "550", about: ABOUT },
   );
-  await fake.attach(page);
-  const session = await fake.session(page);
-  const card: BoardProfile = {
-    display_name: anilName,
-    trades: ["electrician"],
-    area: INDIRANAGAR,
-    area_name: "Indiranagar",
-    rate_paise: 70000,
-    languages: [en],
-    about: ABOUT,
-  };
-  fake.cards.set(session.user, card);
-  return session;
 }
 
-/** Opens My QR code from Profile's one row, and waits for the QR. */
-async function openMyQr(page: Page, name: string, shot?: string) {
+/** Opens My QR code from Profile's one row, waits for the QR, and gives the live code it shows. */
+async function openMyQr(page: Page, name: string, shot?: string): Promise<QrCode> {
   await open(page, "nav.profile");
   if (shot) await shoot(shot, { [shot]: page }, FOLDER);
+  const code = codeFrom(page, HttpMethod.put, MY_QR);
   await page.getByRole("button", { name: new RegExp(t(en, "qr.mine")) }).click();
   await expect(page.getByRole("img", { name: t(en, "qr.alt", { name }) })).toBeVisible();
+  return code;
 }
 
 const ask = (page: Page, name: string) => page.getByRole("button", { name: t(en, "qr.ask", { name }) });
@@ -82,12 +81,9 @@ async function sendAsk(page: Page, worker: string) {
 }
 
 test("my QR shows, downloads and copies; a new QR ends the old link", async ({ browser }) => {
-  const fake = new FakeQr();
   const [priya, anil] = await pages(browser);
-  await fake.attach(priya);
   await signIn(priya, { role: Role.consumer, name: priyaName, phone: newPhone(), address: ADDRESS });
-  const home = await fake.session(priya);
-  await openMyQr(priya, priyaName, "profile");
+  const old = await openMyQr(priya, priyaName, "profile");
   await expect(priya.getByText(t(en, "qr.about_household"))).toBeVisible();
   const download = priya.waitForEvent("download");
   await priya.getByRole("link", { name: t(en, "qr.download") }).click();
@@ -95,16 +91,15 @@ test("my QR shows, downloads and copies; a new QR ends the old link", async ({ b
   await priya.getByRole("button", { name: t(en, "qr.copy") }).click();
   await expect(priya.getByRole("status").filter({ hasText: /Link copied|did not allow copying/ })).toBeVisible();
   await shoot("my-qr", { household: priya }, FOLDER);
-  const old = fake.codeOf(home.user);
 
   await priya.getByRole("button", { name: t(en, "qr.new") }).click();
   const confirm = priya.getByRole("dialog", { name: t(en, "qr.new") });
+  const replaced = codeFrom(priya, HttpMethod.post, REPLACE_QR);
   await confirm.getByRole("button", { name: t(en, "qr.new") }).click();
   await expect(priya.getByRole("status").filter({ hasText: t(en, "qr.new_done") })).toBeVisible();
-  const next = fake.codeOf(home.user);
+  const next = await replaced;
   expect(next).not.toBe(old);
 
-  await fake.attach(anil);
   await signIn(anil, { role: Role.worker, name: anilName, phone: newPhone() });
   await anil.goto(`${APP}/?to=${old}`);
   await expect(anil.getByText(t(en, "qr.ended"))).toBeVisible();
@@ -115,15 +110,12 @@ test("my QR shows, downloads and copies; a new QR ends the old link", async ({ b
 });
 
 test("a household opens a worker's QR link before signing in, and asks him", async ({ browser }) => {
-  const fake = new FakeQr();
   const [anil, priya] = await pages(browser);
-  const worker = await anilWithCard(anil, fake);
-  await openMyQr(anil, anilName);
+  await anilWithCard(anil);
+  const code = await openMyQr(anil, anilName);
   await expect(anil.getByText(t(en, "qr.about_worker"))).toBeVisible();
-  const code = fake.codeOf(worker.user);
 
   // Her phone's camera opens the link; she signs in first, and the app keeps the link for after.
-  await fake.attach(priya);
   await priya.goto(`${APP}/?to=${code}`);
   await expect(priya).not.toHaveURL(/to=/);
   await chooseLanguage(priya, en);
@@ -138,22 +130,20 @@ test("a household opens a worker's QR link before signing in, and asks him", asy
 });
 
 test("a worker opens a household's QR link and offers; the household asks him from My jobs", async ({ browser }) => {
-  const fake = new FakeQr();
   const [anil, priya] = await pages(browser);
-  await anilWithCard(anil, fake);
-  await fake.attach(priya);
+  await anilWithCard(anil);
   await signIn(priya, { role: Role.consumer, name: priyaName, phone: newPhone(), address: ADDRESS });
-  const home = await fake.session(priya);
-  await openMyQr(priya, priyaName);
+  const code = await openMyQr(priya, priyaName);
 
   const first = priyaFirst;
-  await anil.goto(`${APP}/?to=${fake.codeOf(home.user)}`);
+  await anil.goto(`${APP}/?to=${code}`);
   await anil.getByRole("button", { name: t(en, "qr.offer", { name: first }) }).click();
   // Whatever the screen says first (sent, or why not) is the answer.
   const said = anil.getByRole("region", { name: first }).getByRole("status").filter({ hasText: /\S/ });
   await expect(said).toHaveText(t(en, "qr.offered", { name: first }));
   await shoot("offered", { worker: anil, household: priya }, FOLDER);
 
+  // The offer reaches her phone through the real mailbox, which let it in only because the API took it first.
   await open(priya, "nav.my_jobs");
   const line = t(en, "qr.offer_line", { name: anilName, trade: "Electrician" });
   const offer = priya.getByRole("article", { name: line });
