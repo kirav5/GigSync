@@ -7,6 +7,7 @@ import { C } from "../ui/cls.js";
 import type { GigView } from "../useGig.js";
 import { groupJobs, phoneDay } from "./jobGroups.js";
 import { MentorToday } from "./mentor/MentorToday.js";
+import { FloorAsk } from "./move/FloorAsk.js";
 import { JobFold, JobSection } from "./Requests.js";
 
 interface Props {
@@ -22,6 +23,8 @@ interface Props {
   onAddPayee: () => void;
   /** Whose phone this is: a mentor's answer to a newcomer carries their card. */
   account: Account;
+  /** The account changed here (the lowest price given after the card came back). */
+  onSaved: (a: Account) => void;
 }
 
 /**
@@ -29,7 +32,8 @@ interface Props {
  * past jobs are folded away. Each job card carries its own actions,
  * so the screen has no dock.
  */
-export function Today({ ports, view, device, run, card, onMakeCard, onOpenCard, onAddPayee, account }: Props) {
+export function Today(props: Props) {
+  const { ports, view, device, run, card, onMakeCard, onOpenCard, onAddPayee, account, onSaved } = props;
   const { t, date, time, plural } = useI18n();
   const now = ports.clock.now();
   const g = groupJobs({ jobs: view.jobs, tasks: view.tasks, payments: view.payments, day: phoneDay(now) });
@@ -40,6 +44,7 @@ export function Today({ ports, view, device, run, card, onMakeCard, onOpenCard, 
         <h1 className={C.headline}>{t("home.title", { date: date(now) })}</h1>
         {view.syncedAt && <span className={C.faint}>{t("requests.checked", { time: time(view.syncedAt) })}</span>}
       </div>
+      <FloorAsk ports={ports} account={account} onSaved={onSaved} />
       <PayeeNudge ports={ports} view={view} onAdd={onAddPayee} />
       <MentorToday account={account} device={device} run={run} syncedAt={view.syncedAt} />
       {card === CardState.none && (

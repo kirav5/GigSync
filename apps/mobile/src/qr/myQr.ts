@@ -14,6 +14,9 @@ export interface ShownQr {
 const ownerOf = (account: Account) =>
   qrOwner(account.contact.name, account.role === AccountRole.worker ? QrRole.enum.worker : QrRole.enum.household);
 
+/** The owner's live code, as the server gives it (making it on first ask). */
+export const myQrOf = (account: Account): Promise<MyQr> => apiClient(account.session).myQr(ownerOf(account));
+
 async function shown(mine: MyQr): Promise<ShownQr> {
   const link = myQrLink(mine.code);
   return { link, image: await qrDataUrl(link) };
@@ -32,7 +35,7 @@ export async function loadMyQr(account: Account, storage: Storage, show: (qr: Sh
       if (mineIs === latest) show(picture);
     });
   };
-  await showMyQr(storage, () => apiClient(account.session).myQr(ownerOf(account)), draw);
+  await showMyQr(storage, () => myQrOf(account), draw);
 }
 
 /** A new QR in place of the old one, which stops finding the owner at once; kept on this phone from now on. */

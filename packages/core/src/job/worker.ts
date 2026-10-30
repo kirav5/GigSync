@@ -55,6 +55,11 @@ export interface WorkerRules {
   radius_km: number;
   /** When they take work, who buys materials, a day's hours: what their agent agrees besides the price. */
   terms?: TermPrefs;
+  /**
+   * The rules came back from the public card on a new phone (transfer/refill.ts) and the worker has not given their
+   * lowest price yet: the agent shows them every request before quoting, from the usual rate.
+   */
+  floor_missing?: boolean;
 }
 
 const EARTH_RADIUS_KM = 6371;
@@ -156,8 +161,14 @@ async function quoteNext(ctx: JobContext, rules: WorkerRules, r: JobRecord): Pro
   if (stuck) return cancel(ctx, termed, { reason: CancelReason.enum.no_deal });
   const planned = await planFor(ctx, rules, termed);
   const flagged = (rules.ask_me ?? []).filter((key) => present(planned.request.details[key]));
-  if (flagged.length > 0 && !planned.owner_ok) {
-    const detail = { flagged, mandate: planned.mandate, advice: planned.advice };
+  const noFloor = rules.floor_missing === true;
+  if ((flagged.length > 0 || noFloor) && !planned.owner_ok) {
+    const detail = {
+      flagged,
+      mandate: planned.mandate,
+      advice: planned.advice,
+      ...(noFloor ? { no_floor: true } : {}),
+    };
     await ctx.store.addTask(TaskKind.approveRequest, planned.engagement.id, detail, ctx.clock.now());
     await ctx.store.saveJob(planned);
     return planned;

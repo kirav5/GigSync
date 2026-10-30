@@ -17,8 +17,10 @@ import { moving } from "../src/i18n/en/moving.js";
 import { need } from "../src/i18n/en/need.js";
 import { net } from "../src/i18n/en/net.js";
 import { page } from "../src/i18n/en/page.js";
+import { phone } from "../src/i18n/en/phone.js";
 import { qr } from "../src/i18n/en/qr.js";
 import { record } from "../src/i18n/en/record.js";
+import { records } from "../src/i18n/en/records.js";
 import { screens } from "../src/i18n/en/screens.js";
 import { shell } from "../src/i18n/en/shell.js";
 import { speech } from "../src/i18n/en/speech.js";
@@ -54,6 +56,8 @@ const AREAS: Readonly<Record<string, object>> = {
   qr,
   moving,
   page,
+  phone,
+  records,
 };
 
 describe("string areas", () => {

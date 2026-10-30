@@ -133,3 +133,13 @@
     grid-column: 1 / -1;
   }
 }
+
+/* "My work record" in Receipts: three totals side by side, then one line per job GigSync keeps. */
+.passbook-totals.kept-totals {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.kept-job {
+  display: grid;
+  gap: 2px;
+  padding: 10px 14px;
+}

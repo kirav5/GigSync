@@ -69,6 +69,8 @@ export const Collection = {
   workOffers: "work_offers",
   /** Offers to work this worker sent, one per channel: the day's count and "offered" on a household's view. */
   offersSent: "offers_sent",
+  /** What GigSync accepted of this owner's job records (ADR 0038), one record per fact: what is still to send is the rest. */
+  recordsSent: "records_sent",
 } as const;
 
 export interface Storage {

@@ -9,11 +9,11 @@ import {
   type MyMentorListing,
 } from "@gigsync/protocol";
 import { Hono } from "hono";
-import { ADMIN_HEADER, ApiError, type AppEnv, Var } from "../context.js";
-import { sameSecret } from "../crypto.js";
+import { ApiError, type AppEnv, Var } from "../context.js";
 import { transaction } from "../db/client.js";
 import { block, report } from "../db/mentor-safety.js";
 import { matchMentors, ownListing, removeListing, setVouch, upsertListing } from "../db/mentors.js";
+import { requireAdmin } from "../middleware/admin.js";
 
 /**
  * Mentors, behind the session middleware: a worker lists or unlists themselves; a newcomer matches, reports and
@@ -84,13 +84,7 @@ mentors.post(Path.block, async (c) => {
 });
 
 /** Admin only: a union or NGO's vouch, set by hand where one exists. No UI; nobody is admin while ADMIN_KEY is unset. */
-mentors.post(Path.vouch, async (c) => {
-  const key = c.env.ADMIN_KEY;
-  const given = c.req.header(ADMIN_HEADER);
-  if (!key || !given || !(await sameSecret(given, key))) {
-    log.warn("admin key rejected", { requestId: c.get(Var.requestId), user: c.get(Var.user) });
-    return c.json({ error: ApiError.forbidden }, 403);
-  }
+mentors.post(Path.vouch, requireAdmin, async (c) => {
   const v = MentorVouch.safeParse(await body(c.req.raw));
   if (!v.success) return c.json({ error: ApiError.badRequest }, 400);
   if (!(await setVouch(c.get(Var.db), v.data.user, v.data.vouched_by))) {

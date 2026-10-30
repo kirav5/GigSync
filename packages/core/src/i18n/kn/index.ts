@@ -17,8 +17,10 @@ import { moving } from "./moving.js";
 import { need } from "./need.js";
 import { net } from "./net.js";
 import { page } from "./page.js";
+import { phone } from "./phone.js";
 import { qr } from "./qr.js";
 import { record } from "./record.js";
+import { records } from "./records.js";
 import { screens } from "./screens.js";
 import { shell } from "./shell.js";
 import { speech } from "./speech.js";
@@ -40,6 +42,7 @@ export const kn: Strings = {
   ...install,
   ...net,
   ...record,
+  ...records,
   ...talk,
   ...need,
   ...memory,
@@ -54,4 +57,5 @@ export const kn: Strings = {
   ...moving,
   ...qr,
   ...page,
+  ...phone,
 };

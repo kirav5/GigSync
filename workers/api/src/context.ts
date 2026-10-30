@@ -17,6 +17,13 @@ export const ADMIN_HEADER = "x-gigsync-admin";
 export const USER_PARAM = "user";
 /** Path parameter naming a personal QR code. */
 export const CODE_PARAM = "code";
+/** Path parameter naming one of the caller's devices. */
+export const DEVICE_PARAM = "device";
+/** Path parameter naming a transfer slot. */
+export const SLOT_PARAM = "slot";
+/** Path parameters naming a stored job and one of its payments. */
+export const ENGAGEMENT_PARAM = "engagement";
+export const PAYMENT_PARAM = "payment";
 
 /** Error messages the API returns as `{ error }`. Safe to show: they never name a value. */
 export const ApiError = {
@@ -25,12 +32,15 @@ export const ApiError = {
   badEnvelope: "bad envelope",
   badPhone: "phone must be E.164",
   badSignature: "bad signature",
+  callingDevice: "cannot revoke the calling device",
   envelopeMismatch: "envelope does not match route",
+  expired: "expired",
   forbidden: "forbidden",
   internal: "internal error",
   notFound: "not found",
   offerNotTaken: "offer not taken",
   recipientNotFound: "recipient not found",
+  tooLarge: "too large",
   tooManyAttempts: "too many attempts",
   unauthorized: "unauthorized",
   wrongCode: "wrong code",

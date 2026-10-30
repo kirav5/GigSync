@@ -5,9 +5,11 @@ import {
   GigDevice,
   loadPayee,
   log,
+  type MovedRecords,
   ownerPorts,
   PayeeError,
   type Ports,
+  type Storage,
   savePayee,
   type WorkerRules,
 } from "@gigsync/core";
@@ -25,6 +27,7 @@ import {
 import { areaKeyOf, PILOT_CITY } from "../ui/places.js";
 import { API_BASE } from "./api.js";
 import { cryptoRandom } from "./random.js";
+import { recordsClient } from "./records.js";
 
 /** Which side of a job this phone's owner is on. One account, one role, in this first version. */
 export const AccountRole = { consumer: "consumer", worker: "worker" } as const;
@@ -119,11 +122,32 @@ export function saveAccount(ports: Ports, account: Account): Promise<void> {
  */
 export async function signOut(ports: Ports): Promise<void> {
   const account = await ports.storage.get<Account>(Collection.settings, ACCOUNT_KEY);
-  if (account) {
-    const { session, contact: _contact, protocol: _protocol, ...profile } = account;
-    await ownerPorts(ports, session.user).storage.put<Profile>(Collection.ownerSettings, PROFILE_KEY, profile);
-  }
+  if (account) await keepProfile(ownerPorts(ports, account.session.user).storage, account);
   await ports.storage.delete(Collection.settings, ACCOUNT_KEY);
+}
+
+/**
+ * Keeps the owner's part of the account (role, card rules, choices) among their own records, where signing back in
+ * finds it, and where a move to a new phone takes it. `owned` is the owner's view of the phone's storage.
+ */
+export function keepProfile(owned: Storage, account: Account): Promise<void> {
+  const { session: _session, contact: _contact, protocol: _protocol, ...profile } = account;
+  return owned.put<Profile>(Collection.ownerSettings, PROFILE_KEY, profile);
+}
+
+/** The account with the owner's kept part, as a move to this phone brought it, when it is for the same role. */
+export async function withKeptProfile(owned: Storage, account: Account): Promise<Account> {
+  const kept = await owned.get<Profile>(Collection.ownerSettings, PROFILE_KEY);
+  if (kept?.role !== account.role) return account;
+  const { session, contact, protocol } = account;
+  return { ...kept, session, contact, ...(protocol === undefined ? {} : { protocol }) };
+}
+
+/** The role of the account a move package came from, when it carries the owner's kept part. */
+export function movedRole(records: MovedRecords): AccountRole | undefined {
+  const kept = records[Collection.ownerSettings]?.find((r) => r.id === PROFILE_KEY)?.value;
+  if (typeof kept !== "object" || kept === null || !("role" in kept)) return undefined;
+  return Object.values(AccountRole).find((role) => role === kept.role);
 }
 
 export async function sendCode(phone: string): Promise<void> {
@@ -187,6 +211,7 @@ export function deviceFor(ports: Ports, account: Account, lang: Lang): GigDevice
     model: ports.model,
     estimates: { api, city: PILOT_CITY, areaKey: areaKeyOf },
     qrApi: api,
+    records: recordsClient(account.session),
     lang,
   });
 }

@@ -8,6 +8,8 @@ import { Landing } from "../screens/Landing.js";
 import { MyCard } from "../screens/MyCard.js";
 import { FindMentor } from "../screens/mentor/FindMentor.js";
 import { LinkScreen } from "../screens/mentor/LinkScreen.js";
+import { MoveIn } from "../screens/move/MoveIn.js";
+import { MoveOut } from "../screens/move/MoveOut.js";
 import { Passbook } from "../screens/Passbook.js";
 import { AboutMe } from "../screens/pages/AboutMe.js";
 import { HouseholdReceipts } from "../screens/pages/HouseholdReceipts.js";
@@ -17,9 +19,11 @@ import { Privacy } from "../screens/pages/Privacy.js";
 import { SettingsPage } from "../screens/pages/SettingsPage.js";
 import { Person } from "../screens/qr/Person.js";
 import { Requests } from "../screens/Requests.js";
+import { WorkRecordExport } from "../screens/record/WorkRecordExport.js";
 import { Today } from "../screens/Today.js";
 import { CardState, Screen } from "../state.js";
 import type { GigView } from "../useGig.js";
+import { homeOf } from "./nav.js";
 
 /** What the open screen is about: the owner, this phone, and what was picked on the way to it. */
 export interface ScreenData {
@@ -45,6 +49,8 @@ export interface ScreenMoves {
   showLink: (user: UserId) => void;
   showPerson: (code: QrCode) => void;
   askFor: (worker: ChosenWorker) => void;
+  /** Signs this owner out of this phone. */
+  signOut: () => void;
 }
 
 function cardState(account: Account): CardState {
@@ -87,6 +93,7 @@ function Activity({ d, m }: { d: ScreenData; m: ScreenMoves }) {
       onOpenCard={() => m.go(Screen.card)}
       onAddPayee={() => m.go(Screen.about)}
       account={account}
+      onSaved={m.saved}
     />
   );
 }
@@ -96,7 +103,12 @@ function Receipts({ d, m }: { d: ScreenData; m: ScreenMoves }) {
   const { account, view, device, run } = d;
   const me = account.session.user;
   if (account.role === AccountRole.consumer) return <HouseholdReceipts view={view} me={me} device={device} run={run} />;
-  return <Passbook view={view} me={me} device={device} run={run} onAddPayee={() => m.go(Screen.about)} />;
+  return (
+    <>
+      <Passbook view={view} me={me} device={device} run={run} onAddPayee={() => m.go(Screen.about)} />
+      <WorkRecordExport account={account} />
+    </>
+  );
 }
 
 /** The open screen, from the menu or opened from inside another. */
@@ -113,7 +125,7 @@ export function ScreenView({ screen, d, m }: { screen: Screen; d: ScreenData; m:
         <MyCardPage
           ports={ports}
           account={account}
-          jobs={view.jobs}
+          syncedAt={view.syncedAt}
           onCardForm={() => m.go(Screen.cardEdit)}
           onScanned={m.showPerson}
         />
@@ -123,9 +135,21 @@ export function ScreenView({ screen, d, m }: { screen: Screen; d: ScreenData; m:
     case Screen.about:
       return <AboutMe ports={ports} account={account} isWorker={isWorker} />;
     case Screen.privacy:
-      return <Privacy ports={ports} device={device} isWorker={isWorker} onOpenLink={m.showLink} />;
+      return <Privacy ports={ports} account={account} device={device} isWorker={isWorker} onOpenLink={m.showLink} />;
     case Screen.settings:
-      return <SettingsPage ports={ports} isWorker={isWorker} onInstall={() => m.go(Screen.install)} />;
+      return (
+        <SettingsPage
+          ports={ports}
+          isWorker={isWorker}
+          onInstall={() => m.go(Screen.install)}
+          onMoveOut={() => m.go(Screen.moveOut)}
+          onMoveIn={() => m.go(Screen.moveIn)}
+        />
+      );
+    case Screen.moveOut:
+      return <MoveOut ports={ports} account={account} sync={() => run(async () => undefined)} onSignOut={m.signOut} />;
+    case Screen.moveIn:
+      return <MoveIn ports={ports} account={account} onAccount={m.saved} onDone={() => m.go(homeOf(account))} />;
     case Screen.install:
       return <InstallPage />;
     case Screen.link:

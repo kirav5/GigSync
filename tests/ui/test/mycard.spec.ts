@@ -3,12 +3,13 @@ import { BoardProfile, Lang, MyQr, type QrCode } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Locator, type Page, test } from "@playwright/test";
 import { API, APP, newPhone, open, Role, RUN, SHOTS, signIn } from "./helpers.js";
 import { publishCard, unlistCards } from "./journey.js";
-import { seedRatedJobs } from "./record-seed.js";
+import { seedServedJobs } from "./record-seed.js";
 
 /**
  * My card as collab's (ADR 0036): one centred card with who the owner is, a worker's record (Jobs, rating, Came
- * back) counted on their phone, the QR and its buttons, and one Edit my card. The record goes to the board with the
- * card; the server caps it at what it saw delivered, so seeded jobs it never saw are not shown to a household.
+ * back), the QR and its buttons, and one Edit my card. The record is GigSync's (ADR 0038), computed from the jobs both
+ * phones submitted: the same numbers on the worker's own card and on the card a household scans. The jobs here are
+ * seeded through the API as two phones would leave them.
  */
 
 const en = Lang.enum.en;
@@ -19,7 +20,7 @@ const SCHEMES = ["light", "dark"] as const;
 const FOLDER = "mycard";
 const MY_QR = `${API}/v1/qr/me`;
 const BOARD_PROFILE = `${API}/v1/board/profile`;
-/** The record goes to the board after a sync or two once it changed. */
+/** The card goes to the board again soon after the Privacy switch moves. */
 const PUBLISH_MS = 30_000;
 const ABOUT = "Home food, South Indian and North Indian";
 /** Five jobs for four households, one of whom came back; four rated them 5, 4, 5 and 5. */
@@ -75,23 +76,24 @@ async function published(page: Page, matches: (sent: BoardProfile) => boolean): 
 const card = (page: Page, label: MessageKey) => page.getByRole("region", { name: say(label) });
 const stats = (scope: Page | Locator) => scope.getByRole("definition");
 
-async function cook(page: Page, name: string) {
-  await signIn(page, { role: Role.worker, name, phone: newPhone() });
+async function cook(page: Page, name: string, phone = newPhone()) {
+  await signIn(page, { role: Role.worker, name, phone });
   await publishCard({ page, lang: en }, { trade: "Cook", area: "jayanagar", rate: "11000", min: "9000", about: ABOUT });
 }
 
 test("a worker's My card shows their card, their record, the QR and one Edit my card", async ({ browser }) => {
   const page = await phone(browser);
   const name = `Lakshmi ${RUN}`;
-  await cook(page, name);
-  await seedRatedJobs(page, RATED);
+  const number = newPhone();
+  await seedServedJobs(number, RATED);
+  await cook(page, name, number);
   await open(page, "nav.card");
   const mine = card(page, "page.card_seen");
   await expect(mine).toContainText(name);
   await expect(mine).toContainText("Cook · Jayanagar");
   await expect(mine).toContainText(say("find.from", { price: "₹11,000" }));
   await expect(mine).toContainText(ABOUT);
-  // The record, from the jobs on this phone: the average of 5, 4, 5, 5 to one decimal, over four ratings.
+  // GigSync's record of her jobs: the average of 5, 4, 5, 5 to one decimal, over four ratings.
   await expect(stats(mine)).toHaveText(["5", "★ 4.8", "1"]);
   await expect(mine).toContainText(plural(en, "record.card_rated", 4));
   await expect(mine.getByRole("img", { name: say("qr.alt", { name }) })).toBeVisible();
@@ -161,22 +163,29 @@ test("Share copies the link where the phone has no share sheet", async ({ browse
   await expect(mine.getByRole("status").filter({ hasText: /Link copied|did not allow copying/ })).toBeVisible();
 });
 
-test("a household scanning a worker sees only the record the server saw delivered", async ({ browser }) => {
+test("a household scanning a worker sees the record GigSync keeps, and none once she hides it", async ({ browser }) => {
   const [worker, household] = [await phone(browser), await phone(browser)];
   const name = `Kavya ${RUN}`;
-  await cook(worker, name);
+  const number = newPhone();
+  await seedServedJobs(number, RATED);
+  await cook(worker, name, number);
   const code = worker.waitForResponse((r) => r.url() === MY_QR && r.request().method() === HttpMethod.put && r.ok());
-  // Her phone claims five jobs it never delivered through GigSync: they go to the board with her card.
-  const claimed = published(worker, (sent) => sent.record?.jobs === RATED.length);
-  await seedRatedJobs(worker, RATED);
   await open(worker, "nav.card");
   const qr: QrCode = MyQr.parse(await (await code).json()).code;
-  expect((await claimed).record).toMatchObject({ jobs: 5, rated: 4 });
+  // Nothing about a record goes to the board with her card: the server computes it.
+  await expect(stats(card(worker, "page.card_seen"))).toHaveText(["5", "★ 4.8", "1"]);
 
   await signIn(household, { role: Role.consumer, name: `Asha ${RUN}`, phone: newPhone(), address: "Jayanagar" });
   await household.goto(`${APP}/?to=${qr}`);
   const seen = household.getByRole("region", { name: "Kavya" });
   await expect(seen).toContainText(ABOUT);
-  // The server counted none of them, so her card carries no record at all.
-  await expect(stats(seen)).toHaveCount(0);
+  await expect(stats(seen)).toHaveText(["5", "★ 4.8", "1"]);
+
+  const hidden = published(worker, (sent) => sent.show_record === false);
+  await open(worker, "nav.privacy");
+  await worker.getByRole("switch", { name: say("record.setting") }).uncheck();
+  await hidden;
+  await household.goto(`${APP}/?to=${qr}`);
+  await expect(household.getByRole("region", { name: "Kavya" })).toContainText(ABOUT);
+  await expect(stats(household.getByRole("region", { name: "Kavya" }))).toHaveCount(0);
 });

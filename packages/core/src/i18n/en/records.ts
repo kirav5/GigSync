@@ -1,0 +1,61 @@
+/** Job records kept by GigSync (ADR 0038): the notice at sign-up, Privacy's rows, and "My work record". */
+export const records = {
+  // The notice, at sign-up and once for everyone already signed in
+  "records.notice_title": "Your work record with GigSync",
+  "records.notice_kept": "What GigSync keeps: your jobs, their dates, the kind of work, the price, payments and stars.",
+  "records.notice_why":
+    "Why: so your work record is yours and you can take it anywhere, to make GigSync better, and to reward workers.",
+  "records.notice_never":
+    "We never store phone numbers, addresses or contact details on our servers, or anything you type.",
+  "records.notice_delete": "You can delete your records any time, in Privacy.",
+  "records.agree": "I agree",
+  "records.not_now": "Not now",
+  "records.not_now_about": "Until you agree, GigSync keeps nothing about your jobs. We will ask again next time.",
+  "records.agree_failed": "Could not reach GigSync. Try again when you are online.",
+  // Privacy
+  "records.privacy_title": "My records with GigSync",
+  "records.privacy_kept":
+    "GigSync keeps your jobs, dates, kind of work, price, payments and stars. Never phone numbers, addresses or what you type.",
+  "records.privacy_off": "GigSync is not keeping your job records.",
+  "records.privacy_agree": "Read and agree",
+  "records.delete": "Delete my records from GigSync",
+  "records.delete_confirm_worker":
+    "This deletes every job, payment and star GigSync keeps for you, and the record on your card goes back to zero. Your jobs stay on this phone. GigSync keeps nothing new until you agree again.",
+  "records.delete_confirm_household":
+    "This takes your name off every job GigSync keeps. Workers keep their side of the record, without you. Your jobs stay on this phone. GigSync keeps nothing new until you agree again.",
+  "records.delete_yes": "Delete",
+  "records.delete_cancel": "Keep them",
+  "records.deleted": "Deleted. GigSync no longer keeps your job records.",
+  "records.delete_failed": "Could not delete. Try again when you are online.",
+  "records.show_failed": "Could not change it. Try again when you are online.",
+  "records.show_needs_card": "Put your card on the board first.",
+  // My work record, in Receipts
+  "records.export_title": "My work record",
+  "records.export_about":
+    "Every job GigSync keeps for you, on any phone you sign in to. Download it to keep, or to show anyone.",
+  "records.export_open": "Show my work record",
+  "records.export_loading": "Getting your record…",
+  "records.export_failed": "Could not get your record. Try again when you are online.",
+  "records.export_empty": "No jobs kept yet. Jobs that you and the household both signed show here.",
+  "records.export_jobs": "Jobs",
+  "records.export_received": "Received",
+  "records.export_rated": "Rated",
+  "records.export_row": "{price} · received {paid}",
+  "records.download": "Download",
+  "records.downloaded": "Saved as {file}.",
+  "records.col_date": "Date",
+  "records.col_work": "Work",
+  "records.col_price": "Price (₹)",
+  "records.col_paid": "Received (₹)",
+  "records.col_method": "Paid by",
+  "records.col_status": "Status",
+  "records.col_stars": "Stars",
+  "records.status_agreed": "Agreed",
+  "records.status_done": "Done",
+  "records.status_cancelled": "Cancelled",
+  "records.attested_both": "Confirmed by both",
+  "records.attested_you": "Confirmed by you only",
+  "records.col_attested": "Confirmed by",
+  "records.by_both": "Both",
+  "records.by_you": "You only",
+} as const;

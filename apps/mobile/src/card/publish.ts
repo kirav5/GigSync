@@ -2,18 +2,19 @@ import {
   aboutIsPrivate,
   type CardDraft,
   CITY_RATES,
-  keepPublishedRecord,
-  myCardRecord,
+  type OwnCard,
   type Ports,
+  refreshOwnCard,
   type TermPrefs,
   type WorkerRules,
 } from "@gigsync/core";
 import type { BoardProfile, Lang } from "@gigsync/protocol";
 import { type Account, apiClient, saveAccount } from "../adapters/account.js";
+import { recordsClient } from "../adapters/records.js";
 import { AREAS } from "../ui/places.js";
 
 /** How far a worker goes from their area's centre until the card lets them say. */
-const DEFAULT_RADIUS_KM = 10;
+export const DEFAULT_RADIUS_KM = 10;
 
 /** A draft missing what the board needs; the interview and the form check before this, so it is a bug if seen. */
 class CardIncompleteError extends Error {}
@@ -58,10 +59,8 @@ export async function publishCard(ports: Ports, account: Account, draft: CardDra
     // The card interview does not ask them: keep what the form set.
     ...withPrefs(draft.terms ?? account.worker?.terms),
   };
-  // The record goes with every publish, so a changed card never drops it from the board.
-  const record = await myCardRecord(ports.storage);
-  await apiClient(account.session).publishProfile({ ...card, ...record });
-  await keepPublishedRecord(ports.storage, record);
+  // No record and no "show my record": the server computes the one and keeps the other as the worker last set it.
+  await apiClient(account.session).publishProfile(card);
   const next: Account = { ...account, worker, languages, autoConfirm: draft.auto ?? false, about, listed: true };
   await saveAccount(ports, next);
   return next;
@@ -105,4 +104,18 @@ export function publicCard(account: Account): BoardProfile | undefined {
     languages: account.languages ?? [],
     about: account.about ?? "",
   };
+}
+
+/** "Show my record on my card" needs a card on the board to change: the switch is set by publishing the card with it. */
+export class NoCardError extends Error {}
+
+/**
+ * Privacy's "Show my record on my card" (ADR 0036 §3): the card goes to the board again with the choice, and the
+ * phone keeps the card as the server now serves it to its owner.
+ */
+export async function setShowRecord(ports: Ports, account: Account, show: boolean): Promise<OwnCard> {
+  const card = publicCard(account);
+  if (!card) throw new NoCardError("no card on the board");
+  await apiClient(account.session).publishProfile({ ...card, show_record: show });
+  return refreshOwnCard(recordsClient(account.session), ports.storage);
 }

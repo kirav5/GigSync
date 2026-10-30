@@ -3,12 +3,14 @@ import type { City, QrCode, UserId } from "@gigsync/protocol";
 import { type RefObject, useCallback, useEffect, useState } from "react";
 import { type Account, AccountRole } from "../adapters/account.js";
 import { keepBackInApp } from "../adapters/back.js";
-import { useRecordPublish } from "../card/useRecordPublish.js";
+import { useCardRefill } from "../card/refill.js";
 import { type ChosenWorker, needToOf } from "../find/ask.js";
 import { startFindChat } from "../find/findChats.js";
 import { useI18n } from "../i18n.js";
+import { useMovePrompt } from "../move/useMovePrompt.js";
 import { useOpenedQr } from "../qr/useOpenedQr.js";
 import { LinksProvider } from "../screens/mentor/links.js";
+import { RecordsNotice } from "../screens/record/Notice.js";
 import { Screen } from "../state.js";
 import { startChat } from "../talk/talkStore.js";
 import type { GigView } from "../useGig.js";
@@ -17,6 +19,7 @@ import { drawerOpen, setDrawer, useDrawer } from "./drawer.js";
 import { backFrom, homeOf } from "./nav.js";
 import { ScreenView } from "./ScreenView.js";
 import { Shell } from "./Shell.js";
+import { useRecordsNotice } from "./useRecordsNotice.js";
 
 interface Props {
   agent: Agent;
@@ -65,8 +68,13 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
   }, []);
   // A QR link the phone's camera opened: whoever it finds.
   useOpenedQr(true, showPerson);
-  // A worker's card carries their record; it goes to the board again as it changes.
-  useRecordPublish(ports, account, view);
+  // The notice about job records, until the owner answers it (ADR 0038 §5).
+  const notice = useRecordsNotice(ports, account);
+  // A new phone (ADR 0037): an owner with nothing here yet and another active phone is asked once whether they are
+  // moving from it, and a worker's card comes back from the board.
+  // Only from the chat it opened on: a screen the owner moved to meanwhile stays.
+  useMovePrompt(ports, account.session, () => setScreen((now) => (now === home ? Screen.moveIn : now)));
+  useCardRefill(ports, account, onAccount);
 
   useEffect(() => {
     back.current = () => {
@@ -113,6 +121,7 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
       startFindChat(needToOf(worker));
       setScreen(Screen.find);
     },
+    signOut: onSignOut,
   };
   /** "New chat": the open chat stays in the list and an empty one opens. */
   const newChat = () => {
@@ -145,7 +154,11 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
         tasks={view.tasks.length + view.offers.length}
         chatTitle={chatTitle}
       >
-        <ScreenView screen={screen} d={data} m={moves} />
+        {notice.due ? (
+          <RecordsNotice onAgree={notice.agree} onLater={notice.later} />
+        ) : (
+          <ScreenView screen={screen} d={data} m={moves} />
+        )}
       </Shell>
     </LinksProvider>
   );

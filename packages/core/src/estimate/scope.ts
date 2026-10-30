@@ -65,8 +65,11 @@ function painterScope(details: Details) {
   return countIn(details[Q.area_sqft]) ? { labour_only: labour } : { ...d, labour_only: labour };
 }
 
-/** The estimate request for a job of `trade` in `city` with these details; undefined only if it fails the schema. */
-export function estimateRequest(city: City, trade: Trade, details: Details = {}): EstimateRequest | undefined {
+/**
+ * A job's scope for its trade, in the protocol's buckets: what an estimate request carries and what a job record keeps
+ * (ADR 0038). Checked by the caller's schema.
+ */
+export function tradeScope(trade: Trade, details: Details = {}): object {
   const d = DEFAULT_SCOPE;
   const scopes: Readonly<Record<Trade, object>> = {
     [T.electrician]: { problem: problemOf(details, ElectricianProblem.options, d.electrician.problem) },
@@ -84,7 +87,12 @@ export function estimateRequest(city: City, trade: Trade, details: Details = {})
     },
     [T.driver]: { hours: counted(details, Q.hours, hoursBand, d.driver.hours) },
   };
-  return EstimateRequest.safeParse({ city, trade, scope: scopes[trade] }).data;
+  return scopes[trade];
+}
+
+/** The estimate request for a job of `trade` in `city` with these details; undefined only if it fails the schema. */
+export function estimateRequest(city: City, trade: Trade, details: Details = {}): EstimateRequest | undefined {
+  return EstimateRequest.safeParse({ city, trade, scope: tradeScope(trade, details) }).data;
 }
 
 /** Two requests ask for the same estimate. */

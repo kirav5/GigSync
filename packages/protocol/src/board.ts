@@ -20,7 +20,8 @@ const MAX_LANGUAGES = 5;
 
 /**
  * `PUT /v1/board/profile`: the worker's public card. Every card the server serves (search results, a scanned QR, a
- * worker's card by id) has the same shape, with `record` capped at the server's counts (ADR 0036) and no `show_record`.
+ * worker's card by id) has the same shape, with `record` computed by the server from stored job records (ADR 0038)
+ * unless the worker hid it, and no `show_record`. A `record` sent with the card is ignored.
  */
 export const BoardProfile = z.object({
   display_name: z.string().min(1).max(60),
@@ -39,12 +40,19 @@ export const BoardProfile = z.object({
     .max(MAX_LANGUAGES)
     .default([]),
   about: z.string().max(300).default(""),
-  /** The worker's record as their phone counts it; served capped, or left out when nothing is counted. */
+  /** Served only: the server's record of the worker's stored jobs; left out when hidden or no job is stored. */
   record: WorkerRecord.optional(),
-  /** Show my record: false hides it from the card entirely (never single ratings). Absent means shown. */
+  /** Show my record: false hides it from the card entirely (never single ratings). Absent means unchanged (new: shown). */
   show_record: z.boolean().optional(),
 });
 export type BoardProfile = z.infer<typeof BoardProfile>;
+
+/**
+ * `GET /v1/board/profile`: the caller's own card for a new phone's refill (ADR 0037 §4), with their switch and their
+ * record even while it is hidden from others.
+ */
+export const MyBoardProfile = BoardProfile.extend({ show_record: z.boolean() });
+export type MyBoardProfile = z.infer<typeof MyBoardProfile>;
 
 /** `GET /v1/board/workers?...`: query-string values arrive as text, hence the coercion. */
 export const BoardQuery = z.object({

@@ -1,6 +1,7 @@
 import { log } from "@gigsync/core";
 import { useEffect, useRef } from "react";
 import { CameraError, CameraProblem, closeCamera, openCamera, qrReader } from "../adapters/camera.js";
+import { takeFakeScan } from "../adapters/scan-fake.js";
 
 /** How often a frame is read for a code. */
 const SCAN_MS = 250;
@@ -26,6 +27,12 @@ export function QrScanner({
   problem.current = onProblem;
 
   useEffect(() => {
+    // The UI tests' scripted scan, in development builds only.
+    const scripted = import.meta.env.DEV ? takeFakeScan() : undefined;
+    if (scripted !== undefined) {
+      read.current(scripted);
+      return;
+    }
     let live = true;
     let stream: MediaStream | undefined;
     let timer: ReturnType<typeof setTimeout> | undefined;

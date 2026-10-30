@@ -234,7 +234,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await expect(priya.getByLabel(say("a11y.payment"))).toContainText(say("pay.thread.confirmed"));
   await shoot("paid-rated-closed", phones);
 
-  // ── The rated job is on his card: counted on his phone, and served to Priya capped at what the server saw ───────
+  // ── The job reached GigSync from both phones (ADR 0038): his card and the card Priya scans show the same record ──
   const qr = nextQrCode(anil);
   await open(anil, "nav.card");
   const mine = anil.getByRole("region", { name: say("page.card_seen") });
@@ -246,6 +246,18 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
     await expect(seen.getByRole("definition")).toHaveText(["1", say("record.card_no_stars"), "0"], { timeout: 5000 });
   }).toPass();
   await shoot("record-on-card", phones);
+
+  // His work record, pulled from GigSync: the job, the money she paid and he confirmed, and her five stars.
+  await open(anil, "nav.receipts");
+  const kept = anil.getByRole("region", { name: say("records.export_title") });
+  await kept.getByRole("button", { name: say("records.export_open") }).click();
+  const keptJobs = kept.getByRole("list", { name: say("records.export_title") });
+  await expect(keptJobs.getByRole("listitem")).toHaveCount(1);
+  await expect(keptJobs).toContainText(say("trade.electrician"));
+  await expect(keptJobs).toContainText(say("records.export_row", { price: amount, paid: amount }));
+  await expect(keptJobs).toContainText("★ 5");
+  await expect(keptJobs).toContainText(say("records.attested_both"));
+  await shoot("work-record", phones);
 
   // Anil takes his card off the board so later runs start clean.
   await openCard(anil);

@@ -160,7 +160,7 @@ test("a waiting decision shows as N need you in the menu, a dot on ☰ and a pil
   browser,
 }) => {
   const [anil, priya] = [await phone(browser), await phone(browser)];
-  const anilName = `Anil ${RUN}`;
+  const anilName = `Arjun ${RUN}`;
   const priyaName = `Priya Shell ${RUN}`;
   await signIn(anil, { role: Role.worker, name: anilName, phone: newPhone() });
   await publishCard(

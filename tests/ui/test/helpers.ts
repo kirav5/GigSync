@@ -4,6 +4,7 @@ import { newDeviceSecrets } from "@gigsync/crypto";
 import { DEFAULT_LANG, type Lang, type Place, type Trade } from "@gigsync/protocol";
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { open } from "./menu.js";
+import { answerNotice, type NoticeAnswer } from "./records.js";
 
 /** The app's frame, as the specs reach it (menu.ts): the menu, its screens, the chat, sign-out and My card's form. */
 export * from "./menu.js";
@@ -11,7 +12,7 @@ export * from "./menu.js";
 export const API = process.env.API_BASE ?? "http://localhost:8787";
 /** The app as the dev server serves it; absolute, so pages without a base URL (a phone over DevTools) work too. */
 export const APP = process.env.APP_URL ?? "http://localhost:5173";
-const DEV_OTP = process.env.DEV_OTP ?? "000000";
+export const DEV_OTP = process.env.DEV_OTP ?? "000000";
 /** The API's sign-in rate window (OTP_RATE_LIMIT in workers/api/wrangler.toml), plus a second. */
 const RATE_WINDOW_MS = 61_000;
 export const SHOTS = new URL("../screenshots/", import.meta.url).pathname;
@@ -57,6 +58,14 @@ export async function chooseLanguage(page: Page, lang: Lang) {
   await page.getByRole("button", { name: t(lang, "onboard.continue") }).click();
 }
 
+/**
+ * "Moving from another phone?" (ADR 0037) comes after signing in on an empty phone with a number that is signed in on
+ * another device too: `wait` leaves it on screen for the test, `not_now` answers it. Absent: the number is new here
+ * and nowhere else, so it never shows.
+ */
+export const MovePrompt = { wait: "wait", notNow: "not_now" } as const;
+export type MovePrompt = (typeof MovePrompt)[keyof typeof MovePrompt];
+
 /** Someone signing in: their role, name, number, address (households only) and language. */
 interface Person {
   role: Role;
@@ -64,6 +73,10 @@ interface Person {
   phone: string;
   address?: string;
   lang?: Lang;
+  /** The notice about job records after signing in: agreed to unless a test says otherwise. */
+  records?: NoticeAnswer;
+  /** The number is signed in on another device too: what to do with the move prompt. */
+  elsewhere?: MovePrompt;
 }
 
 /** Signs in through the app's own screens, in the person's language: language first, then role, name, number, code. */
@@ -97,6 +110,11 @@ export async function completeSignIn(page: Page, who: Person) {
     await submit.click();
   }
   await expect(page.getByRole("banner")).toBeVisible();
+  await answerNotice(page, lang, who.records);
+  if (!who.elsewhere) return;
+  const notNow = page.getByRole("button", { name: t(lang, "phone.in_not_now"), exact: true });
+  await expect(notNow).toBeVisible();
+  if (who.elsewhere === MovePrompt.notNow) await notNow.click();
 }
 
 /** Saves the worker's UPI ID in About me, the only place it is asked for; the name is left as the form fills it. */

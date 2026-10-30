@@ -7,7 +7,7 @@ import { ApiError, type AppEnv, USER_PARAM, Var } from "../context.js";
 import { activeDeviceIds, deviceSigningKey } from "../db/devices.js";
 import { offerTaken } from "../db/qr-offers.js";
 import { OFFER_SEND_MS } from "../qr/rules.js";
-import { countForRecord } from "../record/count.js";
+import { noteDeliveredAgree } from "../records/one-sided.js";
 
 /** Largest batch one ack may clear. */
 const MAX_ACK = 500;
@@ -45,7 +45,7 @@ mail.post(`/mailbox/:${USER_PARAM}`, async (c) => {
   }
   const box = c.env.MAILBOX.get(c.env.MAILBOX.idFromName(to.data));
   const out = await box.deliver({ envelope: e, devices });
-  await countForRecord(db, e, c.get(Var.requestId));
+  await noteDeliveredAgree(db, e, c.get(Var.requestId));
   log.info("envelope delivered", {
     requestId: c.get(Var.requestId),
     messageId: e.id,

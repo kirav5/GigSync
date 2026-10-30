@@ -13,15 +13,15 @@ interface WorkerTopProps {
   card: BoardProfile | undefined;
   /** Why there is no card: none made yet, or taken off the board. */
   missing: string;
-  /** The owner's own record, counted on this phone. */
-  record: WorkerRecord;
+  /** The owner's own record as GigSync keeps it; undefined until this phone has read it once. */
+  record: WorkerRecord | undefined;
   /** The owner chose to keep it off their card (Privacy): households do not see it. */
   hidden: boolean;
 }
 
 /**
  * The top of a worker's My card, centred as collab's: their initial, name, trades and area, languages, usual rate and
- * line, then their record as this phone counts it. Households see the same card, with the record the server capped.
+ * line, then their record as GigSync keeps it. Households see the same card, with the same record unless it is hidden.
  */
 export function WorkerTop({ name, card, missing, record, hidden }: WorkerTopProps) {
   const { lang, t } = useI18n();
@@ -47,7 +47,7 @@ export function WorkerTop({ name, card, missing, record, hidden }: WorkerTopProp
           <span className={C.muted}>{missing}</span>
         )}
       </div>
-      <RecordStats record={record} />
+      {record && <RecordStats record={record} />}
       {hidden && <span className={C.faint}>{t("record.card_hidden")}</span>}
     </>
   );

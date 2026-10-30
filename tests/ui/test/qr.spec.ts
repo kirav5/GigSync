@@ -24,7 +24,7 @@ import { publishCard, unlistCards } from "./journey.js";
  */
 
 const en = Lang.enum.en;
-const anilName = `Anil ${RUN}`;
+const anilName = `Anand ${RUN}`;
 const priyaFirst = "Priya";
 const priyaName = `${priyaFirst} ${RUN}`;
 const ADDRESS = `Flat 7, 2nd Cross (${RUN})`;
@@ -122,7 +122,7 @@ test("a household opens a worker's QR link before signing in, and asks him", asy
   const [anil, priya] = await pages(browser);
   await anilWithCard(anil);
   const code = await openMyQr(anil, anilName);
-  await expect(anil.getByText(t(en, "qr.about_worker", { name: "Anil" }))).toBeVisible();
+  await expect(anil.getByText(t(en, "qr.about_worker", { name: "Anand" }))).toBeVisible();
 
   // Her phone's camera opens the link; she signs in first, and the app keeps the link for after.
   await priya.goto(`${APP}/?to=${code}`);

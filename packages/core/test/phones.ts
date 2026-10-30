@@ -24,6 +24,7 @@ import {
   type NewNeed,
   type QrApi,
   type Random,
+  type RecordsApi,
   type Relay,
   SecretKeys,
   SystemClock,
@@ -99,6 +100,8 @@ export async function phone(
     random?: Random;
     /** The server's personal QR routes, faked in memory. */
     qrApi?: QrApi;
+    /** The server's job record routes, faked in memory (records-fakes.ts). */
+    records?: RecordsApi;
   } = {},
 ): Promise<Phone> {
   const { payee, protocol, ...options } = opts;

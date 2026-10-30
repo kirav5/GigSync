@@ -25,6 +25,8 @@ import { PaymentBook } from "../payments/book.js";
 import type { Clock, Keys, Model, Random, Storage } from "../ports.js";
 import { WorkOffers } from "../qr/offers.js";
 import type { QrApi } from "../qr/types.js";
+import { RecordsRunner } from "../records/runner.js";
+import type { RecordsApi } from "../records/types.js";
 import * as after from "./aftercare.js";
 import * as consumer from "./consumer.js";
 import type { JobContext } from "./context.js";
@@ -59,6 +61,8 @@ export interface DeviceOptions {
   estimates?: EstimateOptions;
   /** The server's personal QR routes; without them the phone can still receive and answer offers to work. */
   qrApi?: QrApi;
+  /** The server's job record routes (ADR 0038); without them nothing about a job leaves the phone. */
+  records?: RecordsApi;
 }
 
 /** A consumer's need before it is sent: the budget is a private mandate and never leaves the phone. */
@@ -77,6 +81,8 @@ export class GigDevice {
   readonly mentors: Mentors;
   /** Offers to work through a personal QR: a worker offers, the household answers by asking (ADR 0034). */
   readonly offers: WorkOffers;
+  /** Sends this owner's job records to GigSync once they agreed; absent without the server's routes. */
+  readonly records?: RecordsRunner;
   private readonly transport: MailTransport;
   private readonly ctx: JobContext;
 
@@ -103,6 +109,11 @@ export class GigDevice {
     };
     this.mentors = new Mentors({ ctx: this.ctx, transport: this.transport, relay: o.relay }, o.mentorApi);
     this.offers = new WorkOffers({ ctx: this.ctx, transport: this.transport, isWorker: !!o.worker }, o.qrApi);
+    if (o.records)
+      this.records = new RecordsRunner(o.records, o.storage, o.clock, {
+        jobs: () => this.jobs(),
+        payments: () => this.payments.all(),
+      });
   }
 
   /** Takes in what arrived, lets the agent answer it, and sends what is queued. */
@@ -113,7 +124,9 @@ export class GigDevice {
     for (const item of received) await dispatch(this.ctx, this.o.worker, item, side);
     // A job may have become signed by both here (this owner signed last) or by what arrived.
     await share.shareBySetting(this.ctx, await this.store.jobs());
-    return { received: received.length, sent: await this.transport.flush() };
+    const sent = await this.transport.flush();
+    await this.records?.run();
+    return { received: received.length, sent };
   }
 
   // ── Consumer ──────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -139,11 +152,14 @@ export class GigDevice {
   async markPaid(paymentId: string, utr?: string): Promise<Payment> {
     const p = await this.payments.markPaid(paymentId, utr);
     await after.sendPaymentRecord(this.ctx, await this.job(p.engagement), p);
+    this.records?.soon();
     return p;
   }
 
   async review(id: EngagementId, review: { stars: number; text?: string }): Promise<JobRecord> {
-    return after.sendReview(this.ctx, await this.job(id), { stars: review.stars, text: review.text ?? "" });
+    const r = await after.sendReview(this.ctx, await this.job(id), { stars: review.stars, text: review.text ?? "" });
+    this.records?.soon();
+    return r;
   }
 
   // ── Worker ────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -199,7 +215,9 @@ export class GigDevice {
   }
 
   async confirmDeal(id: EngagementId): Promise<JobRecord> {
-    return deal.sign(this.ctx, await this.job(id));
+    const r = await deal.sign(this.ctx, await this.job(id));
+    this.records?.soon();
+    return r;
   }
 
   async declineDeal(id: EngagementId): Promise<JobRecord> {

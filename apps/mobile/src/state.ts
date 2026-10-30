@@ -31,6 +31,10 @@ export const Screen = {
   person: "person",
   /** The steps to put the web app on the home screen, from the menu's Install app or Settings. */
   install: "install",
+  /** The old phone's side of moving to a new one: its move QR, from Settings (ADR 0037). */
+  moveOut: "move_out",
+  /** The new phone's side: scan the old phone's code, from Settings and once after sign-in on an empty phone. */
+  moveIn: "move_in",
 } as const;
 export type Screen = (typeof Screen)[keyof typeof Screen];
 

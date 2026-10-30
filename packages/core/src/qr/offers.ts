@@ -11,11 +11,11 @@ import {
   type WorkOffer,
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
-import { shownRecord, withoutRecord } from "../job/card-record.js";
 import type { JobContext } from "../job/context.js";
 import { log } from "../log.js";
 import type { MailTransport, Received } from "../mail/transport.js";
 import { MentorStore } from "../mentor/store.js";
+import { shownRecord, withoutRecord } from "../records/shown.js";
 import { QrError, QrProblem, qrProblemOf } from "./errors.js";
 import { OfferStore } from "./store.js";
 import { OfferState, type QrApi, type ReceivedOffer } from "./types.js";

@@ -1,6 +1,7 @@
 import { termsHash, toBase64, verify } from "@gigsync/crypto";
 import {
   type Agree,
+  agreeBytes,
   type Cancel,
   CancelReason,
   type ContactCard,
@@ -22,9 +23,6 @@ import { mustReview, termsField } from "./terms-flow.js";
 const K = EnvelopeKind.enum;
 const S = EngagementStatus.enum;
 const R = Role.enum;
-/** Domain separation: an agree signature can never be mistaken for any other signature by the same key. */
-const AGREE_PREFIX = "gigsync/agree/v1:";
-const agreeBytes = (hash: string) => new TextEncoder().encode(`${AGREE_PREFIX}${hash}`);
 
 /** Statuses in which the job is signed by both and contact cards may travel. */
 const SIGNED: ReadonlySet<EngagementStatus> = new Set([S.agreed, S.in_progress, S.delivered]);

@@ -1,4 +1,4 @@
-import { type Advice, reasonText } from "@gigsync/core";
+import { type Advice, type Mandate, reasonText } from "@gigsync/core";
 import type { QuestionKey, Terms } from "@gigsync/protocol";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
@@ -10,6 +10,10 @@ import { TermsList } from "./terms/TermsList.js";
 export interface ApproveDetail {
   flagged: QuestionKey[];
   advice: Advice;
+  /** The plan the agent would quote from; the advice's own when it gave one. */
+  mandate?: Mandate;
+  /** The worker's lowest price is not on this phone yet (their card came back from the board): every request waits. */
+  no_floor?: boolean;
 }
 
 /** The worker's agent's price plan and why, in the owner's language. Private: it never leaves this phone. */
@@ -52,10 +56,11 @@ export function ApproveCard({
         <SpeakButton lang={lang} text={say} />
         <span className={C.label}>{t("approve.title")}</span>
       </div>
-      <span>{t("approve.flagged", { items })}</span>
+      {detail.flagged.length > 0 && <span>{t("approve.flagged", { items })}</span>}
+      {detail.no_floor && <span>{t("phone.approve_no_floor")}</span>}
       <div className={C.actions}>
         <button type={C.button} className={C.accent} onClick={onApprove}>
-          {t("approve.yes", { price: money(detail.advice.mandate.opening_paise) })}
+          {t("approve.yes", { price: money((detail.mandate ?? detail.advice.mandate).opening_paise) })}
         </button>
         <button type={C.button} className={C.secondary} onClick={onDecline}>
           {t("approve.no")}

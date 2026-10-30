@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 /**
- * A worker's record on their card (ADR 0036): jobs both sides signed, how many households rated them and the average of
- * their stars, and how many households hired them again. The worker's phone publishes it with the board card; the
- * server caps each count at what it saw delivered (envelope headers only, never content) and serves the capped record.
- * Nothing ever sorts, filters or ranks workers by it.
+ * A worker's record on their card (ADR 0036, computed per ADR 0038): stored jobs nobody cancelled (attested by both
+ * sides, or one-sided when only the worker's side reached the server), how many households rated them and the average
+ * of their stars, and how many households hired them again. The server computes it from stored job records and serves
+ * it on every card unless the worker hid it. Nothing ever sorts, filters or ranks workers by it.
  */
 
 /** Stars a household gives in a review, lowest and highest. */
@@ -14,7 +14,7 @@ export const MAX_STARS = 5;
 export const MIN_RATED = 3;
 /** Averages are shown to one decimal: tenths of a star. */
 export const AVERAGE_SCALE = 10;
-/** No honest count comes near this; it only bounds what a caller may send. */
+/** No honest count comes near this; it bounds the schema. */
 export const MAX_RECORD_COUNT = 1_000_000;
 
 /** An average of stars to one decimal, as cards show it. */
@@ -23,13 +23,12 @@ export const roundAverage = (stars: number): number => Math.round(stars * AVERAG
 const count = z.number().int().nonnegative().max(MAX_RECORD_COUNT);
 
 /**
- * The three numbers. As the worker publishes them they come from their phone's own record; as a card is served each
- * count is capped at the server's, and `average` is present only when `rated` is at least MIN_RATED.
+ * The three numbers, as the server serves them; `average` is present only when `rated` is at least MIN_RATED.
  */
 export const WorkerRecord = z.object({
-  /** Jobs both sides signed (two `agree`s on one engagement). */
+  /** Stored jobs not cancelled: attested by both sides, or one-sided (only the worker's side reached the server). */
   jobs: count,
-  /** Households that rated a signed job, one per household per job. */
+  /** Stored jobs the household rated, one rating per job. */
   rated: count,
   /** The average of those stars, to one decimal. */
   average: z.number().min(MIN_STARS).max(MAX_STARS).optional(),

@@ -3,6 +3,7 @@ import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
 
 export * from "./base64.js";
+export * from "./box.js";
 export * from "./keys.js";
 export * from "./seal.js";
 

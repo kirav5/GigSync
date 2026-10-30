@@ -10,6 +10,7 @@ import {
 import type { Payment } from "@gigsync/protocol";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { nameOf } from "./adapters/account.js";
+import { syncPaused } from "./move/pause.js";
 
 /** How often the phone checks its mailbox while the app is open. Push wake-ups replace this later (FCM). */
 export const SYNC_MS = 2000;
@@ -66,7 +67,8 @@ export function useGig(ports: Ports, device: GigDevice | undefined) {
         try {
           if (work) await work();
           acted = true;
-          await device.sync();
+          // While a move to a new phone is on, the mailbox waits for the new phone.
+          if (!syncPaused()) await device.sync();
         } catch (err) {
           // Done on the phone, but the server did not answer the sync: what is queued goes out on a later tick.
           if (acted && err instanceof NetError) return log.info("sync deferred: no answer", { reason: err.reason });

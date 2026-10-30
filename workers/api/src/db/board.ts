@@ -1,7 +1,7 @@
-import type { BoardProfile, BoardQuery, BoardWorker, Trade, UserId } from "@gigsync/protocol";
-import { capRecord } from "../record/cap.js";
+import type { BoardProfile, BoardQuery, BoardWorker, MyBoardProfile, Trade, UserId } from "@gigsync/protocol";
+import { recordOf } from "../records/serve.js";
 import type { Db } from "./client.js";
-import { publishedOf, RECORD_COLUMNS, type RecordRow, recordValues, seenOf } from "./records.js";
+import { RECORD_COLUMNS, type RecordRow } from "./records.js";
 
 /** Areas are stored to two decimal places of a degree: about 1.1 km, a neighbourhood rather than a building. */
 const AREA_SCALE = 100;
@@ -14,19 +14,19 @@ const DISTANCE_SCALE = 10;
 export const roundArea = (degrees: number) => Math.round(degrees * AREA_SCALE) / AREA_SCALE;
 
 /**
- * Publishes or replaces a worker's card, trades and languages together, and the record their phone counts unless they
- * hid it. Call inside a transaction.
+ * Publishes or replaces a worker's card, trades and languages together, and their Show my record switch (unchanged
+ * when not sent; a new card shows it). A `record` sent with the card is ignored: the server computes it (ADR 0038).
+ * Call inside a transaction.
  */
 export async function upsertProfile(db: Db, user: UserId, p: BoardProfile, at: Date): Promise<void> {
   await db.query(
     `INSERT INTO worker_profiles (user_id, display_name, area_lat, area_lon, area_name, rate_paise, about, updated_at,
-       record_jobs, record_rated, record_average_tenths, record_came_back)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       show_record)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, TRUE))
      ON CONFLICT (user_id) DO UPDATE SET display_name = excluded.display_name, area_lat = excluded.area_lat,
        area_lon = excluded.area_lon, area_name = excluded.area_name, rate_paise = excluded.rate_paise,
-       about = excluded.about, updated_at = excluded.updated_at, record_jobs = excluded.record_jobs,
-       record_rated = excluded.record_rated, record_average_tenths = excluded.record_average_tenths,
-       record_came_back = excluded.record_came_back`,
+       about = excluded.about, updated_at = excluded.updated_at,
+       show_record = COALESCE($9, worker_profiles.show_record)`,
     [
       user,
       p.display_name,
@@ -36,7 +36,7 @@ export async function upsertProfile(db: Db, user: UserId, p: BoardProfile, at: D
       p.rate_paise,
       p.about,
       at,
-      ...recordValues(p),
+      p.show_record ?? null,
     ],
   );
   await db.query("DELETE FROM worker_trades WHERE user_id = $1", [user]);
@@ -72,18 +72,27 @@ export interface CardRow extends RecordRow {
   languages: string[];
 }
 
-/** The card as the board and a scanned QR show it: the record capped at the server's counts, never `show_record`. */
+/** The card's own fields, without the record. */
+const fieldsOf = (r: CardRow): BoardProfile => ({
+  display_name: r.display_name,
+  trades: r.trades,
+  area: { lat: r.area_lat, lon: r.area_lon },
+  area_name: r.area_name,
+  rate_paise: r.rate_paise,
+  languages: r.languages,
+  about: r.about,
+});
+
+/** The card as the board and a scanned QR show it: the server's record unless the worker hid it, never the switch. */
 export function cardOf(r: CardRow): BoardProfile {
-  const card = {
-    display_name: r.display_name,
-    trades: r.trades,
-    area: { lat: r.area_lat, lon: r.area_lon },
-    area_name: r.area_name,
-    rate_paise: r.rate_paise,
-    languages: r.languages,
-    about: r.about,
-  };
-  const record = capRecord(publishedOf(r), seenOf(r));
+  const record = r.show_record ? recordOf(r) : undefined;
+  return record ? { ...fieldsOf(r), record } : fieldsOf(r);
+}
+
+/** The card as its owner sees it: the switch, and the record even while hidden from others. */
+function myCardOf(r: CardRow): MyBoardProfile {
+  const record = recordOf(r);
+  const card = { ...fieldsOf(r), show_record: r.show_record };
   return record ? { ...card, record } : card;
 }
 
@@ -120,16 +129,26 @@ export async function searchWorkers(db: Db, q: BoardQuery): Promise<BoardWorker[
   }));
 }
 
-/** One active worker's card as served, or undefined when they have none on the board. */
-export async function workerCard(db: Db, user: UserId): Promise<BoardProfile | undefined> {
+async function cardRow(db: Db, user: UserId): Promise<CardRow | undefined> {
   const { rows } = await db.query<CardRow>(
     `SELECT ${CARD_COLUMNS} FROM worker_profiles p
      JOIN users u ON u.user_id = p.user_id AND u.status = 'active'
      WHERE p.user_id = $1`,
     [user],
   );
-  const [r] = rows;
+  return rows[0];
+}
+
+/** One active worker's card as served, or undefined when they have none on the board. */
+export async function workerCard(db: Db, user: UserId): Promise<BoardProfile | undefined> {
+  const r = await cardRow(db, user);
   return r && cardOf(r);
+}
+
+/** The caller's own card with their switch, or undefined when they have none on the board. */
+export async function myCard(db: Db, user: UserId): Promise<MyBoardProfile | undefined> {
+  const r = await cardRow(db, user);
+  return r && myCardOf(r);
 }
 
 /** True when the worker has a card on the board. */
