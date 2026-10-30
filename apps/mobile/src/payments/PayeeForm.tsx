@@ -17,7 +17,8 @@ const PROBLEM: Readonly<Record<PayeeProblem, MessageKey>> = {
 
 /**
  * Profile's "Get paid to": the one place the UPI ID and the name payers see are entered. Payment requests and the QR
- * read them from there when they are needed, so a change here applies to the next one at once.
+ * read them from there when they are needed, so a change here applies to the next one at once. Once saved it is one
+ * line with Change, so the form only takes room while it is being filled in.
  */
 export function PayeeForm({ ports, defaultName }: { ports: Ports; defaultName: string }) {
   const { t } = useI18n();
@@ -26,15 +27,20 @@ export function PayeeForm({ ports, defaultName }: { ports: Ports; defaultName: s
   const [name, setName] = useState(defaultName);
   const [edited, setEdited] = useState(false);
   const [status, setStatus] = useState<{ saved: boolean; text: string }>();
+  /** What is saved, shown as one line; undefined until loaded, null when nothing is saved yet. */
+  const [saved, setSaved] = useState<{ vpa: string; name: string } | null>();
+  const [editing, setEditing] = useState(false);
 
   // Fill in what is saved, unless the owner has started typing first. Nothing saved keeps their own name.
   useEffect(() => {
     let live = true;
     loadPayee(ports.storage)
-      .then((saved) => {
-        if (!live || edited || !saved) return;
-        setVpa(saved.vpa);
-        setName(saved.name);
+      .then((found) => {
+        if (!live) return;
+        setSaved(found ? { vpa: found.vpa, name: found.name } : null);
+        if (edited || !found) return;
+        setVpa(found.vpa);
+        setName(found.name);
       })
       .catch((err: unknown) => log.warn("loading payee failed", { error: err instanceof Error ? err.message : "" }));
     return () => {
@@ -52,6 +58,10 @@ export function PayeeForm({ ports, defaultName }: { ports: Ports; defaultName: s
     e.preventDefault();
     try {
       await savePayee(ports.storage, { vpa, name });
+      // Shown as the store keeps it (trimmed, as checked), not as typed.
+      const stored = await loadPayee(ports.storage);
+      setSaved(stored ? { vpa: stored.vpa, name: stored.name } : null);
+      setEditing(false);
       setStatus({ saved: true, text: t("settings.saved") });
     } catch (err) {
       if (err instanceof PayeeError)
@@ -60,6 +70,29 @@ export function PayeeForm({ ports, defaultName }: { ports: Ports; defaultName: s
       setStatus({ saved: false, text: t("error.generic") });
     }
   }
+
+  if (saved && !editing)
+    return (
+      <section className={`${C.card} payee-form`} aria-labelledby={heading}>
+        <h2 id={heading} className={C.label}>
+          {t("settings.paid_to")}
+        </h2>
+        <div className={`${C.row} payee-line`}>
+          <span className="payee-id">
+            <span className="payee-vpa">{saved.vpa}</span>
+            <span className={C.muted}>{saved.name}</span>
+          </span>
+          <button type={C.button} className={`${C.secondary} end`} onClick={() => setEditing(true)}>
+            {t("settings.change")}
+          </button>
+        </div>
+        {status?.saved && (
+          <p role="status" className={`${C.label} saved`}>
+            {status.text}
+          </p>
+        )}
+      </section>
+    );
 
   return (
     <form className={`${C.card} payee-form`} aria-labelledby={heading} onSubmit={(e) => void onSave(e)} noValidate>

@@ -54,5 +54,8 @@ test("the next worker on the phone gets nothing of the last: answers, UPI ID or 
   await page.getByRole("button", { name: t(hi, "shell.sign_out") }).click();
   await completeSignIn(page, meena);
   await open(page, "nav.profile", hi);
-  await expect(paidTo.getByLabel(t(hi, "settings.vpa"), { exact: true })).toHaveValue("meena.test@okaxis");
+  // Saved, it is one line with Change rather than the form.
+  const savedUpi = page.getByRole("region", { name: t(hi, "settings.paid_to") });
+  await expect(savedUpi).toContainText("meena.test@okaxis");
+  await expect(savedUpi.getByRole("button", { name: t(hi, "settings.change"), exact: true })).toBeVisible();
 });

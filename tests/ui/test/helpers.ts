@@ -124,6 +124,9 @@ export async function openCard(page: Page, lang: Lang = DEFAULT_LANG) {
 /** Saves the worker's UPI ID in Profile, the only place it is asked for; the name is left as the form fills it. */
 export async function setUpi(page: Page, lang: Lang, vpa: string) {
   await open(page, "nav.profile", lang);
+  // A saved UPI ID is one line: Change opens the form again.
+  const change = page.getByRole("button", { name: t(lang, "settings.change"), exact: true });
+  if (await change.isVisible()) await change.click();
   const form = page.getByRole("form", { name: t(lang, "settings.paid_to") });
   await form.getByLabel(t(lang, "settings.vpa"), { exact: true }).fill(vpa);
   await form.getByRole("button", { name: t(lang, "settings.save"), exact: true }).click();

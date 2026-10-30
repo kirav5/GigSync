@@ -17,6 +17,7 @@ export const worker: Readonly<Record<keyof typeof en, string>> = {
   "settings.vpa": "आपका यूपीआई आईडी",
   "settings.name": "आपका नाम, जैसा ग्राहकों को दिखेगा",
   "settings.saved": "इस फ़ोन पर सेव हो गया",
+  "settings.change": "बदलें",
   "settings.save": "सेव करें",
   "settings.vpa_about":
     "सिर्फ़ आपके भुगतान क्यूआर में दिखता है, या जिस ग्राहक का काम चल रहा है उसे लॉक करके भेजा जाता है। सर्वर पर कभी नहीं रखा जाता।",

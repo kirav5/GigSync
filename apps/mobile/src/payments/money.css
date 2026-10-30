@@ -65,3 +65,18 @@
   font-weight: 600;
   letter-spacing: -0.02em;
 }
+
+/* A saved UPI ID: one line, the ID over the name payers see, with Change at the end. */
+.payee-form .payee-line {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+.payee-form .payee-id {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.payee-form .payee-vpa {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}

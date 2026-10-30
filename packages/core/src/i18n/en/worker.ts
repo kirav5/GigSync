@@ -15,6 +15,7 @@ export const worker = {
   "settings.vpa": "Your UPI ID",
   "settings.name": "Your name, as customers see it",
   "settings.saved": "Saved on this device",
+  "settings.change": "Change",
   "settings.save": "Save",
   "settings.vpa_about":
     "Shown only inside your payment QR, or sent locked to a customer you are working with. Never stored on a server.",
