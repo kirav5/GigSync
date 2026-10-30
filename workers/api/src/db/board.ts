@@ -1,5 +1,7 @@
 import type { BoardProfile, BoardQuery, BoardWorker, Trade, UserId } from "@gigsync/protocol";
+import { capRecord } from "../record/cap.js";
 import type { Db } from "./client.js";
+import { publishedOf, RECORD_COLUMNS, type RecordRow, recordValues, seenOf } from "./records.js";
 
 /** Areas are stored to two decimal places of a degree: about 1.1 km, a neighbourhood rather than a building. */
 const AREA_SCALE = 100;
@@ -11,15 +13,31 @@ const DISTANCE_SCALE = 10;
 
 export const roundArea = (degrees: number) => Math.round(degrees * AREA_SCALE) / AREA_SCALE;
 
-/** Publishes or replaces a worker's card, trades and languages together. Call inside a transaction. */
+/**
+ * Publishes or replaces a worker's card, trades and languages together, and the record their phone counts unless they
+ * hid it. Call inside a transaction.
+ */
 export async function upsertProfile(db: Db, user: UserId, p: BoardProfile, at: Date): Promise<void> {
   await db.query(
-    `INSERT INTO worker_profiles (user_id, display_name, area_lat, area_lon, area_name, rate_paise, about, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `INSERT INTO worker_profiles (user_id, display_name, area_lat, area_lon, area_name, rate_paise, about, updated_at,
+       record_jobs, record_rated, record_average_tenths, record_came_back)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
      ON CONFLICT (user_id) DO UPDATE SET display_name = excluded.display_name, area_lat = excluded.area_lat,
        area_lon = excluded.area_lon, area_name = excluded.area_name, rate_paise = excluded.rate_paise,
-       about = excluded.about, updated_at = excluded.updated_at`,
-    [user, p.display_name, roundArea(p.area.lat), roundArea(p.area.lon), p.area_name, p.rate_paise, p.about, at],
+       about = excluded.about, updated_at = excluded.updated_at, record_jobs = excluded.record_jobs,
+       record_rated = excluded.record_rated, record_average_tenths = excluded.record_average_tenths,
+       record_came_back = excluded.record_came_back`,
+    [
+      user,
+      p.display_name,
+      roundArea(p.area.lat),
+      roundArea(p.area.lon),
+      p.area_name,
+      p.rate_paise,
+      p.about,
+      at,
+      ...recordValues(p),
+    ],
   );
   await db.query("DELETE FROM worker_trades WHERE user_id = $1", [user]);
   await db.query("INSERT INTO worker_trades (user_id, trade) SELECT $1, unnest($2::text[])", [user, p.trades]);
@@ -33,13 +51,17 @@ export async function removeProfile(db: Db, user: UserId): Promise<boolean> {
   return (rowCount ?? 0) > 0;
 }
 
-/** A worker's public card from `worker_profiles p`, with their trades and languages in a stable order. */
+/**
+ * A worker's public card from `worker_profiles p`, with their trades and languages in a stable order and what their
+ * record is served from.
+ */
 export const CARD_COLUMNS = `p.display_name, p.area_lat, p.area_lon, p.area_name, p.rate_paise, p.about,
   ARRAY(SELECT t.trade FROM worker_trades t WHERE t.user_id = p.user_id ORDER BY t.trade) AS trades,
-  ARRAY(SELECT l.language FROM worker_languages l WHERE l.user_id = p.user_id ORDER BY l.language) AS languages`;
+  ARRAY(SELECT l.language FROM worker_languages l WHERE l.user_id = p.user_id ORDER BY l.language) AS languages,
+  ${RECORD_COLUMNS}`;
 
 /** The columns CARD_COLUMNS selects. */
-export interface CardRow {
+export interface CardRow extends RecordRow {
   display_name: string;
   area_lat: number;
   area_lon: number;
@@ -50,16 +72,20 @@ export interface CardRow {
   languages: string[];
 }
 
-/** The card as the board and a scanned QR show it. */
-export const cardOf = (r: CardRow): BoardProfile => ({
-  display_name: r.display_name,
-  trades: r.trades,
-  area: { lat: r.area_lat, lon: r.area_lon },
-  area_name: r.area_name,
-  rate_paise: r.rate_paise,
-  languages: r.languages,
-  about: r.about,
-});
+/** The card as the board and a scanned QR show it: the record capped at the server's counts, never `show_record`. */
+export function cardOf(r: CardRow): BoardProfile {
+  const card = {
+    display_name: r.display_name,
+    trades: r.trades,
+    area: { lat: r.area_lat, lon: r.area_lon },
+    area_name: r.area_name,
+    rate_paise: r.rate_paise,
+    languages: r.languages,
+    about: r.about,
+  };
+  const record = capRecord(publishedOf(r), seenOf(r));
+  return record ? { ...card, record } : card;
+}
 
 interface BoardRow extends CardRow {
   user_id: UserId;
@@ -92,6 +118,18 @@ export async function searchWorkers(db: Db, q: BoardQuery): Promise<BoardWorker[
     user: r.user_id,
     distance_km: Math.round(r.distance_km * DISTANCE_SCALE) / DISTANCE_SCALE,
   }));
+}
+
+/** One active worker's card as served, or undefined when they have none on the board. */
+export async function workerCard(db: Db, user: UserId): Promise<BoardProfile | undefined> {
+  const { rows } = await db.query<CardRow>(
+    `SELECT ${CARD_COLUMNS} FROM worker_profiles p
+     JOIN users u ON u.user_id = p.user_id AND u.status = 'active'
+     WHERE p.user_id = $1`,
+    [user],
+  );
+  const [r] = rows;
+  return r && cardOf(r);
 }
 
 /** True when the worker has a card on the board. */

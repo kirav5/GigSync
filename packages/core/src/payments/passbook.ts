@@ -52,6 +52,9 @@ export function bothSigned(r: JobRecord): r is SignedJob {
 /** Signed work that is this phone's own: it was the provider. */
 const signedWork = (r: JobRecord): r is SignedJob => r.engagement.role === Role.enum.provider && bothSigned(r);
 
+/** Work this phone did and finished, on terms both sides signed: what the mentor rule and the card's record count. */
+export const doneWork = (r: JobRecord): r is SignedJob => signedWork(r) && FINISHED_WORK.has(r.engagement.status);
+
 const filedAt = (p: Payment, r: JobRecord) =>
   new Date(p.confirmed_at ?? p.paid_at ?? p.requested_at ?? r.engagement.created_at);
 

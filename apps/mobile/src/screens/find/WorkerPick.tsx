@@ -1,15 +1,16 @@
-import { type BoardWorker, Lang } from "@gigsync/protocol";
+import { shownRecord } from "@gigsync/core";
+import type { BoardWorker } from "@gigsync/protocol";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { areaLabel, money } from "../../ui/places.js";
 import { Said } from "../../ui/Said.js";
-
-/** The language a worker writes their card in: the first one they listed that the app knows. */
-const cardLang = (w: BoardWorker) => w.languages.map((l) => Lang.safeParse(l)).find((p) => p.success)?.data;
+import { cardLang, languageNames } from "../qr/cardWords.js";
+import { RecordStats } from "../qr/RecordStats.js";
 
 /**
- * One worker from the board as Find lists them, with the box that picks them to ask. Their "about" line is in the
- * reader's language.
+ * One worker from the board as Find lists them, with the box that picks them to ask, and the record the server
+ * vouched for when they show one. Their "about" line is in the reader's language. The list keeps the board's order:
+ * the record never sorts or filters it.
  */
 export function WorkerPick({
   worker: w,
@@ -24,11 +25,7 @@ export function WorkerPick({
   onToggle: () => void;
 }) {
   const { lang, t } = useI18n();
-  /** A listed language, named in the owner's language when the app knows it, else its code. */
-  const languageName = (code: string) => {
-    const known = Lang.safeParse(code);
-    return known.success ? t(`lang.${known.data}`) : code;
-  };
+  const record = shownRecord(w);
   return (
     <label className={C.card} aria-label={t("a11y.worker", { name: w.display_name })}>
       <div className={C.row}>
@@ -48,10 +45,11 @@ export function WorkerPick({
             {w.trades.map((tr) => t(`trade.${tr}`)).join(", ")} · {areaLabel(lang, w.area_name)} ·{" "}
             {t("find.distance", { km: w.distance_km })}
           </span>
-          {w.languages.length > 0 && <span className={C.faint}>{w.languages.map(languageName).join(", ")}</span>}
+          {w.languages.length > 0 && <span className={C.faint}>{languageNames(w.languages, t)}</span>}
         </div>
         <span className={`${C.money} end`}>{t("find.from", { price: money(w.rate_paise) })}</span>
       </div>
+      {record && <RecordStats record={record} compact />}
       {w.about && (
         <span className={C.faint}>
           <Said text={w.about} from={cardLang(w)} />

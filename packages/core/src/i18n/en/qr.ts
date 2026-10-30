@@ -2,12 +2,16 @@
 export const qr = {
   // My card and my QR
   "qr.mine": "Your QR code",
-  "qr.about_worker":
-    "Anyone who scans it with their phone camera sees your card and can ask you for work. Your phone number is never on it.",
+  "qr.about_worker": "Scan with any phone camera to ask {name} for work — no app needed.",
   "qr.about_household":
     "A worker who scans it sees only your first name and can offer to work for you. You decide whether to ask them.",
   "qr.alt": "QR code that finds {name}",
-  "qr.download": "Download",
+  "qr.download": "Save QR",
+  "qr.share": "Share",
+  "qr.shared": "Shared.",
+  "qr.share_title": "{name} on GigSync",
+  "qr.share_worker": "Ask {name} for work on GigSync.",
+  "qr.share_household": "Offer to work for {name} on GigSync.",
   "qr.copy": "Copy link",
   "qr.copied": "Link copied.",
   "qr.copy_failed": "This phone did not allow copying.",

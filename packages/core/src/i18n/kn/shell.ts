@@ -21,7 +21,6 @@ export const shell: Readonly<Record<keyof typeof en, string>> = {
   "shell.model_ollama": "Ollama ಮಾಡೆಲ್ · {name}",
   "shell.edit_card": "ನನ್ನ ಕಾರ್ಡ್ ಬದಲಿಸಿ",
   "profile.card_off": "ನಿಮ್ಮ ಕಾರ್ಡ್ ಈಗ ಬೋರ್ಡ್‌ನಲ್ಲಿ ಇಲ್ಲ",
-  "profile.talk_card": "ಮಾತಾಡಿ ಬದಲಾಯಿಸಿ",
   "profile.language": "ಭಾಷೆ",
   "when.today": "ಇಂದು",
   "when.tomorrow": "ನಾಳೆ",

@@ -1,19 +1,19 @@
-import { type BoardProfile, Lang } from "@gigsync/protocol";
+import { shownRecord } from "@gigsync/core";
+import type { BoardProfile } from "@gigsync/protocol";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { areaLabel, money } from "../../ui/places.js";
 import { Said } from "../../ui/Said.js";
+import { cardLang, languageNames } from "./cardWords.js";
+import { RecordStats } from "./RecordStats.js";
 
-/** The language a worker writes their card in: the first one they listed that the app knows. */
-const cardLang = (card: BoardProfile) => card.languages.map((l) => Lang.safeParse(l)).find((p) => p.success)?.data;
-
-/** A worker's board card as a QR or an offer shows it: name, trades, area, usual rate, languages, their line. */
+/**
+ * A worker's board card as a QR or an offer shows it: name, trades, area, usual rate, languages, their line, and the
+ * record the server vouched for (capped at what it saw delivered), when the worker shows one.
+ */
 export function WorkerCard({ card }: { card: BoardProfile }) {
   const { lang, t } = useI18n();
-  const languageName = (code: string) => {
-    const known = Lang.safeParse(code);
-    return known.success ? t(`lang.${known.data}`) : code;
-  };
+  const record = shownRecord(card);
   return (
     <div className={C.stack}>
       <div className={C.row}>
@@ -23,10 +23,11 @@ export function WorkerCard({ card }: { card: BoardProfile }) {
           <span className={C.muted}>
             {card.trades.map((tr) => t(`trade.${tr}`)).join(", ")} · {areaLabel(lang, card.area_name)}
           </span>
-          {card.languages.length > 0 && <span className={C.faint}>{card.languages.map(languageName).join(", ")}</span>}
+          {card.languages.length > 0 && <span className={C.faint}>{languageNames(card.languages, t)}</span>}
         </div>
         <span className={`${C.money} end`}>{t("find.from", { price: money(card.rate_paise) })}</span>
       </div>
+      {record && <RecordStats record={record} compact />}
       {card.about && (
         <span className={C.faint}>
           <Said text={card.about} from={cardLang(card)} />
@@ -36,10 +37,10 @@ export function WorkerCard({ card }: { card: BoardProfile }) {
   );
 }
 
-/** A person's first letter in the accent square, as Find shows workers. */
-export function Initial({ name }: { name: string }) {
+/** A person's first letter in the accent square, as Find shows workers; `large` on My card. */
+export function Initial({ name, large = false }: { name: string; large?: boolean }) {
   return (
-    <span className="avatar" aria-hidden="true">
+    <span className={large ? "avatar large" : "avatar"} aria-hidden="true">
       {name.slice(0, 1).toUpperCase()}
     </span>
   );

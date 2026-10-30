@@ -1,6 +1,6 @@
-import { MENTOR_MIN_JOBS, MENTOR_MIN_MONTHS, Role } from "@gigsync/protocol";
+import { MENTOR_MIN_JOBS, MENTOR_MIN_MONTHS } from "@gigsync/protocol";
 import type { JobRecord } from "../job/store.js";
-import { bothSigned, FINISHED_WORK } from "../payments/passbook.js";
+import { doneWork } from "../payments/passbook.js";
 
 /** Average days in a month: months are counted from days so the count never depends on month lengths. */
 const DAYS_PER_MONTH = 30.44;
@@ -16,10 +16,6 @@ export interface MentorRecord {
   eligible: boolean;
 }
 
-/** Work this phone did and finished, on terms both sides signed. */
-const finishedSigned = (r: JobRecord) =>
-  r.engagement.role === Role.enum.provider && bothSigned(r) && FINISHED_WORK.has(r.engagement.status);
-
 /** Whole months between two instants, counted from days. */
 export function monthsBetween(from: Date, to: Date): number {
   const days = (to.getTime() - from.getTime()) / MS_PER_DAY;
@@ -31,7 +27,7 @@ export function monthsBetween(from: Date, to: Date): number {
  * approves anyone. The months run from the day the first such job began, the only time every job record carries.
  */
 export function mentorRecord(jobs: readonly JobRecord[], now: Date): MentorRecord {
-  const done = jobs.filter(finishedSigned);
+  const done = jobs.filter(doneWork);
   const first = Math.min(...done.map((r) => Date.parse(r.engagement.created_at)));
   const months = done.length === 0 ? 0 : monthsBetween(new Date(first), now);
   return { jobs: done.length, months, eligible: done.length >= MENTOR_MIN_JOBS && months >= MENTOR_MIN_MONTHS };

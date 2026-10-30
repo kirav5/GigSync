@@ -3,6 +3,7 @@ import type { City, QrCode, UserId } from "@gigsync/protocol";
 import { type RefObject, useCallback, useEffect, useState } from "react";
 import { type Account, AccountRole } from "../adapters/account.js";
 import { keepBackInApp } from "../adapters/back.js";
+import { useRecordPublish } from "../card/useRecordPublish.js";
 import { type ChosenWorker, needToOf } from "../find/ask.js";
 import { startFindChat } from "../find/findChats.js";
 import { useI18n } from "../i18n.js";
@@ -64,6 +65,8 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
   }, []);
   // A QR link the phone's camera opened: whoever it finds.
   useOpenedQr(true, showPerson);
+  // A worker's card carries their record; it goes to the board again as it changes.
+  useRecordPublish(ports, account, view);
 
   useEffect(() => {
     back.current = () => {

@@ -35,6 +35,7 @@ export class FakeQrServer {
         if (this.offered.has(key)) throw new HttpError(429, OfferRefusal.enum.offered_today);
         this.offered.add(key);
       },
+      workerCard: async (user) => this.cards.get(user),
     };
   }
 

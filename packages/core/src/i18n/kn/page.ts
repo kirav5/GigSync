@@ -3,12 +3,10 @@ import type { page as en } from "../en/page.js";
 /** Kannada: the pages the menu opens, each on its own: My card, a household's Receipts, About me, Privacy and Settings. */
 export const page: Readonly<Record<keyof typeof en, string>> = {
   // My card
-  "page.card_soft_worker": "ಮನೆಯವರು ಏನು ನೋಡುತ್ತಾರೆ, ಮತ್ತು ನಿಮ್ಮ QR.",
+  "page.card_soft_worker": "ಇದನ್ನು ಹಂಚಿ — ಯಾರಾದರೂ ಕೆಲಸಕ್ಕೆ ನಿಮ್ಮನ್ನು ಕೇಳಬಹುದು.",
   "page.card_seen": "ಮನೆಯವರು ಇದನ್ನು ನೋಡುತ್ತಾರೆ",
-  "page.card_none": "ನಿಮ್ಮ ಕಾರ್ಡ್ ಇನ್ನೂ ಇಲ್ಲ. ಮಾತಾಡಿ ಮಾಡಿ, ಅಥವಾ ಫಾರ್ಮ್ ತುಂಬಿ.",
-  "page.card_make": "ಮಾತಾಡಿ ಮಾಡಿ",
-  "page.see_card": "ಮನೆಯವರು ನೋಡುವಂತೆ ನಿಮ್ಮ ಕಾರ್ಡ್ ನೋಡಿ",
-  "page.card_soft": "ತೋರಿಸಿ, ಹಂಚಿ, ಬೇರೆಯವರದನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.",
+  "page.card_none": 'ನಿಮ್ಮ ಕಾರ್ಡ್ ಇನ್ನೂ ಇಲ್ಲ. "ನನ್ನ ಕಾರ್ಡ್ ಬದಲಿಸಿ" ಮೂಲಕ ಮಾಡಿ, ಅಥವಾ ಚಾಟ್‌ನಲ್ಲಿ ನಿಮ್ಮ ಏಜೆಂಟ್‌ಗೆ ನಿಮ್ಮ ಕೆಲಸದ ಬಗ್ಗೆ ಹೇಳಿ.',
+  "page.card_soft": "ಇದನ್ನು ಹಂಚಿ — ಕೆಲಸಗಾರರು ನಿಮಗಾಗಿ ಕೆಲಸ ಮಾಡಲು ಮುಂದೆ ಬರಬಹುದು.",
   // A household's Receipts
   "page.receipts_soft": "GigSync ನಲ್ಲಿ ನೀವು ಹಣ ಕೊಟ್ಟ ಕೆಲಸಗಳು.",
   "page.receipts_total": "ಒಟ್ಟು ಕೊಟ್ಟದ್ದು",

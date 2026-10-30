@@ -10,6 +10,7 @@ import { Place } from "./place.js";
 import { WorkOffer } from "./qr.js";
 import { Terms, termsFit } from "./terms.js";
 import { Trade } from "./trade.js";
+import { MAX_STARS, MIN_STARS } from "./worker-record.js";
 
 export { Place, Trade };
 
@@ -186,8 +187,6 @@ export type UpdateCode = z.infer<typeof UpdateCode>;
 export const Note = z.object({ text: shortText, lang: Lang.default(DEFAULT_LANG), code: UpdateCode.optional() });
 export type Note = z.infer<typeof Note>;
 
-export const MIN_STARS = 1;
-export const MAX_STARS = 5;
 /** `review`: the consumer's rating once the job is done. */
 export const JobReview = z.object({
   stars: z.number().int().min(MIN_STARS).max(MAX_STARS),

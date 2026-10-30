@@ -113,8 +113,8 @@ export function ScreenView({ screen, d, m }: { screen: Screen; d: ScreenData; m:
         <MyCardPage
           ports={ports}
           account={account}
+          jobs={view.jobs}
           onCardForm={() => m.go(Screen.cardEdit)}
-          onTalkCard={m.talkCard}
           onScanned={m.showPerson}
         />
       );

@@ -19,7 +19,6 @@ export const shell = {
   "shell.model_ollama": "Ollama · {name}",
   "shell.edit_card": "Edit my card",
   "profile.card_off": "Your card is not on the board",
-  "profile.talk_card": "Change it by talking",
   "profile.language": "Language",
   "when.today": "Today",
   "when.tomorrow": "Tomorrow",

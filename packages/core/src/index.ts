@@ -50,6 +50,8 @@ export { readScope, SCOPE_READ, type ScopeChip, ScopeKey, scopeFromWords } from 
 export * from "./job/advice.js";
 export * from "./job/aftercare.js";
 export { QUESTIONS } from "./job/ask.js";
+export * from "./job/card-record.js";
+export * from "./job/card-record-store.js";
 export * from "./job/city-rates.js";
 export * from "./job/deal.js";
 export { asciiDigits, countIn, YES_NO_QUESTIONS } from "./job/details.js";

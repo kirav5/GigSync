@@ -164,4 +164,18 @@ describe("offers to work through a personal QR", () => {
     await priya.device.sync();
     expect(await priya.device.offers.open()).toHaveLength(MAX_OPEN_OFFERS);
   });
+  it("never keeps the record a sealed offer carries; the household reads the board's capped one", async () => {
+    const { w, ravi, priya, code } = await pair();
+    const claimed = { jobs: 90, rated: 90, average: 5, came_back: 40 };
+    const capped = { jobs: 4, rated: 3, average: 4.7, came_back: 1 };
+    w.server.cards.set(ravi.user, { ...ravisCard, record: capped });
+    await ravi.device.offers.offer(code, priya.user, { ...ravisCard, record: claimed, show_record: true });
+    await ravi.device.sync();
+    await priya.device.sync();
+    const [offer] = await priya.device.offers.open();
+    expect(offer?.card).toEqual(ravisCard);
+    expect(await priya.device.offers.servedRecord(ravi.user)).toEqual(capped);
+    w.server.cards.delete(ravi.user);
+    expect(await priya.device.offers.servedRecord(ravi.user)).toBeUndefined();
+  });
 });

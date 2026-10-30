@@ -1,12 +1,10 @@
 /** The pages the menu opens, each on its own: My card, a household's Receipts, About me, Privacy and Settings. */
 export const page = {
   // My card
-  "page.card_soft_worker": "What households see, and your QR.",
+  "page.card_soft_worker": "Share it — anyone can ask you for work.",
   "page.card_seen": "What households see",
-  "page.card_none": "You have no card yet. Make one by talking, or fill in the form.",
-  "page.card_make": "Make it by talking",
-  "page.see_card": "See your card as households do",
-  "page.card_soft": "Show it, share it, scan someone's.",
+  "page.card_none": "You have no card yet. Make one with Edit my card, or tell your agent about your work in the chat.",
+  "page.card_soft": "Share it — workers can offer to work for you.",
   // A household's Receipts
   "page.receipts_soft": "Every job you paid for on GigSync.",
   "page.receipts_total": "Paid in all",

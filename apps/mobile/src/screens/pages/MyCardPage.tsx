@@ -1,76 +1,84 @@
-import type { Ports } from "@gigsync/core";
-import type { QrCode } from "@gigsync/protocol";
-import { type RefObject, useRef } from "react";
+import { type JobRecord, log, type Ports, qrOwner, showsRecord, workerRecord } from "@gigsync/core";
+import { type QrCode, QrRole } from "@gigsync/protocol";
+import { useEffect, useMemo, useState } from "react";
 import { type Account, AccountRole } from "../../adapters/account.js";
 import { publicCard } from "../../card/publish.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { ScreenHead } from "../../ui/ScreenHead.js";
 import { MyQr } from "../qr/MyQr.js";
-import { WorkerCard } from "../qr/PersonCard.js";
+import { HouseholdTop, WorkerTop } from "../qr/ShareTop.js";
 
 interface Props {
   ports: Ports;
   account: Account;
-  /** Opens Talk on the card interview. */
-  onTalkCard: () => void;
-  /** Opens the My card form, to review and change the card. */
+  /** This phone's jobs, as the last sync read them: the worker's own record is counted from them. */
+  jobs: readonly JobRecord[];
+  /** Opens the My card form, to make or change the card. */
   onCardForm: () => void;
   /** A GigSync QR was scanned here: open whoever it finds. */
   onScanned: (code: QrCode) => void;
 }
 
-/** Focus can land on the card, not only buttons, when "See your card as households do" brings it into view. */
-const FOCUSABLE_BY_SCRIPT = -1;
-
-/**
- * The worker's card exactly as a household sees it on the board or after scanning their QR (the same WorkerCard), or
- * why there is none, and the two ways to change it.
- */
-function CardSeen({
-  account,
-  onTalkCard,
-  onCardForm,
-  at,
-}: Omit<Props, "onScanned" | "ports"> & { at: RefObject<HTMLElement | null> }) {
-  const { t } = useI18n();
-  const card = publicCard(account);
-  const made = account.worker !== undefined;
-  const title = t("page.card_seen");
-  return (
-    <section ref={at} className={C.card} aria-label={title} tabIndex={FOCUSABLE_BY_SCRIPT}>
-      <span className={C.label}>{title}</span>
-      {card ? <WorkerCard card={card} /> : <span>{t(made ? "profile.card_off" : "page.card_none")}</span>}
-      <div className={C.actions}>
-        <button type={C.button} className={C.accent} onClick={onCardForm}>
-          {t("shell.edit_card")}
-        </button>
-        <button type={C.button} className={C.secondary} onClick={onTalkCard}>
-          {t(made ? "profile.talk_card" : "page.card_make")}
-        </button>
-      </div>
-    </section>
-  );
+/** Whether the worker shows their record on their card, read from their Privacy choice; shown until it is read. */
+function useShowsRecord(ports: Ports): boolean {
+  const [shown, setShown] = useState(true);
+  useEffect(() => {
+    showsRecord(ports.storage)
+      .then(setShown)
+      .catch((err: unknown) => log.warn("loading the record setting failed", { error: String(err) }));
+  }, [ports]);
+  return shown;
 }
 
 /**
- * My card, as collab's: the owner's QR card first (the QR beside what scanning does and its buttons), then, for a
- * worker, their public card as households see it, with Edit my card and Change by talking. A household has the QR
- * card alone; its line says what a scanning worker sees.
+ * My card, as collab's: one card, centred, with who the owner is as others see them (for a worker, their card and
+ * their record as this phone counts it; for a household, the first name a scanning worker sees), their QR and its
+ * buttons. A worker changes their card with the one Edit my card; changing it by talking stays in the chat.
  */
-export function MyCardPage({ ports, account, onTalkCard, onCardForm, onScanned }: Props) {
+export function MyCardPage({ ports, account, jobs, onCardForm, onScanned }: Props) {
   const { t } = useI18n();
   const isWorker = account.role === AccountRole.worker;
-  const seen = useRef<HTMLElement>(null);
-  const seeCard = () => {
-    seen.current?.scrollIntoView({ block: "start" });
-    seen.current?.focus({ preventScroll: true });
+  const first = qrOwner(account.contact.name, isWorker ? QrRole.enum.worker : QrRole.enum.household).first_name;
+  const record = useMemo(() => workerRecord(jobs), [jobs]);
+  const shown = useShowsRecord(ports);
+  const share = {
+    title: t("qr.share_title", { name: first }),
+    text: t(isWorker ? "qr.share_worker" : "qr.share_household", { name: first }),
   };
   return (
     <>
-      <ScreenHead head={t("nav.card")} soft={t(isWorker ? "page.card_soft_worker" : "page.card_soft")} />
-      <MyQr ports={ports} account={account} onScanned={onScanned} onSeeCard={isWorker ? seeCard : undefined} />
-      {isWorker && <CardSeen account={account} onTalkCard={onTalkCard} onCardForm={onCardForm} at={seen} />}
+      {/* Said under the head, not as its second half: that half is hidden on a phone, where the card is shown. */}
+      <ScreenHead head={t("nav.card")}>
+        <p className={C.muted}>{t(isWorker ? "page.card_soft_worker" : "page.card_soft")}</p>
+      </ScreenHead>
+      <MyQr
+        ports={ports}
+        account={account}
+        label={t(isWorker ? "page.card_seen" : "qr.mine")}
+        scanLine={isWorker ? t("qr.about_worker", { name: first }) : t("qr.about_household")}
+        share={share}
+        onScanned={onScanned}
+      >
+        {isWorker ? (
+          <WorkerTop
+            name={account.contact.name}
+            card={publicCard(account)}
+            missing={t(account.worker ? "profile.card_off" : "page.card_none")}
+            record={record}
+            hidden={!shown}
+          />
+        ) : (
+          <HouseholdTop name={first} />
+        )}
+      </MyQr>
+      {isWorker && (
+        <div className={C.actions}>
+          <button type={C.button} className={C.accent} onClick={onCardForm}>
+            {t("shell.edit_card")}
+          </button>
+        </div>
+      )}
     </>
   );
 }

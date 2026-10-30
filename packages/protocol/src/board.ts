@@ -3,6 +3,7 @@ import { UserId } from "./ids.js";
 import { Paise } from "./payment.js";
 import { Place } from "./place.js";
 import { Trade } from "./trade.js";
+import { WorkerRecord } from "./worker-record.js";
 
 /**
  * The job board: how a consumer's agent finds workers (LLD §7.5). A worker publishes a card with their trades, an
@@ -17,7 +18,10 @@ export const MAX_RESULTS = 50;
 export const MAX_TRADES = 5;
 const MAX_LANGUAGES = 5;
 
-/** `PUT /v1/board/profile`: the worker's public card. */
+/**
+ * `PUT /v1/board/profile`: the worker's public card. Every card the server serves (search results, a scanned QR, a
+ * worker's card by id) has the same shape, with `record` capped at the server's counts (ADR 0036) and no `show_record`.
+ */
 export const BoardProfile = z.object({
   display_name: z.string().min(1).max(60),
   trades: z
@@ -35,6 +39,10 @@ export const BoardProfile = z.object({
     .max(MAX_LANGUAGES)
     .default([]),
   about: z.string().max(300).default(""),
+  /** The worker's record as their phone counts it; served capped, or left out when nothing is counted. */
+  record: WorkerRecord.optional(),
+  /** Show my record: false hides it from the card entirely (never single ratings). Absent means shown. */
+  show_record: z.boolean().optional(),
 });
 export type BoardProfile = z.infer<typeof BoardProfile>;
 

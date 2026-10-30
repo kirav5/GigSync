@@ -7,7 +7,7 @@ const STORE_PREFIX = "CapacitorStorage.";
 const ACCOUNT_KEY = `${STORE_PREFIX}settings:account`;
 
 /** Where the web build keeps one owner's jobs: their own collection, as the app's owner storage names it. */
-const jobsPrefix = (user: UserId) => `${STORE_PREFIX}${ownedName(Collection.jobs, user)}:`;
+export const jobsPrefix = (user: UserId) => `${STORE_PREFIX}${ownedName(Collection.jobs, user)}:`;
 
 /**
  * Writes `count` finished jobs the signed-in worker did, both sides signed on the same terms, the first begun `days`
@@ -85,7 +85,7 @@ const newId = (prefix: string) =>
   `${prefix}_${Array.from({ length: ULID_LENGTH }, () => CROCKFORD[Math.floor(Math.random() * CROCKFORD.length)]).join("")}`;
 
 /** The signed-in owner's user id, from the account the web build keeps. */
-async function userOf(page: Page): Promise<UserId> {
+export async function userOf(page: Page): Promise<UserId> {
   const user = await page.evaluate((key) => {
     const account = JSON.parse(localStorage.getItem(key) ?? "{}") as { session?: { user?: string } };
     return account.session?.user;

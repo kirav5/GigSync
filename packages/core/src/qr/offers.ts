@@ -7,9 +7,11 @@ import {
   type QrCode,
   type UserId,
   WORK_OFFER_PROTOCOL,
+  type WorkerRecord,
   type WorkOffer,
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
+import { shownRecord, withoutRecord } from "../job/card-record.js";
 import type { JobContext } from "../job/context.js";
 import { log } from "../log.js";
 import type { MailTransport, Received } from "../mail/transport.js";
@@ -89,7 +91,8 @@ export class WorkOffers {
     const earlier = open.find((o) => o.worker === worker);
     if (!earlier && open.length >= MAX_OPEN_OFFERS) return dropped(e.id, "too many open offers");
     if (earlier) await this.store.removeReceived(earlier.channel);
-    const { card } = body as WorkOffer;
+    // A record inside the sealed card is the worker's own claim: the board's capped one is read when shown.
+    const card = withoutRecord((body as WorkOffer).card);
     const at = this.d.ctx.clock.now().toISOString();
     await this.store.saveReceived({ channel: e.engagement, worker, card, state: OfferState.open, at });
   }
@@ -101,6 +104,12 @@ export class WorkOffers {
     return (await this.store.received())
       .filter((o) => o.state === OfferState.open && now - Date.parse(o.at) < OFFER_SHOWN_MS && !blocked.has(o.worker))
       .sort(newestFirst);
+  }
+
+  /** The record the board serves for an offer's worker, capped at what the server saw delivered; none offline. */
+  async servedRecord(worker: UserId): Promise<WorkerRecord | undefined> {
+    const card = await this.api?.workerCard(worker);
+    return card && shownRecord(card);
   }
 
   /**

@@ -1,5 +1,5 @@
 import {
-  type BoardProfile,
+  BoardProfile,
   type BoardQueryInput,
   BoardResult,
   type BoardWorker,
@@ -201,6 +201,16 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
 
   async removeProfile(): Promise<boolean> {
     return Removed.parse(await this.call(HttpMethod.delete, ApiPath.boardProfile)).removed;
+  }
+
+  /** One worker's card as the board serves it (record capped); undefined when they are not on the board. */
+  async workerCard(user: UserId): Promise<BoardProfile | undefined> {
+    try {
+      return BoardProfile.parse(await this.call(HttpMethod.get, `${ApiPath.boardWorkers}/${user}`));
+    } catch (err) {
+      if (err instanceof HttpError && err.status === 404) return undefined;
+      throw err;
+    }
   }
 
   async searchWorkers(query: BoardQueryInput): Promise<BoardWorker[]> {

@@ -3,12 +3,16 @@ import type { qr as en } from "../en/qr.js";
 /** Kannada: personal QR codes. */
 export const qr: Readonly<Record<keyof typeof en, string>> = {
   "qr.mine": "ನಿಮ್ಮ QR ಕೋಡ್",
-  "qr.about_worker":
-    "ಯಾರೇ ಇದನ್ನು ತಮ್ಮ ಫೋನ್ ಕ್ಯಾಮೆರಾದಿಂದ ಸ್ಕ್ಯಾನ್ ಮಾಡಿದರೂ ನಿಮ್ಮ ಕಾರ್ಡ್ ನೋಡುತ್ತಾರೆ ಮತ್ತು ಕೆಲಸಕ್ಕೆ ನಿಮ್ಮನ್ನು ಕೇಳಬಹುದು. ನಿಮ್ಮ ಫೋನ್ ಸಂಖ್ಯೆ ಇದರಲ್ಲಿ ಎಂದಿಗೂ ಇರುವುದಿಲ್ಲ.",
+  "qr.about_worker": "ಯಾವುದೇ ಫೋನ್ ಕ್ಯಾಮೆರಾದಿಂದ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ {name} ಅವರನ್ನು ಕೆಲಸಕ್ಕೆ ಕೇಳಿ — ಯಾವ ಆ್ಯಪ್ ಕೂಡ ಬೇಕಿಲ್ಲ.",
   "qr.about_household":
     "ಇದನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡುವ ಕೆಲಸಗಾರರು ನಿಮ್ಮ ಮೊದಲ ಹೆಸರನ್ನು ಮಾತ್ರ ನೋಡುತ್ತಾರೆ ಮತ್ತು ನಿಮಗಾಗಿ ಕೆಲಸ ಮಾಡಲು ಮುಂದೆ ಬರಬಹುದು. ಅವರನ್ನು ಕೇಳಬೇಕೇ ಎಂದು ನೀವೇ ನಿರ್ಧರಿಸುತ್ತೀರಿ.",
   "qr.alt": "{name} ಅವರನ್ನು ಹುಡುಕುವ QR ಕೋಡ್",
-  "qr.download": "ಡೌನ್‌ಲೋಡ್",
+  "qr.download": "QR ಉಳಿಸಿ",
+  "qr.share": "ಹಂಚಿ",
+  "qr.shared": "ಹಂಚಲಾಯಿತು.",
+  "qr.share_title": "GigSync ನಲ್ಲಿ {name}",
+  "qr.share_worker": "GigSync ನಲ್ಲಿ {name} ಅವರನ್ನು ಕೆಲಸಕ್ಕೆ ಕೇಳಿ.",
+  "qr.share_household": "GigSync ನಲ್ಲಿ {name} ಅವರಿಗಾಗಿ ಕೆಲಸ ಮಾಡಲು ಮುಂದೆ ಬನ್ನಿ.",
   "qr.copy": "ಲಿಂಕ್ ನಕಲಿಸಿ",
   "qr.copied": "ಲಿಂಕ್ ನಕಲಾಯಿತು.",
   "qr.copy_failed": "ಈ ಫೋನ್ ನಕಲಿಸಲು ಬಿಡಲಿಲ್ಲ.",

@@ -1,7 +1,7 @@
 import { SELF } from "cloudflare:test";
 import { ApiClient, BEARER_PREFIX, Header, SecretKeys, sealEnvelope } from "@gigsync/core";
 import { newDeviceSecrets } from "@gigsync/crypto";
-import { type Envelope, type EnvelopeKind, PROTOCOL_VERSION, type Session } from "@gigsync/protocol";
+import { type EngagementId, type Envelope, type EnvelopeKind, PROTOCOL_VERSION, type Session } from "@gigsync/protocol";
 import { ulid } from "ulid";
 
 const HOUR_MS = 3600_000;
@@ -28,8 +28,17 @@ export async function signIn(phone: string): Promise<Person> {
   return { session, keys, api: clientFor(phone).as(session) };
 }
 
-/** A real envelope from one person to another: sealed to the recipient's devices, signed by the sender's. */
-export async function envelope(from: Person, to: Person, kind: EnvelopeKind, body: unknown): Promise<Envelope> {
+/**
+ * A real envelope from one person to another: sealed to the recipient's devices, signed by the sender's. On a fresh
+ * engagement unless one is given.
+ */
+export async function envelope(
+  from: Person,
+  to: Person,
+  kind: EnvelopeKind,
+  body: unknown,
+  engagement?: EngagementId,
+): Promise<Envelope> {
   const { devices } = await from.api.directory(to.session.user);
   const now = Date.now();
   return sealEnvelope(
@@ -38,7 +47,7 @@ export async function envelope(from: Person, to: Person, kind: EnvelopeKind, bod
       id: `msg_${ulid(now)}`,
       from: { user: from.session.user, device: from.session.device },
       to: { user: to.session.user },
-      engagement: `eng_${ulid(now)}`,
+      engagement: engagement ?? `eng_${ulid(now)}`,
       seq: 0,
       kind,
       sent_at: new Date(now).toISOString(),

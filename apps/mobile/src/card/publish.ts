@@ -2,6 +2,8 @@ import {
   aboutIsPrivate,
   type CardDraft,
   CITY_RATES,
+  keepPublishedRecord,
+  myCardRecord,
   type Ports,
   type TermPrefs,
   type WorkerRules,
@@ -56,7 +58,10 @@ export async function publishCard(ports: Ports, account: Account, draft: CardDra
     // The card interview does not ask them: keep what the form set.
     ...withPrefs(draft.terms ?? account.worker?.terms),
   };
-  await apiClient(account.session).publishProfile(card);
+  // The record goes with every publish, so a changed card never drops it from the board.
+  const record = await myCardRecord(ports.storage);
+  await apiClient(account.session).publishProfile({ ...card, ...record });
+  await keepPublishedRecord(ports.storage, record);
   const next: Account = { ...account, worker, languages, autoConfirm: draft.auto ?? false, about, listed: true };
   await saveAccount(ports, next);
   return next;

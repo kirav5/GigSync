@@ -1,7 +1,9 @@
-import { type ApiClient, type MessageKey, type Params, t } from "@gigsync/core";
-import { Lang } from "@gigsync/protocol";
+import { type ApiClient, HttpMethod, type MessageKey, type Params, t } from "@gigsync/core";
+import { Lang, MyQr, type QrCode } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import {
+  API,
+  APP,
   counted,
   expand,
   inSection,
@@ -49,6 +51,12 @@ test.afterAll(async () => {
   await Promise.all(others.map((a) => a.removeProfile()));
   await Promise.all(contexts.map((c) => c.close()));
 });
+
+/** The code a page's QR shows, from the API's answer when My card asks for it: call before opening My card. */
+const nextQrCode = (page: Page): Promise<QrCode> =>
+  page
+    .waitForResponse((r) => r.url() === `${API}/v1/qr/me` && r.request().method() === HttpMethod.put && r.ok())
+    .then(async (r) => MyQr.parse(await r.json()).code);
 
 /** Waits until either phone shows the button, and returns that phone. */
 async function whichever(phones: Page[], name: RegExp): Promise<Page> {
@@ -225,6 +233,19 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await expect(priya.getByText(say("status.closed"), { exact: true })).toBeVisible();
   await expect(priya.getByLabel(say("a11y.payment"))).toContainText(say("pay.thread.confirmed"));
   await shoot("paid-rated-closed", phones);
+
+  // ── The rated job is on his card: counted on his phone, and served to Priya capped at what the server saw ───────
+  const qr = nextQrCode(anil);
+  await open(anil, "nav.card");
+  const mine = anil.getByRole("region", { name: say("page.card_seen") });
+  await expect(mine.getByRole("definition")).toHaveText(["1", say("record.card_no_stars"), "0"]);
+  const code = await qr;
+  await expect(async () => {
+    await priya.goto(`${APP}/?to=${code}`);
+    const seen = priya.getByRole("region", { name: "Anil" });
+    await expect(seen.getByRole("definition")).toHaveText(["1", say("record.card_no_stars"), "0"], { timeout: 5000 });
+  }).toPass();
+  await shoot("record-on-card", phones);
 
   // Anil takes his card off the board so later runs start clean.
   await openCard(anil);

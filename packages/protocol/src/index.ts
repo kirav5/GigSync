@@ -18,3 +18,4 @@ export * from "./qr.js";
 export * from "./rates.js";
 export * from "./records.js";
 export * from "./terms.js";
+export * from "./worker-record.js";

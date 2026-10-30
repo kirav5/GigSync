@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { ChosenWorker } from "../../find/ask.js";
 import { useI18n } from "../../i18n.js";
 import { qrErrorKey } from "../../qr/problems.js";
+import { useServedRecords } from "../../qr/useServedRecords.js";
 import { C } from "../../ui/cls.js";
 import { WorkerCard } from "./PersonCard.js";
 import "./qr.css";
@@ -16,12 +17,17 @@ interface Props {
 }
 
 /**
- * Workers who scanned this household's QR and offered to work for it, with their card: Ask opens the usual request to
+ * Workers who scanned this household's QR and offered to work for it, with their card and the record the board
+ * serves for them (capped by the server; the sealed card's own is never shown): Ask opens the usual request to
  * that worker alone, so the household is still the one who asks; Not now sends nothing. Nothing shows without offers.
  */
 export function OfferCards({ offers, device, run, onAsk }: Props) {
   const { t } = useI18n();
   const [problem, setProblem] = useState<MessageKey>();
+  const served = useServedRecords(
+    device,
+    offers.map((o) => o.worker),
+  );
   if (offers.length === 0) return null;
 
   const answer = (work: () => Promise<unknown>) => run(work).catch((err: unknown) => setProblem(qrErrorKey(err)));
@@ -41,7 +47,7 @@ export function OfferCards({ offers, device, run, onAsk }: Props) {
         return (
           <article key={o.channel} className={C.cardWait} aria-label={line}>
             <strong>{line}</strong>
-            <WorkerCard card={o.card} />
+            <WorkerCard card={{ ...o.card, record: served.get(o.worker) }} />
             <div className={C.actions}>
               <button type={C.button} className={C.accent} onClick={() => void ask(o)}>
                 {t("qr.offer_ask")}

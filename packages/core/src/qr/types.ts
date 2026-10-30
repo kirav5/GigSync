@@ -10,6 +10,8 @@ export interface QrApi {
   lookupQr(code: QrCode): Promise<QrPerson>;
   /** Takes one offer to work through a household's live code; the work_offer envelope may follow. */
   takeOffer(code: QrCode): Promise<void>;
+  /** One worker's card as the board serves it, record capped (ADR 0036); undefined when they are not on the board. */
+  workerCard(user: UserId): Promise<BoardProfile | undefined>;
 }
 
 /** Where an offer to work stands on the household's phone. */

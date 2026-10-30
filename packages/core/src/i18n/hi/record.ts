@@ -1,6 +1,6 @@
 import type { record as en } from "../en/record.js";
 
-/** Hindi: the worker's record inside Passbook. */
+/** Hindi: the worker's record, in Passbook and on their card. */
 export const record: Readonly<Record<keyof typeof en, string>> = {
   "record.title": "किए गए काम",
   "record.jobs.one": "{count} काम किया",
@@ -16,4 +16,17 @@ export const record: Readonly<Record<keyof typeof en, string>> = {
   "record.open": "यह काम देखें",
   "record.close": "यह काम छिपाएँ",
   "record.empty": "GigSync पर पूरे किए काम यहाँ दिखेंगे।",
+  // On the worker's card, for households to see (ADR 0036)
+  "record.card_label": "काम का रिकॉर्ड",
+  "record.card_jobs": "काम",
+  "record.card_rated.one": "{count} रेटिंग",
+  "record.card_rated.other": "{count} रेटिंग",
+  "record.card_not_rated": "अभी रेटिंग नहीं",
+  "record.card_stars": "★ {stars}",
+  "record.card_no_stars": "–",
+  "record.card_came_back": "दोबारा बुलाया",
+  "record.card_hidden": "घर वालों को ये गिनती नहीं दिखती। आप इन्हें निजता में दिखा सकते हैं।",
+  "record.setting": "मेरे कार्ड पर मेरा रिकॉर्ड दिखाएँ",
+  "record.setting_about":
+    "किए गए काम, घर वालों की रेटिंग और कितने घरों ने दोबारा बुलाया, ताकि घर वाले आपके कार्ड पर देखें। सब दिखेगा या कुछ नहीं: कोई एक रेटिंग छिपाई नहीं जा सकती।",
 };

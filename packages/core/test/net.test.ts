@@ -1,4 +1,4 @@
-import type { Envelope } from "@gigsync/protocol";
+import type { Envelope, UserId } from "@gigsync/protocol";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiClient, ApiPath, HttpError, NetError, NetReason, REQUEST_TIMEOUT_MS } from "../src/index.js";
 
@@ -160,5 +160,32 @@ describe("ApiClient inbox", () => {
   it("refuses an answer that is not a list at all", async () => {
     const { client } = fakeFetch(() => Promise.resolve(json({ envelopes: [] })));
     await expect(client.inbox()).rejects.toThrow();
+  });
+});
+
+describe("ApiClient worker card", () => {
+  const user = `usr_${U}` as UserId;
+  const card = {
+    display_name: "Ravi",
+    trades: ["electrician"],
+    area: { lat: 12.97, lon: 77.64 },
+    area_name: "Indiranagar",
+    rate_paise: 70000,
+    languages: ["kn"],
+    about: "",
+    record: { jobs: 4, rated: 3, average: 4.7, came_back: 1 },
+  };
+
+  it("reads one worker's served card, record and all", async () => {
+    const { calls, client } = fakeFetch(() => Promise.resolve(json(card)));
+    expect(await client.workerCard(user)).toEqual(card);
+    expect(calls[0]?.url).toBe(`${BASE}${ApiPath.boardWorkers}/${user}`);
+  });
+
+  it("answers undefined for a worker not on the board, and passes on any other error", async () => {
+    const missing = fakeFetch(() => Promise.resolve(json({ error: "not found" }, 404)));
+    expect(await missing.client.workerCard(user)).toBeUndefined();
+    const refused = fakeFetch(() => Promise.resolve(json({ error: "unauthorized" }, 401)));
+    await expect(refused.client.workerCard(user)).rejects.toBeInstanceOf(HttpError);
   });
 });
