@@ -1,6 +1,7 @@
 import { type Choice, NeedPick, NeedSlot, type NeedState } from "@gigsync/core";
 import { type FormEvent, useState } from "react";
-import { NeedSpeaker, type NeedTurn, pickNeedDate, tapNeed, togglePick } from "../../find/needStore.js";
+import { pickNeedDate, tapNeed, togglePick } from "../../find/needStore.js";
+import { NeedSpeaker, type NeedTurn } from "../../find/needTurns.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { dayDate } from "../jobGroups.js";
@@ -13,12 +14,12 @@ export type FoundTurn = Extract<NeedTurn, { who: typeof NeedSpeaker.found }>;
 const DATE_FIELD = "day";
 
 /** "Pick a date": the phone's own calendar, from today on, under the When question. */
-function DatePick({ today }: { today: string }) {
+function DatePick({ chat, today }: { chat: string; today: string }) {
   const { t, date } = useI18n();
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const day = String(new FormData(e.currentTarget).get(DATE_FIELD) ?? "");
-    if (day) pickNeedDate(day, date(dayDate(day)));
+    if (day) pickNeedDate(chat, day, date(dayDate(day)));
   }
   return (
     <form className={C.row} onSubmit={submit} aria-label={t("when.pick")}>
@@ -31,7 +32,7 @@ function DatePick({ today }: { today: string }) {
 }
 
 /** The tap answers under the newest question. */
-function Choices({ choices, today }: { choices: readonly Choice[]; today: string }) {
+function Choices({ chat, choices, today }: { chat: string; choices: readonly Choice[]; today: string }) {
   const { t } = useI18n();
   const [picking, setPicking] = useState(false);
   return (
@@ -42,24 +43,26 @@ function Choices({ choices, today }: { choices: readonly Choice[]; today: string
             key={c.value}
             type={C.button}
             className={c.value === NeedPick.date && picking ? C.chipOn : C.chip}
-            onClick={() => (c.value === NeedPick.date ? setPicking(true) : tapNeed(c.value, t(c.key, c.params)))}
+            onClick={() => (c.value === NeedPick.date ? setPicking(true) : tapNeed(chat, c.value, t(c.key, c.params)))}
           >
             {t(c.key, c.params)}
           </button>
         ))}
       </div>
-      {picking && <DatePick today={today} />}
+      {picking && <DatePick chat={chat} today={today} />}
     </>
   );
 }
 
 /** The workers a search found, ticked to ask, and the button that asks them while the results are current. */
 function Found({
+  chat,
   turn,
   active,
   busy,
   onAsk,
 }: {
+  chat: string;
   turn: FoundTurn;
   active: boolean;
   busy: boolean;
@@ -73,7 +76,8 @@ function Found({
           key={w.user}
           worker={w}
           picked={turn.picked.includes(w.user)}
-          onToggle={() => togglePick(turn.id, w.user)}
+          disabled={!active}
+          onToggle={() => togglePick(chat, turn.id, w.user)}
         />
       ))}
       {active && (
@@ -92,14 +96,17 @@ function Found({
 
 /**
  * Find's conversation in the order it happened: each question with its replay button and, under the newest, its tap
- * answers; the owner's answers opposite; and what a search found.
+ * answers; the owner's answers opposite; and what a search found, its boxes fixed once the workers were asked.
  */
 export function NeedTurns({
+  chat,
   state,
   turns,
   busy,
   onAsk,
 }: {
+  /** The chat these turns are in, which every answer here names. */
+  chat: string;
   state: NeedState | undefined;
   turns: readonly NeedTurn[];
   busy: boolean;
@@ -113,12 +120,12 @@ export function NeedTurns({
     if (turn.who === NeedSpeaker.owner) return <Own key={turn.id} text={turn.text} />;
     if (turn.who === NeedSpeaker.found) {
       const active = state?.slot === NeedSlot.found && turn.id === lastFound;
-      return <Found key={turn.id} turn={turn} active={active} busy={busy} onAsk={onAsk} />;
+      return <Found key={turn.id} chat={chat} turn={turn} active={active} busy={busy} onAsk={onAsk} />;
     }
     return (
       <Ask key={turn.id} lines={turn.lines} sources={turn.sources}>
         {asking && turn.id === lastQuestion && turn.choices.length > 0 && (
-          <Choices choices={turn.choices} today={state.config.today} />
+          <Choices chat={chat} choices={turn.choices} today={state.config.today} />
         )}
       </Ask>
     );

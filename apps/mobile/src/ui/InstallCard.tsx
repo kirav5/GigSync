@@ -6,32 +6,25 @@ import { C } from "./cls.js";
 import { Icon } from "./Icon.js";
 import "./install.css";
 
-/** Where the card shows: the language screen before sign-in, or Settings. */
-export const InstallPlace = { onboarding: "onboarding", settings: "settings" } as const;
-export type InstallPlace = (typeof InstallPlace)[keyof typeof InstallPlace];
+/**
+ * Offered on the language screen only where the step is quick (Chrome's prompt) or must come first (iPhone: the
+ * home-screen app keeps its own storage, so installing after sign-in would start a second, empty phone). Once signed
+ * in, the menu's Install app and Settings open the Install screen instead.
+ */
+const OFFERED: readonly InstallState[] = [InstallState.prompt, InstallState.ios];
 
 /**
- * Where each state is offered. Settings always offers it on the web (and the menu has Install app); the language screen only where the step is
- * quick (Chrome's prompt) or must come first (iPhone: the home-screen app keeps its own storage, so installing after
- * sign-in would start a second, empty phone).
+ * Offers to put the web app on the home screen before sign-in, as one quiet row: an icon, what it gives, and a small
+ * button (or, on iPhone, the one step to take and why now). "Not now" is the × in the corner. Takes `lang` because
+ * the language screen is outside I18nProvider.
  */
-const OFFERED: Readonly<Record<InstallPlace, readonly InstallState[]>> = {
-  [InstallPlace.onboarding]: [InstallState.prompt, InstallState.ios],
-  [InstallPlace.settings]: [InstallState.prompt, InstallState.ios, InstallState.manual],
-};
-
-/**
- * Offers to put the web app on the home screen, as one quiet row: an icon, what it gives, and a small button (or, on
- * iPhone, the one step to take). "Not now" is the × in the corner. Takes `lang` because the language screen is outside
- * I18nProvider.
- */
-export function InstallCard({ place, lang }: { place: InstallPlace; lang: Lang }) {
+export function InstallCard({ lang }: { lang: Lang }) {
   const state = useInstallState();
-  const [hidden, setHidden] = useState(() => dismissed(place));
-  if (hidden || !OFFERED[place].includes(state)) return null;
+  const [hidden, setHidden] = useState(dismissed);
+  if (hidden || !OFFERED.includes(state)) return null;
 
   function later() {
-    dismiss(place);
+    dismiss();
     setHidden(true);
   }
 
@@ -66,10 +59,7 @@ export function InstallCard({ place, lang }: { place: InstallPlace; lang: Lang }
             {t(lang, "install.ios")}
           </span>
         )}
-        {state === InstallState.ios && place === InstallPlace.onboarding && (
-          <span className="install-first">{t(lang, "install.ios_first")}</span>
-        )}
-        {state === InstallState.manual && <span className="install-step">{t(lang, "install.manual")}</span>}
+        {state === InstallState.ios && <span className="install-first">{t(lang, "install.ios_first")}</span>}
       </span>
     </section>
   );

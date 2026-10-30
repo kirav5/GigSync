@@ -7,7 +7,7 @@ import {
   WORK_OFFER_PROTOCOL,
 } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import { boardWorkerOf, MAX_OPEN_OFFERS, QrError, QrProblem, type WorkerRules } from "../src/index.js";
+import { MAX_OPEN_OFFERS, QrError, QrProblem, type WorkerRules } from "../src/index.js";
 import { MentorStore } from "../src/mentor/store.js";
 import { TestClock } from "./mentor-phones.js";
 import { BENGALURU, electrician, fanNeed, MemoryRelay, PRIYA, phone, RAVI } from "./phones.js";
@@ -73,9 +73,7 @@ describe("offers to work through a personal QR", () => {
 
     const asked = await priya.device.offers.ask(offer.channel);
     expect(await priya.device.offers.open()).toEqual([]);
-    const chosen = boardWorkerOf(asked.worker, asked.card, fanNeed().area);
-    expect(chosen.distance_km).toBeLessThan(1);
-    await priya.device.request(fanNeed(), [chosen.user]);
+    await priya.device.request(fanNeed(), [asked.worker]);
     await priya.device.sync();
     await ravi.device.sync();
     const [job] = await ravi.device.jobs();

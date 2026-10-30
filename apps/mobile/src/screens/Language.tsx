@@ -3,7 +3,7 @@ import { Lang } from "@gigsync/protocol";
 import { type FormEvent, useState } from "react";
 import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
-import { InstallCard, InstallPlace } from "../ui/InstallCard.js";
+import { InstallCard } from "../ui/InstallCard.js";
 
 /** Ties the dock's Continue, outside the form, to it. */
 const FORM_ID = "language";
@@ -32,7 +32,7 @@ export function LanguageChooser({ suggested, onChoose }: { suggested: Lang; onCh
       aria-label={t(picked, "onboard.title")}
     >
       <h1 className={C.headline}>{t(picked, "onboard.title")}</h1>
-      <InstallCard place={InstallPlace.onboarding} lang={picked} />
+      <InstallCard lang={picked} />
       <fieldset className="lang-list" aria-label={t(picked, "a11y.language")}>
         {Lang.options.map((l) => (
           <label key={l} className={l === picked ? "lang-option on" : "lang-option"}>

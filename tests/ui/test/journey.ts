@@ -1,6 +1,7 @@
 import { type MessageKey, t } from "@gigsync/core";
 import type { Lang } from "@gigsync/protocol";
 import { expect, type Page } from "@playwright/test";
+import { type NeedAnswers, pickOnly, tellNeed } from "./findChat.js";
 import { navRow, openCard, openDrawer, shoot, textOf } from "./helpers.js";
 
 /** A phone in a journey, with the language its owner chose. */
@@ -71,42 +72,14 @@ export async function unlistCards() {
   listed.clear();
 }
 
-/** Find's When chips that write a day the test can predict ("Pick a date" needs a date input). */
-export type WhenChip = "when.today" | "when.tomorrow" | "when.daily";
-
 /**
- * Find opens as a conversation; the journeys that test the form switch to it ("Use the form instead"). The choice
- * lasts until the app reloads or the owner signs out.
+ * The household asks in Find's chat: their need in their own words, then what the agent asks (the trade, the area, a
+ * When chip, the detail if given, the budget), the time at the readback if given, and yes; then ticks only `worker`
+ * among those found. The caller presses Ask after a screenshot.
  */
-export async function switchToForm({ page, lang }: Phone) {
-  const search = page.getByRole("form", { name: t(lang, "a11y.search") });
-  const toForm = page.getByRole("button", { name: t(lang, "need.use_form") });
-  await expect(search.or(toForm)).toBeVisible();
-  if (await toForm.isVisible()) await toForm.click();
-  await expect(search).toBeVisible();
-}
-
-/**
- * The household switches to the form, searches, picks only `worker`, and fills the ask: the need, a When chip and, if
- * given, the time. The caller presses the dock's Ask button after a screenshot.
- */
-export async function fillAsk(
-  { page, lang }: Phone,
-  ask: { trade: string; area: string; worker: string; need: string; when: WhenChip; time?: string; budget: string },
-) {
-  await switchToForm({ page, lang });
-  const search = page.getByRole("form", { name: t(lang, "a11y.search") });
-  await search.getByLabel(t(lang, "find.trade")).selectOption(ask.trade);
-  await search.getByLabel(t(lang, "find.area")).selectOption(ask.area);
-  await search.getByRole("button", { name: t(lang, "find.search") }).click();
-  await expect(page.getByLabel(t(lang, "a11y.worker", { name: ask.worker }))).toBeVisible();
-  for (const box of await page.getByRole("checkbox", { checked: true }).all()) await box.uncheck();
-  await page.getByRole("checkbox", { name: t(lang, "a11y.ask_worker", { name: ask.worker }) }).check();
-  await page.getByLabel(t(lang, "find.need_label"), { exact: true }).fill(ask.need);
-  const when = page.getByRole("group", { name: t(lang, "find.when") });
-  await when.getByRole("button", { name: t(lang, ask.when), exact: true }).click();
-  if (ask.time) await page.getByLabel(t(lang, "when.time")).fill(ask.time);
-  await page.getByLabel(t(lang, "find.budget")).fill(ask.budget);
+export async function fillAsk(phone: Phone, ask: NeedAnswers & { trade: string; worker: string }) {
+  await tellNeed(phone, ask);
+  await pickOnly(phone, ask.worker);
 }
 
 const signGroup = ({ page, lang }: Phone) => page.getByRole("group", { name: t(lang, "a11y.sign") });

@@ -10,9 +10,9 @@ import {
   stopListening,
   VoiceState,
   waitsForDownload,
-  watchDownload,
 } from "../adapters/speech.js";
 import { allowCloud, cloudAllowed } from "../adapters/speech-settings.js";
+import { useSpeechState } from "../adapters/speech-watch.js";
 import { useI18n } from "../i18n.js";
 import { C } from "./cls.js";
 import { Icon } from "./Icon.js";
@@ -45,6 +45,8 @@ const Note = {
   unheard: "speech.didnt_hear",
   unavailable: "speech.unavailable",
   denied: "speech.denied",
+  /** The language's recognizer is on its way to the phone, fetched by the tap on the mic. */
+  fetching: "speech.fetching",
   /** Only a company's recognizer exists, and this answer must stay on the phone. */
   private: "speech.type_private",
 } as const;
@@ -57,9 +59,10 @@ const NO_HINTS: readonly string[] = [];
 /**
  * Where the owner answers: a big mic first, then the field and send (spec §3.3). Heard words fill the field while the
  * owner speaks (it is read-only then, so typing is never overwritten) and are sent by themselves at the end, because
- * many owners cannot proofread and every answer is read back. The mic's state is honest: a download button, "please
- * type", or the phone's mic setting. Before the first listen that would go to a company's servers, a sheet asks; before
- * the first listen at all on a phone, a sheet says in the app's language why the phone is about to ask for the mic.
+ * many owners cannot proofread and every answer is read back. The mic's state is honest: "please type", or the
+ * phone's mic setting; a recognizer the phone can fetch is fetched by the tap on the mic, never by a download button.
+ * Before the first listen that would go to a company's servers, a sheet asks; before the first listen at all on a
+ * phone, a sheet says in the app's language why the phone is about to ask for the mic.
  */
 export function Composer({
   label,
@@ -74,7 +77,7 @@ export function Composer({
   const { lang, t } = useI18n();
   const [text, setText] = useState("");
   const [listening, setListening] = useState(false);
-  const [status, setStatus] = useState<SpeechStatus>();
+  const [status, setStatus] = useSpeechState(lang, listenState);
   const [note, setNote] = useState<Note>();
   const [asking, setAsking] = useState<SpeechVendor>();
   const [why, setWhy] = useState(false);
@@ -86,19 +89,13 @@ export function Composer({
   const langName = t(`lang.${lang}`);
   const vendorName = status?.cloud ? t(`speech.vendor_${status.cloud.vendor}`) : "";
 
+  // A fetch the line speaks of ends: ready, the mic works and the line clears; not coming, it says to type unless a
+  // company's recognizer is left to ask about.
   useEffect(() => {
-    let live = true;
-    void listenState(lang).then((s) => {
-      if (live) setStatus(s);
-    });
-    return () => {
-      live = false;
-    };
-  }, [lang]);
-
-  // A download finishing in the background shows up by itself (round2-spec §1.5).
-  const downloading = status?.state === VoiceState.downloading;
-  useEffect(() => (downloading ? watchDownload(() => listenState(lang), setStatus) : undefined), [downloading, lang]);
+    if (note !== Note.fetching || !status || waitsForDownload(status)) return;
+    const voiceLeft = status.state === VoiceState.available || (status.cloud !== undefined && !onDeviceOnly);
+    setNote(voiceLeft ? undefined : Note.unavailable);
+  }, [note, status, onDeviceOnly]);
 
   // The consent sheet takes focus when it opens, so a screen reader says the question and lands on its answer.
   useEffect(() => {
@@ -161,16 +158,22 @@ export function Composer({
     field.current?.focus();
   }
 
-  /** Says why the mic can't listen now, without listening: the setting, the download, the consent, or "please type". */
+  /** Says why the mic can't listen now, without listening: the setting, the fetch, the consent, or "please type". */
   async function explain(s: SpeechStatus) {
     if (s.state === VoiceState.denied) return setNote(Note.denied);
-    if (waitsForDownload(s)) return;
+    if (waitsForDownload(s)) return fetchRecognizer(s);
     const vendor = s.cloud?.vendor;
     if (vendor && onDeviceOnly) return typeInstead(Note.private);
     if (!vendor) return typeInstead(Note.unavailable);
     if (await cloudAllowed(vendor)) return setNote(Note.unheard);
     setNote(undefined);
     setAsking(vendor);
+  }
+
+  /** The recognizer can come to this phone: fetched in this tap (engines need one), with the field ready meanwhile. */
+  async function fetchRecognizer(s: SpeechStatus) {
+    typeInstead(Note.fetching);
+    setStatus(s.state === VoiceState.downloadable ? await prepareListen(lang) : s);
   }
 
   async function tapMic() {
@@ -210,11 +213,6 @@ export function Composer({
     else field.current?.focus();
   }
 
-  async function download() {
-    if (status) setStatus({ ...status, state: VoiceState.downloading });
-    setStatus(await prepareListen(lang));
-  }
-
   function submit(e: FormEvent) {
     e.preventDefault();
     const words = text.trim();
@@ -251,16 +249,6 @@ export function Composer({
         </div>
       )}
       {why && <PermissionSheet permission={Permission.mic} onAnswer={explained} />}
-      {!listening && waitsForDownload(status) && (
-        <button
-          type={C.button}
-          className={C.linkBtn}
-          disabled={status?.state === VoiceState.downloading}
-          onClick={() => void download()}
-        >
-          {t("speech.download", { lang: langName })}
-        </button>
-      )}
       <div className="composer-row">
         <button
           type={C.button}

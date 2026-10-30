@@ -1,9 +1,11 @@
 import type { MessageKey, Ports } from "@gigsync/core";
 import { useState } from "react";
+import { installOffered, useInstallState } from "../../adapters/install.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
-import { InstallCard, InstallPlace } from "../../ui/InstallCard.js";
+import { Icon } from "../../ui/Icon.js";
 import { Look, savedLook, saveLook } from "../../ui/look.js";
+import "../../ui/install.css";
 import { ModelSettings } from "../ModelSettings.js";
 import { SpeechSettings } from "../SpeechSettings.js";
 import { TacticSetting } from "../TacticSetting.js";
@@ -43,19 +45,47 @@ function LookPicker() {
   );
 }
 
+interface Props {
+  ports: Ports;
+  isWorker: boolean;
+  /** Opens the Install screen. */
+  onInstall: () => void;
+}
+
+/** The one way from Settings to the Install screen, until the app is on the home screen. */
+function InstallRow({ onOpen }: { onOpen: () => void }) {
+  const { t } = useI18n();
+  const state = useInstallState();
+  if (!installOffered(state)) return null;
+  return (
+    <button type={C.button} className={`${C.card} install-row`} onClick={onOpen}>
+      <span className="install-badge" aria-hidden="true">
+        <Icon name="install" size={18} />
+      </span>
+      <span className="install-text">
+        <span className="install-title">{t("install.screen")}</span>
+        <span className="install-about">{t("install.about")}</span>
+      </span>
+      <span className="install-go" aria-hidden="true">
+        ›
+      </span>
+    </button>
+  );
+}
+
 /**
  * Settings, as collab's: the look, voice actions (workers), the model on this phone, how the agent bargains, and
- * installing the web app. Each saves as it changes, on this phone.
+ * a row to the Install screen. Each saves as it changes, on this phone.
  */
-export function SettingsPage({ ports, isWorker }: { ports: Ports; isWorker: boolean }) {
-  const { lang, t } = useI18n();
+export function SettingsPage({ ports, isWorker, onInstall }: Props) {
+  const { t } = useI18n();
   return (
     <PageFrame title={t("page.settings_title")} subtitle={t("page.settings_soft")}>
       <LookPicker />
       {isWorker && <SpeechSettings />}
       <ModelSettings ports={ports} />
       <TacticSetting ports={ports} />
-      <InstallCard place={InstallPlace.settings} lang={lang} />
+      <InstallRow onOpen={onInstall} />
     </PageFrame>
   );
 }

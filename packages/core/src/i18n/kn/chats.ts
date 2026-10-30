@@ -1,6 +1,6 @@
 import type { chats as en } from "../en/chats.js";
 
-/** Kannada: Talk's chats: the list of past chats, a new chat, and deleting one. */
+/** Kannada: Talk's and Find's chats: the list of past chats, a new chat, and deleting one. */
 export const chats: Readonly<Record<keyof typeof en, string>> = {
   "chats.new": "ಹೊಸ ಚಾಟ್",
   "chats.title": "ನಿಮ್ಮ ಚಾಟ್‌ಗಳು",
@@ -17,4 +17,7 @@ export const chats: Readonly<Record<keyof typeof en, string>> = {
   "chats.delete_confirm_card": "ಈ ಚಾಟ್ ಅಳಿಸಲೇ? ನಿಮ್ಮ ಅಪೂರ್ಣ ಕಾರ್ಡ್‌ನ ಉತ್ತರಗಳ ಜೊತೆಗೆ ಇದು ಈ ಫೋನ್‌ನಿಂದ ಹೋಗುತ್ತದೆ.",
   "chats.delete_yes": "ಅಳಿಸಿ",
   "chats.keep": "ಬೇಡ",
+  "chats.need_unsent": "ಇನ್ನೂ ಕೆಲಸಗಾರರಿಗೆ ಕಳಿಸಿಲ್ಲ",
+  "chats.delete_confirm_sent": "ಈ ಚಾಟ್ ಅಳಿಸಲೇ? ಇದು ಈ ಫೋನ್‌ನಿಂದ ಶಾಶ್ವತವಾಗಿ ಹೋಗುತ್ತದೆ; ಇದರ ಕೆಲಸ 'ನನ್ನ ಕೆಲಸಗಳು' ಪುಟದಲ್ಲಿ ಇರುತ್ತದೆ.",
+  "chats.new_need": "ಬೇರೆ ಏನಾದರೂ ಕೇಳಿ",
 };

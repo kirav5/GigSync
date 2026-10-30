@@ -2,10 +2,9 @@ import { type Chat, ChatDay, groupChats, MAX_CHATS, type MessageKey } from "@gig
 import { useState } from "react";
 import { stopSpeaking } from "../adapters/speech.js";
 import { useI18n } from "../i18n.js";
-import { openChat, removeChat, useTalk } from "../talk/talkStore.js";
-import type { Turn } from "../talk/turns.js";
 import { C } from "../ui/cls.js";
 import { Icon } from "../ui/Icon.js";
+import type { ChatList } from "./chatLists.js";
 
 /** The heading over each day of the list. */
 const DAY_LABEL: Readonly<Record<ChatDay, MessageKey>> = {
@@ -15,13 +14,13 @@ const DAY_LABEL: Readonly<Record<ChatDay, MessageKey>> = {
 };
 
 /** Going to another chat: a question being read aloud in this one stops. */
-export function going(to: () => void) {
+function going(to: () => void) {
   void stopSpeaking();
   to();
 }
 
-/** The trash button on one chat, and its one confirm; it says so when the chat holds the unfinished card. */
-function DeleteChat({ title, id, card }: { title: string; id: string; card: boolean }) {
+/** The trash button on one chat, and its one confirm, which says what goes with the chat and what stays. */
+function DeleteChat({ title, confirm, onDelete }: { title: string; confirm: MessageKey; onDelete: () => void }) {
   const { t } = useI18n();
   const [asking, setAsking] = useState(false);
   const label = t("chats.delete_label", { title });
@@ -32,9 +31,9 @@ function DeleteChat({ title, id, card }: { title: string; id: string; card: bool
       </button>
       {asking && (
         <div className={`${C.cardWait} chat-confirm`} role="dialog" aria-label={label}>
-          <p>{t(card ? "chats.delete_confirm_card" : "chats.delete_confirm")}</p>
+          <p>{t(confirm)}</p>
           <div className={C.actions}>
-            <button type={C.button} className={C.danger} onClick={() => going(() => removeChat(id))}>
+            <button type={C.button} className={C.danger} onClick={() => going(onDelete)}>
               {t("chats.delete_yes")}
             </button>
             <button type={C.button} className={C.secondary} onClick={() => setAsking(false)}>
@@ -47,13 +46,19 @@ function DeleteChat({ title, id, card }: { title: string; id: string; card: bool
   );
 }
 
-/** One chat in the menu: its title opens it (the open one is marked), the one holding the unfinished card says so. */
-function ChatRow({ chat, shown, onOpened }: { chat: Chat<Turn>; shown: boolean; onOpened: () => void }) {
+interface RowProps {
+  chat: Chat<unknown>;
+  list: ChatList;
+  shown: boolean;
+  onOpened: () => void;
+}
+
+/** One chat in the menu: its title opens it (the open one is marked), with a note when one is due. */
+function ChatRow({ chat, list, shown, onOpened }: RowProps) {
   const { t } = useI18n();
-  const { open, interviewIn } = useTalk();
   const title = chat.title ?? t("chats.untitled");
-  const card = interviewIn === chat.id;
-  const on = shown && chat.id === open;
+  const note = list.noteOf(chat.id);
+  const on = shown && chat.id === list.open;
   return (
     <li className="session-row">
       <button
@@ -63,28 +68,28 @@ function ChatRow({ chat, shown, onOpened }: { chat: Chat<Turn>; shown: boolean; 
         title={title}
         onClick={() =>
           going(() => {
-            openChat(chat.id);
+            list.openChat(chat.id);
             onOpened();
           })
         }
       >
         <span className="session-title">{title}</span>
-        {card && <span className={C.faint}>{t("chats.card_waiting")}</span>}
+        {note && <span className={C.faint}>{t(note)}</span>}
       </button>
-      <DeleteChat title={title} id={chat.id} card={card} />
+      <DeleteChat title={title} confirm={list.confirmOf(chat.id)} onDelete={() => list.removeChat(chat.id)} />
     </li>
   );
 }
 
 /**
- * A worker's chats on this phone, in the menu as the collab app lists its sessions: newest first under Today,
- * Yesterday and Earlier. `shown`: Talk is on screen, so the open chat is marked. Each can be deleted after a confirm.
+ * The owner's chats on this phone, a worker's Talk chats or a household's Find chats, in the menu as the collab app
+ * lists its sessions: newest first under Today, Yesterday and Earlier. `shown`: the chat is on screen, so the open one
+ * is marked. Each can be deleted after a confirm.
  */
-export function DrawerChats({ shown, onOpened }: { shown: boolean; onOpened: () => void }) {
+export function DrawerChats({ list, shown, onOpened }: { list: ChatList; shown: boolean; onOpened: () => void }) {
   const { t } = useI18n();
-  const { chats } = useTalk();
   const now = new Date();
-  const groups = groupChats(chats, now, -now.getTimezoneOffset());
+  const groups = groupChats(list.chats, now, -now.getTimezoneOffset());
   return (
     <section className="side-chats" aria-label={t("chats.title")}>
       {groups.length === 0 && <p className={C.faint}>{t("chats.empty")}</p>}
@@ -93,7 +98,7 @@ export function DrawerChats({ shown, onOpened }: { shown: boolean; onOpened: () 
           <span className={C.label}>{t(DAY_LABEL[day])}</span>
           <ul className="sessions">
             {inDay.map((chat) => (
-              <ChatRow key={chat.id} chat={chat} shown={shown} onOpened={onOpened} />
+              <ChatRow key={chat.id} chat={chat} list={list} shown={shown} onOpened={onOpened} />
             ))}
           </ul>
         </div>

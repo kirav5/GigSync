@@ -110,7 +110,8 @@ test("a Hindi household finds an electrician by tapping the choices", async ({ b
   await askOnly(page, hi, worker);
   await onScreen(page, "nav.my_jobs", hi);
   // Tapped together, the need is the trade's name, as the worker will read it.
-  await reveal(page, page.getByText(t(hi, "trade.electrician"), { exact: true }).first());
+  // In the job, not the menu: the chat kept there is titled by the same tap.
+  await reveal(page, page.getByRole("main").getByText(t(hi, "trade.electrician"), { exact: true }).first());
 
   // Back on Find, a new need starts afresh.
   await open(page, "nav.find", hi);

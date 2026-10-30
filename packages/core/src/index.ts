@@ -23,6 +23,7 @@ export {
   type NeedMemory,
   NeedSlot,
   type NeedState,
+  type NeedTo,
   needWithConfig,
   SEARCH_RADII_KM,
   searchedNeed,

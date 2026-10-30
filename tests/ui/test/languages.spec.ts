@@ -22,7 +22,7 @@ const JAYANAGAR = { lat: 12.9308, lon: 77.5838 };
 const { hi, kn, en } = Lang.enum;
 
 const KN_NEED = "ಬೆಳಗ್ಗೆ ಅಡುಗೆ ಮಾಡುವವರು ಬೇಕು";
-const KN_TIME = "ಬೆಳಗ್ಗೆ 7–10";
+const KN_TIME = "ಬೆಳಗ್ಗೆ 7 ಗಂಟೆ";
 const KN_MEALS = "ಬೆಳಗ್ಗೆ ಮತ್ತು ರಾತ್ರಿ";
 const HI_ABOUT_COOK = "उत्तर और दक्षिण भारतीय खाना";
 const HI_NOTE_GATE = "गेट पर 10 मिनट में पहुँचूँगी";
@@ -43,7 +43,7 @@ const OLD_NOTE = "मशीन अनुवाद";
 const TABLE: TranslationTable = {
   [pairKey(hi, kn, HI_ABOUT_COOK)]: "ಉತ್ತರ ಮತ್ತು ದಕ್ಷಿಣ ಭಾರತೀಯ ಅಡುಗೆ",
   [pairKey(kn, hi, KN_NEED)]: "सुबह खाना बनाने वाले चाहिए",
-  [pairKey(kn, hi, KN_TIME)]: "सुबह 7–10",
+  [pairKey(kn, hi, KN_TIME)]: "सुबह 7 बजे",
   [pairKey(kn, hi, KN_MEALS)]: "सुबह और रात",
   [pairKey(hi, kn, HI_NOTE_GATE)]: "10 ನಿಮಿಷದಲ್ಲಿ ಗೇಟ್ ತಲುಪುತ್ತೇನೆ",
   // A bad translation on purpose: ₹200 became ₹2000, so Ravi's phone must withhold it.
@@ -143,7 +143,7 @@ test("Hindi cook, Kannada household: every screen in its own language, free text
   // It is in the agents' talk (his answer to her agent's question) and again under Details.
   await expect(job.getByRole("list", { name: t(hi, "talk.title") })).toContainText("सुबह और रात");
   await reveal(asha.page, job.locator(".job-more").locator(TRANSLATED).filter({ hasText: "सुबह और रात" }));
-  await expect(job.locator(TRANSLATED).filter({ hasText: "सुबह 7–10" }).first()).toBeVisible(); // the time he gave
+  await expect(job.locator(TRANSLATED).filter({ hasText: "सुबह 7 बजे" }).first()).toBeVisible(); // the time he gave
   await expect(job).not.toContainText(KN_NEED);
   await expect(job).not.toContainText(KN_MEALS);
   const check = asha.page.getByRole("group", { name: t(hi, "a11y.approve") });
@@ -216,9 +216,9 @@ test("Hindi maid, English household: rooms priced from the band, words translate
     need: EN_NEED,
     when: "when.daily",
     time: EN_TIME,
+    detail: EN_ROOMS,
     budget: "7000",
   });
-  await meera.page.getByLabel(questionText(en, "rooms")).fill(EN_ROOMS);
   await expect(meera.page.getByLabel(t(en, "a11y.worker", { name: sunitaName })).locator(TRANSLATED)).toHaveText(
     "Sweeping, mopping, dishes",
   );

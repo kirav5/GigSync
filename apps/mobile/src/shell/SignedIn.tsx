@@ -3,14 +3,15 @@ import type { City, QrCode, UserId } from "@gigsync/protocol";
 import { type RefObject, useCallback, useEffect, useState } from "react";
 import { type Account, AccountRole } from "../adapters/account.js";
 import { keepBackInApp } from "../adapters/back.js";
-import type { ChosenWorker } from "../find/ask.js";
-import { restartNeed } from "../find/needStore.js";
+import { type ChosenWorker, needToOf } from "../find/ask.js";
+import { startFindChat } from "../find/findChats.js";
 import { useI18n } from "../i18n.js";
 import { useOpenedQr } from "../qr/useOpenedQr.js";
 import { LinksProvider } from "../screens/mentor/links.js";
 import { Screen } from "../state.js";
-import { startChat, useTalk } from "../talk/talkStore.js";
+import { startChat } from "../talk/talkStore.js";
 import type { GigView } from "../useGig.js";
+import { useChatList } from "./chatLists.js";
 import { drawerOpen, setDrawer, useDrawer } from "./drawer.js";
 import { backFrom, homeOf } from "./nav.js";
 import { ScreenView } from "./ScreenView.js";
@@ -30,12 +31,11 @@ interface Props {
   back: RefObject<() => boolean>;
 }
 
-/** The open chat's title for the top bar: a worker's Talk chat by its first words, a household's Find. */
+/** The open chat's title for the top bar, by its first words; until then "New chat" for a worker, "Find" for a household. */
 function useChatTitle(isWorker: boolean): string {
   const { t } = useI18n();
-  const { chats, open } = useTalk();
-  if (!isWorker) return t("nav.find");
-  return chats.find((c) => c.id === open)?.title ?? t("chats.new");
+  const { chats, open } = useChatList(isWorker);
+  return chats.find((c) => c.id === open)?.title ?? t(isWorker ? "chats.new" : "nav.find");
 }
 
 /**
@@ -49,14 +49,12 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
   const [screen, setScreen] = useState<Screen>(home);
   /** Talk opens on the card interview: set by every way into it, cleared once the card is published. */
   const [interview, setInterview] = useState(false);
-  const [findRound, setFindRound] = useState(0);
   /** Whose mentor link is open on its own screen. */
   const [openLink, setOpenLink] = useState<UserId>();
   /** The city of the move Talk is about, for the moving checklist (the landing journey) to start with. */
   const [movingTo, setMovingTo] = useState<City>();
-  /** The QR code whose owner the person screen shows, and a worker chosen from a QR or an offer for Find to ask. */
+  /** The QR code whose owner the person screen shows. */
   const [personCode, setPersonCode] = useState<QrCode>();
-  const [chosen, setChosen] = useState<ChosenWorker>();
   const open = useDrawer();
   const chatTitle = useChatTitle(isWorker);
 
@@ -87,10 +85,7 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
   );
   useEffect(() => keepBackInApp(screen !== home || open), [screen, home, open]);
 
-  const go = (s: Screen) => {
-    setChosen(undefined);
-    setScreen(s);
-  };
+  const go = (s: Screen) => setScreen(s);
   const moves = {
     go,
     showPerson,
@@ -110,18 +105,16 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
       setOpenLink(user);
       setScreen(Screen.link);
     },
+    /** A worker chosen from their QR or their offer: a new Find chat, addressed to them alone. */
     askFor: (worker: ChosenWorker) => {
-      setChosen(worker);
+      startFindChat(needToOf(worker));
       setScreen(Screen.find);
     },
   };
-  /** "New chat": a worker's open chat stays in the list and an empty one opens; a household's Find starts again. */
+  /** "New chat": the open chat stays in the list and an empty one opens. */
   const newChat = () => {
     if (isWorker) startChat();
-    else {
-      restartNeed();
-      setFindRound((n) => n + 1);
-    }
+    else startFindChat();
     go(home);
   };
   const data = {
@@ -132,8 +125,6 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
     view,
     run,
     interview,
-    findRound,
-    chosen,
     openLink,
     movingTo,
     personCode,

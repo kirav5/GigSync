@@ -2,7 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import { log } from "@gigsync/core";
 import { useSyncExternalStore } from "react";
 
-/** How this copy of the app could get onto the home screen, as the install card offers it. */
+/** How this copy of the app could get onto the home screen, as Install app and the install card offer it. */
 export const InstallState = {
   /** The Android or iPhone app: already installed, never offered. */
   native: "native",
@@ -17,6 +17,21 @@ export const InstallState = {
 } as const;
 export type InstallState = (typeof InstallState)[keyof typeof InstallState];
 
+/** The device and browser the Install screen says the steps for, where no prompt can do it. */
+export const InstallDevice = {
+  /** Safari on an iPhone or iPad. */
+  iphoneSafari: "iphone_safari",
+  /** Chrome, Firefox or Edge on an iPhone: Share is theirs too, or the page opens in Safari. */
+  iphoneOther: "iphone_other",
+  /** An Android phone: Chrome's menu ⋮. */
+  android: "android",
+  /** Safari on a Mac: File › Add to Dock, with no icon in the address bar. */
+  macSafari: "mac_safari",
+  /** Chrome or Edge on a computer: the install icon in the address bar, or the menu. */
+  computer: "computer",
+} as const;
+export type InstallDevice = (typeof InstallDevice)[keyof typeof InstallDevice];
+
 /** Chrome's install prompt, which TypeScript's DOM types leave out. */
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -30,10 +45,17 @@ const STANDALONE = "(display-mode: standalone)";
 /** Built into the web app's root by the plugin in vite.config.ts. */
 const SERVICE_WORKER = "./sw.js";
 const LOADED: DocumentReadyState = "complete";
-/** One flag per place, so "Not now" on the language screen still lets Profile offer it. */
-const dismissedKey = (place: string) => `gigsync-install-dismissed-${place}`;
+/** "Not now" on the language screen's card; the name keeps the place it had when Settings had a card too. */
+const DISMISSED_KEY = "gigsync-install-dismissed-onboarding";
 const IOS = /iPhone|iPod|iPad/;
 const MAC = /Macintosh/;
+const ANDROID = /Android/;
+/** The other browsers on an iPhone name themselves; Safari does not. */
+const IOS_OTHER_BROWSER = /CriOS|FxiOS|EdgiOS/;
+/** Every Chromium and Firefox build says "Safari" too, so Safari is the one that names no other engine. */
+const NOT_SAFARI = /Chrome|Chromium|CriOS|Edg|Firefox|FxiOS|OPR/;
+/** The states with something to offer: the app on the home screen, or the native one, needs no Install app. */
+const OFFERED: ReadonlySet<InstallState> = new Set([InstallState.prompt, InstallState.ios, InstallState.manual]);
 
 let offered: BeforeInstallPromptEvent | undefined;
 let installedHere = false;
@@ -51,6 +73,17 @@ const standalone = () => matchMedia(STANDALONE).matches || Reflect.get(navigator
 /** iPadOS asks for desktop pages and says "Macintosh"; only its touch screen gives it away. */
 const isIos = () => IOS.test(navigator.userAgent) || (MAC.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 
+/** Which steps to show for this device and browser. */
+export function installDevice(): InstallDevice {
+  const ua = navigator.userAgent;
+  if (isIos()) return IOS_OTHER_BROWSER.test(ua) ? InstallDevice.iphoneOther : InstallDevice.iphoneSafari;
+  if (ANDROID.test(ua)) return InstallDevice.android;
+  return MAC.test(ua) && !NOT_SAFARI.test(ua) ? InstallDevice.macSafari : InstallDevice.computer;
+}
+
+/** Whether there is anything to install: not in the native app, nor once on the home screen. */
+export const installOffered = (state: InstallState): boolean => OFFERED.has(state);
+
 function current(): InstallState {
   if (Capacitor.isNativePlatform()) return InstallState.native;
   if (installedHere || standalone()) return InstallState.installed;
@@ -66,7 +99,7 @@ function subscribe(listener: () => void) {
 }
 
 /**
- * Keeps Chrome's install prompt for the install card instead of letting the browser show its own banner, and notices
+ * Keeps Chrome's install prompt for Install app instead of letting the browser show its own banner, and notices
  * an install made from the browser's menu. Call once, before the first render: Chrome may fire the prompt early.
  */
 export function watchInstall(): void {
@@ -84,7 +117,7 @@ export function watchInstall(): void {
   });
 }
 
-/** The install card's state, kept current as Chrome offers or the owner installs. */
+/** The install state, kept current as Chrome offers or the owner installs. */
 export function useInstallState(): InstallState {
   return useSyncExternalStore(subscribe, current);
 }
@@ -102,18 +135,18 @@ export async function install(): Promise<boolean> {
   return installedHere;
 }
 
-/** Whether the owner said "Not now" to the card in this place. Storage can be blocked: then it shows again. */
-export function dismissed(place: string): boolean {
+/** Whether the owner said "Not now" to the language screen's card. Storage can be blocked: then it shows again. */
+export function dismissed(): boolean {
   try {
-    return localStorage.getItem(dismissedKey(place)) !== null;
+    return localStorage.getItem(DISMISSED_KEY) !== null;
   } catch {
     return false;
   }
 }
 
-export function dismiss(place: string): void {
+export function dismiss(): void {
   try {
-    localStorage.setItem(dismissedKey(place), new Date().toISOString());
+    localStorage.setItem(DISMISSED_KEY, new Date().toISOString());
   } catch {
     // Private mode or blocked storage: the card simply shows again next time.
   }

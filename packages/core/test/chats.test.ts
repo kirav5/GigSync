@@ -3,6 +3,7 @@ import {
   CHAT_TITLE_CHARS,
   type Chat,
   ChatDay,
+  ChatShelf,
   Collection,
   chatTitle,
   deleteChat,
@@ -111,23 +112,36 @@ describe("chats on the phone", () => {
     const { phone, sita, geeta } = phoneOwners();
     const [mine, theirs] = [new OwnerStorage(phone, sita), new OwnerStorage(phone, geeta)];
     const [older, newer] = [chatAt(ago(5), "older"), chatAt(ago(1), "newer")];
-    await saveChat(mine, older);
-    await saveChat(mine, newer);
-    expect((await loadChats(mine)).map((c) => c.id)).toEqual([newer.id, older.id]);
+    await saveChat(mine, ChatShelf.talk, older);
+    await saveChat(mine, ChatShelf.talk, newer);
+    expect((await loadChats(mine, ChatShelf.talk)).map((c) => c.id)).toEqual([newer.id, older.id]);
     // Another owner signing in on the same phone sees none of them.
-    expect(await loadChats(theirs)).toEqual([]);
-    await deleteChat(mine, older.id);
-    expect((await loadChats(mine)).map((c) => c.id)).toEqual([newer.id]);
+    expect(await loadChats(theirs, ChatShelf.talk)).toEqual([]);
+    await deleteChat(mine, ChatShelf.talk, older.id);
+    expect((await loadChats(mine, ChatShelf.talk)).map((c) => c.id)).toEqual([newer.id]);
+  });
+
+  it("keeps a household's Find chats apart from Talk's", async () => {
+    const { phone, sita } = phoneOwners();
+    const mine = new OwnerStorage(phone, sita);
+    const [talk, find] = [chatAt(ago(2), "talk"), chatAt(ago(1), "find")];
+    await saveChat(mine, ChatShelf.talk, talk);
+    await saveChat(mine, ChatShelf.find, find);
+    expect((await loadChats(mine, ChatShelf.talk)).map((c) => c.id)).toEqual([talk.id]);
+    expect((await loadChats(mine, ChatShelf.find)).map((c) => c.id)).toEqual([find.id]);
+    await deleteChat(mine, ChatShelf.find, find.id);
+    expect(await loadChats(mine, ChatShelf.find)).toEqual([]);
+    expect(await loadChats(mine, ChatShelf.talk)).toHaveLength(1);
   });
 
   it("skips records without a chat's shape, and removes the old agent log", async () => {
     const { phone, sita } = phoneOwners();
     const mine = new OwnerStorage(phone, sita);
     const kept = chatAt(ago(1));
-    await saveChat(mine, kept);
+    await saveChat(mine, ChatShelf.talk, kept);
     await mine.put(Collection.chat, "ch_1730000000000", { text: "a note", at: NOW.toISOString() });
     await mine.put(Collection.chat, "chat_future", { ...kept, id: "chat_future", v: 2 });
-    expect((await loadChats(mine)).map((c) => c.id)).toEqual([kept.id]);
+    expect((await loadChats(mine, ChatShelf.talk)).map((c) => c.id)).toEqual([kept.id]);
     expect(await mine.ids(Collection.chat)).not.toContain("ch_1730000000000");
     // A record from a newer app is left alone, for that app to read.
     expect(await mine.ids(Collection.chat)).toContain("chat_future");

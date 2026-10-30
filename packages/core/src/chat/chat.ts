@@ -1,10 +1,10 @@
 import { ulid } from "ulid";
 
 /**
- * Talk's chats, as the collab app kept its sessions: every conversation with the agent is one chat, kept on the phone
- * under its owner (ADR 0032, ADR 0035) until the owner deletes it. A chat is a list of turns of any kind; the app
- * decides what a turn holds (a note and its answer, a card interview's question, a move) and tells the core only which
- * words in a turn are the owner's own, for the chat's title.
+ * Talk's and Find's chats, as the collab app kept its sessions: every conversation with the agent is one chat, kept on
+ * the phone under its owner (ADR 0032, ADR 0035) until the owner deletes it. A chat is a list of turns of any kind;
+ * the app decides what a turn holds (a note and its answer, a card interview's question, a household's need) and tells
+ * the core only which words in a turn are the owner's own, for the chat's title.
  */
 
 /** The version of a kept chat's shape; a record of another version is not read back. */
@@ -59,8 +59,9 @@ export function chatTitle(words: string): string | undefined {
 /**
  * The chat with its turns now `turns`, changed at `now`: the oldest dropped past `MAX_CHAT_TURNS`, and titled from the
  * owner's first words in it if it had no title yet. A title once given stays, even when its turn is dropped as old.
+ * What else the app keeps with a chat (`C`) comes along unchanged.
  */
-export function withTurns<T>(chat: Chat<T>, turns: readonly T[], now: Date, wordsOf: WordsOf<T>): Chat<T> {
+export function withTurns<T, C extends Chat<T>>(chat: C, turns: readonly T[], now: Date, wordsOf: WordsOf<T>): C {
   const kept = turns.length > MAX_CHAT_TURNS ? turns.slice(-MAX_CHAT_TURNS) : turns;
   const title = chat.title ?? firstTitle(turns, wordsOf);
   return { ...chat, title, turns: kept, updated_at: now.toISOString() };

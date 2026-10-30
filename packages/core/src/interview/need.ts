@@ -1,4 +1,11 @@
-import { AnswerFromMemory, type Lang, type QuestionKey, type RateCard, type Trade } from "@gigsync/protocol";
+import {
+  AnswerFromMemory,
+  type Lang,
+  type QuestionKey,
+  type RateCard,
+  type Trade,
+  type UserId,
+} from "@gigsync/protocol";
 import { EVERY_DAY, isMonthly } from "../job/when.js";
 import { QUESTIONS } from "../job/worker.js";
 import type { Known } from "../memory/known.js";
@@ -57,6 +64,18 @@ export interface NeedMemory {
   facts: Partial<Record<QuestionKey, Known>>;
 }
 
+/**
+ * The one worker a need is addressed to, when the household chose them before asking (their QR, their offer to work):
+ * the interview asks only what that worker needs to hear, never searches, and sends to them alone (ADR 0035).
+ */
+export interface NeedTo {
+  user: UserId;
+  /** Their name on their card, as the questions say it. */
+  name: string;
+  /** The trades on their card: the need is for one of them, asked only when there are several. */
+  trades: readonly Trade[];
+}
+
 /** Where the interview is: a field being asked, the readback, the search, or what it found. */
 export const NeedSlot = {
   trade: "trade",
@@ -107,6 +126,8 @@ export interface NeedState {
   readonly filled: readonly NeedSlot[];
   /** The rate estimate the app found for the job as described (`need-estimate.ts`), if any. */
   readonly estimate?: FoundEstimate | undefined;
+  /** The worker the need is addressed to; undefined when the board is searched. */
+  readonly to?: NeedTo | undefined;
 }
 
 /** The trade's first question, which the request answers up front so the worker's agent need not ask it. */
@@ -135,10 +156,14 @@ export function withTrade(d: NeedDraft, trade: Trade): NeedDraft {
   return { ...d, trade, detail: first ? d.seen[first] : undefined, ...(day ? { day } : {}) };
 }
 
-export function startNeed(config: NeedConfig): NeedState {
+/** A new need; addressed `to` one worker, it is for their trade from the start when their card has only one. */
+export function startNeed(config: NeedConfig, to?: NeedTo): NeedState {
+  const [only, ...others] = to?.trades ?? [];
+  const draft: NeedDraft = only && others.length === 0 ? withTrade({ seen: {} }, only) : { seen: {} };
   return {
     config,
-    draft: { seen: {} },
+    draft,
+    ...(to ? { to } : {}),
     slot: NeedSlot.trade,
     notes: [],
     changing: false,
@@ -148,6 +173,10 @@ export function startNeed(config: NeedConfig): NeedState {
     filled: [],
   };
 }
+
+/** A trade the need can be for: any, or one on the card of the worker it is addressed to. */
+export const tradeFor = (s: NeedState, trade: Trade | undefined): trade is Trade =>
+  trade !== undefined && (!s.to || s.to.trades.includes(trade));
 
 /** The same question again, after a note saying why. */
 export const retryNeed = (s: NeedState, note: Line): NeedState => ({ ...s, notes: [note], fresh: false });

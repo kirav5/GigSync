@@ -1,6 +1,7 @@
 import { HttpMethod, t } from "@gigsync/core";
 import { Lang, MyQr, type QrCode } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
+import { tellNeed } from "./findChat.js";
 import {
   API,
   APP,
@@ -77,17 +78,14 @@ async function openMyQr(page: Page, name: string, shot?: string): Promise<QrCode
 
 const ask = (page: Page, name: string) => page.getByRole("button", { name: t(en, "qr.ask", { name }) });
 
-/** Fills the ask the household's chosen worker gets, and sends it to them alone. */
+/** In the chat addressed to the household's chosen worker, says the need and sends it to them alone. */
 async function sendAsk(page: Page, worker: string) {
-  await expect(page.getByRole("checkbox", { name: t(en, "a11y.ask_worker", { name: worker }) })).toBeChecked();
-  await page.getByLabel(t(en, "find.need_label"), { exact: true }).fill("Ceiling fan stopped working");
-  await page
-    .getByRole("group", { name: t(en, "find.when") })
-    .getByRole("button", { name: t(en, "when.today") })
-    .click();
-  await page.getByLabel(t(en, "find.budget")).fill("650");
-  await page.getByRole("button", { name: "Ask 1 worker" }).click();
-  // His agent got the request: it asks what is wrong, which only Priya can answer.
+  await expect(page.getByRole("log")).toContainText(t(en, "need.start_to", { name: worker }));
+  await tellNeed(
+    { page, lang: en },
+    { area: "Indiranagar", need: "Need an electrician", when: "when.today", budget: "650" },
+  );
+  // His agent got the request: it asks what is wrong (she skipped it in the chat), which only Priya can answer.
   await expect(page.getByRole("form", { name: t(en, "a11y.answer") })).toBeVisible();
 }
 

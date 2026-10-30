@@ -1,5 +1,6 @@
 import {
   type Chat,
+  ChatShelf,
   type InterviewState,
   loadChats,
   MAX_CHATS,
@@ -174,7 +175,7 @@ export function removeChat(id: string): void {
 export async function loadTalk(ports: Owner): Promise<void> {
   const mine = ++generation;
   owner = undefined;
-  const records = await loadChats(ports.storage);
+  const records = await loadChats(ports.storage, ChatShelf.talk);
   if (mine !== generation) return;
   const read = records.map(readChat);
   turnIdsSeen(Math.max(0, ...read.flatMap(({ chat }) => chat.turns.map((turn) => turn.id))));

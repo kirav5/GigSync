@@ -6,9 +6,10 @@ import { keepBackInApp, onBackButton } from "./adapters/back.js";
 import { loadLang, saveLang, suggestedLang } from "./adapters/lang.js";
 import { chosenModel } from "./adapters/model.js";
 import { createPorts } from "./adapters/ports.js";
+import { prepareListening } from "./adapters/speech.js";
 import { forgetCloudConsent } from "./adapters/speech-settings.js";
 import { fetchPacksOnTap, prepareLanguage } from "./adapters/translate.js";
-import { endNeed } from "./find/needStore.js";
+import { forgetFind, loadFind } from "./find/findChats.js";
 import { I18nProvider } from "./i18n.js";
 import { LanguageChooser } from "./screens/Language.js";
 import { SignIn } from "./screens/SignIn.js";
@@ -38,6 +39,8 @@ export function App() {
       void saveLang(ports, next);
       // Picked with a tap, the one moment engines allow a download: other people's words are ready in it.
       prepareLanguage(next);
+      // And its voice typing, where the phone can fetch it.
+      prepareListening(next);
     },
     [ports],
   );
@@ -55,9 +58,11 @@ export function App() {
     void chosenModel.load(ports.storage);
   }, [ports]);
 
-  // Talk's chats are the owner's: read once they are signed in, from their records on this phone.
+  // Talk's and Find's chats are the owner's: read once they are signed in, from their records on this phone.
   useEffect(() => {
-    if (owner) void loadTalk(owned);
+    if (!owner) return;
+    void loadTalk(owned);
+    void loadFind(owned);
   }, [owner, owned]);
 
   // Back (Android's button, the browser's, or the one on screen): the signed-in screens move back one place
@@ -89,10 +94,10 @@ export function App() {
   const signOutNow = () =>
     // Their records stay on the phone under their name, for when they sign in again.
     void signOut(ports).then(() => {
-      // Talk's chats stay on the phone under their name, off the screen. Find's chat (not yet saved) and the
-      // companies they let hear them were theirs alone.
+      // Talk's and Find's chats stay on the phone under their name, off the screen. The companies they let hear
+      // them were theirs alone.
       forgetTalk();
-      endNeed();
+      forgetFind();
       forgetCloudConsent();
       setDrawer(false);
       setAccount(null);

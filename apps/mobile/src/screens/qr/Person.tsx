@@ -15,7 +15,7 @@ interface Props {
   device: GigDevice;
   run: (work: () => Promise<unknown>) => Promise<unknown>;
   code: QrCode;
-  /** Opens the usual ask with this worker chosen. */
+  /** Opens a Find chat addressed to this worker. */
   onAsk: (worker: ChosenWorker) => void;
 }
 

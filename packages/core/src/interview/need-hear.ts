@@ -20,6 +20,7 @@ import {
   retryNeed,
   SEARCH_RADII_KM,
   takeRecalled,
+  tradeFor,
   withTrade,
 } from "./need.js";
 import { suggestedBudget } from "./need-estimate.js";
@@ -108,9 +109,10 @@ function detailAnswer(s: NeedState, text: string): string | null | undefined {
 function onSlot(s: NeedState, d: NeedDraft, text: string, fill: NeedFill, aloud: boolean): NeedState | undefined {
   switch (s.slot) {
     case NeedSlot.trade: {
-      // Changing the trade from the readback needs a trade in the answer, and its words describe the new need.
-      const editing = s.draft.trade !== undefined;
-      const trade = fill.trade ?? (editing ? undefined : d.trade);
+      // Changing the trade from the readback needs a trade in the answer, and its words describe the new need. A need
+      // addressed to one worker takes only a trade on their card, already set when they have one.
+      const editing = s.draft.trade !== undefined && !s.fresh;
+      const trade = [fill.trade, editing ? undefined : d.trade].find((tr) => tradeFor(s, tr));
       if (!trade) return undefined;
       const need = editing ? fill.words || d.need : joined(d.need, fill.words);
       return moveOn(s, { ...withTrade(d, trade), need });
@@ -237,7 +239,7 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
   switch (s.slot) {
     case NeedSlot.trade: {
       const trade = Trade.options.find((tr) => tr === value);
-      return trade ? moveOn(s, withTrade(d, trade)) : s;
+      return tradeFor(s, trade) ? moveOn(s, withTrade(d, trade)) : s;
     }
     case NeedSlot.detail: {
       if (value === Pick.skip) return moveOn(s, { ...d, detail: null });

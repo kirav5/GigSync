@@ -7,8 +7,9 @@ import { Screen } from "../state.js";
 import { C } from "../ui/cls.js";
 import { Icon } from "../ui/Icon.js";
 import { Logo } from "../ui/Logo.js";
+import { useChatList } from "./chatLists.js";
 import { DrawerChats } from "./DrawerChats.js";
-import { COUNTED_ROW, DOTTED_ROW, isHome, NAV_ROWS, type NavRow } from "./nav.js";
+import { COUNTED_ROW, DOTTED_ROW, homeOf, isHome, NAV_ROWS, type NavRow } from "./nav.js";
 import { SideFoot } from "./SideFoot.js";
 
 /** The menu's id, which the top bar's menu button controls. */
@@ -100,7 +101,7 @@ function Row({
 export function Sidebar(props: SidebarProps) {
   const { account, screen, onScreen, onNewChat, onSignOut, tasks, unread, drawer, onClose } = props;
   const { t, plural } = useI18n();
-  const isWorker = account.role === AccountRole.worker;
+  const chats = useChatList(account.role === AccountRole.worker);
   const needYou = plural("shell.need_you", tasks);
   return (
     <nav id={SIDEBAR_ID} className="sidebar" aria-label={t("shell.drawer")}>
@@ -140,13 +141,14 @@ export function Sidebar(props: SidebarProps) {
             />
           ))}
         </div>
-        {isWorker ? (
-          <DrawerChats shown={isHome(screen)} onOpened={() => onScreen(Screen.talk)} />
-        ) : (
-          <p className={C.faint}>{t("shell.find_fresh")}</p>
-        )}
+        <DrawerChats list={chats} shown={isHome(screen)} onOpened={() => onScreen(homeOf(account))} />
       </div>
-      <SideFoot account={account} onAbout={() => onScreen(Screen.about)} onSignOut={onSignOut} />
+      <SideFoot
+        account={account}
+        onAbout={() => onScreen(Screen.about)}
+        onSignOut={onSignOut}
+        onInstallSteps={() => onScreen(Screen.install)}
+      />
     </nav>
   );
 }

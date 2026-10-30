@@ -1,8 +1,8 @@
 import { t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, test } from "@playwright/test";
+import { tellNeed } from "./findChat.js";
 import { APP, newPhone, open, Role, RUN, SHOTS, signIn } from "./helpers.js";
-import { switchToForm } from "./journey.js";
 
 /**
  * The installed web app without a network (round2-spec §6): a production build, served where the dev server usually
@@ -36,20 +36,20 @@ test("the installed web app opens offline, keeps the owner signed in, and says i
     address: "Indiranagar",
     lang: hi,
   });
-  await switchToForm({ page, lang: hi });
-  // Hindi names the Find tab and its search button alike ("खोजें"): the button is the one in the page.
-  const search = page.getByRole("main").getByRole("button", { name: t(hi, "find.search") });
-  await expect(search).toBeVisible();
+  const chat = page.getByRole("form", { name: t(hi, "need.composer") });
+  await expect(chat).toBeVisible();
   await page.screenshot({ path: `${DIR}01-online.png` });
 
   await ctx.setOffline(true);
   await page.reload();
-  // Opened from the cache, still signed in, still in Hindi; a reload opens Find on the chat again.
-  await switchToForm({ page, lang: hi });
-  await expect(search).toBeVisible();
+  // Opened from the cache, still signed in, still in Hindi, on Find's chat.
+  await expect(chat).toBeVisible();
   await page.screenshot({ path: `${DIR}02-offline-reopened.png` });
-  await search.click();
-  await expect(page.getByText(t(hi, "net.no_internet"))).toBeVisible({ timeout: 20_000 });
+  await tellNeed(
+    { page, lang: hi },
+    { trade: "electrician", area: "Indiranagar", need: t(hi, "trade.electrician"), when: "when.today", budget: "700" },
+  );
+  await expect(page.getByRole("log").getByText(t(hi, "net.no_internet"))).toBeVisible({ timeout: 20_000 });
   await page.screenshot({ path: `${DIR}03-offline-search.png` });
   await open(page, "nav.about", hi);
   await page.screenshot({ path: `${DIR}04-offline-about.png` });

@@ -17,7 +17,7 @@ export const Screen = {
   about: "about",
   /** Price sharing and mentor links. */
   privacy: "privacy",
-  /** Look, voice actions, the on-device model, how the agent bargains, installing the app. */
+  /** Look, voice actions, the on-device model, how the agent bargains, and a row to Install. */
   settings: "settings",
   /** The worker's card as a form, to review and change; opened from My card. */
   cardEdit: "card_edit",
@@ -29,6 +29,8 @@ export const Screen = {
   findMentor: "find_mentor",
   /** Whoever a scanned QR or an opened QR link finds. */
   person: "person",
+  /** The steps to put the web app on the home screen, from the menu's Install app or Settings. */
+  install: "install",
 } as const;
 export type Screen = (typeof Screen)[keyof typeof Screen];
 

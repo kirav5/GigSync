@@ -34,6 +34,7 @@ const SUB_SCREENS: Partial<Record<Screen, { title: MessageKey; parent?: Screen }
   [Screen.landing]: { title: "landing.title", parent: Screen.talk },
   [Screen.findMentor]: { title: "mentor.find", parent: Screen.talk },
   [Screen.person]: { title: "qr.person" },
+  [Screen.install]: { title: "install.screen" },
 };
 
 /** The chat each owner lands on, and where Back ends: Find's chat for a household, Talk for a worker. */

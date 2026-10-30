@@ -14,10 +14,13 @@ const cardLang = (w: BoardWorker) => w.languages.map((l) => Lang.safeParse(l)).f
 export function WorkerPick({
   worker: w,
   picked,
+  disabled = false,
   onToggle,
 }: {
   worker: BoardWorker;
   picked: boolean;
+  /** The workers were asked already: the box shows who was picked, and no longer changes. */
+  disabled?: boolean;
   onToggle: () => void;
 }) {
   const { lang, t } = useI18n();
@@ -33,6 +36,7 @@ export function WorkerPick({
           type="checkbox"
           aria-label={t("a11y.ask_worker", { name: w.display_name })}
           checked={picked}
+          disabled={disabled}
           onChange={onToggle}
         />
         <span className="avatar" aria-hidden="true">

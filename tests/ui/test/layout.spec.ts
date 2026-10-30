@@ -1,8 +1,8 @@
 import { type ApiClient, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, type Locator, type Page, test } from "@playwright/test";
+import { tellNeed } from "./findChat.js";
 import { APP, completeSignIn, counted, listWorker, menuButton, newPhone, openCard, Role, RUN } from "./helpers.js";
-import { switchToForm } from "./journey.js";
 
 /**
  * A 360×640 phone, the small end of what pilot workers carry: on every screen with a dock, its one action is on
@@ -100,14 +100,13 @@ test("a household's screens at 360×640 in Hindi: Language, Sign-in and Find's A
     lang: hi,
   });
 
-  await switchToForm({ page, lang: hi });
-  const search = page.getByRole("form", { name: t(hi, "a11y.search") });
-  await tappable(search.getByRole("combobox"));
-  await search.getByLabel(t(hi, "find.trade")).selectOption("painter");
-  await search.getByLabel(t(hi, "find.area")).selectOption("Whitefield");
-  await search.getByRole("button", { name: t(hi, "find.search") }).click();
+  // Find's chat on a small phone: its choices are tappable, the found workers listed, and Ask reachable.
+  await tappable(page.getByRole("log").getByRole("button", { name: t(hi, "trade.painter"), exact: true }));
+  await tellNeed(
+    { page, lang: hi },
+    { trade: "painter", area: "Whitefield", need: t(hi, "trade.painter"), when: "when.today", budget: "8000" },
+  );
   await expect(page.getByLabel(t(hi, "a11y.worker", { name }))).toBeVisible();
-  // The ask goes from the dock, whatever the list's length: scrolling the workers never hides it.
   const ask = page.getByRole("button", { name: counted(hi, "find.ask") });
   await fits(page, ask, hi);
   expect(await fontPx(ask)).toBeGreaterThanOrEqual(BUTTON_MIN_PX);

@@ -98,14 +98,15 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
 
   // ── Priya signs in and finds electricians near Indiranagar; she asks only Anil, for today ──────────────────────
   await signIn(priya, { role: Role.consumer, name: priyaName, phone: newPhone(), address: ADDRESS });
-  // She does not say what is wrong, and keeps ₹650 as her private limit.
+  // She does not say what is wrong (only the kind of worker, and she skips the chat's question about it), and keeps
+  // ₹650 as her private limit.
   await fillAsk(
     { page: priya, lang: en },
     {
       trade: "electrician",
       area: "Indiranagar",
       worker: anilName,
-      need: "Ceiling fan stopped working",
+      need: "Need an electrician",
       when: "when.today",
       budget: "650",
     },

@@ -10,4 +10,4 @@ export {
   withTurns,
 } from "./chat.js";
 export { ChatDay, type ChatGroup, groupChats, pruneChats } from "./list.js";
-export { deleteChat, loadChats, saveChat } from "./store.js";
+export { ChatShelf, deleteChat, loadChats, saveChat } from "./store.js";

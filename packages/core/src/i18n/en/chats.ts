@@ -1,4 +1,4 @@
-/** Talk's chats: the list of past chats, a new chat, and deleting one. */
+/** Talk's and Find's chats: the list of past chats, a new chat, and deleting one. */
 export const chats = {
   "chats.new": "New chat",
   "chats.title": "Your chats",
@@ -16,4 +16,7 @@ export const chats = {
   "chats.delete_confirm_card": "Delete this chat? It is removed from this phone, with your unfinished card's answers.",
   "chats.delete_yes": "Delete",
   "chats.keep": "Keep it",
+  "chats.need_unsent": "Not sent to workers yet",
+  "chats.delete_confirm_sent": "Delete this chat? It is removed from this phone for good; its job stays in My jobs.",
+  "chats.new_need": "Ask for something else",
 } as const;

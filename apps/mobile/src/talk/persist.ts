@@ -1,6 +1,7 @@
-import { type Chat, deleteChat, type InterviewState, log, Slot, type Storage, saveChat } from "@gigsync/core";
+import { type Chat, ChatShelf, type InterviewState, Slot, type Storage } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { interviewConfig } from "../card/choices.js";
+import { keepChats } from "../chats/keep.js";
 import type { LiveInterview, Talk } from "./talkStore.js";
 import { isTurn, type Turn } from "./turns.js";
 
@@ -78,29 +79,16 @@ export function readChat(record: Chat<unknown>): {
   return { chat, interview: { state: { ...kept, config: interviewConfig(held.own) }, paused: held.paused } };
 }
 
-/** Writes run one after another, so a chat's records land in the order its turns changed. */
-let writes: Promise<void> = Promise.resolve();
-function queue(job: () => Promise<void>): void {
-  writes = writes
-    .then(job)
-    .catch((err: unknown) =>
-      log.warn("talk chat not kept", { error: err instanceof Error ? err.message : String(err) }),
-    );
-}
-
 const heldIn = (talk: Talk, chat: string) => (talk.live?.chat === chat ? talk.live : undefined);
 
 /** Keeps on `storage` (the owner's) what changed between two states of Talk: chats changed, emptied or gone. */
 export function keepChanges(storage: Storage, prev: Talk, next: Talk): void {
-  const before = new Map(prev.chats.map((c) => [c.id, c]));
-  for (const chat of next.chats) {
-    const live = heldIn(next, chat.id);
-    if (before.get(chat.id) === chat && heldIn(prev, chat.id) === live) continue;
-    if (chat.turns.length > 0) {
-      const record: KeptChat = { ...chat, interview: live && hold(live) };
-      queue(() => saveChat(storage, record));
-    } else if (before.has(chat.id)) queue(() => deleteChat(storage, chat.id));
-  }
-  const kept = new Set(next.chats.map((c) => c.id));
-  for (const id of before.keys()) if (!kept.has(id)) queue(() => deleteChat(storage, id));
+  keepChats(storage, ChatShelf.talk, prev.chats, next.chats, {
+    changed: (chat, before) => before !== chat || heldIn(prev, chat.id) !== heldIn(next, chat.id),
+    recordOf: (chat): KeptChat | undefined => {
+      if (chat.turns.length === 0) return undefined;
+      const live = heldIn(next, chat.id);
+      return { ...chat, interview: live && hold(live) };
+    },
+  });
 }

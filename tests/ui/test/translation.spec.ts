@@ -1,8 +1,8 @@
 import { type ApiClient, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
+import { tellNeed } from "./findChat.js";
 import { listWorker, newPhone, Role, RUN, signIn } from "./helpers.js";
-import { switchToForm } from "./journey.js";
 import { pairKey, useDownloadableTranslator, useSilentTranslator, useUnfetchableTranslator } from "./translator.js";
 
 /**
@@ -19,6 +19,14 @@ let other: ApiClient | undefined;
 test.afterEach(async () => {
   await other?.removeProfile();
 });
+
+/** Ravi asks Find's chat for a cook in HSR Layout, in Kannada, and says yes: the cooks nearby are listed. */
+async function searchCooks(page: Page) {
+  await tellNeed(
+    { page, lang: kn },
+    { trade: "cook", area: "HSR Layout", need: t(kn, "trade.cook"), when: "when.daily", budget: "9000" },
+  );
+}
 
 test("a translator that never answers falls back to the original, labelled, within seconds", async ({ browser }) => {
   const context = await browser.newContext();
@@ -41,11 +49,7 @@ test("a translator that never answers falls back to the original, labelled, with
   });
 
   await signIn(page, { role: Role.consumer, name: `Ravi ${RUN}`, phone: newPhone(), address: "HSR", lang: kn });
-  await switchToForm({ page, lang: kn });
-  const search = page.getByRole("form", { name: t(kn, "a11y.search") });
-  await search.getByLabel(t(kn, "find.trade")).selectOption("cook");
-  await search.getByLabel(t(kn, "find.area")).selectOption("HSR Layout");
-  await search.getByRole("button", { name: t(kn, "find.search") }).click();
+  await searchCooks(page);
   const card = page.getByLabel(t(kn, "a11y.worker", { name }));
   await expect(card).toContainText(t(kn, "said.cannot", { lang: t(kn, "lang.hi") }), { timeout: 10_000 });
   await expect(card.locator('[data-said="original"]')).toHaveText(ABOUT);
@@ -81,11 +85,7 @@ test("language packs come by themselves: choosing a language fetches them, and a
   expect((await fetches()).every((f) => f.tapped)).toBe(true);
 
   // Her Hindi "about" reads in Kannada, and nowhere is there a download button.
-  await switchToForm({ page, lang: kn });
-  const search = page.getByRole("form", { name: t(kn, "a11y.search") });
-  await search.getByLabel(t(kn, "find.trade")).selectOption("cook");
-  await search.getByLabel(t(kn, "find.area")).selectOption("HSR Layout");
-  await search.getByRole("button", { name: t(kn, "find.search") }).click();
+  await searchCooks(page);
   const card = page.getByLabel(t(kn, "a11y.worker", { name }));
   await expect(card.locator('[data-said="translated"]')).toHaveText(KN_ABOUT);
   await expect(page.getByRole("button", { name: /download|ಡೌನ್‌ಲೋಡ್/i })).toHaveCount(0);
@@ -113,11 +113,7 @@ test("a pack that never arrives ends on the original with the reason, not an end
     about: ABOUT,
   });
   await signIn(page, { role: Role.consumer, name: `Ravi ${RUN}`, phone: newPhone(), address: "HSR", lang: kn });
-  await switchToForm({ page, lang: kn });
-  const search = page.getByRole("form", { name: t(kn, "a11y.search") });
-  await search.getByLabel(t(kn, "find.trade")).selectOption("cook");
-  await search.getByLabel(t(kn, "find.area")).selectOption("HSR Layout");
-  await search.getByRole("button", { name: t(kn, "find.search") }).click();
+  await searchCooks(page);
   const card = page.getByLabel(t(kn, "a11y.worker", { name }));
   await expect(card).toContainText(t(kn, "said.cannot", { lang: t(kn, "lang.hi") }), { timeout: 10_000 });
   await expect(card).not.toContainText(t(kn, "said.translating"));

@@ -65,7 +65,8 @@ test("a finished job shows in Passbook's record under its month, and opens in pl
     trade: "carpenter",
     area: "Whitefield",
     worker: workerName,
-    need: "Bedroom door will not close",
+    // Only the kind of worker: the chat's question about what is wrong is skipped, so his agent asks it.
+    need: "Need a carpenter",
     when: "when.today",
     budget: "650",
   });

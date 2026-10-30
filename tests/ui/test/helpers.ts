@@ -111,14 +111,22 @@ export async function setUpi(page: Page, lang: Lang, vpa: string) {
   await expect(page.getByRole("status").filter({ hasText: t(lang, "settings.saved") })).toBeVisible();
 }
 
-/** What the fake engine pretends about this phone besides hearing: no mode is an on-device recognizer. */
-export const FakeSpeechMode = { cloud: "cloud", none: "none" } as const;
-type FakeSpeechMode = (typeof FakeSpeechMode)[keyof typeof FakeSpeechMode];
+/**
+ * What the fake engine pretends about this phone besides hearing: no mode is an on-device recognizer. "downloadable":
+ * the recognizer and the voice come once fetched during a tap; "unfetchable": they are offered but never come.
+ */
+export const FakeSpeechMode = {
+  cloud: "cloud",
+  none: "none",
+  downloadable: "downloadable",
+  unfetchable: "unfetchable",
+} as const;
+export type FakeSpeechMode = (typeof FakeSpeechMode)[keyof typeof FakeSpeechMode];
 
 /**
  * Dev builds only: each tap on the mic hears the next of `answers` (apps/mobile/src/adapters/speech-fake.ts). "cloud"
  * says the phone has no on-device recognizer but a cloud one from Google, so the consent sheet shows. Written once per
- * tab, so a reload keeps whatever the engine has not heard yet.
+ * tab; a reload starts the answers again, and forgets what the engine fetched.
  */
 export async function fakeSpeech(page: Page, answers: readonly string[], mode?: FakeSpeechMode) {
   await page.addInitScript(
@@ -133,6 +141,20 @@ export async function fakeSpeech(page: Page, answers: readonly string[], mode?: 
     { answers, mode },
   );
 }
+
+/** One fetch the fake engine was asked for: the locale, "listen" or "speak", and whether it came during a tap. */
+export interface FakeFetch {
+  lang: string;
+  mode: string;
+  tapped: boolean;
+}
+
+/** What the fake engine logged under `key`: its fetches ("gigsync-fake-speech-fetches") or what it read aloud. */
+async function fakeLog<T>(page: Page, key: string): Promise<T[]> {
+  return page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? "[]"), key);
+}
+export const fakeFetches = (page: Page) => fakeLog<FakeFetch>(page, "gigsync-fake-speech-fetches");
+export const fakeSaid = (page: Page) => fakeLog<string>(page, "gigsync-fake-speech-said");
 
 /** A browser with no speech recognition at all, on the device or in the cloud: the mic must say "please type". */
 export async function noSpeech(page: Page) {

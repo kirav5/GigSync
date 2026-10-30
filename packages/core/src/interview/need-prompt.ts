@@ -98,8 +98,16 @@ function summary(s: NeedState): Line[] {
 
 const yesNoHints = (s: NeedState) => [t(s.config.own, "flag.yes"), t(s.config.own, "flag.no")];
 
+/** The readback's question: whether to look for someone, or to ask the one worker the need is addressed to. */
+const confirmLine = (s: NeedState): Line =>
+  s.to ? { key: "need.confirm_to", params: { name: s.to.name } } : { key: "need.confirm" };
+
+/** The first question: the whole need in the owner's words, said to the worker it is for when there is one. */
+const startLine = (s: NeedState): Line =>
+  s.to ? { key: "need.start_to", params: { name: s.to.name } } : { key: "need.start" };
+
 function confirmPrompt(s: NeedState): Prompt {
-  if (!s.changing) return { lines: [...summary(s), { key: "need.confirm" }], choices: YES_NO, hints: yesNoHints(s) };
+  if (!s.changing) return { lines: [...summary(s), confirmLine(s)], choices: YES_NO, hints: yesNoHints(s) };
   const fields = NEED_FIELDS.filter((f) => f !== NeedSlot.detail || firstQuestion(s.draft.trade) !== undefined);
   return {
     lines: [{ key: "need.what_change" }],
@@ -143,12 +151,15 @@ function question(s: NeedState): Prompt {
   const offer = offerPrompt(s);
   if (offer) return offer;
   switch (s.slot) {
-    case NeedSlot.trade:
+    case NeedSlot.trade: {
+      // Addressed to a worker of one trade, it is set already: no chips, only the need in the owner's words.
+      const trades = s.to ? (s.draft.trade ? [] : s.to.trades) : Trade.options;
       return {
-        lines: [{ key: s.fresh ? "need.start" : "need.ask.trade" }],
-        choices: Trade.options.map((tr) => ({ value: tr, key: `trade.${tr}` as const })),
-        hints: Trade.options.map((tr) => t(own, `trade.${tr}`)),
+        lines: [s.fresh ? startLine(s) : { key: "need.ask.trade" }],
+        choices: trades.map((tr) => ({ value: tr, key: `trade.${tr}` as const })),
+        hints: trades.map((tr) => t(own, `trade.${tr}`)),
       };
+    }
     case NeedSlot.scope:
       return scopeQuestion(s);
     case NeedSlot.detail:
@@ -174,6 +185,7 @@ function question(s: NeedState): Prompt {
     case NeedSlot.confirm:
       return confirmPrompt(s);
     case NeedSlot.done: {
+      if (s.to) return { lines: [{ key: "need.asking_to", params: { name: s.to.name } }], hints: [] };
       const area = `area.${s.draft.area ?? ""}`;
       return { lines: [{ key: "need.searching", names: { area: isMessageKey(area) ? [area] : [] } }], hints: [] };
     }

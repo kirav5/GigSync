@@ -11,6 +11,7 @@ import { LinkScreen } from "../screens/mentor/LinkScreen.js";
 import { Passbook } from "../screens/Passbook.js";
 import { AboutMe } from "../screens/pages/AboutMe.js";
 import { HouseholdReceipts } from "../screens/pages/HouseholdReceipts.js";
+import { InstallPage } from "../screens/pages/InstallPage.js";
 import { MyCardPage } from "../screens/pages/MyCardPage.js";
 import { Privacy } from "../screens/pages/Privacy.js";
 import { SettingsPage } from "../screens/pages/SettingsPage.js";
@@ -30,9 +31,6 @@ export interface ScreenData {
   run: (work: () => Promise<unknown>) => Promise<unknown>;
   /** Talk opens on the card interview. */
   interview: boolean;
-  /** Find's round: a new chat starts it again. */
-  findRound: number;
-  chosen: ChosenWorker | undefined;
   openLink: UserId | undefined;
   movingTo: City | undefined;
   personCode: QrCode | undefined;
@@ -54,19 +52,10 @@ function cardState(account: Account): CardState {
   return account.listed === false ? CardState.off : CardState.on;
 }
 
-/** The chat for each owner: Talk for a worker, Find's chat (or its form) for a household. */
+/** The chat for each owner: Talk for a worker, Find's chat for a household. */
 function Home({ d, m }: { d: ScreenData; m: ScreenMoves }) {
   if (d.account.role === AccountRole.consumer)
-    return (
-      <Find
-        key={d.findRound}
-        ports={d.ports}
-        account={d.account}
-        device={d.device}
-        chosen={d.chosen}
-        onAsked={() => m.go(Screen.activity)}
-      />
-    );
+    return <Find ports={d.ports} account={d.account} device={d.device} onAsked={() => m.go(Screen.activity)} />;
   return (
     <AgentScreen
       agent={d.agent}
@@ -136,7 +125,9 @@ export function ScreenView({ screen, d, m }: { screen: Screen; d: ScreenData; m:
     case Screen.privacy:
       return <Privacy ports={ports} device={device} isWorker={isWorker} onOpenLink={m.showLink} />;
     case Screen.settings:
-      return <SettingsPage ports={ports} isWorker={isWorker} />;
+      return <SettingsPage ports={ports} isWorker={isWorker} onInstall={() => m.go(Screen.install)} />;
+    case Screen.install:
+      return <InstallPage />;
     case Screen.link:
       return (
         <LinkScreen

@@ -5,8 +5,9 @@ const APP = process.env.APP_URL ?? "http://localhost:5173";
 const API = process.env.API_BASE ?? "http://localhost:8787";
 const STARTUP_MS = 120_000;
 /**
- * Spec files run one at a time unless PW_WORKERS says otherwise: they share the local API and Neon, so more at once is
- * faster but worth checking before relying on it. Tests inside one file always run in order.
+ * Spec files run one at a time unless PW_WORKERS says otherwise. They share the local API and Neon: PW_WORKERS=3 runs the
+ * suite in about half the time (8–9 minutes per engine), but a timing-sensitive test can fail under that load, so rerun
+ * a failure on its own before believing it. Tests inside one file always run in order.
  */
 const WORKERS = Number(process.env.PW_WORKERS ?? 1);
 

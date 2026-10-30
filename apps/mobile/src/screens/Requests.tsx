@@ -14,7 +14,7 @@ interface Props {
   view: GigView;
   device: GigDevice;
   run: (work: () => Promise<unknown>) => Promise<unknown>;
-  /** Opens the usual ask with a worker who offered to work chosen. */
+  /** Opens a Find chat addressed to a worker who offered to work. */
   onAsk: (worker: ChosenWorker) => void;
 }
 

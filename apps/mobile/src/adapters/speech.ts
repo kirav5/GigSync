@@ -1,5 +1,3 @@
-import { App } from "@capacitor/app";
-import { Capacitor } from "@capacitor/core";
 import {
   GigSyncSpeech,
   type ListenOptions,
@@ -16,9 +14,10 @@ import { cloudAllowed } from "./speech-settings.js";
 
 /**
  * Voice for the screens, in the owner's language (spec §3.3, ADR 0023): speech to text on the device first, a cloud
- * recognizer only after the owner allowed that company, and reading aloud with local voices only. Screens use this
- * module, speech-settings.ts and `ui/Composer` / `ui/SpeakButton`, never the plugin. In development a scripted engine can stand in for the
- * plugin (speech-fake.ts), so UI tests can speak.
+ * recognizer only after the owner allowed that company, and reading aloud with local voices only. The recognizer and
+ * voice are fetched by themselves (`prepareListening`, and the mic's or speaker's tap), never from a download link.
+ * Screens use this module, speech-settings.ts, speech-watch.ts and `ui/Composer` / `ui/SpeakButton`, never the
+ * plugin. In development a scripted engine can stand in for the plugin (speech-fake.ts), so UI tests can speak.
  */
 
 /** What the adapter needs from an engine: the plugin, or in development the fake. */
@@ -136,19 +135,58 @@ async function choose(lang: Lang, mode: SpeechMode): Promise<Choice> {
 const refused = new Set<Lang>();
 const listenChoices = new Map<Lang, Choice>();
 const speakChoices = new Map<Lang, Promise<Choice>>();
+/** Downloads asked of the engine since the app opened, as "mode:lang"; like translation packs (translate.ts). */
+const fetched = new Set<string>();
+const fetchKey = (lang: Lang, mode: SpeechMode) => `${mode}:${lang}`;
+
+/** Bumped whenever a fetch ends or the states are read again, so every screen showing voice asks again. */
+let rounds = 0;
+const changed = new Set<() => void>();
+export const voicesChanged = {
+  subscribe(fn: () => void) {
+    changed.add(fn);
+    return () => {
+      changed.delete(fn);
+    };
+  },
+  version: () => rounds,
+};
+
+/** Hands `now` back after telling every screen showing voice to read its state again. */
+function announce<T>(now: T): T {
+  rounds += 1;
+  for (const fn of changed) fn();
+  return now;
+}
+
+/**
+ * A download already asked for that never started is not coming: the screens treat it as no voice at all. One found
+ * on the phone after all (installed from Android's own screen) loses the mark, so a later loss can be fetched again.
+ */
+function settled(lang: Lang, mode: SpeechMode, status: SpeechStatus): SpeechStatus {
+  const key = fetchKey(lang, mode);
+  if (status.state === VoiceState.available) fetched.delete(key);
+  const gaveUp = status.state === VoiceState.downloadable && fetched.has(key);
+  return gaveUp ? { ...status, state: VoiceState.unavailable } : status;
+}
 
 export async function listenState(lang: Lang): Promise<SpeechStatus> {
   if (refused.has(lang)) return NONE;
   const choice = await choose(lang, Mode.listen);
   listenChoices.set(lang, choice);
-  return choice.status;
+  return settled(lang, Mode.listen, choice.status);
 }
 
 export async function speakState(lang: Lang): Promise<SpeechStatus> {
-  return (await speakChoice(lang, true)).status;
+  return settled(lang, Mode.speak, (await speakChoice(lang, true)).status);
 }
 
-/** The language's voice, looked up once and kept, since every speaker button asks; `fresh` looks again. */
+/** The language's voice for a speaker button: looked up once and kept, since every button asks. */
+export async function knownVoice(lang: Lang): Promise<SpeechStatus> {
+  return settled(lang, Mode.speak, (await speakChoice(lang)).status);
+}
+
+/** The language's voice, looked up once and kept; `fresh` looks again. */
 function speakChoice(lang: Lang, fresh = false): Promise<Choice> {
   const known = fresh ? undefined : speakChoices.get(lang);
   if (known) return known;
@@ -157,18 +195,43 @@ function speakChoice(lang: Lang, fresh = false): Promise<Choice> {
   return choice;
 }
 
-/** Fetches the language's recognizer once. Only from the owner's tap. */
-export async function prepareListen(lang: Lang): Promise<SpeechStatus> {
-  const { locale } = listenChoices.get(lang) ?? (await choose(lang, Mode.listen));
-  await quietly((e) => e.prepare({ lang: locale, mode: Mode.listen }));
-  return listenState(lang);
+/** Asks the engine for a recognizer or voice. Engines download only during the owner's tap, so callers run in one. */
+async function fetchVoice(lang: Lang, mode: SpeechMode, locale: string): Promise<void> {
+  fetched.add(fetchKey(lang, mode));
+  await quietly((e) => e.prepare({ lang: locale, mode }));
 }
 
-/** Fetches the language's voice data once (Android opens its engine's install screen). Only from the owner's tap. */
+/** Fetches the language's recognizer, from the owner's tap on the mic or on a language. */
+export async function prepareListen(lang: Lang): Promise<SpeechStatus> {
+  const { locale } = listenChoices.get(lang) ?? (await choose(lang, Mode.listen));
+  await fetchVoice(lang, Mode.listen, locale);
+  return announce(await listenState(lang));
+}
+
+/** Fetches the language's voice data (Android opens its engine's install screen), from the owner's speaker tap. */
 export async function prepareSpeak(lang: Lang): Promise<SpeechStatus> {
   const { locale } = await speakChoice(lang);
-  await quietly((e) => e.prepare({ lang: locale, mode: Mode.speak }));
-  return speakState(lang);
+  await fetchVoice(lang, Mode.speak, locale);
+  return announce(await speakState(lang));
+}
+
+/**
+ * Voice typing fetched without asking (the owner never downloads it by hand): choosing a language is a tap, the moment
+ * engines allow a download, so its recognizer is fetched then where the engine offers one. The read-aloud voice waits
+ * for a speaker tap, so Android's install screen never interrupts choosing a language.
+ */
+export function prepareListening(lang: Lang): void {
+  void choose(lang, Mode.listen).then((choice) => {
+    listenChoices.set(lang, choice);
+    if (choice.status.state === VoiceState.downloadable) void prepareListen(lang);
+  });
+}
+
+/** Reads every language the screens asked about again, refreshing what they are told next. */
+export async function recheckVoices(): Promise<void> {
+  const langs = new Set([...listenChoices.keys(), ...speakChoices.keys()]);
+  await Promise.all([...langs].flatMap((lang) => [listenState(lang), speakState(lang)]));
+  announce(undefined);
 }
 
 /** The refusal code a failed `listen` carries, if it is one of the plugin's. */
@@ -218,60 +281,6 @@ export async function speak(lang: Lang, text: string): Promise<void> {
   await (await engine()).speak({ lang: locale, text });
 }
 
-export async function canSpeak(lang: Lang): Promise<boolean> {
-  return (await speakChoice(lang)).status.state === VoiceState.available;
-}
-
 export function stopSpeaking(): Promise<void> {
   return quietly((e) => e.stopSpeaking());
-}
-
-/** How often a language download the phone finishes in the background is checked on. */
-const DOWNLOAD_POLL_MS = 3000;
-/** Checking on a timer stops after this long; coming back to the app still checks. */
-const DOWNLOAD_WATCH_MS = 15 * 60 * 1000;
-const RESUME = "resume";
-const VISIBILITY = "visibilitychange";
-
-/** Calls `fn` each time the app comes back to the front: Capacitor's resume on a phone, the page shown on the web. */
-function onReturn(fn: () => void): () => void {
-  if (Capacitor.isNativePlatform()) {
-    const listening = App.addListener(RESUME, fn);
-    return () => void listening.then((l) => l.remove());
-  }
-  const shown = () => {
-    if (!document.hidden) fn();
-  };
-  document.addEventListener(VISIBILITY, shown);
-  return () => document.removeEventListener(VISIBILITY, shown);
-}
-
-/**
- * Follows a download the phone finishes in the background (round2-spec §1.5): re-reads the state with `read` every
- * DOWNLOAD_POLL_MS for at most DOWNLOAD_WATCH_MS, and whenever the app comes back to the front, until it is no longer
- * downloading; then hands the new state to `onChange` once and stops. Returns a stop function for a screen that goes
- * away first. A read that fails is tried again at the next check.
- */
-export function watchDownload(read: () => Promise<SpeechStatus>, onChange: (s: SpeechStatus) => void): () => void {
-  let stopped = false;
-  const check = async () => {
-    try {
-      const now = await read();
-      if (stopped || now.state === VoiceState.downloading) return;
-      stop();
-      onChange(now);
-    } catch {
-      // The next check reads again.
-    }
-  };
-  const poll = setInterval(() => void check(), DOWNLOAD_POLL_MS);
-  const deadline = setTimeout(() => clearInterval(poll), DOWNLOAD_WATCH_MS);
-  const forget = onReturn(() => void check());
-  function stop() {
-    stopped = true;
-    clearInterval(poll);
-    clearTimeout(deadline);
-    forget();
-  }
-  return stop;
 }

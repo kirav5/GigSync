@@ -11,7 +11,7 @@ interface Props {
   offers: readonly ReceivedOffer[];
   device: GigDevice;
   run: (work: () => Promise<unknown>) => Promise<unknown>;
-  /** Opens the usual ask with this worker chosen. */
+  /** Opens a Find chat addressed to this worker. */
   onAsk: (worker: ChosenWorker) => void;
 }
 

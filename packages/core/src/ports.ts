@@ -14,6 +14,8 @@ import type { DeviceId } from "@gigsync/protocol";
 export const Collection = {
   /** Talk's chats, one record per chat, kept until the owner deletes one (chat/store.ts). */
   chat: "chat",
+  /** A household's Find chats, one record per chat with its need, kept until the owner deletes one (chat/store.ts). */
+  findChat: "find_chat",
   contacts: "contacts",
   engagements: "engagements",
   /** One record per job this device is part of (as consumer or worker). */
