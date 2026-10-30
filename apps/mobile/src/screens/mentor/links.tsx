@@ -1,7 +1,7 @@
 import { type GigDevice, log, type MentorLink } from "@gigsync/core";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-/** What the mentor link rows, a link's thread and the Profile tab's dot read, kept in step with the sync loop. */
+/** What the mentor link rows, a link's thread and the dot on the menu's Privacy row read, kept in step with the sync loop. */
 export interface LinksView {
   /** Live mentor links, by name. */
   links: readonly MentorLink[];

@@ -16,6 +16,7 @@ import { money } from "../src/i18n/en/money.js";
 import { moving } from "../src/i18n/en/moving.js";
 import { need } from "../src/i18n/en/need.js";
 import { net } from "../src/i18n/en/net.js";
+import { page } from "../src/i18n/en/page.js";
 import { qr } from "../src/i18n/en/qr.js";
 import { record } from "../src/i18n/en/record.js";
 import { screens } from "../src/i18n/en/screens.js";
@@ -52,6 +53,7 @@ const AREAS: Readonly<Record<string, object>> = {
   chats,
   qr,
   moving,
+  page,
 };
 
 describe("string areas", () => {

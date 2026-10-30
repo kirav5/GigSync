@@ -6,12 +6,12 @@ import { C } from "./cls.js";
 import { Icon } from "./Icon.js";
 import "./install.css";
 
-/** Where the card shows: the language screen before sign-in, or Profile. */
+/** Where the card shows: the language screen before sign-in, or Settings. */
 export const InstallPlace = { onboarding: "onboarding", settings: "settings" } as const;
 export type InstallPlace = (typeof InstallPlace)[keyof typeof InstallPlace];
 
 /**
- * Where each state is offered. Profile always offers it on the web; the language screen only where the step is
+ * Where each state is offered. Settings always offers it on the web (and the menu has Install app); the language screen only where the step is
  * quick (Chrome's prompt) or must come first (iPhone: the home-screen app keeps its own storage, so installing after
  * sign-in would start a second, empty phone).
  */

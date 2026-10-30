@@ -57,7 +57,7 @@ export function LinkThread({ device, link, run, syncedAt, onGone }: Props) {
     };
   }, [device, user, syncedAt, sent]);
 
-  // On screen now: their new notes count as read, and the Profile tab's dot goes when nothing else is unread.
+  // On screen now: their new notes count as read, and the dot on the menu's Privacy row goes when nothing else is unread.
   useEffect(() => {
     if (unread > 0) device.mentors.read(user).then(refresh, warn("link notes not marked read"));
   }, [device, user, unread, refresh]);

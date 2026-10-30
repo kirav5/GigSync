@@ -41,15 +41,15 @@ for (const lang of Lang.options)
       await snap(worker, dir, "00-language");
 
       await signIn(worker, { role: Role.worker, name: `Visual ${RUN}`, phone: newPhone(), lang });
-      await open(worker, "nav.today", lang);
+      await open(worker, "nav.activity", lang);
       await snap(worker, dir, "01-worker-today");
       await open(worker, "nav.talk", lang);
       await expect(worker.getByRole("log")).toBeVisible();
       await snap(worker, dir, "02-worker-talk");
-      await open(worker, "nav.passbook", lang);
+      await open(worker, "nav.receipts", lang);
       await snap(worker, dir, "03-worker-passbook");
-      await open(worker, "nav.profile", lang);
-      await snap(worker, dir, "04-worker-profile");
+      await open(worker, "nav.about", lang);
+      await snap(worker, dir, "04-worker-about");
 
       await signIn(household, {
         role: Role.consumer,

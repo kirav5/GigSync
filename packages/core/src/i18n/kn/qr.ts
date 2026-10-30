@@ -2,8 +2,7 @@ import type { qr as en } from "../en/qr.js";
 
 /** Kannada: personal QR codes. */
 export const qr: Readonly<Record<keyof typeof en, string>> = {
-  "qr.mine": "ನನ್ನ QR ಕೋಡ್",
-  "qr.row_about": "ಜನರು ನಿಮ್ಮನ್ನು ಹುಡುಕಲು ಇದನ್ನು ತೋರಿಸಿ",
+  "qr.mine": "ನಿಮ್ಮ QR ಕೋಡ್",
   "qr.about_worker":
     "ಯಾರೇ ಇದನ್ನು ತಮ್ಮ ಫೋನ್ ಕ್ಯಾಮೆರಾದಿಂದ ಸ್ಕ್ಯಾನ್ ಮಾಡಿದರೂ ನಿಮ್ಮ ಕಾರ್ಡ್ ನೋಡುತ್ತಾರೆ ಮತ್ತು ಕೆಲಸಕ್ಕೆ ನಿಮ್ಮನ್ನು ಕೇಳಬಹುದು. ನಿಮ್ಮ ಫೋನ್ ಸಂಖ್ಯೆ ಇದರಲ್ಲಿ ಎಂದಿಗೂ ಇರುವುದಿಲ್ಲ.",
   "qr.about_household":

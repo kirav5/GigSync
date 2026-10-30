@@ -136,23 +136,23 @@ test("a newcomer picks a woman mentor from the list, they link for 30 days, then
   await shoot("newcomer-picks", shots, folder);
 
   // ── Lata sees the request on Today and offers to help ──────────────────────────────────────────────────────────
-  await open(lata.page, "nav.today", kn);
+  await open(lata.page, "nav.activity", kn);
   const help = lata.page.getByRole("button", { name: t(kn, "mentor.help", { name: ashaName }) });
   await expect(help).toBeVisible();
   await shoot("mentor-decides", shots, folder);
   await help.click();
 
   // ── Asha accepts on Today; the mentor link opens on both phones, for 30 days ───────────────────────────────────
-  await open(asha.page, "nav.today", hi);
+  await open(asha.page, "nav.activity", hi);
   const accept = asha.page.getByRole("button", { name: t(hi, "mentor.accept_offer", { name: lataName }) });
   await expect(accept).toBeVisible();
   await shoot("offer", shots, folder);
   await accept.click();
-  await open(asha.page, "nav.profile", hi);
+  await open(asha.page, "nav.privacy", hi);
   const ashaRow = asha.page.getByRole("button", { name: new RegExp(lataName) });
   await expect(ashaRow).toContainText(t(hi, "mentor.chip"));
   await expect(ashaRow).toContainText(plural(hi, "mentor.days_left", 30));
-  await open(lata.page, "nav.profile", kn);
+  await open(lata.page, "nav.privacy", kn);
   await expect(lata.page.getByRole("button", { name: new RegExp(ashaName) })).toContainText(
     t(kn, "mentor.chip_newcomer"),
   );
@@ -181,7 +181,7 @@ test("a newcomer picks a woman mentor from the list, they link for 30 days, then
 const linksOn = ({ page, lang }: Phone) => page.getByRole("region", { name: t(lang, "mentor.links") });
 
 /** One finished job's card, unfolded from under Earlier on Today (a worker) or My jobs (a household). */
-async function pastJob(p: Phone, tab: "nav.today" | "nav.my_jobs", them: string) {
+async function pastJob(p: Phone, tab: "nav.activity" | "nav.my_jobs", them: string) {
   await open(p.page, tab, p.lang);
   await p.page.getByText(t(p.lang, "home.earlier"), { exact: true }).click();
   return p.page.getByRole("article", { name: t(p.lang, "a11y.job_with", { name: them }) });
@@ -189,7 +189,7 @@ async function pastJob(p: Phone, tab: "nav.today" | "nav.my_jobs", them: string)
 
 /** On Today: the introduction's safety words, then Meet. */
 async function meet(p: Phone, name: string) {
-  await open(p.page, "nav.today", p.lang);
+  await open(p.page, "nav.activity", p.lang);
   const intros = p.page.getByRole("region", { name: t(p.lang, "mentor.intros") });
   await intros.getByRole("button", { name: t(p.lang, "mentor.safety_ok") }).click();
   await intros.getByRole("button", { name: t(p.lang, "mentor.intro_meet", { name }) }).click();
@@ -215,7 +215,7 @@ test("a household introduces two workers it signed jobs with, both say yes, and 
   await seedSignedJob(s, m);
 
   // ── Asha asks Suresh whether he knows someone in Bengaluru, from the job they signed ───────────────────────────
-  const withSuresh = await pastJob(asha, "nav.today", s.name);
+  const withSuresh = await pastJob(asha, "nav.activity", s.name);
   await withSuresh.getByRole("button", { name: t(hi, "mentor.intro_ask", { city: city(hi) }) }).click();
   await expect(statusOn(asha.page, t(hi, "mentor.intro_asked", { name: s.name }))).toBeVisible();
 
@@ -231,9 +231,9 @@ test("a household introduces two workers it signed jobs with, both say yes, and 
   await meet(asha, m.name);
   await expect(asha.page.getByText(t(hi, "mentor.intro_waiting", { name: m.name }))).toBeVisible();
   await meet(mukesh, a.name);
-  await open(asha.page, "nav.profile", hi);
+  await open(asha.page, "nav.privacy", hi);
   await expect(linksOn(asha).getByRole("button", { name: new RegExp(m.name) })).toContainText(t(hi, "mentor.chip"));
-  await open(mukesh.page, "nav.profile", kn);
+  await open(mukesh.page, "nav.privacy", kn);
   await expect(linksOn(mukesh).getByRole("button", { name: new RegExp(a.name) })).toContainText(
     t(kn, "mentor.chip_newcomer"),
   );

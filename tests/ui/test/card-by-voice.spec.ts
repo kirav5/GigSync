@@ -1,7 +1,20 @@
 import { type MessageKey, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, test } from "@playwright/test";
-import { FakeSpeechMode, fakeSpeech, newPhone, noSpeech, open, Role, RUN, signIn, tabs, textOf } from "./helpers.js";
+import {
+  drawer,
+  FakeSpeechMode,
+  fakeSpeech,
+  newPhone,
+  noSpeech,
+  onScreen,
+  open,
+  openDrawer,
+  Role,
+  RUN,
+  signIn,
+  textOf,
+} from "./helpers.js";
 import { cleanUpLater, unlistCards } from "./journey.js";
 import { consent, field, google, inOrder, mic, nextTurn, type, unlist } from "./talk.js";
 
@@ -41,7 +54,7 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
   await fakeSpeech(page, HINDI_SAID);
   await signIn(page, { role: Role.worker, name: `Asha ${RUN}`, phone: newPhone(), lang: hi });
   cleanUpLater({ page, lang: hi });
-  await expect(tabs(page, hi).getByRole("button", { name: t(hi, "nav.talk") })).toHaveAttribute("aria-current", "page");
+  await onScreen(page, "nav.talk", hi);
   await expect(page.getByText(textOf(hi, "iv.ask.trade"))).toBeVisible();
 
   const [head, tail] = [HINDI.slice(0, 2), HINDI.slice(2)];
@@ -62,8 +75,8 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
     await expect(page.getByText(textOf(hi, "estimate.suggest_rate", { price: "₹11,000" }))).toBeVisible();
   });
 
-  await test.step("switching tabs keeps her place", async () => {
-    await open(page, "nav.profile", hi);
+  await test.step("going to another screen keeps her place", async () => {
+    await open(page, "nav.about", hi);
     await open(page, "nav.talk", hi);
     await expect(page.getByText(textOf(hi, "iv.ask.rate_month"))).toHaveCount(1);
     await expect(page.getByText(textOf(hi, "iv.ask.trade"))).toHaveCount(1);
@@ -78,18 +91,18 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
     await nextTurn(page, hi, next, () => mic(page, hi).click());
   }
 
-  await open(page, "nav.profile", hi);
-  await expect(page.getByText(textOf(hi, "card.on_board", { price: "₹9,000" }))).toBeVisible();
+  await open(page, "nav.card", hi);
+  await expect(page.getByRole("region", { name: t(hi, "page.card_seen") })).toContainText("₹9,000");
 
-  await test.step("a note on Talk stays there across tabs; no standing buttons under the conversation", async () => {
+  await test.step("a note on Talk stays there across screens; no standing buttons under the conversation", async () => {
     await open(page, "nav.talk", hi);
     await type(page, hi, NOTE);
     await expect(page.getByText(t(hi, "card.saved"), { exact: true })).toBeVisible();
-    await open(page, "nav.profile", hi);
+    await open(page, "nav.about", hi);
     await open(page, "nav.talk", hi);
     await expect(page.getByText(NOTE, { exact: true })).toBeVisible();
     await expect(page.getByText(t(hi, "card.saved"), { exact: true })).toBeVisible();
-    // Suggestions belong to an empty Talk only; changing the card lives in Profile and in what she says.
+    // Suggestions belong to an empty Talk only; changing the card lives in My card and in what she says.
     await expect(page.getByRole("button", { name: t(hi, "agent.suggest_rate"), exact: true })).toHaveCount(0);
   });
 
@@ -110,16 +123,19 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
       textOf(hi, "iv.ask.rate_month"),
     ]);
   });
-  await test.step("New chat keeps this chat in Chats with its open question, and earnings come from Passbook", async () => {
-    await page.getByRole("button", { name: t(hi, "chats.new"), exact: true }).click();
+  await test.step("New chat keeps this chat in the menu with its open question, and earnings come from Passbook", async () => {
+    await openDrawer(page, hi);
+    await drawer(page, hi)
+      .getByRole("button", { name: t(hi, "chats.new"), exact: true })
+      .click();
     await expect(page.getByText(t(hi, "agent.empty"))).toBeVisible();
     await expect(page.getByText(NOTE, { exact: true })).toHaveCount(0);
     await page.getByRole("button", { name: t(hi, "agent.suggest_earned"), exact: true }).click();
     await expect(page.getByText(t(hi, "agent.earnings", { week: "₹0", month: "₹0", waiting: "₹0" }))).toBeVisible();
     await expect(page.getByText(t(hi, "agent.empty"))).toHaveCount(0);
     // The chat she left is listed by her first words, with the rate change she has not finished.
-    await page.getByRole("button", { name: t(hi, "chats.open"), exact: true }).click();
-    const left = page
+    await openDrawer(page, hi);
+    const left = drawer(page, hi)
       .getByRole("region", { name: t(hi, "chats.title") })
       .getByRole("listitem")
       .filter({ hasText: HINDI_SAID[0] ?? "" });
@@ -168,7 +184,7 @@ test("a worker who switches to Hindi part-way gets the rest of the interview, an
   ] as const) {
     await nextTurn(page, en, next, () => type(page, en, answer));
   }
-  await open(page, "nav.profile", en);
+  await open(page, "nav.about", en);
   const language = page.getByRole("region", { name: t(en, "profile.language") });
   await language.getByRole("button", { name: t(en, "lang.hi") }).click();
   await open(page, "nav.talk", hi);
@@ -186,7 +202,7 @@ test("with no speech recognition at all, the mic says to type and puts the curso
   await expect(field(page, en)).toBeFocused();
 });
 
-test("with only a cloud recognizer, the mic asks before her voice leaves the phone, and Profile takes it back", async ({
+test("with only a cloud recognizer, the mic asks before her voice leaves the phone, and Settings takes it back", async ({
   page,
 }) => {
   await fakeSpeech(page, ["मैं खाना बनाती हूँ", "कोरमंगला", "नौ हज़ार"], FakeSpeechMode.cloud);
@@ -208,9 +224,8 @@ test("with only a cloud recognizer, the mic asks before her voice leaves the pho
   await nextTurn(page, hi, "iv.ask.area", () => allow.click());
   await nextTurn(page, hi, "iv.ask.rate_month", () => mic(page, hi).click());
 
-  // Profile's More settings say where her voice goes, and stop it; the mic then asks again.
-  await open(page, "nav.profile", hi);
-  await page.getByText(t(hi, "profile.more"), { exact: true }).click();
+  // Settings say where her voice goes, and stop it; the mic then asks again.
+  await open(page, "nav.settings", hi);
   const sending = page.getByText(textOf(hi, "speech.cloud_on", { vendor: google(hi) }));
   await expect(sending).toBeVisible();
   await page.getByRole("button", { name: t(hi, "speech.cloud_withdraw") }).click();

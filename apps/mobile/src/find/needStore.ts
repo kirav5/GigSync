@@ -206,9 +206,19 @@ export function setFindMode(mode: FindMode): void {
   set({ ...snapshot, mode });
 }
 
-/** Wipes the conversation, at sign-out: the next owner starts on the chat with nothing in it. */
-export function endNeed(): void {
+/** Starts the conversation again with nothing in it; a search still under way changes nothing. */
+function wipe(mode: FindMode): void {
   round += 1;
   searching = false;
-  set({ turns: [], mode: FindMode.chat });
+  set({ turns: [], mode });
+}
+
+/** "New chat": the conversation starts again, in the mode the owner chose. */
+export function restartNeed(): void {
+  wipe(snapshot.mode);
+}
+
+/** Wipes the conversation, at sign-out: the next owner starts on the chat with nothing in it. */
+export function endNeed(): void {
+  wipe(FindMode.chat);
 }

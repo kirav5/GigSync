@@ -1,32 +1,4 @@
-/* Personal QR codes (ADR 0034): Profile's row, my QR as collab's card, the scanner, and the person a QR finds. */
-
-/* One row in Profile, like a fold's title, with a chevron pointing on. */
-.qr-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  min-height: var(--tap);
-  padding: 12px 0;
-  border: 0;
-  border-block: 1px solid var(--hairline);
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
-}
-.qr-row::after {
-  content: "";
-  flex: none;
-  width: 7px;
-  height: 7px;
-  margin-right: 4px;
-  border-right: 2px solid var(--text3);
-  border-bottom: 2px solid var(--text3);
-  transform: rotate(-45deg);
-}
+/* Personal QR codes (ADR 0034): my QR as collab's card, on My card, the scanner, and the person a QR finds. */
 
 /* The QR beside its words on a wide screen; on a phone, large on top, to hold up to someone. */
 .qr-card {
@@ -34,11 +6,16 @@
   align-items: start;
 }
 .qr-card .qr {
+  display: block;
   width: 132px;
   aspect-ratio: 1;
   background: #fff;
   padding: 4px;
   border-radius: 4px;
+}
+/* Before the first QR is drawn: the same white tile, so nothing moves when it comes. */
+.qr-blank {
+  border: 1px solid var(--hairline);
 }
 @media (max-width: 520px) {
   .qr-card {

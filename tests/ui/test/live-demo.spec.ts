@@ -53,7 +53,7 @@ test("live demo", async ({ browser }) => {
     { page: worker, lang: "hi" },
     { trade: t("hi", "trade.electrician"), area: "hsr_layout", rate: "900", min: "650", about: "पंखे, स्विच, वायरिंग" },
   );
-  await open(worker, "nav.today", "hi");
+  await open(worker, "nav.activity", "hi");
 
   // Priya, a household, in English: says what she needs in one sentence.
   await signIn(home, {

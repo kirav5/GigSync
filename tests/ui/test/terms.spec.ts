@@ -94,7 +94,7 @@ test("a long description becomes confirmed chips, the agents settle the terms, a
   // Kiran works afternoons: his agent holds the afternoon and hers takes it. Whichever agent accepted first, its
   // owner signs first; Lata's sign card then shows the time changed from the morning she asked for.
   await open(homePage, "nav.my_jobs");
-  await open(workerPage, "nav.today");
+  await open(workerPage, "nav.activity");
   const sign = homePage.getByRole("group", { name: t(en, "a11y.sign") });
   const theirs = workerPage.getByRole("group", { name: t(en, "a11y.sign") });
   await expect(async () => {

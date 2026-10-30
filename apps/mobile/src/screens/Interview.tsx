@@ -133,7 +133,7 @@ export function Interview({
     void fetchEstimate(session, request).then(interviewEstimate);
   }, [trade, session]);
 
-  // Leaving Talk (another tab, Back) ends a question the owner asked to hear again.
+  // Leaving Talk (another screen, Back) ends a question the owner asked to hear again.
   useEffect(
     () => () => {
       void stopSpeaking();

@@ -15,6 +15,7 @@ import { money } from "./money.js";
 import { moving } from "./moving.js";
 import { need } from "./need.js";
 import { net } from "./net.js";
+import { page } from "./page.js";
 import { qr } from "./qr.js";
 import { record } from "./record.js";
 import { screens } from "./screens.js";
@@ -56,6 +57,7 @@ export const en = {
   ...chats,
   ...moving,
   ...qr,
+  ...page,
 } as const;
 
 export type MessageKey = keyof typeof en;

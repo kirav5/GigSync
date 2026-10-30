@@ -23,7 +23,7 @@ const ABOUT_MAX = 300;
 /**
  * The worker's card, to review and change: the public half goes on the board (name, trades, area, usual rate,
  * languages, a line about their work); the private half stays here (lowest rate, what to see first, signing) and is
- * what their agent negotiates with. The UPI ID is not on the card: payment requests read it from Profile.
+ * what their agent negotiates with. The UPI ID is not on the card: payment requests read it from About me.
  */
 export function MyCard({
   ports,

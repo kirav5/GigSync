@@ -51,7 +51,7 @@ test("the installed web app opens offline, keeps the owner signed in, and says i
   await search.click();
   await expect(page.getByText(t(hi, "net.no_internet"))).toBeVisible({ timeout: 20_000 });
   await page.screenshot({ path: `${DIR}03-offline-search.png` });
-  await open(page, "nav.profile", hi);
-  await page.screenshot({ path: `${DIR}04-offline-profile.png` });
+  await open(page, "nav.about", hi);
+  await page.screenshot({ path: `${DIR}04-offline-about.png` });
   await ctx.close();
 });

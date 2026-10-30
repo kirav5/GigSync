@@ -1,6 +1,5 @@
 /** Talk's chats: the list of past chats, a new chat, and deleting one. */
 export const chats = {
-  "chats.open": "Chats",
   "chats.new": "New chat",
   "chats.title": "Your chats",
   "chats.today": "Today",

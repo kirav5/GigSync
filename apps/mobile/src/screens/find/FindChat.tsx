@@ -91,7 +91,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     void needMemory(ports, account).then((remembered) => beginNeed(startNeed(withMemory(config, remembered))));
   }, [state, lang, ports, account]);
 
-  // A language picked in Profile part-way: the questions from here on, and what the mic listens for, follow it.
+  // A language picked in About me part-way: the questions from here on, and what the mic listens for, follow it.
   useEffect(() => {
     if (state && state.config.own !== lang)
       relanguageNeed(withMemory(needConfig(lang, state.config.today), state.config.remembered));

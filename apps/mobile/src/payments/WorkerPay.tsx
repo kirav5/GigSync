@@ -26,7 +26,7 @@ interface Props {
   view: GigView;
   device: GigDevice;
   run: Run;
-  /** Opens Profile when the worker has no UPI ID yet. */
+  /** Opens About me when the worker has no UPI ID yet. */
   onAddPayee: () => void;
 }
 

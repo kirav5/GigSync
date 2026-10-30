@@ -52,6 +52,6 @@ export async function type(page: Page, lang: Lang, text: string) {
 export async function unlist(page: Page, lang: Lang) {
   await openCard(page, lang);
   await page.getByRole("button", { name: t(lang, "card.unlist") }).click();
-  await open(page, "nav.profile", lang);
+  await open(page, "nav.card", lang);
   await expect(page.getByText(t(lang, "profile.card_off"))).toBeVisible();
 }

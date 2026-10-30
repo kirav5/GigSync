@@ -1,7 +1,7 @@
 import { t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { devices, expect, type Page, test } from "@playwright/test";
-import { APP, newPhone, open, Role, RUN, signIn, tabs } from "./helpers.js";
+import { APP, newPhone, open, Role, RUN, shell, signIn } from "./helpers.js";
 
 /**
  * The web app's install card (ui/InstallCard.tsx). On iPhone it shows on the language screen, before sign-in, because
@@ -37,7 +37,7 @@ test("iPhone Safari: the language screen asks to install before sign-in, in the 
   await context.close();
 });
 
-test("Chrome: Profile shows Chrome's install prompt from a tap, and Not now stays hidden after a reload", async ({
+test("Chrome: Settings shows Chrome's install prompt from a tap, and Not now stays hidden after a reload", async ({
   browser,
   browserName,
 }) => {
@@ -64,7 +64,7 @@ test("Chrome: Profile shows Chrome's install prompt from a tap, and Not now stay
     });
     globalThis.dispatchEvent(offer);
   });
-  await open(page, "nav.profile");
+  await open(page, "nav.settings");
   const install = card(page, en);
   await install.getByRole("button", { name: t(en, "install.button") }).click();
   await expect.poll(() => page.evaluate(() => Reflect.get(globalThis, "promptsShown"))).toBe(1);
@@ -74,9 +74,9 @@ test("Chrome: Profile shows Chrome's install prompt from a tap, and Not now stay
   await install.getByRole("button", { name: t(en, "install.later") }).click();
   await expect(install).toBeHidden();
   await page.reload();
-  await expect(tabs(page)).toBeVisible();
-  await open(page, "nav.profile");
-  await expect(page.getByRole("region", { name: t(en, "profile.language") })).toBeVisible();
+  await expect(shell(page)).toBeVisible();
+  await open(page, "nav.settings");
+  await expect(page.getByRole("region", { name: t(en, "settings.look") })).toBeVisible();
   await expect(install).toHaveCount(0);
   await context.close();
 });

@@ -150,11 +150,11 @@ test("a cook moving to Bengaluru gets the outlook, the guide's answers and a men
   await shoot("asked", shots, FOLDER);
 
   // ── The mentor sees the request on Today, as before ──────────────────────────────────────────────────────────
-  await open(mentorPage, "nav.today");
+  await open(mentorPage, "nav.activity");
   await expect(mentorPage.getByRole("button", { name: t(en, "mentor.help", { name: `Kavya ${RUN}` }) })).toBeVisible();
 
-  // ── Profile has nothing about cities any more ───────────────────────────────────────────────────────────────
-  await open(cookPage, "nav.profile");
+  // ── About me has nothing about cities any more ──────────────────────────────────────────────────────────────
+  await open(cookPage, "nav.about");
   await expect(cookPage.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(cookPage.getByText(t(en, "landing.title"))).toHaveCount(0);
   await expect(cookPage.getByText(t(en, "mentor.find"))).toHaveCount(0);

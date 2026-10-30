@@ -24,7 +24,7 @@ export interface JobActionProps {
   view: GigView;
   device: GigDevice;
   run: (work: () => Promise<unknown>) => Promise<unknown>;
-  /** Opens Profile to add a UPI ID. The worker's Today passes it; the consumer's My jobs has no use for it. */
+  /** Opens About me to add a UPI ID. The worker's Today passes it; the consumer's My jobs has no use for it. */
   onAddPayee?: () => void;
 }
 

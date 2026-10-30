@@ -9,7 +9,7 @@ const SettingsDoc = { newcomer: "newcomer", choices: "choices" } as const;
 const MAX_EARLY = 20;
 
 /** A blocked person: hidden everywhere on this phone. */
-interface BlockRecord {
+export interface BlockRecord {
   user: UserId;
   at: string;
 }
@@ -101,8 +101,13 @@ export class MentorStore {
     return (await this.storage.get<BlockRecord>(Collection.blocked, user)) !== undefined;
   }
 
+  /** Everyone blocked on this phone, with when. */
+  blocks(): Promise<BlockRecord[]> {
+    return this.storage.list<BlockRecord>(Collection.blocked);
+  }
+
   async blocked(): Promise<Set<UserId>> {
-    return new Set((await this.storage.list<BlockRecord>(Collection.blocked)).map((b) => b.user));
+    return new Set((await this.blocks()).map((b) => b.user));
   }
 
   block(user: UserId, at: Date): Promise<void> {

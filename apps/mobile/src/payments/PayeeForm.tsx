@@ -16,7 +16,7 @@ const PROBLEM: Readonly<Record<PayeeProblem, MessageKey>> = {
 };
 
 /**
- * Profile's "Get paid to": the one place the UPI ID and the name payers see are entered. Payment requests and the QR
+ * About me's "Get paid to": the one place the UPI ID and the name payers see are entered. Payment requests and the QR
  * read them from there when they are needed, so a change here applies to the next one at once. Once saved it is one
  * line with Change, so the form only takes room while it is being filled in.
  */

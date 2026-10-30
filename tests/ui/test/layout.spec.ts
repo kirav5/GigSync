@@ -1,7 +1,7 @@
 import { type ApiClient, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, type Locator, type Page, test } from "@playwright/test";
-import { APP, completeSignIn, counted, listWorker, newPhone, openCard, Role, RUN, tabs } from "./helpers.js";
+import { APP, completeSignIn, counted, listWorker, menuButton, newPhone, openCard, Role, RUN } from "./helpers.js";
 import { switchToForm } from "./journey.js";
 
 /**
@@ -68,8 +68,8 @@ test("a worker's screens at 360×640 in English: Language, Sign-in, Talk and My 
   await fits(page, page.getByRole("button", { name: t(en, "signin.send_code"), exact: true }), en);
   await completeSignIn(page, { role: Role.worker, name: `Lakshmi ${RUN}`, phone: newPhone() });
 
-  // With no card, she lands on Talk: the composer and its mic sit above the tab bar.
-  await expect(tabs(page)).toBeInViewport(WHOLE);
+  // With no card, she lands on Talk: the menu button above, the composer and its mic below, all on screen.
+  await expect(menuButton(page)).toBeInViewport(WHOLE);
   await fits(page, page.getByRole("button", { name: t(en, "speech.listen") }), en);
   await expect(page.getByRole("form", { name: t(en, "nav.talk") })).toBeInViewport(WHOLE);
   await expect(page.getByRole("button", { name: t(en, "a11y.send"), exact: true })).toBeInViewport(WHOLE);
@@ -78,7 +78,7 @@ test("a worker's screens at 360×640 in English: Language, Sign-in, Talk and My 
   const publish = page.getByRole("button", { name: t(en, "card.publish"), exact: true });
   await fits(page, publish, en);
   expect(await fontPx(publish)).toBeGreaterThanOrEqual(BUTTON_MIN_PX);
-  await expect(tabs(page)).toBeInViewport(WHOLE);
+  await expect(page.getByRole("button", { name: t(en, "a11y.back"), exact: true })).toBeInViewport(WHOLE);
   // The area list, and each checkbox row ("sign for me" decides whether the agent signs alone).
   const card = page.getByRole("form", { name: t(en, "a11y.my_card") });
   await tappable(card.getByRole("combobox"));
@@ -111,5 +111,5 @@ test("a household's screens at 360×640 in Hindi: Language, Sign-in and Find's A
   const ask = page.getByRole("button", { name: counted(hi, "find.ask") });
   await fits(page, ask, hi);
   expect(await fontPx(ask)).toBeGreaterThanOrEqual(BUTTON_MIN_PX);
-  await expect(tabs(page, hi)).toBeInViewport(WHOLE);
+  await expect(menuButton(page, hi)).toBeInViewport(WHOLE);
 });

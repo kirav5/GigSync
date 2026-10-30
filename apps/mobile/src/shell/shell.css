@@ -1,0 +1,375 @@
+/* The signed-in frame, as the collab app's (web/styles.css: .app, .sidebar, .nav, .session, .topbar, .engine-chip):
+   the menu in a 290px column beside the main area on a wide screen, and a drawer over it on a phone (≤820px, collab's
+   breakpoint, and adapters/wide.ts). Square controls, hairlines, mono uppercase labels, one pink accent. */
+.app.shell {
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+.shell > .main {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* The menu: header, then what scrolls (need-you, New chat, the screens, the chats), then the foot. */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  border-right: 1px solid var(--hairline);
+  background: var(--bg);
+}
+.sidebar header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: max(10px, env(safe-area-inset-top)) 14px 10px;
+  border-bottom: 1px solid var(--hairline);
+}
+/* What sits at the end of the menu's header and of the title row. */
+.bar-end {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+.sidebar .scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding: 14px;
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+/* What runs the agent: a pill that opens Settings. Grey ink for lite mode, peri for a model on the phone. */
+.engine-chip {
+  font: 600 11px / 1 var(--sans);
+  padding: 6px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--surface2);
+  color: var(--accent-ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.engine-chip.peri {
+  color: var(--peri-ink);
+}
+@media (hover: hover) {
+  .engine-chip:hover {
+    border-color: currentColor;
+  }
+}
+
+/* The menu's buttons: collab's square, mono, uppercase .btn, full width. */
+.side-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 9px 14px;
+  border: 1px solid var(--inverse);
+  border-radius: 3px;
+  background: var(--inverse);
+  color: var(--on-inverse);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.side-btn.accent {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.side-btn.secondary {
+  background: transparent;
+  border-color: var(--hairline);
+  color: var(--text);
+}
+.side-btn.quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text2);
+}
+.side-btn:active {
+  opacity: 0.78;
+}
+.needs {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.needs .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* The screens: one row height (48px), one icon size, one gap; the open one on a grey ground with a pink icon. */
+.nav {
+  display: grid;
+  gap: 2px;
+}
+.nav button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--tap);
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  font-size: var(--fs-2);
+  text-align: start;
+  cursor: pointer;
+}
+.nav button.on {
+  background: var(--surface2);
+}
+.nav .ico {
+  width: 20px;
+  display: inline-grid;
+  place-items: center;
+  color: var(--text2);
+}
+.nav button.on .ico {
+  color: var(--accent);
+}
+.nav .trail {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+.nav .trail-dot {
+  margin-left: auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.nav button:active,
+.session:active {
+  opacity: 0.78;
+}
+
+/* The chats kept on this phone: one row each, its title opening it, the trash beside it. */
+.side-chats,
+.side-group {
+  display: grid;
+  gap: 4px;
+}
+.side-chats {
+  gap: 12px;
+}
+.sessions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.session-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+.session {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--text);
+  font-size: var(--fs-2);
+  text-align: start;
+  cursor: pointer;
+}
+.session.on {
+  background: var(--surface2);
+}
+.session-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.session-del {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text3);
+  cursor: pointer;
+}
+@media (hover: hover) and (pointer: fine) {
+  .session-del {
+    width: 32px;
+    height: 32px;
+    opacity: 0;
+  }
+  .session-row:hover .session-del,
+  .session-row:focus-within .session-del {
+    opacity: 1;
+  }
+  .session-del:hover {
+    color: var(--danger);
+    background: var(--surface2);
+  }
+}
+/* The confirm takes the row's whole width, under the chat it is about. */
+.chat-confirm {
+  flex-basis: 100%;
+}
+
+/* The foot: who is signed in, Sign out, Install app. */
+.side-foot {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--hairline);
+  background: var(--bg);
+}
+.linkish {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text2);
+  text-align: start;
+  cursor: pointer;
+}
+
+/* The title row: the menu button (or Back), the title as a label, then the need-you pill and × back to the chat. */
+.shell .topbar {
+  gap: 6px;
+  padding-left: 8px;
+}
+.shell .topbar-title {
+  font-family: var(--mono);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.shell .topbar-title::before {
+  content: "■ ";
+}
+.topbar .menu,
+.topbar .close,
+.side-close {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+.topbar .back {
+  margin-left: 0;
+}
+.menu-dot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--bg);
+}
+.need-pill {
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Devanagari and Kannada: no capitals, and letter-spacing breaks their conjuncts. */
+:lang(hi) .side-btn,
+:lang(kn) .side-btn,
+:lang(hi) .shell .topbar-title,
+:lang(kn) .shell .topbar-title {
+  font-family: var(--sans);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+/* Wide: the menu always stands beside the content, so it has no menu button and nothing to close. */
+@media (min-width: 821px) {
+  .topbar .menu,
+  .side-close {
+    display: none;
+  }
+  .shade {
+    display: none;
+  }
+}
+
+/* Phones: the menu is a drawer over the screen. Closed, it is hidden from the keyboard and screen readers too. */
+@media (max-width: 820px) {
+  .app.shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 10;
+    width: min(300px, 86vw);
+    padding-left: env(safe-area-inset-left);
+    visibility: hidden;
+  }
+  /* As in collab (data-motion="off"), the menu appears in place: no slide to wait for, and focus can move in at once. */
+  .nav-open .sidebar {
+    visibility: visible;
+  }
+  /* The shade behind the open menu covers the whole screen; a tap on it closes the menu and presses nothing else. */
+  .shade {
+    position: fixed;
+    inset: 0;
+    z-index: 9;
+    background: rgb(0 0 0 / 45%);
+  }
+}

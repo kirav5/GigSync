@@ -1,7 +1,7 @@
 import { type MessageKey, plural, questionText, t } from "@gigsync/core";
 import { Lang, SharedPrice } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { newPhone, open, openFold, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
+import { newPhone, open, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
 import { type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -130,12 +130,11 @@ test("a household sees the range beside its budget; after both sign each is aske
   await signIn(homePage, { role: Role.consumer, name: `Lata ${RUN}`, phone: newPhone(), address: "HSR", lang: en });
   await askToPaint(homePage, "suggested");
   await askAndAnswer(homePage, name);
-  await open(workerPage, "nav.today");
+  await open(workerPage, "nav.activity");
   await signBoth({ worker, customer: home }, FOLDER);
 
   // Ask each time is the default; the card is on the signed job, and Yes sends the price.
-  await open(homePage, "nav.profile");
-  await openFold(homePage, "profile.agent");
+  await open(homePage, "nav.privacy");
   const setting = homePage.getByRole("region", { name: t(en, "estimate.setting_label") });
   await expect(setting.getByRole("button", { name: t(en, "estimate.setting_ask") })).toHaveAttribute(
     "aria-pressed",
@@ -160,7 +159,7 @@ test("a household sees the range beside its budget; after both sign each is aske
   await expect(card).toHaveCount(0);
 
   // The worker is asked too, on their own phone, and No sends nothing.
-  await open(workerPage, "nav.today");
+  await open(workerPage, "nav.activity");
   const theirs = workerPage.getByRole("group", { name: t(en, "estimate.share_ask") });
   await reveal(workerPage, theirs);
   await theirs.getByRole("button", { name: t(en, "estimate.share_no") }).click();
@@ -175,7 +174,7 @@ test("an offer far below the range carries a note to the worker, and nothing is 
   await askToPaint(homePage, "8000");
   await askAndAnswer(homePage, name);
 
-  await open(workerPage, "nav.today");
+  await open(workerPage, "nav.activity");
   const note = workerPage
     .getByRole("note")
     .filter({ hasText: textOf(en, "estimate.below", { low: "₹14,000", high: "₹18,000" }) });

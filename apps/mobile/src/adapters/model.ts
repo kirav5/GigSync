@@ -126,6 +126,20 @@ export class ChosenModel implements Model {
     }
   }
 
+  /** Which engine answers right now: the device's own model, Ollama, or none at all (lite mode). */
+  answering(): ModelChoice {
+    switch (this.settings.choice) {
+      case ModelChoice.lite:
+        return ModelChoice.lite;
+      case ModelChoice.ollama:
+        return OLLAMA_OFFERED && this.settings.ollamaModel ? ModelChoice.ollama : ModelChoice.lite;
+      case ModelChoice.device:
+        return this.status?.available ? ModelChoice.device : ModelChoice.lite;
+      default:
+        return deviceUsable(this.status) ? ModelChoice.device : ModelChoice.lite;
+    }
+  }
+
   /** One line for the screens, in the owner's language: which engine will answer right now. */
   label(t: (key: MessageKey, params?: Params) => string): string {
     const lite = t("model.lite_label");

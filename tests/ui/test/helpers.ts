@@ -3,6 +3,10 @@ import { ApiClient, Header, type MessageKey, type Params, type PluralKey, Secret
 import { newDeviceSecrets } from "@gigsync/crypto";
 import { DEFAULT_LANG, type Lang, type Place, type Trade } from "@gigsync/protocol";
 import { expect, type Locator, type Page, test } from "@playwright/test";
+import { open } from "./menu.js";
+
+/** The app's frame, as the specs reach it (menu.ts): the menu, its screens, the chat, sign-out and My card's form. */
+export * from "./menu.js";
 
 export const API = process.env.API_BASE ?? "http://localhost:8787";
 /** The app as the dev server serves it; absolute, so pages without a base URL (a phone over DevTools) work too. */
@@ -53,10 +57,6 @@ export async function chooseLanguage(page: Page, lang: Lang) {
   await page.getByRole("button", { name: t(lang, "onboard.continue") }).click();
 }
 
-/** The tab bar, named in the owner's language. */
-export const tabs = (page: Page, lang: Lang = DEFAULT_LANG) =>
-  page.getByRole("navigation", { name: t(lang, "a11y.tabs") });
-
 /** Someone signing in: their role, name, number, address (households only) and language. */
 interface Person {
   role: Role;
@@ -90,40 +90,18 @@ export async function completeSignIn(page: Page, who: Person) {
   // The API lets one network address check 10 codes a minute, and a test run signs many people in from one machine:
   // when it says so, wait the minute out and try the same code again.
   const tooMany = page.getByText(t(lang, "net.too_many"));
-  await expect(tabs(page, lang).or(tooMany)).toBeVisible();
+  // Signed in, the top bar shows (only the signed-in frame has one), whichever screen opened first.
+  await expect(page.getByRole("banner").or(tooMany)).toBeVisible();
   if (await tooMany.isVisible()) {
     await page.waitForTimeout(RATE_WINDOW_MS);
     await submit.click();
   }
-  await expect(tabs(page, lang)).toBeVisible();
+  await expect(page.getByRole("banner")).toBeVisible();
 }
 
-/** Opens a tab, named in the person's language. The name may carry a count of decisions, so it is not exact. */
-export async function open(page: Page, screen: MessageKey, lang: Lang = DEFAULT_LANG) {
-  const tab = tabs(page, lang).getByRole("button", { name: t(lang, screen) });
-  await tab.click();
-  await expect(tab).toHaveAttribute("aria-current", "page");
-}
-
-/** Opens one of Profile's folds ("Your agent", "More settings") by its title, unless it is open. */
-export async function openFold(page: Page, title: MessageKey, lang: Lang = DEFAULT_LANG) {
-  // Its own title row only: a fold may hold another fold (what the agent remembers sits inside "Your agent").
-  const summary = page.locator("details > summary", { hasText: t(lang, title) });
-  const fold = summary.locator("..");
-  if ((await fold.getAttribute("open")) === null) await summary.click();
-  await expect(fold).toHaveAttribute("open", "");
-}
-
-/** My card, under Profile. */
-export async function openCard(page: Page, lang: Lang = DEFAULT_LANG) {
-  await open(page, "nav.profile", lang);
-  await page.getByRole("button", { name: t(lang, "nav.card"), exact: true }).click();
-  await expect(page.getByRole("form", { name: t(lang, "a11y.my_card") })).toBeVisible();
-}
-
-/** Saves the worker's UPI ID in Profile, the only place it is asked for; the name is left as the form fills it. */
+/** Saves the worker's UPI ID in About me, the only place it is asked for; the name is left as the form fills it. */
 export async function setUpi(page: Page, lang: Lang, vpa: string) {
-  await open(page, "nav.profile", lang);
+  await open(page, "nav.about", lang);
   // A saved UPI ID is one line: Change opens the form again.
   const change = page.getByRole("button", { name: t(lang, "settings.change"), exact: true });
   if (await change.isVisible()) await change.click();

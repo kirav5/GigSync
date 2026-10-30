@@ -6,7 +6,7 @@ import { useLinks } from "./links.js";
 import "./mentor.css";
 
 /**
- * Profile's mentor links: what they are, and one row per live link (name, trades, who they are to this owner, days
+ * Privacy's mentor links: what they are, and one row per live link (name, trades, who they are to this owner, days
  * left, new notes), each opening the link's thread. Nothing at all while there is no link.
  */
 export function LinksSection({ onOpen }: { onOpen: (user: UserId) => void }) {

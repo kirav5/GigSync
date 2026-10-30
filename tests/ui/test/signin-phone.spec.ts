@@ -1,7 +1,7 @@
 import { t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, test } from "@playwright/test";
-import { chooseLanguage, completeSignIn, newPhone, Role, RUN, tabs } from "./helpers.js";
+import { chooseLanguage, completeSignIn, newPhone, Role, RUN, shell } from "./helpers.js";
 
 /** People type their mobile number the way they say it: ten digits, no country code. */
 const { hi } = Lang.enum;
@@ -26,5 +26,5 @@ test("sign-in takes a 10-digit number as typed, and says so plainly when a numbe
     address: "Indiranagar",
     lang: hi,
   });
-  await expect(tabs(page, hi)).toBeVisible();
+  await expect(shell(page, hi)).toBeVisible();
 });

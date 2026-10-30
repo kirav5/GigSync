@@ -47,7 +47,7 @@ test("a finished job shows in Passbook's record under its month, and opens in pl
 
   // ── Nothing signed yet: Passbook says where money will show, and has no record ──────────────────────────────────
   await signIn(workerPage, { role: Role.worker, name: workerName, phone: newPhone() });
-  await open(workerPage, "nav.passbook");
+  await open(workerPage, "nav.receipts");
   await expect(workerPage.getByText(say("passbook.empty"))).toBeVisible();
   await expect(workDone(workerPage, en)).toHaveCount(0);
 
@@ -59,7 +59,7 @@ test("a finished job shows in Passbook's record under its month, and opens in pl
     min: "550",
     about: "Doors, hinges and shelves",
   });
-  await open(workerPage, "nav.today");
+  await open(workerPage, "nav.activity");
   await signIn(householdPage, { role: Role.consumer, name: householdName, phone: newPhone(), address });
   await fillAsk(household, {
     trade: "carpenter",
@@ -78,18 +78,18 @@ test("a finished job shows in Passbook's record under its month, and opens in pl
   const amount = rupees(await dealPaise(household));
 
   // ── Signed but not done: the record waits for it ────────────────────────────────────────────────────────────────
-  await open(workerPage, "nav.passbook");
+  await open(workerPage, "nav.receipts");
   await expect(workDone(workerPage, en)).toContainText(say("record.empty"));
   await expect(workerPage.getByText(say("passbook.empty"))).toHaveCount(0);
 
   // ── He marks it done; nobody has asked for the money yet ──────────────────────────────────────────────────────
-  await open(workerPage, "nav.today");
+  await open(workerPage, "nav.activity");
   const card = workerPage.getByRole("article", { name: say("a11y.job_with", { name: householdName }) });
   await card.getByRole("button", { name: say("job.mark_done") }).click();
   await expect(card.getByText(say("status.delivered"), { exact: true })).toBeVisible();
 
   // ── Passbook: the summary, the month, and the job's row with its money state ───────────────────────────────────
-  await open(workerPage, "nav.passbook");
+  await open(workerPage, "nav.receipts");
   const month = await monthOnPage(workerPage, en);
   const summary = workerPage.getByText(plural(en, "record.jobs", 1));
   await expect(summary).toContainText(plural(en, "record.households", 1));
@@ -128,12 +128,12 @@ test("a finished job shows in Passbook's record under its month, and opens in pl
   await expect(job).toHaveCount(0);
 
   // ── In Hindi: the same record, its month and summary in her phone's own words ──────────────────────────────────
-  await open(workerPage, "nav.profile");
+  await open(workerPage, "nav.about");
   await workerPage
     .getByRole("group", { name: say("a11y.language") })
     .getByRole("button", { name: say("lang.hi") })
     .click();
-  await open(workerPage, "nav.passbook", hi);
+  await open(workerPage, "nav.receipts", hi);
   const hiMonth = await monthOnPage(workerPage, hi);
   const hiRecord = workDone(workerPage, hi);
   await expect(hiRecord.getByRole("heading", { name: hiMonth, level: 3 })).toBeVisible();
@@ -145,13 +145,13 @@ test("a finished job shows in Passbook's record under its month, and opens in pl
   await shoot("record-hindi", shots, FOLDER);
 
   // Back to English, so the clean-up finds its way, then the card comes off the board.
-  await open(workerPage, "nav.profile", hi);
+  await open(workerPage, "nav.about", hi);
   await workerPage
     .getByRole("group", { name: t(hi, "a11y.language") })
     .getByRole("button", { name: t(hi, "lang.en") })
     .click();
   await openCard(workerPage);
   await workerPage.getByRole("button", { name: say("card.unlist") }).click();
-  await open(workerPage, "nav.profile");
+  await open(workerPage, "nav.card");
   await expect(workerPage.getByText(say("profile.card_off"))).toBeVisible();
 });

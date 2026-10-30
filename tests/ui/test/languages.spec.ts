@@ -127,7 +127,7 @@ test("Hindi cook, Kannada household: every screen in its own language, free text
   await ravi.page.getByRole("button", { name: plural(kn, "find.ask", 1) }).click();
 
   // Asha's agent asks the cook's questions as keys; Ravi reads and answers them in Kannada, pets from a toggle.
-  await open(asha.page, "nav.today", hi);
+  await open(asha.page, "nav.activity", hi);
   const answer = ravi.page.getByRole("form", { name: t(kn, "a11y.answer") });
   await expect(answer.getByLabel(questionText(kn, "pets"))).toBeVisible();
   await shoot("questions-in-kannada", shots, folder);
@@ -185,7 +185,7 @@ test("Hindi cook, Kannada household: every screen in its own language, free text
   await expect(job).not.toContainText(KANNADA);
   await expect(job).not.toContainText(OLD_NOTE);
 
-  await open(asha.page, "nav.profile", hi);
+  await open(asha.page, "nav.about", hi);
   await expect(asha.page.getByRole("region", { name: t(hi, "profile.language") })).toBeVisible();
   await shoot("settings", shots, folder);
   await openCard(asha.page, hi);
@@ -226,7 +226,7 @@ test("Hindi maid, English household: rooms priced from the band, words translate
   await meera.page.getByRole("button", { name: plural(en, "find.ask", 1) }).click();
 
   // Rooms came with the ask; Sunita's agent asks only about pets, which Meera reads in English.
-  await open(sunita.page, "nav.today", hi);
+  await open(sunita.page, "nav.activity", hi);
   const answer = meera.page.getByRole("form", { name: t(en, "a11y.answer") });
   await expect(answer.getByLabel(questionText(en, "pets"))).toBeVisible();
   await shoot("question-in-english", shots, folder);

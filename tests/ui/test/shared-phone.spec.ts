@@ -1,7 +1,7 @@
 import { type MessageKey, type Params, plural, questionText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { completeSignIn, newPhone, open, openFold, Role, RUN, shoot, signIn, tabs } from "./helpers.js";
+import { completeSignIn, newPhone, open, Role, RUN, shoot, signIn, signOutHere } from "./helpers.js";
 import { fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -31,20 +31,18 @@ const workDone = (page: Page) => page.getByRole("region", { name: say("record.ti
 const memory = (page: Page) => page.getByRole("region", { name: say("memory.title") });
 
 async function signOut(page: Page) {
-  await open(page, "nav.profile");
-  await page.getByRole("button", { name: say("shell.sign_out") }).click();
+  await signOutHere(page);
   await expect(page.getByRole("form", { name: say("signin.label") })).toBeVisible();
 }
 
 /** Suresh's job on Today, its row in Passbook, and Lata in what his agent remembers. */
 async function seesHisOwn(page: Page) {
-  await open(page, "nav.today");
+  await open(page, "nav.activity");
   await expect(jobWithLata(page)).toBeVisible();
-  await open(page, "nav.passbook");
+  await open(page, "nav.receipts");
   await expect(workDone(page)).toBeVisible();
   await expect(page.getByText(say("passbook.empty"))).toHaveCount(0);
-  await open(page, "nav.profile");
-  await openFold(page, "profile.agent");
+  await open(page, "nav.about");
   await expect(memory(page)).toContainText(householdName);
 }
 
@@ -66,7 +64,7 @@ test("two workers on one phone each see only their own jobs, memory and Passbook
     min: "550",
     about: "Doors, hinges and shelves",
   });
-  await open(phonePage, "nav.today");
+  await open(phonePage, "nav.activity");
   await signIn(householdPage, {
     role: Role.consumer,
     name: householdName,
@@ -93,14 +91,13 @@ test("two workers on one phone each see only their own jobs, memory and Passbook
   // ── Suresh signs out; Kiran signs in on the same phone and sees none of it ─────────────────────────────────────
   await signOut(phonePage);
   await completeSignIn(phonePage, kiran);
-  await open(phonePage, "nav.today");
+  await open(phonePage, "nav.activity");
   await expect(phonePage.getByText(say("home.empty"))).toBeVisible();
   await expect(jobWithLata(phonePage)).toHaveCount(0);
-  await open(phonePage, "nav.passbook");
+  await open(phonePage, "nav.receipts");
   await expect(phonePage.getByText(say("passbook.empty"))).toBeVisible();
   await expect(workDone(phonePage)).toHaveCount(0);
-  await open(phonePage, "nav.profile");
-  await openFold(phonePage, "profile.agent");
+  await open(phonePage, "nav.about");
   await expect(memory(phonePage)).toContainText(say("memory.empty"));
   await expect(memory(phonePage)).not.toContainText(householdName);
   await shoot("kiran", shots, FOLDER);
@@ -108,8 +105,8 @@ test("two workers on one phone each see only their own jobs, memory and Passbook
   // ── Kiran signs out; Suresh signs back in: his job, Passbook, memory and card are all there ────────────────────
   await signOut(phonePage);
   await completeSignIn(phonePage, suresh);
-  // His card's rules came back with him: he lands on Today, not on Talk to make a card.
-  await expect(tabs(phonePage).getByRole("button", { name: say("nav.today") })).toHaveAttribute("aria-current", "page");
+  // His card's rules came back with him: Today does not ask him to make a card.
+  await open(phonePage, "nav.activity");
   await expect(phonePage.getByText(say("home.no_card"))).toHaveCount(0);
   await seesHisOwn(phonePage);
   await shoot("suresh-after", shots, FOLDER);

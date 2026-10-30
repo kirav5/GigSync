@@ -58,18 +58,7 @@
   gap: 8px;
 }
 
-/* The Profile tab's dot: a note on a mentor link is not read yet. Beside the icon, where the Today count sits. */
-.tabs .dot {
-  position: absolute;
-  top: 8px;
-  left: calc(50% + 8px);
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
-/* Profile's mentor links and one link's notes, which reuse the chat bubbles in styles.css. */
+/* Privacy's mentor links and one link's notes, which reuse the chat bubbles in styles.css. */
 .link-rows,
 .link-thread {
   display: grid;

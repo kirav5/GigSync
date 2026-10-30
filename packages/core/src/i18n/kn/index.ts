@@ -16,6 +16,7 @@ import { money } from "./money.js";
 import { moving } from "./moving.js";
 import { need } from "./need.js";
 import { net } from "./net.js";
+import { page } from "./page.js";
 import { qr } from "./qr.js";
 import { record } from "./record.js";
 import { screens } from "./screens.js";
@@ -52,4 +53,5 @@ export const kn: Strings = {
   ...chats,
   ...moving,
   ...qr,
+  ...page,
 };

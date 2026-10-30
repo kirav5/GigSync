@@ -1,5 +1,5 @@
 /* Voice (P3): the composer's mic beside the field and send (styles.css draws .composer .bar and .send), the cloud
-   consent sheet above them, the speaker button on questions and decisions, and the read-aloud switch in Profile. */
+   consent sheet above them, the speaker button on questions and decisions, and the read-aloud switch in Settings. */
 .composer {
   display: flex;
   flex-direction: column;

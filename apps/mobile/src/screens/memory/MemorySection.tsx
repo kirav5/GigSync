@@ -12,8 +12,8 @@ import "./memory.css";
 const failure = (err: unknown) => ({ error: err instanceof Error ? err.name : typeof err });
 
 /**
- * Profile's "What my agent remembers": whether the agent asks before using what it remembers, then, folded away so a
- * long history never fills Profile, every fact, place, person and question it kept from past signed jobs, each with
+ * About me's "What my agent remembers": whether the agent asks before using what it remembers, then, folded away so a
+ * long history never fills the screen, every fact, place, person and question it kept from past signed jobs, each with
  * Forget, and Forget everything. It is all on this phone.
  */
 export function MemorySection({ ports, account }: { ports: Ports; account: Account }) {

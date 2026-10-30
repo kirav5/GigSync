@@ -5,10 +5,11 @@ import { sql } from "./sql.js";
 
 const device = { signing_key: "c2lnbmluZw==", encryption_key: "ZW5jcnlwdGlvbg==", protocol: 1 };
 
-function verify(phone: string, code: string, ip = phone, body: unknown = { phone, code, device }) {
+/** `ip: null` sends no client IP, as a local browser does. */
+function verify(phone: string, code: string, ip: string | null = phone, body: unknown = { phone, code, device }) {
   return SELF.fetch("http://x/v1/auth/otp/verify", {
     method: "POST",
-    headers: { "cf-connecting-ip": ip },
+    headers: ip === null ? {} : { "cf-connecting-ip": ip },
     body: JSON.stringify(body),
   });
 }
@@ -42,6 +43,12 @@ describe("otp verify", () => {
     for (let i = 0; i < 11; i++) statuses.push((await verify(`+91981100010${i % 10}`, "123456", "ip-spray")).status);
     expect(statuses.slice(0, 10).every((s) => s === 401)).toBe(true);
     expect(statuses[10]).toBe(429);
+  });
+
+  it("locally, with no client IP, counts each number apart, so many people can sign in at once", async () => {
+    const statuses: number[] = [];
+    for (let i = 0; i < 11; i++) statuses.push((await verify(`+91981100020${i % 10}`, "123456", null)).status);
+    expect(statuses.filter((s) => s === 429)).toHaveLength(0);
   });
 
   it("rejects malformed input", async () => {

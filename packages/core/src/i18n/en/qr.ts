@@ -1,8 +1,7 @@
 /** Personal QR codes (ADR 0034): my QR, scanning one, the person it finds, and offers to work. */
 export const qr = {
-  // Profile and my QR
-  "qr.mine": "My QR code",
-  "qr.row_about": "Show it so people can find you",
+  // My card and my QR
+  "qr.mine": "Your QR code",
   "qr.about_worker":
     "Anyone who scans it with their phone camera sees your card and can ask you for work. Your phone number is never on it.",
   "qr.about_household":

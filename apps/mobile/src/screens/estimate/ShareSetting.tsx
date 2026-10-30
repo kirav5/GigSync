@@ -20,7 +20,7 @@ const LABEL: Readonly<Record<SharePrices, MessageKey>> = {
 const failure = (err: unknown) => ({ error: err instanceof Error ? err.name : typeof err });
 
 /**
- * Profile's "Share agreed prices anonymously to improve rate estimates: Ask each time / Always share / Never". Ask each
+ * Privacy's "Share agreed prices anonymously to improve rate estimates: Ask each time / Always share / Never". Ask each
  * time (the default) shows a card on each job both sides signed; what is sent is said on that card.
  */
 export function ShareSetting({ ports }: { ports: Ports }) {

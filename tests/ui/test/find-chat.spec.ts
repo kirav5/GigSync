@@ -1,7 +1,7 @@
 import { type ApiClient, plural, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, type Page, test } from "@playwright/test";
-import { listWorker, newPhone, open, Role, RUN, reveal, shoot, signIn, tabs, textOf } from "./helpers.js";
+import { listWorker, newPhone, onScreen, open, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
 
 /**
  * A household finds a worker by talking, the way a worker makes their card in Talk: one sentence in their own words,
@@ -78,10 +78,7 @@ test("a household says what they need in one sentence and is asked only for the 
   await tap(page, t(en, "flag.yes"));
 
   await askOnly(page, en, worker);
-  await expect(tabs(page, en).getByRole("button", { name: t(en, "nav.my_jobs") })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
+  await onScreen(page, "nav.my_jobs", en);
   await reveal(page, page.getByText(words).first());
   await expect(page.getByText(/700/)).toHaveCount(0);
   await shoot("my-jobs", { household: page }, FOLDER);
@@ -111,10 +108,7 @@ test("a Hindi household finds an electrician by tapping the choices", async ({ b
   await tap(page, t(hi, "flag.yes"));
 
   await askOnly(page, hi, worker);
-  await expect(tabs(page, hi).getByRole("button", { name: t(hi, "nav.my_jobs") })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
+  await onScreen(page, "nav.my_jobs", hi);
   // Tapped together, the need is the trade's name, as the worker will read it.
   await reveal(page, page.getByText(t(hi, "trade.electrician"), { exact: true }).first());
 

@@ -17,7 +17,7 @@ import { C } from "../ui/cls.js";
 const LINK_END = `${C.linkBtn} end`;
 
 /**
- * Profile's Voice section, in the owner's language (amendment A1: the owner can see what runs): whether voice typing
+ * Settings' Voice section, in the owner's language (amendment A1: the owner can see what runs): whether voice typing
  * and reading aloud work, which engine listens and whether the voice stays on the phone or goes to a company, the
  * downloads (only from a tap), the read-aloud switch, and a way to stop sending the voice to a company they allowed.
  */

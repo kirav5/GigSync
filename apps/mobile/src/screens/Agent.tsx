@@ -40,7 +40,6 @@ import { errorKey } from "../ui/errorKey.js";
 import { money } from "../ui/places.js";
 import type { GigView } from "../useGig.js";
 import { Interview } from "./Interview.js";
-import { ChatList, TalkHead } from "./talk/Chats.js";
 import { type Suggestion, Suggestions } from "./talk/TalkStart.js";
 import "./talk.css";
 
@@ -67,7 +66,7 @@ interface TalkProps {
  * card interview when there is no card yet or the owner asked to change it by talking. Words that ask to change a
  * field of the card ("मेरा रेट बदलो") open the interview at that field, below what was said before. Moving to a new
  * city, offering to help newcomers and the guide's answers are all in the chat (`talk/useMoves.ts`): no menu to find.
- * "Chats" lists the past chats in place of the open one; "New chat" keeps the open one there and starts an empty one.
+ * Past chats and "New chat" are in the menu (shell/DrawerChats.tsx), as in the collab app.
  */
 export function AgentScreen(props: TalkProps) {
   const { agent, ports, account, interview, onSaved, onChecklist, onFindMentor, view, device, run } = props;
@@ -75,7 +74,6 @@ export function AgentScreen(props: TalkProps) {
   const { ready, open, state, turns, paused, interviewIn } = useTalk();
   const [busy, setBusy] = useState(false);
   const moves = useMoves({ ports, account, device, run, lang }, { onChecklist, onMoreWays: onFindMentor });
-  const [listing, setListing] = useState(false);
   const opened = useRef(false);
   const end = useRef<HTMLDivElement>(null);
   const active = state !== undefined && !paused;
@@ -91,7 +89,7 @@ export function AgentScreen(props: TalkProps) {
     else if (interviewIn !== open) openChat(interviewIn);
   }, [wanted, ready, interviewIn, open, lang, account]);
 
-  // A language picked in Profile part-way: the questions from here on, and what the mic listens for, follow it.
+  // A language picked in About me part-way: the questions from here on, and what the mic listens for, follow it.
   useEffect(() => {
     if (state && state.config.own !== lang) relanguageInterview(interviewConfig(lang));
   }, [state, lang]);
@@ -148,7 +146,7 @@ export function AgentScreen(props: TalkProps) {
       setBusy(false);
       return;
     }
-    // Kept outside the screen: an answer that comes after the owner switched tabs still lands under its note.
+    // Kept outside the screen: an answer that comes after the owner went to another screen still lands under its note.
     const id = addNote(own);
     try {
       noteAnswered(id, (await agent.handle(own)).card);
@@ -165,7 +163,6 @@ export function AgentScreen(props: TalkProps) {
    * the interview waits for "Carry on" and the move is answered; "I work in Bengaluru" stays an answer.
    */
   function send(text: string, via: Via) {
-    setListing(false);
     if (!active) return void sendNote(text);
     const moving = movingIntent(text, lang);
     if (!moving?.certain) return answerInterview(text, via === Via.voice);
@@ -176,21 +173,19 @@ export function AgentScreen(props: TalkProps) {
   return (
     <>
       <div className={C.stack}>
-        <TalkHead listing={listing} onListing={setListing} />
         <h1 className={C.headline}>
           {t("agent.headline")} <span className={C.soft}>{t("agent.soft")}</span>
         </h1>
       </div>
-      {listing && <ChatList onOpened={() => setListing(false)} />}
-      {!listing && turns.length > 0 && <Interview ports={ports} account={account} onSaved={onSaved} moves={moves} />}
-      {!listing && paused && (
+      {turns.length > 0 && <Interview ports={ports} account={account} onSaved={onSaved} moves={moves} />}
+      {paused && (
         <div className={C.row}>
           <button type={C.button} className={C.chipOn} onClick={resumeInterview}>
             {t("iv.resume")}
           </button>
         </div>
       )}
-      {!listing && ready && turns.length === 0 && !active && <Suggestions items={suggestions} />}
+      {ready && turns.length === 0 && !active && <Suggestions items={suggestions} />}
       <div ref={end} />
       <Dock>
         <Composer

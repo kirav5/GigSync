@@ -29,6 +29,40 @@ export async function liveCode(db: Db, user: UserId): Promise<MyQr | undefined> 
   return r && myQr(r);
 }
 
+/**
+ * The owner's live code, made on first ask, in one round trip: records their role and first name (only when changed),
+ * then returns the live code or inserts `code` as it. Undefined only when a concurrent first ask won the insert; the
+ * caller then reads the code that one made.
+ */
+export async function ownCode(
+  db: Db,
+  user: UserId,
+  owner: MyQrRequest,
+  code: string,
+  at: Date,
+): Promise<MyQr | undefined> {
+  const { rows } = await db.query<CodeRow>(
+    `WITH owner AS (
+       INSERT INTO qr_owners (user_id, role, first_name, updated_at) VALUES ($1, $2, $3, $4)
+       ON CONFLICT (user_id) DO UPDATE SET role = excluded.role, first_name = excluded.first_name,
+         updated_at = excluded.updated_at
+       WHERE qr_owners.role <> excluded.role OR qr_owners.first_name <> excluded.first_name
+       RETURNING user_id
+     ), live AS (
+       SELECT code, created_at FROM qr_codes WHERE user_id = $1 AND replaced_at IS NULL
+     ), made AS (
+       INSERT INTO qr_codes (code, user_id, created_at)
+       SELECT $5, $1, $4 WHERE NOT EXISTS (SELECT 1 FROM live)
+       ON CONFLICT DO NOTHING
+       RETURNING code, created_at
+     )
+     SELECT code, created_at FROM live UNION ALL SELECT code, created_at FROM made LIMIT 1`,
+    [user, owner.role, owner.first_name, at, code],
+  );
+  const [r] = rows;
+  return r && myQr(r);
+}
+
 /** Ends the owner's live code, if any. Call in the transaction that inserts the next one. */
 export async function endLiveCode(db: Db, user: UserId, at: Date): Promise<void> {
   await db.query("UPDATE qr_codes SET replaced_at = $2 WHERE user_id = $1 AND replaced_at IS NULL", [user, at]);

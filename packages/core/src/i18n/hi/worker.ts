@@ -11,7 +11,6 @@ export const worker: Readonly<Record<keyof typeof en, string>> = {
   "payrow.ref": "रेफ़ {utr}",
   "method.upi": "यूपीआई",
   "method.cash": "नक़द",
-  "settings.headline": "आपकी प्रोफ़ाइल।",
   "settings.soft": "इसी फ़ोन पर रखी जाती है।",
   "settings.paid_to": "पैसे यहाँ लें",
   "settings.vpa": "आपका यूपीआई आईडी",

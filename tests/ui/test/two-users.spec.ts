@@ -6,16 +6,19 @@ import {
   expand,
   inSection,
   listWorker,
+  navRow,
   newPhone,
+  onScreen,
   open,
   openCard,
+  openDrawer,
   Role,
   RUN,
   reveal,
   setUpi,
+  shell,
   shoot,
   signIn,
-  tabs,
 } from "./helpers.js";
 import { fillAsk, publishCard, unlistCards } from "./journey.js";
 
@@ -34,6 +37,8 @@ const ADDRESS = `Flat 302, 3rd floor, 5th Cross (${RUN})`;
 const UTR = "412345678901";
 /** The manual flow's tabs, gone with it. Written out: their keys are deleted after this change. */
 const GONE_TABS = ["Jobs in person", "Get paid", "My record"];
+/** The menu's rows, as a worker sees them. */
+const NAV_ROWS: MessageKey[] = ["nav.activity", "nav.receipts", "nav.card", "nav.about", "nav.privacy", "nav.settings"];
 const SIGN = /^Sign deal for/;
 
 let contexts: BrowserContext[] = [];
@@ -71,12 +76,14 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
     listWorker(`Esha ${RUN}`, ["plumber"], { lat: INDIRANAGAR.lat, lon: INDIRANAGAR.lon + 0.01 }, 60000),
   ]);
 
-  // ── Anil signs in: four tabs, none of the manual flow's ───────────────────────────────────────────────────────
+  // ── Anil signs in: the menu's six screens, none of the manual flow's ─────────────────────────────────────────
   await signIn(anil, { role: Role.worker, name: anilName, phone: newPhone() });
-  await expect(tabs(anil).getByRole("button")).toHaveCount(4);
-  for (const gone of GONE_TABS) await expect(tabs(anil).getByRole("button", { name: gone })).toHaveCount(0);
+  await openDrawer(anil);
+  for (const row of NAV_ROWS) await expect(navRow(anil, row)).toBeVisible();
+  for (const gone of GONE_TABS) await expect(anil.getByRole("button", { name: gone })).toHaveCount(0);
+  await anil.keyboard.press("Escape");
 
-  // He publishes his card: public rate ₹700, private minimum ₹550. It has no UPI field; that is in Profile alone.
+  // He publishes his card: public rate ₹700, private minimum ₹550. It has no UPI field; that is in About me alone.
   await publishCard(
     { page: anil, lang: en },
     { trade: "Electrician", area: "indiranagar", rate: "700", min: "550", about: "Wiring, fans and switchboards" },
@@ -87,7 +94,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   // The app restarts: the keys his phone registered at sign-in must be the keys it kept, or Priya's request,
   // sealed to them, cannot be opened.
   await anil.reload();
-  await expect(tabs(anil)).toBeVisible();
+  await expect(shell(anil)).toBeVisible();
 
   // ── Priya signs in and finds electricians near Indiranagar; she asks only Anil, for today ──────────────────────
   await signIn(priya, { role: Role.consumer, name: priyaName, phone: newPhone(), address: ADDRESS });
@@ -110,7 +117,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await priya.getByRole("button", { name: "Ask 1 worker" }).click();
 
   // ── Anil's agent asks what is wrong; Priya's agent cannot know, so it asks her ────────────────────────────────
-  await open(anil, "nav.today");
+  await open(anil, "nav.activity");
   const question = priya.getByRole("form", { name: say("a11y.answer") });
   await expect(question).toBeVisible();
   // Waiting on her, his job is folded under the agents' talks.
@@ -156,9 +163,9 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await askPayment.click();
   await expect(job.getByText(say("money.need_upi"))).toBeVisible();
   await job.getByRole("button", { name: say("money.add_upi") }).click();
-  await expect(tabs(anil).getByRole("button", { name: say("nav.profile") })).toHaveAttribute("aria-current", "page");
+  await onScreen(anil, "nav.about");
   await setUpi(anil, en, "anil.test@okaxis");
-  await open(anil, "nav.today");
+  await open(anil, "nav.activity");
   await askPayment.click();
   // Asked and waiting on her: he sees whom he waits for, and nothing to confirm or dispute until she says she paid.
   const waiting = job.getByText(say("money.waiting", { name: priyaName, price: `₹${deal}` }));
@@ -186,7 +193,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
 
   // ── His passbook: the job both signed, her reference, this week's total; nothing left to ask for ───────────────
   const amount = `₹${deal}`;
-  await open(anil, "nav.passbook");
+  await open(anil, "nav.receipts");
   const rows = anil.getByRole("region", { name: say("record.title") });
   for (const text of [
     amount,
@@ -199,7 +206,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await expect(anil.getByText(say("passbook.week"), { exact: true }).locator("xpath=..")).toContainText(amount);
   await shoot("passbook", phones);
   // Paid once for a one-off job: it moves to Earlier, and never offers to ask again.
-  await open(anil, "nav.today");
+  await open(anil, "nav.activity");
   await expand(anil, "home.earlier");
   await expect(job).toBeVisible();
   await expect(job.getByRole("button", { name: say("money.ask_again") })).toHaveCount(0);
@@ -221,6 +228,6 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   // Anil takes his card off the board so later runs start clean.
   await openCard(anil);
   await anil.getByRole("button", { name: say("card.unlist") }).click();
-  await open(anil, "nav.profile");
+  await open(anil, "nav.card");
   await expect(anil.getByText(say("profile.card_off"))).toBeVisible();
 });

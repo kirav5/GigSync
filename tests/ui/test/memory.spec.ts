@@ -1,7 +1,7 @@
 import { plural, questionText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { newPhone, open, openFold, Role, RUN, reveal, shoot, signIn } from "./helpers.js";
+import { newPhone, open, Role, RUN, reveal, shoot, signIn } from "./helpers.js";
 import { type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -76,8 +76,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   });
 
   // ── First job: nothing remembered yet, so the chat asks the rooms and the area blind ─────────────────────────
-  await open(priyaPage, "nav.profile");
-  await openFold(priyaPage, "profile.agent");
+  await open(priyaPage, "nav.about");
   await expect(memorySection(priyaPage)).toContainText(t(en, "memory.empty"));
   await open(priyaPage, "nav.find");
   const log = priyaPage.getByRole("log");
@@ -92,7 +91,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await askOnly(priyaPage, meenaName);
 
   // Meena's agent asks about pets; Priya answers, and both sign.
-  await open(meenaPage, "nav.today");
+  await open(meenaPage, "nav.activity");
   await open(priyaPage, "nav.my_jobs");
   const answer = priyaPage.getByRole("form", { name: t(en, "a11y.answer") });
   await expect(answer.getByLabel(questionText(en, "pets"))).toBeVisible();
@@ -102,14 +101,13 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await open(priyaPage, "nav.my_jobs");
   await expect(priyaPage.getByLabel(t(en, "a11y.contact"))).toContainText(meenaName);
 
-  // ── Profile lists what her agent kept: the rooms, the pets, the area and Meena by name, never Meena's phone ──
-  await open(priyaPage, "nav.profile");
-  await openFold(priyaPage, "profile.agent");
+  // ── About me lists what her agent kept: the rooms, the pets, the area and Meena by name, never Meena's phone ──
+  await open(priyaPage, "nav.about");
   const remembered = memorySection(priyaPage);
   for (const text of [ROOMS, t(en, "area.hsr_layout"), meenaName, plural(en, "memory.jobs", 1)])
     await expect(remembered).toContainText(text);
   await expect(remembered).not.toContainText(meenaPhone);
-  // The list is folded away so a long history never fills Profile; it opens from a row that counts what is kept.
+  // The list is folded away so a long history never fills the screen; it opens from a row that counts what is kept.
   const fold = remembered.locator("details");
   await expect(fold).not.toHaveAttribute("open", "");
   await fold.locator("summary").click();
@@ -152,8 +150,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await shoot("answered-from-memory", { household: priyaPage }, FOLDER);
 
   // ── "Answer for me": the agent fills the rooms in, says so, and Change asks the question again ───────────────
-  await open(priyaPage, "nav.profile");
-  await openFold(priyaPage, "profile.agent");
+  await open(priyaPage, "nav.about");
   await memorySection(priyaPage)
     .getByRole("button", { name: t(en, "memory.answer_auto") })
     .click();

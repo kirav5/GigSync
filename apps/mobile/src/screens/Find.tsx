@@ -29,7 +29,6 @@ export function Find({ ports, account, device, onAsked, chosen }: Props) {
     <>
       <div className={C.stack}>
         <div className={`${C.row} talk-head`}>
-          <span className={C.labelSq}>{t("nav.find")}</span>
           <button type={C.button} className={C.quiet} onClick={() => setFindMode(chat ? FindMode.form : FindMode.chat)}>
             {t(chat ? "need.use_form" : "need.use_chat")}
           </button>

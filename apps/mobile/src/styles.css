@@ -2,7 +2,7 @@
    hairline rules instead of shadows, a large two-tone grotesk headline, small monospaced uppercase labels, square
    controls and one pink accent. Buttons are plain sans in sentence case, sized to be read and hit, not styled.
    States: --wait (waiting on the worker), --talk (in progress), --fresh (paid / agreed), --danger (disputed).
-   Set data-look on <html> (Profile › More settings › Look; Auto follows the device). */
+   Set data-look on <html> (Settings › Look; Auto follows the device). */
 :root {
   --bg: #f7f7f5;
   --surface: #ffffff;
@@ -588,10 +588,11 @@ select.field {
   flex: none;
 }
 
-/* Layout, top to bottom: the title bar, the content (the only part that scrolls), the dock with the screen's one
-   primary action, and the tab bar. The app takes the height of what the keyboard leaves visible, and on iOS Safari
-   moves down to where that starts (adapters/keyboard.ts sets both), so the dock sits on the keys. Each safe area comes
-   off once: the top bar takes the top (the content does, without one), and the last thing at the bottom the bottom. */
+/* Layout, top to bottom: the title bar, the content (the only part that scrolls), and the dock with the screen's one
+   primary action; signed in, the menu is beside it or a drawer over it (shell/shell.css). The app takes the height of
+   what the keyboard leaves visible, and on iOS Safari moves down to where that starts (adapters/keyboard.ts sets
+   both), so the dock sits on the keys. Each safe area comes off once: the top bar takes the top (the content does,
+   without one), and the last thing at the bottom the bottom. */
 .app {
   height: var(--app-h, 100dvh);
   transform: translateY(var(--app-top, 0px));
@@ -679,109 +680,12 @@ select.field {
 .dock-status:not(:empty) {
   margin-bottom: 8px;
 }
-/* Before sign-in there is no tab bar under the dock. With the keyboard up, the keys cover the home indicator. */
+/* The last thing at the bottom takes the home indicator's safe area. With the keyboard up, the keys cover it. */
 .dock:last-child {
   padding-bottom: calc(10px + env(safe-area-inset-bottom));
 }
 html[data-keyboard="open"] .dock {
   padding-bottom: 10px;
-}
-/* Tabs: icon over label, at least 56px tall (ui/Tabs.tsx). */
-.tabs {
-  flex: none;
-  display: flex;
-  border-top: 1px solid var(--hairline);
-  background: var(--bg);
-  padding-bottom: env(safe-area-inset-bottom);
-}
-.tabs button {
-  position: relative;
-  flex: 1 1 0;
-  min-width: 0;
-  min-height: var(--tap-lg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 6px 2px;
-  border: 0;
-  background: none;
-  color: var(--text2);
-  cursor: pointer;
-  font-size: var(--fs-label);
-  line-height: 1.2;
-}
-.tabs button[aria-current="page"] {
-  color: var(--accent-ink);
-  font-weight: 600;
-}
-.tabs .ic {
-  width: 24px;
-  height: 24px;
-}
-.tab-label {
-  max-width: 100%;
-  text-align: center;
-  overflow-wrap: anywhere;
-}
-.tabs .badge {
-  position: absolute;
-  top: 4px;
-  left: calc(50% + 6px);
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  border-radius: 10px;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 20px;
-  text-align: center;
-}
-@media (max-width: 899px) {
-  html[data-keyboard="open"] .tabs {
-    display: none;
-  }
-}
-/* Wide screens: the tabs become a rail down the left. */
-@media (min-width: 900px) {
-  .main.with-tabs {
-    display: grid;
-    grid-template-columns: 96px minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr) auto;
-  }
-  .with-tabs > .topbar,
-  .with-tabs > .content,
-  .with-tabs > .dock {
-    grid-column: 2;
-  }
-  .with-tabs > .topbar {
-    grid-row: 1;
-  }
-  .with-tabs > .content {
-    grid-row: 2;
-  }
-  /* The rail leaves the dock last at the bottom. */
-  .with-tabs > .dock {
-    grid-row: 3;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));
-  }
-  .tabs {
-    grid-column: 1;
-    grid-row: 1 / -1;
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: 4px;
-    padding: max(12px, env(safe-area-inset-top)) 0 calc(12px + env(safe-area-inset-bottom));
-    border-top: 0;
-    border-right: 1px solid var(--hairline);
-  }
-  .tabs button {
-    flex: none;
-    min-height: 72px;
-  }
 }
 
 /* The first screen's language list: one big row per language, named in its own script. */
@@ -819,14 +723,7 @@ html[data-keyboard="open"] .dock {
   font-weight: 600;
 }
 
-/* Profile: what is not needed every day, folded into one list of rows with a chevron each, then sign-out. */
-.profile-folds {
-  display: grid;
-  border-top: 1px solid var(--hairline);
-}
-.profile-folds > .more {
-  border-bottom: 1px solid var(--hairline);
-}
+/* A fold: what is not needed every day waits behind one row with a chevron. */
 .more > summary {
   display: flex;
   align-items: center;
@@ -859,12 +756,6 @@ html[data-keyboard="open"] .dock {
 .more > .stack {
   padding-bottom: 16px;
 }
-.profile-foot {
-  display: grid;
-  gap: 6px;
-  padding-top: 4px;
-}
-
 /* Agent chat */
 .msg-user {
   justify-self: end;

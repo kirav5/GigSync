@@ -1,7 +1,7 @@
 import { type MessageKey, t } from "@gigsync/core";
 import type { Lang } from "@gigsync/protocol";
 import { expect, type Page } from "@playwright/test";
-import { openCard, shoot, tabs, textOf } from "./helpers.js";
+import { navRow, openCard, openDrawer, shoot, textOf } from "./helpers.js";
 
 /** A phone in a journey, with the language its owner chose. */
 export interface Phone {
@@ -18,9 +18,9 @@ const listed = new Set<Phone>();
 type AreaKey = Extract<MessageKey, `area.${string}`> extends `area.${infer K}` ? K : never;
 
 /**
- * The worker publishes their card through My card (under Profile), in their language; `askFirst` ticks "ask me first"
- * for pets. The area is picked by its name in that language, as the worker reads it. The card has no UPI field: that
- * lives in Profile alone. Publish and its status are in the dock.
+ * The worker publishes their card through My card's form (from the menu), in their language; `askFirst` ticks "ask me
+ * first" for pets. The area is picked by its name in that language, as the worker reads it. The card has no UPI field:
+ * that lives in About me alone. Publish and its status are in the dock.
  */
 export async function publishCard(
   { page, lang }: Phone,
@@ -53,10 +53,9 @@ export async function unlistCards() {
   for (const { page, lang } of listed) {
     if (page.isClosed()) continue;
     try {
-      await tabs(page, lang)
-        .getByRole("button", { name: t(lang, "nav.profile") })
-        .click({ timeout: CLEANUP_MS });
-      await page.getByRole("button", { name: t(lang, "nav.card"), exact: true }).click({ timeout: CLEANUP_MS });
+      await openDrawer(page, lang);
+      await navRow(page, "nav.card", lang).click({ timeout: CLEANUP_MS });
+      await page.getByRole("button", { name: t(lang, "shell.edit_card"), exact: true }).click({ timeout: CLEANUP_MS });
       const form = page.getByRole("form", { name: t(lang, "a11y.my_card") });
       await expect(form).toBeVisible({ timeout: CLEANUP_MS });
       const unlist = page.getByRole("button", { name: t(lang, "card.unlist") });

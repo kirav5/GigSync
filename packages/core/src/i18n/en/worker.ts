@@ -9,7 +9,6 @@ export const worker = {
   "payrow.ref": "ref {utr}",
   "method.upi": "UPI",
   "method.cash": "Cash",
-  "settings.headline": "Your profile.",
   "settings.soft": "Kept on this device.",
   "settings.paid_to": "Get paid to",
   "settings.vpa": "Your UPI ID",

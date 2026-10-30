@@ -37,15 +37,14 @@ function jobPerson(r: SignedWithContact): KnownPerson {
 const oldestFirst = (a: JobRecord, b: JobRecord) => a.engagement.created_at.localeCompare(b.engagement.created_at);
 
 /**
- * Everyone this owner knows, once each, by name, leaving out this owner and anyone blocked. Where one person is known
- * more than one way, a live link wins (its notes have a thread), then the latest signed job, then an ended link.
+ * Everyone this phone knows by name, once each, blocked or not. Where one person is known more than one way, a live
+ * link wins (its notes have a thread), then the latest signed job, then an ended link.
  */
-export async function people(m: MentorContext): Promise<KnownPerson[]> {
-  const [live, past, jobs, blocked] = await Promise.all([
+async function byName(m: MentorContext): Promise<Map<UserId, KnownPerson>> {
+  const [live, past, jobs] = await Promise.all([
     sweepExpired(m.links, m.ctx.clock.now()),
     m.links.past(),
     m.ctx.store.jobs(),
-    m.store.blocked(),
   ]);
   const byUser = new Map<UserId, KnownPerson>();
   const keep = (p: KnownPerson) =>
@@ -53,9 +52,33 @@ export async function people(m: MentorContext): Promise<KnownPerson[]> {
   for (const p of past) keep({ user: p.user, card: p.card, worker: true });
   for (const r of jobs.filter(signedWith).sort(oldestFirst)) keep(jobPerson(r));
   for (const l of live) keep({ user: l.user, card: l.card, worker: true, channel: l.channel });
-  return [...byUser.values()]
+  return byUser;
+}
+
+/** Everyone this owner knows, once each, by name, leaving out this owner and anyone blocked. */
+export async function people(m: MentorContext): Promise<KnownPerson[]> {
+  const [known, blocked] = await Promise.all([byName(m), m.store.blocked()]);
+  return [...known.values()]
     .filter((p) => p.user !== m.ctx.me.user && !blocked.has(p.user))
     .sort((a, b) => a.card.name.localeCompare(b.card.name));
+}
+
+/** Someone this owner blocked, and when; `name` only when this phone knew them by one (a signed job or a link). */
+export interface BlockedPerson {
+  user: UserId;
+  name?: string;
+  at: string;
+}
+
+/** Everyone this owner blocked, newest first, by the name this phone knew them by where it knew one. */
+export async function blockedPeople(m: MentorContext): Promise<BlockedPerson[]> {
+  const [known, blocks] = await Promise.all([byName(m), m.store.blocks()]);
+  return blocks
+    .map((b) => {
+      const name = known.get(b.user)?.card.name;
+      return name === undefined ? { user: b.user, at: b.at } : { user: b.user, name, at: b.at };
+    })
+    .sort((a, b) => b.at.localeCompare(a.at));
 }
 
 /** Someone this owner knows, or a refusal: a blocked person, or someone neither on a link nor on a signed job here. */

@@ -20,7 +20,7 @@ function payeeIn(link: string): { vpa: string; name: string } {
 }
 
 /**
- * The worker's own UPI QR for an open payment, drawn on this phone from the UPI ID saved in Profile, for a customer
+ * The worker's own UPI QR for an open payment, drawn on this phone from the UPI ID saved in About me, for a customer
  * standing in front of them to scan.
  */
 export function WorkerQr({

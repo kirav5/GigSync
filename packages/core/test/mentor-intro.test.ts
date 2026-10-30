@@ -170,4 +170,18 @@ describe("introductions through people you know", () => {
       suresh.device.mentors.introduce({ newcomer: asha.user, mentor: mukesh.user, city: "bengaluru" }),
     ).rejects.toThrow(new MentorError(MentorRefusal.blocked));
   });
+
+  it("lists everyone blocked, newest first, by the name a signed job gave, and a stranger without one", async () => {
+    const { relay, clock, suresh, mukesh } = await throughJobs();
+    expect(await suresh.device.mentors.blocked()).toEqual([]);
+    const someone = await stranger(relay);
+    await suresh.device.mentors.block(someone.user);
+    clock.advance(1);
+    await suresh.device.mentors.block(mukesh.user);
+    expect(await suresh.device.mentors.blocked()).toEqual([
+      { user: mukesh.user, name: MUKESH.name, at: clock.now().toISOString() },
+      { user: someone.user, at: expect.any(String) },
+    ]);
+    expect((await suresh.device.mentors.people()).map((p) => p.user)).not.toContain(mukesh.user);
+  });
 });

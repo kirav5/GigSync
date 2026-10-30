@@ -29,59 +29,8 @@
   color: var(--text2);
 }
 
-/* Talk's label and its "New conversation" button share one line. */
+/* Find's form/chat switch, at the end of its line. */
 .talk-head {
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* "Chats" and "New chat" sit together at the end of Talk's label line, and wrap below it on a narrow phone. */
-.talk-tools {
-  gap: 4px;
   justify-content: flex-end;
-}
-
-/* The list of past chats: one row per chat, its title opening it and "Delete" beside it. */
-.chat-rows {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-.chat-row {
-  display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  border-bottom: 1px solid var(--hairline);
-  padding: 4px 0;
-}
-.chat-open {
-  flex: 1;
-  min-width: 0;
-  min-height: 48px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2px;
-  padding: 6px 0;
-  background: transparent;
-  border: 0;
-  color: var(--text);
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
-}
-.chat-title {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.chat-open[aria-current="true"] .chat-title {
-  font-weight: 600;
-}
-/* The confirm takes the row's whole width, under the title it is about. */
-.chat-confirm {
-  flex-basis: 100%;
 }

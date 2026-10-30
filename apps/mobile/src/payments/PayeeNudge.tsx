@@ -18,7 +18,7 @@ export function PayeeNudge({ ports, view, onAdd }: { ports: Ports; view: GigView
   const [saved, setSaved] = useState<boolean>();
   const signed = view.jobs.some((j) => j.engagement.role === Role.enum.provider && SIGNED.has(j.engagement.status));
 
-  // Read each time Today opens (coming back from Profile included) and when the first signed deal appears.
+  // Read each time Today opens (coming back from About me included) and when the first signed deal appears.
   useEffect(() => {
     if (!signed) return;
     let live = true;

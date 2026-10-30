@@ -1,7 +1,19 @@
 import { HttpMethod, t } from "@gigsync/core";
 import { Lang, MyQr, type QrCode } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { API, APP, chooseLanguage, completeSignIn, newPhone, open, Role, RUN, shoot, signIn, tabs } from "./helpers.js";
+import {
+  API,
+  APP,
+  chooseLanguage,
+  completeSignIn,
+  navRow,
+  newPhone,
+  open,
+  Role,
+  RUN,
+  shoot,
+  signIn,
+} from "./helpers.js";
 import { publishCard, unlistCards } from "./journey.js";
 
 /**
@@ -54,13 +66,12 @@ async function anilWithCard(page: Page) {
   );
 }
 
-/** Opens My QR code from Profile's one row, waits for the QR, and gives the live code it shows. */
+/** Opens My card from the menu, where the QR is, waits for the QR, and gives the live code it shows. */
 async function openMyQr(page: Page, name: string, shot?: string): Promise<QrCode> {
-  await open(page, "nav.profile");
-  if (shot) await shoot(shot, { [shot]: page }, FOLDER);
   const code = codeFrom(page, HttpMethod.put, MY_QR);
-  await page.getByRole("button", { name: new RegExp(t(en, "qr.mine")) }).click();
+  await open(page, "nav.card");
   await expect(page.getByRole("img", { name: t(en, "qr.alt", { name }) })).toBeVisible();
+  if (shot) await shoot(shot, { [shot]: page }, FOLDER);
   return code;
 }
 
@@ -148,11 +159,39 @@ test("a worker opens a household's QR link and offers; the household asks him fr
   const line = t(en, "qr.offer_line", { name: anilName, trade: "Electrician" });
   const offer = priya.getByRole("article", { name: line });
   await expect(offer).toBeVisible();
-  await expect(tabs(priya).getByRole("button", { name: new RegExp(t(en, "nav.my_jobs")) })).toContainText("1");
+  await expect(navRow(priya, "nav.my_jobs")).toContainText("1");
   await shoot("offer-today", { worker: anil, household: priya }, FOLDER);
   await offer.getByRole("button", { name: t(en, "qr.offer_ask") }).click();
   await sendAsk(priya, anilName);
   await open(priya, "nav.my_jobs");
   await expect(offer).toHaveCount(0);
   await shoot("offer-asked", { worker: anil, household: priya }, FOLDER);
+});
+
+test("my QR shows at once on a second open, from the code kept on the phone, before the server answers", async ({
+  browser,
+}) => {
+  const [priya] = await pages(browser);
+  await signIn(priya, { role: Role.consumer, name: priyaName, phone: newPhone(), address: ADDRESS });
+  const qr = priya.getByRole("img", { name: t(en, "qr.alt", { name: priyaName }) });
+  await open(priya, "nav.card");
+  await expect(qr).toBeVisible();
+  const first = await qr.getAttribute("src");
+  await open(priya, "nav.find");
+
+  // The server is slow now: its answer is held until the QR is already on screen.
+  let release: () => void = () => undefined;
+  const held = new Promise<void>((done) => (release = done));
+  let asked = false;
+  await priya.route(MY_QR, async (route) => {
+    asked = true;
+    await held;
+    await route.continue();
+  });
+  await open(priya, "nav.card");
+  await expect(qr).toBeVisible();
+  expect(asked).toBe(true);
+  expect(await qr.getAttribute("src")).toBe(first);
+  release();
+  await shoot("qr-at-once", { household: priya }, FOLDER);
 });

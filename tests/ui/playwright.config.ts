@@ -4,6 +4,11 @@ import { defineConfig } from "@playwright/test";
 const APP = process.env.APP_URL ?? "http://localhost:5173";
 const API = process.env.API_BASE ?? "http://localhost:8787";
 const STARTUP_MS = 120_000;
+/**
+ * Spec files run one at a time unless PW_WORKERS says otherwise: they share the local API and Neon, so more at once is
+ * faster but worth checking before relying on it. Tests inside one file always run in order.
+ */
+const WORKERS = Number(process.env.PW_WORKERS ?? 1);
 
 export default defineConfig({
   testDir: "test",
@@ -11,7 +16,7 @@ export default defineConfig({
   timeout: 600_000,
   expect: { timeout: 90_000 },
   fullyParallel: false,
-  workers: 1,
+  workers: WORKERS,
   reporter: [["list"]],
   outputDir: "test-results",
   use: {

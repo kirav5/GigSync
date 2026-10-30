@@ -13,7 +13,7 @@ interface Props {
   onGone: () => void;
 }
 
-/** One mentor link, opened from Profile; nothing once it has ended. */
+/** One mentor link, opened from Privacy; nothing once it has ended. */
 export function LinkScreen({ device, run, syncedAt, user, onGone }: Props) {
   const { links } = useLinks();
   const link = links.find((l) => l.user === user);

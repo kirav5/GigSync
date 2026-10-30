@@ -4,7 +4,7 @@ import { Hono } from "hono";
 import { ApiError, type AppEnv, CODE_PARAM, Var } from "../context.js";
 import { isListed } from "../db/board.js";
 import { type Db, transaction } from "../db/client.js";
-import { endLiveCode, insertCode, liveCode, personOf, saveOwner } from "../db/qr.js";
+import { endLiveCode, insertCode, liveCode, ownCode, personOf, saveOwner } from "../db/qr.js";
 import { countLookup, offerCounts, recordOffer } from "../db/qr-offers.js";
 import { LOOKUP_WINDOW_MS, newCode, OFFER_WINDOW_MS, offerRefusal } from "../qr/rules.js";
 
@@ -31,10 +31,9 @@ qr.put(Path.me, async (c) => {
   const db = c.get(Var.db);
   const user = c.get(Var.user);
   const now = new Date();
-  const mine = await transaction(db, async () => {
-    await saveOwner(db, user, owner.data, now);
-    return (await liveCode(db, user)) ?? insertCode(db, user, newCode(), now);
-  });
+  // One round trip: this opens the owner's My card, so it is on the screen's critical path.
+  const mine = (await ownCode(db, user, owner.data, newCode(), now)) ?? (await liveCode(db, user));
+  if (!mine) throw new Error("qr code missing after a concurrent first ask");
   return c.json(mine);
 });
 

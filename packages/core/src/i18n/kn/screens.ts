@@ -3,7 +3,7 @@ import type { screens as en } from "../en/screens.js";
 /** Kannada: getting in and finding: language choice, sign-in, the menu, Find, My card, the job list. */
 export const screens: Readonly<Record<keyof typeof en, string>> = {
   "onboard.title": "ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
-  "onboard.later": "ನಂತರ ಪ್ರೊಫೈಲ್‌ನಲ್ಲಿ ಬದಲಾಯಿಸಬಹುದು.",
+  "onboard.later": "ನಂತರ “ನನ್ನ ಬಗ್ಗೆ”ಯಲ್ಲಿ ಬದಲಾಯಿಸಬಹುದು.",
   "onboard.continue": "ಮುಂದುವರಿಸಿ",
   "signin.label": "ಸೈನ್ ಇನ್",
   "signin.headline": "ನಿಮ್ಮ ಏಜೆಂಟ್, ನಿಮ್ಮ ಫೋನ್.",
@@ -25,7 +25,6 @@ export const screens: Readonly<Record<keyof typeof en, string>> = {
   "nav.find": "ಹುಡುಕಿ",
   "nav.my_jobs": "ನನ್ನ ಕೆಲಸಗಳು",
   "nav.card": "ನನ್ನ ಕಾರ್ಡ್",
-  "nav.today": "ಇಂದು",
   "shell.sign_out": "ಸೈನ್ ಔಟ್",
   "trail.to_decide": "{count} ನಿರ್ಧಾರ ಬಾಕಿ",
   "find.headline": "ನಿಮ್ಮ ಸುತ್ತಮುತ್ತ ಯಾರು ಸಹಾಯ ಮಾಡಬಹುದು.",

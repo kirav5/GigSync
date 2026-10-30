@@ -2,7 +2,6 @@ import type { chats as en } from "../en/chats.js";
 
 /** Kannada: Talk's chats: the list of past chats, a new chat, and deleting one. */
 export const chats: Readonly<Record<keyof typeof en, string>> = {
-  "chats.open": "ಚಾಟ್‌ಗಳು",
   "chats.new": "ಹೊಸ ಚಾಟ್",
   "chats.title": "ನಿಮ್ಮ ಚಾಟ್‌ಗಳು",
   "chats.today": "ಇಂದು",

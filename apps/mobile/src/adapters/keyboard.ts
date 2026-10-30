@@ -6,7 +6,7 @@ import { Keyboard } from "@capacitor/keyboard";
  * browser's toolbar sliding in or out changes it by less.
  */
 const KEYBOARD_MIN_PX = 150;
-/** `data-keyboard` on <html> while the keyboard is up: styles.css hides the tab bar, so the dock sits on the keys. */
+/** `data-keyboard` on <html> while the keyboard is up: the dock (styles.css) sits on the keys, without the home indicator's room. */
 const KEYBOARD_OPEN = "open";
 /** The app's height and offset, following the part of the page the keyboard leaves visible (styles.css `.app`). */
 const APP_HEIGHT = "--app-h";
@@ -37,7 +37,7 @@ const isIos = () => IOS.test(navigator.userAgent) || (MAC.test(navigator.userAge
 
 /**
  * The native apps: the keyboard shrinks the web view (the Keyboard plugin's resize "native", in capacitor.config.ts),
- * so only the tab bar needs telling, from the plugin's own events. The reveal runs on the resize itself, not on
+ * so only the dock needs telling, from the plugin's own events. The reveal runs on the resize itself, not on
  * keyboardDidShow, which on iOS fires before the web view has shrunk.
  */
 function watchNative(): void {
@@ -85,7 +85,7 @@ function watchWeb(): void {
 }
 
 /**
- * Keeps the dock and the field being typed into above the on-screen keyboard, and hides the tab bar while it is up.
+ * Keeps the dock and the field being typed into above the on-screen keyboard.
  * Called once, before the first render.
  */
 export function keepFocusedFieldVisible(): void {

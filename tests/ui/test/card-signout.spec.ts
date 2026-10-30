@@ -11,6 +11,7 @@ import {
   RUN,
   setUpi,
   signIn,
+  signOutHere,
   textOf,
 } from "./helpers.js";
 import { unlistCards } from "./journey.js";
@@ -36,7 +37,7 @@ test("the next worker on the phone gets nothing of the last: answers, UPI ID or 
   await nextTurn(page, hi, "iv.ask.min", () => type(page, hi, "नौ हज़ार"));
   await nextTurn(page, hi, "iv.ask.languages", () => type(page, hi, "सात हज़ार"));
   await setUpi(page, hi, "meena.test@okaxis");
-  await page.getByRole("button", { name: t(hi, "shell.sign_out") }).click();
+  await signOutHere(page, hi);
 
   await completeSignIn(page, { role: Role.worker, name: `Geeta ${RUN}`, phone: newPhone(), lang: hi });
   // Her own interview from the first question: nothing Meena said, and not Meena's lowest rate.
@@ -46,14 +47,14 @@ test("the next worker on the phone gets nothing of the last: answers, UPI ID or 
   // Asked before any company hears her, and paid to no one else's UPI ID.
   await mic(page, hi).click();
   await expect(ask).toBeVisible();
-  await open(page, "nav.profile", hi);
+  await open(page, "nav.about", hi);
   const paidTo = page.getByRole("form", { name: t(hi, "settings.paid_to") });
   await expect(paidTo.getByLabel(t(hi, "settings.vpa"), { exact: true })).toHaveValue("");
 
   // Meena signs back in: her UPI ID was kept for her.
-  await page.getByRole("button", { name: t(hi, "shell.sign_out") }).click();
+  await signOutHere(page, hi);
   await completeSignIn(page, meena);
-  await open(page, "nav.profile", hi);
+  await open(page, "nav.about", hi);
   // Saved, it is one line with Change rather than the form.
   const savedUpi = page.getByRole("region", { name: t(hi, "settings.paid_to") });
   await expect(savedUpi).toContainText("meena.test@okaxis");

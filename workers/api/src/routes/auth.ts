@@ -1,5 +1,5 @@
 import { Header } from "@gigsync/core/http";
-import { log, pii, traced } from "@gigsync/core/log";
+import { LOCAL_ENVIRONMENT, log, pii, traced } from "@gigsync/core/log";
 import { OtpRequest, OtpVerify } from "@gigsync/protocol";
 import { Hono } from "hono";
 import { isLocked, recordFailure } from "../auth/attempts.js";
@@ -13,6 +13,11 @@ export const auth = new Hono<AppEnv>();
 
 /** Rate-limit key when Cloudflare gives no client IP (only in local tests). */
 const UNKNOWN_IP = "unknown";
+/**
+ * Locally there is no client IP, so every browser shared the one "unknown" bucket and a test suite signing in many
+ * people stalled on it; there the bucket is the number instead. Deployments always get Cloudflare's client IP.
+ */
+const LOCAL_PHONE_KEY = "phone:";
 const OtpChannel = { dev: "dev", sms: "sms" } as const;
 
 const locked = traced("auth.isLocked", isLocked);
@@ -29,13 +34,14 @@ auth.post("/otp/request", async (c) => {
 
 auth.post("/otp/verify", async (c) => {
   // Two caps: per client IP (stops one machine spraying codes) and per number in D1 (stops one target being guessed).
-  const ip = c.req.header(Header.cfConnectingIp) ?? UNKNOWN_IP;
-  if (!(await c.env.OTP_RATE_LIMIT.limit({ key: ip })).success) {
-    log.warn("sign-in rate limited", { requestId: c.get(Var.requestId), ip: pii(ip) });
+  const ip = c.req.header(Header.cfConnectingIp);
+  const body = OtpVerify.safeParse(await c.req.json().catch(() => null));
+  const local = c.env.ENVIRONMENT === LOCAL_ENVIRONMENT;
+  const key = ip ?? (local && body.success ? `${LOCAL_PHONE_KEY}${body.data.phone}` : UNKNOWN_IP);
+  if (!(await c.env.OTP_RATE_LIMIT.limit({ key })).success) {
+    log.warn("sign-in rate limited", { requestId: c.get(Var.requestId), ip: pii(key) });
     return c.json({ error: ApiError.tooManyAttempts }, 429);
   }
-
-  const body = OtpVerify.safeParse(await c.req.json().catch(() => null));
   if (!body.success) return c.json({ error: ApiError.badRequest }, 400);
 
   const db = c.get(Var.db);

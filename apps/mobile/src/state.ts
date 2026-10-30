@@ -1,20 +1,32 @@
-/** The screens of the app: each role's tabs, and My card under Profile. */
+/**
+ * The screens of the app. The chat is home: Talk for a worker, Find's chat for a household. The menu opens the rest;
+ * a few are opened from inside one of those (see `shell/nav.ts`).
+ */
 export const Screen = {
+  /** A household's home: Find's chat (or its form). */
   find: "find",
-  requests: "requests",
-  today: "today",
+  /** A worker's home: Talk, their chats with their agent. */
   talk: "talk",
-  passbook: "passbook",
-  profile: "profile",
+  /** Today's jobs and decisions for a worker; My jobs for a household. */
+  activity: "activity",
+  /** Passbook and the work record for a worker; what they paid for a household. */
+  receipts: "receipts",
+  /** The owner's card at a glance and their QR code. */
   card: "card",
-  /** One mentor link: its notes, renew, block and introductions, opened from Profile. */
+  /** Name and role, the UPI ID (workers), language, and what the agent remembers. */
+  about: "about",
+  /** Price sharing and mentor links. */
+  privacy: "privacy",
+  /** Look, voice actions, the on-device model, how the agent bargains, installing the app. */
+  settings: "settings",
+  /** The worker's card as a form, to review and change; opened from My card. */
+  cardEdit: "card_edit",
+  /** One mentor link: its notes, renew, block and introductions, opened from Privacy. */
   link: "link",
   /** Moving to a new city: the checklist of the landing journey and its city guide, opened from a move in Talk. */
   landing: "landing",
   /** Find a mentor in a new city: the fallback screen, with introductions, opened from Talk and the landing journey. */
   findMentor: "find_mentor",
-  /** The owner's own QR code, to show, download, share or replace, and to scan someone else's; under Profile. */
-  myQr: "my_qr",
   /** Whoever a scanned QR or an opened QR link finds. */
   person: "person",
 } as const;

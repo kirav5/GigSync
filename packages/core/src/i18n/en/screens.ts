@@ -1,7 +1,7 @@
 /** Getting in and finding: language choice, sign-in, the menu, Find, My card, the job list. */
 export const screens = {
   "onboard.title": "Choose your language",
-  "onboard.later": "You can change it later in Profile.",
+  "onboard.later": "You can change it later in About me.",
   "onboard.continue": "Continue",
   "signin.label": "Sign in",
   "signin.headline": "Your agent, your phone.",
@@ -23,7 +23,6 @@ export const screens = {
   "nav.find": "Find",
   "nav.my_jobs": "My jobs",
   "nav.card": "My card",
-  "nav.today": "Today",
   "shell.sign_out": "Sign out",
   "trail.to_decide": "{count} to decide",
   "find.headline": "Who can help, near you.",

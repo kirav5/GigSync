@@ -14,7 +14,7 @@ import type { MentorContext, MentorDeps } from "./context.js";
 import type { MentorRecord } from "./eligibility.js";
 import { MentorError, MentorRefusal } from "./errors.js";
 import * as intro from "./intro.js";
-import { type KnownPerson, people } from "./known.js";
+import { type BlockedPerson, blockedPeople, type KnownPerson, people } from "./known.js";
 import * as link from "./link.js";
 import { LinkStore } from "./link-store.js";
 import * as listing from "./listing.js";
@@ -35,7 +35,7 @@ import {
   type SentRequest,
 } from "./types.js";
 
-export type { KnownPerson } from "./known.js";
+export type { BlockedPerson, KnownPerson } from "./known.js";
 
 const newestFirst = (a: { at: string }, b: { at: string }) => b.at.localeCompare(a.at);
 
@@ -195,6 +195,11 @@ export class Mentors {
 
   block(user: UserId): Promise<void> {
     return safety.block(this.m, user);
+  }
+
+  /** Everyone this owner blocked, newest first. There is no unblock: the server was told never to match the two. */
+  blocked(): Promise<BlockedPerson[]> {
+    return blockedPeople(this.m);
   }
 
   report(user: UserId, reason: ReportReason): Promise<void> {

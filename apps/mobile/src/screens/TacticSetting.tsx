@@ -12,7 +12,7 @@ const LABEL: Readonly<Record<Tactic, MessageKey>> = {
 const failure = (err: unknown) => ({ error: err instanceof Error ? err.name : typeof err });
 
 /**
- * Profile's "How your agent bargains, usually: Patient / Steady / Quick" (ADR 0033). Each job still draws its own
+ * Settings' "How your agent bargains, usually: Patient / Steady / Quick" (ADR 0033). Each job still draws its own
  * hidden opening and pace inside the chosen tactic's ranges; a household's words for one job can choose for that job.
  */
 export function TacticSetting({ ports }: { ports: Ports }) {

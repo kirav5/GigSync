@@ -18,7 +18,7 @@ interface Props {
   /** Opens Talk with the card interview. */
   onMakeCard: () => void;
   onOpenCard: () => void;
-  /** Opens Profile, where the UPI ID is added. */
+  /** Opens About me, where the UPI ID is added. */
   onAddPayee: () => void;
   /** Whose phone this is: a mentor's answer to a newcomer carries their card. */
   account: Account;

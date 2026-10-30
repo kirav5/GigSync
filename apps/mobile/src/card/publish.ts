@@ -25,7 +25,7 @@ export class AboutPrivateError extends Error {}
 /**
  * Puts the card on the board and keeps the private half on this phone, for the interview and the My card form alike.
  * The public card is what the board shows; the rules (lowest rate, what to see first) never leave the phone. The UPI
- * ID is not part of either: payment requests read it from Profile at send time.
+ * ID is not part of either: payment requests read it from About me at send time.
  */
 export async function publishCard(ports: Ports, account: Account, draft: CardDraft, lang: Lang): Promise<Account> {
   const { trades, rate_paise: rate, limit_paise: limit } = draft;

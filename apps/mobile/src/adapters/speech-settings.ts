@@ -5,7 +5,7 @@ import { useSyncExternalStore } from "react";
 /**
  * The owner's voice settings, kept with Preferences (spec §3.3, ADR 0023): whether questions are read aloud, and which
  * companies may turn their voice into text when the phone cannot do it itself. speech.ts reads both before it speaks
- * or listens; Profile's Voice section and the Composer's consent sheet change them.
+ * or listens; Settings' Voice section and the Composer's consent sheet change them.
  */
 
 const VENDORS: readonly SpeechVendor[] = ["google", "apple", "browser"];
@@ -74,7 +74,7 @@ export function forgetCloudConsent(): void {
   cloudConsent.set([]);
 }
 
-/** The companies currently allowed, for Profile's Voice section. */
+/** The companies currently allowed, for Settings' Voice section. */
 export function useCloudConsent(): readonly SpeechVendor[] {
   return useSyncExternalStore(cloudConsent.subscribe, cloudConsent.get);
 }

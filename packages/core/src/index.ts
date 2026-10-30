@@ -88,6 +88,7 @@ export * from "./owner/storage.js";
 export * from "./payments/book.js";
 export * from "./payments/passbook.js";
 export * from "./payments/payee.js";
+export * from "./payments/receipts.js";
 export * from "./payments/record.js";
 export * from "./payments/upi.js";
 export * from "./policy/engine.js";
