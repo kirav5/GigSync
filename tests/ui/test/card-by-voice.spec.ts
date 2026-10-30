@@ -110,24 +110,20 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
       textOf(hi, "iv.ask.rate_month"),
     ]);
   });
-  await test.step("New conversation clears Talk after a confirm, the open question stays, and earnings come from Passbook", async () => {
-    await page.getByRole("button", { name: t(hi, "agent.new"), exact: true }).click();
-    const confirm = page.getByRole("dialog", { name: t(hi, "agent.new") });
-    await expect(confirm).toContainText(t(hi, "agent.new_confirm_card"));
-    await confirm.getByRole("button", { name: t(hi, "agent.new_yes") }).click();
-    await expect(page.getByText(NOTE, { exact: true })).toHaveCount(0);
-    // The rate question she was answering is asked again on its own; "Later" pauses it, and the suggestions show.
-    await expect(page.getByText(textOf(hi, "iv.ask.rate_month"))).toHaveCount(1);
-    await page.getByRole("button", { name: t(hi, "iv.later"), exact: true }).click();
-    await page.getByRole("button", { name: t(hi, "agent.new"), exact: true }).click();
-    await page
-      .getByRole("dialog", { name: t(hi, "agent.new") })
-      .getByRole("button", { name: t(hi, "agent.new_yes") })
-      .click();
+  await test.step("New chat keeps this chat in Chats with its open question, and earnings come from Passbook", async () => {
+    await page.getByRole("button", { name: t(hi, "chats.new"), exact: true }).click();
     await expect(page.getByText(t(hi, "agent.empty"))).toBeVisible();
+    await expect(page.getByText(NOTE, { exact: true })).toHaveCount(0);
     await page.getByRole("button", { name: t(hi, "agent.suggest_earned"), exact: true }).click();
     await expect(page.getByText(t(hi, "agent.earnings", { week: "₹0", month: "₹0", waiting: "₹0" }))).toBeVisible();
     await expect(page.getByText(t(hi, "agent.empty"))).toHaveCount(0);
+    // The chat she left is listed by her first words, with the rate change she has not finished.
+    await page.getByRole("button", { name: t(hi, "chats.open"), exact: true }).click();
+    const left = page
+      .getByRole("region", { name: t(hi, "chats.title") })
+      .getByRole("listitem")
+      .filter({ hasText: HINDI_SAID[0] ?? "" });
+    await expect(left).toContainText(t(hi, "chats.card_waiting"));
   });
   await unlist(page, hi);
 });

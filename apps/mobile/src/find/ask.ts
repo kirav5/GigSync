@@ -1,5 +1,5 @@
 import { EVERY_DAY, type GigDevice, type NewNeed, type Ports } from "@gigsync/core";
-import type { BoardWorker, Place, Trade } from "@gigsync/protocol";
+import type { BoardProfile, BoardWorker, Place, Trade, UserId } from "@gigsync/protocol";
 import { type Account, apiClient, rememberName } from "../adapters/account.js";
 import type { I18n } from "../i18n.js";
 import { dayDate } from "../screens/jobGroups.js";
@@ -8,6 +8,12 @@ import { dayDate } from "../screens/jobGroups.js";
  * Find's two calls, the same for the form and the chat: search the board near an area, and ask the workers the owner
  * picked. The request itself is built in core (`needToSend`), so both send exactly the same thing.
  */
+
+/** A worker the household chose before Find opened (from their QR, or an offer to work): asked alone, by the form. */
+export interface ChosenWorker {
+  user: UserId;
+  card: BoardProfile;
+}
 
 /** The board's workers for a trade near a place, never the owner's own card (a worker hiring never hires themself). */
 export async function searchBoard(

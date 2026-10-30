@@ -1,7 +1,7 @@
 import { type MessageKey, plural, questionText, t } from "@gigsync/core";
 import { Lang, SharedPrice } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { newPhone, open, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
+import { newPhone, open, openFold, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
 import { type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -135,6 +135,7 @@ test("a household sees the range beside its budget; after both sign each is aske
 
   // Ask each time is the default; the card is on the signed job, and Yes sends the price.
   await open(homePage, "nav.profile");
+  await openFold(homePage, "profile.agent");
   const setting = homePage.getByRole("region", { name: t(en, "estimate.setting_label") });
   await expect(setting.getByRole("button", { name: t(en, "estimate.setting_ask") })).toHaveAttribute(
     "aria-pressed",

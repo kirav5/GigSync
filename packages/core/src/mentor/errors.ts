@@ -2,7 +2,7 @@
 export const MentorRefusal = {
   /** Their phone runs a GigSync too old for mentors: `mentor.too_old`. */
   tooOld: "too_old",
-  /** This phone's record does not reach the minimum yet: `mentor.not_yet`. */
+  /** This phone's record does not reach the minimum yet: `moving.not_eligible`. */
   notEligible: "not_eligible",
   /** This build has no API to list or match mentors. */
   noServer: "no_server",

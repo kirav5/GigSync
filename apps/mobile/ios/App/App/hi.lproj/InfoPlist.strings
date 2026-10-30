@@ -1,4 +1,4 @@
 /* फ़ोन की अपनी इजाज़त वाली स्क्रीन, फ़ोन की भाषा में। Info.plist के साथ मेल रखें। */
 "NSMicrophoneUsageDescription" = "GigSync तभी सुनता है जब आप माइक दबाते हैं।";
 "NSSpeechRecognitionUsageDescription" = "आप जो बोलते हैं, वह हो सके तो इसी फ़ोन पर लिखे शब्दों में बदलता है। अगर फ़ोन ऐसा न कर पाए, तो सिर्फ़ आपकी इजाज़त से Apple उसे लिखे शब्दों में बदलता है।";
-"NSCameraUsageDescription" = "GigSync कैमरा सिर्फ़ साथी का कोड स्कैन करने के लिए इस्तेमाल करता है।";
+"NSCameraUsageDescription" = "GigSync कैमरा सिर्फ़ तब इस्तेमाल करता है जब आप QR स्कैन करें दबाते हैं, किसी का GigSync QR कोड पढ़ने के लिए।";

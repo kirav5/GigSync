@@ -15,6 +15,8 @@ export const V1_AUTH = `${V1}/auth`;
 export const ADMIN_HEADER = "x-gigsync-admin";
 /** Path parameter naming the user a directory or mailbox route is about. */
 export const USER_PARAM = "user";
+/** Path parameter naming a personal QR code. */
+export const CODE_PARAM = "code";
 
 /** Error messages the API returns as `{ error }`. Safe to show: they never name a value. */
 export const ApiError = {
@@ -27,6 +29,7 @@ export const ApiError = {
   forbidden: "forbidden",
   internal: "internal error",
   notFound: "not found",
+  offerNotTaken: "offer not taken",
   recipientNotFound: "recipient not found",
   tooManyAttempts: "too many attempts",
   unauthorized: "unauthorized",

@@ -6,19 +6,17 @@ import { EngagementId, prefixedId, UserId } from "./ids.js";
 import { DEFAULT_LANG, Lang, QuestionKey } from "./lang.js";
 import { Introduce, LandingRequest, MentorAccept, MentorOffer } from "./mentor-envelopes.js";
 import { Paise, PaymentRecord, PaymentRequest } from "./payment.js";
+import { Place } from "./place.js";
+import { WorkOffer } from "./qr.js";
 import { Terms, termsFit } from "./terms.js";
 import { Trade } from "./trade.js";
 
-export { Trade };
+export { Place, Trade };
 
 /**
  * What travels inside a job's sealed envelopes, one body per envelope kind. The server never sees any of it: the
  * consumer's need, the offers, the agreed terms and each side's contact card exist only on the two phones.
  */
-
-/** An approximate place (a neighbourhood, never a door): what discovery and the request use. */
-export const Place = z.object({ lat: z.number().min(-90).max(90), lon: z.number().min(-180).max(180) });
-export type Place = z.infer<typeof Place>;
 
 export const OfferId = prefixedId("off");
 export type OfferId = z.infer<typeof OfferId>;
@@ -224,4 +222,5 @@ export const BODY: Readonly<Record<EnvelopeKind, z.ZodType>> = {
   [K.landing_request]: LandingRequest,
   [K.mentor_offer]: MentorOffer,
   [K.mentor_accept]: MentorAccept,
+  [K.work_offer]: WorkOffer,
 };

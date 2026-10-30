@@ -1,4 +1,5 @@
 import {
+  boardWorkerOf,
   EVERY_DAY,
   estimateRequest,
   type GigDevice,
@@ -24,7 +25,7 @@ import { type BoardWorker, Trade } from "@gigsync/protocol";
 import { type FormEvent, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
 import { useEstimate } from "../../estimate/useEstimate.js";
-import { askWorkers, dayLabel, searchBoard } from "../../find/ask.js";
+import { askWorkers, type ChosenWorker, dayLabel, searchBoard } from "../../find/ask.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { Dock } from "../../ui/Dock.js";
@@ -55,19 +56,23 @@ interface Props {
   account: Account;
   device: GigDevice;
   onAsked: () => void;
+  /** A worker chosen before the form opened: shown picked, with their first trade, as if a search had found them. */
+  only?: ChosenWorker | undefined;
 }
 
 /**
  * Find as a form: pick the trade and area, search, pick workers, then fill in the need, when and the budget, and let
  * your agent ask them. Your budget stays here.
  */
-export function FindForm({ ports, account, device, onAsked }: Props) {
+export function FindForm({ ports, account, device, onAsked, only }: Props) {
   const i18n = useI18n();
   const { lang, t, plural } = i18n;
-  const [trade, setTrade] = useState<Trade>(Trade.enum.electrician);
+  const [trade, setTrade] = useState<Trade>(only?.card.trades[0] ?? Trade.enum.electrician);
   const [area, setArea] = useState<string>(AREAS[0].name);
-  const [found, setFound] = useState<BoardWorker[]>();
-  const [picked, setPicked] = useState<string[]>([]);
+  const [found, setFound] = useState<BoardWorker[] | undefined>(
+    () => only && [boardWorkerOf(only.user, only.card, AREAS[0])],
+  );
+  const [picked, setPicked] = useState<string[]>(only ? [only.user] : []);
   /** The chip the owner tapped; until then monthly work defaults to every day, anything else to today. */
   const [chosen, setChosen] = useState<When>();
   const [error, setError] = useState<string>();

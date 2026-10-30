@@ -10,7 +10,6 @@ export const shell: Readonly<Record<keyof typeof en, string>> = {
   "profile.card_off": "ನಿಮ್ಮ ಕಾರ್ಡ್ ಈಗ ಬೋರ್ಡ್‌ನಲ್ಲಿ ಇಲ್ಲ",
   "profile.talk_card": "ಮಾತಾಡಿ ಬದಲಾಯಿಸಿ",
   "profile.agent": "ನಿಮ್ಮ ಏಜೆಂಟ್",
-  "profile.new_city": "ಹೊಸ ನಗರ",
   "profile.more": "ಇನ್ನಷ್ಟು ಸೆಟ್ಟಿಂಗ್ಸ್",
   "profile.language": "ಭಾಷೆ",
   "when.today": "ಇಂದು",

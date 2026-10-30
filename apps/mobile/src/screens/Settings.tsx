@@ -1,4 +1,4 @@
-import type { GigDevice, MessageKey, Ports } from "@gigsync/core";
+import type { MessageKey, Ports } from "@gigsync/core";
 import { Lang, PAYEE_NAME_MAX, type UserId } from "@gigsync/protocol";
 import { useState } from "react";
 import type { Account } from "../adapters/account.js";
@@ -9,11 +9,10 @@ import { InstallCard, InstallPlace } from "../ui/InstallCard.js";
 import { Look, savedLook, saveLook } from "../ui/look.js";
 import { AREAS, money } from "../ui/places.js";
 import { ShareSetting } from "./estimate/ShareSetting.js";
-import { MovingEntry } from "./landing/MovingEntry.js";
 import { ModelSettings } from "./ModelSettings.js";
 import { MemorySection } from "./memory/MemorySection.js";
 import { LinksSection } from "./mentor/LinksSection.js";
-import { MentorSection } from "./mentor/MentorSection.js";
+import { QrRow } from "./qr/QrRow.js";
 import { SpeechSettings } from "./SpeechSettings.js";
 import { TacticSetting } from "./TacticSetting.js";
 
@@ -34,12 +33,8 @@ interface Props {
   onTalkCard: () => void;
   /** Opens one mentor link's thread. */
   onOpenLink: (user: UserId) => void;
-  /** Opens the landing journey: moving to a new city. */
-  onMoving: () => void;
-  device: GigDevice;
-  run: (work: () => Promise<unknown>) => Promise<unknown>;
-  /** Opens Find a mentor. */
-  onFindMentor: () => void;
+  /** Opens the owner's own QR code. */
+  onMyQr: () => void;
 }
 
 /** Profile's folds: what is not looked at every day waits behind a row. */
@@ -104,14 +99,14 @@ function LookPicker() {
 }
 
 /**
- * Profile, kept lean: what a person comes here for stays in view (the worker's card, the UPI ID they are paid to,
- * live mentor links, the language, installing the app); everything else waits in three folds: what the agent
- * remembers and how it bargains, moving to a new city and mentoring, and the rest (voice actions, look, model).
- * Each section saves as it changes, and everything is kept on this phone.
+ * Profile, kept lean: what a person comes here for stays in view (one row for their QR, the worker's card, the UPI ID,
+ * live mentor links, the language, installing the app); everything else waits in two folds: what the agent
+ * remembers and how it bargains, and the rest (voice actions, look, model). Moving to a new city and helping
+ * newcomers are not here: they are said in Talk. Each section saves as it changes, and everything is kept on this phone.
  */
 export function Settings(props: Props) {
   const { ports, account, isWorker, onSignOut, onCard, onTalkCard, onOpenLink } = props;
-  const { onMoving, device, run, onFindMentor } = props;
+  const { onMyQr } = props;
   const { lang, setLang, t } = useI18n();
   const name = account.contact.name;
   const role = t(isWorker ? "role.worker" : "role.customer");
@@ -126,6 +121,7 @@ export function Settings(props: Props) {
           {name} · {role}
         </span>
       </div>
+      <QrRow onOpen={onMyQr} />
 
       {isWorker && <CardSummary account={account} onCard={onCard} onTalkCard={onTalkCard} />}
       {isWorker && <PayeeForm ports={ports} defaultName={name.slice(0, PAYEE_NAME_MAX)} />}
@@ -160,16 +156,6 @@ export function Settings(props: Props) {
             <TacticSetting ports={ports} />
           </div>
         </details>
-
-        {isWorker && (
-          <details className={FOLD}>
-            <summary>{t("profile.new_city")}</summary>
-            <div className={C.stack}>
-              <MovingEntry onOpen={onMoving} />
-              <MentorSection account={account} device={device} run={run} onFind={onFindMentor} />
-            </div>
-          </details>
-        )}
 
         <details className={FOLD}>
           <summary>{t("profile.more")}</summary>

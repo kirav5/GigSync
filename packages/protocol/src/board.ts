@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { UserId } from "./ids.js";
-import { Place, Trade } from "./job.js";
 import { Paise } from "./payment.js";
+import { Place } from "./place.js";
+import { Trade } from "./trade.js";
 
 /**
  * The job board: how a consumer's agent finds workers (LLD §7.5). A worker publishes a card with their trades, an

@@ -1,8 +1,6 @@
 /** Moving to a new city for work: the journey, its checklist, and the city guide (a draft from public sources). */
 export const landing = {
   "landing.title": "Moving to a new city",
-  "landing.profile_hint": "A guide for your first weeks: a safe place to stay, documents, registration and work.",
-  "landing.open": "Open the guide",
   "landing.draft": "Draft from public sources. Not yet checked by a union.",
   "landing.loading": "Getting the guide…",
   "landing.no_guide": "The guide could not be downloaded. Connect to the internet once and it stays on this phone.",

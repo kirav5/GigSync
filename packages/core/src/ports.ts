@@ -12,6 +12,7 @@ import type { DeviceId } from "@gigsync/protocol";
  * Each belongs to one owner (the person signed in), except the few kept per phone (`PHONE_COLLECTIONS`, owner/storage.ts).
  */
 export const Collection = {
+  /** Talk's chats, one record per chat, kept until the owner deletes one (chat/store.ts). */
   chat: "chat",
   contacts: "contacts",
   engagements: "engagements",
@@ -62,6 +63,10 @@ export const Collection = {
   journeys: "journeys",
   /** City guides as last downloaded, one per city, so the landing journey works offline. */
   guides: "guides",
+  /** Offers to work this household received from a worker who scanned its QR (ADR 0034), one per channel. */
+  workOffers: "work_offers",
+  /** Offers to work this worker sent, one per channel: the day's count and "offered" on a household's view. */
+  offersSent: "offers_sent",
 } as const;
 
 export interface Storage {

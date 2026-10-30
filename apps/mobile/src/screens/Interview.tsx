@@ -19,18 +19,20 @@ import {
   interviewFailed,
   interviewPublished,
   pauseInterview,
-  Speaker,
-  type Turn,
   tapInterview,
-  useInterview,
 } from "../card/interviewStore.js";
 import { AboutPrivateError, publishCard } from "../card/publish.js";
 import { fetchEstimate } from "../estimate/useEstimate.js";
 import { useI18n } from "../i18n.js";
+import { isMove } from "../talk/moveTurns.js";
+import { useTalk } from "../talk/talkStore.js";
+import { Speaker, type Turn } from "../talk/turns.js";
+import type { Moves } from "../talk/useMoves.js";
 import { C } from "../ui/cls.js";
 import { errorKey } from "../ui/errorKey.js";
 import { AREAS, PILOT_CITY } from "../ui/places.js";
 import { Said } from "../ui/Said.js";
+import { MoveTurnView } from "./talk/AgentTurns.js";
 import { Ask, Own } from "./talk/Bubbles.js";
 import "./talk.css";
 
@@ -100,21 +102,24 @@ function Choices({ choices }: { choices: readonly Choice[] }) {
 }
 
 /**
- * Talk's conversation, in the order it happened: notes to the agent with its answers, and the card interview, each
- * question with a replay button, read aloud once when it appears, the owner's answers opposite. When the owner says
- * yes to the summary, the card is published from here.
+ * Talk's conversation, in the order it happened: notes to the agent with its answers, the card interview, each
+ * question with a replay button, read aloud once when it appears, the owner's answers opposite, and a move to a new
+ * city as the agent answers it (`moves` acts on its buttons). When the owner says yes to the summary, the card is
+ * published from here.
  */
 export function Interview({
   ports,
   account,
   onSaved,
+  moves,
 }: {
   ports: Ports;
   account: Account;
   onSaved: (a: Account) => void;
+  moves: Moves;
 }) {
   const { lang } = useI18n();
-  const { state, turns, paused } = useInterview();
+  const { state, turns, paused } = useTalk();
   const active = state !== undefined && !paused;
   /** Choices are offered while a question is open, not once the owner has said yes and the card is being sent. */
   const asking = active && state.slot !== Slot.done;
@@ -157,7 +162,9 @@ export function Interview({
       });
   }, [state, ports, account, lang, onSaved]);
 
+  const last = turns.at(-1);
   const show = (turn: Turn) => {
+    if (isMove(turn)) return <MoveTurnView key={turn.id} turn={turn} newest={turn.id === last?.id} moves={moves} />;
     if (turn.who === Speaker.owner) return <Own key={turn.id} text={turn.text} />;
     if (turn.who === Speaker.note) return <Note key={turn.id} text={turn.text} card={turn.card} />;
     return (

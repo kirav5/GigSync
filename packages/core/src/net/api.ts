@@ -17,6 +17,10 @@ import {
   type MentorReport,
   MessageId,
   MyMentorListing,
+  MyQr,
+  type MyQrRequest,
+  type QrCode,
+  QrPerson,
   Session,
   type SharedPrice,
   type UserId,
@@ -26,6 +30,7 @@ import type { EstimateApi } from "../estimate/lookup.js";
 import { BEARER_PREFIX, ContentType, Header, HttpMethod } from "../http.js";
 import { log } from "../log.js";
 import type { MentorApi } from "../mentor/types.js";
+import type { QrApi } from "../qr/types.js";
 
 /** The routes of workers/api this client calls. */
 export const ApiPath = {
@@ -49,6 +54,12 @@ export const ApiPath = {
   estimates: "/v1/estimates",
   /** One agreed price shared anonymously: `POST /v1/estimates/prices`. */
   sharedPrices: "/v1/estimates/prices",
+  /** The caller's personal QR (ADR 0034): `PUT` gets or makes it, `/replace` makes a new one. */
+  qrMe: "/v1/qr/me",
+  qrReplace: "/v1/qr/me/replace",
+  /** `GET /v1/qr/:code` looks a code up; `POST /v1/qr/:code/offer` takes an offer to work through it. */
+  qr: "/v1/qr/",
+  qrOffer: "/offer",
 } as const;
 
 /** A non-2xx answer from the API: the status and its safe `{ error }` message. */
@@ -118,7 +129,7 @@ async function withDeadline<T>(ms: number, work: (signal: AbortSignal) => Promis
 }
 
 /** Typed calls to workers/api. Every response is parsed with its protocol schema before it is used. */
-export class ApiClient implements Relay, MentorApi, EstimateApi {
+export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
   constructor(
     private readonly base: string,
     private readonly fetchFn: Fetch = (input, init) => fetch(input, init),
@@ -240,6 +251,22 @@ export class ApiClient implements Relay, MentorApi, EstimateApi {
   /** A city's guide, checked against its schema before the landing journey keeps it. */
   async cityGuide(city: City): Promise<CityGuide> {
     return CityGuide.parse(await this.call(HttpMethod.get, `${ApiPath.content}${city}`));
+  }
+
+  async myQr(owner: MyQrRequest): Promise<MyQr> {
+    return MyQr.parse(await this.call(HttpMethod.put, ApiPath.qrMe, owner));
+  }
+
+  async replaceQr(owner: MyQrRequest): Promise<MyQr> {
+    return MyQr.parse(await this.call(HttpMethod.post, ApiPath.qrReplace, owner));
+  }
+
+  async lookupQr(code: QrCode): Promise<QrPerson> {
+    return QrPerson.parse(await this.call(HttpMethod.get, `${ApiPath.qr}${code}`));
+  }
+
+  async takeOffer(code: QrCode): Promise<void> {
+    await this.call(HttpMethod.post, `${ApiPath.qr}${code}${ApiPath.qrOffer}`);
   }
 
   private async call(method: string, path: string, body?: unknown): Promise<unknown> {

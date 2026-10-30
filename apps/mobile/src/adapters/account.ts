@@ -18,9 +18,9 @@ import {
   MAX_TRADES,
   PAYEE_NAME_MAX,
   type Session,
-  TERMS_PROTOCOL,
   type UserId,
   Vpa,
+  WORK_OFFER_PROTOCOL,
 } from "@gigsync/protocol";
 import { areaKeyOf, PILOT_CITY } from "../ui/places.js";
 import { API_BASE } from "./api.js";
@@ -58,12 +58,12 @@ const PROFILE_KEY = "profile";
 type Profile = Omit<Account, "session" | "contact" | "protocol">;
 /**
  * What this app understands, sent with the device's keys at sign-in: notes on a link, questions a worker's agent's
- * model wrote, the mentor envelopes, and terms besides the price in offers and signed deals. Each capability number
- * includes the ones before it (COLLEAGUE_PROTOCOL is 2, FREE_QUESTIONS_PROTOCOL 3, MENTOR_PROTOCOL 4). An older phone
- * may still send this one an in-person link ask or a referral, which the colleague number promised; both are dropped
- * on arrival.
+ * model wrote, the mentor envelopes, terms besides the price in offers and signed deals, and offers to work from a
+ * personal QR. Each capability number includes the ones before it (COLLEAGUE_PROTOCOL is 2, FREE_QUESTIONS_PROTOCOL 3,
+ * MENTOR_PROTOCOL 4, TERMS_PROTOCOL 5). An older phone may still send this one an in-person link ask or a referral,
+ * which the colleague number promised; both are dropped on arrival.
  */
-const PROTOCOL = TERMS_PROTOCOL;
+const PROTOCOL = WORK_OFFER_PROTOCOL;
 
 export class AccountError extends Error {}
 
@@ -155,7 +155,7 @@ export async function signIn(
 
 /**
  * After an app update, tells the directory this device speaks the newer protocol, so other phones send it the newer
- * kinds (model questions, mentors) without the owner signing in again. Offline or failed: tried again next launch.
+ * kinds (model questions, mentors, offers to work) without the owner signing in again. Offline or failed: tried again next launch.
  */
 export async function raiseDeviceProtocol(ports: Ports, account: Account): Promise<void> {
   if ((account.protocol ?? 0) >= PROTOCOL) return;
@@ -186,6 +186,7 @@ export function deviceFor(ports: Ports, account: Account, lang: Lang): GigDevice
     ...(account.autoConfirm ? { autoConfirm: true } : {}),
     model: ports.model,
     estimates: { api, city: PILOT_CITY, areaKey: areaKeyOf },
+    qrApi: api,
     lang,
   });
 }

@@ -9,10 +9,14 @@ export const Screen = {
   card: "card",
   /** One mentor link: its notes, renew, block and introductions, opened from Profile. */
   link: "link",
-  /** Moving to a new city: the landing journey and its city guide, under Profile. */
+  /** Moving to a new city: the checklist of the landing journey and its city guide, opened from a move in Talk. */
   landing: "landing",
-  /** Find a mentor in a new city: the newcomer chooses from listed mentors, under Profile (and the landing journey). */
+  /** Find a mentor in a new city: the fallback screen, with introductions, opened from Talk and the landing journey. */
   findMentor: "find_mentor",
+  /** The owner's own QR code, to show, download, share or replace, and to scan someone else's; under Profile. */
+  myQr: "my_qr",
+  /** Whoever a scanned QR or an opened QR link finds. */
+  person: "person",
 } as const;
 export type Screen = (typeof Screen)[keyof typeof Screen];
 

@@ -6,6 +6,9 @@ export const C = {
   accent: "btn accent",
   secondary: "btn secondary",
   quiet: "btn quiet compact",
+  /** A smaller button in a row of several, as on the QR card. */
+  secondaryCompact: "btn secondary compact",
+  accentCompact: "btn accent compact",
   danger: "btn danger",
   wide: "btn accent wide",
   field: "field",

@@ -6,10 +6,11 @@ import { C } from "./cls.js";
 
 const WHY: Readonly<Record<Permission, MessageKey>> = {
   [Permission.mic]: "perm.mic_why",
+  [Permission.camera]: "qr.camera_why",
 };
 
 /**
- * Why GigSync needs the microphone, in the app's language, just before the phone's own prompt. Continue
+ * Why GigSync needs the microphone or the camera, in the app's language, just before the phone's own prompt. Continue
  * remembers it was said and lets the caller ask the phone; Not now leaves the phone's prompt for later.
  */
 export function PermissionSheet({ permission, onAnswer }: { permission: Permission; onAnswer: (go: boolean) => void }) {

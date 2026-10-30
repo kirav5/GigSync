@@ -3,8 +3,6 @@ import type { landing as en } from "../en/landing.js";
 /** Hindi: moving to a new city for work, and the city guide. */
 export const landing: Readonly<Record<keyof typeof en, string>> = {
   "landing.title": "नए शहर में जा रहे हैं",
-  "landing.profile_hint": "पहले हफ़्तों के लिए गाइड: रहने की सुरक्षित जगह, कागज़, रजिस्ट्रेशन और काम।",
-  "landing.open": "गाइड खोलें",
   "landing.draft": "सार्वजनिक स्रोतों से बना ड्राफ़्ट। अभी किसी यूनियन ने जाँचा नहीं है।",
   "landing.loading": "गाइड आ रही है…",
   "landing.no_guide": "गाइड डाउनलोड नहीं हो सकी। एक बार इंटरनेट से जुड़ें, फिर यह इसी फ़ोन पर रहेगी।",

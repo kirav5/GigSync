@@ -1,0 +1,63 @@
+/* Personal QR codes (ADR 0034): Profile's row, my QR as collab's card, the scanner, and the person a QR finds. */
+
+/* One row in Profile, like a fold's title, with a chevron pointing on. */
+.qr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 12px 0;
+  border: 0;
+  border-block: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.qr-row::after {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-right: 4px;
+  border-right: 2px solid var(--text3);
+  border-bottom: 2px solid var(--text3);
+  transform: rotate(-45deg);
+}
+
+/* The QR beside its words on a wide screen; on a phone, large on top, to hold up to someone. */
+.qr-card {
+  grid-template-columns: 132px 1fr;
+  align-items: start;
+}
+.qr-card .qr {
+  width: 132px;
+  aspect-ratio: 1;
+  background: #fff;
+  padding: 4px;
+  border-radius: 4px;
+}
+@media (max-width: 520px) {
+  .qr-card {
+    grid-template-columns: 1fr;
+  }
+  .qr-card .qr {
+    width: 100%;
+    max-width: 280px;
+    justify-self: center;
+  }
+}
+
+/* The camera's picture while scanning: square, as the code is. */
+.qr-scanner {
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1;
+  justify-self: center;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--inverse);
+}

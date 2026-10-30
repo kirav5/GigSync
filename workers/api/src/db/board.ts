@@ -33,8 +33,13 @@ export async function removeProfile(db: Db, user: UserId): Promise<boolean> {
   return (rowCount ?? 0) > 0;
 }
 
-interface BoardRow {
-  user_id: UserId;
+/** A worker's public card from `worker_profiles p`, with their trades and languages in a stable order. */
+export const CARD_COLUMNS = `p.display_name, p.area_lat, p.area_lon, p.area_name, p.rate_paise, p.about,
+  ARRAY(SELECT t.trade FROM worker_trades t WHERE t.user_id = p.user_id ORDER BY t.trade) AS trades,
+  ARRAY(SELECT l.language FROM worker_languages l WHERE l.user_id = p.user_id ORDER BY l.language) AS languages`;
+
+/** The columns CARD_COLUMNS selects. */
+export interface CardRow {
   display_name: string;
   area_lat: number;
   area_lon: number;
@@ -43,6 +48,21 @@ interface BoardRow {
   about: string;
   trades: Trade[];
   languages: string[];
+}
+
+/** The card as the board and a scanned QR show it. */
+export const cardOf = (r: CardRow): BoardProfile => ({
+  display_name: r.display_name,
+  trades: r.trades,
+  area: { lat: r.area_lat, lon: r.area_lon },
+  area_name: r.area_name,
+  rate_paise: r.rate_paise,
+  languages: r.languages,
+  about: r.about,
+});
+
+interface BoardRow extends CardRow {
+  user_id: UserId;
   distance_km: number;
 }
 
@@ -52,10 +72,7 @@ interface BoardRow {
  */
 export async function searchWorkers(db: Db, q: BoardQuery): Promise<BoardWorker[]> {
   const { rows } = await db.query<BoardRow>(
-    `SELECT p.user_id, p.display_name, p.area_lat, p.area_lon, p.area_name, p.rate_paise, p.about,
-       ARRAY(SELECT t.trade FROM worker_trades t WHERE t.user_id = p.user_id ORDER BY t.trade) AS trades,
-       ARRAY(SELECT l.language FROM worker_languages l WHERE l.user_id = p.user_id ORDER BY l.language) AS languages,
-       d.km AS distance_km
+    `SELECT p.user_id, ${CARD_COLUMNS}, d.km AS distance_km
      FROM worker_trades wt
      JOIN worker_profiles p ON p.user_id = wt.user_id
      JOIN users u ON u.user_id = p.user_id AND u.status = 'active'
@@ -71,14 +88,17 @@ export async function searchWorkers(db: Db, q: BoardQuery): Promise<BoardWorker[
     [q.trade, q.lat, q.lon, q.radius_km, q.max_rate_paise ?? null, q.limit, EARTH_RADIUS_KM, KM_PER_DEGREE],
   );
   return rows.map((r) => ({
+    ...cardOf(r),
     user: r.user_id,
-    display_name: r.display_name,
-    trades: r.trades,
-    area: { lat: r.area_lat, lon: r.area_lon },
-    area_name: r.area_name,
-    rate_paise: r.rate_paise,
-    languages: r.languages,
-    about: r.about,
     distance_km: Math.round(r.distance_km * DISTANCE_SCALE) / DISTANCE_SCALE,
   }));
+}
+
+/** True when the worker has a card on the board. */
+export async function isListed(db: Db, user: UserId): Promise<boolean> {
+  const { rows } = await db.query<{ listed: boolean }>(
+    "SELECT EXISTS (SELECT 1 FROM worker_profiles WHERE user_id = $1) AS listed",
+    [user],
+  );
+  return rows[0]?.listed ?? false;
 }

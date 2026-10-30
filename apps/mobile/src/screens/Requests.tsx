@@ -1,27 +1,32 @@
 import type { GigDevice, JobRecord } from "@gigsync/core";
 import { useState } from "react";
+import type { ChosenWorker } from "../find/ask.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import type { GigView } from "../useGig.js";
 import type { JobActionProps } from "./JobActions.js";
 import { JobThread } from "./JobThread.js";
 import { groupJobs, phoneDay } from "./jobGroups.js";
+import { OfferCards } from "./qr/OfferCards.js";
 import "./jobs.css";
 
 interface Props {
   view: GigView;
   device: GigDevice;
   run: (work: () => Promise<unknown>) => Promise<unknown>;
+  /** Opens the usual ask with a worker who offered to work chosen. */
+  onAsk: (worker: ChosenWorker) => void;
 }
 
 /** What every job card in a list needs, besides the job. */
 type ListProps = Omit<JobActionProps, "job"> & { jobs: readonly JobRecord[] };
 
 /**
- * The consumer's jobs: what to decide now (answer the worker, sign, say whether a payment went), the jobs
- * agreed (pay, review), then folded away the requests the agents are still talking over, and the past.
+ * The consumer's jobs: what to decide now (offers to work from someone who scanned their QR, answer the worker, sign,
+ * say whether a payment went), the jobs agreed (pay, review), then folded away the requests the agents are still
+ * talking over, and the past.
  */
-export function Requests({ view, device, run }: Props) {
+export function Requests({ view, device, run, onAsk }: Props) {
   const { t, time, plural } = useI18n();
   const now = new Date();
   const g = groupJobs({ jobs: view.jobs, tasks: view.tasks, payments: view.payments, day: phoneDay(now) });
@@ -35,7 +40,8 @@ export function Requests({ view, device, run }: Props) {
         </h1>
         {view.syncedAt && <span className={C.faint}>{t("requests.checked", { time: time(view.syncedAt) })}</span>}
       </div>
-      {view.jobs.length === 0 && <div className={C.empty}>{t("requests.empty_consumer")}</div>}
+      <OfferCards offers={view.offers} device={device} run={run} onAsk={onAsk} />
+      {view.jobs.length + view.offers.length === 0 && <div className={C.empty}>{t("requests.empty_consumer")}</div>}
       <JobSection title={t("home.decide")} jobs={g.decide} {...list} />
       <JobSection title={t("home.jobs")} jobs={[...g.today, ...g.upcoming, ...g.other]} {...list} />
       <JobFold summary={plural("home.talking_workers", g.talking.length)} jobs={g.talking} {...list} />

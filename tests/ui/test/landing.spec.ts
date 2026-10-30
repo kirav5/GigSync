@@ -2,19 +2,22 @@ import { readFileSync } from "node:fs";
 import { cashPlan, FixedItem, t } from "@gigsync/core";
 import { CityGuide, Lang, PAISE_PER_RUPEE } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { newPhone, open, openFold, Role, RUN, shoot, signIn } from "./helpers.js";
+import { newPhone, open, Role, RUN, shoot, signIn } from "./helpers.js";
 import { type } from "./talk.js";
 
 /**
  * Moving to a new city (round 4, flow 3), through the real screens and the real API: Talk hears "I'm moving to
- * Bengaluru" and opens the landing journey with the city picked; the owner picks the day and their work; the guide
+ * Bengaluru" and answers in the chat; a worker with no card yet says which work she does and gets the usual pay for it
+ * there; "My moving checklist" opens the landing journey with the city picked; the owner picks the day; the guide
  * carries the draft label; an item is ticked; "where can I stay" answers with the first-nights hostels and their
- * sources; places and the cash plan open; and with the network off, the same journey and guide still open and answer.
+ * sources; places and the cash plan open; and with the network off, the same journey and guide open again from the
+ * chat and still answer.
  */
 
 const { en } = Lang.enum;
 const FOLDER = "landing";
 const ARRIVAL = "2026-11-16";
+const MAID_LOW = "₹3,500";
 /** The guide the API serves, read from the same file, so the cash plan's total can be checked to the rupee. */
 const GUIDE = CityGuide.parse(
   JSON.parse(readFileSync(new URL("../../../workers/api/content/bengaluru.json", import.meta.url), "utf8")),
@@ -37,6 +40,15 @@ async function ask(page: Page, question: string) {
   await box.getByRole("button", { name: t(en, "a11y.send") }).click();
 }
 
+/** The move's "My moving checklist" in Talk: the landing journey, the one place the checklist lives. */
+async function openChecklist(page: Page) {
+  await page
+    .getByRole("button", { name: t(en, "moving.checklist"), exact: true })
+    .last()
+    .click();
+  await expect(page.getByRole("heading", { name: t(en, "landing.title") })).toBeVisible();
+}
+
 const answer = (page: Page) => page.getByRole("region", { name: t(en, "landing.ask_title") });
 
 test("a worker moving to Bengaluru gets the journey, the guide's answers and places, and keeps them offline", async ({
@@ -50,7 +62,14 @@ test("a worker moving to Bengaluru gets the journey, the guide's answers and pla
   // ── Talk hears the move. A worker with no card lands on the card interview; "Later" pauses it ───────────────
   await page.getByRole("button", { name: t(en, "iv.later"), exact: true }).click();
   await type(page, en, "I'm moving to Bengaluru");
-  await expect(page.getByRole("heading", { name: t(en, "landing.title") })).toBeVisible();
+  const log = page.getByRole("log");
+  await expect(log).toContainText(t(en, "moving.which_work"));
+  await log.getByRole("button", { name: t(en, "trade.maid"), exact: true }).click();
+  // The maid's range from the estimate or the shipped band: either starts at the legal floor, ₹3,500.
+  await expect(log).toContainText(MAID_LOW);
+  await expect(log).toContainText(t(en, "moving.estimates"));
+  await shoot("talk", { worker: page }, FOLDER);
+  await openChecklist(page);
   const start = page.getByRole("form", { name: t(en, "landing.start_title") });
   await expect(start.getByRole("button", { name: t(en, "landing.city.bengaluru") })).toHaveAttribute(
     "aria-pressed",
@@ -102,9 +121,8 @@ test("a worker moving to Bengaluru gets the journey, the guide's answers and pla
 
   // ── Offline: the move and the guide downloaded earlier open again and still answer ────────────────────────
   await context.setOffline(true);
-  await open(page, "nav.profile");
-  await openFold(page, "profile.new_city");
-  await page.getByRole("button", { name: t(en, "landing.open") }).click();
+  await open(page, "nav.talk");
+  await openChecklist(page);
   await expect(page.getByRole("note")).toContainText(t(en, "landing.draft"));
   await expect(steps.getByRole("checkbox", { name: t(en, `landing.fixed_${FixedItem.money}`) })).toBeChecked();
   await ask(page, "how do I open a bank account");

@@ -24,6 +24,8 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>GigSync uses the camera only when you tap Scan a QR, to read someone's GigSync QR code.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>GigSync listens only while you tap the mic.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

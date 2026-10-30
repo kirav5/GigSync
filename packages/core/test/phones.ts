@@ -22,6 +22,7 @@ import {
   type MentorApi,
   type Model,
   type NewNeed,
+  type QrApi,
   type Random,
   type Relay,
   SecretKeys,
@@ -96,6 +97,8 @@ export async function phone(
     estimates?: EstimateOptions;
     /** Where the phone draws each job's hidden negotiation settings; a seeded source per phone unless given. */
     random?: Random;
+    /** The server's personal QR routes, faked in memory. */
+    qrApi?: QrApi;
   } = {},
 ): Promise<Phone> {
   const { payee, protocol, ...options } = opts;

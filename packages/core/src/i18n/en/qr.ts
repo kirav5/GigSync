@@ -1,0 +1,55 @@
+/** Personal QR codes (ADR 0034): my QR, scanning one, the person it finds, and offers to work. */
+export const qr = {
+  // Profile and my QR
+  "qr.mine": "My QR code",
+  "qr.row_about": "Show it so people can find you",
+  "qr.about_worker":
+    "Anyone who scans it with their phone camera sees your card and can ask you for work. Your phone number is never on it.",
+  "qr.about_household":
+    "A worker who scans it sees only your first name and can offer to work for you. You decide whether to ask them.",
+  "qr.alt": "QR code that finds {name}",
+  "qr.download": "Download",
+  "qr.copy": "Copy link",
+  "qr.copied": "Link copied.",
+  "qr.copy_failed": "This phone did not allow copying.",
+  "qr.new": "Make a new QR",
+  "qr.new_about": "Your old QR and its link stop finding you at once.",
+  "qr.keep": "Keep this one",
+  "qr.new_done": "New QR made. The old one no longer finds you.",
+  // Scanning
+  "qr.scan": "Scan a QR",
+  "qr.scan_close": "Close",
+  "qr.scan_label": "Camera, looking for a QR code",
+  "qr.camera_why": "To scan a QR code, GigSync needs the camera, only while you scan. Your phone will ask you next.",
+  "qr.camera_denied": "The camera was not allowed. You can also scan with your phone's camera app.",
+  "qr.no_camera": "No camera to use here. You can also scan with your phone's camera app.",
+  "qr.not_ours": "That is not a GigSync QR code.",
+  // The person a QR finds
+  "qr.person": "Found by QR",
+  "qr.finding": "Finding who this is…",
+  "qr.household": "Household",
+  "qr.ask": "Ask {name} for work",
+  "qr.offer": "Offer to work for {name}",
+  "qr.offered": "Sent. {name} decides whether to ask you.",
+  "qr.yours": "This is your own QR code.",
+  "qr.no_card": "{name} has no card on the board yet.",
+  "qr.worker_to_worker": "Households ask workers for work. Your own QR lets them find you.",
+  "qr.household_to_household": "Only workers can offer to work for {name}.",
+  // Why it did not work
+  "qr.need_card": "Put your card on the board first, so {name} can see what you do.",
+  "qr.ended": "This QR no longer works. Ask them to show their new one.",
+  "qr.too_old": "{name}'s GigSync needs an update before it can get offers.",
+  "qr.too_many": "Too many QR codes looked up this hour. Try again later.",
+  "qr.offered_today": "You offered to work for {name} today already.",
+  "qr.worker_limit": "That is enough offers for today. Try again tomorrow.",
+  "qr.household_limit": "{name} has had many offers today. Try again tomorrow.",
+  "qr.blocked": "You blocked this person.",
+  "qr.not_household": "Offers to work go only to households.",
+  "qr.no_server": "This app cannot reach GigSync's server.",
+  "qr.not_found": "That offer has already been answered.",
+  // The household's decision
+  "qr.offers": "Offers to work",
+  "qr.offer_line": "{name} ({trade}) wants to work for you",
+  "qr.offer_ask": "Ask",
+  "qr.offer_not_now": "Not now",
+} as const;

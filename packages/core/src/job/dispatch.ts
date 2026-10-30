@@ -16,6 +16,7 @@ import {
   type Offer,
   type PaymentRecord,
   type PaymentRequest,
+  QR_KINDS,
   Role,
   SIDE_CHANNEL_KINDS,
   type UserId,
@@ -24,6 +25,7 @@ import { apply, TransitionError } from "../engagement/machine.js";
 import { log } from "../log.js";
 import type { Received } from "../mail/transport.js";
 import type { Mentors } from "../mentor/mentors.js";
+import type { WorkOffers } from "../qr/offers.js";
 import * as after from "./aftercare.js";
 import * as consumer from "./consumer.js";
 import type { JobContext } from "./context.js";
@@ -68,15 +70,16 @@ export async function needOf(ctx: JobContext, r: JobRecord): Promise<Need> {
   return need;
 }
 
-/** Where envelopes toward and on mentor links go: they belong to no job. */
+/** Where envelopes toward and on mentor links, and offers to work from a QR, go: they belong to no job. */
 export interface SideInboxes {
   mentors: Pick<Mentors, "receive">;
+  offers: Pick<WorkOffers, "receive">;
 }
 
 /**
  * Takes one verified, opened envelope into its job: only from the job's counterpart, only kinds this side may
- * receive, only moves the engagement allows. Then lets the right agent answer it. Mentor and mentor-link envelopes go
- * to their own inbox and never reach the engagement machine. A `referral` (a colleague suggested on a declined
+ * receive, only moves the engagement allows. Then lets the right agent answer it. Mentor and mentor-link envelopes, and
+ * offers to work from a QR, go to their own inboxes and never reach the engagement machine. A `referral` (a colleague suggested on a declined
  * request) can still come from an older build; no side receives it any more, so it is dropped like any stray kind.
  *
  * Roles are per engagement: a phone that asked for the work is the requester of that job, found in the store like
@@ -90,6 +93,7 @@ export async function dispatch(
 ): Promise<void> {
   const { envelope: e, body } = item;
   if (COLLEAGUE_KINDS.has(e.kind) || MENTOR_KINDS.has(e.kind)) return side.mentors.receive(item);
+  if (QR_KINDS.has(e.kind)) return side.offers.receive(item);
   const existing = await ctx.store.job(e.engagement);
   const r =
     existing ??

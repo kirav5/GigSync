@@ -23,6 +23,8 @@ import type { Relay } from "../net/api.js";
 import { everyDeviceSpeaks } from "../net/reach.js";
 import { PaymentBook } from "../payments/book.js";
 import type { Clock, Keys, Model, Random, Storage } from "../ports.js";
+import { WorkOffers } from "../qr/offers.js";
+import type { QrApi } from "../qr/types.js";
 import * as after from "./aftercare.js";
 import * as consumer from "./consumer.js";
 import type { JobContext } from "./context.js";
@@ -55,6 +57,8 @@ export interface DeviceOptions {
   mentorApi?: MentorApi;
   /** The server's rate estimates and price sharing; without them plans come from the city's rates, as before. */
   estimates?: EstimateOptions;
+  /** The server's personal QR routes; without them the phone can still receive and answer offers to work. */
+  qrApi?: QrApi;
 }
 
 /** A consumer's need before it is sent: the budget is a private mandate and never leaves the phone. */
@@ -71,6 +75,8 @@ export class GigDevice {
   readonly payments: PaymentBook;
   /** Mentors for someone new to a city: introductions, listings, landing requests, mentor links and their notes. */
   readonly mentors: Mentors;
+  /** Offers to work through a personal QR: a worker offers, the household answers by asking (ADR 0034). */
+  readonly offers: WorkOffers;
   private readonly transport: MailTransport;
   private readonly ctx: JobContext;
 
@@ -96,13 +102,15 @@ export class GigDevice {
       signingKeyOf: (user, device) => this.transport.signingKeyOf(user, device),
     };
     this.mentors = new Mentors({ ctx: this.ctx, transport: this.transport, relay: o.relay }, o.mentorApi);
+    this.offers = new WorkOffers({ ctx: this.ctx, transport: this.transport, isWorker: !!o.worker }, o.qrApi);
   }
 
   /** Takes in what arrived, lets the agent answer it, and sends what is queued. */
   async sync(): Promise<{ received: number; sent: number }> {
     const received = await this.transport.receive();
+    const side = { mentors: this.mentors, offers: this.offers };
     // In order on purpose: each envelope may depend on the one before it.
-    for (const item of received) await dispatch(this.ctx, this.o.worker, item, { mentors: this.mentors });
+    for (const item of received) await dispatch(this.ctx, this.o.worker, item, side);
     // A job may have become signed by both here (this owner signed last) or by what arrived.
     await share.shareBySetting(this.ctx, await this.store.jobs());
     return { received: received.length, sent: await this.transport.flush() };

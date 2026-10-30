@@ -6,7 +6,7 @@ const GENERIC: MessageKey = "error.generic";
 /** A mentor refusal in the owner's words; the ones these screens cannot reach read as a generic error. */
 const MENTOR: Readonly<Record<MentorRefusal, MessageKey>> = {
   [MentorRefusal.tooOld]: "mentor.too_old",
-  [MentorRefusal.notEligible]: "mentor.not_yet",
+  [MentorRefusal.notEligible]: "moving.not_eligible",
   [MentorRefusal.tooMany]: "mentor.max",
   [MentorRefusal.safetyFirst]: "mentor.safety_title",
   [MentorRefusal.noServer]: GENERIC,

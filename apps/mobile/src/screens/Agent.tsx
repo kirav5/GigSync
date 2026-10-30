@@ -5,6 +5,9 @@ import {
   earningsIntent,
   edit,
   editIntent,
+  type GigDevice,
+  HelpIntent,
+  helpIntent,
   log,
   movingIntent,
   type Ports,
@@ -15,20 +18,21 @@ import {
 } from "@gigsync/core";
 import type { City } from "@gigsync/protocol";
 import { useEffect, useRef, useState } from "react";
-import type { Account } from "../adapters/account.js";
+import { type Account, AccountRole } from "../adapters/account.js";
 import { interviewConfig } from "../card/choices.js";
 import {
   addNote,
   answerInterview,
   beginInterview,
-  clearTalk,
   noteAnswered,
+  pauseInterview,
   relanguageInterview,
   resumeInterview,
-  useInterview,
 } from "../card/interviewStore.js";
 import { accountDraft } from "../card/publish.js";
 import { useI18n } from "../i18n.js";
+import { openChat, useTalk } from "../talk/talkStore.js";
+import { useMoves } from "../talk/useMoves.js";
 import { Composer, Via } from "../ui/Composer.js";
 import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
@@ -36,7 +40,8 @@ import { errorKey } from "../ui/errorKey.js";
 import { money } from "../ui/places.js";
 import type { GigView } from "../useGig.js";
 import { Interview } from "./Interview.js";
-import { NewConversation, type Suggestion, Suggestions } from "./talk/TalkStart.js";
+import { ChatList, TalkHead } from "./talk/Chats.js";
+import { type Suggestion, Suggestions } from "./talk/TalkStart.js";
 import "./talk.css";
 
 interface TalkProps {
@@ -47,35 +52,44 @@ interface TalkProps {
   interview: boolean;
   /** The account after the interview published the card. */
   onSaved: (a: Account) => void;
-  /** Opens the landing journey for a move to a new city, with the city Talk heard. */
-  onMoving: (city?: City) => void;
+  /** Opens the moving checklist (the landing journey) for the city of the move Talk is about. */
+  onChecklist: (city: City) => void;
+  /** Opens Find a mentor, the fallback with introductions, when nobody in the chat's search matches. */
+  onFindMentor: () => void;
   /** This phone's jobs and payments, for "what did I earn this week?". */
   view: GigView;
+  device: GigDevice;
+  run: (work: () => Promise<unknown>) => Promise<unknown>;
 }
 
 /**
- * Talk: one conversation with the worker's agent, kept across tabs: notes and its answers, on this phone (lite mode
- * without a model), and the card interview when there is no card yet or the owner asked to change it by talking.
- * Words that ask to change a field of the card ("मेरा रेट बदलो") open the interview at that field, below what was
- * said before.
+ * Talk: chats with the worker's agent, kept on this phone: notes and its answers (lite mode without a model), and the
+ * card interview when there is no card yet or the owner asked to change it by talking. Words that ask to change a
+ * field of the card ("मेरा रेट बदलो") open the interview at that field, below what was said before. Moving to a new
+ * city, offering to help newcomers and the guide's answers are all in the chat (`talk/useMoves.ts`): no menu to find.
+ * "Chats" lists the past chats in place of the open one; "New chat" keeps the open one there and starts an empty one.
  */
-export function AgentScreen({ agent, ports, account, interview, onSaved, onMoving, view }: TalkProps) {
+export function AgentScreen(props: TalkProps) {
+  const { agent, ports, account, interview, onSaved, onChecklist, onFindMentor, view, device, run } = props;
   const { lang, t } = useI18n();
-  const { state, turns, paused } = useInterview();
+  const { ready, open, state, turns, paused, interviewIn } = useTalk();
   const [busy, setBusy] = useState(false);
+  const moves = useMoves({ ports, account, device, run, lang }, { onChecklist, onMoreWays: onFindMentor });
+  const [listing, setListing] = useState(false);
   const opened = useRef(false);
   const end = useRef<HTMLDivElement>(null);
   const active = state !== undefined && !paused;
   const current = active ? prompt(state) : undefined;
   const wanted = interview || !account.worker;
 
-  // Opening Talk to make or change the card starts the interview; one already under way carries on where it was.
-  // One paused with "Later" stays paused across tabs until the owner taps "Carry on".
+  // Opening Talk to make or change the card starts the interview; one already under way carries on where it was, in
+  // the chat it belongs to. One paused ("Later", or left for another chat) stays paused until the owner taps "Carry on".
   useEffect(() => {
-    if (opened.current || !wanted) return;
+    if (opened.current || !wanted || !ready) return;
     opened.current = true;
-    if (!state) beginInterview(start(interviewConfig(lang), accountDraft(account)));
-  }, [wanted, state, lang, account]);
+    if (!interviewIn) beginInterview(start(interviewConfig(lang), accountDraft(account)));
+    else if (interviewIn !== open) openChat(interviewIn);
+  }, [wanted, ready, interviewIn, open, lang, account]);
 
   // A language picked in Profile part-way: the questions from here on, and what the mic listens for, follow it.
   useEffect(() => {
@@ -98,7 +112,8 @@ export function AgentScreen({ agent, ports, account, interview, onSaved, onMovin
     noteAnswered(addNote(own), card);
   }
 
-  /** Ways in for an empty Talk; changing the rate needs a card to change. */
+  const isWorker = account.role === AccountRole.worker;
+  /** Ways in for an empty Talk, at most three; changing the rate needs a card, a move is for a worker. */
   const suggestions: Suggestion[] = [
     ...(account.worker
       ? [
@@ -109,6 +124,7 @@ export function AgentScreen({ agent, ports, account, interview, onSaved, onMovin
         ]
       : []),
     { label: "agent.suggest_earned", run: answerEarnings },
+    ...(isWorker ? [{ label: "moving.suggest", run: (said: string) => moves.start(said, undefined) } as const] : []),
   ];
 
   async function sendNote(own: string) {
@@ -117,17 +133,21 @@ export function AgentScreen({ agent, ports, account, interview, onSaved, onMovin
       beginInterview(account.worker ? edit(fresh(), field) : fresh(), own);
       return;
     }
+    const help = isWorker ? helpIntent(own, lang) : undefined;
+    if (help) return help === HelpIntent.offer ? moves.offer(own) : moves.stop(own);
     const moving = movingIntent(own, lang);
-    if (moving) {
-      onMoving(moving.city);
-      return;
-    }
+    if (moving) return moves.start(own, moving.city);
     if (earningsIntent(own, lang)) {
       answerEarnings(own);
       return;
     }
-    if (busy) return;
+    if (busy || moves.busy) return;
     setBusy(true);
+    // In a chat about a move, a question the city's guide answers is answered from it.
+    if (await moves.followUp(own)) {
+      setBusy(false);
+      return;
+    }
     // Kept outside the screen: an answer that comes after the owner switched tabs still lands under its note.
     const id = addNote(own);
     try {
@@ -141,43 +161,43 @@ export function AgentScreen({ agent, ports, account, interview, onSaved, onMovin
   }
 
   /**
-   * Mid-interview, words go to the interview, except words that only mean moving: a newcomer often has no card yet, and
-   * "I work in Bengaluru" stays an answer.
+   * Mid-interview, words go to the interview, except words that only mean moving: a newcomer often has no card yet, so
+   * the interview waits for "Carry on" and the move is answered; "I work in Bengaluru" stays an answer.
    */
   function send(text: string, via: Via) {
+    setListing(false);
     if (!active) return void sendNote(text);
     const moving = movingIntent(text, lang);
-    if (moving?.certain) return onMoving(moving.city);
-    answerInterview(text, via === Via.voice);
+    if (!moving?.certain) return answerInterview(text, via === Via.voice);
+    pauseInterview();
+    moves.start(text, moving.city);
   }
 
   return (
     <>
       <div className={C.stack}>
-        <div className={`${C.row} talk-head`}>
-          <span className={C.labelSq}>{t("nav.talk")}</span>
-          {turns.length > 0 && <NewConversation unfinished={state !== undefined} onClear={clearTalk} />}
-        </div>
+        <TalkHead listing={listing} onListing={setListing} />
         <h1 className={C.headline}>
           {t("agent.headline")} <span className={C.soft}>{t("agent.soft")}</span>
         </h1>
       </div>
-      {turns.length > 0 && <Interview ports={ports} account={account} onSaved={onSaved} />}
-      {paused && (
+      {listing && <ChatList onOpened={() => setListing(false)} />}
+      {!listing && turns.length > 0 && <Interview ports={ports} account={account} onSaved={onSaved} moves={moves} />}
+      {!listing && paused && (
         <div className={C.row}>
           <button type={C.button} className={C.chipOn} onClick={resumeInterview}>
             {t("iv.resume")}
           </button>
         </div>
       )}
-      {turns.length === 0 && !active && <Suggestions items={suggestions} />}
+      {!listing && ready && turns.length === 0 && !active && <Suggestions items={suggestions} />}
       <div ref={end} />
       <Dock>
         <Composer
           label={t("nav.talk")}
           placeholder={t("agent.placeholder")}
           onSend={send}
-          busy={busy || state?.slot === Slot.done}
+          busy={busy || moves.busy || !ready || state?.slot === Slot.done}
           hints={current?.hints ?? []}
           numeric={current?.numeric ?? false}
           onDeviceOnly={current?.secret ?? false}

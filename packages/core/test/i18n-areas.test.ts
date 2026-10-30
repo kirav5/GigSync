@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { agent } from "../src/i18n/en/agent.js";
 import { ask } from "../src/i18n/en/ask.js";
 import { bargain } from "../src/i18n/en/bargain.js";
+import { chats } from "../src/i18n/en/chats.js";
 import { estimate } from "../src/i18n/en/estimate.js";
 import { explain } from "../src/i18n/en/explain.js";
 import { home } from "../src/i18n/en/home.js";
@@ -12,8 +13,10 @@ import { landing } from "../src/i18n/en/landing.js";
 import { memory } from "../src/i18n/en/memory.js";
 import { mentor } from "../src/i18n/en/mentor.js";
 import { money } from "../src/i18n/en/money.js";
+import { moving } from "../src/i18n/en/moving.js";
 import { need } from "../src/i18n/en/need.js";
 import { net } from "../src/i18n/en/net.js";
+import { qr } from "../src/i18n/en/qr.js";
 import { record } from "../src/i18n/en/record.js";
 import { screens } from "../src/i18n/en/screens.js";
 import { shell } from "../src/i18n/en/shell.js";
@@ -46,6 +49,9 @@ const AREAS: Readonly<Record<string, object>> = {
   bargain,
   terms,
   explain,
+  chats,
+  qr,
+  moving,
 };
 
 describe("string areas", () => {

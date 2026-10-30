@@ -42,6 +42,8 @@ export const EnvelopeKind = z.enum([
   "mentor_offer",
   /** Newcomer → mentor, or each side of an introduction → the other: confirm (opens the mentor link) or close. */
   "mentor_accept",
+  /** Worker → a household whose QR they scanned: I would like to work for you, with the worker's card. */
+  "work_offer",
 ]);
 export type EnvelopeKind = z.infer<typeof EnvelopeKind>;
 
@@ -71,6 +73,13 @@ export const MENTOR_KINDS: ReadonlySet<EnvelopeKind> = new Set([
   K.mentor_offer,
   K.mentor_accept,
 ]);
+
+/**
+ * Kinds that come from a personal QR (ADR 0034), outside any job: their `engagement` is a fresh channel id the sender
+ * picks, and the engagement state table never sees them. Only sent when every device of the recipient reports
+ * `WORK_OFFER_PROTOCOL`; the mailbox lets one through only after the sender scanned the recipient's current QR.
+ */
+export const QR_KINDS: ReadonlySet<EnvelopeKind> = new Set([K.work_offer]);
 
 export const Base64 = z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/, "base64");
 /** A person has at most this many devices to seal one envelope to. */

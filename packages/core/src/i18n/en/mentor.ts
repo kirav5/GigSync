@@ -1,21 +1,9 @@
 /** Mentors for people new to a city: offering to help, finding one, requests, offers, introductions, safety. */
 export const mentor = {
   "mentor.city.bengaluru": "Bengaluru",
-  // Profile: offering to help
-  "mentor.offer_title": "Help people new to the city",
-  "mentor.offer_toggle": "I can help people new to {city}",
-  "mentor.not_yet":
-    "You can switch this on after {min_months} months and {min_jobs} finished jobs on GigSync. Your phone counts {jobs} jobs over {months} months.",
+  // Offering to help (asked in Talk)
   "mentor.offer_about":
     "Newcomers see your first name, work, languages, area and your own count of jobs. Never your phone number.",
-  "mentor.area": "Area",
-  "mentor.trades": "Your work",
-  "mentor.languages": "Languages you speak",
-  "mentor.i_am_woman": "I am a woman",
-  "mentor.woman_why": "Used only so that women who ask for a woman mentor can find you.",
-  "mentor.only_women": "Only women newcomers",
-  "mentor.slots": "Newcomers at a time",
-  "mentor.publish": "Show me to newcomers",
   "mentor.listed": "Newcomers in {city} can find you.",
   // Finding a mentor
   "mentor.find": "Find a mentor",

@@ -1,15 +1,17 @@
-import { plural, t } from "@gigsync/core";
+import { type MessageKey, plural, t } from "@gigsync/core";
 import { Lang, MENTOR_MIN_JOBS, MENTOR_MIN_MONTHS } from "@gigsync/protocol";
 import { type Browser, type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { newPhone, open, openFold, Role, RUN, shoot, signIn } from "./helpers.js";
+import { newPhone, open, Role, RUN, shoot, signIn } from "./helpers.js";
 import { type Phone, publishCard, unlistCards } from "./journey.js";
 import { seedRecord, seedSignedJob } from "./mentor-seed.js";
+import { type } from "./talk.js";
 
 /**
  * Mentors without a gate (round4-spec §2) through the app's real screens. A worker whose own phone counts enough
- * signed work lists herself in Profile; a newcomer reads the safety words, says she is a woman (women-only turns on),
- * picks her, and asks; the mentor helps from Today; the newcomer accepts and a 30-day mentor link opens, with renew,
- * report and block. Then an introduction: a household introduces two workers it signed jobs with, nothing scanned.
+ * signed work offers to help newcomers in Talk and answers the listing's questions there; a newcomer says in Talk she
+ * is moving, asks to find someone who knows the city, says she is a woman (women-only turns on), asks her, reads the
+ * safety words and says when she arrives; the mentor helps from Today; the newcomer accepts on Today and a 30-day
+ * mentor link opens, with renew, report and block. Then an introduction: a household introduces two workers it signed jobs with, nothing scanned.
  */
 
 const { hi, kn, en } = Lang.enum;
@@ -29,22 +31,36 @@ async function phones(browser: Browser, langs: Lang[]): Promise<Phone[]> {
   return pages.map((page, i) => ({ page, lang: langs[i] as Lang }));
 }
 
-/** Profile's mentor section, in the owner's language. */
-const mentorSection = ({ page, lang }: Phone) => page.getByRole("region", { name: t(lang, "mentor.offer_title") });
 const city = (lang: Lang) => t(lang, `mentor.city.${CITY}`);
 const statusOn = (page: Page, text: string) => page.getByRole("status").filter({ hasText: text });
+/** What each language says in Talk to offer help to newcomers, and to stop. */
+const OFFER: Readonly<Record<Lang, string>> = {
+  [en]: "I can help people new to Bengaluru",
+  [hi]: "मैं बेंगलुरु में नए लोगों की मदद कर सकती हूँ",
+  [kn]: "ಬೆಂಗಳೂರಿಗೆ ಹೊಸಬರಿಗೆ ಸಹಾಯ ಮಾಡಬಲ್ಲೆ",
+};
+const STOP: Readonly<Record<Lang, string>> = {
+  [en]: "stop helping newcomers",
+  [hi]: "नए लोगों की मदद बंद करो",
+  [kn]: "ಹೊಸಬರಿಗೆ ಸಹಾಯ ನಿಲ್ಲಿಸಿ",
+};
 
-/** Unticks "I can help people new to…" so no mentor from this run stays on the shared list. */
+/** Taps a chip in Talk's conversation by its words in the owner's language. */
+const tap = ({ page, lang }: Phone, key: MessageKey, params = {}) =>
+  page
+    .getByRole("log")
+    .getByRole("button", { name: t(lang, key, params), exact: true })
+    .last()
+    .click();
+
+/** Says "stop helping newcomers" in Talk, so no mentor from this run stays on the shared list. */
 async function unlistMentors() {
   for (const m of listedMentors.splice(0)) {
     if (m.page.isClosed()) continue;
     try {
-      await open(m.page, "nav.profile", m.lang);
-      await openFold(m.page, "profile.new_city", m.lang);
-      const toggle = mentorSection(m).getByRole("checkbox", {
-        name: t(m.lang, "mentor.offer_toggle", { city: city(m.lang) }),
-      });
-      if (await toggle.isChecked()) await toggle.uncheck();
+      await open(m.page, "nav.talk", m.lang);
+      await type(m.page, m.lang, STOP[m.lang]);
+      await expect(m.page.getByText(t(m.lang, "moving.unlisted"))).toBeVisible({ timeout: 15_000 });
     } catch {
       // The page is gone or stuck; nothing more can be done from here.
     }
@@ -71,64 +87,53 @@ test("a newcomer picks a woman mentor from the list, they link for 30 days, then
   await signIn(asha.page, { role: Role.worker, name: ashaName, phone: newPhone(), lang: hi });
   await publishCard(lata, { trade: t(kn, "trade.cook"), area: "koramangala", rate: "9000", min: "8000", about: "ಊಟ" });
 
-  // ── Asha's own record is too short: the toggle is off, with the reason ─────────────────────────────────────────
-  await open(asha.page, "nav.profile", hi);
-  await openFold(asha.page, "profile.new_city", hi);
-  const ashaToggle = mentorSection(asha).getByRole("checkbox");
-  await expect(ashaToggle).toBeDisabled();
-  await expect(mentorSection(asha)).toContainText(
-    t(hi, "mentor.not_yet", { min_months: MENTOR_MIN_MONTHS, min_jobs: MENTOR_MIN_JOBS, jobs: 0, months: 0 }),
+  // ── Asha's own record is too short: Talk says why, with her phone's count ───────────────────────────────────────
+  await asha.page.getByRole("button", { name: t(hi, "iv.later"), exact: true }).click();
+  await type(asha.page, hi, OFFER[hi]);
+  await expect(asha.page.getByRole("log")).toContainText(
+    t(hi, "moving.not_eligible", { min_months: MENTOR_MIN_MONTHS, min_jobs: MENTOR_MIN_JOBS, jobs: 0, months: 0 }),
   );
 
-  // ── Lata's phone counts 30 signed jobs over 8 months: she lists herself, as a woman ────────────────────────────
+  // ── Lata's phone counts 30 signed jobs over 8 months: she offers in Talk and answers its questions, as a woman ──
   await seedRecord(lata.page, JOBS_DONE, DAYS_OF_WORK);
-  await open(lata.page, "nav.today", kn);
-  await open(lata.page, "nav.profile", kn);
-  await openFold(lata.page, "profile.new_city", kn);
-  const toggle = mentorSection(lata).getByRole("checkbox", { name: t(kn, "mentor.offer_toggle", { city: city(kn) }) });
-  await expect(toggle).toBeEnabled();
-  await toggle.check();
+  await open(lata.page, "nav.talk", kn);
+  await type(lata.page, kn, OFFER[kn]);
+  await tap(lata, "area.koramangala");
   // She speaks Hindi too: newcomers who speak it can find her.
-  await mentorSection(lata)
-    .getByRole("button", { name: t(kn, "lang.hi"), exact: true })
-    .click();
-  await mentorSection(lata)
-    .getByRole("checkbox", { name: t(kn, "mentor.i_am_woman") })
-    .check();
-  await expect(mentorSection(lata).getByRole("checkbox", { name: t(kn, "mentor.only_women") })).toBeVisible();
+  await tap(lata, "lang.hi");
+  await expect(lata.page.getByRole("button", { name: t(kn, "lang.hi"), exact: true }).last()).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await tap(lata, "moving.done");
+  await tap(lata, "mentor.yes");
+  await expect(lata.page.getByRole("log")).toContainText(t(kn, "moving.list_women_only"));
+  await tap(lata, "mentor.no");
+  await tap(lata, "moving.slots", { n: 2 });
   await shoot("mentor-opts-in", shots, folder);
-  await mentorSection(lata)
-    .getByRole("button", { name: t(kn, "mentor.publish") })
-    .click();
+  await tap(lata, "moving.list_yes");
   listedMentors.push(lata);
-  await expect(statusOn(lata.page, t(kn, "mentor.listed", { city: city(kn) }))).toBeVisible();
+  await expect(lata.page.getByText(t(kn, "mentor.listed", { city: city(kn) }))).toBeVisible();
 
-  // ── Asha: safety words first, then "are you a woman" once; women-only turns on ─────────────────────────────────
-  await mentorSection(asha)
-    .getByRole("button", { name: t(hi, "mentor.find") })
-    .click();
-  const safety = asha.page.getByRole("region", { name: t(hi, "mentor.safety_title") });
-  await expect(safety).toContainText(t(hi, "mentor.safety_money"));
-  await shoot("safety-first", shots, folder);
-  await safety.getByRole("button", { name: t(hi, "mentor.safety_ok") }).click();
-  await asha.page.getByRole("button", { name: t(hi, "mentor.yes"), exact: true }).click();
-  const womenOnly = asha.page.getByRole("checkbox", { name: t(hi, "mentor.women_only") });
-  await expect(womenOnly).toBeChecked();
-  await asha.page.getByRole("button", { name: t(hi, "trade.cook"), exact: true }).click();
-  await asha.page.getByRole("button", { name: t(hi, "mentor.search") }).click();
-  const choose = asha.page.getByRole("button", { name: t(hi, "mentor.choose", { name: lataName }) });
+  // ── Asha says she is moving and does cooking, then asks for someone who knows the city ─────────────────────────
+  await type(asha.page, hi, "मैं अगले हफ़्ते बेंगलुरु शिफ्ट हो रही हूँ");
+  await tap(asha, "trade.cook");
+  await tap(asha, "moving.find");
+  // "Are you a woman" once; women-only turns on.
+  await tap(asha, "mentor.yes");
+  const choose = asha.page.getByRole("button", { name: t(hi, "moving.ask", { name: lataName }) });
   await expect(choose).toBeVisible();
   const card = asha.page.getByRole("listitem").filter({ has: choose });
   await expect(card).toContainText(t(hi, "mentor.says", { jobs: JOBS_DONE, months: MONTHS_OF_WORK }));
   await expect(card).toContainText(t(hi, "mentor.own_count"));
   await choose.click();
-  const sheet = asha.page.getByRole("form", { name: plural(hi, "mentor.ask", 1) });
-  await sheet.getByLabel(t(hi, "mentor.arrival")).fill("2026-11-11");
-  await sheet.getByLabel(t(hi, "mentor.area_near")).selectOption({ label: t(hi, "area.koramangala") });
-  await sheet.getByLabel(t(hi, "mentor.note")).fill("मैं खाना बनाती हूँ");
+  // The safety words first, once, before any contact.
+  await expect(asha.page.getByRole("log")).toContainText(t(hi, "mentor.safety_money"));
+  await shoot("safety-first", shots, folder);
+  await tap(asha, "mentor.safety_ok");
+  await tap(asha, "moving.arrive_1");
+  await expect(asha.page.getByRole("log")).toContainText(t(hi, "moving.sent", { name: lataName }));
   await shoot("newcomer-picks", shots, folder);
-  await sheet.getByRole("button", { name: t(hi, "mentor.send") }).click();
-  await expect(statusOn(asha.page, t(hi, "mentor.sent"))).toBeVisible();
 
   // ── Lata sees the request on Today and offers to help ──────────────────────────────────────────────────────────
   await open(lata.page, "nav.today", kn);
@@ -137,7 +142,8 @@ test("a newcomer picks a woman mentor from the list, they link for 30 days, then
   await shoot("mentor-decides", shots, folder);
   await help.click();
 
-  // ── Asha accepts; the mentor link opens on both phones, for 30 days ────────────────────────────────────────────
+  // ── Asha accepts on Today; the mentor link opens on both phones, for 30 days ───────────────────────────────────
+  await open(asha.page, "nav.today", hi);
   const accept = asha.page.getByRole("button", { name: t(hi, "mentor.accept_offer", { name: lataName }) });
   await expect(accept).toBeVisible();
   await shoot("offer", shots, folder);

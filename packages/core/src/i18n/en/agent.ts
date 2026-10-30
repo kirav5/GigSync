@@ -7,12 +7,6 @@ export const agent = {
   "agent.suggest_rate": "Change my rate",
   "agent.suggest_earned": "What did I earn this week?",
   "agent.earnings": "This week you received {week}, and {month} this month. Still to come: {waiting}.",
-  "agent.new": "New conversation",
-  "agent.new_confirm": "Start a new conversation? What is on screen now is cleared from this phone.",
-  "agent.new_confirm_card":
-    "Start a new conversation? What is on screen is cleared; your unfinished card keeps its answers.",
-  "agent.new_yes": "Start new",
-  "agent.keep": "Keep it",
   "agent.sources.one": "from {count} note",
   "agent.sources.other": "from {count} notes",
   "card.text": "Agent",

@@ -1,6 +1,5 @@
 import {
   type Card,
-  type Choice,
   cardEstimate,
   choose,
   type FoundEstimate,
@@ -13,136 +12,112 @@ import {
   withConfig,
   withEstimate,
 } from "@gigsync/core";
-import type { EstimateSource } from "@gigsync/protocol";
-import { useSyncExternalStore } from "react";
+import {
+  currentTalk,
+  type LiveInterview,
+  liveInOpen,
+  nextInterviewId,
+  type Talk,
+  talkGeneration,
+  turnsIn,
+  updateTalk,
+  withChatTurns,
+} from "../talk/talkStore.js";
+import { appTurn, noteTurn, ownerTurn, Speaker, type Turn } from "../talk/turns.js";
 
 /**
- * Talk's conversation, kept outside any screen so it survives switching tabs: notes to the agent with their answers,
- * and the card interview's questions and answers, in one list in the order they happened. The owner can look at
- * Profile mid-interview and come back to the same question. It does not survive an app restart; the questions are
- * short enough to answer again. A new interview adds to the conversation; the interview is over once the card is
- * published, or closed when the My card form publishes instead (its draft would be stale, and holds the lowest rate),
- * with the words already on screen left there. Signing out wipes all of it (it belongs to the owner alone).
+ * What is said on Talk, turn by turn, in the chat it is said in (`talk/talkStore.ts` keeps the chats): notes to the
+ * agent with their answers, and the card interview's questions and answers. The interview is over once the card is
+ * published, or closed when the My card form publishes instead (its draft would be stale, and holds the lowest rate).
  */
-
-/** Who a turn is from: the interview asking or telling, the owner answering it, or the owner's note to the agent. */
-export const Speaker = { app: "app", owner: "owner", note: "note" } as const;
-
-export type Turn =
-  | {
-      id: number;
-      who: typeof Speaker.app;
-      lines: readonly Line[];
-      choices: readonly Choice[];
-      /** The pages an estimate in `lines` rests on. */
-      sources?: readonly EstimateSource[] | undefined;
-    }
-  | { id: number; who: typeof Speaker.owner; text: string }
-  /** A note and, once the agent has answered, its card. */
-  | { id: number; who: typeof Speaker.note; text: string; card?: Card };
-
-/** Talk keeps this many turns; older ones are dropped first. */
-const MAX_TURNS = 100;
-
-export interface InterviewSnapshot {
-  /** The interview being answered; undefined before one starts and after it ends. */
-  state?: InterviewState;
-  turns: readonly Turn[];
-  /** "Later": the interview waits, and Talk offers to carry on. */
-  paused: boolean;
-}
-
-let snapshot: InterviewSnapshot = { turns: [], paused: false };
-/** The interview at confirm, from just before the yes that sent the card, to go back to if publishing fails. */
-let beforeDone: InterviewState | undefined;
-/** A publish is under way; Talk may be left and opened again meanwhile, and must not send the card twice. */
-let sending = false;
-/** Counts closed and wiped interviews: a publish that finishes after its interview was closed or wiped changes nothing. */
-let round = 0;
-let lastId = 0;
-const listeners = new Set<() => void>();
-
-function set(next: InterviewSnapshot): void {
-  snapshot = next.turns.length > MAX_TURNS ? { ...next, turns: next.turns.slice(-MAX_TURNS) } : next;
-  for (const listener of listeners) listener();
-}
-
-function subscribe(listener: () => void): () => void {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-const owner = (text: string): Turn => ({ id: ++lastId, who: Speaker.owner, text });
-const app = (lines: readonly Line[], choices: readonly Choice[] = [], sources?: readonly EstimateSource[]): Turn => ({
-  id: ++lastId,
-  who: Speaker.app,
-  lines,
-  choices,
-  sources,
-});
 
 /** The question a state asks, as a turn; none once the owner has said yes to publishing. */
 const asked = (state: InterviewState): Turn[] => {
   if (state.slot === Slot.done) return [];
   const p = prompt(state);
-  return [app(p.lines, p.choices ?? [], p.sources)];
+  return [appTurn(p.lines, p.choices ?? [], p.sources)];
 };
 
-export function useInterview(): InterviewSnapshot {
-  return useSyncExternalStore(subscribe, () => snapshot);
-}
+/** `t` with turns added to the end of chat `chat`. */
+const adding = (t: Talk, chat: string, ...turns: readonly Turn[]): Talk =>
+  withChatTurns(t, chat, [...turnsIn(t, chat), ...turns]);
 
-/**
- * Starts an interview in place of any other, after everything already said; `said` is the owner's words that asked
- * for it, shown first.
- */
-export function beginInterview(state: InterviewState, said?: string): void {
-  set({ state, paused: false, turns: [...snapshot.turns, ...(said ? [owner(said)] : []), ...asked(state)] });
-}
-
-/** A note to the agent, shown at once; returns its id, for the answer. */
-export function addNote(text: string): number {
-  const turn: Turn = { id: ++lastId, who: Speaker.note, text };
-  set({ ...snapshot, turns: [...snapshot.turns, turn] });
-  return turn.id;
-}
-
-/** The agent's answer to note `id`; nothing when the note is gone (signed out since, or dropped as old). */
-export function noteAnswered(id: number, card: Card): void {
-  if (!snapshot.turns.some((turn) => turn.id === id)) return;
-  set({
-    ...snapshot,
-    turns: snapshot.turns.map((turn) => (turn.id === id && turn.who === Speaker.note ? { ...turn, card } : turn)),
+/** Changes the live interview, when it is the open chat's: the one the owner is answering. */
+function inOpen(change: (t: Talk, live: LiveInterview) => Talk): void {
+  updateTalk((t) => {
+    const live = liveInOpen(t);
+    return live ? change(t, live) : t;
   });
 }
 
-function answered(next: InterviewState, label: string): void {
-  const { state, turns } = snapshot;
-  if (!state || next === state) return;
-  if (next.slot === Slot.done) beforeDone = state;
-  set({ ...snapshot, state: next, turns: [...turns, owner(label), ...asked(next)] });
+/**
+ * Starts an interview in the open chat, in place of any other (that one's chat keeps what was said), after
+ * everything already said; `said` is the owner's words that asked for it, shown first. Not while a card is being sent.
+ */
+export function beginInterview(state: InterviewState, said?: string): void {
+  updateTalk((t) => {
+    if (t.live?.sending) return t;
+    const live: LiveInterview = { id: nextInterviewId(), chat: t.open, state, paused: false, sending: false };
+    return { ...adding(t, t.open, ...(said ? [ownerTurn(said)] : []), ...asked(state)), live };
+  });
+}
+
+/** Where a note was written, for its answer: the agent may answer after the owner opened another chat. */
+export interface NoteRef {
+  generation: number;
+  chat: string;
+  id: number;
+}
+
+/** A note to the agent in the open chat, shown at once. */
+export function addNote(text: string): NoteRef {
+  const turn = noteTurn(text);
+  const chat = currentTalk().open;
+  updateTalk((t) => adding(t, chat, turn));
+  return { generation: talkGeneration(), chat, id: turn.id };
+}
+
+/** The agent's answer to a note; nothing when the note is gone (its chat deleted, signed out since, dropped as old). */
+export function noteAnswered(note: NoteRef, card: Card): void {
+  if (note.generation !== talkGeneration()) return;
+  updateTalk((t) => {
+    const turns = turnsIn(t, note.chat);
+    if (!turns.some((turn) => turn.id === note.id)) return t;
+    const answered = turns.map((turn) => (turn.id === note.id && turn.who === Speaker.note ? { ...turn, card } : turn));
+    return withChatTurns(t, note.chat, answered);
+  });
+}
+
+function answered(next: (state: InterviewState) => InterviewState, label: string): void {
+  inOpen((t, live) => {
+    const state = next(live.state);
+    if (state === live.state) return t;
+    const beforeDone = state.slot === Slot.done ? live.state : live.beforeDone;
+    return { ...adding(t, live.chat, ownerTurn(label), ...asked(state)), live: { ...live, state, beforeDone } };
+  });
 }
 
 /** An answer in words: `aloud` when spoken, false when typed (a typed lowest rate is never read back aloud). */
 export function answerInterview(text: string, aloud: boolean): void {
-  if (snapshot.state) answered(hear(snapshot.state, text, aloud), text);
+  answered((state) => hear(state, text, aloud), text);
 }
 
 /** An answer by tapping a choice; `label` is the choice as the owner read it. */
 export function tapInterview(value: string, label: string): void {
-  if (snapshot.state) answered(choose(snapshot.state, value), label);
+  answered((state) => choose(state, value), label);
 }
 
 export function pauseInterview(): void {
-  if (snapshot.state) set({ ...snapshot, paused: true });
+  inOpen((t, live) => ({ ...t, live: { ...live, paused: true } }));
 }
 
 /** "Carry on": when notes came after the open question, it is asked again below them. */
 export function resumeInterview(): void {
-  const { state, turns } = snapshot;
-  if (!state) return;
-  const last = turns.at(-1);
-  set({ ...snapshot, paused: false, turns: last?.who === Speaker.app ? turns : [...turns, ...asked(state)] });
+  inOpen((t, live) => {
+    const last = turnsIn(t, live.chat).at(-1);
+    const again = last?.who === Speaker.app ? t : adding(t, live.chat, ...asked(live.state));
+    return { ...again, live: { ...live, paused: false } };
+  });
 }
 
 /**
@@ -151,11 +126,12 @@ export function resumeInterview(): void {
  * re-render in the new language by themselves.
  */
 export function relanguageInterview(config: InterviewConfig): void {
-  const { state, turns } = snapshot;
-  if (!state || state.config.own === config.own) return;
-  if (beforeDone) beforeDone = withConfig(beforeDone, config);
-  const next = withConfig(state, config);
-  set({ ...snapshot, state: next, turns: [...turns, ...asked(next)] });
+  inOpen((t, live) => {
+    if (live.state.config.own === config.own) return t;
+    const state = withConfig(live.state, config);
+    const beforeDone = live.beforeDone && withConfig(live.beforeDone, config);
+    return { ...adding(t, live.chat, ...asked(state)), live: { ...live, state, beforeDone } };
+  });
 }
 
 /**
@@ -163,50 +139,31 @@ export function relanguageInterview(config: InterviewConfig): void {
  * nothing said after it, shows it in place, so the range and the suggested amount appear without a second question.
  */
 export function interviewEstimate(found: FoundEstimate | undefined): void {
-  const { state, turns } = snapshot;
-  if (!state || state.estimate === found) return;
-  const next = withEstimate(state, found);
-  const last = turns.at(-1);
-  const open = (next.slot === Slot.rate || next.slot === Slot.min) && next.pending === undefined;
-  if (!open || last?.who !== Speaker.app || cardEstimate(next) === cardEstimate(state)) {
-    set({ ...snapshot, state: next });
-    return;
-  }
-  const p = prompt(next);
-  const shown: Turn = { ...last, lines: p.lines, choices: p.choices ?? [], sources: p.sources };
-  set({ ...snapshot, state: next, turns: [...turns.slice(0, -1), shown] });
-}
-
-/** Drops the interview's draft (it holds the lowest rate), so a publish still on its way lands nowhere. */
-function forgetDraft(): void {
-  round += 1;
-  beforeDone = undefined;
-  sending = false;
+  updateTalk((t) => {
+    const live = t.live;
+    if (!live || live.state.estimate === found) return t;
+    const state = withEstimate(live.state, found);
+    const turns = turnsIn(t, live.chat);
+    const last = turns.at(-1);
+    const open = (state.slot === Slot.rate || state.slot === Slot.min) && state.pending === undefined;
+    if (!open || last?.who !== Speaker.app || cardEstimate(state) === cardEstimate(live.state))
+      return { ...t, live: { ...live, state } };
+    const p = prompt(state);
+    const shown: Turn = { ...last, lines: p.lines, choices: p.choices ?? [], sources: p.sources };
+    return { ...withChatTurns(t, live.chat, [...turns.slice(0, -1), shown]), live: { ...live, state } };
+  });
 }
 
 /**
- * "New conversation": clears what is on screen. An unfinished card interview keeps its answers: an open one asks its
- * question again, a paused one waits for "Carry on".
- */
-export function clearTalk(): void {
-  const { state, paused } = snapshot;
-  const open = state !== undefined && state.slot !== Slot.done && !paused;
-  set({ ...snapshot, turns: open ? asked(state) : [] });
-}
-
-/**
- * Ends the interview without its card, after the My card form publishes or unlists. Its questions and answers go,
- * since the card was made another way and they would only stand there unanswered; the owner's own notes stay.
+ * Ends the interview without its card, after the My card form publishes or unlists. Its questions and answers go from
+ * its chat, since the card was made another way and they would only stand there unanswered; the owner's notes stay.
  */
 export function closeInterview(): void {
-  forgetDraft();
-  set({ turns: snapshot.turns.filter((turn) => turn.who === Speaker.note), paused: false });
-}
-
-/** Wipes the interview and the whole conversation: at sign-out. */
-export function endInterview(): void {
-  forgetDraft();
-  set({ turns: [], paused: false });
+  updateTalk((t) => {
+    if (!t.live) return t;
+    const notes = turnsIn(t, t.live.chat).filter((turn) => turn.who === Speaker.note);
+    return { ...withChatTurns(t, t.live.chat, notes), live: undefined };
+  });
 }
 
 /**
@@ -214,29 +171,32 @@ export function endInterview(): void {
  * Undefined while a publish is under way or before the yes.
  */
 export function claimPublish(): number | undefined {
-  if (sending || snapshot.state?.slot !== Slot.done) return undefined;
-  sending = true;
-  return round;
+  const live = currentTalk().live;
+  if (!live || live.sending || live.state.slot !== Slot.done) return undefined;
+  updateTalk((t) => ({ ...t, live: { ...live, sending: true } }));
+  return live.id;
 }
 
 /**
- * The card is on the board: the interview is over, and its last word stays on screen. False when the interview was
- * closed or wiped while the card was on its way, so the caller tells nobody.
+ * The card is on the board: the interview is over, and its last word stays in its chat. False when the interview was
+ * closed, deleted or signed out of while the card was on its way, so the caller tells nobody.
  */
 export function interviewPublished(claim: number, line: Line): boolean {
-  if (claim !== round) return false;
-  beforeDone = undefined;
-  sending = false;
-  set({ turns: [...snapshot.turns, app([line])], paused: false });
+  const live = currentTalk().live;
+  if (live?.id !== claim) return false;
+  updateTalk((t) => ({ ...adding(t, live.chat, appTurn([line])), live: undefined }));
   return true;
 }
 
 /** Publishing failed: say so, and stand at confirm again so a yes can retry. */
 export function interviewFailed(claim: number, line: Line): void {
-  if (claim !== round) return;
-  sending = false;
-  const back = beforeDone;
-  if (!back) return;
-  const p = prompt(back);
-  set({ ...snapshot, state: back, turns: [...snapshot.turns, app([line, ...p.lines], p.choices ?? [])] });
+  updateTalk((t) => {
+    const live = t.live;
+    if (live?.id !== claim) return t;
+    const back = live.beforeDone;
+    if (!back) return { ...t, live: { ...live, sending: false } };
+    const p = prompt(back);
+    const said = adding(t, live.chat, appTurn([line, ...p.lines], p.choices ?? []));
+    return { ...said, live: { ...live, state: back, sending: false } };
+  });
 }

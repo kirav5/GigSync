@@ -3,19 +3,7 @@ import type { mentor as en } from "../en/mentor.js";
 /** Hindi: mentors for people new to a city. */
 export const mentor: Readonly<Record<keyof typeof en, string>> = {
   "mentor.city.bengaluru": "बेंगलुरु",
-  "mentor.offer_title": "शहर में नए लोगों की मदद",
-  "mentor.offer_toggle": "मैं {city} में नए लोगों की मदद कर सकता/सकती हूँ",
-  "mentor.not_yet":
-    "GigSync पर {min_months} महीने और {min_jobs} पूरे काम के बाद आप इसे चालू कर सकते हैं। आपका फ़ोन {months} महीनों में {jobs} काम गिनता है।",
   "mentor.offer_about": "नए लोग आपका पहला नाम, काम, भाषाएँ, इलाक़ा और आपके अपने गिने हुए काम देखते हैं। आपका फ़ोन नंबर कभी नहीं।",
-  "mentor.area": "इलाक़ा",
-  "mentor.trades": "आपका काम",
-  "mentor.languages": "आप कौन सी भाषाएँ बोलते हैं",
-  "mentor.i_am_woman": "मैं महिला हूँ",
-  "mentor.woman_why": "सिर्फ़ इसलिए कि जो महिलाएँ महिला मेंटर चाहती हैं, वे आपको ढूँढ सकें।",
-  "mentor.only_women": "सिर्फ़ नई महिलाएँ",
-  "mentor.slots": "एक साथ कितने नए लोग",
-  "mentor.publish": "नए लोगों को मुझे दिखाएँ",
   "mentor.listed": "{city} में नए लोग आपको ढूँढ सकते हैं।",
   "mentor.find": "मेंटर ढूँढें",
   "mentor.find_about":

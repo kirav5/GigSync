@@ -31,12 +31,6 @@ export class Agent {
     );
     log.debug("chat: routed", { expert: route.expert, contact: pii(route.contact), text: pii(route.text) });
     const card = await runExpert(route, this.ports, contacts);
-    await this.ports.storage.put(Collection.chat, `ch_${Date.now()}`, {
-      text,
-      route,
-      card,
-      at: this.ports.clock.now().toISOString(),
-    });
     log.debug("chat: reply", { kind: card.kind, card: pii(JSON.stringify(card)) });
     // What happened, never what was said: the expert, the outcome, the size of the message and the time taken.
     log.info("chat handled", { expert: route.expert, card: card.kind, chars: text.length, ms: Date.now() - start });

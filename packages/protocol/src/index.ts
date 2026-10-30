@@ -14,6 +14,7 @@ export * from "./lang.js";
 export * from "./mentor.js";
 export * from "./mentor-envelopes.js";
 export * from "./payment.js";
+export * from "./qr.js";
 export * from "./rates.js";
 export * from "./records.js";
 export * from "./terms.js";

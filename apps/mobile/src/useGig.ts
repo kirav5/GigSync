@@ -1,4 +1,12 @@
-import { type GigDevice, type JobRecord, log, NetError, type OwnerTask, type Ports } from "@gigsync/core";
+import {
+  type GigDevice,
+  type JobRecord,
+  log,
+  NetError,
+  type OwnerTask,
+  type Ports,
+  type ReceivedOffer,
+} from "@gigsync/core";
 import type { Payment } from "@gigsync/protocol";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { nameOf } from "./adapters/account.js";
@@ -11,12 +19,14 @@ export interface GigView {
   jobs: JobRecord[];
   tasks: OwnerTask[];
   payments: Payment[];
+  /** Offers to work from workers who scanned this household's QR, waiting for its answer. */
+  offers: ReceivedOffer[];
   /** Display names the consumer saw on the board, by user id. */
   names: Record<string, string>;
   syncedAt?: Date;
 }
 
-const EMPTY: GigView = { jobs: [], tasks: [], payments: [], names: {} };
+const EMPTY: GigView = { jobs: [], tasks: [], payments: [], offers: [], names: {} };
 
 /**
  * Keeps the job screens in step with the agent: syncs on a timer and after every owner action, one at a time, so an
@@ -33,13 +43,18 @@ export function useGig(ports: Ports, device: GigDevice | undefined) {
 
   const read = useCallback(async () => {
     if (!device) return;
-    const [jobs, tasks, payments] = await Promise.all([device.jobs(), device.tasks(), device.payments.all()]);
+    const [jobs, tasks, payments, offers] = await Promise.all([
+      device.jobs(),
+      device.tasks(),
+      device.payments.all(),
+      device.offers.open(),
+    ]);
     const names = Object.fromEntries(
       await Promise.all(
         jobs.map(async (j) => [j.engagement.counterpart, (await nameOf(ports, j.engagement.counterpart)) ?? ""]),
       ),
     );
-    setView({ jobs, tasks, payments, names, syncedAt: new Date() });
+    setView({ jobs, tasks, payments, offers, names, syncedAt: new Date() });
   }, [ports, device]);
 
   /** Runs `work` (an owner action, or nothing), then syncs and refreshes, after whatever is already running. */

@@ -82,3 +82,22 @@ export function accountDraft(account: Account): CardDraft {
 
 /** `{ terms }` when the worker set any preference for terms besides the price. */
 const withPrefs = (terms: TermPrefs | undefined): { terms?: TermPrefs } => (terms ? { terms } : {});
+
+/**
+ * The card the board shows for this worker, as this phone holds it: what an offer to work carries. Undefined before
+ * they make a card or while it is off the board.
+ */
+export function publicCard(account: Account): BoardProfile | undefined {
+  const rules = account.worker;
+  if (!rules || account.listed === false) return undefined;
+  const area = AREAS.find((a) => a.lat === rules.base.lat && a.lon === rules.base.lon);
+  return {
+    display_name: account.contact.name,
+    trades: rules.trades,
+    area: rules.base,
+    area_name: area?.name ?? AREAS[0].name,
+    rate_paise: rules.rate.opening_paise,
+    languages: account.languages ?? [],
+    about: account.about ?? "",
+  };
+}

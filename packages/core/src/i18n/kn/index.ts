@@ -2,6 +2,7 @@ import type { Strings } from "../en/index.js";
 import { agent } from "./agent.js";
 import { ask } from "./ask.js";
 import { bargain } from "./bargain.js";
+import { chats } from "./chats.js";
 import { estimate } from "./estimate.js";
 import { explain } from "./explain.js";
 import { home } from "./home.js";
@@ -12,8 +13,10 @@ import { landing } from "./landing.js";
 import { memory } from "./memory.js";
 import { mentor } from "./mentor.js";
 import { money } from "./money.js";
+import { moving } from "./moving.js";
 import { need } from "./need.js";
 import { net } from "./net.js";
+import { qr } from "./qr.js";
 import { record } from "./record.js";
 import { screens } from "./screens.js";
 import { shell } from "./shell.js";
@@ -46,4 +49,7 @@ export const kn: Strings = {
   ...bargain,
   ...terms,
   ...explain,
+  ...chats,
+  ...moving,
+  ...qr,
 };

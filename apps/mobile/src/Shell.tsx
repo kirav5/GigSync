@@ -14,8 +14,10 @@ type SubScreens = Partial<Record<Screen, { title: MessageKey; parent: Screen }>>
 export const SUB_SCREENS: SubScreens = {
   [Screen.card]: { title: "nav.card", parent: Screen.profile },
   [Screen.link]: { title: "mentor.links", parent: Screen.profile },
-  [Screen.landing]: { title: "landing.title", parent: Screen.profile },
-  [Screen.findMentor]: { title: "mentor.find", parent: Screen.profile },
+  [Screen.landing]: { title: "landing.title", parent: Screen.talk },
+  [Screen.findMentor]: { title: "mentor.find", parent: Screen.talk },
+  [Screen.myQr]: { title: "qr.mine", parent: Screen.profile },
+  [Screen.person]: { title: "qr.person", parent: Screen.profile },
 };
 
 interface Props {

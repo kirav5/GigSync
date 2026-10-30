@@ -3,8 +3,6 @@ import type { landing as en } from "../en/landing.js";
 /** Kannada: moving to a new city for work, and the city guide. */
 export const landing: Readonly<Record<keyof typeof en, string>> = {
   "landing.title": "ಹೊಸ ಊರಿಗೆ ಹೋಗುತ್ತಿದ್ದೀರಾ",
-  "landing.profile_hint": "ಮೊದಲ ವಾರಗಳಿಗೆ ಮಾರ್ಗದರ್ಶಿ: ಉಳಿಯಲು ಸುರಕ್ಷಿತ ಜಾಗ, ದಾಖಲೆಗಳು, ನೋಂದಣಿ ಮತ್ತು ಕೆಲಸ.",
-  "landing.open": "ಮಾರ್ಗದರ್ಶಿ ತೆರೆಯಿರಿ",
   "landing.draft": "ಸಾರ್ವಜನಿಕ ಮೂಲಗಳಿಂದ ಮಾಡಿದ ಕರಡು. ಯಾವುದೇ ಯೂನಿಯನ್ ಇನ್ನೂ ಪರಿಶೀಲಿಸಿಲ್ಲ.",
   "landing.loading": "ಮಾರ್ಗದರ್ಶಿ ಬರುತ್ತಿದೆ…",
   "landing.no_guide": "ಮಾರ್ಗದರ್ಶಿ ಡೌನ್‌ಲೋಡ್ ಆಗಲಿಲ್ಲ. ಒಮ್ಮೆ ಇಂಟರ್ನೆಟ್‌ಗೆ ಸಂಪರ್ಕಿಸಿ, ನಂತರ ಅದು ಈ ಫೋನ್‌ನಲ್ಲೇ ಇರುತ್ತದೆ.",

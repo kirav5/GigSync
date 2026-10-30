@@ -115,7 +115,7 @@ export function Landing(props: Props) {
   return (
     <>
       <div className={C.stack}>
-        <span className={C.labelSq}>{t("nav.profile")}</span>
+        <span className={C.labelSq}>{t("nav.talk")}</span>
         <h1 className={C.headline}>{t("landing.title")}</h1>
       </div>
       {journey === null && <LandingStart city={city} trade={account.worker?.trades[0]} onStart={landing.start} />}
