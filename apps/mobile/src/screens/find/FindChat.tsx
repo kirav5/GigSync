@@ -10,12 +10,15 @@ import {
   needRequest,
   type Ports,
   parseNeed,
+  problemByMeaning,
   readScope,
   startNeed,
+  tradeByMeaning,
   understandNeed,
 } from "@gigsync/core";
 import { useEffect, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
+import { meaningFor } from "../../adapters/meaning.js";
 import { chosenModel, ModelChoice } from "../../adapters/model.js";
 import { stopSpeaking } from "../../adapters/speech.js";
 import { needConfig } from "../../card/choices.js";
@@ -168,10 +171,24 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       setReading(false);
       return needSay(chat, { key: "estimate.answer", params: { text: answer.text } });
     }
-    if (!first) return answerNeed(chat, text, aloud);
+    const meaning = meaningFor(ports);
+    if (!first) {
+      // At the clarifying question, the kind of job the answer sounds like fills the price driver (ADR 0042).
+      const asked = state.slot === NeedSlot.detail ? state.draft.trade : undefined;
+      const problemKind = asked && meaning ? await problemByMeaning(meaning.problems, asked, text) : undefined;
+      return answerNeed(chat, text, aloud, problemKind ? { problemKind } : {});
+    }
     const { areas, today } = state.config;
     const hint = await understandNeed(ports.model, text, { areas, lang });
-    const trade = parseNeed(text, { areas, today }).trade ?? hint.trade ?? state.draft.trade;
+    // The word lists first, then a language model's reading, then the trade the sentence most sounds like (ADR 0042).
+    const heard =
+      parseNeed(text, { areas, today }).trade ??
+      hint.trade ??
+      (meaning && (await tradeByMeaning(meaning.trades, text)));
+    if (heard) hint.trade = heard;
+    const trade = heard ?? state.draft.trade;
+    const problemKind = trade && meaning ? await problemByMeaning(meaning.problems, trade, text) : undefined;
+    if (problemKind) hint.problemKind = problemKind;
     // Outside the trades, the phone's model may name the work, and the need goes on to its questions and estimate.
     const jobType = !trade && state.draft.modelAsk ? await modelJobType(ports.model, text, lang) : undefined;
     if (jobType) {

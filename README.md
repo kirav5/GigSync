@@ -22,7 +22,9 @@ the agent-to-agent job flow ([#11](https://github.com/kirav5/GigSync/pull/11)) o
 `www.`, the API on `api.gigsync.network`.
 
 The skeleton builds, tests and deploys end to end. Nothing in GigSync calls a cloud model: the only models are
-small, open ones that run on the phone, and the app works with none installed.
+small, open ones that run on the phone, and the app works with none installed. The smallest is the understanding
+pack ([ADR 0042](docs/adr/0042-meaning-router-small-embedding-model.md)): a 129 MB embedding model, fetched once from
+Settings, that reads what a chat message or a need means in English, Hindi and Kannada by its nearest labelled saying.
 
 ## Layout
 

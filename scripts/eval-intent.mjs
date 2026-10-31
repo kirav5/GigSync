@@ -1,7 +1,8 @@
 // The chat intent eval (ADR 0040 §6): every phrasing in vectors/intents through the word lists, the phone's model
 // (Ollama in development) and the chain the app runs, with a generated report in docs/gigsync/intent-eval.md.
 // Run with `pnpm eval:intent` (builds core first). Options:
-//   --keywords-only   skip the model, for CI without Ollama
+//   --keywords-only   skip the language model, for CI without Ollama
+//   --no-meaning      skip the embedding model (ADR 0042), for a run without its download
 //   --limit N         only the first N cases (after --lang)
 //   --lang SET        only one set: en, hi, kn or hinglish
 // A run with --limit or --lang prints its numbers and leaves the report alone. Exits non-zero only when a data file
@@ -12,9 +13,10 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { DataError, loadCases, SETS } from "./eval-intent/cases.mjs";
 import { core } from "./eval-intent/core.mjs";
+import { EMBEDDING_MODEL, loadMeaning } from "./eval-intent/embedder.mjs";
 import { OLLAMA_MODEL, OLLAMA_URL, ollamaReady } from "./eval-intent/ollama.mjs";
 import { report } from "./eval-intent/report.mjs";
-import { Router, runAll } from "./eval-intent/run.mjs";
+import { routersOf, runAll } from "./eval-intent/run.mjs";
 import { accuracy, groupBy, percent } from "./eval-intent/score.mjs";
 
 const REPORT = new URL("../docs/gigsync/intent-eval.md", import.meta.url);
@@ -29,6 +31,7 @@ const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const { values: args } = parseArgs({
   options: {
     "keywords-only": { type: "boolean", default: false },
+    "no-meaning": { type: "boolean", default: false },
     limit: { type: "string" },
     lang: { type: "string" },
   },
@@ -73,21 +76,34 @@ const withModel = !args["keywords-only"];
 if (withModel && !(await ollamaReady()))
   fail(`Ollama at ${OLLAMA_URL} has no ${OLLAMA_MODEL}; start it and pull the model, or pass --keywords-only`);
 
+const meaning = args["no-meaning"] ? undefined : await loadMeaning();
+if (!args["no-meaning"] && !meaning)
+  fail("@huggingface/transformers is not installed; run pnpm install, or pass --no-meaning");
+
 const timeoutMs = core.MODEL_ROUTE_TIMEOUT_MS;
 const results = await runAll(cases, {
   withModel,
+  meaning,
   timeoutMs,
   onProgress: (done, total) => process.stderr.isTTY && process.stderr.write(`\r${done}/${total}`),
 });
 if (process.stderr.isTTY) process.stderr.write("\n");
 
-const routers = withModel ? Object.values(Router) : [Router.keywords];
+const routers = routersOf({ withModel, meaning });
 summary(results, routers);
 
 const partial = args.limit !== undefined || args.lang !== undefined;
 if (!partial) {
   const date = new Date().toISOString().slice(0, ISO_DAY);
-  writeFileSync(REPORT, `${report(results, { withModel, model: OLLAMA_MODEL, timeoutMs, date })}\n`);
+  const meta = {
+    withModel,
+    routers,
+    model: OLLAMA_MODEL,
+    embedding: meaning ? EMBEDDING_MODEL : undefined,
+    timeoutMs,
+    date,
+  };
+  writeFileSync(REPORT, `${report(results, meta)}\n`);
   execFileSync("pnpm", ["exec", "biome", "format", "--write", REPORT_PATH], { cwd: ROOT, stdio: "ignore" });
   console.log(`wrote ${REPORT_PATH}`);
 }

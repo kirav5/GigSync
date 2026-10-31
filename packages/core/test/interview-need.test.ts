@@ -47,7 +47,7 @@ describe("the need interview", () => {
     // The fan is read from the words; how many points is the price question left (ADR 0041), and "don't know" ends it.
     const s = hearNeed(asked, "HSR");
     expect(s.slot).toBe(NeedSlot.driver);
-    expect(keys(s)).toEqual(["driver.ask.points"]);
+    expect(keys(s)).toEqual(["driver.ask.points.electrician"]);
     const atConfirm = hearNeed(s, "don't know");
     expect(atConfirm.slot).toBe(NeedSlot.confirm);
     expect(atConfirm.draft).toMatchObject({

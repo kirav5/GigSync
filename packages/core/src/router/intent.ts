@@ -51,8 +51,11 @@ export interface ChatSlots {
   note?: string;
 }
 
-/** Who named the intent: the phone's model, or the word lists (no model, too slow, or a reply core rejected). */
-export const RouteVia = { model: "model", keywords: "keywords" } as const;
+/**
+ * Who named the intent: the phone's embedding model by nearest labelled saying (ADR 0042), the phone's language
+ * model, or the word lists (no model, too slow, or a reply core rejected).
+ */
+export const RouteVia = { meaning: "meaning", model: "model", keywords: "keywords" } as const;
 export type RouteVia = (typeof RouteVia)[keyof typeof RouteVia];
 
 export interface ChatRoute {
@@ -94,3 +97,17 @@ export function intentAllowed(intent: ChatIntent, ctx: IntentContext): boolean {
 /** The intents a chat can have, in the order the prompt lists them. */
 export const allowedIntents = (ctx: IntentContext): ChatIntent[] =>
   Object.values(ChatIntent).filter((intent) => intentAllowed(intent, ctx));
+
+/** The slot an intent cannot act without: a contact to ask or set a rule for, a note to keep. */
+const NEEDS: Partial<Record<ChatIntent, keyof ChatSlots>> = {
+  [ChatIntent.askContact]: "contact",
+  [ChatIntent.setRule]: "contact",
+  [ChatIntent.remember]: "note",
+};
+
+/** The route has what its action needs; a market question needs a trade, the worker's own when none was named. */
+export function routeComplete(intent: ChatIntent, slots: ChatSlots, ctx: IntentContext): boolean {
+  const needed = NEEDS[intent];
+  if (needed && slots[needed] === undefined) return false;
+  return intent !== ChatIntent.market || slots.trade !== undefined || (ctx.trades?.length ?? 0) > 0;
+}

@@ -25,6 +25,7 @@
     "@gigsync/plugin-speech": "workspace:*",
     "@gigsync/plugin-translate": "workspace:*",
     "@gigsync/protocol": "workspace:*",
+    "@huggingface/transformers": "3.7.2",
     "jsqr": "1.4.0",
     "qrcode": "1.5.4",
     "react": "19.3.1",
