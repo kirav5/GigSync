@@ -1,11 +1,11 @@
-import { DetailFlag, QuestionKey, Trade } from "@gigsync/protocol";
+import { DetailFlag, DriverName, QuestionKey, Trade } from "@gigsync/protocol";
 import type { MessageKey } from "../i18n/t.js";
-import { countIn, YES_NO_QUESTIONS } from "../job/details.js";
+import { countIn } from "../job/details.js";
 import { EVERY_DAY } from "../job/when.js";
 import { type Line, Pick } from "./card.js";
 import { minAloud } from "./card-parse.js";
 import { withWordDrivers } from "./driver-ask.js";
-import { areaIn, isSkip, yesNo } from "./lexicon.js";
+import { areaIn, yesNo } from "./lexicon.js";
 import {
   answerMyself,
   DayWord,
@@ -24,11 +24,12 @@ import {
   tradeFor,
   withTrade,
 } from "./need.js";
+import { detailAnswer, settledProblem } from "./need-detail.js";
 import { chooseDriver, hearDriver } from "./need-drivers.js";
 import { suggestedBudget } from "./need-estimate.js";
 import { MemoryPick } from "./need-memory.js";
 import type { NeedHint } from "./need-model.js";
-import { amountIn, DETAIL_MAX, type NeedFill, parseNeed, withoutMoney } from "./need-parse.js";
+import { amountIn, DETAIL_MAX, type NeedFill, parseNeed } from "./need-parse.js";
 import { chooseScope, hearScope, withScopeRead } from "./need-scope.js";
 import { NEED_FIELD_WORDS } from "./need-words.js";
 import { finder, firstIn, normalize } from "./normalize.js";
@@ -99,18 +100,11 @@ const budgetReadback = (paise: number, aloud: boolean): Line => ({
 function fillFromHint(d: NeedDraft, hint: NeedHint, words: string): NeedDraft {
   const problem = QuestionKey.enum.problem;
   const seen = hint.problem && words && !d.seen[problem] ? { ...d.seen, [problem]: words } : d.seen;
-  const next = withScopeRead({ ...d, seen }, hint.scope);
+  const kind = DriverName.enum.problem;
+  const drivers =
+    hint.problemKind && d.drivers?.[kind] === undefined ? { ...d.drivers, [kind]: hint.problemKind } : d.drivers;
+  const next = withScopeRead({ ...d, seen, drivers }, hint.scope);
   return fillEmpty(next, { ...hint, details: {}, words });
-}
-
-/** The answer to the trade's first question: a yes or no for a yes-or-no question, else the owner's words. */
-function detailAnswer(s: NeedState, text: string): string | null | undefined {
-  const question = firstQuestion(s.draft.trade);
-  if (question && YES_NO_QUESTIONS.has(question)) {
-    const yes = yesNo(text);
-    return yes === undefined ? undefined : yes ? DetailFlag.enum.yes : DetailFlag.enum.no;
-  }
-  return isSkip(text) ? null : withoutMoney(text) || undefined;
 }
 
 /** The field now asked, read loosely from the answer; undefined when the answer did not give it. */
@@ -129,7 +123,7 @@ function onSlot(s: NeedState, d: NeedDraft, text: string, fill: NeedFill, aloud:
       const detail = detailAnswer(s, text);
       if (detail === undefined) return undefined;
       if (detail && detail.length > DETAIL_MAX) return retryNeed(s, { key: Say.long });
-      return moveOn(s, { ...d, detail });
+      return moveOn(s, settledProblem({ ...d, detail }));
     }
     case NeedSlot.area: {
       const area = areaIn(text, s.config.areas);
@@ -254,7 +248,7 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
       return tradeFor(s, trade) ? moveOn(s, withTrade(d, trade)) : s;
     }
     case NeedSlot.detail: {
-      if (value === Pick.skip) return moveOn(s, { ...d, detail: null });
+      if (value === Pick.skip) return moveOn(s, settledProblem({ ...d, detail: null }));
       const yes = flag(value);
       return yes === undefined ? s : moveOn(s, { ...d, detail: yes ? DetailFlag.enum.yes : DetailFlag.enum.no });
     }

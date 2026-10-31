@@ -27,6 +27,8 @@ export interface NeedHint {
   budget_paise?: number;
   /** The sentence says what is wrong: the owner's own words answer the problem question. */
   problem?: true;
+  /** The kind of job the words sound like (`problemByMeaning`), a value of the trade's problem driver. */
+  problemKind?: string;
   /** The job's scope read from the words (`readScope`), each value already grounded in them. */
   scope?: readonly ScopeChip[];
 }

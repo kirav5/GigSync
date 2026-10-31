@@ -79,6 +79,7 @@ export {
   type PriceStep,
   pricePrompt,
 } from "./interview/price-model.js";
+export { PROBLEM_MIN_SIMILARITY, problemByMeaning, problemIndex } from "./interview/problem-meaning.js";
 export { readScope, SCOPE_READ, type ScopeChip, ScopeKey, scopeFromWords } from "./interview/scope-read.js";
 export { TRADE_MIN_SIMILARITY, tradeByMeaning, tradeIndex } from "./interview/trade-meaning.js";
 export * from "./job/activity.js";

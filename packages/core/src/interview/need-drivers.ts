@@ -1,4 +1,4 @@
-import { DriverKind, type DriverName, driverSpec, type Lang } from "@gigsync/protocol";
+import { DriverKind, DriverName, driverSpec, type Lang, Trade } from "@gigsync/protocol";
 import { type MessageKey, type PluralKey, pluralKey, t } from "../i18n/t.js";
 import type { Choice, Line, Prompt } from "./card.js";
 import { awaitingModel, currentQuestion, draftDrivers, topDriver } from "./driver-ask.js";
@@ -46,7 +46,18 @@ const AGAIN: MessageKey = "need.again";
 const WORDS: MessageKey = "estimate.answer";
 const DONT_KNOW: Choice = { value: DriverPick.dontKnow, key: "driver.dont_know" };
 
-const askKey = (name: DriverName): MessageKey => `driver.ask.${name}` as MessageKey;
+/** The count question is worded per repair trade: an electrician's points are switches, a carpenter's are doors. */
+const POINTS_BY_TRADE: ReadonlySet<Trade> = new Set([
+  Trade.enum.electrician,
+  Trade.enum.plumber,
+  Trade.enum.carpenter,
+  Trade.enum.ac_technician,
+]);
+
+const askKey = (name: DriverName, trade: Trade | undefined): MessageKey =>
+  name === DriverName.enum.points && trade && POINTS_BY_TRADE.has(trade)
+    ? (`driver.ask.points.${trade}` as MessageKey)
+    : (`driver.ask.${name}` as MessageKey);
 
 /** One chip for a driver's value, in the owner's language. */
 export function driverChoice(lang: Lang, name: DriverName, value: string | number): Choice {
@@ -79,7 +90,7 @@ export function driverQuestion(s: NeedState): Prompt {
   const line: Line = q.text
     ? { key: WORDS, params: { text: q.text } }
     : Fill.driver in q.fills
-      ? { key: askKey(q.fills.driver) }
+      ? { key: askKey(q.fills.driver, s.draft.trade) }
       : { key: WORDS, params: { text: q.fills.fact } };
   const choices = choicesOf(s, q);
   return { lines: [line], choices, hints: choices.map((c) => t(s.config.own, c.key, c.params)) };
@@ -87,7 +98,7 @@ export function driverQuestion(s: NeedState): Prompt {
 
 /** The question's words as the model reads them back. */
 const questionText = (s: NeedState, q: PriceQuestion): string =>
-  q.text ?? (Fill.driver in q.fills ? t(s.config.own, askKey(q.fills.driver)) : q.fills.fact);
+  q.text ?? (Fill.driver in q.fills ? t(s.config.own, askKey(q.fills.driver, s.draft.trade)) : q.fills.fact);
 
 /** The draft after an answer: a value or a fact's words, one more question asked; the model asked next if it leads. */
 function answered(s: NeedState, q: PriceQuestion, value: string | number): NeedDraft {

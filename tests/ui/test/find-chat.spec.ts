@@ -69,7 +69,7 @@ test("a household says what they need in one sentence and is asked only for the 
     await expect(log).not.toContainText(t(en, asked));
   await say(page, en, "HSR");
   // What moves the price that the words did not say (ADR 0041): how many points; "I don't know" ends it.
-  await expect(log).toContainText(t(en, "driver.ask.points"));
+  await expect(log).toContainText(t(en, "driver.ask.points.electrician"));
   await tap(page, t(en, "driver.dont_know"));
 
   // The readback: what, where and when, the words workers read (never the budget), and the budget, kept here.

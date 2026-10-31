@@ -47,7 +47,13 @@ phones people hold, over mobile data.
    English sayings for now). A sentence must score at least `TRADE_MIN_SIMILARITY` (0.86) against a trade's sayings;
    below that it names no trade and the chips remain. The floor is set so small talk and work outside the trades,
    which scored up to 0.854 on the probe sentences, stay out.
-7. **Measured, in the same eval.** `pnpm eval:intent` runs the embedding model beside the lists and the language
+7. **The kind of a repair job is read by meaning too**, and the clarifying question is asked once
+   (`interview/problem-meaning.ts`). The problem driver's word lists ("door", "assembly", "repair") miss most answers
+   ("one of the leg is broken"); the index places the answer among the trade's kinds, floor 0.85. Whether or not a kind
+   was found, an answered or skipped clarifying question marks the driver settled, so the price questions never ask
+   "What is the job?" after "What exactly isn't working?" was answered; the estimate assumes the kind and says so. The
+   count question is worded per repair trade ("How many switches, sockets or fittings?") instead of one label for all four.
+8. **Measured, in the same eval.** `pnpm eval:intent` runs the embedding model beside the lists and the language
    model, and reports each and the chain (`--no-meaning` skips it).
 
 ## Why
