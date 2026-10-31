@@ -41,3 +41,7 @@ would then leave the phone. The founders chose that it does not.
   are only reduced by better lists; this is the accepted cost of keeping chat text on the phone.
 - A model call adds latency to each message on phones that have one; the time limit bounds it.
 - Routing quality on real phones is unknown until the eval runs on test devices (LLD §8.5).
+- First eval (2026-10-31, qwen2.5:1.5b on a Mac, 212 cases not yet reviewed by native speakers): keywords 58%, model
+  66%, model first with the lists as fallback 67%; English 84%, Hindi 69%, Kannada 49% against 61% for the lists
+  alone. The founders chose to keep the model first in every language, Kannada included, rather than route Kannada by
+  the lists only; the Kannada figure is to be rechecked with native-reviewed cases on a real phone's model.
