@@ -1,10 +1,13 @@
 import { log } from "@gigsync/core/log";
 import { verify } from "@gigsync/crypto";
-import { Envelope, MessageId, signingBytes, UserId } from "@gigsync/protocol";
+import { Envelope, MessageId, QR_KINDS, signingBytes, UserId } from "@gigsync/protocol";
 import { Hono } from "hono";
 import { z } from "zod";
 import { ApiError, type AppEnv, USER_PARAM, Var } from "../context.js";
 import { activeDeviceIds, deviceSigningKey } from "../db/devices.js";
+import { offerTaken } from "../db/qr-offers.js";
+import { OFFER_SEND_MS } from "../qr/rules.js";
+import { noteDeliveredAgree } from "../records/one-sided.js";
 
 /** Largest batch one ack may clear. */
 const MAX_ACK = 500;
@@ -30,12 +33,19 @@ mail.post(`/mailbox/:${USER_PARAM}`, async (c) => {
     log.warn("envelope signature rejected", { requestId: c.get(Var.requestId), messageId: e.id, from: e.from.user });
     return c.json({ error: ApiError.badSignature }, 403);
   }
+  // An offer to work goes only to a household whose live QR the sender just offered through (routes/qr.ts).
+  const since = new Date(Date.now() - OFFER_SEND_MS);
+  if (QR_KINDS.has(e.kind) && !(await offerTaken(db, e.from.user, to.data, since))) {
+    log.warn("work offer without a taken offer", { requestId: c.get(Var.requestId), messageId: e.id });
+    return c.json({ error: ApiError.offerNotTaken }, 403);
+  }
   if (devices.length === 0) {
     log.info("delivery to unknown user", { requestId: c.get(Var.requestId), to: to.data });
     return c.json({ error: ApiError.recipientNotFound }, 404);
   }
   const box = c.env.MAILBOX.get(c.env.MAILBOX.idFromName(to.data));
   const out = await box.deliver({ envelope: e, devices });
+  await noteDeliveredAgree(db, e, c.get(Var.requestId));
   log.info("envelope delivered", {
     requestId: c.get(Var.requestId),
     messageId: e.id,

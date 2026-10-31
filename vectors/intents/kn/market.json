@@ -1,0 +1,146 @@
+{
+  "cases": [
+    {
+      "id": "kn-market-01",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಜಯನಗರದಲ್ಲಿ ಅಡುಗೆಯವರ ದರ ಎಷ್ಟು?",
+      "intent": "market",
+      "slots": {
+        "trade": "cook",
+        "area": "jayanagar"
+      },
+      "source": "list"
+    },
+    {
+      "id": "kn-market-02",
+      "lang": "kn",
+      "role": "household",
+      "text": "Koramangala alli maid ge eshtu salary kodtaare?",
+      "intent": "market",
+      "slots": {
+        "trade": "maid",
+        "area": "koramangala"
+      },
+      "source": "list"
+    },
+    {
+      "id": "kn-market-03",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಅಡುಗೆಯವರಿಗೆ ತಿಂಗಳಿಗೆ 8000 ಕೊಟ್ರೆ ಸರಿನಾ?",
+      "intent": "market",
+      "slots": {
+        "trade": "cook",
+        "amount_paise": 800000
+      },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-04",
+      "lang": "kn",
+      "role": "household",
+      "text": "2BHK ಪೇಂಟ್ ಮಾಡಿಸೋಕೆ ಎಷ್ಟು ಆಗುತ್ತೆ?",
+      "intent": "market",
+      "slots": {
+        "trade": "painter"
+      },
+      "source": "list"
+    },
+    {
+      "id": "kn-market-05",
+      "lang": "kn",
+      "role": "household",
+      "text": "HSR nalli electrician eshtu charge maadtaare?",
+      "intent": "market",
+      "slots": {
+        "trade": "electrician",
+        "area": "hsr_layout"
+      },
+      "source": "list"
+    },
+    {
+      "id": "kn-market-06",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["driver"],
+      "text": "Whitefield alli bere driver galu eshtu tagotaare?",
+      "intent": "market",
+      "slots": {
+        "trade": "driver",
+        "area": "whitefield"
+      },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-07",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಎಸಿ ಸರ್ವಿಸ್‌ಗೆ ಎಷ್ಟು ಚಾರ್ಜ್ ಮಾಡ್ತಾರೆ?",
+      "intent": "market",
+      "slots": {
+        "trade": "ac_technician"
+      },
+      "source": "list"
+    },
+    {
+      "id": "kn-market-08",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಇಂದಿರಾನಗರದಲ್ಲಿ ಪ್ಲಂಬರ್ ಎಷ್ಟು ತಗೊಳ್ತಾರೆ?",
+      "intent": "market",
+      "slots": {
+        "trade": "plumber",
+        "area": "indiranagar"
+      },
+      "source": "miss"
+    },
+    {
+      "id": "kn-chat-03",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "ನಿನ್ನೆ ಎಂಟು ಜನಕ್ಕೆ ಅಡುಗೆ ಮಾಡಿದೆ",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-04",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಟೊಮೆಟೊ ಬೆಲೆ ತುಂಬಾ ಜಾಸ್ತಿ ಆಗಿದೆ",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-01",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಅಡುಗೆಯವರು ಬೇಕು, ತಿಂಗಳಿಗೆ 12000 ಕೊಡ್ತೀನಿ",
+      "intent": "find",
+      "slots": {
+        "trade": "cook"
+      },
+      "source": "list"
+    },
+    {
+      "id": "kn-find-06",
+      "lang": "kn",
+      "role": "household",
+      "text": "ನನ್ನ 4 ಬಿಎಚ್‌ಕೆ ವಿಲ್ಲಾಗೆ ಪೇಂಟ್ ಮಾಡಿಸಬೇಕು, ಹೊರಗೂ",
+      "intent": "find",
+      "slots": {
+        "trade": "painter"
+      },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-07",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಮದುವೆಗೆ ಫೋಟೋಗ್ರಾಫರ್ ಬೇಕು",
+      "intent": "find",
+      "source": "miss"
+    }
+  ]
+}

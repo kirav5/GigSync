@@ -1,0 +1,107 @@
+/* Personal QR codes (ADR 0034): My card as collab's share card, the scanner, and the person a QR finds. */
+
+/* My card: one card, centred, who the owner is above the QR on its white tile, then the buttons. */
+.share-card {
+  justify-items: center;
+  text-align: center;
+  gap: 16px;
+}
+.share-top {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+}
+.share-name {
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  margin-top: 6px;
+}
+.avatar.large {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  font-size: 26px;
+}
+.share-card .qr {
+  display: block;
+  width: 200px;
+  aspect-ratio: 1;
+  background: #fff;
+  padding: 10px;
+  border-radius: 6px;
+}
+/* Before the first QR is drawn: the same white tile, so nothing moves when it comes. */
+.qr-blank {
+  border: 1px solid var(--hairline);
+}
+/* Share, Copy link, Save QR side by side; the quieter row under them. Each wraps on a narrow phone. */
+.share-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+.share-grid > .btn {
+  flex: 1 1 0;
+  min-width: 96px;
+  max-width: 180px;
+}
+.share-grid.quiet > .btn {
+  flex: 0 1 auto;
+}
+.qr-confirm {
+  width: 100%;
+  text-align: start;
+}
+
+/* A worker's record: two cells (jobs done, rating) in one bordered row, the number above its label. */
+.share-stats {
+  width: 100%;
+  max-width: 420px;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.share-stats > div {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 10px 8px;
+  text-align: center;
+}
+.share-stats > div + div {
+  border-left: 1px solid var(--hairline);
+}
+.share-stats dd {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.share-stats dt {
+  font-size: 12px;
+  color: var(--text2);
+}
+/* On the board card, a QR's card and an offer: the same cells, smaller. */
+.share-stats.compact > div {
+  padding: 6px 4px;
+}
+.share-stats.compact dd {
+  font-size: 15px;
+}
+
+/* The camera's picture while scanning: square, as the code is. */
+.qr-scanner {
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1;
+  justify-self: center;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--inverse);
+}

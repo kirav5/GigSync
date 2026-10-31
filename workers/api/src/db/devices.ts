@@ -49,3 +49,27 @@ export async function insertDevice(
     [device, user, reg.signing_key, reg.encryption_key, reg.protocol, reg.push_token ?? null, at],
   );
 }
+
+/** Records that the caller's own device now speaks `protocol`; never lowers it. False when the device is unknown or revoked. */
+export async function raiseProtocol(db: Db, device: DeviceId, user: UserId, protocol: number): Promise<boolean> {
+  const { rowCount } = await db.query(
+    `UPDATE devices SET protocol = GREATEST(protocol, $3)
+     WHERE device_id = $1 AND user_id = $2 AND revoked_at IS NULL`,
+    [device, user, protocol],
+  );
+  return (rowCount ?? 0) > 0;
+}
+
+/**
+ * Revokes one of `user`'s active devices and every session it holds; call in a transaction. False when the device is
+ * not theirs or already revoked.
+ */
+export async function revokeDevice(db: Db, user: UserId, device: DeviceId, at: Date): Promise<boolean> {
+  const { rowCount } = await db.query(
+    "UPDATE devices SET revoked_at = $3 WHERE device_id = $1 AND user_id = $2 AND revoked_at IS NULL",
+    [device, user, at],
+  );
+  if ((rowCount ?? 0) === 0) return false;
+  await db.query("UPDATE sessions SET revoked_at = $2 WHERE device_id = $1 AND revoked_at IS NULL", [device, at]);
+  return true;
+}

@@ -1,4 +1,4 @@
-import type { Ports } from "@gigsync/core";
+import type { MessageKey, Ports } from "@gigsync/core";
 import { ModelDownload } from "@gigsync/plugin-llm";
 import { useEffect, useState } from "react";
 import {
@@ -11,37 +11,21 @@ import {
   useChosenModel,
 } from "../adapters/model.js";
 import { listOllamaModels } from "../adapters/ollama.js";
+import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 
-const CHOICES: readonly { choice: ModelChoice; label: string; about: string }[] = [
-  {
-    choice: ModelChoice.auto,
-    label: "Auto",
-    about: `Use this device's model when it is ready and has ${MIN_FREE_MB} MB free; otherwise lite mode.`,
-  },
-  {
-    choice: ModelChoice.device,
-    label: "On-device",
-    about: "Always use this device's own model. Falls back to lite mode only if it cannot answer.",
-  },
-  {
-    choice: ModelChoice.lite,
-    label: "Lite mode",
-    about: "No model at all. Rules and templates do every job: agreeing, recording, getting paid.",
-  },
+const CHOICES: readonly { choice: ModelChoice; label: MessageKey; about: MessageKey }[] = [
+  { choice: ModelChoice.auto, label: "model.auto", about: "model.auto_about" },
+  { choice: ModelChoice.device, label: "model.device", about: "model.device_about" },
+  { choice: ModelChoice.lite, label: "model.lite", about: "model.lite_about" },
   ...(OLLAMA_OFFERED
-    ? [
-        {
-          choice: ModelChoice.ollama,
-          label: "Ollama (dev)",
-          about: "Development builds only: a model served by `ollama serve` on this computer.",
-        },
-      ]
+    ? [{ choice: ModelChoice.ollama, label: "model.ollama" as const, about: "model.ollama_about" as const }]
     : []),
 ];
 
 /** Which model the agent uses, with what this device actually has. Nothing here ever uses a cloud model. */
 export function ModelSettings({ ports }: { ports: Ports }) {
+  const { t } = useI18n();
   const model = useChosenModel();
   const status = model.deviceInfo;
   const [ollamaName, setOllamaName] = useState(model.current.ollamaModel);
@@ -60,20 +44,21 @@ export function ModelSettings({ ports }: { ports: Ports }) {
 
   const engine = status ? engineName(status.engine) : "…";
   const deviceLine = !status
-    ? "Checking this device…"
+    ? t("model.checking")
     : status.engine === ENGINE_NONE
-      ? "This device has no on-device model yet. Desktop Chrome can provide one; phone browsers cannot."
-      : `${engine} · ${status.available ? "ready" : "not ready"}${
-          status.freeMemoryMb === undefined ? "" : ` · ${status.freeMemoryMb} MB free`
+      ? t("model.none")
+      : `${engine} · ${t(status.available ? "model.ready" : "model.not_ready")}${
+          status.freeMemoryMb === undefined ? "" : ` · ${t("model.free_mb", { mb: status.freeMemoryMb })}`
         }`;
+  const chosen = CHOICES.find((c) => c.choice === choice);
 
   return (
     <div className={C.card}>
-      <span className={C.label}>On-device model</span>
+      <span className={C.label}>{t("model.title")}</span>
       <div className={C.row}>
         <span className={C.muted}>{deviceLine}</span>
         <button type={C.button} className={`${C.linkBtn} end`} onClick={() => void model.refresh()}>
-          Check again
+          {t("model.check")}
         </button>
       </div>
       <div className={C.row}>
@@ -82,40 +67,37 @@ export function ModelSettings({ ports }: { ports: Ports }) {
             key={c.choice}
             type={C.button}
             aria-pressed={choice === c.choice}
-            className={choice === c.choice ? "chip on" : "chip"}
+            className={choice === c.choice ? C.chipOn : C.chip}
             onClick={() => choose(c.choice)}
           >
-            {c.label}
+            {t(c.label)}
           </button>
         ))}
       </div>
       {status?.download === ModelDownload.downloadable && (
         <div className={C.stack}>
-          <span className={C.muted}>
-            Chrome can download its built-in model once for this computer (several GB; needs about 22 GB free). It runs
-            on this computer only, never in the cloud.
-          </span>
+          <span className={C.muted}>{t("model.chrome_download_about")}</span>
           <div>
             <button type={C.button} className={C.secondary} onClick={() => void model.prepare()}>
-              Download Chrome's model
+              {t("model.chrome_download")}
             </button>
           </div>
         </div>
       )}
       {status?.download === ModelDownload.downloading && (
-        <span className={C.muted}>Chrome is downloading its model. Tap Check again in a few minutes.</span>
+        <span className={C.muted}>{t("model.chrome_downloading")}</span>
       )}
-      <span className={C.faint}>{CHOICES.find((c) => c.choice === choice)?.about}</span>
+      {chosen && <span className={C.faint}>{t(chosen.about, { mb: MIN_FREE_MB })}</span>}
       {choice === ModelChoice.ollama && OLLAMA_OFFERED && (
         <div className={C.row}>
           {pulled && pulled.length > 0 ? (
             <select
               className={C.field}
-              aria-label="Ollama model"
+              aria-label={t("model.ollama_model")}
               value={ollamaName}
               onChange={(e) => setOllamaName(e.target.value)}
             >
-              <option value="">Choose a model Ollama has</option>
+              <option value="">{t("model.ollama_choose")}</option>
               {pulled.map((m) => (
                 <option key={m} value={m}>
                   {m}
@@ -125,23 +107,21 @@ export function ModelSettings({ ports }: { ports: Ports }) {
           ) : (
             <input
               className={C.field}
-              aria-label="Ollama model name"
-              placeholder={
-                pulled ? "Ollama is not running: start `ollama serve`, or type a name" : "Looking for Ollama…"
-              }
+              aria-label={t("model.ollama_name")}
+              placeholder={t(pulled ? "model.ollama_off" : "model.ollama_looking")}
               value={ollamaName}
               onChange={(e) => setOllamaName(e.target.value)}
               autoComplete={C.off}
             />
           )}
           <button type={C.button} className={C.secondary} onClick={saveOllama} disabled={!ollamaName.trim()}>
-            Use this model
+            {t("model.use")}
           </button>
         </div>
       )}
-      <span className={C.label}>Now answering: {model.label()}</span>
+      <span className={C.label}>{t("model.now", { model: model.label(t) })}</span>
       {choice === ModelChoice.auto && !deviceUsable(status) && status && (
-        <span className={C.faint}>Everything still works in lite mode; a model only helps with wording.</span>
+        <span className={C.faint}>{t("model.still_works")}</span>
       )}
     </div>
   );

@@ -1,6 +1,8 @@
 export interface GenerateOptions {
   prompt: string;
   maxTokens?: number;
+  /** 0 for the same answer to the same prompt. Engines that cannot set it (Chrome's, for web pages) ignore it. */
+  temperature?: number;
 }
 
 export interface GenerateResult {

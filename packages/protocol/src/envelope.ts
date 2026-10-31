@@ -28,6 +28,24 @@ export const EnvelopeKind = z.enum([
   "payment_request",
   /** Either side → the other: a payment was made (UPI ref) or confirmed. Does not move the engagement. */
   "payment_record",
+  /** Worker ↔ worker met in person: ask to link (with the scanned code), ok, or end. Not part of any engagement. */
+  "colleague",
+  /** Linked colleague → colleague: a message. Not part of any engagement. */
+  "colleague_note",
+  /** Worker → household, on a request the worker declined: a colleague to ask instead. Does not move the engagement. */
+  "referral",
+  /** A colleague → two of their linked colleagues: an introduction naming the other, toward a mentor link. */
+  "introduce",
+  /** Newcomer → a mentor they picked: help me move to this city. */
+  "landing_request",
+  /** Mentor → newcomer: yes (with the mentor's card) or no to a landing request. */
+  "mentor_offer",
+  /** Newcomer → mentor, or each side of an introduction → the other: confirm (opens the mentor link) or close. */
+  "mentor_accept",
+  /** Worker → a household whose QR they scanned: I would like to work for you, with the worker's card. */
+  "work_offer",
+  /** Either side → the other, on a signed job: a problem reported or resolved. Does not move the engagement. */
+  "problem",
 ]);
 export type EnvelopeKind = z.infer<typeof EnvelopeKind>;
 
@@ -38,7 +56,33 @@ export const SIDE_CHANNEL_KINDS: ReadonlySet<EnvelopeKind> = new Set([
   K.payment_request,
   K.payment_record,
   K.key_change,
+  K.referral,
+  K.problem,
 ]);
+
+/**
+ * Kinds between colleagues, outside any job: their `engagement` is the pair's channel id, and the engagement state
+ * table never sees them.
+ */
+export const COLLEAGUE_KINDS: ReadonlySet<EnvelopeKind> = new Set([K.colleague, K.colleague_note]);
+
+/**
+ * Kinds that lead to a mentor link, outside any job: their `engagement` is the channel the link will use. Only sent
+ * when every device of the recipient reports `MENTOR_PROTOCOL`.
+ */
+export const MENTOR_KINDS: ReadonlySet<EnvelopeKind> = new Set([
+  K.introduce,
+  K.landing_request,
+  K.mentor_offer,
+  K.mentor_accept,
+]);
+
+/**
+ * Kinds that come from a personal QR (ADR 0034), outside any job: their `engagement` is a fresh channel id the sender
+ * picks, and the engagement state table never sees them. Only sent when every device of the recipient reports
+ * `WORK_OFFER_PROTOCOL`; the mailbox lets one through only after the sender scanned the recipient's current QR.
+ */
+export const QR_KINDS: ReadonlySet<EnvelopeKind> = new Set([K.work_offer]);
 
 export const Base64 = z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/, "base64");
 /** A person has at most this many devices to seal one envelope to. */

@@ -1,36 +1,39 @@
 import type { GigDevice } from "@gigsync/core";
-import { C } from "../ui/cls.js";
+import type { ChosenWorker } from "../find/ask.js";
 import type { GigView } from "../useGig.js";
-import { JobThread } from "./JobThread.js";
+import { ActivityFrame } from "./activity/ActivityFrame.js";
+import { OfferCards } from "./qr/OfferCards.js";
 
 interface Props {
-  isWorker: boolean;
   view: GigView;
   device: GigDevice;
   run: (work: () => Promise<unknown>) => Promise<unknown>;
+  /** Opens a Find chat addressed to a worker who offered to work. */
+  onAsk: (worker: ChosenWorker) => void;
+  /** Opens Records, where finished jobs are. */
+  onRecords: () => void;
 }
 
-/** Every job this phone is in, newest first: requests to a worker, or a consumer's asks. */
-export function Requests({ isWorker, view, device, run }: Props) {
-  const jobs = [...view.jobs].reverse();
+/**
+ * A household's Activity: the same frame as a worker's. Offers to work from someone who scanned their QR wait on them
+ * first, under Awaiting you, with answering the worker, signing and saying whether a payment went; the jobs agreed
+ * (pay, review) are one list under Agreed.
+ */
+export function Requests({ view, device, run, onAsk, onRecords }: Props) {
+  const more = {
+    count: view.offers.length,
+    node: <OfferCards offers={view.offers} device={device} run={run} onAsk={onAsk} />,
+  };
   return (
-    <>
-      <div className={C.stack}>
-        <span className={C.labelSq}>{isWorker ? "Requests" : "My jobs"}</span>
-        <h1 className={C.headline}>
-          {isWorker ? "Jobs that found you." : "Your asks."}{" "}
-          <span className={C.soft}>Your agent talks; you decide.</span>
-        </h1>
-        {view.syncedAt && <span className={C.faint}>Checked {view.syncedAt.toLocaleTimeString()}</span>}
-      </div>
-      {jobs.length === 0 && (
-        <div className={C.empty}>
-          {isWorker ? "No requests yet. Publish your card to be found." : "Nothing asked yet. Find someone first."}
-        </div>
-      )}
-      {jobs.map((job) => (
-        <JobThread key={job.engagement.id} job={job} view={view} device={device} run={run} />
-      ))}
-    </>
+    <ActivityFrame
+      now={new Date()}
+      more={more}
+      byDay={false}
+      hint="activity.hint_household"
+      onRecords={onRecords}
+      view={view}
+      device={device}
+      run={run}
+    />
   );
 }

@@ -1,7 +1,8 @@
 import { SELF } from "cloudflare:test";
-import { HttpError } from "@gigsync/core";
+import { HttpError, HttpMethod } from "@gigsync/core";
 import type { BoardProfile, Trade } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
+import { call } from "./mentor-helpers.js";
 import { signIn } from "./people.js";
 
 /** Kochi, so these workers never meet the ones other test files put near Bengaluru. */
@@ -63,6 +64,23 @@ describe("job board", () => {
     expect(await w.api.removeProfile()).toBe(true);
     expect(await w.api.searchWorkers({ trade: "driver", ...HERE })).toEqual([]);
     expect(await w.api.removeProfile()).toBe(false);
+  });
+
+  it("serves the caller's own card as others see it plus their switch, for a new phone's refill", async () => {
+    const w = await signIn("+919888800201");
+    const other = await signIn("+919888800202");
+    const mine = (as: typeof w) => call(as, HttpMethod.get, "/board/profile");
+    expect((await mine(w)).status).toBe(404);
+    await w.api.publishProfile({ ...card("Indu", ["maid"], 1, 30000), area: { lat: 9.97123, lon: 76.28456 } });
+    const res = await mine(w);
+    expect(res.status).toBe(200);
+    const served = await res.json();
+    const seen = await call(other, HttpMethod.get, `/board/workers/${w.session.user}`);
+    const others = (await seen.json()) as BoardProfile;
+    expect(served).toEqual({ ...others, show_record: true });
+    expect(served).toMatchObject({ display_name: "Indu", area: { lat: 9.97, lon: 76.28 }, trades: ["maid"] });
+    expect((await mine(other)).status).toBe(404);
+    expect((await call(undefined, HttpMethod.get, "/board/profile")).status).toBe(401);
   });
 
   it("refuses bad cards and bad queries", async () => {

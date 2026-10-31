@@ -1,0 +1,4 @@
+/* The phone's own permission prompts, in the phone's language. Keep in step with Info.plist. */
+"NSMicrophoneUsageDescription" = "GigSync listens only while you tap the mic.";
+"NSSpeechRecognitionUsageDescription" = "Your speech is turned into text on this phone when it can. If it can't, and only after you allow it, Apple turns it into text.";
+"NSCameraUsageDescription" = "GigSync uses the camera only when you tap Scan a QR, to read someone's GigSync QR code.";

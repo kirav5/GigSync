@@ -120,6 +120,39 @@ describe("PaymentBook", () => {
     expect((await b.receive({ ...p, status: "confirmed" }, WORKER)).status).toBe("confirmed");
   });
 
+  it("confirms cash from an open payment, dropping any UPI reference, and never twice", async () => {
+    const b = book();
+    const e = job("delivered");
+    const asked = await b.request({ engagement: e, payee: WORKER, amountPaise: 100, note: "" });
+    expect(await b.confirmCash(asked.id)).toMatchObject({
+      status: "confirmed",
+      method: "cash",
+      paid_at: now.toISOString(),
+      confirmed_at: now.toISOString(),
+    });
+    await expect(b.confirmCash(asked.id)).rejects.toThrow(PaymentError);
+
+    const claimed = await b.request({ engagement: e, payee: WORKER, amountPaise: 200, note: "" });
+    await b.markPaid(claimed.id, "412345678901");
+    const cash = await b.confirmCash(claimed.id);
+    expect(cash).toMatchObject({ status: "confirmed", method: "cash" });
+    expect(cash.utr).toBeUndefined();
+  });
+
+  it("takes a change to cash only from the worker who is paid, and only with 'confirmed'", async () => {
+    const b = book();
+    const p = await b.request({ engagement: job("delivered"), payee: WORKER, amountPaise: 100, note: "" });
+    expect(await b.receive({ ...p, status: "paid", method: "cash" }, p.payer)).toMatchObject({
+      status: "paid",
+      method: "upi",
+    });
+    expect(await b.receive({ ...p, status: "confirmed", method: "cash" }, p.payer)).toMatchObject({ method: "upi" });
+    expect(await b.receive({ ...p, status: "confirmed", method: "cash" }, WORKER)).toMatchObject({
+      status: "confirmed",
+      method: "cash",
+    });
+  });
+
   it("refuses a new payment that is not the worker's request", async () => {
     const b = book();
     const p = await b.request({ engagement: job("delivered"), payee: WORKER, amountPaise: 100, note: "" });

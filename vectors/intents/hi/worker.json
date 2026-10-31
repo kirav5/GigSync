@@ -1,0 +1,200 @@
+{
+  "cases": [
+    {
+      "id": "hi-edit-01",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेरा रेट बदलो",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "list"
+    },
+    {
+      "id": "hi-edit-02",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मुझे अपना एरिया बदलना है",
+      "intent": "editCard",
+      "slots": { "field": "area" },
+      "source": "list"
+    },
+    {
+      "id": "hi-edit-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "कार्ड में मेरी भाषा बदलनी है",
+      "intent": "editCard",
+      "slots": { "field": "languages" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-edit-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "रेट थोड़ा बढ़ा दो, 600 कर दो",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-edit-05",
+      "lang": "hi",
+      "role": "worker",
+      "text": "अब मैं पेंटिंग नहीं करता, सिर्फ़ प्लंबिंग करता हूँ",
+      "intent": "editCard",
+      "slots": { "field": "trade" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-01",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मैं नए लोगों की मदद करना चाहती हूँ",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "hi-helpOffer-02",
+      "lang": "hi",
+      "role": "worker",
+      "text": "गाँव से कोई बेंगलुरु आए तो मैं उसे सब समझा दूँगा",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-01",
+      "lang": "hi",
+      "role": "worker",
+      "text": "अब मदद करना बंद करो, टाइम नहीं है",
+      "intent": "helpStop",
+      "source": "list"
+    },
+    {
+      "id": "hi-helpStop-02",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मुझे मेंटर वाली लिस्ट से हटा दो",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-earnings-01",
+      "lang": "hi",
+      "role": "worker",
+      "text": "इस हफ़्ते कितनी कमाई हुई?",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "hi-earnings-02",
+      "lang": "hi",
+      "role": "worker",
+      "text": "इस महीने कितने पैसे मिले?",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "hi-earnings-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेरा हिसाब बताओ",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hi-earnings-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "पिछले हफ़्ते वाले पैसे आ गए क्या?",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hi-chat-01",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेरी कमाई से ही घर चलता है",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "hi-moving-01",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मैं अगले महीने बेंगलुरु शिफ्ट हो रहा हूँ",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "hi-moving-02",
+      "lang": "hi",
+      "role": "worker",
+      "text": "काम के लिए बैंगलोर जा रहा हूँ",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "hi-moving-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "दिवाली के बाद बेंगलुरु में काम ढूँढने निकलूँगा",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-chat-02",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेरा भाई बेंगलुरु जा रहा है",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "hi-chat-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मैं काम पर जा रहा हूँ",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-guide-01",
+      "lang": "hi",
+      "role": "worker",
+      "text": "पहली रात कहाँ रुकूँ?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hi-guide-02",
+      "lang": "hi",
+      "role": "worker",
+      "text": "यहाँ सिम कैसे मिलेगा?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hi-guide-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मालिक ने दो हफ़्ते से पैसे नहीं दिए, क्या करूँ?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hi-guide-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "बैंक खाता कैसे खुलेगा?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    }
+  ]
+}

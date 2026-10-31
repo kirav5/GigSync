@@ -1,8 +1,10 @@
 import { termsHash, toBase64, verify } from "@gigsync/crypto";
 import {
   type Agree,
+  agreeBytes,
   type Cancel,
   CancelReason,
+  type ContactCard,
   type ContactRelease,
   type DeviceId,
   EngagementStatus,
@@ -12,16 +14,16 @@ import {
   Role,
   TERMINAL_STATUSES,
 } from "@gigsync/protocol";
+import { isArrangement } from "../contacts/rules.js";
 import { log } from "../log.js";
+import { remember } from "../memory/remember.js";
 import type { JobContext } from "./context.js";
 import { type JobRecord, TaskKind } from "./store.js";
+import { mustReview, termsField } from "./terms-flow.js";
 
 const K = EnvelopeKind.enum;
 const S = EngagementStatus.enum;
 const R = Role.enum;
-/** Domain separation: an agree signature can never be mistaken for any other signature by the same key. */
-const AGREE_PREFIX = "gigsync/agree/v1:";
-const agreeBytes = (hash: string) => new TextEncoder().encode(`${AGREE_PREFIX}${hash}`);
 
 /** Statuses in which the job is signed by both and contact cards may travel. */
 const SIGNED: ReadonlySet<EngagementStatus> = new Set([S.agreed, S.in_progress, S.delivered]);
@@ -43,6 +45,7 @@ export function termsFor(ctx: JobContext, r: JobRecord, offer: Offer): JobTerms 
     scope: offer.scope,
     slot: offer.slot,
     price_paise: offer.price_paise,
+    ...termsField(r.request.trade, offer.terms),
   };
 }
 
@@ -56,11 +59,15 @@ async function signingAnother(ctx: JobContext, r: JobRecord): Promise<boolean> {
   return group.some((o) => o.engagement.id !== r.engagement.id && o.mine && o.engagement.status === S.confirming);
 }
 
-/** The agent accepts the other side's offer: the owner signs it, or it is signed at once under auto-confirm. */
+/**
+ * The agent accepts the other side's offer: the owner signs it, or it is signed at once under auto-confirm, unless
+ * the terms change one the owner asked for (`mustReview`).
+ */
 export async function accept(ctx: JobContext, r: JobRecord, terms: JobTerms): Promise<JobRecord> {
   const next = { ...r, pending: terms };
   await ctx.store.saveJob(next);
-  if (ctx.autoConfirm && !(await signingAnother(ctx, next))) return sign(ctx, next);
+  const own = ctx.autoConfirm && !(await signingAnother(ctx, next)) && !(await mustReview(ctx, next, terms.terms));
+  if (own) return sign(ctx, next);
   await ctx.store.addTask(TaskKind.confirmDeal, r.engagement.id, terms, ctx.clock.now());
   return next;
 }
@@ -84,8 +91,14 @@ export function decline(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
 export async function cancel(ctx: JobContext, r: JobRecord, body: Cancel): Promise<JobRecord> {
   await ctx.store.removeTask(TaskKind.confirmDeal, r.engagement.id);
   await ctx.store.removeTask(TaskKind.answerQuestions, r.engagement.id);
-  return ctx.send({ ...r, pending: undefined, cancel: body, contact: undefined }, K.cancel, body);
+  return ctx.send({ ...r, pending: undefined, cancel: body, contact: cardAfterCancel(r) }, K.cancel, body);
 }
+
+/**
+ * A cancelled one-time job forgets the other side's card at once. A monthly or daily arrangement both signed keeps it
+ * until its last payment is settled (ADR 0039 §3): the contacts sweep removes it then, or after the cap.
+ */
+const cardAfterCancel = (r: JobRecord) => (isArrangement(r) && r.theirs ? r.contact : undefined);
 
 /**
  * The other side signed. Its signature must verify with its device key, over a hash of exactly these terms, for an
@@ -115,10 +128,21 @@ export async function onAgree(ctx: JobContext, r: JobRecord, theirs: Agree, from
   return accept(ctx, next, theirs.terms);
 }
 
+/**
+ * The card this side releases. The worker goes to the requester's place, so a provider never sends an address, even
+ * one an older build saved on a worker's card as their own work site.
+ */
+function releasedCard(ctx: JobContext, r: JobRecord): ContactCard {
+  if (r.engagement.role === R.requester) return ctx.contact;
+  const { address: _site, ...card } = ctx.contact;
+  return card;
+}
+
 /** Both signed: send this owner's card, and (consumer) release every other request in the group. */
 async function onAgreed(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
   const hash = r.mine?.terms_hash as string;
-  const out = await ctx.send(r, K.contact_release, { terms_hash: hash, contact: ctx.contact } satisfies ContactRelease);
+  const contact = releasedCard(ctx, r);
+  const out = await ctx.send(r, K.contact_release, { terms_hash: hash, contact } satisfies ContactRelease);
   if (r.engagement.role === R.requester) {
     for (const other of await ctx.store.group(r.engagement.group)) {
       if (other.engagement.id === r.engagement.id || TERMINAL_STATUSES.has(other.engagement.status)) continue;
@@ -126,25 +150,28 @@ async function onAgreed(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
     }
   }
   log.info("job agreed", { engagement: r.engagement.id, price: r.mine?.terms.price_paise });
+  await remember(ctx, out, await ctx.store.need(out.engagement.group));
   return out;
 }
 
 /** The other party's card, accepted only for a job both signed, under the hash both signed. */
 export async function onContact(ctx: JobContext, r: JobRecord, body: ContactRelease): Promise<JobRecord> {
-  if (!SIGNED.has(r.engagement.status) || body.terms_hash !== r.mine?.terms_hash) {
+  if (!SIGNED.has(r.engagement.status) || body.terms_hash !== r.mine?.terms_hash || r.contacts_removed_at) {
     log.warn("contact card ignored", { engagement: r.engagement.id, status: r.engagement.status });
     return r;
   }
   const next = { ...r, contact: body.contact };
   await ctx.store.saveJob(next);
+  // The card brings the other side's name: the one thing memory keeps from it.
+  await remember(ctx, next, await ctx.store.need(next.engagement.group));
   return next;
 }
 
-/** The other side ended the job: forget their card and any decision waiting on it. */
+/** The other side ended the job: forget their card (an arrangement keeps it to settle) and any decision waiting. */
 export async function onCancel(ctx: JobContext, r: JobRecord, body: Cancel): Promise<JobRecord> {
   await ctx.store.removeTask(TaskKind.confirmDeal, r.engagement.id);
   await ctx.store.removeTask(TaskKind.answerQuestions, r.engagement.id);
-  const next = { ...r, cancel: body, pending: undefined, contact: undefined };
+  const next = { ...r, cancel: body, pending: undefined, contact: cardAfterCancel(r) };
   await ctx.store.saveJob(next);
   return next;
 }

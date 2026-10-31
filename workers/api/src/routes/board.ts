@@ -1,14 +1,19 @@
 import { log } from "@gigsync/core/log";
-import { BoardProfile, BoardQuery, type BoardResult } from "@gigsync/protocol";
+import { BoardProfile, BoardQuery, type BoardResult, UserId } from "@gigsync/protocol";
 import { Hono } from "hono";
-import { ApiError, type AppEnv, Var } from "../context.js";
-import { removeProfile, roundArea, searchWorkers, upsertProfile } from "../db/board.js";
+import { ApiError, type AppEnv, USER_PARAM, Var } from "../context.js";
+import { myCard, removeProfile, searchWorkers, upsertProfile, workerCard } from "../db/board.js";
 import { transaction } from "../db/client.js";
 
-/** The job board, behind the session middleware: a worker publishes their own card; anyone signed in searches. */
+/**
+ * The job board, behind the session middleware: a worker publishes their own card; anyone signed in searches or reads
+ * one worker's card. Every card is served with the record the server computes from job records (ADR 0038).
+ */
 export const board = new Hono<AppEnv>();
 
-board.put("/profile", async (c) => {
+const Path = { profile: "/profile", workers: "/workers", worker: `/workers/:${USER_PARAM}` } as const;
+
+board.put(Path.profile, async (c) => {
   const profile = BoardProfile.safeParse(await c.req.json().catch(() => null));
   if (!profile.success) return c.json({ error: ApiError.badRequest }, 400);
   const db = c.get(Var.db);
@@ -18,17 +23,26 @@ board.put("/profile", async (c) => {
     user: c.get(Var.user),
     trades: profile.data.trades.length,
   });
-  const area = { lat: roundArea(profile.data.area.lat), lon: roundArea(profile.data.area.lon) };
-  return c.json({ ...profile.data, area });
+  // The card as others now see it: area rounded, record computed.
+  const card = await workerCard(db, c.get(Var.user));
+  if (!card) return c.json({ error: ApiError.notFound }, 404);
+  return c.json(card);
 });
 
-board.delete("/profile", async (c) => {
+/** The caller's own card with their switch: a new phone refills its card from this (ADR 0037 §4). */
+board.get(Path.profile, async (c) => {
+  const card = await myCard(c.get(Var.db), c.get(Var.user));
+  if (!card) return c.json({ error: ApiError.notFound }, 404);
+  return c.json(card);
+});
+
+board.delete(Path.profile, async (c) => {
   const removed = await removeProfile(c.get(Var.db), c.get(Var.user));
   log.info("board profile removed", { requestId: c.get(Var.requestId), user: c.get(Var.user), removed });
   return c.json({ removed });
 });
 
-board.get("/workers", async (c) => {
+board.get(Path.workers, async (c) => {
   const query = BoardQuery.safeParse(c.req.query());
   if (!query.success) return c.json({ error: ApiError.badRequest }, 400);
   const workers = await searchWorkers(c.get(Var.db), query.data);
@@ -39,4 +53,13 @@ board.get("/workers", async (c) => {
     found: workers.length,
   });
   return c.json({ workers } satisfies BoardResult);
+});
+
+/** One worker's card as served, for a card that reached the phone sealed (an offer to work) without the server's record. */
+board.get(Path.worker, async (c) => {
+  const user = UserId.safeParse(c.req.param(USER_PARAM));
+  if (!user.success) return c.json({ error: ApiError.badUserId }, 400);
+  const card = await workerCard(c.get(Var.db), user.data);
+  if (!card) return c.json({ error: ApiError.notFound }, 404);
+  return c.json(card);
 });

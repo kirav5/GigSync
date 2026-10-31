@@ -35,23 +35,36 @@ class PreferencesStorage implements Storage {
     }
     return out;
   }
+  async ids(c: string) {
+    const { keys } = await Preferences.keys();
+    const prefix = `${c}:`;
+    return keys.filter((k) => k.startsWith(prefix)).map((k) => k.slice(prefix.length));
+  }
 }
 
 /** Preferences key holding the device's software secrets (v2: Ed25519 + X25519; v1 held Ed25519 only). */
 const DEVICE_SECRETS = "keys:device:v2";
 
+/**
+ * The device's secrets, loaded or made once per app. Two loaders racing on a first launch (React's StrictMode runs
+ * `useMemo` twice in development) would each make and store different secrets: the phone would register one pair and
+ * keep the other, and after a restart could open nothing sent to it.
+ */
+let deviceSecrets: Promise<SecretKeys> | undefined;
+function loadDeviceSecrets(): Promise<SecretKeys> {
+  deviceSecrets ??= (async () => {
+    const { value } = await Preferences.get({ key: DEVICE_SECRETS });
+    if (value) return new SecretKeys(JSON.parse(value) as DeviceSecrets);
+    const fresh = newDeviceSecrets();
+    await Preferences.set({ key: DEVICE_SECRETS, value: JSON.stringify(fresh) });
+    return new SecretKeys(fresh);
+  })();
+  return deviceSecrets;
+}
+
 /** Software keys. DEV ONLY: the secrets live in Preferences until the Keystore plugin lands. */
 class SoftwareKeys implements Keys {
-  private keys: Promise<SecretKeys>;
-  constructor() {
-    this.keys = (async () => {
-      const { value } = await Preferences.get({ key: DEVICE_SECRETS });
-      if (value) return new SecretKeys(JSON.parse(value) as DeviceSecrets);
-      const fresh = newDeviceSecrets();
-      await Preferences.set({ key: DEVICE_SECRETS, value: JSON.stringify(fresh) });
-      return new SecretKeys(fresh);
-    })();
-  }
+  private keys = loadDeviceSecrets();
   async publicKeys() {
     return (await this.keys).publicKeys();
   }

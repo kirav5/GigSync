@@ -1,0 +1,29 @@
+import type { agent as en } from "../en/agent.js";
+
+/** Kannada: the agent screen and its cards, translation on the phone, and the rate card's source line. */
+export const agent: Readonly<Record<keyof typeof en, string>> = {
+  "agent.headline": "ನಿಮ್ಮ ಏಜೆಂಟ್ ಜೊತೆ ಮಾತಾಡಿ.",
+  "agent.soft": "ನಿಮ್ಮ ಟಿಪ್ಪಣಿಗಳು ಇಲ್ಲೇ ಇರುತ್ತವೆ.",
+  "agent.placeholder": "ಮಾತಾಡಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ…",
+  "agent.empty": "ಏನಾದರೂ ಕೇಳಿ, ಅಥವಾ ಇವುಗಳಲ್ಲಿ ಒಂದನ್ನು ಒತ್ತಿ.",
+  "agent.suggest_rate": "ನನ್ನ ದರ ಬದಲಾಯಿಸಿ",
+  "agent.suggest_earned": "ಈ ವಾರ ನಾನು ಎಷ್ಟು ಸಂಪಾದಿಸಿದೆ?",
+  "agent.earnings": "ಈ ವಾರ ನಿಮಗೆ {week} ಬಂದಿದೆ, ಈ ತಿಂಗಳು {month}. ಇನ್ನೂ ಬರಬೇಕಿರುವುದು: {waiting}.",
+  "agent.sources.one": "{count} ಟಿಪ್ಪಣಿಯಿಂದ",
+  "agent.sources.other": "{count} ಟಿಪ್ಪಣಿಗಳಿಂದ",
+  "card.text": "ಏಜೆಂಟ್",
+  "card.saved": "ಉಳಿಸಲಾಗಿದೆ",
+  "card.answer": "ಉತ್ತರ",
+  "card.draft": "ಡ್ರಾಫ್ಟ್",
+  "card.needs_model": "ಮಾಡೆಲ್ ಬೇಕು",
+  "agent.saved": 'ಉಳಿಸಲಾಗಿದೆ: "{text}"',
+  "agent.nothing": "ಅದರ ಬಗ್ಗೆ ನನ್ನಲ್ಲಿ ಏನೂ ಉಳಿಸಿಲ್ಲ.",
+  "agent.no_contact": "ನಿಮ್ಮ ಸಂಪರ್ಕಗಳಲ್ಲಿ ಇನ್ನೂ {name} ಇಲ್ಲ.",
+  "agent.ask_contact": '{name} ಅವರನ್ನು ಕೇಳಲೇ: "{text}"?',
+  "agent.rules_later": 'ನಾನು ನಿಮ್ಮ ಕಾರ್ಡ್ ಬದಲಾಯಿಸಬಲ್ಲೆ. ಏನು ಬದಲಾಯಿಸಬೇಕು ಹೇಳಿ, ಉದಾಹರಣೆಗೆ "ನನ್ನ ದರ ಬದಲಾಯಿಸಿ".',
+  "agent.market_later": "ಹತ್ತಿರದ ಗ್ರಾಹಕರು ಬೋರ್ಡ್‌ನಲ್ಲಿ ನಿಮ್ಮ ಕಾರ್ಡ್ ನೋಡಿ ನಿಮ್ಮನ್ನು ಹುಡುಕುತ್ತಾರೆ. ಹೊಸ ರಿಕ್ವೆಸ್ಟ್‌ಗಳು 'ಇಂದು' ವಿಭಾಗದಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ.",
+  "agent.needs_model": "ಇದನ್ನು ಈ ಫೋನ್‌ನಲ್ಲಿ ಇನ್ನೂ ಮಾಡಲು ಆಗುವುದಿಲ್ಲ. ನಾನು ನಿಮ್ಮ ಕಾರ್ಡ್ ಮಾಡಬಲ್ಲೆ, ನೀವು ಹೇಳಿದ್ದನ್ನು ನೆನಪಿಟ್ಟುಕೊಳ್ಳಬಲ್ಲೆ.",
+  "said.translating": "ಈ ಫೋನ್‌ನಲ್ಲೇ ಅನುವಾದಿಸಲಾಗುತ್ತಿದೆ…",
+  "said.cannot": "ಭಾಷೆ: {lang}. ಈ ಫೋನ್ ಇನ್ನೂ ಇದನ್ನು ಅನುವಾದಿಸಲಾರದು.",
+  "said.unsafe": "ಭಾಷೆ: {lang}. ಅನುವಾದದಲ್ಲಿ ಸಂಖ್ಯೆ ಬದಲಾಯಿತು, ಆದ್ದರಿಂದ ತೋರಿಸಿಲ್ಲ.",
+};

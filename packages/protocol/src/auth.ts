@@ -14,6 +14,9 @@ export const DeviceRegistration = z.object({
   push_token: z.string().max(4096).optional(),
 });
 
+/** `PUT /v1/devices/me/protocol`: a signed-in device says it now speaks a newer protocol, after an app update. */
+export const DeviceProtocol = DeviceRegistration.pick({ protocol: true });
+
 export const OtpVerify = z.object({
   phone: Phone,
   code: z.string().length(6),
@@ -35,6 +38,7 @@ export const DeviceKeys = z.object({
 export const DirectoryEntry = z.object({ user: UserId, devices: z.array(DeviceKeys) });
 
 export type Phone = z.infer<typeof Phone>;
+export type DeviceProtocol = z.infer<typeof DeviceProtocol>;
 export type Session = z.infer<typeof Session>;
 export type DeviceKeys = z.infer<typeof DeviceKeys>;
 export type DirectoryEntry = z.infer<typeof DirectoryEntry>;

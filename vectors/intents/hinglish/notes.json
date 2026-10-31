@@ -1,0 +1,164 @@
+{
+  "cases": [
+    {
+      "id": "hinglish-find-02",
+      "lang": "hi",
+      "role": "household",
+      "text": "kal subah plumber chahiye",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-find-03",
+      "lang": "hi",
+      "role": "household",
+      "text": "mujhe HSR mein ek cook chahiye",
+      "intent": "find",
+      "slots": { "trade": "cook", "area": "hsr_layout" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-find-04",
+      "lang": "hi",
+      "role": "household",
+      "text": "need a plumber urgently bhaiya",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-find-05",
+      "lang": "hi",
+      "role": "household",
+      "text": "kitchen ka nal tapak raha hai, koi aa sakta hai?",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-find-06",
+      "lang": "hi",
+      "role": "household",
+      "text": "Diwali se pehle ghar ki putai karwani hai",
+      "intent": "find",
+      "slots": { "trade": "painter" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-remember-01",
+      "lang": "hi",
+      "role": "household",
+      "text": "yaad rakhna, gas wala Friday ko aayega",
+      "intent": "remember",
+      "slots": { "note": "gas wala Friday ko aayega" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-remember-02",
+      "lang": "hi",
+      "role": "household",
+      "text": "doodhwale ko 5 tarikh ko paise dene hain, yaad rakhna",
+      "intent": "remember",
+      "slots": { "note": "doodhwale ko 5 tarikh ko paise dene hain" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-remember-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "note kar lo: Koramangala wali madam ke ghar Saturday 7 baje jaana hai",
+      "intent": "remember",
+      "slots": { "note": "Koramangala wali madam ke ghar Saturday 7 baje jaana hai" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-askSelf-01",
+      "lang": "hi",
+      "role": "household",
+      "text": "maine gas ke baare mein kya likha tha?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askSelf-02",
+      "lang": "hi",
+      "role": "household",
+      "text": "AC service last time kab hui thi?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askContact-01",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Ravi", "Meena"],
+      "text": "Ravi kal free hai kya?",
+      "intent": "askContact",
+      "slots": { "contact": "Ravi" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-askContact-02",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Ravi", "Meena"],
+      "text": "Meena abhi kahan hai?",
+      "intent": "askContact",
+      "slots": { "contact": "Meena" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-setRule-01",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Meena"],
+      "text": "Meena ko meri location dekhne do",
+      "intent": "setRule",
+      "slots": { "contact": "Meena" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-02",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Ravi"],
+      "text": "Ravi ko mat batana main kahan hoon",
+      "intent": "setRule",
+      "slots": { "contact": "Ravi" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-chat-05",
+      "lang": "hi",
+      "role": "worker",
+      "text": "namaste bhaiya",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-06",
+      "lang": "hi",
+      "role": "household",
+      "text": "thank you, bahut help hua",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-chat-07",
+      "lang": "hi",
+      "role": "worker",
+      "text": "aaj bahut thak gayi hoon",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-08",
+      "lang": "hi",
+      "role": "household",
+      "text": "electrician aaya tha, sab theek kar diya",
+      "intent": "chat",
+      "source": "miss"
+    }
+  ]
+}

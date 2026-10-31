@@ -1,4 +1,4 @@
-import { DEFAULT_MAX_TOKENS, HttpMethod, log, type Model } from "@gigsync/core";
+import { DEFAULT_MAX_TOKENS, type GenerateOptions, HttpMethod, log, type Model } from "@gigsync/core";
 
 /** Where `ollama serve` listens by default. */
 const OLLAMA_URL = "http://localhost:11434";
@@ -15,7 +15,7 @@ export class OllamaModel implements Model {
     private base = OLLAMA_URL,
   ) {}
 
-  async generate(prompt: string, options?: { maxTokens?: number }) {
+  async generate(prompt: string, options?: GenerateOptions) {
     try {
       const res = await fetch(`${this.base}${GENERATE_PATH}`, {
         method: HttpMethod.post,
@@ -23,7 +23,10 @@ export class OllamaModel implements Model {
           model: this.name,
           prompt,
           stream: false,
-          options: { num_predict: options?.maxTokens ?? DEFAULT_MAX_TOKENS },
+          options: {
+            num_predict: options?.maxTokens ?? DEFAULT_MAX_TOKENS,
+            ...(options?.temperature === undefined ? {} : { temperature: options.temperature }),
+          },
         }),
       });
       if (!res.ok) {

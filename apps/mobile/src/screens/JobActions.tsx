@@ -1,104 +1,118 @@
-import { type GigDevice, type JobRecord, TaskKind } from "@gigsync/core";
-import { EngagementStatus, type JobTerms, type Payment, PaymentStatus, type Question, Role } from "@gigsync/protocol";
+import { asciiDigits, type GigDevice, type JobRecord, TaskKind, termsLines } from "@gigsync/core";
+import {
+  EngagementStatus,
+  type JobTerms,
+  type Payment,
+  PaymentMethod,
+  PaymentStatus,
+  type Question,
+  Role,
+  UpdateCode,
+} from "@gigsync/protocol";
 import { type FormEvent, useEffect, useState } from "react";
+import { useI18n } from "../i18n.js";
 import { qrDataUrl } from "../payments/qr.js";
+import { WorkerPay } from "../payments/WorkerPay.js";
 import { C } from "../ui/cls.js";
 import { money } from "../ui/places.js";
 import type { GigView } from "../useGig.js";
+import { AnswerForm } from "./AnswerForm.js";
+import { ApproveCard, type ApproveDetail, SignCard } from "./JobDecide.js";
 
 export interface JobActionProps {
   job: JobRecord;
   view: GigView;
   device: GigDevice;
   run: (work: () => Promise<unknown>) => Promise<unknown>;
+  /** Opens About me to add a UPI ID. The worker's Today passes it; the consumer's My jobs has no use for it. */
+  onAddPayee?: () => void;
 }
 
 const S = EngagementStatus.enum;
 const P = PaymentStatus.enum;
-/** A worker may say they are on the way, mark the job done, or ask to be paid, once both have signed. */
+const U = UpdateCode.enum;
+/** Once both have signed, a worker may leave a note for the customer. */
 const SIGNED: ReadonlySet<EngagementStatus> = new Set([S.agreed, S.in_progress, S.delivered]);
+/** Before the work is handed over, a worker may say they are on the way or mark it done. */
+const WORKING: ReadonlySet<EngagementStatus> = new Set([S.agreed, S.in_progress]);
 const STARS = [5, 4, 3, 2, 1] as const;
+/** Between the sentence read aloud and each term after it. */
+const SAY_PAUSE = ". ";
 
-/** The decisions and moves open to this owner on this job, and nothing else. */
-export function JobActions({ job, view, device, run }: JobActionProps) {
+/**
+ * The decisions and moves open to this owner on this job, and nothing else: decisions first, each with a speaker
+ * button that reads it aloud (committing stays a tap), then the work, the money and the note box. `them` is the
+ * other side's name as the card shows it.
+ */
+export function JobActions({ job, view, device, run, onAddPayee, them }: JobActionProps & { them: string }) {
+  const { lang, t } = useI18n();
   const id = job.engagement.id;
   const status = job.engagement.status;
   const isWorker = job.engagement.role === Role.enum.provider;
-  const task = (kind: TaskKind) => view.tasks.find((t) => t.kind === kind && t.engagement === id);
+  const task = (kind: TaskKind) => view.tasks.find((k) => k.kind === kind && k.engagement === id);
   const payments = view.payments.filter((p) => p.engagement === id);
-  const confirm = task(TaskKind.confirmDeal);
+  /** The terms the agents reached, waiting for this owner's signature. */
+  const terms = task(TaskKind.confirmDeal)?.detail as JobTerms | undefined;
   const questions = task(TaskKind.answerQuestions);
-  const paid = task(TaskKind.confirmPayment);
+  const approve = task(TaskKind.approveRequest);
 
   return (
     <div className={C.stack}>
+      {approve && (
+        <ApproveCard
+          detail={approve.detail as ApproveDetail}
+          say={t("home.say_approve", { name: them, trade: t(`trade.${job.request.trade}`) })}
+          onApprove={() => void run(() => device.approveRequest(id))}
+          onDecline={() => void run(() => device.declineRequest(id))}
+        />
+      )}
       {questions && (
-        <AnswerForm questions={questions.detail as Question[]} onSend={(a) => run(() => device.answer(id, a))} />
+        <AnswerForm
+          questions={questions.detail as Question[]}
+          suggested={job.suggested}
+          say={t("home.say_answer", { name: them })}
+          onSend={(a) => run(() => device.answer(id, a))}
+        />
       )}
-      {confirm && (
-        <fieldset className={C.row} aria-label="Sign the deal">
-          <span className={C.muted}>Your agent reached {money((confirm.detail as JobTerms).price_paise)}.</span>
-          <button type={C.button} className={C.accent} onClick={() => void run(() => device.confirmDeal(id))}>
-            Sign deal for {money((confirm.detail as JobTerms).price_paise)}
-          </button>
-          <button type={C.button} className={C.secondary} onClick={() => void run(() => device.declineDeal(id))}>
-            Decline
-          </button>
-        </fieldset>
+      {terms && (
+        <SignCard
+          price={terms.price_paise}
+          terms={terms.terms}
+          asked={isWorker ? undefined : job.request.terms}
+          say={[
+            t("home.say_sign", { name: them, price: money(terms.price_paise) }),
+            ...termsLines(lang, terms.terms),
+          ].join(SAY_PAUSE)}
+          onSign={() => void run(() => device.confirmDeal(id))}
+          onDecline={() => void run(() => device.declineDeal(id))}
+        />
       )}
-      {isWorker && SIGNED.has(status) && (
-        <div className={C.row}>
+      {isWorker && WORKING.has(status) && (
+        <div className={C.actions}>
           {status === S.agreed && (
             <button
               type={C.button}
               className={C.secondary}
-              onClick={() => void run(() => device.update(id, "On my way"))}
+              onClick={() => void run(() => device.update(id, { code: U.on_my_way }))}
             >
-              On my way
+              {t("update.on_my_way")}
             </button>
           )}
-          {status !== S.delivered && (
-            <button
-              type={C.button}
-              className={C.secondary}
-              onClick={() => void run(() => device.deliver(id, "Work done"))}
-            >
-              Mark done
-            </button>
-          )}
-          {payments.length === 0 && (
-            <button
-              type={C.button}
-              className={C.accent}
-              onClick={() => void run(() => device.requestPayment(id, job.request.need.slice(0, 40)))}
-            >
-              Ask for payment
-            </button>
-          )}
+          <button
+            type={C.button}
+            className={C.secondary}
+            onClick={() => void run(() => device.deliver(id, { code: U.done }))}
+          >
+            {t("job.mark_done")}
+          </button>
         </div>
       )}
-      {paid && (
-        <fieldset className={C.row} aria-label="Confirm payment">
-          <span className={C.muted}>Customer says they paid {money((paid.detail as Payment).amount_paise)}.</span>
-          <button
-            type={C.button}
-            className={C.accent}
-            onClick={() => void run(() => device.confirmPayment((paid.detail as Payment).id))}
-          >
-            Money received
-          </button>
-          <button
-            type={C.button}
-            className={C.danger}
-            onClick={() => void run(() => device.disputePayment((paid.detail as Payment).id))}
-          >
-            Not received
-          </button>
-        </fieldset>
-      )}
+      {/* Only Today lists a worker's jobs, and it always passes onAddPayee. */}
+      {isWorker && onAddPayee && <WorkerPay job={job} view={view} device={device} run={run} onAddPayee={onAddPayee} />}
+      {isWorker && SIGNED.has(status) && <NoteBox onSend={(text) => run(() => device.update(id, text))} />}
       {!isWorker &&
         payments
-          .filter((p) => p.status === P.requested)
+          .filter((p) => p.status === P.requested && p.method === PaymentMethod.enum.upi)
           .map((p) => <PayBox key={p.id} payment={p} device={device} run={run} />)}
       {!isWorker && status === S.delivered && !job.review && payments.some((p) => p.status === P.confirmed) && (
         <ReviewForm onSend={(stars, text) => run(() => device.review(id, { stars, text }))} />
@@ -107,69 +121,92 @@ export function JobActions({ job, view, device, run }: JobActionProps) {
   );
 }
 
-function AnswerForm({
-  questions,
-  onSend,
-}: {
-  questions: Question[];
-  onSend: (a: Record<string, string>) => Promise<unknown>;
-}) {
+/** The note field's name in its form. */
+const NOTE_FIELD = "note";
+
+/** The worker's own words to the customer, sent as written and tagged with this phone's language. */
+function NoteBox({ onSend }: { onSend: (text: string) => Promise<unknown> }) {
+  const { t } = useI18n();
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const v = new FormData(e.currentTarget);
-    void onSend(Object.fromEntries(questions.map((q) => [q.key, String(v.get(q.key) ?? "").trim()])));
+    const form = e.currentTarget;
+    const field = form.elements.namedItem(NOTE_FIELD);
+    const text = String(new FormData(form).get(NOTE_FIELD) ?? "").trim();
+    if (!text) return;
+    // Cleared at once, not when the send finishes: that would wipe a next note typed meanwhile. Sends queue in order;
+    // a failed one puts its words back if the box is still empty.
+    form.reset();
+    void onSend(text).catch(() => {
+      if (field instanceof HTMLInputElement && !field.value) field.value = text;
+    });
   }
   return (
-    <form className={C.stack} onSubmit={submit} aria-label="Answer the worker">
-      {questions.map((q) => (
-        <label key={q.key} className={C.fieldLabel}>
-          <span className={C.muted}>The worker asks: {q.text}</span>
-          <input className={C.field} name={q.key} required aria-label={q.text} />
-        </label>
-      ))}
-      <div>
-        <button type={C.submit} className={C.btn}>
-          Send answers
-        </button>
-      </div>
+    <form className={C.row} onSubmit={submit} aria-label={t("a11y.note")}>
+      <input
+        className={C.field}
+        name={NOTE_FIELD}
+        aria-label={t("a11y.note")}
+        placeholder={t("job.note_placeholder")}
+      />
+      <button type={C.submit} className={C.btn}>
+        {t("job.send_note")}
+      </button>
     </form>
   );
 }
 
-/** The consumer pays in their own UPI app; GigSync only shows the QR and records the reference they paste back. */
+/**
+ * The consumer pays in their own UPI app; GigSync only shows the QR and records the reference they paste back. When
+ * the link cannot be built (this phone never got the worker's sealed payment request) it says so instead of a dead QR.
+ */
 function PayBox({ payment, device, run }: { payment: Payment; device: GigDevice; run: JobActionProps["run"] }) {
+  const { t } = useI18n();
   const [link, setLink] = useState<string>();
   const [qr, setQr] = useState<string>();
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
-    void device.upiLink(payment.id).then(async (l) => {
-      setLink(l);
-      setQr(await qrDataUrl(l));
-    });
+    let live = true;
+    setFailed(false);
+    void (async () => {
+      try {
+        const l = await device.upiLink(payment.id);
+        const image = await qrDataUrl(l);
+        if (!live) return;
+        setLink(l);
+        setQr(image);
+      } catch {
+        if (live) setFailed(true);
+      }
+    })();
+    return () => {
+      live = false;
+    };
   }, [device, payment.id]);
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const utr = String(new FormData(e.currentTarget).get("utr") ?? "").trim();
+    const utr = asciiDigits(String(new FormData(e.currentTarget).get("utr") ?? "").trim());
     void run(() => device.markPaid(payment.id, utr || undefined));
   }
   return (
-    <form className={C.stack} onSubmit={submit} aria-label="Pay">
-      <span className={C.label}>Pay {money(payment.amount_paise)} by UPI</span>
-      {qr && <img src={qr} alt="UPI QR code" width={160} height={160} />}
+    <form className={C.stack} onSubmit={submit} aria-label={t("a11y.pay")}>
+      <span className={C.label}>{t("job.pay_by_upi", { price: money(payment.amount_paise) })}</span>
+      {failed && <p className={C.error}>{t("error.generic")}</p>}
+      {qr && <img src={qr} alt={t("a11y.qr")} width={160} height={160} />}
       {link && (
-        <a className={C.linkBtn} href={link}>
-          Open in a UPI app
+        <a className={C.secondary} href={link}>
+          {t("job.open_upi")}
         </a>
       )}
       <input
         className={C.field}
         name="utr"
-        aria-label="UPI reference"
-        placeholder="12-digit UPI reference"
+        aria-label={t("a11y.utr")}
+        placeholder={t("job.utr_placeholder")}
         inputMode="numeric"
       />
-      <div>
+      <div className={C.actions}>
         <button type={C.submit} className={C.accent}>
-          I've paid
+          {t("job.paid")}
         </button>
       </div>
     </form>
@@ -177,23 +214,29 @@ function PayBox({ payment, device, run }: { payment: Payment; device: GigDevice;
 }
 
 function ReviewForm({ onSend }: { onSend: (stars: number, text: string) => Promise<unknown> }) {
+  const { t } = useI18n();
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const v = new FormData(e.currentTarget);
     void onSend(Number(v.get("stars")), String(v.get("text") ?? "").trim());
   }
   return (
-    <form className={C.row} onSubmit={submit} aria-label="Review">
-      <select className={C.field} name="stars" aria-label="Stars" defaultValue={STARS[0]}>
+    <form className={C.row} onSubmit={submit} aria-label={t("a11y.review")}>
+      <select className={C.field} name="stars" aria-label={t("a11y.stars")} defaultValue={STARS[0]}>
         {STARS.map((s) => (
           <option key={s} value={s}>
             {"★".repeat(s)}
           </option>
         ))}
       </select>
-      <input className={C.field} name="text" aria-label="Review text" placeholder="How did it go?" />
+      <input
+        className={C.field}
+        name="text"
+        aria-label={t("a11y.review_text")}
+        placeholder={t("job.review_placeholder")}
+      />
       <button type={C.submit} className={C.btn}>
-        Send review
+        {t("job.send_review")}
       </button>
     </form>
   );

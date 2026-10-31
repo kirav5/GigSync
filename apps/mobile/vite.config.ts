@@ -1,8 +1,48 @@
+import { createHash } from "node:crypto";
+import { readdirSync, readFileSync } from "node:fs";
+import { join, relative, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
+
+const SW_SOURCE = new URL("./sw/sw.js", import.meta.url);
+const PUBLIC = fileURLToPath(new URL("./public/", import.meta.url));
+const INDEX = "index.html";
+const ASSETS = "assets/";
+const SOURCE_MAP = ".map";
+
+/**
+ * Writes sw.js into the build with the app shell it precaches: ./, index.html, the manifest and icons (everything in
+ * public/), and every emitted file under assets/ except source maps. The cache is named by a hash of those names and
+ * index.html, so each release gets its own cache and the browser sees a changed worker.
+ */
+function serviceWorker(): Plugin {
+  return {
+    name: "gigsync-service-worker",
+    apply: "build",
+    enforce: "post",
+    generateBundle: {
+      order: "post",
+      handler(_output, bundle) {
+        const built = Object.keys(bundle).filter((f) => f.startsWith(ASSETS) && !f.endsWith(SOURCE_MAP));
+        const copied = readdirSync(PUBLIC, { recursive: true, withFileTypes: true })
+          .filter((entry) => entry.isFile())
+          .map((entry) => relative(PUBLIC, join(entry.parentPath, entry.name)).split(sep).join("/"));
+        const shell = ["./", `./${INDEX}`, ...[...copied, ...built].sort().map((f) => `./${f}`)];
+        const page = bundle[INDEX];
+        const html = page?.type === "asset" ? String(page.source) : "";
+        const cache = createHash("sha256").update(shell.join("\n")).update(html).digest("hex").slice(0, 12);
+        const source = readFileSync(SW_SOURCE, "utf8")
+          .replaceAll("__CACHE__", () => cache)
+          .replaceAll("__SHELL__", () => JSON.stringify(shell));
+        this.emitFile({ type: "asset", fileName: "sw.js", source });
+      },
+    },
+  };
+}
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), serviceWorker()],
   // Capacitor loads the build from the app bundle, so asset paths must be relative.
   base: "./",
   build: {
@@ -10,7 +50,7 @@ export default defineConfig({
     target: "es2022",
     sourcemap: true,
     // Two pages: the app (index.html, what Capacitor loads) and the website (home.html).
-    rollupOptions: { input: { app: "index.html", home: "home.html" } },
+    rollupOptions: { input: { app: INDEX, home: "home.html" } },
   },
   server: { port: 5173, host: true },
 });

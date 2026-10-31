@@ -1,0 +1,22 @@
+/** Contact details deleted once a job is settled, "Report a problem", and jobs restored from the record (ADR 0039 §3). */
+export const contacts = {
+  "contacts.removed": "Contact details were removed once the job was settled.",
+  "contacts.restored": "Restored from your record",
+  "contacts.restored_price": "Agreed at {price}",
+  "problem.report": "Report a problem",
+  "problem.title": "What went wrong?",
+  "problem.reason.not_paid": "Not paid",
+  "problem.reason.work_unfinished": "Work not finished",
+  "problem.reason.damage": "Something was damaged",
+  "problem.reason.behaviour": "Bad behaviour",
+  "problem.reason.other": "Something else",
+  "problem.words": "A few words (if you like)",
+  "problem.send": "Report",
+  "problem.cancel": "Cancel",
+  "problem.open_mine": "You reported a problem: {reason}.",
+  "problem.open_theirs": "{name} reported a problem: {reason}.",
+  "problem.holds": "Contact details are kept until it is resolved, for at most {days} days.",
+  "problem.resolve": "Mark resolved",
+  "problem.resolved": "The problem was marked resolved.",
+  "problem.not_told": "Their app is older, so only this phone knows about it for now.",
+} as const;

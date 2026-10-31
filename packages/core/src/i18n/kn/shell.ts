@@ -1,0 +1,32 @@
+import type { shell as en } from "../en/shell.js";
+
+/** Kannada: the app's frame (the menu, its rows, the top bar), the screens the menu opens, and Find's When chips. */
+export const shell: Readonly<Record<keyof typeof en, string>> = {
+  "nav.talk": "ಮಾತಾಡಿ",
+  "nav.activity": "ಚಟುವಟಿಕೆ",
+  "nav.records": "ದಾಖಲೆಗಳು",
+  "nav.about": "ನನ್ನ ಬಗ್ಗೆ",
+  "nav.privacy": "ಗೌಪ್ಯತೆ",
+  "nav.settings": "ಸೆಟ್ಟಿಂಗ್ಸ್",
+  "a11y.back": "ಹಿಂದಕ್ಕೆ",
+  "shell.menu": "ಮೆನು",
+  "shell.drawer": "GigSync ಮೆನು",
+  "shell.close_menu": "ಮೆನು ಮುಚ್ಚಿ",
+  "shell.to_chat": "ಚಾಟ್‌ಗೆ ಹಿಂದಕ್ಕೆ",
+  "shell.need_you.one": "{count} ಕೆಲಸ ನಿಮಗಾಗಿ ಕಾಯುತ್ತಿದೆ",
+  "shell.need_you.other": "{count} ಕೆಲಸಗಳು ನಿಮಗಾಗಿ ಕಾಯುತ್ತಿವೆ",
+  "shell.model_about": "ನಿಮ್ಮ ಏಜೆಂಟ್ ಯಾವುದರಿಂದ ನಡೆಯುತ್ತದೆ. ಸೆಟ್ಟಿಂಗ್ಸ್‌ಗೆ ಒತ್ತಿ.",
+  "shell.model_device": "ಈ ಫೋನ್‌ನಲ್ಲೇ",
+  "shell.model_lite": "ಲೈಟ್ ಮೋಡ್",
+  "shell.model_ollama": "Ollama ಮಾಡೆಲ್ · {name}",
+  "shell.edit_card": "ನನ್ನ ಕಾರ್ಡ್ ಬದಲಿಸಿ",
+  "profile.card_off": "ನಿಮ್ಮ ಕಾರ್ಡ್ ಈಗ ಬೋರ್ಡ್‌ನಲ್ಲಿ ಇಲ್ಲ",
+  "profile.language": "ಭಾಷೆ",
+  "when.today": "ಇಂದು",
+  "when.tomorrow": "ನಾಳೆ",
+  "when.pick": "ದಿನಾಂಕ ಆರಿಸಿ",
+  "when.daily": "ಪ್ರತಿದಿನ",
+  "perm.mic_why": "ನಿಮ್ಮ ಮಾತು ಕೇಳಲು GigSync ಗೆ ಮೈಕ್ರೊಫೋನ್ ಬೇಕು. ಈಗ ನಿಮ್ಮ ಫೋನ್ ಅನುಮತಿ ಕೇಳುತ್ತದೆ.",
+  "perm.continue": "ಮುಂದುವರಿಯಿರಿ",
+  "perm.not_now": "ಈಗ ಬೇಡ",
+};

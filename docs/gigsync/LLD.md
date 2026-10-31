@@ -627,6 +627,13 @@ disagree on any vector.
 | POST     | `/v1/wa/webhook`                                                                                  | Meta signature                    | Inbound menu replies and delivery status                                | planned  |
 | GET      | `/v1/content/:city`                                                                               | —                                 | Latest signed city pack (Content Worker)                                | planned  |
 | DELETE   | `/v1/account`                                                                                     | Bearer                            | DPDP erasure                                                            | planned  |
+| POST     | `/v1/estimates`                                                                                   | Bearer                            | A job's range from its drivers (ADR 0039, 0041)                         | exists   |
+
+Where estimates come from (ADR 0041): code computes every range from two sources only, GigSync's agreed jobs (once a
+group holds at least 10 jobs between 10 workers and 10 households) and the city's community rate card, each entry of
+which names its provenance; the legal minimum is the floor. A request carries the job's drivers, or, from an older
+phone, scope buckets that the server reads as drivers (`workers/api/src/estimates/drivers.ts`). No cloud model and no
+web search produces a price (ADR 0010).
 
 Handlers parse with `safeParse`, call one function, map the result; SQL lives only in `db/*`; errors are
 `{ error }` with the right status; every response carries `x-request-id`.

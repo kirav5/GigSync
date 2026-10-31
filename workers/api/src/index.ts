@@ -12,9 +12,20 @@ import { activeDevices } from "./db/devices.js";
 import { sessionOwner } from "./db/sessions.js";
 import type { Env } from "./env.js";
 import { requestLog } from "./log.js";
+import { admin } from "./routes/admin.js";
 import { auth } from "./routes/auth.js";
 import { board } from "./routes/board.js";
+import { consent } from "./routes/consent.js";
+import { content } from "./routes/content.js";
+import { devices } from "./routes/devices.js";
+import { estimates } from "./routes/estimates.js";
+import { jobMoney } from "./routes/job-money.js";
+import { jobRecords } from "./routes/job-records.js";
 import { mail } from "./routes/mail.js";
+import { me } from "./routes/me.js";
+import { mentors } from "./routes/mentors.js";
+import { qr } from "./routes/qr.js";
+import { transfer } from "./routes/transfer.js";
 
 export type { Env };
 export { Mailbox };
@@ -85,9 +96,22 @@ app.get(`${V1}/directory/:${USER_PARAM}`, async (c) => {
   return c.json({ user: user.data, devices });
 });
 
-// ── Mailbox, inbox and the job board ──────────────────────────────────────────────────────────────────────────────
+// ── Mailbox, inbox, the job board, mentors, city guides, rate estimates, personal QR codes and moving phones ─────
 app.route(V1, mail);
 app.route(`${V1}/board`, board);
+app.route(`${V1}/mentors`, mentors);
+app.route(`${V1}/content`, content);
+app.route(`${V1}/devices`, devices);
+app.route(`${V1}/estimates`, estimates);
+app.route(`${V1}/qr`, qr);
+app.route(`${V1}/transfer`, transfer);
+
+// ── Job records (ADR 0038): the notice, attestation, payments and stars, export and deletion; admin analytics ──────
+app.route(`${V1}/consent`, consent);
+app.route(`${V1}/jobs/records`, jobRecords);
+app.route(`${V1}/jobs/records`, jobMoney);
+app.route(`${V1}/me`, me);
+app.route(`${V1}/admin`, admin);
 
 app.notFound((c) => c.json({ error: ApiError.notFound }, 404));
 

@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { UserId } from "./ids.js";
-import { Place, Trade } from "./job.js";
 import { Paise } from "./payment.js";
+import { Place } from "./place.js";
+import { Trade } from "./trade.js";
+import { WorkerRecord } from "./worker-record.js";
 
 /**
  * The job board: how a consumer's agent finds workers (LLD §7.5). A worker publishes a card with their trades, an
@@ -16,7 +18,11 @@ export const MAX_RESULTS = 50;
 export const MAX_TRADES = 5;
 const MAX_LANGUAGES = 5;
 
-/** `PUT /v1/board/profile`: the worker's public card. */
+/**
+ * `PUT /v1/board/profile`: the worker's public card. Every card the server serves (search results, a scanned QR, a
+ * worker's card by id) has the same shape, with `record` computed by the server from stored job records (ADR 0038)
+ * unless the worker hid it, and no `show_record`. A `record` sent with the card is ignored.
+ */
 export const BoardProfile = z.object({
   display_name: z.string().min(1).max(60),
   trades: z
@@ -34,8 +40,19 @@ export const BoardProfile = z.object({
     .max(MAX_LANGUAGES)
     .default([]),
   about: z.string().max(300).default(""),
+  /** Served only: the server's record of the worker's stored jobs; left out when hidden or no job is stored. */
+  record: WorkerRecord.optional(),
+  /** Show my record: false hides it from the card entirely (never single ratings). Absent means unchanged (new: shown). */
+  show_record: z.boolean().optional(),
 });
 export type BoardProfile = z.infer<typeof BoardProfile>;
+
+/**
+ * `GET /v1/board/profile`: the caller's own card for a new phone's refill (ADR 0037 §4), with their switch and their
+ * record even while it is hidden from others.
+ */
+export const MyBoardProfile = BoardProfile.extend({ show_record: z.boolean() });
+export type MyBoardProfile = z.infer<typeof MyBoardProfile>;
 
 /** `GET /v1/board/workers?...`: query-string values arrive as text, hence the coercion. */
 export const BoardQuery = z.object({

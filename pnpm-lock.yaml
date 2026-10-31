@@ -25,6 +25,9 @@ importers:
       "@capacitor/core":
         specifier: 8.5.3
         version: 8.5.3
+      "@capacitor/keyboard":
+        specifier: 8.0.6
+        version: 8.0.6(@capacitor/core@8.5.3)
       "@capacitor/preferences":
         specifier: 8.0.1
         version: 8.0.1(@capacitor/core@8.5.3)
@@ -37,9 +40,18 @@ importers:
       "@gigsync/plugin-llm":
         specifier: workspace:*
         version: link:../../plugins/gigsync-llm
+      "@gigsync/plugin-speech":
+        specifier: workspace:*
+        version: link:../../plugins/gigsync-speech
+      "@gigsync/plugin-translate":
+        specifier: workspace:*
+        version: link:../../plugins/gigsync-translate
       "@gigsync/protocol":
         specifier: workspace:*
         version: link:../../packages/protocol
+      jsqr:
+        specifier: 1.4.0
+        version: 1.4.0
       qrcode:
         specifier: 1.5.4
         version: 1.5.4
@@ -101,7 +113,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.1.12
-        version: 4.1.12(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
+        version: 4.1.12(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
 
   packages/crypto:
     dependencies:
@@ -123,7 +135,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.1.12
-        version: 4.1.12(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
+        version: 4.1.12(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
 
   packages/protocol:
     dependencies:
@@ -136,9 +148,27 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.1.12
-        version: 4.1.12(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
+        version: 4.1.12(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
 
   plugins/gigsync-llm:
+    devDependencies:
+      "@capacitor/core":
+        specifier: 8.5.3
+        version: 8.5.3
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  plugins/gigsync-speech:
+    devDependencies:
+      "@capacitor/core":
+        specifier: 8.5.3
+        version: 8.5.3
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  plugins/gigsync-translate:
     devDependencies:
       "@capacitor/core":
         specifier: 8.5.3
@@ -170,7 +200,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.1.12
-        version: 4.1.12(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
+        version: 4.1.12(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
 
   tests/ui:
     dependencies:
@@ -190,6 +220,9 @@ importers:
       "@types/node":
         specifier: 26.6.5
         version: 26.6.5
+      jsqr:
+        specifier: 1.4.0
+        version: 1.4.0
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -223,7 +256,7 @@ importers:
     devDependencies:
       "@cloudflare/vitest-pool-workers":
         specifier: 0.23.0
-        version: 0.23.0(@cloudflare/workers-types@5.20261021.1)(@vitest/runner@4.1.12)(@vitest/snapshot@4.1.12)(vitest@4.1.12(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)))
+        version: 0.23.0(@cloudflare/workers-types@5.20261021.1)(@vitest/runner@4.1.12)(@vitest/snapshot@4.1.12)(vitest@4.1.12(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)))
       "@cloudflare/workers-types":
         specifier: 5.20261021.1
         version: 5.20261021.1
@@ -235,7 +268,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.1.12
-        version: 4.1.12(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
+        version: 4.1.12(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
       wrangler:
         specifier: 4.151.3
         version: 4.151.3(@cloudflare/workers-types@5.20261021.1)(@types/node@26.6.5)
@@ -273,7 +306,7 @@ importers:
     devDependencies:
       "@cloudflare/vitest-pool-workers":
         specifier: 0.23.0
-        version: 0.23.0(@cloudflare/workers-types@5.20261021.1)(@vitest/runner@4.1.12)(@vitest/snapshot@4.1.12)(vitest@4.1.12(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)))
+        version: 0.23.0(@cloudflare/workers-types@5.20261021.1)(@vitest/runner@4.1.12)(@vitest/snapshot@4.1.12)(vitest@4.1.12(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)))
       "@cloudflare/workers-types":
         specifier: 5.20261021.1
         version: 5.20261021.1
@@ -282,7 +315,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 4.1.12
-        version: 4.1.12(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
+        version: 4.1.12(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
       wrangler:
         specifier: 4.151.3
         version: 4.151.3(@cloudflare/workers-types@5.20261021.1)(@types/node@26.6.5)
@@ -391,6 +424,12 @@ packages:
       { integrity: sha512-HnnV92Jl8+3x0JUloXUMjFcUsQI8wHFVsKwkLn72DfRZXYGZW11tQbmNOWOnRTljaU18FdI1b9ipT09SzzPDNw== }
     peerDependencies:
       "@capacitor/core": ^8.5.0
+
+  "@capacitor/keyboard@8.0.6":
+    resolution:
+      { integrity: sha512-Bbe+9V0qaT6dzEFJEK7BUWR01l2+vZE8FM5ITF/WgKtx+G6eGZ6d5+YiSMRJBAK0VGjdO59v8yiQ10Doa5KyvQ== }
+    peerDependencies:
+      "@capacitor/core": ">=8.0.0"
 
   "@capacitor/preferences@8.0.1":
     resolution:
@@ -1313,6 +1352,11 @@ packages:
       { integrity: sha512-X5XaVWZIBCT7HHZGm5I7ZQXDwLG+bGXuSrMQAW+7Zvl87h1kmc1ZB1VSRJcpUfoUrGQp4Fkoxm5kZ+Ms+aW+eA== }
     engines: { node: ">= 20.19.0" }
 
+  "@opentelemetry/api@1.10.0":
+    resolution:
+      { integrity: sha512-lMkyes8iHrG+mk6WH7X70MdCLI2RS0FwNBY1PyQ8UemaijE2m5mv5A0Niy3HtbYTFrgkUEQjFMXmSAk2hQDuPQ== }
+    engines: { node: ">=8.0.0" }
+
   "@oxc-project/types@0.154.0":
     resolution:
       { integrity: sha512-KYOUGQFlLWR+s4QMV2Q9ko38TZm7EdO87Qm7rvZLqk/webse/cDjtyxKhg/47l0byCbs/k46LT8qc4PKjAikzA== }
@@ -1841,6 +1885,10 @@ packages:
   jsonfile@6.2.1:
     resolution:
       { integrity: sha512-zwOTdL3rFQ/lRdBnntKVOX6k5cKJwEc1HdilT71BWEu7J41gXIB2MRp+vxduPSwZJPWBxEzv4yH1wYLJGUHX4Q== }
+
+  jsqr@1.4.0:
+    resolution:
+      { integrity: sha512-dxLob7q65Xg2DvstYkRpkYtmKm2sPJ9oFhrhmudT1dZvNFFTlroai3AWSpLey/w5vMcLBXRgOJsbXpdN9HzU/A== }
 
   kleur@3.0.3:
     resolution:
@@ -2698,6 +2746,10 @@ snapshots:
     dependencies:
       "@capacitor/core": 8.5.3
 
+  "@capacitor/keyboard@8.0.6(@capacitor/core@8.5.3)":
+    dependencies:
+      "@capacitor/core": 8.5.3
+
   "@capacitor/preferences@8.0.1(@capacitor/core@8.5.3)":
     dependencies:
       "@capacitor/core": 8.5.3
@@ -2716,14 +2768,14 @@ snapshots:
     optionalDependencies:
       workerd: 1.20261019.1
 
-  "@cloudflare/vitest-pool-workers@0.23.0(@cloudflare/workers-types@5.20261021.1)(@vitest/runner@4.1.12)(@vitest/snapshot@4.1.12)(vitest@4.1.12(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)))":
+  "@cloudflare/vitest-pool-workers@0.23.0(@cloudflare/workers-types@5.20261021.1)(@vitest/runner@4.1.12)(@vitest/snapshot@4.1.12)(vitest@4.1.12(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)))":
     dependencies:
       "@vitest/runner": 4.1.12
       "@vitest/snapshot": 4.1.12
       cjs-module-lexer: 1.2.3
       esbuild: 0.28.1
       miniflare: 5.20260815.0-alpha
-      vitest: 4.1.12(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
+      vitest: 4.1.12(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
       wrangler: 4.124.0(@cloudflare/workers-types@5.20261021.1)
       zod: 4.4.3
     transitivePeerDependencies:
@@ -3249,6 +3301,9 @@ snapshots:
 
   "@noble/hashes@2.4.0": {}
 
+  "@opentelemetry/api@1.10.0":
+    optional: true
+
   "@oxc-project/types@0.154.0": {}
 
   "@playwright/test@1.64.0":
@@ -3627,6 +3682,8 @@ snapshots:
       universalify: 2.0.1
     optionalDependencies:
       graceful-fs: 4.2.11
+
+  jsqr@1.4.0: {}
 
   kleur@3.0.3: {}
 
@@ -4093,7 +4150,7 @@ snapshots:
       fsevents: 2.3.3
       jiti: 2.7.0
 
-  vitest@4.1.12(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)):
+  vitest@4.1.12(@opentelemetry/api@1.10.0)(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)):
     dependencies:
       "@vitest/expect": 4.1.12
       "@vitest/mocker": 4.1.12(vite@8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0))
@@ -4116,6 +4173,7 @@ snapshots:
       vite: 8.3.5(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
+      "@opentelemetry/api": 1.10.0
       "@types/node": 26.6.5
     transitivePeerDependencies:
       - msw

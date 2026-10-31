@@ -1,0 +1,148 @@
+{
+  "cases": [
+    {
+      "id": "hi-find-02",
+      "lang": "hi",
+      "role": "household",
+      "text": "कल सुबह प्लंबर चाहिए",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "list"
+    },
+    {
+      "id": "hi-find-03",
+      "lang": "hi",
+      "role": "household",
+      "text": "एचएसआर लेआउट में खाना बनाने वाली चाहिए",
+      "intent": "find",
+      "slots": { "trade": "cook", "area": "hsr_layout" },
+      "source": "list"
+    },
+    {
+      "id": "hi-find-04",
+      "lang": "hi",
+      "role": "household",
+      "text": "रसोई का नल टपक रहा है, कोई आ सकता है?",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "list"
+    },
+    {
+      "id": "hi-find-05",
+      "lang": "hi",
+      "role": "household",
+      "text": "दिवाली से पहले घर की पुताई करवानी है",
+      "intent": "find",
+      "slots": { "trade": "painter" },
+      "source": "list"
+    },
+    {
+      "id": "hi-remember-01",
+      "lang": "hi",
+      "role": "household",
+      "text": "याद रखना, गैस वाला शुक्रवार को आएगा",
+      "intent": "remember",
+      "slots": { "note": "गैस वाला शुक्रवार को आएगा" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-remember-02",
+      "lang": "hi",
+      "role": "household",
+      "text": "दूधवाले को 5 तारीख को पैसे देने हैं, याद रखना",
+      "intent": "remember",
+      "slots": { "note": "दूधवाले को 5 तारीख को पैसे देने हैं" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-remember-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "लिख लो: कोरमंगला वाली मैडम को शनिवार सुबह 7 बजे जाना है",
+      "intent": "remember",
+      "slots": { "note": "कोरमंगला वाली मैडम को शनिवार सुबह 7 बजे जाना है" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askSelf-01",
+      "lang": "hi",
+      "role": "household",
+      "text": "मैंने गैस के बारे में क्या लिखा था?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hi-askSelf-02",
+      "lang": "hi",
+      "role": "household",
+      "text": "एसी की सर्विस आख़िरी बार कब हुई थी?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-01",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["रवि", "मीना"],
+      "text": "क्या रवि कल खाली है?",
+      "intent": "askContact",
+      "slots": { "contact": "रवि" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-02",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["रवि", "मीना"],
+      "text": "मीना अभी कहाँ है?",
+      "intent": "askContact",
+      "slots": { "contact": "मीना" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-01",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["मीना"],
+      "text": "मीना को मेरी लोकेशन देखने दो",
+      "intent": "setRule",
+      "slots": { "contact": "मीना" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-02",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["रवि"],
+      "text": "रवि को मत बताना कि मैं कहाँ हूँ",
+      "intent": "setRule",
+      "slots": { "contact": "रवि" },
+      "source": "miss"
+    },
+    { "id": "hi-chat-06", "lang": "hi", "role": "worker", "text": "नमस्ते", "intent": "chat", "source": "list" },
+    {
+      "id": "hi-chat-07",
+      "lang": "hi",
+      "role": "household",
+      "text": "धन्यवाद, बहुत अच्छा लगा",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "hi-chat-08",
+      "lang": "hi",
+      "role": "worker",
+      "text": "आज बहुत थक गई हूँ",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-09",
+      "lang": "hi",
+      "role": "household",
+      "text": "बिजली वाला आया था, सब ठीक कर गया",
+      "intent": "chat",
+      "source": "miss"
+    }
+  ]
+}

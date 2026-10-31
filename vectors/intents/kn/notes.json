@@ -1,0 +1,149 @@
+{
+  "cases": [
+    {
+      "id": "kn-find-02",
+      "lang": "kn",
+      "role": "household",
+      "text": "ನಾಳೆ ಬೆಳಿಗ್ಗೆ ಪ್ಲಂಬರ್ ಬೇಕು",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "list"
+    },
+    {
+      "id": "kn-find-03",
+      "lang": "kn",
+      "role": "household",
+      "text": "HSR ಲೇಔಟ್‌ಗೆ ಅಡುಗೆ ಮಾಡೋರು ಬೇಕು",
+      "intent": "find",
+      "slots": { "trade": "cook", "area": "hsr_layout" },
+      "source": "list"
+    },
+    {
+      "id": "kn-find-04",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಅಡುಗೆಮನೆ ನಲ್ಲಿ ಸೋರ್ತಿದೆ, ಯಾರಾದ್ರೂ ಬರ್ತಾರಾ?",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "list"
+    },
+    {
+      "id": "kn-find-05",
+      "lang": "kn",
+      "role": "household",
+      "text": "naale electrician beku, Jayanagar ge",
+      "intent": "find",
+      "slots": { "trade": "electrician", "area": "jayanagar" },
+      "source": "list"
+    },
+    {
+      "id": "kn-remember-01",
+      "lang": "kn",
+      "role": "household",
+      "text": "ನೆನಪಿಡು, ಶುಕ್ರವಾರ ಗ್ಯಾಸ್ ಬರುತ್ತೆ",
+      "intent": "remember",
+      "slots": { "note": "ಶುಕ್ರವಾರ ಗ್ಯಾಸ್ ಬರುತ್ತೆ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-remember-02",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಹಾಲಿನವನಿಗೆ 5ನೇ ತಾರೀಖು ದುಡ್ಡು ಕೊಡಬೇಕು, ನೆನಪಿಡು",
+      "intent": "remember",
+      "slots": { "note": "ಹಾಲಿನವನಿಗೆ 5ನೇ ತಾರೀಖು ದುಡ್ಡು ಕೊಡಬೇಕು" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-remember-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "bardittko: Koramangala madam mane ge shanivaara 7 ganTege hogbeku",
+      "intent": "remember",
+      "slots": { "note": "Koramangala madam mane ge shanivaara 7 ganTege hogbeku" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askSelf-01",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಗ್ಯಾಸ್ ಬಗ್ಗೆ ನಾನು ಏನು ಬರೆದಿದ್ದೆ?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kn-askSelf-02",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಎಸಿ ಸರ್ವಿಸ್ ಕೊನೆ ಸಲ ಯಾವಾಗ ಆಗಿತ್ತು?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-01",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ರವಿ", "ಮೀನಾ"],
+      "text": "ರವಿ ನಾಳೆ ಫ್ರೀ ಇದ್ದಾನಾ?",
+      "intent": "askContact",
+      "slots": { "contact": "ರವಿ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-02",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Meena", "Ravi"],
+      "text": "Meena bhaanuvaara bartaala?",
+      "intent": "askContact",
+      "slots": { "contact": "Meena" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-01",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಮೀನಾ"],
+      "text": "ಮೀನಾಗೆ ನನ್ನ ಲೊಕೇಶನ್ ನೋಡೋಕೆ ಬಿಡಿ",
+      "intent": "setRule",
+      "slots": { "contact": "ಮೀನಾ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-02",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Ravi"],
+      "text": "Ravi ge naanu elli iddini antha helbedi",
+      "intent": "setRule",
+      "slots": { "contact": "Ravi" },
+      "source": "miss"
+    },
+    { "id": "kn-chat-05", "lang": "kn", "role": "worker", "text": "ನಮಸ್ಕಾರ", "intent": "chat", "source": "list" },
+    { "id": "kn-chat-06", "lang": "kn", "role": "household", "text": "ಧನ್ಯವಾದಗಳು", "intent": "chat", "source": "miss" },
+    {
+      "id": "kn-chat-07",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಇವತ್ತು ತುಂಬಾ ಸುಸ್ತಾಗಿದೆ",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-08",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಎಲೆಕ್ಟ್ರಿಷಿಯನ್ ಬಂದು ಎಲ್ಲಾ ಸರಿ ಮಾಡಿದ",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "kn-chat-09",
+      "lang": "kn",
+      "role": "household",
+      "text": "namskara, hegiddira?",
+      "intent": "chat",
+      "source": "miss"
+    }
+  ]
+}

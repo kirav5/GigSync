@@ -1,4 +1,12 @@
-import { Collection, DEFAULT_MAX_TOKENS, type Model, type Storage } from "@gigsync/core";
+import {
+  Collection,
+  DEFAULT_MAX_TOKENS,
+  type GenerateOptions,
+  type MessageKey,
+  type Model,
+  type Params,
+  type Storage,
+} from "@gigsync/core";
 import { GigSyncLLM, type ModelStatus } from "@gigsync/plugin-llm";
 import { useSyncExternalStore } from "react";
 import { OllamaModel } from "./ollama.js";
@@ -55,11 +63,12 @@ export const deviceUsable = (s: ModelStatus | undefined) =>
   Boolean(s?.available) && (s?.freeMemoryMb === undefined || s.freeMemoryMb >= MIN_FREE_MB);
 
 class DeviceModel implements Model {
-  async generate(prompt: string, options?: { maxTokens?: number }) {
+  async generate(prompt: string, options?: GenerateOptions) {
     try {
       const { text, available } = await GigSyncLLM.generate({
         prompt,
         maxTokens: options?.maxTokens ?? DEFAULT_MAX_TOKENS,
+        ...(options?.temperature === undefined ? {} : { temperature: options.temperature }),
       });
       return available ? text : null;
     } catch {
@@ -112,7 +121,7 @@ export class ChosenModel implements Model {
     this.notify();
   }
 
-  async generate(prompt: string, options?: { maxTokens?: number }): Promise<string | null> {
+  async generate(prompt: string, options?: GenerateOptions): Promise<string | null> {
     switch (this.settings.choice) {
       case ModelChoice.lite:
         return null;
@@ -126,19 +135,33 @@ export class ChosenModel implements Model {
     }
   }
 
-  /** One line for the screens: which engine will answer right now. */
-  label(): string {
-    const lite = "Lite mode (no model)";
-    const deviceLabel = `On-device: ${engineName(this.status?.engine ?? ENGINE_NONE)}`;
+  /** Which engine answers right now: the device's own model, Ollama, or none at all (lite mode). */
+  answering(): ModelChoice {
+    switch (this.settings.choice) {
+      case ModelChoice.lite:
+        return ModelChoice.lite;
+      case ModelChoice.ollama:
+        return OLLAMA_OFFERED && this.settings.ollamaModel ? ModelChoice.ollama : ModelChoice.lite;
+      case ModelChoice.device:
+        return this.status?.available ? ModelChoice.device : ModelChoice.lite;
+      default:
+        return deviceUsable(this.status) ? ModelChoice.device : ModelChoice.lite;
+    }
+  }
+
+  /** One line for the screens, in the owner's language: which engine will answer right now. */
+  label(t: (key: MessageKey, params?: Params) => string): string {
+    const lite = t("model.lite_label");
+    const device = t("model.on_device_label", { engine: engineName(this.status?.engine ?? ENGINE_NONE) });
     switch (this.settings.choice) {
       case ModelChoice.lite:
         return lite;
       case ModelChoice.ollama:
-        return this.settings.ollamaModel ? `Ollama: ${this.settings.ollamaModel} (dev)` : lite;
+        return this.settings.ollamaModel ? t("model.ollama_label", { name: this.settings.ollamaModel }) : lite;
       case ModelChoice.device:
-        return this.status?.available ? deviceLabel : `${deviceLabel} · not ready, so lite mode`;
+        return this.status?.available ? device : t("model.not_ready_lite", { device });
       default:
-        return deviceUsable(this.status) ? `Auto · ${deviceLabel}` : `Auto · ${lite}`;
+        return t("model.auto_label", { model: deviceUsable(this.status) ? device : lite });
     }
   }
 

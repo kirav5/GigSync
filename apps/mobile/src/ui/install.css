@@ -1,0 +1,152 @@
+/*
+ * The install card (InstallCard.tsx): the language screen, on iPhone or where Chrome offered its prompt. One
+ * quiet row in the card style: a tinted icon, the title and why, a × for "Not now"; the button or the iPhone step sits
+ * under the text, small and secondary, so it never shouts over the screen it is on.
+ */
+.install {
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  column-gap: 12px;
+  row-gap: 10px;
+  padding: 12px 8px 12px 14px;
+}
+/* Also leads Settings' row to the Install screen. */
+.install-badge {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent-ink);
+}
+.install .install-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding-top: 1px;
+}
+.install .install-title {
+  font-weight: 600;
+  font-size: var(--fs-2);
+  line-height: var(--lh-head);
+}
+.install .install-about {
+  color: var(--text2);
+  font-size: var(--fs-label);
+  line-height: var(--lh-body);
+}
+/* The × keeps a full tap target while looking small. */
+.install .install-later {
+  width: var(--tap);
+  min-height: var(--tap);
+  margin-top: -6px;
+  padding: 0;
+  color: var(--text3);
+}
+.install .install-action {
+  grid-column: 2 / 4;
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  padding-right: 6px;
+}
+.install .install-action .btn {
+  min-height: 40px;
+  padding: 6px 14px;
+  font-size: var(--fs-label);
+}
+.install .install-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--text2);
+  font-size: var(--fs-label);
+  line-height: var(--lh-body);
+}
+.install .install-step .ic {
+  margin-top: 0.15em;
+  flex: none;
+}
+/* The reason to do it before signing in carries the weight on iPhone, so it reads as a notice, not small print. */
+.install .install-first {
+  border-left: 2px solid var(--wait);
+  padding-left: 10px;
+  color: var(--text2);
+  font-size: var(--fs-label);
+  line-height: var(--lh-body);
+}
+
+/*
+ * The Install screen (screens/pages/InstallPage.tsx), as collab's .install-card: the logo beside where it goes and
+ * what it gives, then the numbered steps for this device. Settings' row to it shares the badge and text above.
+ */
+.install-card {
+  gap: 14px;
+}
+.install-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.install-card .logo {
+  width: 40px;
+  height: 40px;
+}
+.install-card .install-text,
+.install-row .install-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.install-card .install-title,
+.install-row .install-title {
+  font-weight: 600;
+  font-size: var(--fs-2);
+  line-height: var(--lh-head);
+}
+/* The screen's headline stays above its steps, which keep body size for reading on a phone. */
+.install-card .install-title {
+  font-size: var(--fs-title);
+}
+.install-card .install-about,
+.install-row .install-about {
+  color: var(--text2);
+  font-size: var(--fs-label);
+  line-height: var(--lh-body);
+}
+.install-steps {
+  margin: 0;
+  padding-left: 22px;
+  display: grid;
+  gap: 10px;
+  line-height: var(--lh-body);
+}
+.install-card .install-steps .ic {
+  margin-right: 6px;
+  vertical-align: -3px;
+  color: var(--accent-ink);
+}
+.install-card .install-first {
+  margin: 0;
+  border-left: 2px solid var(--wait);
+  padding-left: 10px;
+  color: var(--text2);
+  font-size: var(--fs-label);
+  line-height: var(--lh-body);
+}
+/* Settings' one way to the Install screen: the whole card is the button, with › at its end. */
+.install-row {
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  column-gap: 12px;
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.install-row .install-go {
+  color: var(--text3);
+  font-size: var(--fs-2);
+}

@@ -39,21 +39,21 @@ log platform shifts into the record from day one.
 
 ## 2. Goals and non-goals
 
-| Goals                                                                                 | Non-goals (v1)                                                            |
-| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Runs on a 4 GB, ₹10,000 Android phone on patchy 4G; every screen works offline        | iPhone-first, or flagship-only features                                   |
-| Works with **no model at all**; models only help with speech and words                | Any frontier or cloud LLM in the core path                                |
-| A worker-held signed ledger of jobs, stages and payments, across platforms and cities | A central database of workers that the worker cannot see                  |
-| Contact released only after both sides sign; it expires                               | Holding or moving money (UPI goes straight to them)                       |
-| Consented, partial exports to a union, helpline, board, partner or lender             | Ratings or ranking of workers or households, by anyone                    |
-| Discovery by trade, distance, mode and availability; the agent does the matching      | A ranked marketplace, paid placement, or liquidity as a goal              |
-| A landing journey for a worker arriving in a new city, delivered with partners        | Owning beds, lending, employing, insuring                                 |
-| Union-run circles that connect a newcomer to workers from their region                | GigSync-run communities without a steward                                 |
-| Registration help for e-Shram and state boards, and an eligibility counter            | Replacing the registries; filing on the worker's behalf without their tap |
-| Identity tiers for both sides, held by the worker; no character checks                | Background checks of workers sold as safety                               |
-| Voice first in Kannada, Hindi, Telugu and Hinglish                                    | Full literacy-dependent UI                                                |
-| Shared-phone mode: one device, a separate locked store per worker                     | Multi-tenant SaaS for platforms                                           |
-| Open formats and test vectors that others can implement                               | Lock-in through proprietary formats                                       |
+| Goals                                                                                 | Non-goals (v1)                                                                                         |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Runs on a 4 GB, ₹10,000 Android phone on patchy 4G; every screen works offline        | iPhone-first, or flagship-only features                                                                |
+| Works with **no model at all**; models only help with speech and words                | Any frontier or cloud LLM in the core path                                                             |
+| A worker-held signed ledger of jobs, stages and payments, across platforms and cities | A central database of workers that the worker cannot see                                               |
+| Contact released only after both sides sign; it expires                               | Holding or moving money (UPI goes straight to them)                                                    |
+| Consented, partial exports to a union, helpline, board, partner or lender             | Ranking of workers or households (a household's stars per job, shown on the card: ADR 0020 as amended) |
+| Discovery by trade, distance, mode and availability; the agent does the matching      | A ranked marketplace, paid placement, or liquidity as a goal                                           |
+| A landing journey for a worker arriving in a new city, delivered with partners        | Owning beds, lending, employing, insuring                                                              |
+| Union-run circles that connect a newcomer to workers from their region                | GigSync-run communities without a steward                                                              |
+| Registration help for e-Shram and state boards, and an eligibility counter            | Replacing the registries; filing on the worker's behalf without their tap                              |
+| Identity tiers for both sides, held by the worker; no character checks                | Background checks of workers sold as safety                                                            |
+| Voice first in Kannada, Hindi and English (Hinglish understood; Telugu next)          | Full literacy-dependent UI                                                                             |
+| Shared-phone mode: one device, a separate locked store per worker                     | Multi-tenant SaaS for platforms                                                                        |
+| Open formats and test vectors that others can implement                               | Lock-in through proprietary formats                                                                    |
 
 ## 3. Design principles
 

@@ -1,84 +1,79 @@
-import { rupees, summarize } from "@gigsync/core";
-import type { Engagement } from "@gigsync/protocol";
-import { JobStep, jobStep } from "../payments/store.js";
-import { type GigData, Screen } from "../state.js";
+import type { GigDevice, Ports } from "@gigsync/core";
+import type { Account } from "../adapters/account.js";
+import { useI18n } from "../i18n.js";
+import { PayeeNudge } from "../payments/PayeeNudge.js";
+import { CardState } from "../state.js";
 import { C } from "../ui/cls.js";
-import { Icon, type IconName } from "../ui/Icon.js";
-import { JobCard } from "./JobCard.js";
-
-const TILES: readonly { screen: Screen; icon: IconName; text: string }[] = [
-  { screen: Screen.jobs, icon: "plus", text: "Record a job you agreed" },
-  { screen: Screen.pay, icon: "qr", text: "Show your UPI QR and get paid" },
-  { screen: Screen.record, icon: "book", text: "See every job and payment" },
-  { screen: Screen.agent, icon: "chat", text: "Ask your agent or note something" },
-];
+import type { GigView } from "../useGig.js";
+import { ActivityFrame } from "./activity/ActivityFrame.js";
+import { MentorToday } from "./mentor/MentorToday.js";
+import { FloorAsk } from "./move/FloorAsk.js";
 
 interface Props {
-  data: GigData;
-  go: (s: Screen) => void;
-  pay: (job: Engagement) => void;
+  ports: Ports;
+  view: GigView;
+  device: GigDevice;
+  run: (work: () => Promise<unknown>) => Promise<unknown>;
+  card: CardState;
+  /** Opens Talk with the card interview. */
+  onMakeCard: () => void;
+  onOpenCard: () => void;
+  /** Opens About me, where the UPI ID is added. */
+  onAddPayee: () => void;
+  /** Opens Records, where finished jobs are. */
+  onRecords: () => void;
+  /** Whose phone this is: a mentor's answer to a newcomer carries their card. */
+  account: Account;
+  /** The account changed here (the lowest price given after the card came back). */
+  onSaved: (a: Account) => void;
 }
 
-/** The start screen: what the worker has earned, what is still owed, and where to go next. */
-export function Today({ data, go, pay }: Props) {
-  const sum = summarize(data.payments);
-  const open = data.jobs.filter((j) => jobStep(j, data.payments) !== JobStep.paid);
-  return (
+/**
+ * A worker's Activity: the shared frame (Awaiting you, In talks, Agreed by day, Closed into Records), with the
+ * worker's own nudges above the counters: the lowest price after a move, the UPI ID, a mentor's note, and making or
+ * listing their card. Each job card carries its own actions, so the screen has no dock.
+ */
+export function Today(props: Props) {
+  const { ports, view, device, run, card, onMakeCard, onOpenCard, onAddPayee, onRecords, account, onSaved } = props;
+  const { t } = useI18n();
+  const top = (
     <>
-      <div className={C.stack}>
-        <span className={C.labelSq}>Today</span>
-        <h1 className={C.headline}>
-          On your side, <span className={C.soft}>every working day.</span>
-        </h1>
-      </div>
-
-      {data.ready && !data.payee && (
-        <div className={C.cardWait}>
-          <strong>Add your UPI ID to get paid</strong>
-          <span className={C.muted}>
-            Customers pay you directly. It stays on this phone; GigSync never touches the money.
-          </span>
-          <div>
-            <button type={C.button} className={C.accent} onClick={() => go(Screen.settings)}>
-              Add UPI ID
+      <FloorAsk ports={ports} account={account} onSaved={onSaved} />
+      <PayeeNudge ports={ports} view={view} onAdd={onAddPayee} />
+      <MentorToday account={account} device={device} run={run} syncedAt={view.syncedAt} />
+      {card === CardState.none && (
+        <div className={C.card}>
+          <span>{t("home.no_card")}</span>
+          <div className={C.actions}>
+            <button type={C.button} className={C.accent} onClick={onMakeCard}>
+              {t("home.make_card")}
             </button>
           </div>
         </div>
       )}
-
-      <div className="stats">
-        <div>
-          <span className={C.label}>Received</span>
-          <b className={C.money}>₹{rupees(sum.confirmed)}</b>
+      {card === CardState.off && (
+        <div className={C.card}>
+          <span>{t("home.card_off")}</span>
+          <div className={C.actions}>
+            <button type={C.button} className={C.secondary} onClick={onOpenCard}>
+              {t("nav.card")}
+            </button>
+          </div>
         </div>
-        <div>
-          <span className={C.label}>Waiting</span>
-          <b className={C.money}>₹{rupees(sum.outstanding)}</b>
-        </div>
-        <div>
-          <span className={C.label}>Open jobs</span>
-          <b>{open.length}</b>
-        </div>
-      </div>
-
-      <div className="grid-tiles">
-        {TILES.map((t) => (
-          <button key={t.text} type={C.button} className="tile" onClick={() => go(t.screen)}>
-            <Icon name={t.icon} />
-            <p>{t.text}</p>
-            <span className="arrow">→</span>
-          </button>
-        ))}
-      </div>
-
-      {open.length > 0 && (
-        <section className={C.stack}>
-          <span className={C.label}>Open jobs</span>
-          {open.slice(0, 3).map((j) => (
-            <JobCard key={j.id} job={j} payments={data.payments} onPay={pay} />
-          ))}
-        </section>
       )}
     </>
+  );
+  return (
+    <ActivityFrame
+      now={ports.clock.now()}
+      top={top}
+      byDay
+      hint="activity.hint_worker"
+      onRecords={onRecords}
+      view={view}
+      device={device}
+      run={run}
+      onAddPayee={onAddPayee}
+    />
   );
 }

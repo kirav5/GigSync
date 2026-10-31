@@ -1,48 +1,45 @@
-import { PaymentBook, type Ports } from "@gigsync/core";
-import type { Engagement, Payment, UserId } from "@gigsync/protocol";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { loadPayee, type Payee, selfId, workerJobs } from "./payments/store.js";
-
-/** The screens of the app, in the order of the menu. */
+/**
+ * The screens of the app. The chat is home: Talk for a worker, Find's chat for a household. The menu opens the rest;
+ * a few are opened from inside one of those (see `shell/nav.ts`).
+ */
 export const Screen = {
+  /** A household's home: Find's chat (or its form). */
   find: "find",
-  requests: "requests",
+  /** A worker's home: Talk, their chats with their agent. */
+  talk: "talk",
+  /** What the agents are doing: Awaiting you, In talks and Agreed, for a worker and a household alike. */
+  activity: "activity",
+  /** Completed work: earnings and the work record for a worker; what they paid for a household. */
+  records: "records",
+  /** The owner's card at a glance and their QR code. */
   card: "card",
-  today: "today",
-  jobs: "jobs",
-  pay: "pay",
-  record: "record",
-  agent: "agent",
+  /** Name and role, the UPI ID (workers), language, and what the agent remembers. */
+  about: "about",
+  /** Price sharing and mentor links. */
+  privacy: "privacy",
+  /** Look, voice actions, the on-device model, how the agent bargains, and a row to Install. */
   settings: "settings",
+  /** The worker's card as a form, to review and change; opened from My card. */
+  cardEdit: "card_edit",
+  /** One mentor link: its notes, renew, block and introductions, opened from Privacy. */
+  link: "link",
+  /** Moving to a new city: the checklist of the landing journey and its city guide, opened from a move in Talk. */
+  landing: "landing",
+  /** Find a mentor in a new city: the fallback screen, with introductions, opened from Talk and the landing journey. */
+  findMentor: "find_mentor",
+  /** Whoever a scanned QR or an opened QR link finds. */
+  person: "person",
+  /** The steps to put the web app on the home screen, from the menu's Install app or Settings. */
+  install: "install",
+  /** The old phone's side of moving to a new one: its move QR, from Settings (ADR 0037). */
+  moveOut: "move_out",
+  /** The new phone's side: scan the old phone's code, from Settings and once after sign-in on an empty phone. */
+  moveIn: "move_in",
+  /** The Terms and Privacy Notice (a placeholder until they are written), from Settings (ADR 0039 §4). */
+  terms: "terms",
 } as const;
 export type Screen = (typeof Screen)[keyof typeof Screen];
 
-export interface GigData {
-  ready: boolean;
-  self?: UserId;
-  payee?: Payee;
-  jobs: Engagement[];
-  payments: Payment[];
-}
-
-/** Everything the worker's screens show, read from this phone, plus a reload after any change. */
-export function useGigData(ports: Ports) {
-  const book = useMemo(() => new PaymentBook(ports.storage, ports.clock), [ports]);
-  const [data, setData] = useState<GigData>({ ready: false, jobs: [], payments: [] });
-
-  const reload = useCallback(async () => {
-    const [self, payee, jobs, payments] = await Promise.all([
-      selfId(ports.storage),
-      loadPayee(ports.storage),
-      workerJobs(ports.storage),
-      book.all(),
-    ]);
-    setData({ ready: true, self, ...(payee ? { payee } : {}), jobs, payments });
-  }, [ports, book]);
-
-  useEffect(() => {
-    void reload();
-  }, [reload]);
-
-  return { ...data, book, reload };
-}
+/** The worker's card: none yet, made but off the board, or on the board. */
+export const CardState = { none: "none", off: "off", on: "on" } as const;
+export type CardState = (typeof CardState)[keyof typeof CardState];

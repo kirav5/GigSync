@@ -1,0 +1,88 @@
+/* Moving to a new city: the guide's label, the steps of the move, checklists and the guide's lists.
+   Sizes and colours come from the tokens in styles.css. */
+
+/* The draft label: on every screen that shows the guide, never easy to miss. */
+.guide-label {
+  display: grid;
+  gap: 4px;
+  padding: 12px var(--gutter);
+  border-left: 4px solid var(--wait);
+  background: var(--wait-fill);
+  color: var(--text);
+}
+
+.journey-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-label);
+  color: var(--text3);
+}
+.journey-steps li[aria-current] {
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+
+.journey-list,
+.guide-list,
+.guide-sources ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.journey-item {
+  display: grid;
+  gap: 4px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--hairline);
+}
+.journey-item details,
+.as-written {
+  padding-left: 34px;
+}
+
+.guide-section {
+  display: grid;
+  gap: 8px;
+}
+.guide-body {
+  line-height: var(--lh-body);
+}
+.guide-sources {
+  display: grid;
+  gap: 6px;
+  font-size: var(--fs-2);
+}
+.guide-sources a,
+.guide-list a {
+  color: var(--peri);
+  overflow-wrap: anywhere;
+}
+
+.guide-quote {
+  display: grid;
+  gap: 8px;
+}
+.guide-quote blockquote {
+  margin: 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--hairline);
+  background: var(--surface2);
+  font-size: var(--fs-2);
+}
+
+/* A helpline is one tap to call: a full-height row. */
+.helpline {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  min-height: var(--tap);
+  padding: 8px 0;
+  color: var(--text);
+  text-decoration: none;
+}

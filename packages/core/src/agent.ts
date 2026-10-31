@@ -1,45 +1,52 @@
 import { type Card, type Contact, runExpert } from "./experts.js";
 import { log, pii } from "./log.js";
 import { Collection, type Ports } from "./ports.js";
-import { type Route, routeByKeywords } from "./router/keyword.js";
+import { ChatIntent, type ChatRoute, type IntentContext } from "./router/intent.js";
+import { Expert, type Route } from "./router/keyword.js";
+import { routeChat } from "./router/route-chat.js";
 
-export interface Router {
-  route(text: string, contacts: readonly string[]): Promise<Route>;
+/** Who is asking, without the contacts: the agent reads those from this owner's storage. */
+export type RouteContext = Omit<IntentContext, "contacts">;
+
+/** The agent's experts by the intent that reaches them; any other intent the agent is handed is chat. */
+const EXPERT: Partial<Record<ChatIntent, Expert>> = {
+  [ChatIntent.remember]: Expert.remember,
+  [ChatIntent.askSelf]: Expert.askSelf,
+  [ChatIntent.askContact]: Expert.askContact,
+  [ChatIntent.setRule]: Expert.setRule,
+  [ChatIntent.find]: Expert.find,
+};
+
+/** What an expert takes from a route: a note is kept as the owner's own words, anything else as said. */
+function expertRoute(text: string, { intent, slots }: ChatRoute): Route {
+  const expert = EXPERT[intent] ?? Expert.chat;
+  const words = expert === Expert.remember ? (slots.note ?? text) : text;
+  return { expert, text: words, ...(slots.contact ? { contact: slots.contact } : {}) };
 }
 
-/** Keyword routing only. The model router (M1) implements the same interface. */
-export class KeywordRouter implements Router {
-  async route(text: string, contacts: readonly string[]) {
-    return routeByKeywords(text, contacts);
-  }
-}
-
-/** One message in, one card out. Everything the agent does goes through here, on every platform. */
+/**
+ * One message in, one route, and for the agent's own experts (notes, questions, contacts, finding, chat) one card out.
+ * Routing is `routeChat` alone (ADR 0040): the phone's model when it has one, the word lists otherwise.
+ */
 export class Agent {
-  constructor(
-    private ports: Ports,
-    private router: Router = new KeywordRouter(),
-  ) {}
+  constructor(private ports: Ports) {}
 
-  async handle(text: string): Promise<{ route: Route; card: Card }> {
-    const start = Date.now();
-    log.debug("chat: input", { text: pii(text) });
+  /** The message's route, with this owner's contacts as the names a route may carry. */
+  async route(text: string, ctx: RouteContext): Promise<ChatRoute> {
     const contacts = await this.ports.storage.list<Contact>(Collection.contacts);
-    const route = await this.router.route(
-      text,
-      contacts.map((c) => c.name),
-    );
-    log.debug("chat: routed", { expert: route.expert, contact: pii(route.contact), text: pii(route.text) });
+    return routeChat(text, { ...ctx, contacts: contacts.map((c) => c.name) }, this.ports.model);
+  }
+
+  /** The card for a routed message, from the expert its intent names. */
+  async answer(text: string, chat: ChatRoute): Promise<Card> {
+    const start = Date.now();
+    const contacts = await this.ports.storage.list<Contact>(Collection.contacts);
+    const route = expertRoute(text, chat);
+    log.debug("chat: expert", { expert: route.expert, contact: pii(route.contact), text: pii(route.text) });
     const card = await runExpert(route, this.ports, contacts);
-    await this.ports.storage.put(Collection.chat, `ch_${Date.now()}`, {
-      text,
-      route,
-      card,
-      at: this.ports.clock.now().toISOString(),
-    });
-    log.debug("chat: reply", { kind: card.kind, body: pii(card.body) });
+    log.debug("chat: reply", { kind: card.kind, card: pii(JSON.stringify(card)) });
     // What happened, never what was said: the expert, the outcome, the size of the message and the time taken.
     log.info("chat handled", { expert: route.expert, card: card.kind, chars: text.length, ms: Date.now() - start });
-    return { route, card };
+    return card;
   }
 }

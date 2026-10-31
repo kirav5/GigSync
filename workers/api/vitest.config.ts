@@ -17,7 +17,14 @@ export default defineConfig({
   plugins: [
     cloudflareTest({
       wrangler: { configPath: "./wrangler.toml" },
-      miniflare: { bindings: { DEV_OTP: "000000", PHONE_HMAC_KEY: "test-only-key" } },
+      miniflare: {
+        bindings: {
+          DEV_OTP: "000000",
+          PHONE_HMAC_KEY: "test-only-key",
+          ADMIN_KEY: "test-only-admin-key",
+          ENVIRONMENT: "local",
+        },
+      },
     }),
   ],
   resolve: {

@@ -4,19 +4,25 @@ import {
   Header,
   MemoryStorage,
   type NewNeed,
+  type Random,
   SecretKeys,
   SystemClock,
+  savePayee,
   settle,
   type WorkerRules,
 } from "@gigsync/core";
 import { newDeviceSecrets } from "@gigsync/crypto";
-import type { ContactCard, Place, Session, Trade } from "@gigsync/protocol";
+import type { ContactCard, Lang, Payee, Place, Session, Trade } from "@gigsync/protocol";
 
 /** The API under test: `pnpm dev:workers`, which talks to the Neon directory. */
 export const API = process.env.API_BASE ?? "http://localhost:8787";
 const DEV_OTP = process.env.DEV_OTP ?? "000000";
 const KM_PER_DEGREE = 111;
 const IP_OCTET = 250;
+
+const UINT32 = 2 ** 32;
+/** Each job's hidden negotiation settings come from the platform's cryptographic source, as on a phone. */
+const cryptoRandom: Random = { next: () => (crypto.getRandomValues(new Uint32Array(1))[0] as number) / UINT32 };
 
 /** A fresh 10-digit Indian mobile number, so runs never collide in the shared directory. */
 const digits = (n: number) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join("");
@@ -60,9 +66,10 @@ export interface Person {
   device: GigDevice;
 }
 
+/** One person's phone. `payee` is the UPI ID they saved in Profile, kept in that phone's settings. */
 export async function person(
   name: string,
-  opts: { worker?: WorkerRules; autoConfirm?: boolean; address?: string } = {},
+  opts: { worker?: WorkerRules; autoConfirm?: boolean; address?: string; lang?: Lang; payee?: Payee } = {},
 ): Promise<Person> {
   const keys = new SecretKeys(newDeviceSecrets());
   const phone = newPhone();
@@ -70,20 +77,32 @@ export async function person(
   const session = await anon.verifyOtp(phone, DEV_OTP, { ...(await keys.publicKeys()), protocol: 1 });
   const api = anon.as(session);
   const contact: ContactCard = { name, phone, ...(opts.address ? { address: opts.address } : {}) };
+  const storage = new MemoryStorage();
+  if (opts.payee) await savePayee(storage, opts.payee);
   const device = new GigDevice({
     relay: api,
-    storage: new MemoryStorage(),
+    storage,
     keys,
     clock: new SystemClock(),
+    random: cryptoRandom,
     me: { user: session.user, device: session.device },
     contact,
     ...(opts.worker ? { worker: opts.worker } : {}),
     ...(opts.autoConfirm !== undefined ? { autoConfirm: opts.autoConfirm } : {}),
+    ...(opts.lang ? { lang: opts.lang } : {}),
   });
   return { name, contact, session, api, keys, device };
 }
 
-/** A worker who has listed themselves on the board: public rate = opening, private minimum = limit. */
+/** A test UPI ID for someone, as they would save it in Profile: `<name>.test@okaxis`. */
+export function testPayee(name: string): Payee {
+  return { vpa: `${name.toLowerCase().replace(/[^a-z]/g, "")}.test@okaxis`, name };
+}
+
+/**
+ * A worker who has listed themselves on the board: public rate = opening, private minimum = limit. Their UPI ID is
+ * saved in settings, as `testPayee` makes it.
+ */
 export async function worker(
   name: string,
   trades: Trade[],
@@ -91,17 +110,15 @@ export async function worker(
   price: { rate: number; min: number },
   opts: { autoConfirm?: boolean; radiusKm?: number; areaName?: string } = {},
 ): Promise<Person> {
-  const handle = name.toLowerCase().replace(/[^a-z]/g, "");
   const rules: WorkerRules = {
     trades,
     rate: { opening_paise: price.rate, limit_paise: price.min },
     base: where,
     radius_km: opts.radiusKm ?? 10,
-    vpa: `${handle}.test@okaxis`,
-    payee_name: name,
   };
   const p = await person(name, {
     worker: rules,
+    payee: testPayee(name),
     ...(opts.autoConfirm !== undefined ? { autoConfirm: opts.autoConfirm } : {}),
   });
   await p.api.publishProfile({

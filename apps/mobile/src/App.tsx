@@ -1,51 +1,56 @@
-import { Agent } from "@gigsync/core";
-import type { Engagement } from "@gigsync/protocol";
-import { useEffect, useMemo, useState } from "react";
-import { type Account, AccountRole, deviceFor, loadAccount, signOut } from "./adapters/account.js";
-import { apiReachable } from "./adapters/api.js";
+import { Agent, ownerPorts } from "@gigsync/core";
+import type { Lang } from "@gigsync/protocol";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type Account, deviceFor, loadAccount, raiseDeviceProtocol, signOut } from "./adapters/account.js";
+import { keepBackInApp, onBackButton } from "./adapters/back.js";
+import { loadLang, saveLang, suggestedLang } from "./adapters/lang.js";
 import { chosenModel } from "./adapters/model.js";
 import { createPorts } from "./adapters/ports.js";
-import { JobStep, jobStep } from "./payments/store.js";
-import { CONSUMER_NAV, Shell, WORKER_NAV } from "./Shell.js";
-import { AgentScreen } from "./screens/Agent.js";
-import { Find } from "./screens/Find.js";
-import { Jobs } from "./screens/Jobs.js";
-import { MyCard } from "./screens/MyCard.js";
-import { Pay } from "./screens/Pay.js";
-import { Record } from "./screens/Record.js";
-import { Requests } from "./screens/Requests.js";
-import { Settings } from "./screens/Settings.js";
+import { prepareListening } from "./adapters/speech.js";
+import { forgetCloudConsent } from "./adapters/speech-settings.js";
+import { fetchPacksOnTap, prepareLanguage } from "./adapters/translate.js";
+import { forgetFind, loadFind } from "./find/findChats.js";
+import { I18nProvider } from "./i18n.js";
+import { LanguageChooser } from "./screens/Language.js";
 import { SignIn } from "./screens/SignIn.js";
-import { Today } from "./screens/Today.js";
-import { Screen, useGigData } from "./state.js";
+import { setDrawer } from "./shell/drawer.js";
+import { SignedIn } from "./shell/SignedIn.js";
+import { forgetTalk, loadTalk } from "./talk/talkStore.js";
+import { Frame } from "./ui/Frame.js";
 import { useGig } from "./useGig.js";
-
-/** Where each role lands after signing in. */
-const HOME: Readonly<Record<AccountRole, Screen>> = {
-  [AccountRole.consumer]: Screen.find,
-  [AccountRole.worker]: Screen.card,
-};
 
 /** GigSync on one phone: sign in, then a consumer finds and asks, a worker is found and answers; agents negotiate. */
 export function App() {
   const ports = useMemo(createPorts, []);
-  const agent = useMemo(() => new Agent(ports), [ports]);
-  const gig = useGigData(ports);
   const [account, setAccount] = useState<Account | null>();
-  const device = useMemo(() => (account ? deviceFor(ports, account) : undefined), [ports, account]);
-  const { view, run } = useGig(ports, device);
-  const [screen, setScreen] = useState<Screen>(Screen.find);
-  const [navOpen, setNavOpen] = useState(false);
-  const [payJob, setPayJob] = useState<string>();
-  const [platform, setPlatform] = useState("web");
-  const [online, setOnline] = useState<boolean>();
+  const owner = account?.session.user;
+  /**
+   * What the signed-in owner's agent and screens use: this phone, with its storage seen as theirs alone, so a shared
+   * phone never shows one owner's jobs, money or memory to the next. Signed out, only the phone's own settings are read.
+   */
+  const owned = useMemo(() => (owner ? ownerPorts(ports, owner) : ports), [ports, owner]);
+  const agent = useMemo(() => new Agent(owned), [owned]);
+  /** undefined while loading; null until the owner picks one on the first screen. */
+  const [lang, setLangState] = useState<Lang | null>();
+  const device = useMemo(() => (account && lang ? deviceFor(owned, account, lang) : undefined), [owned, account, lang]);
+  const setLang = useCallback(
+    (next: Lang) => {
+      setLangState(next);
+      void saveLang(ports, next);
+      // Picked with a tap, the one moment engines allow a download: other people's words are ready in it.
+      prepareLanguage(next);
+      // And its voice typing, where the phone can fetch it.
+      prepareListening(next);
+    },
+    [ports],
+  );
+  const { view, run } = useGig(owned, device);
 
   useEffect(() => {
-    import("@capacitor/core").then(({ Capacitor }) => setPlatform(Capacitor.getPlatform()));
-    void apiReachable().then(setOnline);
+    void loadLang(ports).then((l) => setLangState(l ?? null));
     void loadAccount(ports).then((a) => {
       setAccount(a ?? null);
-      if (a) setScreen(a.role === AccountRole.worker && a.worker ? Screen.requests : HOME[a.role]);
+      if (a) void raiseDeviceProtocol(ports, a);
     });
   }, [ports]);
 
@@ -53,65 +58,64 @@ export function App() {
     void chosenModel.load(ports.storage);
   }, [ports]);
 
-  if (account === undefined) return null;
-  if (account === null || !device) {
+  // Talk's and Find's chats are the owner's: read once they are signed in, from their records on this phone.
+  useEffect(() => {
+    if (!owner) return;
+    void loadTalk(owned);
+    void loadFind(owned);
+  }, [owner, owned]);
+
+  // Back (Android's button, the browser's, or the one on screen): the signed-in screens move back one place
+  // (shell/SignedIn.tsx), and from the chat the app goes to the background, or the browser leaves. One listener for
+  // the app's life, reading the current handler through a ref, so a press never lands between two listeners.
+  const back = useRef<() => boolean>(() => false);
+  // A line waiting for a language pack has it fetched on the owner's next tap anywhere.
+  useEffect(() => fetchPacksOnTap(), []);
+  useEffect(() => onBackButton(() => back.current()), []);
+  useEffect(() => {
+    if (!account) keepBackInApp(false);
+  }, [account]);
+
+  if (account === undefined || lang === undefined) return null;
+  if (lang === null || account === null || !device) {
     return (
-      <div className="app">
-        <main className="main">
-          <div className="content">
-            <div className="inner">
-              <SignIn
-                ports={ports}
-                onSignedIn={(a) => {
-                  setAccount(a);
-                  setScreen(HOME[a.role]);
-                }}
-              />
-            </div>
-          </div>
-        </main>
-      </div>
+      <Frame>
+        {lang === null ? (
+          <LanguageChooser suggested={suggestedLang()} onChoose={setLang} />
+        ) : (
+          <I18nProvider lang={lang} setLang={setLang}>
+            <SignIn ports={ports} onLanguage={() => setLangState(null)} onSignedIn={setAccount} />
+          </I18nProvider>
+        )}
+      </Frame>
     );
   }
 
-  const isWorker = account.role === AccountRole.worker;
-  const pay = (job: Engagement) => {
-    setPayJob(job.id);
-    setScreen(Screen.pay);
-  };
-  const due = gig.jobs.filter((j) => jobStep(j, gig.payments) === JobStep.done).length;
-  const waiting = view.tasks.length;
-  const status = `${platform} · ${online === undefined ? "…" : online ? "online" : "offline"}`;
-
+  const signOutNow = () =>
+    // Their records stay on the phone under their name, for when they sign in again.
+    void signOut(ports).then(() => {
+      // Talk's and Find's chats stay on the phone under their name, off the screen. The companies they let hear
+      // them were theirs alone.
+      forgetTalk();
+      forgetFind();
+      forgetCloudConsent();
+      setDrawer(false);
+      setAccount(null);
+    });
   return (
-    <Shell
-      nav={isWorker ? WORKER_NAV : CONSUMER_NAV}
-      who={`${account.contact.name} · ${isWorker ? "worker" : "customer"}`}
-      onSignOut={() => void signOut(ports).then(() => setAccount(null))}
-      screen={screen}
-      onScreen={setScreen}
-      navOpen={navOpen}
-      onNav={setNavOpen}
-      trail={{
-        [Screen.requests]: waiting ? `${waiting} to decide` : view.jobs.length ? String(view.jobs.length) : "",
-        [Screen.jobs]: gig.jobs.length ? String(gig.jobs.length) : "",
-        [Screen.pay]: due ? `${due} due` : "",
-      }}
-      status={status}
-    >
-      {screen === Screen.find && (
-        <Find ports={ports} account={account} device={device} onAsked={() => setScreen(Screen.requests)} />
-      )}
-      {screen === Screen.requests && <Requests isWorker={isWorker} view={view} device={device} run={run} />}
-      {screen === Screen.card && <MyCard ports={ports} account={account} onSaved={setAccount} />}
-      {screen === Screen.today && <Today data={gig} go={setScreen} pay={pay} />}
-      {screen === Screen.jobs && <Jobs ports={ports} data={gig} changed={gig.reload} pay={pay} />}
-      {screen === Screen.pay && (
-        <Pay data={gig} book={gig.book} jobId={payJob} onJob={setPayJob} go={setScreen} changed={gig.reload} />
-      )}
-      {screen === Screen.record && <Record data={gig} />}
-      {screen === Screen.agent && <AgentScreen agent={agent} />}
-      {screen === Screen.settings && <Settings ports={ports} data={gig} changed={gig.reload} />}
-    </Shell>
+    <I18nProvider lang={lang} setLang={setLang}>
+      <SignedIn
+        key={account.session.user}
+        agent={agent}
+        ports={owned}
+        account={account}
+        device={device}
+        view={view}
+        run={run}
+        onAccount={setAccount}
+        onSignOut={signOutNow}
+        back={back}
+      />
+    </I18nProvider>
   );
 }

@@ -1,0 +1,144 @@
+/* The worker's record inside Passbook: a summary line and finished jobs by month. Each row
+   is one 48px button that opens the job's own card under it. Sizes and colours come from the tokens in styles.css, so
+   Hindi and Kannada get their larger type and taller lines from :lang() there. */
+.record {
+  display: grid;
+  gap: 12px;
+}
+.record > h2 {
+  margin: 0;
+  font-size: var(--fs-body);
+  font-weight: 600;
+  line-height: var(--lh-head);
+}
+.record-summary {
+  color: var(--text2);
+  font-size: var(--fs-2);
+}
+.record-month {
+  display: grid;
+  gap: 6px;
+}
+.record-month > h3 {
+  margin: 0;
+  font-size: var(--fs-2);
+  font-weight: 600;
+  line-height: var(--lh-head);
+  color: var(--text2);
+}
+
+.record-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.record-list > li + li {
+  border-top: 1px solid var(--hairline);
+}
+
+.record-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--tap);
+  margin: 0;
+  padding: 12px 14px;
+  border: 0;
+  background: none;
+  text-align: start;
+  cursor: pointer;
+}
+.record-line[aria-expanded="true"] {
+  background: var(--surface2);
+}
+.record-line:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: -2px;
+}
+
+/* Day | name and trade, then the money state | price. The price column holds only the amount, so a long chip in
+   Hindi or Kannada wraps under the name instead of squeezing it. */
+.record-text {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  align-items: baseline;
+}
+.record-day {
+  min-width: 3.5em;
+  color: var(--text2);
+  font-size: var(--fs-2);
+  font-variant-numeric: tabular-nums;
+}
+.record-who {
+  overflow-wrap: anywhere;
+}
+.record-price {
+  text-align: end;
+}
+.record-trade,
+.record-state {
+  grid-column: 2 / -1;
+  color: var(--text2);
+  font-size: var(--fs-2);
+}
+.record-state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  padding-top: 4px;
+  overflow-wrap: anywhere;
+}
+.record-state .tag {
+  white-space: normal;
+}
+
+/* The same chevron as the job folds (jobs.css): pointing on when shut, down when open. */
+.record-chevron {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--text2);
+  border-bottom: 2px solid var(--text2);
+  transform: rotate(-45deg);
+}
+.record-line[aria-expanded="true"] .record-chevron {
+  transform: rotate(45deg);
+}
+
+.record-job {
+  padding: 10px;
+  background: var(--surface2);
+}
+
+/* A narrow phone: the day takes its own line above the name. */
+@media (max-width: 360px) {
+  .record-text {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .record-day {
+    grid-column: 1 / -1;
+  }
+  .record-trade,
+  .record-state {
+    grid-column: 1 / -1;
+  }
+}
+
+/* "Download my work record" in Records: one quiet row, its button over the line that says what it holds. */
+.record-download {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+}

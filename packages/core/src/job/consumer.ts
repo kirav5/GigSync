@@ -7,14 +7,19 @@ import {
   EnvelopeKind,
   type JobRequest,
   type Offer,
+  QuestionKey,
   Role,
+  SKIPPED,
   type UserId,
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
+import { answersFound } from "./answer.js";
 import type { JobContext } from "./context.js";
 import { accept, cancel, termsFor } from "./deal.js";
+import { planHousehold } from "./household-plan.js";
 import { MoveKind, respond } from "./negotiate.js";
-import { type JobRecord, type Need, TaskKind } from "./store.js";
+import { AnswerSource, type JobRecord, type Need, type Suggested, TaskKind } from "./store.js";
+import { householdTerms, nextTerms, requestTerms, speaksTerms, termsField, withTerms } from "./terms-flow.js";
 
 const K = EnvelopeKind.enum;
 const R = Role.enum;
@@ -24,12 +29,15 @@ export async function startRequest(ctx: JobContext, need: Need, worker: UserId):
   const now = ctx.clock.now();
   const at = now.toISOString();
   const id = `eng_${ulid(now.getTime())}` as EngagementId;
+  const terms = await speaksTerms(ctx, worker);
   const request: JobRequest = {
     trade: need.trade,
     need: need.need,
     when: need.when,
     area: need.area,
     details: need.details,
+    lang: ctx.lang,
+    ...requestTerms(need, terms),
   };
   const r: JobRecord = {
     engagement: {
@@ -46,33 +54,75 @@ export async function startRequest(ctx: JobContext, need: Need, worker: UserId):
     offers: [],
     offers_made: 0,
     asked: false,
+    ...(need.estimate ? { estimate: need.estimate } : {}),
+    terms: { on: terms },
   };
   return ctx.send(r, K.request, request);
 }
 
-/** The worker asked questions: answer from what the owner already said, or ask the owner for the rest. */
-export async function onClarify(ctx: JobContext, need: Need, r: JobRecord, body: Clarify): Promise<JobRecord> {
-  const unknown = body.questions.filter((q) => !need.details[q.key]);
-  if (unknown.length > 0) {
-    await ctx.store.addTask(TaskKind.answerQuestions, r.engagement.id, unknown, ctx.clock.now());
+/**
+ * The worker asked questions: the agent answers what its owner already said (this need's words, or a past job's
+ * stable facts when the owner lets it) and asks the owner the rest, with any remembered answer filled in for them to
+ * send, change or skip. Nothing is sent until every question has an answer.
+ */
+export async function onClarify(ctx: JobContext, need: Need, job: JobRecord, body: Clarify): Promise<JobRecord> {
+  const { found, suggested } = await answersFound(ctx, need, body.questions);
+  const { suggested: _before, ...rest } = job;
+  const r: JobRecord = {
+    ...rest,
+    questions: body.questions,
+    answers: { ...job.answers, ...mapValues(found, (f) => f.text) },
+    answered_from: { ...job.answered_from, ...mapValues(found, (f) => f.source) },
+    ...(Object.keys(suggested).length > 0 ? { suggested } : {}),
+  };
+  const open = body.questions.filter((q) => found[q.key] === undefined);
+  if (open.length > 0) {
+    await ctx.store.addTask(TaskKind.answerQuestions, r.engagement.id, open, ctx.clock.now());
     await ctx.store.saveJob(r);
     return r;
   }
-  const answers = Object.fromEntries(body.questions.map((q) => [q.key, need.details[q.key] as string]));
-  return ctx.send(r, K.response, { answers } satisfies Answers);
+  return ctx.send(r, K.response, { answers: r.answers ?? {} } satisfies Answers);
 }
 
-/** The owner answered the worker's questions; the answers are kept for the other requests in the group too. */
-export async function answer(ctx: JobContext, need: Need, r: JobRecord, answers: Record<string, string>) {
-  await ctx.store.saveNeed({ ...need, details: { ...need.details, ...answers } });
+/**
+ * The owner answered the rest (or skipped them); everything goes to the worker together. Answers to standard
+ * questions are kept for the other requests in the group too; answers to a model's questions are not, since another
+ * worker's agent may use the same key for a different question.
+ */
+export async function answer(ctx: JobContext, need: Need, r: JobRecord, given: Record<string, string>) {
+  const typed = mapValues(given, (text) => text.trim() || SKIPPED);
+  const reusable = Object.entries(typed).filter(
+    ([key, text]) => QuestionKey.safeParse(key).success && text !== SKIPPED,
+  );
+  await ctx.store.saveNeed({ ...need, details: { ...need.details, ...Object.fromEntries(reusable) } });
   await ctx.store.removeTask(TaskKind.answerQuestions, r.engagement.id);
-  return ctx.send(r, K.response, { answers } satisfies Answers);
+  const answers = { ...r.answers, ...typed };
+  const answered_from = { ...r.answered_from, ...sourcesOf(typed, r.suggested ?? {}) };
+  const { suggested: _sent, ...rest } = r;
+  return ctx.send({ ...rest, answers, answered_from }, K.response, { answers } satisfies Answers);
 }
+
+/** A remembered answer sent as it was filled in is still the past job's; one the owner changed is theirs. */
+const sourcesOf = (typed: Record<string, string>, suggested: Record<string, Suggested>) =>
+  Object.fromEntries(
+    Object.entries(typed).map(([key, text]) => [
+      key,
+      suggested[key]?.text === text ? AnswerSource.memory : AnswerSource.owner,
+    ]),
+  );
+
+const mapValues = <T, U>(o: Readonly<Record<string, T>>, f: (v: T) => U): Record<string, U> =>
+  Object.fromEntries(Object.entries(o).map(([k, v]) => [k, f(v)]));
 
 /** The worker quoted: accept, counter one step, or walk away when rounds run out. */
 export async function onQuote(ctx: JobContext, need: Need, r: JobRecord, offer: Offer): Promise<JobRecord> {
-  const withOffer = { ...r, offers: [...r.offers, { by: R.provider, offer }] };
-  const move = respond(R.requester, need.budget, r.offers_made, offer.price_paise);
+  const planned = await planHousehold(ctx, need, r);
+  const quoted = { ...planned, offers: [...r.offers, { by: R.provider, offer }] };
+  const termed = await householdTerms(ctx, need, quoted, offer.terms);
+  const withOffer = termed.r;
+  const plan = planned.mandate ?? need.budget;
+  const priced = respond(R.requester, plan, r.offers_made, offer.price_paise, planned.strategy);
+  const move = withTerms(priced, termed.agreed, offer.price_paise, r.offers_made);
   if (move.kind === MoveKind.accept) return accept(ctx, withOffer, termsFor(ctx, withOffer, offer));
   if (move.kind === MoveKind.walk) return cancel(ctx, withOffer, { reason: CancelReason.enum.no_deal });
   const counter: Offer = {
@@ -81,6 +131,7 @@ export async function onQuote(ctx: JobContext, need: Need, r: JobRecord, offer: 
     price_paise: move.price_paise,
     slot: offer.slot,
     scope: offer.scope,
+    ...termsField(r.request.trade, nextTerms(withOffer)),
   };
   const next = {
     ...withOffer,

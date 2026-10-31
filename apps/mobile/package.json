@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:e2e": "VITE_API_BASE=http://localhost:8788 vite --port 5174 --strictPort",
     "build": "tsc -p tsconfig.json --noEmit && vite build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "preview": "vite preview",
@@ -16,11 +17,15 @@
   "dependencies": {
     "@capacitor/app": "8.1.2",
     "@capacitor/core": "8.5.3",
+    "@capacitor/keyboard": "8.0.6",
     "@capacitor/preferences": "8.0.1",
     "@gigsync/core": "workspace:*",
     "@gigsync/crypto": "workspace:*",
     "@gigsync/plugin-llm": "workspace:*",
+    "@gigsync/plugin-speech": "workspace:*",
+    "@gigsync/plugin-translate": "workspace:*",
     "@gigsync/protocol": "workspace:*",
+    "jsqr": "1.4.0",
     "qrcode": "1.5.4",
     "react": "19.3.1",
     "react-dom": "19.3.1",

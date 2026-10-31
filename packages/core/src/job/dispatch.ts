@@ -3,23 +3,31 @@ import {
   type Answers,
   type Cancel as CancelBody,
   type Clarify,
+  COLLEAGUE_KINDS,
   type ContactRelease,
   type DeviceId,
   type EngagementId,
   EngagementStatus,
   EnvelopeKind,
+  type JobProblem,
   type JobRequest,
   type JobReview,
+  MENTOR_KINDS,
+  type Note,
   type Offer,
   type PaymentRecord,
   type PaymentRequest,
+  QR_KINDS,
   Role,
   SIDE_CHANNEL_KINDS,
   type UserId,
 } from "@gigsync/protocol";
+import type { ContactKeeper } from "../contacts/keeper.js";
 import { apply, TransitionError } from "../engagement/machine.js";
 import { log } from "../log.js";
 import type { Received } from "../mail/transport.js";
+import type { Mentors } from "../mentor/mentors.js";
+import type { WorkOffers } from "../qr/offers.js";
 import * as after from "./aftercare.js";
 import * as consumer from "./consumer.js";
 import type { JobContext } from "./context.js";
@@ -41,6 +49,7 @@ const RECEIVES: Readonly<Record<Role, ReadonlySet<EnvelopeKind>>> = {
     K.cancel,
     K.payment_record,
     K.review,
+    K.problem,
   ]),
   [R.requester]: new Set([
     K.clarify,
@@ -52,6 +61,7 @@ const RECEIVES: Readonly<Record<Role, ReadonlySet<EnvelopeKind>>> = {
     K.delivery,
     K.payment_request,
     K.payment_record,
+    K.problem,
   ]),
 };
 
@@ -64,12 +74,32 @@ export async function needOf(ctx: JobContext, r: JobRecord): Promise<Need> {
   return need;
 }
 
+/** Where envelopes toward and on mentor links, and offers to work from a QR, go: they belong to no job. */
+export interface SideInboxes {
+  mentors: Pick<Mentors, "receive">;
+  offers: Pick<WorkOffers, "receive">;
+  /** Problems reported on a signed job, which hold its contacts (ADR 0039 §3). */
+  contacts: Pick<ContactKeeper, "receive">;
+}
+
 /**
  * Takes one verified, opened envelope into its job: only from the job's counterpart, only kinds this side may
- * receive, only moves the engagement allows. Then lets the right agent answer it.
+ * receive, only moves the engagement allows. Then lets the right agent answer it. Mentor and mentor-link envelopes, and
+ * offers to work from a QR, go to their own inboxes and never reach the engagement machine. A `referral` (a colleague suggested on a declined
+ * request) can still come from an older build; no side receives it any more, so it is dropped like any stray kind.
+ *
+ * Roles are per engagement: a phone that asked for the work is the requester of that job, found in the store like
+ * any other. Only an incoming `request` for an engagement this phone does not have makes a new worker job.
  */
-export async function dispatch(ctx: JobContext, rules: worker.WorkerRules | undefined, item: Received): Promise<void> {
+export async function dispatch(
+  ctx: JobContext,
+  rules: worker.WorkerRules | undefined,
+  item: Received,
+  side: SideInboxes,
+): Promise<void> {
   const { envelope: e, body } = item;
+  if (COLLEAGUE_KINDS.has(e.kind) || MENTOR_KINDS.has(e.kind)) return side.mentors.receive(item);
+  if (QR_KINDS.has(e.kind)) return side.offers.receive(item);
   const existing = await ctx.store.job(e.engagement);
   const r =
     existing ??
@@ -89,6 +119,7 @@ export async function dispatch(ctx: JobContext, rules: worker.WorkerRules | unde
     }
   }
   await ctx.store.saveJob(moved);
+  if (e.kind === K.problem) return side.contacts.receive(moved, body as JobProblem);
   await react(ctx, rules, moved, e.kind, body, e.from.device);
 }
 
@@ -134,8 +165,12 @@ async function react(
     case K.review:
       await ctx.store.saveJob({ ...r, review: body as JobReview });
       return;
+    case K.update:
+    case K.delivery:
+      await ctx.store.saveJob({ ...r, notes: [...(r.notes ?? []), body as Note] });
+      return;
     default:
-      return; // update, delivery: the status change is all there is
+      return;
   }
 }
 

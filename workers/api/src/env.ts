@@ -18,6 +18,8 @@ export interface Env {
   DEV_OTP?: string;
   /** Secret: HMAC key for phone-number hashes. `wrangler secret put PHONE_HMAC_KEY`. */
   PHONE_HMAC_KEY?: string;
+  /** Secret: the key admin-only routes (setting a mentor's vouched badge) expect. Unset means nobody is admin. */
+  ADMIN_KEY?: string;
 }
 
 /** A secret the Worker cannot work without. Fails the request (500) rather than fall back to a guessable value. */

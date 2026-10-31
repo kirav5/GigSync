@@ -1,6 +1,6 @@
 # ADR 0020: No ratings, anywhere: a closed job becomes a countersigned "worked together" receipt
 
-Date: 2026-10-27. Status: proposed. Companion to ADR 0018 §4; recorded separately because it binds every future
+Date: 2026-10-27. Status: proposed; amended 2026-10-31 (household stars, below). Companion to ADR 0018 §4; recorded separately because it binds every future
 feature, not only the board.
 
 ## Context
@@ -29,3 +29,17 @@ A rating is also the one thing a customer could hold over a worker after the con
   (or by the receipt timeout). `tests/ui` and `tests/e2e` lose their "rated" step.
 - The index's "counted only when the engagement is delivered and both-signed" rule now applies to the count.
 - Open: whether a consumer may see the count of a worker's _disputes_. Default no; the union's flag is the signal.
+
+## Amendment (2026-10-31): a household's stars on the worker's card
+
+The founders chose to show a rating, to build trust with households that do not know the worker. As built on
+`feat/agents-negotiate` ([PR #12](https://github.com/kirav5/GigSync/pull/12); ADRs
+[0036](0036-worker-record-on-the-card.md), [0038](0038-job-records-on-the-server.md)):
+- After a job is done and paid, the household may give 1–5 stars, once per job.
+- The server keeps the stars with the job record and shows, on the worker's card, their average to one decimal and
+  how many jobs were rated, beside "Jobs done" (completed jobs only). The phone never sends these numbers.
+- A worker may hide the record from the card; it then shows to nobody.
+- No ranking: the board orders workers by distance and rate, never by stars, and nothing else in GigSync sorts or
+  filters by them. Households are not rated.
+- The "worked together" receipt and the rest of this ADR are not affected by this amendment where they stand on
+  their own; the review step this ADR removed is kept as the star rating above.

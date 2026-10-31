@@ -1,0 +1,86 @@
+/* Money: the worker's pay actions inside a job, their QR, the payee form and the passbook. Uses the shell's tokens. */
+
+.worker-pay {
+  display: grid;
+  gap: 10px;
+}
+/* "It's already in my bank": there for money paid without "I paid", but quieter than the buttons above it. */
+.worker-pay .pay-quiet {
+  justify-self: start;
+  color: var(--text2);
+}
+
+/* Their own UPI QR, shown to the customer standing in front of them. */
+.worker-qr {
+  justify-items: center;
+  text-align: center;
+}
+.worker-qr img {
+  width: 100%;
+  max-width: 280px;
+  aspect-ratio: 1;
+  background: #fff;
+  padding: 6px;
+  border-radius: 6px;
+}
+.worker-qr .amount {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.payee-form h2 {
+  margin: 0;
+}
+.payee-form .saved {
+  color: var(--fresh);
+}
+
+/* Passbook: four totals, then one row per payment. */
+.passbook-totals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  overflow: hidden;
+}
+@media (min-width: 600px) {
+  .passbook-totals {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+/* One tile alone (what a household paid) takes the whole row, at any width. */
+.passbook-totals.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+.passbook-totals > div {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 0.5px solid var(--hairline);
+}
+.passbook-totals .label {
+  font-size: var(--fs-label, 13px);
+}
+.passbook-totals b {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* A saved UPI ID: one line, the ID over the name payers see, with Change at the end. */
+.payee-form .payee-line {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+.payee-form .payee-id {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.payee-form .payee-vpa {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}

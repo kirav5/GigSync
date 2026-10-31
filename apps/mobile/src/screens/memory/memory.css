@@ -1,0 +1,36 @@
+.memory-rows,
+.memory-asked {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.memory-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.memory-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.memory-what {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* Detail names are written for the middle of a sentence ("rooms"); as a row's title they start with a capital. */
+.memory-what > strong::first-letter {
+  text-transform: uppercase;
+}
+
+.memory-row > button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}

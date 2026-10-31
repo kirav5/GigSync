@@ -1,32 +1,27 @@
-import { PAISE_PER_RUPEE, type Place, Trade } from "@gigsync/protocol";
+import { PILOT_AREAS, type PilotArea, t } from "@gigsync/core";
+import { City, type Lang, PAISE_PER_RUPEE } from "@gigsync/protocol";
 
-/** Neighbourhoods offered in the pilot, by their centre. Only this approximate point is ever shared. */
-export const AREAS: readonly (Place & { name: string })[] = [
-  { name: "Indiranagar", lat: 12.9719, lon: 77.6412 },
-  { name: "Koramangala", lat: 12.9352, lon: 77.6245 },
-  { name: "HSR Layout", lat: 12.9116, lon: 77.6474 },
-  { name: "Jayanagar", lat: 12.9308, lon: 77.5838 },
-  { name: "Whitefield", lat: 12.9698, lon: 77.75 },
-];
+/** The pilot's areas live in core, which also turns a job's point into the slug its record carries. */
+export { areaKeyOf } from "@gigsync/core";
+export const AREAS = PILOT_AREAS;
+export type Area = PilotArea;
 
-export const areaNamed = (name: string) => AREAS.find((a) => a.name === name) ?? (AREAS[0] as (typeof AREAS)[number]);
+export const areaNamed = (name: string): Area => AREAS.find((a) => a.name === name) ?? AREAS[0];
 
-const T = Trade.enum;
-export const TRADE_LABEL: Readonly<Record<Trade, string>> = {
-  [T.electrician]: "Electrician",
-  [T.plumber]: "Plumber",
-  [T.maid]: "Maid",
-  [T.carpenter]: "Carpenter",
-  [T.ac_technician]: "AC technician",
-  [T.painter]: "Painter",
-  [T.cook]: "Cook",
-  [T.driver]: "Driver",
-};
+/** The pilot's city, for rate estimates (ADR 0030). */
+export const PILOT_CITY: City = City.enum.bengaluru;
+
+/** An area as the owner reads it: a known pilot area in their language, anything else as the board has it. */
+export function areaLabel(lang: Lang, name: string): string {
+  const known = AREAS.find((a) => a.name === name);
+  return known ? t(lang, `area.${known.key}`) : name;
+}
+
+/** An amount as a form field holds it: whole rupees, as typed ("7000"); empty when there is none. */
+export const rupeesOf = (paise?: number): string => (paise ? String(paise / PAISE_PER_RUPEE) : "");
 
 /** ₹ for display, Indian grouping, no paise when whole. */
 export function money(paise: number): string {
   const rupees = paise / PAISE_PER_RUPEE;
   return `₹${rupees.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 }
-
-export const toPaise = (rupees: string) => Math.round(Number(rupees) * PAISE_PER_RUPEE);

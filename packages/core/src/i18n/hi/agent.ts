@@ -1,0 +1,29 @@
+import type { agent as en } from "../en/agent.js";
+
+/** Hindi: the agent screen and its cards, translation on the phone, and the rate card's source line. */
+export const agent: Readonly<Record<keyof typeof en, string>> = {
+  "agent.headline": "अपने एजेंट से बात करें।",
+  "agent.soft": "आपके नोट यहीं रहते हैं।",
+  "agent.placeholder": "बोलिए या लिखिए…",
+  "agent.empty": "कुछ पूछिए, या इनमें से कुछ चुनिए।",
+  "agent.suggest_rate": "मेरा रेट बदलें",
+  "agent.suggest_earned": "इस हफ़्ते मैंने कितना कमाया?",
+  "agent.earnings": "इस हफ़्ते आपको {week} मिले, और इस महीने {month}। अभी आने बाकी: {waiting}।",
+  "agent.sources.one": "{count} नोट से",
+  "agent.sources.other": "{count} नोटों से",
+  "card.text": "एजेंट",
+  "card.saved": "सेव हुआ",
+  "card.answer": "जवाब",
+  "card.draft": "ड्राफ़्ट",
+  "card.needs_model": "मॉडल चाहिए",
+  "agent.saved": 'सेव किया: "{text}"',
+  "agent.nothing": "इसके बारे में मेरे पास कुछ सेव नहीं है।",
+  "agent.no_contact": "आपके संपर्कों में अभी {name} नहीं हैं।",
+  "agent.ask_contact": '{name} से पूछें: "{text}"?',
+  "agent.rules_later": 'मैं आपका कार्ड बदल सकता हूँ। बताइए क्या बदलना है, जैसे "मेरा रेट बदलो"।',
+  "agent.market_later": "आस-पास के ग्राहक बोर्ड पर आपका कार्ड देखकर आपको ढूँढते हैं। नई रिक्वेस्ट 'आज' में दिखती हैं।",
+  "agent.needs_model": "यह अभी इस फ़ोन पर नहीं हो सकता। मैं आपका कार्ड बना सकता हूँ और आपकी बातें याद रख सकता हूँ।",
+  "said.translating": "इसी फ़ोन पर अनुवाद हो रहा है…",
+  "said.cannot": "{lang} में। यह फ़ोन अभी इसका अनुवाद नहीं कर सकता।",
+  "said.unsafe": "{lang} में। अनुवाद में कोई अंक बदल गया, इसलिए नहीं दिखाया।",
+};

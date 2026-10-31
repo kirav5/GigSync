@@ -14,6 +14,8 @@ export const EngagementId = prefixedId("eng");
 export const ChainId = prefixedId("chn");
 export const GrantId = prefixedId("grt");
 export const PaymentId = prefixedId("pay");
+/** A transfer slot that carries a phone's data to the owner's new phone (ADR 0037). */
+export const TransferId = prefixedId("xfr");
 
 export type UserId = z.infer<typeof UserId>;
 export type DeviceId = z.infer<typeof DeviceId>;
@@ -22,3 +24,4 @@ export type EngagementId = z.infer<typeof EngagementId>;
 export type ChainId = z.infer<typeof ChainId>;
 export type GrantId = z.infer<typeof GrantId>;
 export type PaymentId = z.infer<typeof PaymentId>;
+export type TransferId = z.infer<typeof TransferId>;

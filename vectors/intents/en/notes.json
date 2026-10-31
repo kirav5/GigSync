@@ -1,0 +1,174 @@
+{
+  "cases": [
+    {
+      "id": "en-find-02",
+      "lang": "en",
+      "role": "household",
+      "text": "need a plumber tomorrow morning in HSR",
+      "intent": "find",
+      "slots": { "trade": "plumber", "area": "hsr_layout" },
+      "source": "list"
+    },
+    {
+      "id": "en-find-03",
+      "lang": "en",
+      "role": "household",
+      "text": "looking for a cook for dinner parties",
+      "intent": "find",
+      "slots": { "trade": "cook" },
+      "source": "list"
+    },
+    {
+      "id": "en-find-04",
+      "lang": "en",
+      "role": "household",
+      "text": "our maid left, I need someone new",
+      "intent": "find",
+      "slots": { "trade": "maid" },
+      "source": "list"
+    },
+    {
+      "id": "en-find-05",
+      "lang": "en",
+      "role": "household",
+      "text": "the kitchen tap is leaking, can somebody come today?",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "list"
+    },
+    {
+      "id": "en-find-06",
+      "lang": "en",
+      "role": "household",
+      "text": "the fan and two lights stopped working in the bedroom",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "list"
+    },
+    {
+      "id": "en-find-07",
+      "lang": "en",
+      "role": "household",
+      "text": "want the living room painted before Diwali",
+      "intent": "find",
+      "slots": { "trade": "painter" },
+      "source": "list"
+    },
+    {
+      "id": "en-remember-01",
+      "lang": "en",
+      "role": "household",
+      "text": "remember the gas cylinder comes on Friday",
+      "intent": "remember",
+      "slots": { "note": "the gas cylinder comes on Friday" },
+      "source": "miss"
+    },
+    {
+      "id": "en-remember-02",
+      "lang": "en",
+      "role": "worker",
+      "text": "note: the Koramangala family wants me at 7 on Saturdays",
+      "intent": "remember",
+      "slots": { "note": "the Koramangala family wants me at 7 on Saturdays" },
+      "source": "list"
+    },
+    {
+      "id": "en-remember-03",
+      "lang": "en",
+      "role": "household",
+      "text": "don't let me forget to pay the milkman on the 5th",
+      "intent": "remember",
+      "slots": { "note": "pay the milkman on the 5th" },
+      "source": "miss"
+    },
+    {
+      "id": "en-askSelf-01",
+      "lang": "en",
+      "role": "household",
+      "text": "what did I note about the gas cylinder?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "en-askSelf-02",
+      "lang": "en",
+      "role": "household",
+      "text": "when was the AC last serviced, did I write it down?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "en-askSelf-03",
+      "lang": "en",
+      "role": "worker",
+      "text": "which family asked me to come early on Saturdays?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "en-askContact-01",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Ravi", "Meena"],
+      "text": "is Ravi free tomorrow?",
+      "intent": "askContact",
+      "slots": { "contact": "Ravi" },
+      "source": "list"
+    },
+    {
+      "id": "en-askContact-02",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Ravi", "Meena"],
+      "text": "can Meena come with me on Sunday morning?",
+      "intent": "askContact",
+      "slots": { "contact": "Meena" },
+      "source": "miss"
+    },
+    {
+      "id": "en-setRule-01",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Meena"],
+      "text": "let Meena see when I'm free",
+      "intent": "setRule",
+      "slots": { "contact": "Meena" },
+      "source": "list"
+    },
+    {
+      "id": "en-setRule-02",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Ravi"],
+      "text": "don't share my location with Ravi anymore",
+      "intent": "setRule",
+      "slots": { "contact": "Ravi" },
+      "source": "miss"
+    },
+    { "id": "en-chat-06", "lang": "en", "role": "worker", "text": "good morning", "intent": "chat", "source": "list" },
+    {
+      "id": "en-chat-07",
+      "lang": "en",
+      "role": "household",
+      "text": "thanks, that was helpful",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "en-chat-08",
+      "lang": "en",
+      "role": "household",
+      "text": "the electrician came and fixed everything, thank you",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "en-chat-09",
+      "lang": "en",
+      "role": "worker",
+      "text": "I am very tired today",
+      "intent": "chat",
+      "source": "list"
+    }
+  ]
+}

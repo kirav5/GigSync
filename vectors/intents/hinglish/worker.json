@@ -1,0 +1,192 @@
+{
+  "cases": [
+    {
+      "id": "hinglish-edit-01",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mera rate badlo",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-edit-02",
+      "lang": "hi",
+      "role": "worker",
+      "text": "apna area change karna hai",
+      "intent": "editCard",
+      "slots": { "field": "area" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-edit-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "rate thoda badha do, 600 kar do",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-edit-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "ab painting nahi karta, sirf plumbing",
+      "intent": "editCard",
+      "slots": { "field": "trade" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-edit-05",
+      "lang": "hi",
+      "role": "worker",
+      "text": "meri languages mein Kannada bhi daal do",
+      "intent": "editCard",
+      "slots": { "field": "languages" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpOffer-01",
+      "lang": "hi",
+      "role": "worker",
+      "text": "naye logon ki madad karna chahta hoon",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-helpOffer-02",
+      "lang": "hi",
+      "role": "worker",
+      "text": "gaon se koi Bangalore aaye toh main sab dikha dunga",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-01",
+      "lang": "hi",
+      "role": "worker",
+      "text": "madad band karo, ab time nahi hai",
+      "intent": "helpStop",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-helpStop-02",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mujhe mentor list se hata do",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-earnings-01",
+      "lang": "hi",
+      "role": "worker",
+      "text": "is hafte kitna kamaya?",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-earnings-02",
+      "lang": "hi",
+      "role": "worker",
+      "text": "is mahine kitne paise aaye?",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-earnings-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mera hisaab batao",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-earnings-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "pichle hafte ka payment aa gaya kya?",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-chat-01",
+      "lang": "hi",
+      "role": "worker",
+      "text": "meri kamai se hi ghar chalta hai",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-moving-01",
+      "lang": "hi",
+      "role": "worker",
+      "text": "next month Bangalore shift ho raha hoon",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-moving-02",
+      "lang": "hi",
+      "role": "worker",
+      "text": "kaam ke liye Bengaluru ja raha hoon",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-moving-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "Diwali ke baad Banglore mein kaam dhundne niklunga",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-chat-02",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mera bhai Bangalore ja raha hai",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-guide-01",
+      "lang": "hi",
+      "role": "worker",
+      "text": "pehli raat kahan rukun?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-guide-02",
+      "lang": "hi",
+      "role": "worker",
+      "text": "yahan rehne ke liye sasta kamra kahan milega?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-guide-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "sim card kaise milega yahan?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-guide-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "malik ne do hafte se paise nahi diye, kya karun?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    }
+  ]
+}

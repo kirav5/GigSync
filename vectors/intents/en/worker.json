@@ -1,0 +1,209 @@
+{
+  "cases": [
+    {
+      "id": "en-edit-01",
+      "lang": "en",
+      "role": "worker",
+      "text": "change my rate",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "list"
+    },
+    {
+      "id": "en-edit-02",
+      "lang": "en",
+      "role": "worker",
+      "text": "I want to update my area",
+      "intent": "editCard",
+      "slots": { "field": "area" },
+      "source": "list"
+    },
+    {
+      "id": "en-edit-03",
+      "lang": "en",
+      "role": "worker",
+      "text": "please edit my minimum price",
+      "intent": "editCard",
+      "slots": { "field": "min" },
+      "source": "list"
+    },
+    {
+      "id": "en-edit-04",
+      "lang": "en",
+      "role": "worker",
+      "text": "my rate is too low, make it 700 a visit",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "en-edit-05",
+      "lang": "en",
+      "role": "worker",
+      "text": "I don't do painting anymore, only plumbing now",
+      "intent": "editCard",
+      "slots": { "field": "trade" },
+      "source": "miss"
+    },
+    {
+      "id": "en-edit-06",
+      "lang": "en",
+      "role": "worker",
+      "text": "add Kannada to the languages I speak",
+      "intent": "editCard",
+      "slots": { "field": "languages" },
+      "source": "miss"
+    },
+    {
+      "id": "en-helpOffer-01",
+      "lang": "en",
+      "role": "worker",
+      "text": "I can help newcomers find work in Jayanagar",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "en-helpOffer-02",
+      "lang": "en",
+      "role": "worker",
+      "text": "if someone from my village comes to the city I'll show them how things work",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpOffer-03",
+      "lang": "en",
+      "role": "worker",
+      "text": "I want to become a mentor",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "en-helpStop-01",
+      "lang": "en",
+      "role": "worker",
+      "text": "stop helping newcomers",
+      "intent": "helpStop",
+      "source": "list"
+    },
+    {
+      "id": "en-helpStop-02",
+      "lang": "en",
+      "role": "worker",
+      "text": "I'm too busy these days, take me off the mentor list",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-earnings-01",
+      "lang": "en",
+      "role": "worker",
+      "text": "how much did I earn this week?",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "en-earnings-02",
+      "lang": "en",
+      "role": "worker",
+      "text": "what's my income this month",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "en-earnings-03",
+      "lang": "en",
+      "role": "worker",
+      "text": "has all the money from last week come in?",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "en-earnings-04",
+      "lang": "en",
+      "role": "worker",
+      "text": "how much is still pending to me?",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "en-chat-01",
+      "lang": "en",
+      "role": "worker",
+      "text": "I earn more as a driver than as a cook",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "en-moving-01",
+      "lang": "en",
+      "role": "worker",
+      "text": "I'm moving to Bengaluru next month",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "en-moving-02",
+      "lang": "en",
+      "role": "worker",
+      "text": "I'm shifting to Bangalore next month",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "en-moving-03",
+      "lang": "en",
+      "role": "worker",
+      "text": "got a job offer in Bangalore, leaving home on Monday",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "en-chat-02",
+      "lang": "en",
+      "role": "worker",
+      "text": "my brother is moving to Bengaluru next week",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "en-guide-01",
+      "lang": "en",
+      "role": "worker",
+      "text": "where can I stay for the first few nights?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "en-guide-02",
+      "lang": "en",
+      "role": "worker",
+      "text": "how do I get a new SIM card here?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "en-guide-03",
+      "lang": "en",
+      "role": "worker",
+      "text": "where do people from my state usually live when they first come?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "en-guide-04",
+      "lang": "en",
+      "role": "worker",
+      "text": "is it safe for a woman to take the night bus alone?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "cases": [
+    {
+      "id": "hi-market-01",
+      "lang": "hi",
+      "role": "household",
+      "text": "जयनगर में कुक कितना लेते हैं?",
+      "intent": "market",
+      "slots": {
+        "trade": "cook",
+        "area": "jayanagar"
+      },
+      "source": "list"
+    },
+    {
+      "id": "hi-market-02",
+      "lang": "hi",
+      "role": "household",
+      "text": "कोरमंगला में कामवाली की तनख्वाह कितनी है?",
+      "intent": "market",
+      "slots": {
+        "trade": "maid",
+        "area": "koramangala"
+      },
+      "source": "list"
+    },
+    {
+      "id": "hi-market-03",
+      "lang": "hi",
+      "role": "household",
+      "text": "क्या कुक के लिए 8000 ठीक है?",
+      "intent": "market",
+      "slots": {
+        "trade": "cook",
+        "amount_paise": 800000
+      },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-04",
+      "lang": "hi",
+      "role": "household",
+      "text": "2BHK की पुताई का कितना लगेगा?",
+      "intent": "market",
+      "slots": {
+        "trade": "painter"
+      },
+      "source": "list"
+    },
+    {
+      "id": "hi-market-05",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "व्हाइटफ़ील्ड में बाकी इलेक्ट्रीशियन क्या ले रहे हैं?",
+      "intent": "market",
+      "slots": {
+        "trade": "electrician",
+        "area": "whitefield"
+      },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-06",
+      "lang": "hi",
+      "role": "household",
+      "text": "एसी सर्विस का रेट क्या है?",
+      "intent": "market",
+      "slots": {
+        "trade": "ac_technician"
+      },
+      "source": "list"
+    },
+    {
+      "id": "hi-market-07",
+      "lang": "hi",
+      "role": "household",
+      "text": "ड्राइवर रखना है, महीने का कितना देना पड़ेगा?",
+      "intent": "market",
+      "slots": {
+        "trade": "driver"
+      },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-08",
+      "lang": "hi",
+      "role": "household",
+      "text": "इंदिरानगर में प्लंबर का चार्ज कितना है?",
+      "intent": "market",
+      "slots": {
+        "trade": "plumber",
+        "area": "indiranagar"
+      },
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-04",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "कल मैंने आठ लोगों का खाना बनाया",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-find-01",
+      "lang": "hi",
+      "role": "household",
+      "text": "कुक चाहिए, 12000 दूँगी",
+      "intent": "find",
+      "slots": {
+        "trade": "cook"
+      },
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-05",
+      "lang": "hi",
+      "role": "household",
+      "text": "प्याज़ का दाम फिर बढ़ गया",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-06",
+      "lang": "hi",
+      "role": "household",
+      "text": "मुझे अपना 4 बीएचके विला पेंट करवाना है, बाहर भी",
+      "intent": "find",
+      "slots": {
+        "trade": "painter"
+      },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-09",
+      "lang": "hi",
+      "role": "household",
+      "text": "3000 वर्ग फुट घर की पुताई का कितना लगेगा?",
+      "intent": "market",
+      "slots": {
+        "trade": "painter"
+      },
+      "source": "list"
+    },
+    {
+      "id": "hi-find-07",
+      "lang": "hi",
+      "role": "household",
+      "text": "शादी के लिए फ़ोटोग्राफ़र चाहिए",
+      "intent": "find",
+      "source": "miss"
+    }
+  ]
+}

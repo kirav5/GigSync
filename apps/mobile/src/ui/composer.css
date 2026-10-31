@@ -1,0 +1,99 @@
+/* Voice (P3): the composer's mic beside the field and send (styles.css draws .composer .bar and .send), the cloud
+   consent sheet above them, the speaker button on questions and decisions, and the read-aloud switch in Settings. */
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.composer > .link-btn {
+  align-self: flex-start;
+}
+.composer-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.composer-row > .bar {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+.composer-mic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--tap-lg, 56px);
+  height: var(--tap-lg, 56px);
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  cursor: pointer;
+}
+.composer-mic .ic {
+  width: 26px;
+  height: 26px;
+  stroke-width: 2;
+}
+.composer-mic[data-listening] {
+  background: var(--inverse);
+  color: var(--on-inverse);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent);
+  animation: composer-listening 1.4s ease-in-out infinite;
+}
+/* Nothing on this phone can listen in this language: still tappable, so it can say "please type". */
+.composer-mic[data-off] {
+  background: var(--surface2);
+  color: var(--text3);
+}
+.composer-mic:disabled {
+  opacity: 0.4;
+}
+.composer-mic:focus-visible,
+.speak-btn:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+.composer input[readonly] {
+  color: var(--text2);
+}
+@keyframes composer-listening {
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 20%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .composer-mic[data-listening] {
+    animation: none;
+  }
+}
+
+.composer-sheet {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.composer-sheet p {
+  margin: 0;
+}
+
+.speak-btn {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: var(--tap, 48px);
+  height: var(--tap, 48px);
+  padding: 0;
+  border: 1px solid var(--hairline);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text2);
+  cursor: pointer;
+}
+.speak-btn .ic {
+  width: 22px;
+  height: 22px;
+}

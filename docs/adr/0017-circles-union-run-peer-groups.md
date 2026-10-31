@@ -1,6 +1,6 @@
 # ADR 0017: Circles are union-run peer groups; a mentor is a contact grant that expires
 
-Date: 2026-10-27. Status: proposed. Extends ADR 0016 (landing).
+Date: 2026-10-27. Status: proposed; amended 2026-10-31 (mentors, below). Extends ADR 0016 (landing).
 
 ## Context
 
@@ -51,3 +51,15 @@ travelled. The end-to-end vision needs worker-to-worker contact; the constraint 
   area), roster leakage (blind keys), spam (steward can remove; posts rate-limited per member).
 - Open: who may become a mentor (any member, or steward-approved only; default steward-approved); whether a
   newcomer may post before arriving (default yes, so a bed and a mentor can be ready).
+
+## Amendment (2026-10-31): mentors without a union gate
+
+The founders decided not to wait for a steward, union or NGO before newcomers can find help. As built on
+`feat/agents-negotiate` ([PR #12](https://github.com/kirav5/GigSync/pull/12)):
+- Any worker whose own record on GigSync reaches `MENTOR_MIN_JOBS` (20) completed jobs over `MENTOR_MIN_MONTHS` (6)
+  may offer to help newcomers; no steward approval. Eligibility comes from the worker's job record, not a vouch.
+- A newcomer may ask for women mentors only, and a woman mentor may choose to help only women newcomers.
+- Contact stays a mentor link that expires, as in point 4 and [ADR 0031](0031-no-colleagues-mentor-links-only.md).
+- A union or NGO may still vouch for a mentor (a badge set by an admin), but nothing waits on it.
+- Union-run circles themselves (points 1–3, 5) are not built; this amendment changes who may mentor, the open
+  question above, from "steward-approved" to "anyone who meets the record minimum".
