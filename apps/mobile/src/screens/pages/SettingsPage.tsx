@@ -7,7 +7,7 @@ import { Icon } from "../../ui/Icon.js";
 import { Look, savedLook, saveLook } from "../../ui/look.js";
 import "../../ui/install.css";
 import { ModelSettings } from "../ModelSettings.js";
-import { MoveRows } from "../move/MoveRows.js";
+import { MoveRows, SettingsRow } from "../move/MoveRows.js";
 import { SpeechSettings } from "../SpeechSettings.js";
 import { TacticSetting } from "../TacticSetting.js";
 import { PageFrame } from "./PageFrame.js";
@@ -54,6 +54,8 @@ interface Props {
   /** Opens Move to a new phone (this phone's code) and Moving from another phone (scan one). */
   onMoveOut: () => void;
   onMoveIn: () => void;
+  /** Opens the Terms and Privacy Notice. */
+  onTerms: () => void;
 }
 
 /** The one way from Settings to the Install screen, until the app is on the home screen. */
@@ -79,9 +81,10 @@ function InstallRow({ onOpen }: { onOpen: () => void }) {
 
 /**
  * Settings, as collab's: the look, voice actions (workers), the model on this phone, how the agent bargains, a row
- * to the Install screen, and the two ways of moving between phones. Each saves as it changes, on this phone.
+ * to the Install screen, the two ways of moving between phones, and the Terms and Privacy Notice. Each saves as it
+ * changes, on this phone.
  */
-export function SettingsPage({ ports, isWorker, onInstall, onMoveOut, onMoveIn }: Props) {
+export function SettingsPage({ ports, isWorker, onInstall, onMoveOut, onMoveIn, onTerms }: Props) {
   const { t } = useI18n();
   return (
     <PageFrame title={t("page.settings_title")} subtitle={t("page.settings_soft")}>
@@ -91,6 +94,7 @@ export function SettingsPage({ ports, isWorker, onInstall, onMoveOut, onMoveIn }
       <TacticSetting ports={ports} />
       <InstallRow onOpen={onInstall} />
       <MoveRows onMoveOut={onMoveOut} onMoveIn={onMoveIn} />
+      <SettingsRow icon="shield" title="records.terms_title" about="records.terms_about" onOpen={onTerms} />
     </PageFrame>
   );
 }

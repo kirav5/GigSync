@@ -1,5 +1,5 @@
 import { type MessageKey, plural, questionText, t } from "@gigsync/core";
-import { Lang, SharedPrice } from "@gigsync/protocol";
+import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { newPhone, open, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
 import { type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
@@ -9,7 +9,7 @@ import { type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
  * (ESTIMATE_SOURCE=fixture in workers/api/.dev.vars): no web search and no model in the test. For a 2BHK painted,
  * labour only, in Bengaluru it answers ₹14,000 / ₹16,000 / ₹18,000 from three pages. A painter making a card sees the
  * range with its sources and a suggested amount; a household asking to paint a 2BHK sees it beside the budget; after
- * both sign, each is asked once whether to share the price anonymously; an offer far below the range is flagged.
+ * both sign, nobody is asked to share the price (ADR 0039 ended that); an offer far below the range is flagged.
  */
 
 const { en } = Lang.enum;
@@ -24,8 +24,8 @@ const RANGE = {
 };
 /** The fixture's five quotes come from three pages; the app counts pages. */
 const SOURCES = 3;
-/** All a shared price carries: no user, name, contact or exact day. */
-const SHARED_KEYS = ["area_key", "city", "month", "price_paise", "scope", "trade"];
+/** ADR 0030's sharing card and setting, as they were labelled; their strings are gone from the catalog. */
+const OLD_SHARE = /share (this|agreed) prices?/i;
 
 let contexts: BrowserContext[] = [];
 
@@ -115,7 +115,7 @@ test("a painter making a card in Talk sees the usual range with sources and a su
   await expect(line(page, "estimate.suggest_min", { price: "₹14,000" })).toBeVisible();
 });
 
-test("a household sees the range beside its budget; after both sign each is asked once to share the price", async ({
+test("a household sees the range beside its budget; after both sign nobody is asked to share the price", async ({
   browser,
 }) => {
   const [workerPage, homePage] = (await phones(browser, 2)) as [Page, Page];
@@ -133,37 +133,20 @@ test("a household sees the range beside its budget; after both sign each is aske
   await open(workerPage, "nav.activity");
   await signBoth({ worker, customer: home }, FOLDER);
 
-  // Ask each time is the default; the card is on the signed job, and Yes sends the price.
-  await open(homePage, "nav.privacy");
-  const setting = homePage.getByRole("region", { name: t(en, "estimate.setting_label") });
-  await expect(setting.getByRole("button", { name: t(en, "estimate.setting_ask") })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await open(homePage, "nav.my_jobs");
-  const card = homePage.getByRole("group", { name: t(en, "estimate.share_ask") });
-  await reveal(homePage, card);
-  await expect(card).toContainText(t(en, "estimate.share_what"));
-  await shoot("share-card", { household: homePage }, FOLDER);
-  // Answered here, never stored: this suite runs against the shared database, and a test price kept there would be
-  // blended into real estimates. Storing a shared price is covered by the API tests on a local database.
-  let shared: Record<string, unknown> | undefined;
+  // No card on the signed job asks to share its price, on either phone, and Privacy has no such setting.
+  let shared = false;
   await homePage.route("**/v1/estimates/prices", async (route) => {
-    shared = route.request().postDataJSON() as Record<string, unknown>;
-    await route.fulfill({ status: 204 });
+    shared = true;
+    await route.fulfill({ status: 404 });
   });
-  await card.getByRole("button", { name: t(en, "estimate.share_yes") }).click();
-  await expect.poll(() => shared && Object.keys(shared).sort()).toEqual(SHARED_KEYS);
-  expect(SharedPrice.safeParse(shared).success).toBe(true);
-  await expect(homePage.getByText(t(en, "estimate.shared"))).toBeVisible();
-  await expect(card).toHaveCount(0);
-
-  // The worker is asked too, on their own phone, and No sends nothing.
+  await open(homePage, "nav.my_jobs");
+  await expect(homePage.getByText(t(en, "job.both_signed")).first()).toBeVisible();
+  await expect(homePage.getByText(OLD_SHARE)).toHaveCount(0);
   await open(workerPage, "nav.activity");
-  const theirs = workerPage.getByRole("group", { name: t(en, "estimate.share_ask") });
-  await reveal(workerPage, theirs);
-  await theirs.getByRole("button", { name: t(en, "estimate.share_no") }).click();
-  await expect(theirs).toHaveCount(0);
+  await expect(workerPage.getByText(OLD_SHARE)).toHaveCount(0);
+  await open(homePage, "nav.privacy");
+  await expect(homePage.getByText(OLD_SHARE)).toHaveCount(0);
+  expect(shared).toBe(false);
 });
 
 test("an offer far below the range carries a note to the worker, and nothing is blocked", async ({ browser }) => {

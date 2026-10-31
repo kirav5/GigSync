@@ -3,9 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   agreeToRecords,
   type Clock,
+  ConsentOnOpen,
+  consentOnOpen,
   deleteMyRecords,
   MemoryStorage,
-  noticeDue,
   RECORDS_RETRY_MS,
   recordsAgreed,
   SystemClock,
@@ -114,13 +115,23 @@ describe("job records on GigSync", () => {
     expect(ravisApi.taken).toEqual([]);
   });
 
-  it("ask the owner again when GigSync no longer holds their agreement, and keep the facts pending", async () => {
+  it("stop on this phone too once the owner deleted them on another phone", async () => {
     const { worker, household, ravisApi, both } = await pair();
-    ravisApi.failing = noConsent();
+    ravisApi.consentState = undefined;
+    ravisApi.refusing = noConsent();
     await signedJob(household, worker, both);
     expect(await recordsAgreed(worker.storage)).toBe(false);
-    ravisApi.failing = undefined;
-    expect(await noticeDue(ravisApi, worker.storage)).toBe(false);
+    expect(await consentOnOpen(ravisApi, worker.storage)).toBe(ConsentOnOpen.withdrawn);
+  });
+
+  it("record a newer notice on the next open, then send what was pending", async () => {
+    const { worker, household, ravisApi, both } = await pair();
+    ravisApi.consentState = { notice_version: "2026-01-01", accepted_at: new Date().toISOString(), current: false };
+    ravisApi.refusing = noConsent();
+    await signedJob(household, worker, both);
+    expect(await recordsAgreed(worker.storage)).toBe(false);
+    ravisApi.refusing = undefined;
+    expect(await consentOnOpen(ravisApi, worker.storage)).toBe(ConsentOnOpen.recorded);
     await worker.device.records?.run(true);
     expect(ravisApi.kinds()).toEqual(["job"]);
   });
@@ -131,7 +142,7 @@ describe("job records on GigSync", () => {
     await deleteMyRecords(ravisApi, worker.storage);
     expect(ravisApi.deleted).toBe(1);
     expect(await recordsAgreed(worker.storage)).toBe(false);
-    expect(await noticeDue(ravisApi, worker.storage)).toBe(false);
+    expect(await consentOnOpen(ravisApi, worker.storage)).toBe(ConsentOnOpen.withdrawn);
     await worker.device.deliver(id, "Done");
     await settle(both);
     expect(ravisApi.kinds()).toEqual(["job"]);
@@ -141,20 +152,30 @@ describe("job records on GigSync", () => {
   });
 });
 
-describe("the notice about job records", () => {
-  it("is due until the owner agrees, here or on another phone", async () => {
+describe("the agreement on opening the app", () => {
+  it("is recorded once for an owner who signed in before the sign-in line, then kept", async () => {
     const api = new FakeRecords();
     const storage = new MemoryStorage();
-    expect(await noticeDue(api, storage)).toBe(true);
-    await api.acceptConsent();
-    expect(await noticeDue(api, storage)).toBe(false);
+    expect(await consentOnOpen(api, storage)).toBe(ConsentOnOpen.recorded);
+    expect(api.consentState?.current).toBe(true);
+    expect(await consentOnOpen(api, storage)).toBe(ConsentOnOpen.kept);
     expect(await recordsAgreed(storage)).toBe(true);
   });
 
-  it("is shown when GigSync cannot be reached and this phone has no answer", async () => {
+  it("is kept, not recorded again, when the owner agreed on another phone", async () => {
+    const api = new FakeRecords();
+    await api.acceptConsent();
+    const accepted = api.consentState;
+    const storage = new MemoryStorage();
+    expect(await consentOnOpen(api, storage)).toBe(ConsentOnOpen.kept);
+    expect(api.consentState).toBe(accepted);
+  });
+
+  it("waits for the next open when GigSync cannot be reached", async () => {
     const api = new FakeRecords();
     api.failing = unavailable();
-    expect(await noticeDue(api, new MemoryStorage())).toBe(true);
-    await expect(agreeToRecords(api, new MemoryStorage())).rejects.toThrow();
+    const storage = new MemoryStorage();
+    await expect(consentOnOpen(api, storage)).rejects.toThrow();
+    expect(await recordsAgreed(storage)).toBe(false);
   });
 });

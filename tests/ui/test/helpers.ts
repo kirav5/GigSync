@@ -4,14 +4,14 @@ import { newDeviceSecrets } from "@gigsync/crypto";
 import { DEFAULT_LANG, type Lang, type Place, type Trade } from "@gigsync/protocol";
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { open } from "./menu.js";
-import { answerNotice, type NoticeAnswer } from "./records.js";
 
 /** The app's frame, as the specs reach it (menu.ts): the menu, its screens, the chat, sign-out and My card's form. */
 export * from "./menu.js";
 
-export const API = process.env.API_BASE ?? "http://localhost:8787";
-/** The app as the dev server serves it; absolute, so pages without a base URL (a phone over DevTools) work too. */
-export const APP = process.env.APP_URL ?? "http://localhost:5173";
+/** The app and the API (stack.ts); absolute, so pages without a base URL (a phone over DevTools) work too. */
+import { API, APP } from "../stack.js";
+
+export { API, APP };
 export const DEV_OTP = process.env.DEV_OTP ?? "000000";
 /** The API's sign-in rate window (OTP_RATE_LIMIT in workers/api/wrangler.toml), plus a second. */
 const RATE_WINDOW_MS = 61_000;
@@ -73,8 +73,6 @@ interface Person {
   phone: string;
   address?: string;
   lang?: Lang;
-  /** The notice about job records after signing in: agreed to unless a test says otherwise. */
-  records?: NoticeAnswer;
   /** The number is signed in on another device too: what to do with the move prompt. */
   elsewhere?: MovePrompt;
 }
@@ -110,7 +108,6 @@ export async function completeSignIn(page: Page, who: Person) {
     await submit.click();
   }
   await expect(page.getByRole("banner")).toBeVisible();
-  await answerNotice(page, lang, who.records);
   if (!who.elsewhere) return;
   const notNow = page.getByRole("button", { name: t(lang, "phone.in_not_now"), exact: true });
   await expect(notNow).toBeVisible();

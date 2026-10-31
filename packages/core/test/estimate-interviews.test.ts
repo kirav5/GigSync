@@ -22,7 +22,7 @@ import {
   withEstimate,
 } from "../src/index.js";
 import { Pick } from "../src/interview/card.js";
-import { COOK_MONTH, PAINT_2BHK } from "./estimate-fixtures.js";
+import { COOK_GIGSYNC, COOK_MONTH, PAINT_2BHK } from "./estimate-fixtures.js";
 
 const T = Trade.enum;
 const city = City.enum.bengaluru;
@@ -72,7 +72,6 @@ describe("the estimate under the card's rate questions", () => {
     const found = { request: estimateRequest(city, T.cook) as EstimateRequest, estimate: COOK_MONTH };
     const s = withEstimate(atRate("cook"), found);
     expect(keys(prompt(s).lines)).toContain("estimate.legal_min");
-    expect(keys(prompt(s).lines)).toContain("estimate.gigsync.other");
     const min = choose(s, Pick.suggested);
     expect(keys(prompt(min).lines)).toEqual([
       "iv.got_rate",
@@ -80,6 +79,28 @@ describe("the estimate under the card's rate questions", () => {
       "estimate.legal_min",
       "estimate.suggest_min",
     ]);
+  });
+
+  it("a range from GigSync's jobs says how many and where, with no sources to open", () => {
+    const found = { request: estimateRequest(city, T.cook) as EstimateRequest, estimate: COOK_GIGSYNC };
+    const lines = prompt(withEstimate(atRate("cook"), found)).lines;
+    expect(lines.find((l) => l.key === "estimate.jobs.other")).toEqual({
+      key: "estimate.jobs.other",
+      params: { count: 34 },
+      names: { place: ["area.jayanagar"] },
+    });
+    expect(lines.find((l) => l.key === "estimate.range_month")?.names?.city).toEqual(["area.jayanagar"]);
+    expect(keys(lines)).not.toContain("estimate.basis.other");
+  });
+
+  it("a city-wide GigSync range names the city", () => {
+    const { area: _, ...citywide } = COOK_GIGSYNC.basis;
+    const found = {
+      request: estimateRequest(city, T.cook) as EstimateRequest,
+      estimate: { ...COOK_GIGSYNC, basis: citywide },
+    };
+    const line = prompt(withEstimate(atRate("cook"), found)).lines.find((l) => l.key === "estimate.jobs.other");
+    expect(line?.names).toEqual({ place: ["city.bengaluru"] });
   });
 
   it("an estimate for another trade is ignored: the city band shows, and the chip does nothing", () => {
@@ -109,6 +130,7 @@ describe("the estimate beside the household's budget", () => {
     expect(s.slot).toBe(NeedSlot.budget);
     expect(needRequest(city, s.draft)).toEqual({
       city,
+      area: "koramangala",
       trade: T.painter,
       scope: { rooms: "bhk2", labour_only: "yes" },
     });

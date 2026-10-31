@@ -1,5 +1,5 @@
 import { canonicalJson } from "@gigsync/protocol";
-import type { Storage } from "../ports.js";
+import { Collection, type Storage } from "../ports.js";
 import type { MovedRecords } from "./types.js";
 
 /** One record on its way in, where it goes. */
@@ -24,6 +24,13 @@ export interface MergePlan {
 export const MergeChoice = { keepMine: "keep_mine", takeTheirs: "take_theirs" } as const;
 export type MergeChoice = (typeof MergeChoice)[keyof typeof MergeChoice];
 
+/**
+ * A job this phone only refilled from the owner's record on GigSync: the old phone's full copy (with its words and
+ * messages) simply replaces it, since the refill was only ever a stand-in for it.
+ */
+const standIn = (collection: string, mine: unknown): boolean =>
+  collection === Collection.jobs && typeof mine === "object" && mine !== null && "restored" in mine;
+
 /** Compares the old phone's records with this phone's, record by record, by collection and id. */
 export async function planMerge(storage: Storage, records: MovedRecords): Promise<MergePlan> {
   const incoming = Object.entries(records).flatMap(([collection, list]) =>
@@ -33,7 +40,7 @@ export async function planMerge(storage: Storage, records: MovedRecords): Promis
   const plan: MergePlan = { add: [], conflicts: [], same: 0 };
   incoming.forEach((record, i) => {
     const mine = existing[i];
-    if (mine === undefined) plan.add.push(record);
+    if (mine === undefined || standIn(record.collection, mine)) plan.add.push(record);
     else if (canonicalJson(mine) === canonicalJson(record.value)) plan.same += 1;
     else plan.conflicts.push(record);
   });

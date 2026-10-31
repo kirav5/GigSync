@@ -10,7 +10,7 @@ import {
 import type { JobRecord } from "../job/store.js";
 import { dayOf, EVERY_DAY, localDay } from "../job/when.js";
 import { OPEN_PAYMENT } from "./book.js";
-import { bothSigned, FINISHED_WORK, monthOf } from "./passbook.js";
+import { agreedPrice, bothSigned, FINISHED_WORK, monthOf } from "./passbook.js";
 
 /** Where a finished job stands with its money, as one chip on its row. */
 export const RecordState = {
@@ -147,7 +147,8 @@ export function workRecord(
     const key = workDay(job, today, offsetMinutes);
     return { key, day: middayOf(key, offsetMinutes) };
   };
-  const signed = jobs.filter(bothSigned);
+  // A job refilled from the record on GigSync counts as it did on the phone it was signed on.
+  const signed = jobs.filter((job) => bothSigned(job) || job.restored !== undefined);
   const provided = signed.filter((job) => job.engagement.role === Role.enum.provider);
   const toMe = byJob(payments.filter((p) => p.payee === me));
 
@@ -156,7 +157,7 @@ export function workRecord(
     .map((job): Filed<RecordRow> => {
       const { key, day } = dated(job);
       const money = moneyOf(job, toMe.get(job.engagement.id) ?? []);
-      return { key, row: { job, day, price_paise: job.mine.terms.price_paise, ...money } };
+      return { key, row: { job, day, price_paise: agreedPrice(job), ...money } };
     })
     .sort(newestFirst);
 

@@ -12,8 +12,8 @@ export async function upsertRecord(db: Db, f: JobFields, c: JobColumns, attested
   const { rowCount } = await db.query(
     `INSERT INTO job_records (engagement_id, worker_id, household_id, trade, scope_problem, scope_rooms,
        scope_frequency, scope_people, scope_meals, scope_hours_band, scope_labour_only, work_day, work_daily,
-       work_window, materials_by, coats, hours_per_day, price_paise, terms_hash, status, agreed_at, attested)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+       work_window, materials_by, coats, hours_per_day, price_paise, terms_hash, status, agreed_at, attested, area_key)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
      ON CONFLICT (engagement_id) DO UPDATE SET household_id = excluded.household_id, trade = excluded.trade,
        scope_problem = excluded.scope_problem, scope_rooms = excluded.scope_rooms,
        scope_frequency = excluded.scope_frequency, scope_people = excluded.scope_people,
@@ -21,7 +21,7 @@ export async function upsertRecord(db: Db, f: JobFields, c: JobColumns, attested
        scope_labour_only = excluded.scope_labour_only, work_day = excluded.work_day, work_daily = excluded.work_daily,
        work_window = excluded.work_window, materials_by = excluded.materials_by, coats = excluded.coats,
        hours_per_day = excluded.hours_per_day, price_paise = excluded.price_paise, terms_hash = excluded.terms_hash,
-       attested = excluded.attested
+       attested = excluded.attested, area_key = excluded.area_key
      WHERE job_records.worker_id = excluded.worker_id AND NOT job_records.attested`,
     [
       f.engagement,
@@ -46,6 +46,7 @@ export async function upsertRecord(db: Db, f: JobFields, c: JobColumns, attested
       AGREED,
       at,
       attested,
+      f.area ?? null,
     ],
   );
   return (rowCount ?? 0) > 0;

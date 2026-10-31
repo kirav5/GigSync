@@ -1,26 +1,15 @@
-import {
-  type City,
-  type Estimate,
-  type EstimateRequest,
-  type EstimateResponse,
-  isEstimate,
-  type Place,
-  type SharedPrice,
-} from "@gigsync/protocol";
+import { type City, type Estimate, type EstimateRequest, type EstimateResponse, isEstimate } from "@gigsync/protocol";
 import { log } from "../log.js";
 
-/** The server's estimate routes. ApiClient implements them; tests use a fake. */
+/** The server's estimate route. ApiClient implements it; tests use a fake. */
 export interface EstimateApi {
   estimate(request: EstimateRequest): Promise<EstimateResponse>;
-  sharePrice(price: SharedPrice): Promise<void>;
 }
 
-/** What a phone needs to ask for estimates and share prices: the routes, its city, and its areas' keys. */
+/** What a phone needs to ask for estimates: the route and its city. */
 export interface EstimateOptions {
   api: EstimateApi;
   city: City;
-  /** The pilot area a point is the centre of, as a slug ("hsr-layout"); undefined for any other point. */
-  areaKey(place: Place): string | undefined;
 }
 
 /**

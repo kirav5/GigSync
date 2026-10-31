@@ -1,7 +1,6 @@
-/** Job records kept by GigSync (ADR 0038): the notice at sign-up, Privacy's rows, and "My work record". */
+/** Job records kept by GigSync (ADR 0038): the sign-in line, Privacy's rows, and "My work record". */
 export const records = {
-  // The notice, at sign-up and once for everyone already signed in
-  "records.notice_title": "Your work record with GigSync",
+  // What GigSync keeps, as Privacy and the placeholder for the documents say it
   "records.notice_kept": "What GigSync keeps: your jobs, their dates, the kind of work, the price, payments and stars.",
   "records.notice_why":
     "Why: so your work record is yours and you can take it anywhere, to make GigSync better, and to reward workers.",
@@ -10,8 +9,17 @@ export const records = {
   "records.notice_delete": "You can delete your records any time, in Privacy.",
   "records.agree": "I agree",
   "records.not_now": "Not now",
-  "records.not_now_about": "Until you agree, GigSync keeps nothing about your jobs. We will ask again next time.",
   "records.agree_failed": "Could not reach GigSync. Try again when you are online.",
+  // The sign-in line (ADR 0039 §4), the documents' placeholder, and the line for owners signed in before it
+  "records.signin_line": "By continuing, you agree to GigSync's {link}",
+  "records.signin_link": "Terms and Privacy Notice",
+  "records.terms_title": "Terms and Privacy Notice",
+  "records.terms_writing":
+    "GigSync's Terms and Privacy Notice are being written. Until they are ready, this is what applies:",
+  "records.terms_about": "What you agreed to, and what GigSync keeps and never keeps.",
+  "records.terms_back": "Back",
+  "records.consent_toast":
+    "Using GigSync means you agree to its Terms and Privacy Notice. You can read them in Settings.",
   // Privacy
   "records.privacy_title": "My records with GigSync",
   "records.privacy_kept":

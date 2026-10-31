@@ -1,26 +1,11 @@
 import { log } from "@gigsync/core/log";
-import {
-  type EstimateRequest,
-  type EstimateResponse,
-  NoEstimateReason,
-  type SharedPrice,
-  type UserId,
-} from "@gigsync/protocol";
-import { type Db, transaction } from "../db/client.js";
-import {
-  type CacheKey,
-  claimReading,
-  countShare,
-  insertSharedPrice,
-  lastReading,
-  type Reading,
-  sharedPrices,
-  storeReading,
-} from "../db/estimates.js";
+import { EstimateBasisKind, type EstimateRequest, type EstimateResponse, NoEstimateReason } from "@gigsync/protocol";
+import type { Db } from "../db/client.js";
+import { type CacheKey, claimReading, lastReading, type Reading, storeReading } from "../db/estimates.js";
 import { assembleEstimate } from "./assemble.js";
-import { webBand } from "./compute.js";
-import { ESTIMATE_TTL_MS, LOCK_TTL_MS, MAX_SHARED_READ, MAX_SHARES_PER_DAY } from "./constants.js";
-import { firstMonthCounted, isShareableMonth, monthStart, utcDay } from "./months.js";
+import { type WebBand, webBand } from "./compute.js";
+import { ESTIMATE_TTL_MS, LOCK_TTL_MS } from "./constants.js";
+import { marketBand } from "./market.js";
 import type { QuoteSource } from "./source.js";
 
 const NONE = NoEstimateReason.enum;
@@ -87,50 +72,37 @@ async function freshReading({ db, source, requestId }: EstimateContext, req: Est
   }
 }
 
+/** The web's answer: a band with when it was read, or why there is none. */
+type WebAnswer = { web: WebBand; readAt: Date } | NoEstimateReason;
+
 /**
- * The estimate for a request: the cached web reading when younger than `ESTIMATE_TTL_MS`, otherwise a new one (or
- * the old one while a new one cannot be had); blended with shared prices and floored (`assembleEstimate`). Never throws for a missing source or a failed
- * reading: those are "no estimate" with a reason.
+ * The web's band for a request: the cached reading when younger than `ESTIMATE_TTL_MS`, otherwise a new one (or the
+ * old one, with its date, while a new one cannot be had). A source that is not cached (the local fixture) is read every
+ * time and never touches the cache.
  */
-export async function serveEstimate(ctx: EstimateContext, req: EstimateRequest, now: Date): Promise<EstimateResponse> {
+async function webAnswer(ctx: EstimateContext, req: EstimateRequest, now: Date): Promise<WebAnswer> {
   const { db, source } = ctx;
-  const key = keyOf(req);
-  // A source that is not cached (the local fixture) is read every time and never touches the cache.
   if (source && !source.cached) {
     const result = webBand(req, await source.quotes(req)).result;
-    const web = typeof result === "string" ? undefined : result;
-    const estimate = assembleEstimate(req, { web, readAt: now, shared: [] }, now);
-    return estimate ?? { none: typeof result === "string" ? result : NONE.too_few_quotes };
+    return typeof result === "string" ? result : { web: result, readAt: now };
   }
-  const [cached, shared] = await Promise.all([
-    lastReading(db, key),
-    sharedPrices(db, key, firstMonthCounted(now), MAX_SHARED_READ),
-  ]);
+  const cached = await lastReading(db, keyOf(req));
   const fresh = cached && now.getTime() - cached.readAt.getTime() < ESTIMATE_TTL_MS ? cached : undefined;
   const attempt = fresh ?? (await freshReading(ctx, req, now));
-  // A reading past its TTL still beats nothing while a new one is pending or failing; its date goes with it.
   const reading = typeof attempt === "string" && cached ? cached : attempt;
-  const result = typeof reading === "string" ? reading : reading.result;
-  const web = typeof result === "string" ? undefined : result;
-  const readAt = typeof reading === "string" ? undefined : reading.readAt;
-  const estimate = assembleEstimate(req, { web, readAt, shared }, now);
-  if (estimate) return estimate;
-  return { none: typeof result === "string" ? result : NONE.too_few_quotes };
+  if (typeof reading === "string") return reading;
+  return typeof reading.result === "string" ? reading.result : { web: reading.result, readAt: reading.readAt };
 }
 
-/** How a share ended: stored, refused for its month, or refused because the user shared too many today. */
-export const ShareOutcome = { stored: "stored", badMonth: "bad_month", tooMany: "too_many" } as const;
-export type ShareOutcome = (typeof ShareOutcome)[keyof typeof ShareOutcome];
-
-/** Stores a shared price with no user id, after counting it against the user's daily allowance, in one transaction. */
-export async function sharePrice(db: Db, user: UserId, price: SharedPrice, now: Date): Promise<ShareOutcome> {
-  if (!isShareableMonth(price.month, now)) return ShareOutcome.badMonth;
-  const key = keyOf(price);
-  const stored = await transaction(db, async () => {
-    if (!(await countShare(db, user, utcDay(now), MAX_SHARES_PER_DAY))) return false;
-    const row = { area_key: price.area_key, price_paise: price.price_paise, month: monthStart(price.month) };
-    await insertSharedPrice(db, key, row);
-    return true;
-  });
-  return stored ? ShareOutcome.stored : ShareOutcome.tooMany;
+/**
+ * The estimate for a request (ADR 0039 §1): from the prices agreed on GigSync when at least `K_MIN` jobs fall in the
+ * area or else the city (`marketBand`), otherwise from the web's quotes (ADR 0030); the legal floor applies to both
+ * (`assembleEstimate`). Never throws for a missing source or a failed reading: those are "no estimate" with a reason.
+ */
+export async function serveEstimate(ctx: EstimateContext, req: EstimateRequest, now: Date): Promise<EstimateResponse> {
+  const market = await marketBand(ctx.db, req, now);
+  if (market) return assembleEstimate(req, { kind: EstimateBasisKind.enum.gigsync, market }, now);
+  const answer = await webAnswer(ctx, req, now);
+  if (typeof answer === "string") return { none: answer };
+  return assembleEstimate(req, { kind: EstimateBasisKind.enum.web, ...answer }, now);
 }

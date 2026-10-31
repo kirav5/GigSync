@@ -121,19 +121,33 @@ export function JobActions({ job, view, device, run, onAddPayee, them }: JobActi
   );
 }
 
+/** The note field's name in its form. */
+const NOTE_FIELD = "note";
+
 /** The worker's own words to the customer, sent as written and tagged with this phone's language. */
 function NoteBox({ onSend }: { onSend: (text: string) => Promise<unknown> }) {
   const { t } = useI18n();
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const text = String(new FormData(form).get("note") ?? "").trim();
+    const field = form.elements.namedItem(NOTE_FIELD);
+    const text = String(new FormData(form).get(NOTE_FIELD) ?? "").trim();
     if (!text) return;
-    void onSend(text).then(() => form.reset());
+    // Cleared at once, not when the send finishes: that would wipe a next note typed meanwhile. Sends queue in order;
+    // a failed one puts its words back if the box is still empty.
+    form.reset();
+    void onSend(text).catch(() => {
+      if (field instanceof HTMLInputElement && !field.value) field.value = text;
+    });
   }
   return (
     <form className={C.row} onSubmit={submit} aria-label={t("a11y.note")}>
-      <input className={C.field} name="note" aria-label={t("a11y.note")} placeholder={t("job.note_placeholder")} />
+      <input
+        className={C.field}
+        name={NOTE_FIELD}
+        aria-label={t("a11y.note")}
+        placeholder={t("job.note_placeholder")}
+      />
       <button type={C.submit} className={C.btn}>
         {t("job.send_note")}
       </button>

@@ -2,7 +2,7 @@
   "name": "@gigsync/ui-tests",
   "version": "0.1.0",
   "private": true,
-  "description": "Two people on two phones through the app's real screens, against a running API and Neon. Saves each person's screen at every step.",
+  "description": "Two people on two phones through the app's real screens, against their own API and local database. Saves each person's screen at every step.",
   "type": "module",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",

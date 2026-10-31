@@ -2,7 +2,6 @@ import type { records as en } from "../en/records.js";
 
 /** Hindi: job records kept by GigSync, the notice, Privacy's rows and "My work record". */
 export const records: Readonly<Record<keyof typeof en, string>> = {
-  "records.notice_title": "GigSync के पास आपके काम का रिकॉर्ड",
   "records.notice_kept": "GigSync क्या रखता है: आपके काम, उनकी तारीख़, काम का प्रकार, दाम, भुगतान और स्टार।",
   "records.notice_why":
     "क्यों: ताकि आपके काम का रिकॉर्ड आपका रहे और आप उसे कहीं भी ले जा सकें, GigSync को बेहतर बनाने के लिए, और कामगारों को इनाम देने के लिए।",
@@ -10,8 +9,15 @@ export const records: Readonly<Record<keyof typeof en, string>> = {
   "records.notice_delete": "आप अपने रिकॉर्ड कभी भी निजता में जाकर मिटा सकते हैं।",
   "records.agree": "मैं सहमत हूँ",
   "records.not_now": "अभी नहीं",
-  "records.not_now_about": "जब तक आप सहमत नहीं होते, GigSync आपके कामों के बारे में कुछ नहीं रखता। हम अगली बार फिर पूछेंगे।",
   "records.agree_failed": "GigSync से जुड़ नहीं पाए। इंटरनेट मिलने पर फिर कोशिश करें।",
+  "records.signin_line": "जारी रखकर, आप GigSync की {link} से सहमत होते हैं",
+  "records.signin_link": "शर्तों और गोपनीयता सूचना",
+  "records.terms_title": "शर्तें और गोपनीयता सूचना",
+  "records.terms_writing": "GigSync की शर्तें और गोपनीयता सूचना अभी लिखी जा रही हैं। तब तक यह लागू है:",
+  "records.terms_about": "आप किस बात पर सहमत हुए, और GigSync क्या रखता है और क्या कभी नहीं।",
+  "records.terms_back": "वापस",
+  "records.consent_toast":
+    "GigSync इस्तेमाल करने का मतलब है कि आप इसकी शर्तों और गोपनीयता सूचना से सहमत हैं। आप उन्हें सेटिंग्स में पढ़ सकते हैं।",
   "records.privacy_title": "GigSync के पास मेरे रिकॉर्ड",
   "records.privacy_kept":
     "GigSync आपके काम, तारीख़, काम का प्रकार, दाम, भुगतान और स्टार रखता है। फ़ोन नंबर, पता या आपका लिखा कभी नहीं।",

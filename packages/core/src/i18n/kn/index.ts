@@ -3,6 +3,7 @@ import { agent } from "./agent.js";
 import { ask } from "./ask.js";
 import { bargain } from "./bargain.js";
 import { chats } from "./chats.js";
+import { contacts } from "./contacts.js";
 import { estimate } from "./estimate.js";
 import { explain } from "./explain.js";
 import { home } from "./home.js";
@@ -58,4 +59,5 @@ export const kn: Strings = {
   ...qr,
   ...page,
   ...phone,
+  ...contacts,
 };

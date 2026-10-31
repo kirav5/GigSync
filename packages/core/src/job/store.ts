@@ -18,7 +18,9 @@ import type {
   Terms,
   Trade,
 } from "@gigsync/protocol";
+import type { ProblemRecord } from "../contacts/rules.js";
 import { Collection, type Storage } from "../ports.js";
+import type { RestoredFacts } from "../records/restore.js";
 import type { Advice } from "./advice.js";
 import type { Mandate } from "./negotiate.js";
 import type { Strategy, Tactic } from "./strategy.js";
@@ -74,15 +76,19 @@ export interface JobRecord {
   suggested?: Record<string, Suggested>;
   /** The estimate for this job's scope (ADR 0030), when there was one: offers far outside it get a note. */
   estimate?: Estimate;
-  /** The owner's answer to sharing this job's price anonymously, once both signed; unset until they answer. */
-  price_share?: ShareAnswer;
   /** Whether this job's offers carry terms other than price, and the terms this side proposes next (ADR 0033). */
   terms?: TermsTrack;
+  /** When this phone first saw the job end (done or cancelled): the settle cap counts from here (ADR 0039 §3). */
+  ended_at?: string;
+  /** When this phone removed the other side's contact details, once the job was settled (ADR 0039 §3). */
+  contacts_removed_at?: string;
+  /** The other side's name from the card removed then: a name alone reaches nobody, and the job still says whom. */
+  their_name?: string;
+  /** A problem either side reported before the contacts were removed: it holds them, at most 30 days. */
+  problem?: ProblemRecord;
+  /** A job refilled from the owner's record on GigSync: its facts only, no words or contacts (never sent there). */
+  restored?: RestoredFacts;
 }
-
-/** Whether the owner shared a signed job's price: asked once per job, or answered by their setting. */
-export const ShareAnswer = { yes: "yes", no: "no" } as const;
-export type ShareAnswer = (typeof ShareAnswer)[keyof typeof ShareAnswer];
 
 /** Where the household's agent found an answer: the owner typed it, it was in this need's words, or a past job's. */
 export const AnswerSource = { owner: "owner", words: "words", memory: "memory" } as const;

@@ -7,6 +7,7 @@ import { DEFAULT_LANG, Lang, QuestionKey } from "./lang.js";
 import { Introduce, LandingRequest, MentorAccept, MentorOffer } from "./mentor-envelopes.js";
 import { Paise, PaymentRecord, PaymentRequest } from "./payment.js";
 import { Place } from "./place.js";
+import { JobProblem } from "./problem.js";
 import { WorkOffer } from "./qr.js";
 import { Terms, termsFit } from "./terms.js";
 import { Trade } from "./trade.js";
@@ -222,4 +223,5 @@ export const BODY: Readonly<Record<EnvelopeKind, z.ZodType>> = {
   [K.mentor_offer]: MentorOffer,
   [K.mentor_accept]: MentorAccept,
   [K.work_offer]: WorkOffer,
+  [K.problem]: JobProblem,
 };

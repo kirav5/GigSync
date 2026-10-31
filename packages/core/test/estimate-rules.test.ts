@@ -11,7 +11,6 @@ import {
 import { describe, expect, it } from "vitest";
 import {
   ApiClient,
-  ApiPath,
   estimateBand,
   estimateRequest,
   FAR_ABOVE_SHARE,
@@ -180,19 +179,5 @@ describe("the API client's estimate calls", () => {
     await expect(
       client({ low_paise: "lots" }).estimate({ city, trade: T.driver, scope: { hours: "7_to_9" } }),
     ).rejects.toThrow();
-  });
-
-  it("posts a shared price to its route", async () => {
-    const seen: string[] = [];
-    const price = {
-      city,
-      trade: T.cook,
-      scope: { people: "3_4", meals: "2" },
-      area_key: "hsr-layout",
-      price_paise: 1_000_000,
-      month: "2026-11",
-    } as const;
-    await client(null, 204, seen).sharePrice(price);
-    expect(seen[0]).toBe(`POST https://api.test${ApiPath.sharedPrices} ${JSON.stringify(price)}`);
   });
 });

@@ -6,6 +6,7 @@ import {
   type OwnerTask,
   type Ports,
   type ReceivedOffer,
+  restoredPayments,
 } from "@gigsync/core";
 import type { Payment } from "@gigsync/protocol";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -44,7 +45,7 @@ export function useGig(ports: Ports, device: GigDevice | undefined) {
 
   const read = useCallback(async () => {
     if (!device) return;
-    const [jobs, tasks, payments, offers] = await Promise.all([
+    const [jobs, tasks, booked, offers] = await Promise.all([
       device.jobs(),
       device.tasks(),
       device.payments.all(),
@@ -55,6 +56,8 @@ export function useGig(ports: Ports, device: GigDevice | undefined) {
         jobs.map(async (j) => [j.engagement.counterpart, (await nameOf(ports, j.engagement.counterpart)) ?? ""]),
       ),
     );
+    // A job restored from the record carries its payments itself: they were never in this phone's payment book.
+    const payments = [...booked, ...restoredPayments(jobs)];
     setView({ jobs, tasks, payments, offers, names, syncedAt: new Date() });
   }, [ports, device]);
 

@@ -19,12 +19,12 @@ import {
   type Lang,
   MAX_TRADES,
   PAYEE_NAME_MAX,
+  PROBLEM_PROTOCOL,
   type Session,
   type UserId,
   Vpa,
-  WORK_OFFER_PROTOCOL,
 } from "@gigsync/protocol";
-import { areaKeyOf, PILOT_CITY } from "../ui/places.js";
+import { PILOT_CITY } from "../ui/places.js";
 import { API_BASE } from "./api.js";
 import { cryptoRandom } from "./random.js";
 import { recordsClient } from "./records.js";
@@ -61,12 +61,12 @@ const PROFILE_KEY = "profile";
 type Profile = Omit<Account, "session" | "contact" | "protocol">;
 /**
  * What this app understands, sent with the device's keys at sign-in: notes on a link, questions a worker's agent's
- * model wrote, the mentor envelopes, terms besides the price in offers and signed deals, and offers to work from a
- * personal QR. Each capability number includes the ones before it (COLLEAGUE_PROTOCOL is 2, FREE_QUESTIONS_PROTOCOL 3,
- * MENTOR_PROTOCOL 4, TERMS_PROTOCOL 5). An older phone may still send this one an in-person link ask or a referral,
- * which the colleague number promised; both are dropped on arrival.
+ * model wrote, the mentor envelopes, terms besides the price in offers and signed deals, offers to work from a personal
+ * QR, and a problem reported on a job. Each capability number includes the ones before it (COLLEAGUE_PROTOCOL is 2,
+ * FREE_QUESTIONS_PROTOCOL 3, MENTOR_PROTOCOL 4, TERMS_PROTOCOL 5, WORK_OFFER_PROTOCOL 6). An older phone may still send
+ * this one an in-person link ask or a referral, which the colleague number promised; both are dropped on arrival.
  */
-const PROTOCOL = WORK_OFFER_PROTOCOL;
+const PROTOCOL = PROBLEM_PROTOCOL;
 
 export class AccountError extends Error {}
 
@@ -209,7 +209,7 @@ export function deviceFor(ports: Ports, account: Account, lang: Lang): GigDevice
     ...(account.worker ? { worker: account.worker } : {}),
     ...(account.autoConfirm ? { autoConfirm: true } : {}),
     model: ports.model,
-    estimates: { api, city: PILOT_CITY, areaKey: areaKeyOf },
+    estimates: { api, city: PILOT_CITY },
     qrApi: api,
     records: recordsClient(account.session),
     lang,

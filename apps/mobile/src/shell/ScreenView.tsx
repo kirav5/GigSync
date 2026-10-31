@@ -17,6 +17,7 @@ import { InstallPage } from "../screens/pages/InstallPage.js";
 import { MyCardPage } from "../screens/pages/MyCardPage.js";
 import { Privacy } from "../screens/pages/Privacy.js";
 import { SettingsPage } from "../screens/pages/SettingsPage.js";
+import { TermsPage } from "../screens/pages/TermsPage.js";
 import { Person } from "../screens/qr/Person.js";
 import { Requests } from "../screens/Requests.js";
 import { WorkRecordExport } from "../screens/record/WorkRecordExport.js";
@@ -144,8 +145,11 @@ export function ScreenView({ screen, d, m }: { screen: Screen; d: ScreenData; m:
           onInstall={() => m.go(Screen.install)}
           onMoveOut={() => m.go(Screen.moveOut)}
           onMoveIn={() => m.go(Screen.moveIn)}
+          onTerms={() => m.go(Screen.terms)}
         />
       );
+    case Screen.terms:
+      return <TermsPage />;
     case Screen.moveOut:
       return <MoveOut ports={ports} account={account} sync={() => run(async () => undefined)} onSignOut={m.signOut} />;
     case Screen.moveIn:

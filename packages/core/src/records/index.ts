@@ -6,6 +6,7 @@ export { fingerprint, type RecordReport, ReportKind, recordsDue } from "./due.js
 export * from "./export.js";
 export { jobWork, outcomeOf, paymentOf, submissionOf } from "./facts.js";
 export * from "./own-card.js";
+export { GONE_COUNTERPART, type RestoredFacts, restoredJob, restoredPayments, restoreFromRecord } from "./restore.js";
 export * from "./runner.js";
 export { pendingRecords, type RecordsDeps, sendRecords } from "./send.js";
 export * from "./shown.js";

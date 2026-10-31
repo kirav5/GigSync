@@ -1,4 +1,5 @@
-import { type Estimate, type EstimateRequest, type Lang, RateUnit, Trade } from "@gigsync/protocol";
+import { type Estimate, EstimateBasisKind, type EstimateRequest, type Lang, RateUnit, Trade } from "@gigsync/protocol";
+import { areaOfSlug } from "../estimate/areas.js";
 import { sourceCount } from "../estimate/scope.js";
 import { priceText } from "../i18n/reasons.js";
 import { type MessageKey, pluralKey, t } from "../i18n/t.js";
@@ -6,9 +7,10 @@ import { type Choice, type Line, Pick } from "./card.js";
 import { isMessageKey } from "./choices.js";
 
 /**
- * An estimate as the interviews show it (ADR 0030): the range for the job's scope with how many sources it rests on
- * and when they were read, what GigSync prices it includes, the legal minimum, and the amount suggested, which the
- * owner taps to use or says their own. Every figure is the estimate's own; nothing here computes a price.
+ * An estimate as the interviews show it (ADR 0030, ADR 0039): the range for the job's scope, what it rests on (how
+ * many jobs on GigSync and where, or how many web sources and when they were read), the legal minimum, and the amount
+ * suggested, which the owner taps to use or says their own. Every figure is the estimate's own; nothing here computes
+ * a price.
  */
 
 /** An estimate with the request it answers, so a screen can tell whether it still fits the job as it now stands. */
@@ -53,26 +55,41 @@ function scopeParts(own: Lang, request: EstimateRequest): string[] {
   return keys.map((k) => t(own, k));
 }
 
-/** The range with its scope, then how many sources and when, any GigSync prices, and the legal minimum if known. */
+/** Where the range is for: the area its GigSync jobs are in, else the city. */
+function placeKeys({ request, estimate }: FoundEstimate): MessageKey[] {
+  const area = estimate.basis.area && areaOfSlug(estimate.basis.area);
+  const key = area ? `area.${area.key}` : `city.${request.city}`;
+  return isMessageKey(key) ? [key] : [];
+}
+
+/** What the range rests on: the GigSync jobs and where they are, or the web's sources and when they were read. */
+function basisLine(own: Lang, found: FoundEstimate, place: readonly MessageKey[]): Line {
+  const { estimate } = found;
+  if (estimate.basis.kind === EstimateBasisKind.enum.gigsync) {
+    const jobs = estimate.basis.gigsync_jobs;
+    return { key: pluralKey(own, "estimate.jobs", jobs), params: { count: jobs }, names: { place } };
+  }
+  const pages = sourceCount(estimate);
+  return {
+    key: pluralKey(own, "estimate.basis", pages),
+    params: { count: pages },
+    dates: { date: estimate.as_of.slice(0, DAY_LENGTH) },
+  };
+}
+
+/** The range with its scope and place, then what it rests on, and the legal minimum if known. */
 export function estimateLines(own: Lang, found: FoundEstimate): Line[] {
   const { request, estimate } = found;
   const parts = scopeParts(own, request);
-  const city = `city.${request.city}`;
-  const pages = sourceCount(estimate);
-  const shared = estimate.basis.gigsync_jobs;
+  const place = placeKeys(found);
   return [
     {
       key: RANGE[estimate.unit],
-      names: { trade: [`trade.${request.trade}`], ...(isMessageKey(city) ? { city: [city] } : {}) },
+      names: { trade: [`trade.${request.trade}`], ...(place.length > 0 ? { city: place } : {}) },
       params: { scope: parts.length > 0 ? t(own, "estimate.scope", { scope: parts.join(", ") }) : "" },
       prices: { low: estimate.low_paise, high: estimate.high_paise },
     },
-    {
-      key: pluralKey(own, "estimate.basis", pages),
-      params: { count: pages },
-      dates: { date: estimate.as_of.slice(0, DAY_LENGTH) },
-    },
-    ...(shared > 0 ? [{ key: pluralKey(own, "estimate.gigsync", shared), params: { count: shared } }] : []),
+    basisLine(own, found, place),
     ...estimateLegalLines(found),
   ];
 }

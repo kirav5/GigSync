@@ -3,8 +3,9 @@ import { Collection, type Storage } from "../ports.js";
 import type { RecordsApi } from "./types.js";
 
 /**
- * The notice about job records and the owner's agreement to it (ADR 0038 §5). Nothing about a job is sent before the
- * owner agreed. The server holds the agreement, so a new phone knows it; this phone keeps a copy to decide offline.
+ * The owner's agreement to GigSync's Terms and Privacy Notice, which cover job records (ADR 0039 §4, replacing ADR 0038
+ * §5's notice screen): given by continuing on the sign-in screen. Nothing about a job is sent before the owner agreed.
+ * The server holds the agreement, so a new phone knows it; this phone keeps a copy to decide offline.
  */
 
 /** Where the owner stands with the notice, as this phone last knew it. */
@@ -35,27 +36,40 @@ export async function agreeToRecords(api: RecordsApi, storage: Storage): Promise
   await save(storage, RecordsAnswer.agreed);
 }
 
+/** What opening the app did about the agreement: just recorded it, found it already given, or left it withdrawn. */
+export const ConsentOnOpen = { recorded: "recorded", kept: "kept", withdrawn: "withdrawn" } as const;
+export type ConsentOnOpen = (typeof ConsentOnOpen)[keyof typeof ConsentOnOpen];
+
 /**
- * Whether to show the notice on opening the app: not when this phone or the server knows the owner agreed to it, nor
- * after they deleted their records (Privacy offers it again). Server unreachable and no answer here: shown, since
- * agreeing then fails and is asked again.
+ * On opening the app: an owner signed in before the sign-in line existed (or whose agreement predates the current
+ * notice) agreed by using GigSync, so it is recorded once, without a screen; the caller says so in one line. Not after
+ * they deleted their records (Privacy offers it again). Throws when GigSync cannot be reached: tried on the next open.
  */
-export async function noticeDue(api: RecordsApi, storage: Storage): Promise<boolean> {
-  const s = await stored(storage);
-  if (s?.answer === RecordsAnswer.withdrawn || (await recordsAgreed(storage))) return false;
-  try {
-    const consent = await api.consent();
-    if (!consent?.current) return true;
+export async function consentOnOpen(api: RecordsApi, storage: Storage): Promise<ConsentOnOpen> {
+  if ((await stored(storage))?.answer === RecordsAnswer.withdrawn) return ConsentOnOpen.withdrawn;
+  if (await recordsAgreed(storage)) return ConsentOnOpen.kept;
+  if ((await api.consent())?.current) {
     await save(storage, RecordsAnswer.agreed);
-    return false;
-  } catch {
-    return true;
+    return ConsentOnOpen.kept;
   }
+  await agreeToRecords(api, storage);
+  return ConsentOnOpen.recorded;
 }
 
-/** The server no longer holds this owner's agreement (deleted from another phone, or a newer notice): ask again. */
-export function forgetAgreement(storage: Storage): Promise<void> {
-  return storage.delete(Collection.ownerSettings, ANSWER_KEY);
+/**
+ * GigSync refused a record for want of a current agreement. With none held at all, the owner deleted their records on
+ * another phone: this one stops too, as if deleted here. With an older one held, a newer notice came: forgotten, so the
+ * next open records it. Unreachable now: nothing changes, and the next refusal asks again.
+ */
+export async function lostAgreement(api: RecordsApi, storage: Storage): Promise<void> {
+  let held: Awaited<ReturnType<RecordsApi["consent"]>>;
+  try {
+    held = await api.consent();
+  } catch {
+    return;
+  }
+  if (held) await storage.delete(Collection.ownerSettings, ANSWER_KEY);
+  else await withdrawRecords(storage);
 }
 
 /** After deleting their records: nothing is sent again until the owner agrees again from Privacy. */

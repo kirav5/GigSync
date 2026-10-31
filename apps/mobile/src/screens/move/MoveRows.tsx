@@ -5,7 +5,7 @@ import { Icon, type IconName } from "../../ui/Icon.js";
 import "../../ui/install.css";
 
 /** One of Settings' rows to a screen: the whole card is the button, as the row to Install (ui/install.css). */
-function Row({
+export function SettingsRow({
   icon,
   title,
   about,
@@ -37,8 +37,8 @@ function Row({
 export function MoveRows({ onMoveOut, onMoveIn }: { onMoveOut: () => void; onMoveIn: () => void }) {
   return (
     <>
-      <Row icon="phone" title="phone.move_out" about="phone.move_out_about" onOpen={onMoveOut} />
-      <Row icon="qr" title="phone.move_in" about="phone.move_in_about" onOpen={onMoveIn} />
+      <SettingsRow icon="phone" title="phone.move_out" about="phone.move_out_about" onOpen={onMoveOut} />
+      <SettingsRow icon="qr" title="phone.move_in" about="phone.move_in_about" onOpen={onMoveIn} />
     </>
   );
 }

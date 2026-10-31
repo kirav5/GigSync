@@ -130,6 +130,15 @@ describe("the facts a job record carries", () => {
     for (const words of ["9800000101", "Flat 302", "Saturday", "4th Block"]) expect(sent).not.toContain(words);
   });
 
+  it("carries the pilot area's slug when the request's point is one (ADR 0039), never the point", () => {
+    expect(submissionOf(signed(job()))?.area).toBeUndefined();
+    const r = job();
+    const inJayanagar = { ...r, request: { ...r.request, area: { lat: 12.9308, lon: 77.5838 } } };
+    const s = submissionOf(signed(inJayanagar));
+    expect(s?.area).toBe("jayanagar");
+    expect(JSON.stringify(s)).not.toContain("12.9308");
+  });
+
   it("says how a signed job ended only once it did", () => {
     expect(outcomeOf(signed(job()))).toBeUndefined();
     expect(outcomeOf(signed(job({ status: "delivered" })))).toEqual({ status: "done" });

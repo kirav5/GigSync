@@ -51,6 +51,21 @@ describe("two-party attestation of a job record", () => {
     expect(await attested(job.engagement)).toEqual([true]);
   });
 
+  it("keeps the job's area when both sides name the same one, and sets aside two different areas", async () => {
+    const w = await consented("+919888310014");
+    const home = await consented("+919888310015");
+    const job = { ...paintJob(newEngagement(), newHash()), area: "jayanagar" };
+    expect(await stateOf(await asWorker(w, home, job))).toBe(S.pending);
+    expect(await stateOf(await asHousehold(home, w, job))).toBe(S.stored);
+    const [row] = await sql<{ area_key: string | null }>("SELECT area_key FROM job_records WHERE engagement_id = $1", [
+      job.engagement,
+    ]);
+    expect(row?.area_key).toBe("jayanagar");
+    const other = { ...paintJob(newEngagement(), newHash()), area: "jayanagar" };
+    expect(await stateOf(await asWorker(w, home, other))).toBe(S.pending);
+    expect(await stateOf(await asHousehold(home, w, { ...other, area: "koramangala" }))).toBe(S.mismatch);
+  });
+
   it("refuses a signature that is not the sender's, and one by a revoked device", async () => {
     const w = await consented("+919888310005");
     const home = await consented("+919888310006");

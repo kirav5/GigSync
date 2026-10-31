@@ -30,6 +30,9 @@ export function monthText(lang: Lang, month: string | Date): string {
 /** "Wed 28": a day under its month's heading, in the owner's language. */
 export const weekdayText = (lang: Lang, at: Date): string => at.toLocaleDateString(LOCALE[lang], WEEKDAY_DAY);
 
-/** The other side's name as Passbook shows it: from their contact card, else the board, else `fallback`. */
+/**
+ * The other side's name as Passbook shows it: from their contact card (or the name kept once it was removed), else the
+ * board, else `fallback`.
+ */
 export const whoOf = (job: JobRecord, names: Readonly<Record<string, string>>, fallback: string): string =>
-  job.contact?.name || names[job.engagement.counterpart] || fallback;
+  job.contact?.name || job.their_name || names[job.engagement.counterpart] || fallback;

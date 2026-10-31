@@ -1,6 +1,6 @@
 import type { estimate as en } from "../en/estimate.js";
 
-/** Hindi: rate estimates, their sources and suggestions, the note on far-off offers, and anonymous price sharing. */
+/** Hindi: rate estimates, what they rest on, suggestions, market answers, and the note on far-off offers. */
 export const estimate: Readonly<Record<keyof typeof en, string>> = {
   "estimate.range_job": "{city} में {trade}{scope}: आम तौर पर पूरे काम का {low}–{high}।",
   "estimate.range_month": "{city} में {trade}{scope}: आम तौर पर महीने का {low}–{high}।",
@@ -43,8 +43,12 @@ export const estimate: Readonly<Record<keyof typeof en, string>> = {
   "estimate.problem.install": "लगाना",
   "estimate.basis.one": "{count} स्रोत से, {date} को जाँचा गया।",
   "estimate.basis.other": "{count} स्रोतों से, {date} को जाँचा गया।",
-  "estimate.gigsync.one": "इसमें GigSync पर बताया गया {count} दाम शामिल है।",
-  "estimate.gigsync.other": "इसमें GigSync पर बताए गए {count} दाम शामिल हैं।",
+  "estimate.jobs.one": "{place} में GigSync के {count} काम से।",
+  "estimate.jobs.other": "{place} में GigSync के {count} कामों से।",
+  "estimate.reason_jobs.one": "इस काम का आम रेट {low}–{high} है, GigSync के {count} काम से।",
+  "estimate.reason_jobs.other": "इस काम का आम रेट {low}–{high} है, GigSync के {count} कामों से।",
+  "estimate.market_none": "{place} में {trade} का आम रेट अभी नहीं बता सकता: GigSync पर काम और वेब पर दाम अभी बहुत कम हैं।",
+  "estimate.answer": "{text}",
   "estimate.legal_min": "इसमें कुछ भी क़ानूनी न्यूनतम {min} से कम नहीं है।",
   "estimate.sources": "स्रोत",
   "estimate.suggest_rate": "मेरा सुझाव है {price} से शुरू करें। इसे चुनें, या अपना दाम बताएँ।",
@@ -55,13 +59,4 @@ export const estimate: Readonly<Record<keyof typeof en, string>> = {
   "estimate.reason.other": "इस काम का आम रेट {low}–{high} है, {count} स्रोतों से।",
   "estimate.below": "इस काम के आम रेट ({low}–{high}) से काफ़ी कम।",
   "estimate.above": "इस काम के आम रेट ({low}–{high}) से काफ़ी ज़्यादा।",
-  "estimate.share_ask": "रेट के अंदाज़े सुधारने के लिए यह दाम बिना नाम के बताएँ?",
-  "estimate.share_what": "सिर्फ़ काम, शहर, इलाका, काम का साइज़, दाम और महीना भेजा जाता है। आपका नाम, नंबर या तारीख़ कभी नहीं।",
-  "estimate.share_yes": "हाँ, बताएँ",
-  "estimate.share_no": "नहीं",
-  "estimate.shared": "दाम बिना नाम के बताया गया। धन्यवाद।",
-  "estimate.setting_label": "रेट के अंदाज़े सुधारने के लिए तय दाम बिना नाम के बताएँ",
-  "estimate.setting_ask": "हर बार पूछें",
-  "estimate.setting_always": "हमेशा बताएँ",
-  "estimate.setting_never": "कभी नहीं",
 };

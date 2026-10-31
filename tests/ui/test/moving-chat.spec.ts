@@ -26,8 +26,6 @@ const GUIDE = CityGuide.parse(
 );
 const HOSTELS = GUIDE.sections.find((s) => s.id === "first-nights-women-hostels");
 const BANK = GUIDE.sections.find((s) => s.id === "bank-account-current-address");
-/** The cook's range at the default scope, as the API's fixture estimate gives it (workers/api estimates/fixture.ts). */
-const COOK_RANGE = "₹10,000–₹12,000 a month";
 
 let contexts: BrowserContext[] = [];
 /** A mentor listed in this run, taken off the shared list whatever happens. */
@@ -105,8 +103,10 @@ test("a cook moving to Bengaluru gets the outlook, the guide's answers and a men
   await expect(cookPage.getByRole("button", { name: t(en, "moving.suggest"), exact: true })).toBeVisible();
   await type(cookPage, en, "I'm moving to Bengaluru");
   const log = cookPage.getByRole("log");
-  await expect(log).toContainText(COOK_RANGE);
-  await expect(log).toContainText(counted(en, "estimate.basis"));
+  // The cook's range at the default scope, from GigSync's jobs when the shared database holds enough (ADR 0039), else
+  // the API's fixture web quotes.
+  await expect(log).toContainText(textOf(en, "estimate.range_month", { trade: t(en, "trade.cook") }));
+  await expect(log).toContainText(counted(en, "estimate.basis", "estimate.jobs"));
   await expect(log).toContainText(textOf(en, "estimate.legal_min"));
   await expect(log).toContainText(t(en, "moving.estimates"));
   await expect(log).toContainText(t(en, "moving.first", { city: t(en, "city.bengaluru") }));

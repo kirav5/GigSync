@@ -28,13 +28,16 @@ export class FakeRecords implements RecordsApi {
   consentState: ConsentState | undefined;
   /** Answer the next calls with this error instead of taking them. */
   failing: Error | undefined;
+  /** Refuse only what a phone sends about its jobs with this error; the consent routes still answer. */
+  refusing: Error | undefined;
   deleted = 0;
   card: MyBoardProfile | undefined;
   pages: MyJobRecords[] = [{ jobs: [] }];
   readonly asked: RecordsPageInput[] = [];
 
   private take(call: Taken): Promise<void> {
-    if (this.failing) return Promise.reject(this.failing);
+    const error = this.failing ?? this.refusing;
+    if (error) return Promise.reject(error);
     this.taken.push(call);
     return Promise.resolve();
   }

@@ -1,17 +1,18 @@
 import { readFileSync } from "node:fs";
-import { type MessageKey, plural, questionText, t } from "@gigsync/core";
+import { type MessageKey, plural, questionText, RecordsAnswer, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { MovePrompt, newPhone, open, Role, RUN, SHOTS, signIn } from "./helpers.js";
+import { chooseLanguage, completeSignIn, MovePrompt, newPhone, open, Role, RUN, SHOTS, signIn } from "./helpers.js";
 import { fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 import { seedServedJobs } from "./record-seed.js";
-import { NoticeAnswer } from "./records.js";
+import { blockConsent, consentAccepted, expectAgreed, storedAnswer, unblockConsent } from "./records.js";
 
 /**
- * Job records kept by GigSync (ADR 0038), through the app's screens against the real API: the notice at sign-up for
- * a worker and a household, in their language; "My work record" pulled from the server and downloaded; and "Delete my
- * records from GigSync"; and a job whose household said Not now, which still counts for the worker, marked as
- * confirmed by the worker only. A whole job both phones confirmed is in two-users.spec.ts.
+ * Job records kept by GigSync (ADR 0038), through the app's screens against the real API: the line under Continue on
+ * the sign-in screen (ADR 0039 §4), its placeholder for the documents, and the agreement it records; the one line an
+ * owner signed in before it sees once; "My work record" pulled from the server and downloaded; "Delete my records
+ * from GigSync"; and a job whose household deleted theirs, which still counts for the worker, marked as confirmed by
+ * the worker only. A whole job both phones confirmed is in two-users.spec.ts.
  */
 
 const { en, hi, kn } = Lang.enum;
@@ -47,7 +48,6 @@ async function shot(page: Page, name: string) {
   await page.setViewportSize(PHONE);
 }
 
-const notice = (page: Page, lang: Lang) => page.getByRole("region", { name: t(lang, "records.notice_title") });
 const button = (page: Page, lang: Lang, key: MessageKey) =>
   page.getByRole("button", { name: t(lang, key), exact: true });
 const privacy = (page: Page, lang: Lang) => page.getByRole("region", { name: t(lang, "records.privacy_title") });
@@ -64,46 +64,68 @@ async function seededCook(page: Page, name: string) {
   );
 }
 
-test("a new worker reads the notice in Hindi and agrees; a household says Not now and is asked again", async ({
-  browser,
-}) => {
+test("the sign-in line in Hindi opens the terms; continuing records the agreement on GigSync", async ({ browser }) => {
   const worker = await phone(browser);
-  await signIn(worker, {
-    role: Role.worker,
-    name: `Sunita ${RUN}`,
-    phone: newPhone(),
-    lang: hi,
-    records: NoticeAnswer.leave,
-  });
-  const said = notice(worker, hi);
-  for (const key of [
-    "records.notice_kept",
-    "records.notice_why",
-    "records.notice_never",
-    "records.notice_delete",
-  ] as const)
-    await expect(said).toContainText(t(hi, key));
-  await shot(worker, "notice-worker-hi");
-  await button(worker, hi, "records.agree").click();
-  await expect(said).toHaveCount(0);
+  const who = { role: Role.worker, name: `Sunita ${RUN}`, phone: newPhone(), lang: hi };
+  await chooseLanguage(worker, hi);
+  const form = worker.getByRole("form", { name: t(hi, "signin.label") });
+  await form.getByLabel(t(hi, "signin.name")).fill(who.name);
+  // One line under Continue, the documents' name a link inside it.
+  const link = worker.getByRole("button", { name: t(hi, "records.signin_link"), exact: true });
+  const sentence = t(hi, "records.signin_line", { link: t(hi, "records.signin_link") });
+  await expect(link.locator("xpath=..")).toHaveText(sentence);
+  await shot(worker, "signin-line-hi");
+  await link.click();
+  const terms = worker.getByRole("region", { name: t(hi, "records.terms_title") });
+  await expect(terms).toContainText(t(hi, "records.terms_writing"));
+  await expect(terms).toContainText(t(hi, "records.notice_never"));
+  await shot(worker, "terms-placeholder-hi");
+  await button(worker, hi, "records.terms_back").click();
+  // What she typed is still there.
+  await expect(form.getByLabel(t(hi, "signin.name"))).toHaveValue(who.name);
+
+  const accepted = consentAccepted(worker);
+  await completeSignIn(worker, who);
+  await accepted;
+  await expectAgreed(worker);
   await open(worker, "nav.privacy", hi);
   await expect(privacy(worker, hi)).toContainText(t(hi, "records.privacy_kept"));
+  // No screen in the way, and no line either: she agreed on the sign-in screen.
+  await expect(worker.getByText(t(hi, "records.consent_toast"))).toHaveCount(0);
+});
 
+test("an owner signed in before the line has it recorded once on opening, with one line about Settings", async ({
+  browser,
+}) => {
   const household = await phone(browser);
-  const who = { role: Role.consumer, name: `Kamala ${RUN}`, phone: newPhone(), address: "Jayanagar", lang: kn };
-  await signIn(household, { ...who, records: NoticeAnswer.leave });
-  await expect(notice(household, kn)).toContainText(t(kn, "records.notice_never"));
-  await shot(household, "notice-household-kn");
-  await button(household, kn, "records.not_now").click();
-  await expect(notice(household, kn)).toHaveCount(0);
-  await open(household, "nav.privacy", kn);
-  await expect(privacy(household, kn)).toContainText(t(kn, "records.privacy_off"));
-  // Opening the app again asks again; agreeing from it is kept.
+  // As an older app: nothing about the agreement reaches GigSync at sign-in.
+  await blockConsent(household);
+  await signIn(household, {
+    role: Role.consumer,
+    name: `Kamala ${RUN}`,
+    phone: newPhone(),
+    address: "Jayanagar",
+    lang: kn,
+  });
+  expect(await storedAnswer(household)).toBeUndefined();
+  await unblockConsent(household);
+  const accepted = consentAccepted(household);
   await household.reload();
-  await button(household, kn, "records.agree").click();
-  await expect(notice(household, kn)).toHaveCount(0);
-  await open(household, "nav.privacy", kn);
-  await expect(privacy(household, kn)).toContainText(t(kn, "records.privacy_kept"));
+  await accepted;
+  const toast = household.getByRole("status").filter({ hasText: t(kn, "records.consent_toast") });
+  await expect(toast).toBeVisible();
+  await shot(household, "consent-line-kn");
+  await expectAgreed(household);
+  await open(household, "nav.settings", kn);
+  // The row's name is its title and the line under it.
+  await household.getByRole("button", { name: t(kn, "records.terms_title") }).click();
+  await expect(household.getByRole("region", { name: t(kn, "records.terms_title") })).toContainText(
+    t(kn, "records.terms_writing"),
+  );
+  // Once: opening again says nothing.
+  await household.reload();
+  await expect(household.getByRole("banner")).toBeVisible();
+  await expect(toast).toHaveCount(0);
 });
 
 test("My work record is pulled from GigSync and downloads as a file", async ({ browser }) => {
@@ -157,13 +179,16 @@ test("Delete my records from GigSync says what goes, then the card's record is z
 
   await open(page, "nav.card");
   await expect(mine.getByRole("definition")).toHaveText(["0", t(en, "record.card_no_stars"), "0"]);
-  // Opening the app again does not ask: the owner chose to stop, and Privacy offers it again.
+  // Opening the app again records nothing: the owner chose to stop, and Privacy offers it again.
   await page.reload();
   await expect(page.getByRole("banner")).toBeVisible();
-  await expect(notice(page, en)).toHaveCount(0);
+  await expect(page.getByText(t(en, "records.consent_toast"))).toHaveCount(0);
+  expect(await storedAnswer(page)).toBe(RecordsAnswer.withdrawn);
+  await open(page, "nav.privacy");
+  await expect(section).toContainText(t(en, "records.privacy_off"));
 });
 
-test("a household says Not now; the worker's job still counts, marked as confirmed by the worker only", async ({
+test("a household deleted its records; the worker's job still counts, marked as confirmed by the worker only", async ({
   browser,
 }) => {
   const [workerPage, householdPage] = [await phone(browser), await phone(browser)];
@@ -181,7 +206,14 @@ test("a household says Not now; the worker's job still counts, marked as confirm
   await open(workerPage, "nav.activity");
 
   const who = { role: Role.consumer, name: `Meera ${RUN}`, phone: newPhone(), address: `Koramangala (${RUN})` };
-  await signIn(householdPage, { ...who, records: NoticeAnswer.later });
+  await signIn(householdPage, who);
+  // She deletes her records with GigSync before asking: her phone sends nothing about the job.
+  await open(householdPage, "nav.privacy");
+  const hers = privacy(householdPage, en);
+  await hers.getByRole("button", { name: t(en, "records.delete") }).click();
+  await hers.getByRole("button", { name: t(en, "records.delete_yes") }).click();
+  await expect(hers.getByRole("status")).toHaveText(t(en, "records.deleted"));
+  await open(householdPage, "nav.find");
   await fillAsk(household, {
     trade: "carpenter",
     area: "Koramangala",

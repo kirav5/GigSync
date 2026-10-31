@@ -2,11 +2,12 @@ import { env } from "cloudflare:test";
 import { type Estimate, type EstimateRequest, type EstimateResponse, isEstimate } from "@gigsync/protocol";
 import { beforeEach, describe, expect, it } from "vitest";
 import { withDirectory } from "../src/db/client.js";
-import { ESTIMATE_TTL_MS, K_MIN, LOCK_TTL_MS } from "../src/estimates/constants.js";
+import { ESTIMATE_TTL_MS, LOCK_TTL_MS } from "../src/estimates/constants.js";
 import { serveEstimate } from "../src/estimates/service.js";
 import type { QuoteSource } from "../src/estimates/source.js";
 import { quoteSourceFor } from "../src/estimates/source.js";
 import { COOK, FakeSource, MAID, quotesAt } from "./estimate-fakes.js";
+import { clearMarket } from "./market-helpers.js";
 import { sql } from "./sql.js";
 
 const NOW = new Date("2026-10-29T10:00:00Z");
@@ -21,7 +22,7 @@ const cooks = () => new FakeSource(() => quotesAt([9000, 10000, 11000, 12000, 14
 
 beforeEach(async () => {
   await sql("DELETE FROM estimate_cache");
-  await sql("DELETE FROM shared_prices");
+  await clearMarket();
 });
 
 describe("estimate cache", () => {
@@ -131,39 +132,6 @@ describe("no quote source", () => {
     expect(quoteSourceFor({ ...base, ESTIMATE_SOURCE: "fixture", ENVIRONMENT: "local" })?.name).toBe("fixture");
     expect(quoteSourceFor({ ...base, ANTHROPIC_API_KEY: "" })).toBeUndefined();
     expect(quoteSourceFor({ ...base, ANTHROPIC_API_KEY: "not-a-real-key" })?.name).toBe("anthropic");
-  });
-});
-
-async function share(count: number, price: number, month = "2026-10") {
-  const values = Array.from(
-    { length: count },
-    () => `('bengaluru', 'cook', 'meals=2;people=3_4', 'hsr', ${price}, '${month}-01')`,
-  );
-  await sql(
-    `INSERT INTO shared_prices (city, trade, bucket, area_key, price_paise, month) VALUES ${values.join(", ")}`,
-  );
-}
-
-describe("shared prices", () => {
-  it("are unused below K_MIN and blended from K_MIN, weighted by count", async () => {
-    await share(K_MIN - 1, 2_000_000);
-    const below = (await serve(cooks(), COOK)) as Estimate;
-    expect(below).toMatchObject({ typical_paise: 1_100_000, basis: { gigsync_jobs: 0 } });
-    await share(1, 2_000_000);
-    const blended = (await serve(cooks(), COOK)) as Estimate;
-    // (5 × ₹11,000 + 10 × ₹20,000) / 15 = ₹17,000
-    expect(blended).toMatchObject({ typical_paise: 1_700_000, basis: { gigsync_jobs: K_MIN } });
-  });
-
-  it("stand alone from K_MIN when the web has too few quotes", async () => {
-    await share(K_MIN, 1_500_000);
-    const e = await serve(new FakeSource(() => quotesAt([9000], SITES)), COOK);
-    expect(e).toMatchObject({ typical_paise: 1_500_000, basis: { sources: [], gigsync_jobs: K_MIN } });
-  });
-
-  it("count only from the last twelve months", async () => {
-    await share(K_MIN, 2_000_000, "2025-10");
-    expect(await serve(undefined, COOK)).toEqual({ none: "unavailable" });
   });
 });
 

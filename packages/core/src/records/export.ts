@@ -14,8 +14,8 @@ const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 /** Oldest agreed first, as a work record reads. */
 export const byAgreed = (a: ExportedJob, b: ExportedJob): number => a.agreed_at.localeCompare(b.agreed_at);
 
-/** The worker's jobs as the server keeps them, oldest first; only those where she was the worker. */
-export async function myWorkRecord(api: Pick<RecordsApi, "myJobRecords">): Promise<ExportedJob[]> {
+/** Every job the server keeps for this owner, on either side, oldest first. */
+export async function allMyRecords(api: Pick<RecordsApi, "myJobRecords">): Promise<ExportedJob[]> {
   const jobs: ExportedJob[] = [];
   let after: ExportedJob["engagement"] | undefined;
   // One page after another: each needs the cursor the last one ended on.
@@ -25,7 +25,12 @@ export async function myWorkRecord(api: Pick<RecordsApi, "myJobRecords">): Promi
     if (!got.next) break;
     after = got.next;
   }
-  return jobs.filter((j) => j.role === Role.enum.provider).sort(byAgreed);
+  return jobs.sort(byAgreed);
+}
+
+/** The worker's jobs as the server keeps them, oldest first; only those where she was the worker. */
+export async function myWorkRecord(api: Pick<RecordsApi, "myJobRecords">): Promise<ExportedJob[]> {
+  return (await allMyRecords(api)).filter((j) => j.role === Role.enum.provider);
 }
 
 /** The day the job was for, or the day it was agreed (where this phone is) when it had no single day (daily work). */

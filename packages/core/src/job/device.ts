@@ -12,10 +12,9 @@ import {
   type UserId,
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
+import { ContactKeeper } from "../contacts/keeper.js";
 import { apply } from "../engagement/machine.js";
 import type { EstimateOptions } from "../estimate/lookup.js";
-import { type SharePrices, sharePrices } from "../estimate/setting.js";
-import * as share from "../estimate/share.js";
 import { MailTransport } from "../mail/transport.js";
 import { Mentors } from "../mentor/mentors.js";
 import type { MentorApi } from "../mentor/types.js";
@@ -57,7 +56,7 @@ export interface DeviceOptions {
   model?: Model;
   /** The server's mentor routes; without them the phone can still introduce, answer and use mentor links. */
   mentorApi?: MentorApi;
-  /** The server's rate estimates and price sharing; without them plans come from the city's rates, as before. */
+  /** The server's rate estimates; without them plans come from the city's rates, as before. */
   estimates?: EstimateOptions;
   /** The server's personal QR routes; without them the phone can still receive and answer offers to work. */
   qrApi?: QrApi;
@@ -83,6 +82,8 @@ export class GigDevice {
   readonly offers: WorkOffers;
   /** Sends this owner's job records to GigSync once they agreed; absent without the server's routes. */
   readonly records?: RecordsRunner;
+  /** Contact details of settled jobs, removed on sync, and the problems that hold them (ADR 0039 §3). */
+  readonly contacts: ContactKeeper;
   private readonly transport: MailTransport;
   private readonly ctx: JobContext;
 
@@ -109,6 +110,7 @@ export class GigDevice {
     };
     this.mentors = new Mentors({ ctx: this.ctx, transport: this.transport, relay: o.relay }, o.mentorApi);
     this.offers = new WorkOffers({ ctx: this.ctx, transport: this.transport, isWorker: !!o.worker }, o.qrApi);
+    this.contacts = new ContactKeeper(this.ctx);
     if (o.records)
       this.records = new RecordsRunner(o.records, o.storage, o.clock, {
         jobs: () => this.jobs(),
@@ -119,11 +121,10 @@ export class GigDevice {
   /** Takes in what arrived, lets the agent answer it, and sends what is queued. */
   async sync(): Promise<{ received: number; sent: number }> {
     const received = await this.transport.receive();
-    const side = { mentors: this.mentors, offers: this.offers };
+    const side = { mentors: this.mentors, offers: this.offers, contacts: this.contacts };
     // In order on purpose: each envelope may depend on the one before it.
     for (const item of received) await dispatch(this.ctx, this.o.worker, item, side);
-    // A job may have become signed by both here (this owner signed last) or by what arrived.
-    await share.shareBySetting(this.ctx, await this.store.jobs());
+    await this.contacts.sweep();
     const sent = await this.transport.flush();
     await this.records?.run();
     return { received: received.length, sent };
@@ -222,16 +223,6 @@ export class GigDevice {
 
   async declineDeal(id: EngagementId): Promise<JobRecord> {
     return deal.decline(this.ctx, await this.job(id));
-  }
-
-  /** The owner's answer to sharing a signed job's price anonymously; yes sends it (ADR 0030 §3). */
-  async answerShare(id: EngagementId, yes: boolean): Promise<JobRecord> {
-    return (await share.answerShare(this.ctx, id, yes)) ?? this.job(id);
-  }
-
-  /** Whether the owner shares signed prices: asked per job, always, or never. */
-  sharePrices(): Promise<SharePrices> {
-    return sharePrices(this.o.storage);
   }
 
   async cancelJob(id: EngagementId, note?: string): Promise<JobRecord> {

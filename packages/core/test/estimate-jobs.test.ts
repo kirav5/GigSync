@@ -1,17 +1,6 @@
 import { City, type EngagementId, type EstimateRequest, Lang, Trade } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import {
-  agentTalk,
-  type NewNeed,
-  OfferNote,
-  ReasonKind,
-  SharePrices,
-  setSharePrices,
-  settle,
-  sharePrices,
-  TalkKind,
-  type WorkerRules,
-} from "../src/index.js";
+import { agentTalk, type NewNeed, OfferNote, ReasonKind, settle, TalkKind, type WorkerRules } from "../src/index.js";
 import { COOK_MONTH, estimateOptions, FakeEstimateApi, PAINT_2BHK } from "./estimate-fixtures.js";
 import { ASHA, BENGALURU, BENGALURU_RATES, cook, cookNeed, MemoryRelay, phone, RAVI_HOME } from "./phones.js";
 
@@ -142,15 +131,5 @@ describe("a note on offers far outside the estimate, never a block", () => {
     expect(theirs.estimate).toEqual(PAINT_2BHK);
     const offers = agentTalk(theirs).filter((s) => s.kind === TalkKind.offer && s.by === "provider");
     expect(offers[0]).toMatchObject({ note: OfferNote.above });
-  });
-});
-
-describe("the share setting", () => {
-  it("asks each time until the owner chooses, and ignores a record that is not a choice", async () => {
-    const { household } = await pair(kiran(), new FakeEstimateApi(byTrade));
-    expect(await sharePrices(household.storage)).toBe(SharePrices.ask);
-    await setSharePrices(household.storage, SharePrices.never);
-    expect(await household.device.sharePrices()).toBe(SharePrices.never);
-    await expect(setSharePrices(household.storage, "sometimes" as SharePrices)).rejects.toThrow();
   });
 });

@@ -48,7 +48,8 @@ export const paintJob = (engagement: EngagementId, hash: string, price = 900000)
   terms_hash: hash,
 });
 
-type Job = ReturnType<typeof paintJob>;
+/** A job as one side submits it, with the pilot area its request named when there is one. */
+type Job = ReturnType<typeof paintJob> & { area?: string };
 
 /** `as` submits `job` as the worker (provider) or household (requester), signed with `signer`'s key (default theirs). */
 export async function submit(

@@ -1,18 +1,18 @@
 import { HttpMethod } from "@gigsync/core";
 import { DEFAULT_SCOPE, Estimate, EstimateResponse } from "@gigsync/protocol";
 import { beforeEach, describe, expect, it } from "vitest";
-import { MAX_SHARES_PER_DAY } from "../src/estimates/constants.js";
+import { K_MIN } from "../src/estimates/constants.js";
 import { COOK, MAID, PAINTER } from "./estimate-fakes.js";
+import { clearMarket, many, seedCookJobs } from "./market-helpers.js";
 import { call } from "./mentor-helpers.js";
 import { signIn } from "./people.js";
 import { sql } from "./sql.js";
 
 const ESTIMATES = "/estimates";
-const PRICES = "/estimates/prices";
 
 beforeEach(async () => {
   await sql("DELETE FROM estimate_cache");
-  await sql("DELETE FROM shared_prices");
+  await clearMarket();
 });
 
 describe("POST /v1/estimates (fixture quote source)", () => {
@@ -22,7 +22,7 @@ describe("POST /v1/estimates (fixture quote source)", () => {
     expect(res.status).toBe(200);
     const e = Estimate.parse(await res.json());
     expect(e).toMatchObject({ low_paise: 1_400_000, typical_paise: 1_600_000, high_paise: 1_800_000, unit: "job" });
-    expect(e.basis).toMatchObject({ gigsync_jobs: 0, floored: false });
+    expect(e.basis).toMatchObject({ kind: "web", gigsync_jobs: 0, floored: false });
     expect(e.basis.legal_minimum_paise).toBeUndefined();
     expect(e.basis.sources).toHaveLength(5);
     expect(new Set(e.basis.sources.map((s) => s.site))).toEqual(
@@ -75,56 +75,25 @@ describe("POST /v1/estimates (fixture quote source)", () => {
   });
 });
 
-const price = (more: Record<string, unknown> = {}) => ({
-  ...COOK,
-  scope: { people: "5_plus", meals: "3" },
-  area_key: "hsr-layout",
-  price_paise: 1_500_000,
-  month: new Date().toISOString().slice(0, 7),
-  ...more,
+describe("market prices through the route (ADR 0039 §1)", () => {
+  it("answers from K_MIN jobs agreed on GigSync in the request's area, before any web quote", async () => {
+    const p = await signIn("+919855500021");
+    await seedCookJobs(many(K_MIN, 1_250_000, { area: "jayanagar" }), new Date());
+    const e = Estimate.parse(await (await call(p, HttpMethod.post, ESTIMATES, { ...COOK, area: "jayanagar" })).json());
+    expect(e).toMatchObject({ typical_paise: 1_250_000, basis: { kind: "gigsync", gigsync_jobs: K_MIN } });
+    expect(e.basis.area).toBe("jayanagar");
+  });
+
+  it("refuses an area that is not a slug", async () => {
+    const p = await signIn("+919855500022");
+    expect((await call(p, HttpMethod.post, ESTIMATES, { ...COOK, area: "4th Block" })).status).toBe(400);
+  });
 });
 
-describe("POST /v1/estimates/prices", () => {
-  it("stores a shared price with no user id, no exact date and no extra fields", async () => {
-    const p = await signIn("+919855500011");
-    const res = await call(p, HttpMethod.post, PRICES, { ...price(), user: p.session.user, name: "Asha" });
-    expect(res.status).toBe(204);
-    const rows = await sql<Record<string, unknown>>("SELECT * FROM shared_prices");
-    expect(rows).toHaveLength(1);
-    expect(Object.keys(rows[0] ?? {}).sort()).toEqual(
-      ["area_key", "bucket", "city", "month", "price_id", "price_paise", "trade"].sort(),
-    );
-    expect(JSON.stringify(rows)).not.toContain(p.session.user);
-    expect(rows[0]).toMatchObject({ bucket: "meals=3;people=5_plus", price_paise: 1_500_000 });
-  });
-
-  it("refuses a bad body, a future or old month, and a per-sq-ft painting price", async () => {
-    const p = await signIn("+919855500012");
-    for (const body of [
-      price({ month: "2099-01" }),
-      price({ month: "2020-01" }),
-      price({ price_paise: 0 }),
-      price({ area_key: "12, MG Road" }),
-      { ...PAINTER, scope: { labour_only: "yes" }, area_key: "hsr", price_paise: 100_000, month: "2026-10" },
-    ]) {
-      expect((await call(p, HttpMethod.post, PRICES, body)).status).toBe(400);
-    }
-    expect(await sql("SELECT 1 FROM shared_prices")).toHaveLength(0);
-  });
-
-  it("allows a user a few shares a day, then 429", async () => {
-    const p = await signIn("+919855500013");
-    for (let i = 0; i < MAX_SHARES_PER_DAY; i++) {
-      expect((await call(p, HttpMethod.post, PRICES, price())).status).toBe(204);
-    }
-    const res = await call(p, HttpMethod.post, PRICES, price());
-    expect(res.status).toBe(429);
-    expect(await res.json()).toEqual({ error: "too many attempts" });
-    expect((await call(await signIn("+919855500014"), HttpMethod.post, PRICES, price())).status).toBe(204);
-    expect(await sql("SELECT 1 FROM shared_prices")).toHaveLength(MAX_SHARES_PER_DAY + 1);
-  });
-
-  it("needs a session", async () => {
-    expect((await call(undefined, HttpMethod.post, PRICES, price())).status).toBe(401);
+describe("shared prices are gone (ADR 0039 §1)", () => {
+  it("POST /v1/estimates/prices is no longer a route", async () => {
+    const p = await signIn("+919855500023");
+    const shared = { ...COOK, area_key: "jayanagar", price_paise: 1_500_000, month: "2026-10" };
+    expect((await call(p, HttpMethod.post, "/estimates/prices", shared)).status).toBe(404);
   });
 });

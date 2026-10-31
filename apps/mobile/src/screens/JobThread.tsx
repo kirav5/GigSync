@@ -6,11 +6,12 @@ import { money } from "../ui/places.js";
 import { Said } from "../ui/Said.js";
 import { AgentTalk } from "./AgentTalk.js";
 import { DetailValue } from "./DetailValue.js";
-import { ShareCard } from "./estimate/ShareCard.js";
 import { type JobActionProps, JobActions } from "./JobActions.js";
 import { PlanCard } from "./JobDecide.js";
+import { RemovedLine, RestoredLine } from "./JobSettled.js";
 import { dayDate } from "./jobGroups.js";
 import { IntroActions } from "./mentor/IntroActions.js";
+import { ProblemCard } from "./ProblemCard.js";
 import { TermsList } from "./terms/TermsList.js";
 import "./jobs.css";
 
@@ -52,7 +53,8 @@ export function JobThread(props: JobActionProps) {
   const { lang, t } = useI18n();
   const e = job.engagement;
   const isWorker = e.role === Role.enum.provider;
-  const them = view.names[e.counterpart] || job.contact?.name || t(isWorker ? "job.customer" : "job.worker");
+  const them =
+    view.names[e.counterpart] || job.contact?.name || job.their_name || t(isWorker ? "job.customer" : "job.worker");
   const terms = job.mine?.terms;
   const payments = view.payments.filter((p) => p.engagement === e.id);
   const notes = job.notes ?? [];
@@ -63,7 +65,9 @@ export function JobThread(props: JobActionProps) {
   const slot = terms && dayOf(job.request) === undefined ? terms.slot : undefined;
   // Finished work both signed makes them someone this owner knows: a worker may ask the household whether they know
   // someone in a new city, and a household may introduce the worker who did the job.
-  const known = job.contact && bothSigned(job) && FINISHED_WORK.has(e.status) ? job.contact : undefined;
+  // A name kept after the card was removed still counts: an introduction needs no phone number.
+  const knownName = job.contact?.name ?? job.their_name;
+  const known = knownName && bothSigned(job) && FINISHED_WORK.has(e.status) ? knownName : undefined;
 
   return (
     <article className={C.card} aria-label={t("a11y.job_with", { name: them })} data-status={e.status} lang={lang}>
@@ -91,9 +95,10 @@ export function JobThread(props: JobActionProps) {
         </fieldset>
       )}
       <When request={job.request} from={theirs} />
+      <RestoredLine job={job} />
 
-      <JobActions {...props} them={them} />
-      <ShareCard job={job} device={device} run={run} />
+      {/* Nothing is sent on a restored job: its messages never reached the server, so the thread cannot go on. */}
+      {!job.restored && <JobActions {...props} them={them} />}
 
       {job.contact && (
         <fieldset className="contact" aria-label={t("a11y.contact")}>
@@ -101,17 +106,19 @@ export function JobThread(props: JobActionProps) {
           <strong>{job.contact.name}</strong>
           <span>{job.contact.phone}</span>
           {job.contact.address && <span>{job.contact.address}</span>}
-          {known && (
-            <IntroActions
-              device={device}
-              person={{ user: e.counterpart, name: known.name }}
-              run={run}
-              ask={isWorker}
-              introduce={!isWorker}
-            />
-          )}
         </fieldset>
       )}
+      {known && (
+        <IntroActions
+          device={device}
+          person={{ user: e.counterpart, name: known }}
+          run={run}
+          ask={isWorker}
+          introduce={!isWorker}
+        />
+      )}
+      <RemovedLine job={job} />
+      <ProblemCard job={job} them={them} device={device} run={run} />
       {notes.length > 0 && (
         <ul className={C.stack} aria-label={t("a11y.notes")}>
           {notes.map((n, i) => (

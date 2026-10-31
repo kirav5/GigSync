@@ -30,7 +30,9 @@ const Mode = { listen: "listen", speak: "speak" } as const;
 const ANSWERS = ["मैं खाना बनाती हूँ", "कोरमंगला"];
 /** "Download" on a button or a line, in any of the app's languages. */
 const DOWNLOAD = /download|डाउनलोड|ಡೌನ್‌ಲೋಡ್/i;
-/** A fake fetch ends in 1.5 s and the composer checks every 3 s: give it a few rounds. */
+/** A fake fetch ends in 1.5 s (FETCH_MS in the app's speech-fake.ts) and the composer checks every 3 s. */
+const FETCH_MS = 1_500;
+/** Give the composer a few rounds. */
 const ARRIVES_MS = 15_000;
 
 const fetching = (page: Page) =>
@@ -76,6 +78,9 @@ test("choosing Hindi fetches its voice typing in that tap, not the voice, and th
   expect(fetches.map((f) => `${f.mode}:${f.lang}`)).toEqual([`${Mode.listen}:${HINDI}`]);
   expect(fetches.every((f) => f.tapped)).toBe(true);
 
+  // Someone reads the first question before reaching the mic; a test that signs in faster than the fetch would tap
+  // while voice typing is still on its way, which is the next test's case.
+  await page.waitForTimeout(FETCH_MS);
   await nextTurn(page, hi, "iv.ask.area", () => mic(page, hi).click());
   // The voice can still come, by a tap on a speaker.
   await expect(speaker(page).first()).toBeVisible();

@@ -1,18 +1,18 @@
 import { log } from "@gigsync/core/log";
-import { EstimateRequest, isEstimate, SharedPrice } from "@gigsync/protocol";
+import { EstimateRequest, isEstimate } from "@gigsync/protocol";
 import { Hono } from "hono";
 import { ApiError, type AppEnv, Var } from "../context.js";
-import { bucketOf, ShareOutcome, serveEstimate, sharePrice } from "../estimates/service.js";
+import { bucketOf, serveEstimate } from "../estimates/service.js";
 import { quoteSourceFor } from "../estimates/source.js";
 
 /**
- * Rate estimates (ADR 0030), behind the session middleware. Neither route touches anything a user owns: an estimate
- * is the same for everyone who asks, and a shared price is stored without its sender.
+ * Rate estimates (ADR 0030, ADR 0039), behind the session middleware. Touches nothing a user owns: an estimate is the
+ * same for everyone who asks, and a range from GigSync's prices is a group's, never one person's.
  */
 export const estimates = new Hono<AppEnv>();
 
 /** Paths under /v1/estimates. */
-const Path = { estimate: "/", prices: "/prices" } as const;
+const Path = { estimate: "/" } as const;
 
 const body = async (req: Request) => req.json().catch(() => null);
 
@@ -25,18 +25,8 @@ estimates.post(Path.estimate, async (c) => {
     requestId: c.get(Var.requestId),
     trade: req.data.trade,
     bucket: bucketOf(req.data),
-    outcome: isEstimate(result) ? result.unit : result.none,
+    outcome: isEstimate(result) ? result.basis.kind : result.none,
+    jobs: isEstimate(result) ? result.basis.gigsync_jobs : 0,
   });
   return c.json(result);
-});
-
-estimates.post(Path.prices, async (c) => {
-  const price = SharedPrice.safeParse(await body(c.req.raw));
-  if (!price.success) return c.json({ error: ApiError.badRequest }, 400);
-  const outcome = await sharePrice(c.get(Var.db), c.get(Var.user), price.data, new Date());
-  // The user is not logged with the trade: together they would say who shared what.
-  log.info("price shared", { requestId: c.get(Var.requestId), trade: price.data.trade, outcome });
-  if (outcome === ShareOutcome.badMonth) return c.json({ error: ApiError.badRequest }, 400);
-  if (outcome === ShareOutcome.tooMany) return c.json({ error: ApiError.tooManyAttempts }, 429);
-  return c.body(null, 204);
 });

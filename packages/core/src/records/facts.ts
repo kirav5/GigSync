@@ -12,6 +12,7 @@ import {
   Role,
   SKIPPED,
 } from "@gigsync/protocol";
+import { areaKeyOf } from "../estimate/areas.js";
 import { tradeScope } from "../estimate/scope.js";
 import type { JobRecord } from "../job/store.js";
 import { termDetails } from "../job/terms-flow.js";
@@ -52,11 +53,14 @@ export function submissionOf(job: SignedJob): JobRecordSubmit | undefined {
   const work = jobWork(job);
   const terms = JobTermsFields.safeParse(signed.terms ?? {}).data;
   if (!work || !terms) return undefined;
+  // The pilot area's slug, from the request both phones hold (ADR 0039 §1): never the point, never an address.
+  const area = areaKeyOf(job.request.area);
   return {
     engagement: job.engagement.id,
     counterpart: job.engagement.counterpart,
     role: job.engagement.role,
     work,
+    ...(area ? { area } : {}),
     terms,
     price_paise: signed.price_paise,
     terms_hash: job.mine.terms_hash,

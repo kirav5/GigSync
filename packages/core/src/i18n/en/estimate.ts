@@ -1,7 +1,7 @@
 /**
- * Rate estimates from sourced quotes (ADR 0030): the range with its sources under the worker's rate question and
- * beside the household's budget, the suggestion each owner confirms or changes, the note on an offer far outside the
- * range, and the anonymous price sharing after a signed job, with its setting.
+ * Rate estimates (ADR 0030, ADR 0039): the range under the worker's rate question, beside the household's budget and
+ * in answer to a market question in the chat, with what it rests on (jobs on GigSync, or web sources), the suggestion
+ * each owner confirms or changes, and the note on an offer far outside the range.
  */
 export const estimate = {
   "estimate.range_job": "{trade} in {city}{scope}: usually {low}–{high} for the job.",
@@ -45,8 +45,13 @@ export const estimate = {
   "estimate.problem.install": "installing one",
   "estimate.basis.one": "From {count} source, checked {date}.",
   "estimate.basis.other": "From {count} sources, checked {date}.",
-  "estimate.gigsync.one": "Includes {count} price shared on GigSync.",
-  "estimate.gigsync.other": "Includes {count} prices shared on GigSync.",
+  "estimate.jobs.one": "From {count} job on GigSync in {place}.",
+  "estimate.jobs.other": "From {count} jobs on GigSync in {place}.",
+  "estimate.reason_jobs.one": "The usual rate for this job is {low}–{high}, from {count} job on GigSync.",
+  "estimate.reason_jobs.other": "The usual rate for this job is {low}–{high}, from {count} jobs on GigSync.",
+  "estimate.market_none":
+    "I can't say yet what {trade} usually charges in {place}: too few jobs on GigSync and too few prices on the web.",
+  "estimate.answer": "{text}",
   "estimate.legal_min": "Nothing here is below the legal minimum of {min}.",
   "estimate.sources": "Sources",
   "estimate.suggest_rate": "I suggest opening at {price}. Tap to use it, or say your own.",
@@ -57,14 +62,4 @@ export const estimate = {
   "estimate.reason.other": "The usual rate for this job is {low}–{high}, from {count} sources.",
   "estimate.below": "Well below the usual rate for this job ({low}–{high}).",
   "estimate.above": "Well above the usual rate for this job ({low}–{high}).",
-  "estimate.share_ask": "Share this price anonymously to improve rate estimates?",
-  "estimate.share_what":
-    "Only the work, the city, the area, the size of the job, the price and the month are sent. Never your name, number or the day.",
-  "estimate.share_yes": "Yes, share",
-  "estimate.share_no": "No",
-  "estimate.shared": "Price shared anonymously. Thank you.",
-  "estimate.setting_label": "Share agreed prices anonymously to improve rate estimates",
-  "estimate.setting_ask": "Ask each time",
-  "estimate.setting_always": "Always share",
-  "estimate.setting_never": "Never",
 } as const;

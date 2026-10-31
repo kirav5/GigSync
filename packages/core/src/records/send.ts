@@ -3,7 +3,7 @@ import type { JobRecord } from "../job/store.js";
 import { log } from "../log.js";
 import { HttpError } from "../net/errors.js";
 import { Collection, type Storage } from "../ports.js";
-import { forgetAgreement, recordsAgreed } from "./consent.js";
+import { lostAgreement, recordsAgreed } from "./consent.js";
 import { fingerprint, type RecordReport, ReportKind, recordsDue } from "./due.js";
 import type { RecordsApi } from "./types.js";
 
@@ -88,8 +88,8 @@ async function attempt(deps: RecordsDeps, r: RecordReport): Promise<Outcome> {
     return Outcome.taken;
   } catch (err) {
     if (err instanceof HttpError && err.error === R.no_consent) {
-      // The server holds no current agreement (deleted on another phone, or a newer notice): ask the owner again.
-      await forgetAgreement(deps.storage);
+      // The server holds no current agreement: deleted on another phone, or a newer notice.
+      await lostAgreement(deps.api, deps.storage);
       return Outcome.later;
     }
     if (err instanceof HttpError && refusedForGood(err)) {

@@ -13,6 +13,7 @@ export function reasonText(lang: Lang, r: Reason): string {
   switch (r.kind) {
     case ReasonKind.band: {
       const range = { low: priceText(r.low_paise), high: priceText(r.high_paise) };
+      if (r.jobs !== undefined) return plural(lang, "estimate.reason_jobs", r.jobs, range);
       return r.sources === undefined
         ? t(lang, "reason.band", range)
         : plural(lang, "estimate.reason", r.sources, range);

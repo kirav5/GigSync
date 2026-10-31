@@ -10,16 +10,17 @@ import { useI18n } from "../i18n.js";
 import { useMovePrompt } from "../move/useMovePrompt.js";
 import { useOpenedQr } from "../qr/useOpenedQr.js";
 import { LinksProvider } from "../screens/mentor/links.js";
-import { RecordsNotice } from "../screens/record/Notice.js";
 import { Screen } from "../state.js";
 import { startChat } from "../talk/talkStore.js";
 import type { GigView } from "../useGig.js";
+import { ConsentToast } from "./ConsentToast.js";
 import { useChatList } from "./chatLists.js";
 import { drawerOpen, setDrawer, useDrawer } from "./drawer.js";
 import { backFrom, homeOf } from "./nav.js";
 import { ScreenView } from "./ScreenView.js";
 import { Shell } from "./Shell.js";
-import { useRecordsNotice } from "./useRecordsNotice.js";
+import { useConsentOnOpen } from "./useConsentOnOpen.js";
+import { useRestoredJobs } from "./useRestoredJobs.js";
 
 interface Props {
   agent: Agent;
@@ -68,8 +69,10 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
   }, []);
   // A QR link the phone's camera opened: whoever it finds.
   useOpenedQr(true, showPerson);
-  // The notice about job records, until the owner answers it (ADR 0038 §5).
-  const notice = useRecordsNotice(ports, account);
+  // An owner signed in before the sign-in line agreed by using GigSync: recorded once, said in one line (ADR 0039 §4).
+  const consent = useConsentOnOpen(ports, account);
+  // A phone with no jobs for this owner refills them from their record on GigSync.
+  useRestoredJobs(device, account, () => void run(async () => undefined));
   // A new phone (ADR 0037): an owner with nothing here yet and another active phone is asked once whether they are
   // moving from it, and a worker's card comes back from the board.
   // Only from the chat it opened on: a screen the owner moved to meanwhile stays.
@@ -154,11 +157,8 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
         tasks={view.tasks.length + view.offers.length}
         chatTitle={chatTitle}
       >
-        {notice.due ? (
-          <RecordsNotice onAgree={notice.agree} onLater={notice.later} />
-        ) : (
-          <ScreenView screen={screen} d={data} m={moves} />
-        )}
+        <ScreenView screen={screen} d={data} m={moves} />
+        {consent.said && <ConsentToast onDone={consent.dismiss} />}
       </Shell>
     </LinksProvider>
   );

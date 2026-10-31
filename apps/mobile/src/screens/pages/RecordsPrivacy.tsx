@@ -4,7 +4,7 @@ import { type Account, AccountRole } from "../../adapters/account.js";
 import { recordsClient } from "../../adapters/records.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
-import { NoticeWords } from "../record/Notice.js";
+import { NoticeWords } from "../record/NoticeWords.js";
 
 /** What the section shows below its line: nothing more, the notice to agree to, or the delete confirmation. */
 const Open = { none: "none", notice: "notice", confirm: "confirm" } as const;

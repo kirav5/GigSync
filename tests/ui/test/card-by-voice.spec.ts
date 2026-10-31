@@ -1,5 +1,5 @@
-import { type MessageKey, t } from "@gigsync/core";
-import { Lang } from "@gigsync/protocol";
+import { type MessageKey, priceText, t } from "@gigsync/core";
+import { EstimateBasisKind, Lang } from "@gigsync/protocol";
 import { expect, test } from "@playwright/test";
 import {
   drawer,
@@ -16,6 +16,7 @@ import {
   textOf,
 } from "./helpers.js";
 import { cleanUpLater, unlistCards } from "./journey.js";
+import { COOK_REQUEST, estimateNow } from "./market-seed.js";
 import { consent, field, google, inOrder, mic, nextTurn, type, unlist } from "./talk.js";
 
 /**
@@ -60,19 +61,28 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
   const [head, tail] = [HINDI.slice(0, 2), HINDI.slice(2)];
   for (const [, next] of head) await nextTurn(page, hi, next, () => mic(page, hi).click());
 
-  await test.step("under the rate question, the estimate for a cook in Bengaluru, its sources and the legal minimum", async () => {
-    // The API's fixture quote source (ADR 0030): 3–4 people, two meals, ₹10,000–₹12,000 a month from three pages.
+  await test.step("under the rate question, the estimate for a cook in Bengaluru, what it rests on and the legal minimum", async () => {
+    // What the API answers now for a cook (3–4 people, two meals) in Koramangala: the shared database holds many
+    // cooking jobs from the record seeds, so the city's GigSync range (ADR 0039); on a fresh database, the fixture's
+    // web quotes (ADR 0030), ₹10,000–₹12,000 a month from three pages.
+    const e = await estimateNow({ ...COOK_REQUEST, area: "koramangala" });
+    expect(e).toBeDefined();
     const cook = t(hi, "trade.cook");
     const city = t(hi, "city.bengaluru");
     const scope = t(hi, "estimate.scope", {
       scope: `${t(hi, "estimate.people.3_4")}, ${t(hi, "estimate.meals.2")}`,
     });
+    const prices = { low: priceText(e?.low_paise ?? 0), high: priceText(e?.high_paise ?? 0) };
     await expect(
-      page.getByText(textOf(hi, "estimate.range_month", { trade: cook, city, scope, low: "₹10,000", high: "₹12,000" })),
+      page.getByText(textOf(hi, "estimate.range_month", { trade: cook, city, scope, ...prices })),
     ).toBeVisible();
-    await expect(page.getByText(textOf(hi, "estimate.basis.other", { count: 3 }))).toBeVisible();
+    const basis =
+      e?.basis.kind === EstimateBasisKind.enum.gigsync
+        ? textOf(hi, "estimate.jobs.other", { place: city })
+        : textOf(hi, "estimate.basis.other", { count: 3 });
+    await expect(page.getByText(basis)).toBeVisible();
     await expect(page.getByText(textOf(hi, "estimate.legal_min", { min: "₹6,430" }))).toBeVisible();
-    await expect(page.getByText(textOf(hi, "estimate.suggest_rate", { price: "₹11,000" }))).toBeVisible();
+    await expect(page.getByText(textOf(hi, "estimate.suggest_rate"))).toBeVisible();
   });
 
   await test.step("going to another screen keeps her place", async () => {

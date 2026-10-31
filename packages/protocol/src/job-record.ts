@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Role } from "./engagement.js";
 import { Base64 } from "./envelope.js";
+import { AreaKey } from "./estimate.js";
 import {
   AcScope,
   CarpenterScope,
@@ -60,7 +61,9 @@ export type JobTermsFields = z.infer<typeof JobTermsFields>;
 
 /**
  * `POST /v1/jobs/records`: one side's account of a job both signed. `role` is the sender's (provider = the worker,
- * requester = the household); `sig` is the sender's `agree` signature, Ed25519 over `agreeBytes(terms_hash)`.
+ * requester = the household); `sig` is the sender's `agree` signature, Ed25519 over `agreeBytes(terms_hash)`. `area`
+ * is the pilot area the job's request named (its slug, never an address), so market prices can be told by area
+ * (ADR 0039 §1); both phones derive it from the same request.
  */
 export const JobRecordSubmit = z
   .strictObject({
@@ -68,6 +71,7 @@ export const JobRecordSubmit = z
     counterpart: UserId,
     role: Role,
     work: JobWork,
+    area: AreaKey.optional(),
     terms: JobTermsFields.default({}),
     price_paise: Paise,
     terms_hash: TermsHash,
@@ -87,6 +91,7 @@ export const JobRecordFields = z.strictObject({
   worker: UserId,
   household: UserId,
   work: JobWork,
+  area: AreaKey.optional(),
   terms: JobTermsFields,
   price_paise: Paise,
   terms_hash: TermsHash,

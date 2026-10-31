@@ -1,6 +1,7 @@
 import { Header, RecordsClient, SecretKeys } from "@gigsync/core";
 import { newDeviceSecrets, termsHash, toBase64 } from "@gigsync/crypto";
 import {
+  type AreaKey,
   agreeBytes,
   type EngagementId,
   type JobRecordSubmit,
@@ -18,7 +19,7 @@ export interface SeededJob {
 }
 
 /** A person signed in straight through the API, with the device keys their phone would hold. */
-interface ApiPerson {
+export interface ApiPerson {
   api: RecordsClient;
   keys: SecretKeys;
   user: UserId;
@@ -26,13 +27,13 @@ interface ApiPerson {
 
 const CROCKFORD = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 const ULID_LENGTH = 26;
-const id = (prefix: string) =>
+export const id = (prefix: string) =>
   `${prefix}_${Array.from({ length: ULID_LENGTH }, () => CROCKFORD[Math.floor(Math.random() * CROCKFORD.length)]).join("")}`;
 const PRICE_PAISE = 1_100_000;
 const IP_PART = 250;
 
 /** Signs a number in from an address of its own (the API limits codes per address), and agrees to the notice. */
-async function person(phone: string): Promise<ApiPerson> {
+export async function person(phone: string): Promise<ApiPerson> {
   const keys = new SecretKeys(newDeviceSecrets());
   const ip = `10.78.${Math.floor(Math.random() * IP_PART)}.${Math.floor(Math.random() * IP_PART)}`;
   const anon = new RecordsClient(API, (input, init) =>
@@ -44,14 +45,21 @@ async function person(phone: string): Promise<ApiPerson> {
   return { api, keys, user: session.user };
 }
 
-/** One side's submission of a job both signed: the same fields, its own role and signature. */
-async function submit(side: ApiPerson, other: ApiPerson, role: Role, terms: JobTerms): Promise<JobRecordSubmit> {
+/** One side's submission of a job both signed: the same fields, its own role and signature, and the job's area if any. */
+export async function submit(
+  side: ApiPerson,
+  other: ApiPerson,
+  role: Role,
+  terms: JobTerms,
+  area?: AreaKey,
+): Promise<JobRecordSubmit> {
   const hash = termsHash(terms);
   return {
     engagement: terms.engagement,
     counterpart: other.user,
     role,
     work: { trade: "cook", scope: { people: "3_4", meals: "2" } },
+    ...(area ? { area } : {}),
     terms: {},
     price_paise: terms.price_paise,
     terms_hash: hash,

@@ -1,5 +1,5 @@
 import { Role, TermKey, type Terms } from "@gigsync/protocol";
-import { sourceCount } from "../estimate/scope.js";
+import { basisCount } from "../estimate/scope.js";
 import { ReasonKind } from "./advice.js";
 import type { JobRecord } from "./store.js";
 import { sameTerm } from "./terms.js";
@@ -27,8 +27,15 @@ export type Fact =
   | { kind: typeof FactKind.moved; mine: boolean; from_paise: number; to_paise: number; delta_paise: number }
   /** A side kept its price and moved only the terms. */
   | { kind: typeof FactKind.held; mine: boolean; price_paise: number }
-  /** The usual rate for this job, from the estimate (or the worker's band), with how many pages it rests on. */
-  | { kind: typeof FactKind.usual; low_paise: number; high_paise: number; typical_paise?: number; sources?: number }
+  /** The usual rate for this job, from the estimate (or the worker's band), with the pages or GigSync jobs it rests on. */
+  | {
+      kind: typeof FactKind.usual;
+      low_paise: number;
+      high_paise: number;
+      typical_paise?: number;
+      sources?: number;
+      jobs?: number;
+    }
   /** The owner's own limit, and how far the offer is from it. */
   | { kind: typeof FactKind.limit; limit_paise: number; gap_paise: number; within: boolean }
   /** The terms an offer proposes that differ from what the other side had on the table. */
@@ -50,7 +57,7 @@ function usualOf(job: JobRecord): Fact | undefined {
   const e = job.estimate;
   if (e) {
     const range = { low_paise: e.low_paise, high_paise: e.high_paise, typical_paise: e.typical_paise };
-    return { kind: FactKind.usual, ...range, sources: sourceCount(e) };
+    return { kind: FactKind.usual, ...range, ...basisCount(e) };
   }
   const band = job.advice?.reasons.find((r) => r.kind === ReasonKind.band);
   if (band?.kind !== ReasonKind.band) return undefined;

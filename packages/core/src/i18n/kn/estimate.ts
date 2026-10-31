@@ -1,6 +1,6 @@
 import type { estimate as en } from "../en/estimate.js";
 
-/** Kannada: rate estimates, their sources and suggestions, the note on far-off offers, and anonymous price sharing. */
+/** Kannada: rate estimates, what they rest on, suggestions, market answers, and the note on far-off offers. */
 export const estimate: Readonly<Record<keyof typeof en, string>> = {
   "estimate.range_job": "{city} ನಗರದಲ್ಲಿ {trade}{scope}: ಸಾಮಾನ್ಯವಾಗಿ ಇಡೀ ಕೆಲಸಕ್ಕೆ {low}–{high}.",
   "estimate.range_month": "{city} ನಗರದಲ್ಲಿ {trade}{scope}: ಸಾಮಾನ್ಯವಾಗಿ ತಿಂಗಳಿಗೆ {low}–{high}.",
@@ -43,8 +43,12 @@ export const estimate: Readonly<Record<keyof typeof en, string>> = {
   "estimate.problem.install": "ಅಳವಡಿಕೆ",
   "estimate.basis.one": "{count} ಮೂಲದಿಂದ, {date} ರಂದು ಪರಿಶೀಲಿಸಲಾಗಿದೆ.",
   "estimate.basis.other": "{count} ಮೂಲಗಳಿಂದ, {date} ರಂದು ಪರಿಶೀಲಿಸಲಾಗಿದೆ.",
-  "estimate.gigsync.one": "GigSync ನಲ್ಲಿ ಹಂಚಿಕೊಂಡ {count} ಬೆಲೆ ಇದರಲ್ಲಿದೆ.",
-  "estimate.gigsync.other": "GigSync ನಲ್ಲಿ ಹಂಚಿಕೊಂಡ {count} ಬೆಲೆಗಳು ಇದರಲ್ಲಿವೆ.",
+  "estimate.jobs.one": "{place} ನಲ್ಲಿ GigSync ನ {count} ಕೆಲಸದಿಂದ.",
+  "estimate.jobs.other": "{place} ನಲ್ಲಿ GigSync ನ {count} ಕೆಲಸಗಳಿಂದ.",
+  "estimate.reason_jobs.one": "ಈ ಕೆಲಸಕ್ಕೆ ಸಾಮಾನ್ಯ ದರ {low}–{high}, GigSync ನ {count} ಕೆಲಸದಿಂದ.",
+  "estimate.reason_jobs.other": "ಈ ಕೆಲಸಕ್ಕೆ ಸಾಮಾನ್ಯ ದರ {low}–{high}, GigSync ನ {count} ಕೆಲಸಗಳಿಂದ.",
+  "estimate.market_none": "{place} ನಲ್ಲಿ {trade} ಸಾಮಾನ್ಯ ದರ ಇನ್ನೂ ಹೇಳಲಾಗದು: GigSync ನಲ್ಲಿ ಕೆಲಸಗಳು ಮತ್ತು ವೆಬ್‌ನಲ್ಲಿ ಬೆಲೆಗಳು ತುಂಬಾ ಕಡಿಮೆ.",
+  "estimate.answer": "{text}",
   "estimate.legal_min": "ಇದರಲ್ಲಿ ಯಾವುದೂ ಕಾನೂನಿನ ಕನಿಷ್ಠ {min} ಗಿಂತ ಕಡಿಮೆ ಇಲ್ಲ.",
   "estimate.sources": "ಮೂಲಗಳು",
   "estimate.suggest_rate": "{price} ರಿಂದ ಶುರು ಮಾಡಲು ಸಲಹೆ. ಇದನ್ನು ಆರಿಸಿ, ಅಥವಾ ನಿಮ್ಮ ಬೆಲೆ ಹೇಳಿ.",
@@ -55,14 +59,4 @@ export const estimate: Readonly<Record<keyof typeof en, string>> = {
   "estimate.reason.other": "ಈ ಕೆಲಸಕ್ಕೆ ಸಾಮಾನ್ಯ ದರ {low}–{high}, {count} ಮೂಲಗಳಿಂದ.",
   "estimate.below": "ಈ ಕೆಲಸದ ಸಾಮಾನ್ಯ ದರಕ್ಕಿಂತ ({low}–{high}) ತುಂಬಾ ಕಡಿಮೆ.",
   "estimate.above": "ಈ ಕೆಲಸದ ಸಾಮಾನ್ಯ ದರಕ್ಕಿಂತ ({low}–{high}) ತುಂಬಾ ಹೆಚ್ಚು.",
-  "estimate.share_ask": "ದರದ ಅಂದಾಜು ಸುಧಾರಿಸಲು ಈ ಬೆಲೆಯನ್ನು ಹೆಸರಿಲ್ಲದೆ ಹಂಚಿಕೊಳ್ಳುವಿರಾ?",
-  "estimate.share_what":
-    "ಕೆಲಸ, ನಗರ, ಏರಿಯಾ, ಕೆಲಸದ ಅಳತೆ, ಬೆಲೆ ಮತ್ತು ತಿಂಗಳು ಮಾತ್ರ ಕಳುಹಿಸಲಾಗುತ್ತದೆ. ನಿಮ್ಮ ಹೆಸರು, ನಂಬರ್ ಅಥವಾ ದಿನಾಂಕ ಎಂದಿಗೂ ಇಲ್ಲ.",
-  "estimate.share_yes": "ಹೌದು, ಹಂಚಿಕೊಳ್ಳಿ",
-  "estimate.share_no": "ಬೇಡ",
-  "estimate.shared": "ಬೆಲೆಯನ್ನು ಹೆಸರಿಲ್ಲದೆ ಹಂಚಿಕೊಳ್ಳಲಾಗಿದೆ. ಧನ್ಯವಾದ.",
-  "estimate.setting_label": "ದರದ ಅಂದಾಜು ಸುಧಾರಿಸಲು ಒಪ್ಪಿದ ಬೆಲೆಗಳನ್ನು ಹೆಸರಿಲ್ಲದೆ ಹಂಚಿಕೊಳ್ಳಿ",
-  "estimate.setting_ask": "ಪ್ರತಿ ಸಲ ಕೇಳಿ",
-  "estimate.setting_always": "ಯಾವಾಗಲೂ ಹಂಚಿಕೊಳ್ಳಿ",
-  "estimate.setting_never": "ಎಂದಿಗೂ ಬೇಡ",
 };

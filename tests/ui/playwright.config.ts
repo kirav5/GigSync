@@ -1,11 +1,9 @@
 import { defineConfig } from "@playwright/test";
+import { API, APP } from "./stack.js";
 
-/** The app as `pnpm dev:app` serves it, and the API as `pnpm dev:workers` runs it (against Neon). */
-const APP = process.env.APP_URL ?? "http://localhost:5173";
-const API = process.env.API_BASE ?? "http://localhost:8787";
 const STARTUP_MS = 120_000;
 /**
- * Spec files run one at a time unless PW_WORKERS says otherwise. They share the local API and Neon: PW_WORKERS=3 runs the
+ * Spec files run one at a time unless PW_WORKERS says otherwise. They share the test API and its database: PW_WORKERS=3 runs the
  * suite in about half the time (8–9 minutes per engine), but a timing-sensitive test can fail under that load, so rerun
  * a failure on its own before believing it. Tests inside one file always run in order.
  */
@@ -13,7 +11,8 @@ const WORKERS = Number(process.env.PW_WORKERS ?? 1);
 
 export default defineConfig({
   testDir: "test",
-  // One journey crosses to Neon dozens of times; the agents need a few syncs per step.
+  globalSetup: "./global-setup.ts",
+  // One journey crosses to the API dozens of times; the agents need a few syncs per step.
   timeout: 600_000,
   expect: { timeout: 90_000 },
   fullyParallel: false,
@@ -38,11 +37,11 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: "pnpm --filter @gigsync/worker-api dev",
+      command: "pnpm --filter @gigsync/worker-api dev:e2e",
       url: `${API}/health`,
       reuseExistingServer: true,
       timeout: STARTUP_MS,
     },
-    { command: "pnpm --filter @gigsync/mobile dev", url: APP, reuseExistingServer: true, timeout: STARTUP_MS },
+    { command: "pnpm --filter @gigsync/mobile dev:e2e", url: APP, reuseExistingServer: true, timeout: STARTUP_MS },
   ],
 });

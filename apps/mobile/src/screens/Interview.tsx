@@ -1,4 +1,5 @@
 import {
+  areaSlug,
   type Card,
   CardKind,
   type Choice,
@@ -124,14 +125,23 @@ export function Interview({
   /** Choices are offered while a question is open, not once the owner has said yes and the card is being sent. */
   const asking = active && state.slot !== Slot.done;
   const newest = [...turns].reverse().find((turn) => turn.who === Speaker.app);
-  // A trade named: the usual range for it in the city, at its default scope, for the rate questions (ADR 0030).
+  // A trade named: the usual range for it at its default scope, in the worker's area once named (else the city), for
+  // the rate questions (ADR 0030, ADR 0039).
   const trade = state?.draft.trades?.[0];
+  const area = state?.draft.area;
   const session = account.session;
   useEffect(() => {
-    const request = trade && estimateRequest(PILOT_CITY, trade);
+    const request = trade && estimateRequest(PILOT_CITY, trade, {}, area && areaSlug(area));
     if (!request) return;
-    void fetchEstimate(session, request).then(interviewEstimate);
-  }, [trade, session]);
+    // Only the newest request's answer counts: the city's range must not land after the area's.
+    let live = true;
+    void fetchEstimate(session, request).then((found) => {
+      if (live) interviewEstimate(found);
+    });
+    return () => {
+      live = false;
+    };
+  }, [trade, area, session]);
 
   // Leaving Talk (another screen, Back) ends a question the owner asked to hear again.
   useEffect(

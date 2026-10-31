@@ -184,9 +184,11 @@ export function Composer({
     }
     if (busy) return;
     setAsking(undefined);
-    const s = status ?? (await listenState(lang));
-    // Read before the first state check came back: keep it, so what the line says names the right company.
-    if (!status) setStatus(s);
+    // Anything short of ready is asked again: the periodic check may not have seen a fetch that has just arrived, and
+    // a tap then would only explain instead of listening.
+    const s = status?.state === VoiceState.available ? status : await listenState(lang);
+    // Kept, so what the line says names the right company.
+    if (s !== status) setStatus(s);
     const vendor = s.cloud?.vendor;
     if (s.state === VoiceState.available) return start();
     if (!onDeviceOnly && s.state !== VoiceState.denied && vendor && (await cloudAllowed(vendor))) return start();

@@ -14,8 +14,9 @@ number and address for good; the founders want that time-bounded on both sides.
 
 1. **Market prices from job records.** An estimate for a trade, job size and area is computed first from agreed prices
    in job records (attested and one-sided both count; cancelled jobs do not) over the last twelve months: the 25th,
-   50th and 75th percentiles, shown only when at least `K_MIN` (10) jobs fall in the group, so no one person's price can
-   be read from a range. Too few in the area widens to the city, then to the web quotes of ADR 0030 as the fallback; the
+   50th and 75th percentiles, shown only when at least `K_MIN` (10) jobs fall in the group, between at least `K_MIN`
+   different workers and `K_MIN` different households, so no one person's price can be read from a range and one
+   worker with a second account cannot set an area's range. Too few in the area widens to the city, then to the web quotes of ADR 0030 as the fallback; the
    legal minimum stays the floor. The basis says which ("from 34 jobs on GigSync in Jayanagar"). Nobody is asked to
    share a price: agreed prices are platform data under the Terms and Privacy Notice, and only group ranges are ever
    shown. ADR 0030 §3's opt-in sharing and its question end.

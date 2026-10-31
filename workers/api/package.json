@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "node --env-file-if-exists=../../.env.local scripts/dev.mjs",
+    "dev:e2e": "node scripts/e2e.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "db:migrate": "node --env-file-if-exists=../../.env.local scripts/migrate.mjs",

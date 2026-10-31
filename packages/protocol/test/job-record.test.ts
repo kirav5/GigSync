@@ -38,6 +38,11 @@ describe("job records on the server", () => {
     expect(JobRecordSubmit.safeParse({ ...submit, terms }).success).toBe(false);
   });
 
+  it("takes the job's pilot area as a slug, never an address (ADR 0039 §1)", () => {
+    expect(JobRecordSubmit.parse({ ...submit, area: "jayanagar" }).area).toBe("jayanagar");
+    expect(JobRecordSubmit.safeParse({ ...submit, area: "4th Block, Jayanagar" }).success).toBe(false);
+  });
+
   it("refuses a scope value or a term the trade does not have", () => {
     const cook = { trade: "cook", scope: { rooms: "bhk2", labour_only: "yes" } };
     expect(JobRecordSubmit.safeParse({ ...submit, work: cook }).success).toBe(false);

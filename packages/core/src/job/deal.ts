@@ -14,6 +14,7 @@ import {
   Role,
   TERMINAL_STATUSES,
 } from "@gigsync/protocol";
+import { isArrangement } from "../contacts/rules.js";
 import { log } from "../log.js";
 import { remember } from "../memory/remember.js";
 import type { JobContext } from "./context.js";
@@ -90,8 +91,14 @@ export function decline(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
 export async function cancel(ctx: JobContext, r: JobRecord, body: Cancel): Promise<JobRecord> {
   await ctx.store.removeTask(TaskKind.confirmDeal, r.engagement.id);
   await ctx.store.removeTask(TaskKind.answerQuestions, r.engagement.id);
-  return ctx.send({ ...r, pending: undefined, cancel: body, contact: undefined }, K.cancel, body);
+  return ctx.send({ ...r, pending: undefined, cancel: body, contact: cardAfterCancel(r) }, K.cancel, body);
 }
+
+/**
+ * A cancelled one-time job forgets the other side's card at once. A monthly or daily arrangement both signed keeps it
+ * until its last payment is settled (ADR 0039 §3): the contacts sweep removes it then, or after the cap.
+ */
+const cardAfterCancel = (r: JobRecord) => (isArrangement(r) && r.theirs ? r.contact : undefined);
 
 /**
  * The other side signed. Its signature must verify with its device key, over a hash of exactly these terms, for an
@@ -149,7 +156,7 @@ async function onAgreed(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
 
 /** The other party's card, accepted only for a job both signed, under the hash both signed. */
 export async function onContact(ctx: JobContext, r: JobRecord, body: ContactRelease): Promise<JobRecord> {
-  if (!SIGNED.has(r.engagement.status) || body.terms_hash !== r.mine?.terms_hash) {
+  if (!SIGNED.has(r.engagement.status) || body.terms_hash !== r.mine?.terms_hash || r.contacts_removed_at) {
     log.warn("contact card ignored", { engagement: r.engagement.id, status: r.engagement.status });
     return r;
   }
@@ -160,11 +167,11 @@ export async function onContact(ctx: JobContext, r: JobRecord, body: ContactRele
   return next;
 }
 
-/** The other side ended the job: forget their card and any decision waiting on it. */
+/** The other side ended the job: forget their card (an arrangement keeps it to settle) and any decision waiting. */
 export async function onCancel(ctx: JobContext, r: JobRecord, body: Cancel): Promise<JobRecord> {
   await ctx.store.removeTask(TaskKind.confirmDeal, r.engagement.id);
   await ctx.store.removeTask(TaskKind.answerQuestions, r.engagement.id);
-  const next = { ...r, cancel: body, pending: undefined, contact: undefined };
+  const next = { ...r, cancel: body, pending: undefined, contact: cardAfterCancel(r) };
   await ctx.store.saveJob(next);
   return next;
 }

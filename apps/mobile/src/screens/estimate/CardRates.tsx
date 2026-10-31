@@ -1,4 +1,4 @@
-import { CITY_RATES, estimateRequest, rateHint, rateNote, suggestForWorker } from "@gigsync/core";
+import { areaSlug, CITY_RATES, estimateRequest, rateHint, rateNote, suggestForWorker } from "@gigsync/core";
 import type { Session, Trade } from "@gigsync/protocol";
 import { useEstimate } from "../../estimate/useEstimate.js";
 import { useI18n } from "../../i18n.js";
@@ -11,17 +11,20 @@ import { EstimateBox } from "./EstimateBox.js";
 const CardField = { rate: "rate", min: "min" } as const;
 
 /**
- * Under My card's trades: for the first trade, the estimate for its default scope with its sources and the opening
- * and least amounts it suggests, which fill the rate fields on a tap (ADR 0030); for the others, or when there is no
- * estimate, the city band and the legal minimum as before.
+ * Under My card's trades: for the first trade, the estimate for its default scope in the card's area, with what it
+ * rests on and the opening and least amounts it suggests, which fill the rate fields on a tap (ADR 0030, ADR 0039);
+ * for the others, or when there is no estimate, the city band and the legal minimum as before.
  */
 export function CardRates({
   trades,
+  area,
   session,
   onRate,
   onMin,
 }: {
   trades: readonly Trade[];
+  /** The card's area key ("jayanagar"), when it has one. */
+  area: string | undefined;
   session: Session;
   onRate: (paise: number) => void;
   onMin: (paise: number) => void;
@@ -29,7 +32,7 @@ export function CardRates({
   const i18n = useI18n();
   const { t } = i18n;
   const first = trades[0];
-  const found = useEstimate(session, first && estimateRequest(PILOT_CITY, first));
+  const found = useEstimate(session, first && estimateRequest(PILOT_CITY, first, {}, area && areaSlug(area)));
   const estimated = found && found.request.trade === first ? found : undefined;
   const suggested =
     estimated && suggestForWorker({ estimate: estimated.estimate, trade: estimated.request.trade, city: PILOT_CITY });

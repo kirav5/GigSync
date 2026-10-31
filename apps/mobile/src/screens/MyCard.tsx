@@ -147,7 +147,13 @@ export function MyCard({
             </button>
           ))}
         </div>
-        <CardRates trades={trades} session={account.session} onRate={fill(rateField)} onMin={fill(minField)} />
+        <CardRates
+          trades={trades}
+          area={draft.area}
+          session={account.session}
+          onRate={fill(rateField)}
+          onMin={fill(minField)}
+        />
         <label className={C.fieldLabel}>
           <span className={C.muted}>{t("card.where")}</span>
           <select className={C.field} name={Field.area} defaultValue={draft.area}>

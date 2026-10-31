@@ -1,11 +1,13 @@
 import {
   AcProblem,
+  type AreaKey,
   CarpenterProblem,
   type City,
   DEFAULT_SCOPE,
   DetailFlag,
   ElectricianProblem,
   type Estimate,
+  EstimateBasisKind,
   EstimateRequest,
   hoursBand,
   MaidFrequency,
@@ -90,9 +92,17 @@ export function tradeScope(trade: Trade, details: Details = {}): object {
   return scopes[trade];
 }
 
-/** The estimate request for a job of `trade` in `city` with these details; undefined only if it fails the schema. */
-export function estimateRequest(city: City, trade: Trade, details: Details = {}): EstimateRequest | undefined {
-  return EstimateRequest.safeParse({ city, trade, scope: tradeScope(trade, details) }).data;
+/**
+ * The estimate request for a job of `trade` in `city` with these details, in `area` (a pilot area's slug) when the job
+ * is in one, so GigSync's prices there can answer first (ADR 0039 §1); undefined only if it fails the schema.
+ */
+export function estimateRequest(
+  city: City,
+  trade: Trade,
+  details: Details = {},
+  area?: AreaKey,
+): EstimateRequest | undefined {
+  return EstimateRequest.safeParse({ city, ...(area ? { area } : {}), trade, scope: tradeScope(trade, details) }).data;
 }
 
 /** Two requests ask for the same estimate. */
@@ -118,3 +128,9 @@ export function perJob(estimate: Estimate, details: Details): Estimate | undefin
 
 /** How many pages an estimate rests on: a page quoted twice counts once. */
 export const sourceCount = (estimate: Estimate): number => new Set(estimate.basis.sources.map((s) => s.url)).size;
+
+/** What an estimate rests on, counted: the GigSync jobs it was computed from (ADR 0039), or the pages it was read from. */
+export const basisCount = (estimate: Estimate): { jobs: number } | { sources: number } =>
+  estimate.basis.kind === EstimateBasisKind.enum.gigsync
+    ? { jobs: estimate.basis.gigsync_jobs }
+    : { sources: sourceCount(estimate) };

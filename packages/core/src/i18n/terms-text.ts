@@ -60,8 +60,11 @@ export function factText(lang: Lang, fact: Fact, name: string): string {
     }
     case FactKind.usual: {
       const range = { low: priceText(fact.low_paise), high: priceText(fact.high_paise) };
-      if (fact.typical_paise === undefined || fact.sources === undefined) return t(lang, "explain.usual_range", range);
-      return plural(lang, "explain.usual", fact.sources, { ...range, typical: priceText(fact.typical_paise) });
+      if (fact.typical_paise === undefined) return t(lang, "explain.usual_range", range);
+      const usual = { ...range, typical: priceText(fact.typical_paise) };
+      if (fact.jobs !== undefined) return plural(lang, "explain.usual_jobs", fact.jobs, usual);
+      if (fact.sources === undefined) return t(lang, "explain.usual_range", range);
+      return plural(lang, "explain.usual", fact.sources, usual);
     }
     case FactKind.limit: {
       const params = { limit: priceText(fact.limit_paise), gap: priceText(fact.gap_paise) };

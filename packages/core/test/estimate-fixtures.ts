@@ -4,9 +4,7 @@ import {
   type EstimateRequest,
   type EstimateResponse,
   type EstimateSource,
-  type Place,
   RateUnit,
-  type SharedPrice,
 } from "@gigsync/protocol";
 import type { EstimateApi, EstimateOptions } from "../src/index.js";
 
@@ -27,7 +25,7 @@ export const PAINT_2BHK: Estimate = {
   typical_paise: 1_600_000,
   high_paise: 1_800_000,
   unit: RateUnit.enum.job,
-  basis: { sources: [0, 1, 2, 3, 4].map((n) => source(n)), gigsync_jobs: 0, floored: false },
+  basis: { kind: "web", sources: [0, 1, 2, 3, 4].map((n) => source(n)), gigsync_jobs: 0, floored: false },
   as_of: AS_OF,
 };
 
@@ -37,7 +35,30 @@ export const COOK_MONTH: Estimate = {
   typical_paise: 1_100_000,
   high_paise: 1_200_000,
   unit: RateUnit.enum.month,
-  basis: { sources: [0, 1, 2].map((n) => source(n)), gigsync_jobs: 12, legal_minimum_paise: 643_000, floored: false },
+  basis: {
+    kind: "web",
+    sources: [0, 1, 2].map((n) => source(n)),
+    gigsync_jobs: 0,
+    legal_minimum_paise: 643_000,
+    floored: false,
+  },
+  as_of: AS_OF,
+};
+
+/** The same cook job from 34 jobs agreed on GigSync in Jayanagar (ADR 0039): ₹10,500 / ₹11,000 / ₹12,500 a month. */
+export const COOK_GIGSYNC: Estimate = {
+  low_paise: 1_050_000,
+  typical_paise: 1_100_000,
+  high_paise: 1_250_000,
+  unit: RateUnit.enum.month,
+  basis: {
+    kind: "gigsync",
+    sources: [],
+    gigsync_jobs: 34,
+    area: "jayanagar",
+    legal_minimum_paise: 643_000,
+    floored: false,
+  },
   as_of: AS_OF,
 };
 
@@ -50,11 +71,9 @@ export const PAINT_SQFT: Estimate = {
   unit: RateUnit.enum.sqft,
 };
 
-/** The server's estimate routes in memory: answers from `answers` by trade, records every call. */
+/** The server's estimate route in memory: answers from `answers` by trade, records every call. */
 export class FakeEstimateApi implements EstimateApi {
   readonly asked: EstimateRequest[] = [];
-  readonly shared: SharedPrice[] = [];
-  failShares = false;
 
   constructor(private readonly answers: (request: EstimateRequest) => EstimateResponse | Error) {}
 
@@ -64,20 +83,6 @@ export class FakeEstimateApi implements EstimateApi {
     if (answer instanceof Error) throw answer;
     return answer;
   }
-
-  async sharePrice(price: SharedPrice): Promise<void> {
-    if (this.failShares) throw new Error("offline");
-    this.shared.push(price);
-  }
 }
 
-/** Points that are pilot area centres, by slug. */
-export const AREA_KEYS: readonly { key: string; place: Place }[] = [
-  { key: "hsr-layout", place: { lat: 12.975, lon: 77.645 } },
-];
-
-export const estimateOptions = (api: EstimateApi): EstimateOptions => ({
-  api,
-  city: City.enum.bengaluru,
-  areaKey: (p) => AREA_KEYS.find((a) => a.place.lat === p.lat && a.place.lon === p.lon)?.key,
-});
+export const estimateOptions = (api: EstimateApi): EstimateOptions => ({ api, city: City.enum.bengaluru });

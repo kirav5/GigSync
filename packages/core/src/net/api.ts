@@ -22,7 +22,6 @@ import {
   type QrCode,
   QrPerson,
   Session,
-  type SharedPrice,
   type UserId,
 } from "@gigsync/protocol";
 import { z } from "zod";
@@ -55,7 +54,6 @@ export const ApiPath = {
   /** The usual range for a job (ADR 0030): `POST /v1/estimates`. */
   estimates: "/v1/estimates",
   /** One agreed price shared anonymously: `POST /v1/estimates/prices`. */
-  sharedPrices: "/v1/estimates/prices",
   /** The caller's personal QR (ADR 0034): `PUT` gets or makes it, `/replace` makes a new one. */
   qrMe: "/v1/qr/me",
   qrReplace: "/v1/qr/me/replace",
@@ -204,11 +202,6 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
   /** The usual range for a job, or why there is none ("no estimate" is an answer, not an error). */
   async estimate(request: EstimateRequest): Promise<EstimateResponse> {
     return EstimateResponse.parse(await this.call(HttpMethod.post, ApiPath.estimates, request));
-  }
-
-  /** Shares one agreed price anonymously; answers 204. */
-  async sharePrice(price: SharedPrice): Promise<void> {
-    await this.call(HttpMethod.post, ApiPath.sharedPrices, price);
   }
 
   /** A city's guide, checked against its schema before the landing journey keeps it. */

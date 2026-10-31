@@ -9,6 +9,7 @@ import {
   type EngagementId,
   EngagementStatus,
   EnvelopeKind,
+  type JobProblem,
   type JobRequest,
   type JobReview,
   MENTOR_KINDS,
@@ -21,6 +22,7 @@ import {
   SIDE_CHANNEL_KINDS,
   type UserId,
 } from "@gigsync/protocol";
+import type { ContactKeeper } from "../contacts/keeper.js";
 import { apply, TransitionError } from "../engagement/machine.js";
 import { log } from "../log.js";
 import type { Received } from "../mail/transport.js";
@@ -47,6 +49,7 @@ const RECEIVES: Readonly<Record<Role, ReadonlySet<EnvelopeKind>>> = {
     K.cancel,
     K.payment_record,
     K.review,
+    K.problem,
   ]),
   [R.requester]: new Set([
     K.clarify,
@@ -58,6 +61,7 @@ const RECEIVES: Readonly<Record<Role, ReadonlySet<EnvelopeKind>>> = {
     K.delivery,
     K.payment_request,
     K.payment_record,
+    K.problem,
   ]),
 };
 
@@ -74,6 +78,8 @@ export async function needOf(ctx: JobContext, r: JobRecord): Promise<Need> {
 export interface SideInboxes {
   mentors: Pick<Mentors, "receive">;
   offers: Pick<WorkOffers, "receive">;
+  /** Problems reported on a signed job, which hold its contacts (ADR 0039 §3). */
+  contacts: Pick<ContactKeeper, "receive">;
 }
 
 /**
@@ -113,6 +119,7 @@ export async function dispatch(
     }
   }
   await ctx.store.saveJob(moved);
+  if (e.kind === K.problem) return side.contacts.receive(moved, body as JobProblem);
   await react(ctx, rules, moved, e.kind, body, e.from.device);
 }
 

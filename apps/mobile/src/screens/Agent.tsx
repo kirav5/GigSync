@@ -30,6 +30,7 @@ import {
   resumeInterview,
 } from "../card/interviewStore.js";
 import { accountDraft } from "../card/publish.js";
+import { answerMarket, heardMarket } from "../estimate/market.js";
 import { useI18n } from "../i18n.js";
 import { openChat, useTalk } from "../talk/talkStore.js";
 import { useMoves } from "../talk/useMoves.js";
@@ -135,6 +136,14 @@ export function AgentScreen(props: TalkProps) {
     if (help) return help === HelpIntent.offer ? moves.offer(own) : moves.stop(own);
     const moving = movingIntent(own, lang);
     if (moving) return moves.start(own, moving.city);
+    const market = heardMarket(own, lang, ports.clock.now(), account.worker?.trades[0]);
+    if (market) {
+      // What the market pays, from the estimate route (ADR 0039 §2); the answer lands under the words when it comes.
+      const id = addNote(own);
+      const answer = await answerMarket(account.session, ports.model, lang, market);
+      noteAnswered(id, { kind: CardKind.text, words: { text: answer.text, lang } });
+      return;
+    }
     if (earningsIntent(own, lang)) {
       answerEarnings(own);
       return;

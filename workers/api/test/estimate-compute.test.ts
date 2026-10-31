@@ -2,8 +2,7 @@ import type { EstimateRequest } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import { assembleEstimate, legalFloorPaise } from "../src/estimates/assemble.js";
 import { type WebBand, webBand } from "../src/estimates/compute.js";
-import { K_MIN } from "../src/estimates/constants.js";
-import { firstMonthCounted, isShareableMonth } from "../src/estimates/months.js";
+import { marketSince } from "../src/estimates/market.js";
 import { bandOf, percentile, withoutOutliers } from "../src/estimates/stats.js";
 import { DropReason } from "../src/estimates/verify.js";
 import { COOK, ELECTRICIAN, MAID, PAINTER, quotesAt } from "./estimate-fakes.js";
@@ -73,13 +72,18 @@ const web = (low: number, typical: number, high: number, count = 5): WebBand => 
   count,
   sources: [],
 });
+const onWeb = (w: WebBand) => ({ kind: "web" as const, web: w, readAt: NOW });
+const onGigsync = (low: number, typical: number, high: number, area?: string) => ({
+  kind: "gigsync" as const,
+  market: { band: { low, typical, high }, jobs: 34, ...(area ? { area } : {}) },
+});
 
 describe("the assembled estimate", () => {
   it("rounds to ₹10, or ₹1 per sq ft", () => {
-    const e = assembleEstimate(ELECTRICIAN, { web: web(44_449, 50_051, 61_990), readAt: NOW, shared: [] }, NOW);
+    const e = assembleEstimate(ELECTRICIAN, onWeb(web(44_449, 50_051, 61_990)), NOW);
     expect(e).toMatchObject({ low_paise: 44_000, typical_paise: 50_000, high_paise: 62_000, unit: "job" });
     const perSqft = { ...PAINTER, scope: { labour_only: "yes" } } as EstimateRequest;
-    const s = assembleEstimate(perSqft, { web: web(1_249, 1_510, 1_890), readAt: NOW, shared: [] }, NOW);
+    const s = assembleEstimate(perSqft, onWeb(web(1_249, 1_510, 1_890)), NOW);
     expect(s).toMatchObject({ low_paise: 1_200, typical_paise: 1_500, high_paise: 1_900, unit: "sqft" });
   });
 
@@ -89,38 +93,38 @@ describe("the assembled estimate", () => {
     const weekly = { ...MAID, scope: { rooms: "bhk2", frequency: "weekly" } } as EstimateRequest;
     expect(legalFloorPaise(weekly)).toBe(59_000);
     expect(legalFloorPaise(PAINTER)).toBeUndefined();
-    const e = assembleEstimate(MAID, { web: web(300_000, 340_000, 450_000), readAt: NOW, shared: [] }, NOW);
+    const e = assembleEstimate(MAID, onWeb(web(300_000, 340_000, 450_000)), NOW);
     expect(e).toMatchObject({ low_paise: 350_000, typical_paise: 350_000, high_paise: 450_000 });
     expect(e?.basis).toMatchObject({ legal_minimum_paise: 350_000, floored: true });
-    const above = assembleEstimate(COOK, { web: web(900_000, 1_000_000, 1_100_000), readAt: NOW, shared: [] }, NOW);
+    const above = assembleEstimate(COOK, onWeb(web(900_000, 1_000_000, 1_100_000)), NOW);
     expect(above?.basis).toMatchObject({ legal_minimum_paise: 643_000, floored: false });
   });
 
-  it("leaves shared prices unused below K_MIN, so no single price can be read back", () => {
-    const nine = Array.from({ length: K_MIN - 1 }, () => 2_000_000);
-    const e = assembleEstimate(COOK, { web: web(1_000_000, 1_100_000, 1_200_000), readAt: NOW, shared: nine }, NOW);
-    expect(e).toMatchObject({ typical_paise: 1_100_000, basis: { gigsync_jobs: 0 } });
-    expect(assembleEstimate(COOK, { web: undefined, readAt: undefined, shared: nine }, NOW)).toBeUndefined();
+  it("says a GigSync range's jobs and area, with no web sources, dated now", () => {
+    const e = assembleEstimate(COOK, onGigsync(1_049_000, 1_101_000, 1_249_000, "jayanagar"), NOW);
+    expect(e).toMatchObject({ low_paise: 1_049_000, typical_paise: 1_101_000, high_paise: 1_249_000 });
+    expect(e.basis).toEqual({
+      kind: "gigsync",
+      sources: [],
+      gigsync_jobs: 34,
+      area: "jayanagar",
+      legal_minimum_paise: 643_000,
+      floored: false,
+    });
+    expect(e.as_of).toBe(NOW.toISOString());
+    expect(assembleEstimate(COOK, onGigsync(1, 2, 3), NOW).basis.area).toBeUndefined();
   });
 
-  it("blends shared prices from K_MIN, weighted by count", () => {
-    const ten = Array.from({ length: K_MIN }, () => 2_000_000);
-    const e = assembleEstimate(COOK, { web: web(1_000_000, 1_000_000, 1_000_000, 10), readAt: NOW, shared: ten }, NOW);
-    expect(e).toMatchObject({ low_paise: 1_500_000, typical_paise: 1_500_000, high_paise: 1_500_000 });
-    expect(e?.basis.gigsync_jobs).toBe(K_MIN);
-    const alone = assembleEstimate(COOK, { web: undefined, readAt: undefined, shared: ten }, NOW);
-    expect(alone).toMatchObject({ typical_paise: 2_000_000, basis: { sources: [], gigsync_jobs: K_MIN } });
-    expect(alone?.as_of).toBe(NOW.toISOString());
+  it("floors a GigSync range at the legal minimum like the web's", () => {
+    const e = assembleEstimate(MAID, onGigsync(300_000, 340_000, 450_000), NOW);
+    expect(e).toMatchObject({ low_paise: 350_000, typical_paise: 350_000, high_paise: 450_000 });
+    expect(e.basis).toMatchObject({ kind: "gigsync", legal_minimum_paise: 350_000, floored: true });
   });
 });
 
-describe("months of shared prices", () => {
-  it("accept this month and the eleven before it, nothing future", () => {
-    expect(isShareableMonth("2026-10", NOW)).toBe(true);
-    expect(isShareableMonth("2025-11", NOW)).toBe(true);
-    expect(isShareableMonth("2025-10", NOW)).toBe(false);
-    expect(isShareableMonth("2026-11", NOW)).toBe(false);
-    expect(firstMonthCounted(NOW)).toBe("2025-11-01");
-    expect(firstMonthCounted(new Date("2026-01-05T00:00:00Z"))).toBe("2025-02-01");
+describe("the market window", () => {
+  it("starts the same moment twelve calendar months back", () => {
+    expect(marketSince(NOW).toISOString()).toBe("2025-10-29T10:00:00.000Z");
+    expect(marketSince(new Date("2026-01-05T00:00:00Z")).toISOString()).toBe("2025-01-05T00:00:00.000Z");
   });
 });

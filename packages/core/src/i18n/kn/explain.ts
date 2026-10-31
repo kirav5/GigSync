@@ -14,6 +14,8 @@ export const explain: Readonly<Record<keyof typeof en, string>> = {
   "explain.terms_theirs": "{name} ಹೇಳಿದ್ದು: {terms}.",
   "explain.usual.one": "ಸಾಮಾನ್ಯ ದರ {typical} ({low}–{high}, {count} ಮೂಲದಿಂದ).",
   "explain.usual.other": "ಸಾಮಾನ್ಯ ದರ {typical} ({low}–{high}, {count} ಮೂಲಗಳಿಂದ).",
+  "explain.usual_jobs.one": "ಸಾಮಾನ್ಯ ದರ {typical} ({low}–{high}, GigSync ನ {count} ಕೆಲಸದಿಂದ).",
+  "explain.usual_jobs.other": "ಸಾಮಾನ್ಯ ದರ {typical} ({low}–{high}, GigSync ನ {count} ಕೆಲಸಗಳಿಂದ).",
   "explain.usual_range": "ಸಾಮಾನ್ಯ ದರ {low}–{high}.",
   "explain.limit_within": "ಇದು ನಿಮ್ಮ ಮಿತಿ {limit} ಒಳಗಿದೆ.",
   "explain.limit_outside": "ಇದು ನಿಮ್ಮ ಮಿತಿ {limit} ಗಿಂತ {gap} ಹೊರಗಿದೆ.",

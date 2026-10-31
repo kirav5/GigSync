@@ -39,7 +39,8 @@ const SCRIPT: Readonly<Record<Lang, RegExp>> = {
 };
 /** At least this share of the letters must be in the owner's script. */
 const MIN_SCRIPT_SHARE = 0.6;
-const LANGUAGE_NAME: Readonly<Record<Lang, string>> = {
+/** Each language as a model is asked to write it. */
+export const LANGUAGE_NAME: Readonly<Record<Lang, string>> = {
   [Lang.enum.en]: "English",
   [Lang.enum.hi]: "Hindi, in Devanagari script",
   [Lang.enum.kn]: "Kannada, in Kannada script",
@@ -84,7 +85,8 @@ export function explainPrompt(template: string, lang: Lang): string {
   ].join("\n");
 }
 
-function parseText(reply: string): string | undefined {
+/** The text of a model's JSON reply (`{"text": "..."}`), trimmed; undefined for anything else. */
+export function replyText(reply: string): string | undefined {
   const object = firstObject(reply);
   if (!object) return undefined;
   try {
@@ -118,7 +120,7 @@ export async function explainOffer(
   if (!model || facts.length === 0) return fallback;
   try {
     const reply = await within(model.generate(explainPrompt(template, i.lang), { maxTokens: MAX_TOKENS }), waitMs);
-    const text = reply ? parseText(reply) : undefined;
+    const text = reply ? replyText(reply) : undefined;
     const forbidden = forOwner ? [] : limitRupees(i.facts);
     if (!text || !checkExplanation(text, { template, lang: i.lang, forbidden })) return fallback;
     return { text, by: ExplainedBy.model } satisfies Explanation;

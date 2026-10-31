@@ -16,10 +16,19 @@ const HISTORY: readonly string[] = [
  */
 const promptKey = (owner: UserId) => `move_prompt:${owner}`;
 
-/** Whether the owner has any history on this phone. `storage` is their view of it. */
+/**
+ * Whether the owner has any history on this phone. `storage` is their view of it. Jobs only refilled from their record
+ * on GigSync do not count: they stand in for the old phone's, which the move would bring with their words.
+ */
 export async function hasHistory(storage: Storage): Promise<boolean> {
-  const counts = await Promise.all(HISTORY.map(async (c) => (await storage.ids(c)).length));
-  return counts.some((n) => n > 0);
+  const used = await Promise.all(
+    HISTORY.map(async (c) =>
+      c === Collection.jobs
+        ? (await storage.list<{ restored?: unknown }>(c)).some((job) => job.restored === undefined)
+        : (await storage.ids(c)).length > 0,
+    ),
+  );
+  return used.some(Boolean);
 }
 
 /** What decides the prompt besides this phone's records: this device, the owner's other devices, a waiting link. */

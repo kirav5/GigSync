@@ -1,4 +1,4 @@
-import { type ColleagueCard, type ContactCard, type EngagementId, Role, type UserId } from "@gigsync/protocol";
+import { type ColleagueCard, type EngagementId, Role, type UserId } from "@gigsync/protocol";
 import type { JobRecord } from "../job/store.js";
 import { bothSigned } from "../payments/passbook.js";
 import type { MentorContext } from "./context.js";
@@ -18,16 +18,18 @@ export interface KnownPerson {
   channel?: EngagementId;
 }
 
-type SignedWithContact = JobRecord & { contact: ContactCard };
-
-/** A job both sides signed, with the other side's contact card, which comes once both have signed. */
-const signedWith = (r: JobRecord): r is SignedWithContact => bothSigned(r) && r.contact !== undefined;
+/**
+ * The other side's name on a job both sides signed: from their contact card, which comes once both have signed, or
+ * kept from it after it was removed once the job was settled (ADR 0039 §3).
+ */
+const signedName = (r: JobRecord): string | undefined =>
+  bothSigned(r) ? (r.contact?.name ?? r.their_name) : undefined;
 
 /** The other side of a signed job, as an introduction names them: the trade they did, or the language they wrote in. */
-function jobPerson(r: SignedWithContact): KnownPerson {
+function jobPerson(r: JobRecord, name: string): KnownPerson {
   const theyWorked = r.engagement.role === Role.enum.requester;
   const card: ColleagueCard = {
-    name: r.contact.name,
+    name,
     trades: theyWorked ? [r.request.trade] : [],
     languages: theyWorked ? [] : [r.request.lang],
   };
@@ -50,7 +52,10 @@ async function byName(m: MentorContext): Promise<Map<UserId, KnownPerson>> {
   const keep = (p: KnownPerson) =>
     byUser.set(p.user, { ...p, worker: p.worker || byUser.get(p.user)?.worker === true });
   for (const p of past) keep({ user: p.user, card: p.card, worker: true });
-  for (const r of jobs.filter(signedWith).sort(oldestFirst)) keep(jobPerson(r));
+  for (const r of [...jobs].sort(oldestFirst)) {
+    const name = signedName(r);
+    if (name) keep(jobPerson(r, name));
+  }
   for (const l of live) keep({ user: l.user, card: l.card, worker: true, channel: l.channel });
   return byUser;
 }

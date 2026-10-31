@@ -11,13 +11,14 @@ import {
   PlumberScope,
   type TradeScope,
 } from "./estimate-scope.js";
-import { PAISE_PER_RUPEE, Paise } from "./payment.js";
+import { PAISE_PER_RUPEE } from "./payment.js";
 import { Trade } from "./trade.js";
 
 /**
- * Rate estimates (ADR 0030): `POST /v1/estimates` answers with the usual range for a job, computed by code from
- * sourced web quotes and, once enough exist, prices GigSync users chose to share. Suggestions only: the owner confirms
- * or changes every number, and a job can be agreed with no estimate at all.
+ * Rate estimates (ADR 0030, ADR 0039 §1): `POST /v1/estimates` answers with the usual range for a job, computed by code
+ * from the prices agreed on GigSync when at least `K_MIN` jobs fall in the group (the area, then the city), otherwise
+ * from sourced web quotes. Suggestions only: the owner confirms or changes every number, and a job can be agreed with
+ * no estimate at all.
  */
 
 /** What a price is for: the whole job, a square foot, a day, a month, one visit or an hour. */
@@ -31,11 +32,21 @@ export const MAX_ESTIMATE_SOURCES = 30;
 export const MAX_SOURCE_SENTENCE = 500;
 const MAX_SITE = 253;
 
+/** A neighbourhood as a slug ("jayanagar", "hsr-layout"): the pilot area's name, never an address. */
+export const AreaKey = z
+  .string()
+  .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "area slug")
+  .max(60);
+export type AreaKey = z.infer<typeof AreaKey>;
+
 const T = Trade.enum;
 const scoped = <K extends Trade, S extends z.ZodType<TradeScope[K]>>(trade: K, scope: S) =>
-  z.object({ city: City, trade: z.literal(trade), scope });
+  z.object({ city: City, area: AreaKey.optional(), trade: z.literal(trade), scope });
 
-/** `POST /v1/estimates`: a city, a trade and that trade's scope buckets. Nothing a person wrote. */
+/**
+ * `POST /v1/estimates`: a city, the area when the job is in a pilot area, a trade and that trade's scope buckets.
+ * Nothing a person wrote.
+ */
 export const EstimateRequest = z.discriminatedUnion("trade", [
   scoped(T.electrician, ElectricianScope),
   scoped(T.plumber, PlumberScope),
@@ -58,11 +69,19 @@ export const EstimateSource = z.object({
 });
 export type EstimateSource = z.infer<typeof EstimateSource>;
 
+/** What a range was computed from: prices agreed on GigSync, or quotes read from the web. */
+export const EstimateBasisKind = z.enum(["gigsync", "web"]);
+export type EstimateBasisKind = z.infer<typeof EstimateBasisKind>;
+
 export const EstimateBasis = z.object({
-  /** The web quotes that survived every check, outliers removed. */
+  /** Which source the range rests on. An estimate a phone kept from before ADR 0039 has none, and was the web's. */
+  kind: EstimateBasisKind.default(EstimateBasisKind.enum.web),
+  /** The web quotes that survived every check, outliers removed; empty for a GigSync range. */
   sources: z.array(EstimateSource).max(MAX_ESTIMATE_SOURCES),
-  /** Shared GigSync prices blended in; 0 until at least `K_MIN` exist for this city, trade and scope. */
+  /** The GigSync jobs a GigSync range rests on, never fewer than `K_MIN`; 0 for a web range. */
   gigsync_jobs: z.number().int().nonnegative(),
+  /** The area those jobs are in; absent when the range is the whole city's, or the web's. */
+  area: AreaKey.optional(),
   /** The statutory floor for this job, when one is known; no figure of the estimate is below it. */
   legal_minimum_paise: EstimatePaise.optional(),
   /** True when the floor raised at least one figure: the app says so. */
@@ -78,7 +97,7 @@ export const Estimate = z
     high_paise: EstimatePaise,
     unit: RateUnit,
     basis: EstimateBasis,
-    /** When the web quotes were read. */
+    /** When the web quotes were read, or the GigSync prices counted. */
     as_of: z.iso.datetime({ offset: true }),
   })
   .refine((e) => e.low_paise <= e.typical_paise && e.typical_paise <= e.high_paise, "low ≤ typical ≤ high");
@@ -99,21 +118,3 @@ export const EstimateResponse = z.union([Estimate, NoEstimate]);
 export type EstimateResponse = z.infer<typeof EstimateResponse>;
 
 export const isEstimate = (r: EstimateResponse): r is Estimate => !("none" in r);
-
-/** A neighbourhood as a slug ("indiranagar"), never an address. Stored for later per-area estimates; unused today. */
-export const AreaKey = z
-  .string()
-  .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "area slug")
-  .max(60);
-/** A calendar month, "2026-11": a shared price carries no exact date. */
-export const PriceMonth = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "YYYY-MM");
-
-/**
- * `POST /v1/estimates/prices`: one agreed price its owner chose to share (ADR 0030 §3). No user, names, contacts or
- * exact date; stored without the sender's id. A painting price needs `rooms`: a whole-job price cannot stand in for a
- * per-square-foot estimate.
- */
-export const SharedPrice = z
-  .intersection(EstimateRequest, z.object({ area_key: AreaKey, price_paise: Paise, month: PriceMonth }))
-  .refine((p) => p.trade !== T.painter || p.scope.rooms !== undefined, "painting price needs rooms");
-export type SharedPrice = z.infer<typeof SharedPrice>;

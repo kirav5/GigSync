@@ -52,6 +52,12 @@ export function bothSigned(r: JobRecord): r is SignedJob {
 /** Signed work that is this phone's own: it was the provider. */
 const signedWork = (r: JobRecord): r is SignedJob => r.engagement.role === Role.enum.provider && bothSigned(r);
 
+/** This phone's own work on its passbook: signed by both, or refilled from its record on GigSync. */
+const ownWork = (r: JobRecord): boolean => signedWork(r) || (r.engagement.role === Role.enum.provider && !!r.restored);
+
+/** The price both agreed: from the signed terms, or from the record for a restored job. */
+export const agreedPrice = (r: JobRecord): number => r.mine?.terms.price_paise ?? r.restored?.price_paise ?? 0;
+
 /** Work this phone did and finished, on terms both sides signed: what the mentor rule counts. */
 export const doneWork = (r: JobRecord): r is SignedJob => signedWork(r) && FINISHED_WORK.has(r.engagement.status);
 
@@ -75,7 +81,7 @@ export function passbook(
   now: Date,
   offsetMinutes: number,
 ): { rows: PassbookRow[]; totals: PassbookTotals } {
-  const signed = new Map(jobs.filter(signedWork).map((r) => [r.engagement.id, r]));
+  const signed = new Map(jobs.filter(ownWork).map((r) => [r.engagement.id, r]));
   const rows: PassbookRow[] = [];
   for (const payment of payments) {
     const job = signed.get(payment.engagement);
@@ -95,8 +101,7 @@ export function passbook(
   }
   const asked = new Set(rows.filter((row) => row.payment.status !== S.disputed).map((row) => row.job.engagement.id));
   for (const job of signed.values()) {
-    if (FINISHED_WORK.has(job.engagement.status) && !asked.has(job.engagement.id))
-      totals.notAsked += job.mine.terms.price_paise;
+    if (FINISHED_WORK.has(job.engagement.status) && !asked.has(job.engagement.id)) totals.notAsked += agreedPrice(job);
   }
   return { rows, totals };
 }

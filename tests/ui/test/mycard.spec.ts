@@ -1,7 +1,7 @@
 import { HttpMethod, type MessageKey, type Params, plural, t } from "@gigsync/core";
 import { BoardProfile, Lang, MyQr, type QrCode } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Locator, type Page, test } from "@playwright/test";
-import { API, APP, newPhone, open, Role, RUN, SHOTS, signIn } from "./helpers.js";
+import { API, APP, MovePrompt, newPhone, open, Role, RUN, SHOTS, signIn } from "./helpers.js";
 import { publishCard, unlistCards } from "./journey.js";
 import { seedServedJobs } from "./record-seed.js";
 
@@ -76,8 +76,8 @@ async function published(page: Page, matches: (sent: BoardProfile) => boolean): 
 const card = (page: Page, label: MessageKey) => page.getByRole("region", { name: say(label) });
 const stats = (scope: Page | Locator) => scope.getByRole("definition");
 
-async function cook(page: Page, name: string, phone = newPhone()) {
-  await signIn(page, { role: Role.worker, name, phone });
+async function cook(page: Page, name: string, phone = newPhone(), elsewhere?: MovePrompt) {
+  await signIn(page, { role: Role.worker, name, phone, ...(elsewhere ? { elsewhere } : {}) });
   await publishCard({ page, lang: en }, { trade: "Cook", area: "jayanagar", rate: "11000", min: "9000", about: ABOUT });
 }
 
@@ -86,7 +86,8 @@ test("a worker's My card shows their card, their record, the QR and one Edit my 
   const name = `Lakshmi ${RUN}`;
   const number = newPhone();
   await seedServedJobs(number, RATED);
-  await cook(page, name, number);
+  // Seeding signed the number in on another device, so the move prompt comes; this cook is not moving.
+  await cook(page, name, number, MovePrompt.notNow);
   await open(page, "nav.card");
   const mine = card(page, "page.card_seen");
   await expect(mine).toContainText(name);
@@ -168,7 +169,8 @@ test("a household scanning a worker sees the record GigSync keeps, and none once
   const name = `Kavya ${RUN}`;
   const number = newPhone();
   await seedServedJobs(number, RATED);
-  await cook(worker, name, number);
+  // Seeding signed the number in on another device, so the move prompt comes; this cook is not moving.
+  await cook(worker, name, number, MovePrompt.notNow);
   const code = worker.waitForResponse((r) => r.url() === MY_QR && r.request().method() === HttpMethod.put && r.ok());
   await open(worker, "nav.card");
   const qr: QrCode = MyQr.parse(await (await code).json()).code;

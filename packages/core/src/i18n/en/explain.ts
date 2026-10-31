@@ -15,6 +15,8 @@ export const explain = {
   "explain.terms_theirs": "{name} proposed {terms}.",
   "explain.usual.one": "The usual rate is {typical} ({low}–{high}, from {count} source).",
   "explain.usual.other": "The usual rate is {typical} ({low}–{high}, from {count} sources).",
+  "explain.usual_jobs.one": "The usual rate is {typical} ({low}–{high}, from {count} job on GigSync).",
+  "explain.usual_jobs.other": "The usual rate is {typical} ({low}–{high}, from {count} jobs on GigSync).",
   "explain.usual_range": "The usual range is {low}–{high}.",
   "explain.limit_within": "That is inside your limit of {limit}.",
   "explain.limit_outside": "That is {gap} past your limit of {limit}.",

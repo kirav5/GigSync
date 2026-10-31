@@ -3,6 +3,7 @@ import { agent } from "../src/i18n/en/agent.js";
 import { ask } from "../src/i18n/en/ask.js";
 import { bargain } from "../src/i18n/en/bargain.js";
 import { chats } from "../src/i18n/en/chats.js";
+import { contacts } from "../src/i18n/en/contacts.js";
 import { estimate } from "../src/i18n/en/estimate.js";
 import { explain } from "../src/i18n/en/explain.js";
 import { home } from "../src/i18n/en/home.js";
@@ -58,6 +59,7 @@ const AREAS: Readonly<Record<string, object>> = {
   page,
   phone,
   records,
+  contacts,
 };
 
 describe("string areas", () => {

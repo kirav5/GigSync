@@ -1,4 +1,5 @@
 import type { City, EstimateRequest } from "@gigsync/protocol";
+import { areaSlug } from "../estimate/areas.js";
 import { estimateRequest, sameRequest } from "../estimate/scope.js";
 import { suggestForHousehold } from "../estimate/suggest.js";
 import type { Prompt } from "./card.js";
@@ -16,9 +17,11 @@ import { draftDetails } from "./need-request.js";
 /** What the estimate is asked for: the details the chat gathered (the first question's answer, and counts said). */
 export const needDetails = (d: NeedDraft): Record<string, string> => ({ ...d.seen, ...draftDetails(d) });
 
-/** The request for this need's estimate in `city`, once the trade is known. */
+/** The request for this need's estimate in `city`, and in its area once that is known, once the trade is known. */
 export const needRequest = (city: City, d: NeedDraft): EstimateRequest | undefined =>
-  d.trade && (!d.scope || d.scope.confirmed) ? estimateRequest(city, d.trade, needDetails(d)) : undefined;
+  d.trade && (!d.scope || d.scope.confirmed)
+    ? estimateRequest(city, d.trade, needDetails(d), d.area ? areaSlug(d.area) : undefined)
+    : undefined;
 
 /** The need with the estimate the app found for it, or without one. */
 export const needWithEstimate = (s: NeedState, found: FoundEstimate | undefined): NeedState => ({

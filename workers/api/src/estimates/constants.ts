@@ -1,4 +1,4 @@
-/** The estimate service's names, limits and thresholds (ADR 0030). Open questions there: K_MIN and ESTIMATE_TTL_MS. */
+/** The estimate service's names, limits and thresholds (ADR 0030, ADR 0039). Open there: K_MIN and ESTIMATE_TTL_MS. */
 
 /** Values of ESTIMATE_SOURCE, and each quote source's name in the logs. */
 export const SourceName = { anthropic: "anthropic", fixture: "fixture" } as const;
@@ -13,8 +13,13 @@ export const LOCK_TTL_MS = 10 * 60_000;
 /** At least this many checked quotes, from at least this many sites, or there is no estimate. */
 export const MIN_QUOTES = 3;
 export const MIN_SITES = 2;
-/** Shared GigSync prices count only once this many exist for a city, trade and bucket: no single price can be read back. */
+/**
+ * A range from GigSync's agreed prices is shown only when at least this many jobs fall in the group (an area, or the
+ * city): no one person's price can be read from it.
+ */
 export const K_MIN = 10;
+/** Agreed prices from this many calendar months back, to now, count for a market range. */
+export const MARKET_MONTHS = 12;
 
 /** Tukey's fences: a value further than this many interquartile ranges outside the quartiles is an outlier. */
 export const IQR_FACTOR = 1.5;
@@ -26,17 +31,6 @@ export const ROUND_SQFT_PAISE = 100;
 
 /** A sentence shorter than this could match almost any page, so it proves nothing. */
 export const MIN_SENTENCE_CHARS = 20;
-
-/**
- * Shares one signed-in user may send per day; the count holds no price and is replaced every day. Well under K_MIN, so
- * no one person can make a bucket's shared prices count on their own in a day; a household or worker signs few jobs a
- * day in practice.
- */
-export const MAX_SHARES_PER_DAY = 3;
-/** Shared prices from this many calendar months, the current one included, count for an estimate. */
-export const SHARED_PRICE_MONTHS = 12;
-/** The most shared prices read for one estimate, newest months first. */
-export const MAX_SHARED_READ = 1000;
 
 /** Weeks in a month, for a once-a-week price per month. */
 export const WEEKS_PER_MONTH = 52 / 12;

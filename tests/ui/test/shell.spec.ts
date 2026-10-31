@@ -37,7 +37,7 @@ const WORKER_SCREENS: readonly [MessageKey, (page: Page) => Locator][] = [
   ["nav.receipts", (page) => page.getByRole("heading", { level: 1, name: new RegExp(say("passbook.headline")) })],
   ["nav.card", (page) => page.getByRole("region", { name: say("page.card_seen") })],
   ["nav.about", (page) => page.getByRole("form", { name: say("settings.paid_to") })],
-  ["nav.privacy", (page) => page.getByRole("region", { name: say("estimate.setting_label") })],
+  ["nav.privacy", (page) => page.getByRole("region", { name: say("records.privacy_title") })],
   ["nav.settings", (page) => page.getByRole("region", { name: say("settings.look") })],
 ];
 const HOUSEHOLD_SCREENS: readonly [MessageKey, (page: Page) => Locator][] = [
@@ -48,7 +48,7 @@ const HOUSEHOLD_SCREENS: readonly [MessageKey, (page: Page) => Locator][] = [
   ["nav.receipts", (page) => page.getByText(say("page.receipts_empty"))],
   ["nav.card", (page) => page.getByRole("region", { name: say("qr.mine") })],
   ["nav.about", (page) => page.getByRole("region", { name: say("profile.language") })],
-  ["nav.privacy", (page) => page.getByRole("region", { name: say("estimate.setting_label") })],
+  ["nav.privacy", (page) => page.getByRole("region", { name: say("records.privacy_title") })],
   ["nav.settings", (page) => page.getByRole("region", { name: say("settings.look") })],
 ];
 

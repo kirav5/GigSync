@@ -1,4 +1,4 @@
-import type { City, EstimateSource, NoEstimateReason, Trade, UserId } from "@gigsync/protocol";
+import type { City, EstimateSource, NoEstimateReason, Trade } from "@gigsync/protocol";
 import type { WebBand } from "../estimates/compute.js";
 import type { Db } from "./client.js";
 
@@ -77,42 +77,5 @@ export async function storeReading(db: Db, key: CacheKey, reading: Reading): Pro
       web ? null : reading.result,
       reading.readAt,
     ],
-  );
-}
-
-/** Shared prices for a job type agreed in or after `since` (a month), newest months first, at most `limit`. */
-export async function sharedPrices(db: Db, key: CacheKey, since: string, limit: number): Promise<number[]> {
-  const { rows } = await db.query<{ price_paise: number }>(
-    `SELECT price_paise FROM shared_prices WHERE city = $1 AND trade = $2 AND bucket = $3 AND month >= $4
-     ORDER BY month DESC LIMIT $5`,
-    [key.city, key.trade, key.bucket, since, limit],
-  );
-  return rows.map((r) => r.price_paise);
-}
-
-/**
- * Counts one share for a user today, unless they reached `max`: true when counted. Their earlier days go first, so
- * the table keeps at most one row per user. Call inside the same transaction as the insert.
- */
-export async function countShare(db: Db, user: UserId, day: string, max: number): Promise<boolean> {
-  await db.query("DELETE FROM price_share_counts WHERE user_id = $1 AND day < $2", [user, day]);
-  const { rowCount } = await db.query(
-    `INSERT INTO price_share_counts (user_id, day, shares) VALUES ($1, $2, 1)
-     ON CONFLICT (user_id, day) DO UPDATE SET shares = price_share_counts.shares + 1
-     WHERE price_share_counts.shares < $3`,
-    [user, day, max],
-  );
-  return (rowCount ?? 0) > 0;
-}
-
-/** Stores one shared price. No user id goes in. */
-export async function insertSharedPrice(
-  db: Db,
-  key: CacheKey,
-  price: { area_key: string; price_paise: number; month: string },
-): Promise<void> {
-  await db.query(
-    `INSERT INTO shared_prices (city, trade, bucket, area_key, price_paise, month) VALUES ($1, $2, $3, $4, $5, $6)`,
-    [key.city, key.trade, key.bucket, price.area_key, price.price_paise, price.month],
   );
 }

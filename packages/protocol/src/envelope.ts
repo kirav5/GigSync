@@ -44,6 +44,8 @@ export const EnvelopeKind = z.enum([
   "mentor_accept",
   /** Worker → a household whose QR they scanned: I would like to work for you, with the worker's card. */
   "work_offer",
+  /** Either side → the other, on a signed job: a problem reported or resolved. Does not move the engagement. */
+  "problem",
 ]);
 export type EnvelopeKind = z.infer<typeof EnvelopeKind>;
 
@@ -55,6 +57,7 @@ export const SIDE_CHANNEL_KINDS: ReadonlySet<EnvelopeKind> = new Set([
   K.payment_record,
   K.key_change,
   K.referral,
+  K.problem,
 ]);
 
 /**

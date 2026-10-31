@@ -35,6 +35,8 @@ export const Screen = {
   moveOut: "move_out",
   /** The new phone's side: scan the old phone's code, from Settings and once after sign-in on an empty phone. */
   moveIn: "move_in",
+  /** The Terms and Privacy Notice (a placeholder until they are written), from Settings (ADR 0039 §4). */
+  terms: "terms",
 } as const;
 export type Screen = (typeof Screen)[keyof typeof Screen];
 

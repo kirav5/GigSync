@@ -30,7 +30,7 @@ export const ReasonKind = { band: "band", scope: "scope", history: "history", fl
 
 /** Why the agent proposes what it proposes, as data. Each phone renders it in its owner's language (`reasonText`). */
 export type Reason =
-  | { kind: typeof ReasonKind.band; low_paise: number; high_paise: number; sources?: number }
+  | { kind: typeof ReasonKind.band; low_paise: number; high_paise: number; sources?: number; jobs?: number }
   | { kind: typeof ReasonKind.scope; key: QuestionKey; percent: number }
   | { kind: typeof ReasonKind.history; median_paise: number; count: number }
   | { kind: typeof ReasonKind.floor; floor_paise: number }
@@ -49,8 +49,9 @@ export interface AdviceInput {
   history: readonly number[];
   /** The least the worker will take for any job of this trade. */
   floor_paise: number;
-  /** When the band is an estimate: how many sources it rests on, for the reasons. */
+  /** When the band is an estimate: how many sources it rests on, or GigSync jobs (ADR 0039), for the reasons. */
   sources?: number;
+  jobs?: number;
   /** The usual price for the job (the estimate's typical figure); the middle of the band when there is none. */
   typical_paise?: number;
   /** The statutory minimum for the job, when known; kept on the mandate so no offer goes below it. */
@@ -112,7 +113,8 @@ export function proposeMandate(i: AdviceInput): Advice {
   const opening = Math.max(limit, Math.min(high, roundUp(from + (to - from) * at)));
 
   const sources = i.sources === undefined ? {} : { sources: i.sources };
-  const reasons: Reason[] = [{ kind: ReasonKind.band, low_paise: low, high_paise: high, ...sources }];
+  const jobs = i.jobs === undefined ? {} : { jobs: i.jobs };
+  const reasons: Reason[] = [{ kind: ReasonKind.band, low_paise: low, high_paise: high, ...sources, ...jobs }];
   for (const a of applied) reasons.push({ kind: ReasonKind.scope, ...a });
   if (usual !== undefined) reasons.push({ kind: ReasonKind.history, median_paise: usual, count: i.history.length });
   reasons.push({ kind: ReasonKind.floor, floor_paise: i.floor_paise });

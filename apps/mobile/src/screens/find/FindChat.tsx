@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
 import { stopSpeaking } from "../../adapters/speech.js";
 import { needConfig } from "../../card/choices.js";
+import { answerMarket, heardMarket } from "../../estimate/market.js";
 import { fetchEstimate } from "../../estimate/useEstimate.js";
 import { askedTo, askWorkers, needOf, searchBoard } from "../../find/ask.js";
 import { claimSearch, startFindChat, useNeed } from "../../find/findChats.js";
@@ -143,6 +144,15 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     if (!state || busy) return;
     const chat = open;
     const aloud = via === Via.voice;
+    // "What do painters charge?" is answered in the chat from the estimate route (ADR 0039 §2); the need waits.
+    const market = heardMarket(text, lang, ports.clock.now());
+    if (market) {
+      showOwner(chat, text);
+      setReading(true);
+      const answer = await answerMarket(account.session, ports.model, lang, market);
+      setReading(false);
+      return needSay(chat, { key: "estimate.answer", params: { text: answer.text } });
+    }
     if (state.slot !== NeedSlot.trade) return answerNeed(chat, text, aloud);
     showOwner(chat, text);
     setReading(true);

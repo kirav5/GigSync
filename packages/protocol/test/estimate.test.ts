@@ -12,7 +12,6 @@ import {
   QuestionKey,
   QuoteExtraction,
   roomsBucket,
-  SharedPrice,
   Trade,
 } from "../src/index.js";
 
@@ -91,18 +90,23 @@ describe("estimates", () => {
   });
 });
 
-describe("shared prices", () => {
-  const shared = { ...painter, area_key: "indiranagar", price_paise: 1500000, month: "2026-10" };
-
-  it("carry the job's buckets, an area slug, a price and a month, and nothing else", () => {
-    const parsed = SharedPrice.parse({ ...shared, user: "usr_01HZY3", phone: "+919800000000" });
-    expect(parsed).toEqual(shared);
+describe("market areas and bases (ADR 0039)", () => {
+  it("a request may name a pilot area by its slug, never an address", () => {
+    expect(EstimateRequest.parse({ ...painter, area: "hsr-layout" }).area).toBe("hsr-layout");
+    expect(EstimateRequest.safeParse({ ...painter, area: "12 MG Road" }).success).toBe(false);
   });
 
-  it("refuse an exact date, an address-like area and a per-square-foot painting price", () => {
-    expect(SharedPrice.safeParse({ ...shared, month: "2026-10-29" }).success).toBe(false);
-    expect(SharedPrice.safeParse({ ...shared, area_key: "12 MG Road" }).success).toBe(false);
-    expect(SharedPrice.safeParse({ ...shared, scope: { labour_only: "yes" } }).success).toBe(false);
+  it("a basis says whether the range is GigSync's, with its jobs and area, or the web's", () => {
+    const gigsync = {
+      ...estimate,
+      basis: { kind: "gigsync", sources: [], gigsync_jobs: 34, area: "jayanagar", floored: false },
+    };
+    expect(Estimate.parse(gigsync).basis).toMatchObject({ kind: "gigsync", gigsync_jobs: 34, area: "jayanagar" });
+    expect(Estimate.safeParse({ ...gigsync, basis: { ...gigsync.basis, kind: "shared" } }).success).toBe(false);
+  });
+
+  it("an estimate kept from before has no kind, and was the web's", () => {
+    expect(Estimate.parse(estimate).basis.kind).toBe("web");
   });
 });
 

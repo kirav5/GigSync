@@ -14,9 +14,10 @@ import {
   type Trade,
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
+import { areaKeyOf } from "../estimate/areas.js";
 import { estimateBand } from "../estimate/band.js";
 import { lookupEstimate } from "../estimate/lookup.js";
-import { estimateRequest, perJob, sourceCount } from "../estimate/scope.js";
+import { basisCount, estimateRequest, perJob } from "../estimate/scope.js";
 import { pastPrices, proposeMandate } from "./advice.js";
 import { questionsFor } from "./ask.js";
 import type { JobContext } from "./context.js";
@@ -112,8 +113,8 @@ export async function refuse(ctx: JobContext, r: JobRecord): Promise<JobRecord> 
 
 /** The estimate for this job's scope, for the whole job; undefined when there is none or it cannot be had. */
 async function jobEstimate(ctx: JobContext, r: JobRecord): Promise<Estimate | undefined> {
-  const { trade, details } = r.request;
-  const request = ctx.estimates && estimateRequest(ctx.estimates.city, trade, details);
+  const { trade, details, area } = r.request;
+  const request = ctx.estimates && estimateRequest(ctx.estimates.city, trade, details, areaKeyOf(area));
   if (!ctx.estimates || !request) return undefined;
   const found = await lookupEstimate(ctx.estimates.api, request);
   return found && perJob(found, details);
@@ -147,7 +148,7 @@ async function planFor(ctx: JobContext, rules: WorkerRules, r: JobRecord): Promi
     details: r.request.details,
     history,
     floor_paise: rules.rate.limit_paise,
-    ...(estimate ? { sources: sourceCount(estimate), typical_paise: estimate.typical_paise } : {}),
+    ...(estimate ? { ...basisCount(estimate), typical_paise: estimate.typical_paise } : {}),
     ...(legal ? { legal_paise: legal } : {}),
     ...(strategy ? { opening_at: strategy.opening } : {}),
   });

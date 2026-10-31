@@ -2,7 +2,6 @@ import type { records as en } from "../en/records.js";
 
 /** Kannada: job records kept by GigSync, the notice, Privacy's rows and "My work record". */
 export const records: Readonly<Record<keyof typeof en, string>> = {
-  "records.notice_title": "GigSync ಬಳಿ ನಿಮ್ಮ ಕೆಲಸದ ದಾಖಲೆ",
   "records.notice_kept": "GigSync ಏನು ಇಟ್ಟುಕೊಳ್ಳುತ್ತದೆ: ನಿಮ್ಮ ಕೆಲಸಗಳು, ಅವುಗಳ ದಿನಾಂಕ, ಕೆಲಸದ ಬಗೆ, ಬೆಲೆ, ಪಾವತಿಗಳು ಮತ್ತು ಸ್ಟಾರ್‌ಗಳು.",
   "records.notice_why":
     "ಏಕೆ: ನಿಮ್ಮ ಕೆಲಸದ ದಾಖಲೆ ನಿಮ್ಮದಾಗಿರಲು ಮತ್ತು ಅದನ್ನು ಎಲ್ಲಿಗೆ ಬೇಕಾದರೂ ತೆಗೆದುಕೊಂಡು ಹೋಗಲು, GigSync ಅನ್ನು ಉತ್ತಮಗೊಳಿಸಲು ಮತ್ತು ಕೆಲಸಗಾರರಿಗೆ ಬಹುಮಾನ ನೀಡಲು.",
@@ -11,8 +10,15 @@ export const records: Readonly<Record<keyof typeof en, string>> = {
   "records.notice_delete": "ಗೌಪ್ಯತೆಯಲ್ಲಿ ನಿಮ್ಮ ದಾಖಲೆಗಳನ್ನು ಯಾವಾಗ ಬೇಕಾದರೂ ಅಳಿಸಬಹುದು.",
   "records.agree": "ನಾನು ಒಪ್ಪುತ್ತೇನೆ",
   "records.not_now": "ಈಗ ಬೇಡ",
-  "records.not_now_about": "ನೀವು ಒಪ್ಪುವವರೆಗೆ GigSync ನಿಮ್ಮ ಕೆಲಸಗಳ ಬಗ್ಗೆ ಏನನ್ನೂ ಇಡುವುದಿಲ್ಲ. ಮುಂದಿನ ಬಾರಿ ಮತ್ತೆ ಕೇಳುತ್ತೇವೆ.",
   "records.agree_failed": "GigSync ಸಂಪರ್ಕ ಸಿಗಲಿಲ್ಲ. ಇಂಟರ್ನೆಟ್ ಸಿಕ್ಕಾಗ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+  "records.signin_line": "ಮುಂದುವರಿಯುವ ಮೂಲಕ, ನೀವು GigSync ನ {link} ಒಪ್ಪುತ್ತೀರಿ",
+  "records.signin_link": "ನಿಯಮಗಳು ಮತ್ತು ಗೌಪ್ಯತಾ ಸೂಚನೆಯನ್ನು",
+  "records.terms_title": "ನಿಯಮಗಳು ಮತ್ತು ಗೌಪ್ಯತಾ ಸೂಚನೆ",
+  "records.terms_writing": "GigSync ನ ನಿಯಮಗಳು ಮತ್ತು ಗೌಪ್ಯತಾ ಸೂಚನೆಯನ್ನು ಬರೆಯಲಾಗುತ್ತಿದೆ. ಅಲ್ಲಿಯವರೆಗೆ ಇದು ಅನ್ವಯಿಸುತ್ತದೆ:",
+  "records.terms_about": "ನೀವು ಏನನ್ನು ಒಪ್ಪಿದ್ದೀರಿ, ಮತ್ತು GigSync ಏನನ್ನು ಇಡುತ್ತದೆ, ಏನನ್ನು ಎಂದಿಗೂ ಇಡುವುದಿಲ್ಲ.",
+  "records.terms_back": "ಹಿಂದೆ",
+  "records.consent_toast":
+    "GigSync ಬಳಸುವುದು ಎಂದರೆ ನೀವು ಅದರ ನಿಯಮಗಳು ಮತ್ತು ಗೌಪ್ಯತಾ ಸೂಚನೆಯನ್ನು ಒಪ್ಪುತ್ತೀರಿ. ಅವುಗಳನ್ನು ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಓದಬಹುದು.",
   "records.privacy_title": "GigSync ಬಳಿ ನನ್ನ ದಾಖಲೆಗಳು",
   "records.privacy_kept":
     "GigSync ನಿಮ್ಮ ಕೆಲಸಗಳು, ದಿನಾಂಕ, ಕೆಲಸದ ಬಗೆ, ಬೆಲೆ, ಪಾವತಿಗಳು ಮತ್ತು ಸ್ಟಾರ್‌ಗಳನ್ನು ಇಡುತ್ತದೆ. ಫೋನ್ ಸಂಖ್ಯೆ, ವಿಳಾಸ ಅಥವಾ ನೀವು ಬರೆದದ್ದನ್ನು ಎಂದಿಗೂ ಇಲ್ಲ.",
