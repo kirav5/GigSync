@@ -9,10 +9,10 @@ import { JobThread } from "../JobThread.js";
 import type { Chip } from "./text.js";
 import "./record.css";
 
-/** What a row needs to open the job's own card in place: the same as a card on Today. */
+/** What a row needs to open the job's own card in place: the same as a card on Activity. */
 export type CardProps = Omit<JobActionProps, "job">;
 
-/** Which row is open, and how to open or close one: one at a time across the whole of Passbook. */
+/** Which row is open, and how to open or close one: one at a time across the whole of Records. */
 export interface OpenRow {
   openId: EngagementId | undefined;
   onToggle: (id: EngagementId) => void;

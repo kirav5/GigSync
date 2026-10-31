@@ -4,8 +4,6 @@ import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import {
   API,
   APP,
-  counted,
-  expand,
   inSection,
   listWorker,
   navRow,
@@ -20,9 +18,11 @@ import {
   setUpi,
   shell,
   shoot,
+  showTab,
   signIn,
 } from "./helpers.js";
 import { fillAsk, publishCard, unlistCards } from "./journey.js";
+import { downloadRecord } from "./records.js";
 
 /**
  * Two people on two phones, through the app's real screens, against the real API and Neon: Priya needs an
@@ -40,7 +40,7 @@ const UTR = "412345678901";
 /** The manual flow's tabs, gone with it. Written out: their keys are deleted after this change. */
 const GONE_TABS = ["Jobs in person", "Get paid", "My record"];
 /** The menu's rows, as a worker sees them. */
-const NAV_ROWS: MessageKey[] = ["nav.activity", "nav.receipts", "nav.card", "nav.about", "nav.privacy", "nav.settings"];
+const NAV_ROWS: MessageKey[] = ["nav.activity", "nav.records", "nav.card", "nav.about", "nav.privacy", "nav.settings"];
 const SIGN = /^Sign deal for/;
 
 let contexts: BrowserContext[] = [];
@@ -59,6 +59,15 @@ const nextQrCode = (page: Page): Promise<QrCode> =>
     .then(async (r) => MyQr.parse(await r.json()).code);
 
 /** Waits until either phone shows the button, and returns that phone. */
+/** Opens Records and the row of the job with `them`, so its card shows in place. */
+async function openRecordRow(page: Page, them: string) {
+  await open(page, "nav.records");
+  const row = page.locator(".record-list > li").filter({ hasText: them });
+  const show = row.getByRole("button", { name: say("record.open"), exact: true });
+  if (await show.isVisible()) await show.click();
+  await expect(row.getByRole("button", { name: say("record.close"), exact: true })).toBeVisible({ timeout: 5_000 });
+}
+
 async function whichever(phones: Page[], name: RegExp): Promise<Page> {
   await expect(async () => {
     const seen = await Promise.all(phones.map((p) => p.getByRole("button", { name }).isVisible()));
@@ -129,15 +138,18 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await open(anil, "nav.activity");
   const question = priya.getByRole("form", { name: say("a11y.answer") });
   await expect(question).toBeVisible();
-  // Waiting on her, his job is folded under the agents' talks.
-  await expand(anil, counted(en, "home.talking"));
+  // Waiting on her, his job is under In talks.
+  await showTab(anil, "activity.tab_talks");
   await expect(anil.getByText(say("status.clarifying"), { exact: true })).toBeVisible();
   await shoot("worker-asks", phones);
   await question.getByLabel("What exactly isn't working?").fill("It hums but does not spin");
   await question.getByRole("button", { name: say("job.send_answers") }).click();
 
-  // ── The agents haggle inside both limits; then each owner signs. Anil's deal waits under "Decide now" ─────────
-  const signOn = (p: Page) => (p === anil ? inSection(anil, "home.decide") : p).getByRole("button", { name: SIGN });
+  // ── The agents haggle inside both limits; then each owner signs. Anil's deal comes to the front, Awaiting you ───
+  const signOn = (p: Page) =>
+    (p === anil ? anil.getByRole("tabpanel", { name: say("activity.tab_awaiting") }) : p).getByRole("button", {
+      name: SIGN,
+    });
   const first = await whichever([anil, priya], SIGN);
   // The agents' talk is open on the card while they are at it: his question, her answer, and the offers.
   const talk = first.getByRole("list", { name: say("talk.title") });
@@ -149,13 +161,14 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await signOn(first).click();
   const second = first === anil ? priya : anil;
   await expect(signOn(second)).toBeVisible();
-  // Signed and waiting on the other side, the job has no decision left, so it folds away with the agents' talks.
+  // Signed and waiting on the other side, the job has no decision left, so it moves to In talks.
   await reveal(first, first.getByText(say("status.confirming"), { exact: true }));
   await shoot("one-signed", phones);
   await signOn(second).click();
 
   // ── Both signed: contacts cross, and only now. She asked for today, so it is one of his jobs for today ─────────
   await expect(priya.getByLabel(say("a11y.contact"))).toContainText(anilName);
+  await showTab(anil, "activity.tab_agreed");
   await expect(inSection(anil, "home.today").getByLabel(say("a11y.contact"))).toContainText(ADDRESS);
   const deal = ((await priya.getByLabel(say("a11y.deal")).textContent()) ?? "").match(/₹(\d+)/)?.[1];
   expect(Number(deal)).toBeGreaterThanOrEqual(550);
@@ -200,9 +213,9 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await shoot("confirm-payment", phones);
   await confirm.getByRole("button", { name: say("job.money_received") }).click();
 
-  // ── His passbook: the job both signed, her reference, this week's total; nothing left to ask for ───────────────
+  // ── His Records: the job both signed, her reference, this week's total; nothing left to ask for ────────────────
   const amount = `₹${deal}`;
-  await open(anil, "nav.receipts");
+  await open(anil, "nav.records");
   const rows = anil.getByRole("region", { name: say("record.title") });
   for (const text of [
     amount,
@@ -213,23 +226,28 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
     await expect(rows).toContainText(text);
   }
   await expect(anil.getByText(say("passbook.week"), { exact: true }).locator("xpath=..")).toContainText(amount);
-  await shoot("passbook", phones);
-  // Paid once for a one-off job: it moves to Earlier, and never offers to ask again.
-  await open(anil, "nav.activity");
-  await expand(anil, "home.earlier");
+  await shoot("records", phones);
+  // Paid once for a one-off job: it left Activity for Records, and never offers to ask again.
+  await openRecordRow(anil, priyaName);
   await expect(job).toBeVisible();
   await expect(job.getByRole("button", { name: say("money.ask_again") })).toHaveCount(0);
   await expect(job.getByRole("button", { name: say("money.ask_month") })).toHaveCount(0);
+  await open(anil, "nav.activity");
+  await expect(anil.getByRole("button", { name: say("activity.tab_closed"), exact: true })).toContainText("1");
 
-  // ── Priya rates the job; it is closed on both phones, under Earlier ───────────────────────────────────────────
+  // ── Priya rates the job; it is closed on both phones, in Records ──────────────────────────────────────────────
   const review = priya.getByRole("form", { name: say("a11y.review") });
   await reveal(priya, review);
   await review.getByLabel(say("a11y.review_text")).fill("Quick and tidy");
   await review.getByRole("button", { name: say("job.send_review") }).click();
-  await expand(anil, "home.earlier");
+  await openRecordRow(anil, priyaName);
   await expect(job.getByLabel(say("a11y.review"))).toContainText("★★★★★ Quick and tidy");
   await expect(job.getByText(say("status.closed"), { exact: true })).toBeVisible();
-  await expand(priya, "home.earlier");
+  await expect(async () => {
+    // Her review reaches her own Records once the job closes there.
+    await open(priya, "nav.activity");
+    await openRecordRow(priya, anilName);
+  }).toPass();
   await expect(priya.getByText(say("status.closed"), { exact: true })).toBeVisible();
   await expect(priya.getByLabel(say("a11y.payment"))).toContainText(say("pay.thread.confirmed"));
   await shoot("paid-rated-closed", phones);
@@ -238,25 +256,21 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   const qr = nextQrCode(anil);
   await open(anil, "nav.card");
   const mine = anil.getByRole("region", { name: say("page.card_seen") });
-  await expect(mine.getByRole("definition")).toHaveText(["1", say("record.card_no_stars"), "0"]);
+  await expect(mine.getByRole("definition")).toHaveText(["1", say("record.card_no_stars")]);
   const code = await qr;
   await expect(async () => {
     await priya.goto(`${APP}/?to=${code}`);
     const seen = priya.getByRole("region", { name: "Anil" });
-    await expect(seen.getByRole("definition")).toHaveText(["1", say("record.card_no_stars"), "0"], { timeout: 5000 });
+    await expect(seen.getByRole("definition")).toHaveText(["1", say("record.card_no_stars")], { timeout: 5000 });
   }).toPass();
   await shoot("record-on-card", phones);
 
-  // His work record, pulled from GigSync: the job, the money she paid and he confirmed, and her five stars.
-  await open(anil, "nav.receipts");
-  const kept = anil.getByRole("region", { name: say("records.export_title") });
-  await kept.getByRole("button", { name: say("records.export_open") }).click();
-  const keptJobs = kept.getByRole("list", { name: say("records.export_title") });
-  await expect(keptJobs.getByRole("listitem")).toHaveCount(1);
-  await expect(keptJobs).toContainText(say("trade.electrician"));
-  await expect(keptJobs).toContainText(say("records.export_row", { price: amount, paid: amount }));
-  await expect(keptJobs).toContainText("★ 5");
-  await expect(keptJobs).toContainText(say("records.attested_both"));
+  // His work record, downloaded from GigSync: the job, the money she paid and he confirmed, and her five stars.
+  await open(anil, "nav.records");
+  const { lines } = await downloadRecord(anil);
+  expect(lines.slice(1).map((l) => l.split(",").slice(1))).toEqual([
+    [say("trade.electrician"), `${deal}.00`, `${deal}.00`, say("method.upi"), "Done", "Both", "5"],
+  ]);
   await shoot("work-record", phones);
 
   // Anil takes his card off the board so later runs start clean.

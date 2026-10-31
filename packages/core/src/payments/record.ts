@@ -34,9 +34,9 @@ export interface RecordRow {
 }
 
 /** One calendar month of rows, in the phone's local time: `month` is "YYYY-MM". */
-export interface RecordMonth {
+export interface RecordMonth<T = RecordRow> {
   month: string;
-  rows: RecordRow[];
+  rows: T[];
 }
 
 export interface WorkRecord {
@@ -61,7 +61,7 @@ const NOON_UTC = "T12:00:00Z";
 const RECORDED: ReadonlySet<EngagementStatus> = new Set([...FINISHED_WORK, E.cancelled]);
 
 /** A row with the local day ("YYYY-MM-DD") it is filed under, for grouping and order. */
-interface Filed<T> {
+export interface Filed<T> {
   key: string;
   row: T;
 }
@@ -70,7 +70,7 @@ interface Filed<T> {
 type Dating = (job: JobRecord) => { key: string; day: Date };
 
 /** The instant of midday on `day` ("YYYY-MM-DD") on a phone `offsetMinutes` ahead of UTC. */
-const middayOf = (day: string, offsetMinutes: number) =>
+export const middayOf = (day: string, offsetMinutes: number) =>
   new Date(Date.parse(day + NOON_UTC) - offsetMinutes * MS_PER_MINUTE);
 
 /**
@@ -79,7 +79,7 @@ const middayOf = (day: string, offsetMinutes: number) =>
  * cancellation moves it later, and no closer stamp exists: signatures and notes carry no time. Work handed over before
  * its day is filed when it was done, so no row sits in the future.
  */
-function workDay(job: JobRecord, today: string, offsetMinutes: number): string {
+export function workDay(job: JobRecord, today: string, offsetMinutes: number): string {
   const signed = dayOf(job.request);
   if (signed !== undefined && signed !== EVERY_DAY && signed <= today) return signed;
   return localDay(new Date(job.engagement.updated_at), offsetMinutes);
@@ -114,14 +114,14 @@ function byJob(payments: readonly Payment[]): Map<EngagementId, Payment[]> {
 }
 
 /** Newest day first; on the same day, the job that moved last first. */
-function newestFirst<T extends { job: JobRecord }>(a: Filed<T>, b: Filed<T>): number {
+export function newestFirst<T extends { job: JobRecord }>(a: Filed<T>, b: Filed<T>): number {
   const [x, y] = [a.row.job.engagement, b.row.job.engagement];
   return b.key.localeCompare(a.key) || Date.parse(y.updated_at) - Date.parse(x.updated_at) || y.id.localeCompare(x.id);
 }
 
 /** Rows into months, keeping their order: newest month first when the rows are newest first. */
-function intoMonths(filed: readonly Filed<RecordRow>[]): RecordMonth[] {
-  const months: RecordMonth[] = [];
+export function intoMonths<T>(filed: readonly Filed<T>[]): RecordMonth<T>[] {
+  const months: RecordMonth<T>[] = [];
   for (const { key, row } of filed) {
     const month = monthOf(key);
     const last = months.at(-1);

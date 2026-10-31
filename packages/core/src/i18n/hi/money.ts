@@ -2,12 +2,10 @@ import type { money as en } from "../en/money.js";
 
 /** Hindi: the passbook of jobs signed on GigSync, and the worker's money actions inside a job. */
 export const money: Readonly<Record<keyof typeof en, string>> = {
-  "passbook.headline": "आपकी कमाई।",
-  "passbook.soft": "सिर्फ़ GigSync पर तय हुए काम।",
   "passbook.week": "इस हफ़्ते मिले",
   "passbook.month": "इस महीने मिले",
   "passbook.not_asked": "अभी तक माँगे नहीं",
-  "passbook.empty": "GigSync पर तय हुए कामों के पैसे यहाँ दिखेंगे।",
+  "passbook.empty": "GigSync पर पूरे किए काम, और उनसे मिले पैसे, यहाँ दिखेंगे।",
   "passbook.about": "हर लाइन ऐसा काम है जिस पर आपने और ग्राहक, दोनों ने दस्तख़त किए। यह सब इसी फ़ोन पर रहता है।",
   "money.ask_again": "फिर से पैसे माँगें",
   "money.ask_month": "इस महीने के पैसे माँगें",

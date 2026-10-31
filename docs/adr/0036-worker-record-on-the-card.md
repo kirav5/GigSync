@@ -4,6 +4,9 @@ Date: 2026-10-30. Status: accepted. Narrows the [HLD](../gigsync/HLD.md) §2 non
 GigSync": ratings households gave may be shown on the worker's own card; GigSync never ranks, sorts or filters
 workers by them.
 
+**Amended 2026-10-31:** the card shows two numbers, jobs done (stored jobs with status done, never agreed or
+cancelled ones) and the rating with how many rated; "came back" is removed.
+
 ## Context
 
 The founders want a worker's card, like the collab card, to show the work they have done and how households rated

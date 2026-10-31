@@ -49,6 +49,10 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+/* One tile alone (what a household paid) takes the whole row, at any width. */
+.passbook-totals.single {
+  grid-template-columns: minmax(0, 1fr);
+}
 .passbook-totals > div {
   display: grid;
   gap: 2px;

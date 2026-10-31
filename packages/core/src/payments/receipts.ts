@@ -1,7 +1,7 @@
 import { type EngagementId, type Payment, PaymentStatus, type UserId } from "@gigsync/protocol";
 import type { JobRecord } from "../job/store.js";
 
-/** One payment the owner made, with the job it paid for: a row of a household's Receipts. */
+/** One payment the owner made, with the job it paid for: what a household's Records adds up per job. */
 export interface Receipt {
   job: JobRecord;
   payment: Payment;
@@ -31,7 +31,3 @@ export function receiptsOf(jobs: readonly JobRecord[], payments: readonly Paymen
   }
   return out.sort((a, b) => b.at.getTime() - a.at.getTime() || b.payment.id.localeCompare(a.payment.id));
 }
-
-/** All the owner paid across `receipts`, in paise. */
-export const paidTotal = (receipts: readonly Receipt[]): number =>
-  receipts.reduce((sum, r) => sum + r.payment.amount_paise, 0);

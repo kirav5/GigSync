@@ -4,9 +4,6 @@ import { JobRecordStatus, Role } from "@gigsync/protocol";
 export const Side = { worker: "worker", household: "household" } as const;
 export type Side = (typeof Side)[keyof typeof Side];
 
-/** A household "came back" once it has this many stored, uncancelled jobs with the worker. */
-export const CAME_BACK_JOBS = 2;
-
 /** The status a stored job no longer counts in. */
 export const CANCELLED = JobRecordStatus.enum.cancelled;
 export const AGREED = JobRecordStatus.enum.agreed;

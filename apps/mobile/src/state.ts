@@ -7,10 +7,10 @@ export const Screen = {
   find: "find",
   /** A worker's home: Talk, their chats with their agent. */
   talk: "talk",
-  /** Today's jobs and decisions for a worker; My jobs for a household. */
+  /** What the agents are doing: Awaiting you, In talks and Agreed, for a worker and a household alike. */
   activity: "activity",
-  /** Passbook and the work record for a worker; what they paid for a household. */
-  receipts: "receipts",
+  /** Completed work: earnings and the work record for a worker; what they paid for a household. */
+  records: "records",
   /** The owner's card at a glance and their QR code. */
   card: "card",
   /** Name and role, the UPI ID (workers), language, and what the agent remembers. */

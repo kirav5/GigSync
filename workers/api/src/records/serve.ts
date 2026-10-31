@@ -7,7 +7,7 @@ import type { RecordRow } from "../db/records.js";
  */
 export function recordOf(r: RecordRow): WorkerRecord | undefined {
   if (r.record_jobs === 0) return undefined;
-  const counts = { jobs: r.record_jobs, rated: r.record_rated, came_back: r.record_came_back };
+  const counts = { jobs: r.record_jobs, rated: r.record_rated };
   if (r.record_rated < MIN_RATED || r.record_average_tenths === null) return counts;
   return { ...counts, average: r.record_average_tenths / AVERAGE_SCALE };
 }

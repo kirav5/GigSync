@@ -2,7 +2,7 @@
 export const shell = {
   "nav.talk": "Talk",
   "nav.activity": "Activity",
-  "nav.receipts": "Receipts",
+  "nav.records": "Records",
   "nav.about": "About me",
   "nav.privacy": "Privacy",
   "nav.settings": "Settings",

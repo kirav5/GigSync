@@ -151,7 +151,7 @@ test("Hindi cook, Kannada household: every screen in its own language, free text
   // His answers to the agent's questions are with the job's other details, under its Details fold.
   // It is in the agents' talk (his answer to her agent's question) and again under Details.
   await expect(job.getByRole("list", { name: t(hi, "talk.title") })).toContainText("सुबह और रात");
-  await reveal(asha.page, job.locator(".job-more").locator(TRANSLATED).filter({ hasText: "सुबह और रात" }));
+  await reveal(asha.page, job.locator(".job-more").locator(TRANSLATED).filter({ hasText: "सुबह और रात" }), hi);
   await expect(job.locator(TRANSLATED).filter({ hasText: "सुबह 7 बजे" }).first()).toBeVisible(); // the time he gave
   await expect(job).not.toContainText(KN_NEED);
   await expect(job).not.toContainText(KN_MEALS);
@@ -159,7 +159,7 @@ test("Hindi cook, Kannada household: every screen in its own language, free text
   await expect(check).toBeVisible();
   // The plan is under the card's Details.
   const plan = asha.page.getByRole("group", { name: t(hi, "a11y.plan") });
-  await reveal(asha.page, plan);
+  await reveal(asha.page, plan, hi);
   // The band's high with the dog, from the API's estimate for the job (ADR 0041), asked now: it rests on the rate card,
   // or on GigSync's jobs in Jayanagar when other specs left some.
   const high = await planBandHigh(Trade.enum.cook, COOK_DETAILS, JAYANAGAR_AREA);
@@ -248,7 +248,7 @@ test("Hindi maid, English household: rooms priced from the band, words translate
   // One room beyond the band's two: 15% more, ₹4,030–₹9,200, and her own ₹5,000 floor; she reads it in Hindi.
   // The plan is under the card's Details, and the card is folded under the agents' talks while they negotiate.
   const plan = sunita.page.getByRole("group", { name: t(hi, "a11y.plan") });
-  await reveal(sunita.page, plan);
+  await reveal(sunita.page, plan, hi);
   await expect(plan).toContainText("₹9,200");
   await expect(sunita.page.getByRole("article").locator(TRANSLATED).filter({ hasText: "3 कमरे" })).toHaveText(
     "3 कमरे, झाड़ू और पोछा",

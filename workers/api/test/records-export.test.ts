@@ -9,6 +9,7 @@ import {
   asWorker,
   cardOf,
   consented,
+  doneJob,
   newEngagement,
   newHash,
   paintJob,
@@ -76,16 +77,16 @@ describe("deleting my records", () => {
     const w = await consented("+919888340006");
     const home = await consented("+919888340007");
     await w.api.publishProfile(workerCard("Thimmakka"));
-    await rate(home, await storedJob(w, home), 4);
-    await storedJob(w, home);
+    await rate(home, await doneJob(w, home), 4);
+    await doneJob(w, home);
     const res = await deleteMine(home);
     expect(await res.json()).toEqual({ deleted: 0, anonymised: 2, submissions: 4 });
     expect((await exportOf(home)).jobs).toEqual([]);
     const kept = (await exportOf(w)).jobs;
     expect(kept.map((j) => j.counterpart)).toEqual([null, null]);
     expect(kept[0]?.stars).toBe(4);
-    // Still two jobs; "came back" needs a household id, which is gone.
-    expect((await cardOf(w, w.session.user)).record).toEqual({ jobs: 2, rated: 1, came_back: 0 });
+    // Still two jobs done, and the rating stays with them.
+    expect((await cardOf(w, w.session.user)).record).toEqual({ jobs: 2, rated: 1 });
     expect((await asWorker(home, w, paintJob(newEngagement(), newHash()))).status).toBe(403);
     expect((await call(home, HttpMethod.get, "/consent")).status).toBe(404);
   });

@@ -12,11 +12,11 @@ export interface NavRow {
 
 /**
  * The menu's rows, in the collab app's order, the same for a worker and a household: what each opens differs by role
- * (Activity is Today or My jobs; Receipts is the Passbook or what was paid).
+ * (Records holds a worker's earnings and work record, or what a household paid).
  */
 export const NAV_ROWS: readonly NavRow[] = [
   { screen: Screen.activity, label: "nav.activity", icon: "activity" },
-  { screen: Screen.receipts, label: "nav.receipts", icon: "receipt" },
+  { screen: Screen.records, label: "nav.records", icon: "receipt" },
   { screen: Screen.card, label: "nav.card", icon: "card" },
   { screen: Screen.about, label: "nav.about", icon: "user" },
   { screen: Screen.privacy, label: "nav.privacy", icon: "shield" },

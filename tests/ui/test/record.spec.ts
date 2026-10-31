@@ -1,14 +1,14 @@
 import { LOCALE, type MessageKey, type Params, plural, questionText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { newPhone, open, openCard, Role, RUN, shoot, signIn } from "./helpers.js";
+import { newPhone, open, openCard, Role, RUN, shoot, showTab, signIn } from "./helpers.js";
 import { dealPaise, fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
- * The worker's record inside Passbook (round2-spec §2): a carpenter finishes a job both sides signed, and Passbook
- * shows it as work done, under its month, with where its money stands, even before anyone has asked for the money. The
- * row opens in place to the job's own card, whose money actions work from there. The month and the summary read in
- * the owner's language. Whitefield, so this worker shows among the household's results on a busy shared board.
+ * The worker's record in Records (round2-spec §2): a carpenter finishes a job both sides signed. Handed over but not
+ * paid, it stays under Activity's Agreed; once the money is in, Records shows it as work done, under its month, with
+ * where its money stands. The row opens in place to the job's own card. The month and the summary read in the owner's
+ * language. Whitefield, so this worker shows among the household's results on a busy shared board.
  */
 
 const { en, hi } = Lang.enum;
@@ -30,10 +30,10 @@ const monthOnPage = (page: Page, lang: Lang) =>
 /** ₹ as the app shows it (ui/places.ts `money`): Indian grouping, no paise when whole. */
 const rupees = (paise: number) => `₹${(paise / 100).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 
-/** Passbook's "Work done" section, in the worker's language. */
+/** Records' "Work done" section, in the worker's language. */
 const workDone = (page: Page, lang: Lang) => page.getByRole("region", { name: t(lang, "record.title") });
 
-test("a finished job shows in Passbook's record under its month, and opens in place to the job", async ({
+test("a paid finished job moves from Agreed to Records, under its month, and opens in place to the job", async ({
   browser,
 }) => {
   contexts = [await browser.newContext(), await browser.newContext()];
@@ -45,9 +45,9 @@ test("a finished job shows in Passbook's record under its month, and opens in pl
   const householdName = `Lata ${RUN}`;
   const address = `14, 2nd Main, ITPL Road, Whitefield (${RUN})`;
 
-  // ── Nothing signed yet: Passbook says where money will show, and has no record ──────────────────────────────────
+  // ── Nothing signed yet: Records says where work and money will show, and has no record ──────────────────────────────────
   await signIn(workerPage, { role: Role.worker, name: workerName, phone: newPhone() });
-  await open(workerPage, "nav.receipts");
+  await open(workerPage, "nav.records");
   await expect(workerPage.getByText(say("passbook.empty"))).toBeVisible();
   await expect(workDone(workerPage, en)).toHaveCount(0);
 
@@ -78,19 +78,30 @@ test("a finished job shows in Passbook's record under its month, and opens in pl
   await expect(householdPage.getByLabel(say("a11y.contact"))).toContainText(workerName);
   const amount = rupees(await dealPaise(household));
 
-  // ── Signed but not done: the record waits for it ────────────────────────────────────────────────────────────────
-  await open(workerPage, "nav.receipts");
-  await expect(workDone(workerPage, en)).toContainText(say("record.empty"));
-  await expect(workerPage.getByText(say("passbook.empty"))).toHaveCount(0);
+  // ── Signed but not done: Records waits for it ──────────────────────────────────────────────────────────────────
+  await open(workerPage, "nav.records");
+  await expect(workerPage.getByText(say("passbook.empty"))).toBeVisible();
 
-  // ── He marks it done; nobody has asked for the money yet ──────────────────────────────────────────────────────
+  // ── He marks it done; nobody has asked for the money yet, so it stays under Agreed, not in Records ──────────────
   await open(workerPage, "nav.activity");
+  await showTab(workerPage, "activity.tab_agreed");
   const card = workerPage.getByRole("article", { name: say("a11y.job_with", { name: householdName }) });
   await card.getByRole("button", { name: say("job.mark_done") }).click();
   await expect(card.getByText(say("status.delivered"), { exact: true })).toBeVisible();
+  await open(workerPage, "nav.records");
+  await expect(workerPage.getByText(say("passbook.empty"))).toBeVisible();
+  await expect(workDone(workerPage, en)).toHaveCount(0);
 
-  // ── Passbook: the summary, the month, and the job's row with its money state ───────────────────────────────────
-  await open(workerPage, "nav.receipts");
+  // She paid him in cash at the door: he records it on the job, and the paid job moves to Records.
+  await open(workerPage, "nav.activity");
+  await showTab(workerPage, "activity.tab_agreed");
+  await card.getByRole("button", { name: say("getpaid.cash") }).click();
+  await card.getByRole("button", { name: say("flag.yes"), exact: true }).click();
+  await expect(card).toHaveCount(0);
+  await expect(workerPage.getByRole("tab", { name: say("activity.tab_agreed") })).toContainText("0");
+
+  // ── Records: the summary, the month, and the job's row with its money state ─────────────────────────────────────
+  await open(workerPage, "nav.records");
   const month = await monthOnPage(workerPage, en);
   const summary = workerPage.getByText(plural(en, "record.jobs", 1));
   await expect(summary).toContainText(plural(en, "record.households", 1));
@@ -101,29 +112,22 @@ test("a finished job shows in Passbook's record under its month, and opens in pl
   const rows = record.getByRole("list", { name: month }).locator(":scope > li");
   const row = rows.filter({ hasText: householdName });
   await expect(row).toHaveCount(1);
-  for (const text of [amount, say("trade.carpenter"), say("record.state_not_asked")]) {
+  for (const text of [amount, say("trade.carpenter"), say("record.state_cash", { price: amount })]) {
     await expect(row).toContainText(text);
   }
-  await shoot("record-not-asked", shots, FOLDER);
+  await expect(workerPage.getByText(say("passbook.week"), { exact: true }).locator("xpath=..")).toContainText(amount);
+  await shoot("record-cash", shots, FOLDER);
 
-  // ── The row opens in place to the job's own card, with its contact and money actions ───────────────────────────
+  // ── The row opens in place to the job's own card: done and paid, its contact details are gone ──────────────────
   const show = row.getByRole("button", { name: say("record.open") });
   await expect(show).toHaveAttribute("aria-expanded", "false");
   await show.click();
   const hide = row.getByRole("button", { name: say("record.close") });
   await expect(hide).toHaveAttribute("aria-expanded", "true");
   const job = row.getByRole("article", { name: say("a11y.job_with", { name: householdName }) });
-  await expect(job.getByLabel(say("a11y.contact"))).toContainText(address);
+  await expect(job).toContainText(say("contacts.removed"));
+  await expect(job.getByLabel(say("a11y.contact"))).toHaveCount(0);
   await shoot("record-open", shots, FOLDER);
-
-  // She paid him in cash at the door: he records it from the open row, and the row says so at once.
-  await job.getByRole("button", { name: say("getpaid.cash") }).click();
-  await job.getByRole("button", { name: say("flag.yes"), exact: true }).click();
-  await expect(row).toContainText(say("record.state_cash", { price: amount }));
-  await expect(hide).toHaveAttribute("aria-expanded", "true");
-  await expect(workerPage.getByText(say("passbook.week"), { exact: true }).locator("xpath=..")).toContainText(amount);
-  await shoot("record-cash", shots, FOLDER);
-
   await hide.click();
   await expect(show).toHaveAttribute("aria-expanded", "false");
   await expect(job).toHaveCount(0);
@@ -134,7 +138,7 @@ test("a finished job shows in Passbook's record under its month, and opens in pl
     .getByRole("group", { name: say("a11y.language") })
     .getByRole("button", { name: say("lang.hi") })
     .click();
-  await open(workerPage, "nav.receipts", hi);
+  await open(workerPage, "nav.records", hi);
   const hiMonth = await monthOnPage(workerPage, hi);
   const hiRecord = workDone(workerPage, hi);
   await expect(hiRecord.getByRole("heading", { name: hiMonth, level: 3 })).toBeVisible();

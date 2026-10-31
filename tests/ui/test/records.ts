@@ -1,4 +1,6 @@
-import { HttpMethod, RecordsAnswer } from "@gigsync/core";
+import { readFileSync } from "node:fs";
+import { HttpMethod, RecordsAnswer, t } from "@gigsync/core";
+import { DEFAULT_LANG } from "@gigsync/protocol";
 import { expect, type Page, type Response } from "@playwright/test";
 import { API } from "./helpers.js";
 
@@ -30,3 +32,25 @@ export const consentAccepted = (page: Page): Promise<Response> =>
 /** Makes every call to the consent routes fail on this page, as an older app that never made them would. */
 export const blockConsent = (page: Page) => page.route(`${API}${CONSENT_PATH}`, (route) => route.abort());
 export const unblockConsent = (page: Page) => page.unroute(`${API}${CONSENT_PATH}`);
+
+/** The work record file's name: the day it was made, and no person's name. */
+const RECORD_FILE = /^gigsync-work-record-\d{4}-\d{2}-\d{2}\.csv$/;
+
+/**
+ * Records' "Download my work record", as an ordinary download (no share sheet on this page): the file's name and its
+ * lines, the column headings first.
+ */
+export async function downloadRecord(page: Page): Promise<{ file: string; lines: string[] }> {
+  await page.evaluate(() => Object.defineProperty(navigator, "share", { value: undefined, configurable: true }));
+  const saving = page.waitForEvent("download");
+  await page.getByRole("button", { name: t(DEFAULT_LANG, "records.download_title"), exact: true }).click();
+  const download = await saving;
+  const file = download.suggestedFilename();
+  expect(file).toMatch(RECORD_FILE);
+  return {
+    file,
+    lines: readFileSync(await download.path(), "utf8")
+      .trim()
+      .split("\r\n"),
+  };
+}

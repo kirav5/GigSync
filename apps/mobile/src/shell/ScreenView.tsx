@@ -10,9 +10,7 @@ import { FindMentor } from "../screens/mentor/FindMentor.js";
 import { LinkScreen } from "../screens/mentor/LinkScreen.js";
 import { MoveIn } from "../screens/move/MoveIn.js";
 import { MoveOut } from "../screens/move/MoveOut.js";
-import { Passbook } from "../screens/Passbook.js";
 import { AboutMe } from "../screens/pages/AboutMe.js";
-import { HouseholdReceipts } from "../screens/pages/HouseholdReceipts.js";
 import { InstallPage } from "../screens/pages/InstallPage.js";
 import { MyCardPage } from "../screens/pages/MyCardPage.js";
 import { Privacy } from "../screens/pages/Privacy.js";
@@ -20,7 +18,8 @@ import { SettingsPage } from "../screens/pages/SettingsPage.js";
 import { TermsPage } from "../screens/pages/TermsPage.js";
 import { Person } from "../screens/qr/Person.js";
 import { Requests } from "../screens/Requests.js";
-import { WorkRecordExport } from "../screens/record/WorkRecordExport.js";
+import { HouseholdRecords } from "../screens/record/HouseholdRecords.js";
+import { WorkerRecords } from "../screens/record/WorkerRecords.js";
 import { Today } from "../screens/Today.js";
 import { CardState, Screen } from "../state.js";
 import type { GigView } from "../useGig.js";
@@ -79,10 +78,12 @@ function Home({ d, m }: { d: ScreenData; m: ScreenMoves }) {
   );
 }
 
-/** Today for a worker, My jobs for a household. */
+/** Activity, the same frame for both: a worker's with their card nudges, a household's with offers to work. */
 function Activity({ d, m }: { d: ScreenData; m: ScreenMoves }) {
   const { account, view, device, run } = d;
-  if (account.role === AccountRole.consumer) return <Requests view={view} device={device} run={run} onAsk={m.askFor} />;
+  const onRecords = () => m.go(Screen.records);
+  if (account.role === AccountRole.consumer)
+    return <Requests view={view} device={device} run={run} onAsk={m.askFor} onRecords={onRecords} />;
   return (
     <Today
       ports={d.ports}
@@ -93,22 +94,20 @@ function Activity({ d, m }: { d: ScreenData; m: ScreenMoves }) {
       onMakeCard={m.talkCard}
       onOpenCard={() => m.go(Screen.card)}
       onAddPayee={() => m.go(Screen.about)}
+      onRecords={onRecords}
       account={account}
       onSaved={m.saved}
     />
   );
 }
 
-/** The Passbook and work record for a worker; what was paid for a household. */
-function Receipts({ d, m }: { d: ScreenData; m: ScreenMoves }) {
+/** Completed work: a worker's earnings and work record; what a household paid. */
+function Records({ d, m }: { d: ScreenData; m: ScreenMoves }) {
   const { account, view, device, run } = d;
-  const me = account.session.user;
-  if (account.role === AccountRole.consumer) return <HouseholdReceipts view={view} me={me} device={device} run={run} />;
+  if (account.role === AccountRole.consumer)
+    return <HouseholdRecords view={view} me={account.session.user} device={device} run={run} />;
   return (
-    <>
-      <Passbook view={view} me={me} device={device} run={run} onAddPayee={() => m.go(Screen.about)} />
-      <WorkRecordExport account={account} />
-    </>
+    <WorkerRecords account={account} view={view} device={device} run={run} onAddPayee={() => m.go(Screen.about)} />
   );
 }
 
@@ -119,8 +118,8 @@ export function ScreenView({ screen, d, m }: { screen: Screen; d: ScreenData; m:
   switch (screen) {
     case Screen.activity:
       return <Activity d={d} m={m} />;
-    case Screen.receipts:
-      return <Receipts d={d} m={m} />;
+    case Screen.records:
+      return <Records d={d} m={m} />;
     case Screen.card:
       return (
         <MyCardPage

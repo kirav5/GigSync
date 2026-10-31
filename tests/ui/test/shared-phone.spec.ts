@@ -6,8 +6,8 @@ import { fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journ
 
 /**
  * One phone shared by two workers (one browser context), through the real screens and the real API. Suresh signs in,
- * gets a job both sides sign and what his agent remembers of it, then signs out; nothing is deleted. Kiran signs in on
- * the same phone and sees none of it: no job, no memory, an empty Passbook. Kiran signs out, Suresh signs back in, and
+ * finishes a job both sides signed, keeps what his agent remembers of it, then signs out; nothing is deleted. Kiran signs in on
+ * the same phone and sees none of it: no job, no memory, empty Records. Kiran signs out, Suresh signs back in, and
  * it is all there again, his card included.
  */
 
@@ -35,18 +35,21 @@ async function signOut(page: Page) {
   await expect(page.getByRole("form", { name: say("signin.label") })).toBeVisible();
 }
 
-/** Suresh's job on Today, its row in Passbook, and Lata in what his agent remembers. */
+/** Activity's Closed counter, which opens Records. */
+const closedCount = (page: Page) => page.getByRole("button", { name: say("activity.tab_closed"), exact: true });
+
+/** Suresh's finished job counted on Activity, its row in Records, and Lata in what his agent remembers. */
 async function seesHisOwn(page: Page) {
   await open(page, "nav.activity");
-  await expect(jobWithLata(page)).toBeVisible();
-  await open(page, "nav.receipts");
-  await expect(workDone(page)).toBeVisible();
+  await expect(closedCount(page)).toContainText("1");
+  await open(page, "nav.records");
+  await expect(workDone(page)).toContainText(householdName);
   await expect(page.getByText(say("passbook.empty"))).toHaveCount(0);
   await open(page, "nav.about");
   await expect(memory(page)).toContainText(householdName);
 }
 
-test("two workers on one phone each see only their own jobs, memory and Passbook, and sign-out keeps them", async ({
+test("two workers on one phone each see only their own jobs, memory and Records, and sign-out keeps them", async ({
   browser,
 }) => {
   contexts = [await browser.newContext(), await browser.newContext()];
@@ -85,6 +88,17 @@ test("two workers on one phone each see only their own jobs, memory and Passbook
   await answer.getByRole("button", { name: say("job.send_answers") }).click();
   await signBoth({ worker, household }, FOLDER);
   await expect(jobWithLata(phonePage).getByLabel(say("a11y.contact"))).toBeVisible();
+  // He does the job and she pays cash at the door: it is finished, so it moves to Records.
+  await jobWithLata(phonePage)
+    .getByRole("button", { name: say("job.mark_done") })
+    .click();
+  await jobWithLata(phonePage)
+    .getByRole("button", { name: say("getpaid.cash") })
+    .click();
+  await jobWithLata(phonePage)
+    .getByRole("button", { name: say("flag.yes"), exact: true })
+    .click();
+  await expect(jobWithLata(phonePage)).toHaveCount(0);
   await seesHisOwn(phonePage);
   await shoot("suresh-before", shots, FOLDER);
 
@@ -92,9 +106,10 @@ test("two workers on one phone each see only their own jobs, memory and Passbook
   await signOut(phonePage);
   await completeSignIn(phonePage, kiran);
   await open(phonePage, "nav.activity");
-  await expect(phonePage.getByText(say("home.empty"))).toBeVisible();
+  await expect(phonePage.getByText(say("activity.hint_worker"))).toBeVisible();
+  await expect(closedCount(phonePage)).toContainText("0");
   await expect(jobWithLata(phonePage)).toHaveCount(0);
-  await open(phonePage, "nav.receipts");
+  await open(phonePage, "nav.records");
   await expect(phonePage.getByText(say("passbook.empty"))).toBeVisible();
   await expect(workDone(phonePage)).toHaveCount(0);
   await open(phonePage, "nav.about");
@@ -102,7 +117,7 @@ test("two workers on one phone each see only their own jobs, memory and Passbook
   await expect(memory(phonePage)).not.toContainText(householdName);
   await shoot("kiran", shots, FOLDER);
 
-  // ── Kiran signs out; Suresh signs back in: his job, Passbook, memory and card are all there ────────────────────
+  // ── Kiran signs out; Suresh signs back in: his job, Records, memory and card are all there ────────────────────
   await signOut(phonePage);
   await completeSignIn(phonePage, suresh);
   // His card's rules came back with him: Today does not ask him to make a card.

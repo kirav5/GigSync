@@ -1,14 +1,17 @@
-/** The pages the menu opens, each on its own: My card, a household's Receipts, About me, Privacy and Settings. */
+/** The pages the menu opens, each on its own: My card, Records, About me, Privacy and Settings. */
 export const page = {
   // My card
   "page.card_soft_worker": "Share it — anyone can ask you for work.",
   "page.card_seen": "What households see",
   "page.card_none": "You have no card yet. Make one with Edit my card, or tell your agent about your work in the chat.",
   "page.card_soft": "Share it — workers can offer to work for you.",
-  // A household's Receipts
-  "page.receipts_soft": "Every job you paid for on GigSync.",
-  "page.receipts_total": "Paid in all",
-  "page.receipts_empty": "Nothing paid yet. The jobs you pay for are listed here.",
+  // Records: completed work, and for a household what it paid
+  "page.records_soft_worker": "Work you completed on GigSync, and what it earned.",
+  "page.records_soft": "Work done for you on GigSync, and what you paid.",
+  "page.records_total": "Paid in all",
+  "page.records_empty": "Nothing completed yet. A job shows here once the work is done.",
+  "page.not_paid": "No payment noted",
+  "page.not_completed": "Not completed · {count}",
   "page.paid": "Paid {price}",
   "page.paid_unconfirmed": "Paid {price} · not confirmed yet",
   // About me

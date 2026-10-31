@@ -28,7 +28,7 @@ const CARD = {
   rate_paise: 70000,
   languages: ["kn"],
   about: "",
-  record: { jobs: 4, rated: 3, average: 4.7, came_back: 1 },
+  record: { jobs: 4, rated: 3, average: 4.7 },
   show_record: false,
 };
 

@@ -1,11 +1,9 @@
-/** The passbook of jobs signed on GigSync, and the worker's money actions inside a job. */
+/** The earnings tiles and work record in Records, from jobs signed on GigSync, and the worker's money actions inside a job. */
 export const money = {
-  "passbook.headline": "Your earnings.",
-  "passbook.soft": "Only jobs agreed on GigSync.",
   "passbook.week": "Received this week",
   "passbook.month": "Received this month",
   "passbook.not_asked": "Not asked for yet",
-  "passbook.empty": "Money from jobs you agree on GigSync shows here.",
+  "passbook.empty": "Jobs you complete on GigSync, and the money from them, show here.",
   "passbook.about": "Each line is a job you and the customer both signed. It stays on this phone.",
   "money.ask_again": "Ask for payment again",
   "money.ask_month": "Ask for this month's payment",

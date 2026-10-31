@@ -8,7 +8,7 @@ import type {
   UserId,
 } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import { type JobRecord, paidTotal, receiptsOf } from "../src/index.js";
+import { type JobRecord, receiptsOf } from "../src/index.js";
 
 const ME = "usr_01J0000000000000000000HHHH" as UserId;
 const WORKER = "usr_01J0000000000000000000WWWW" as UserId;
@@ -73,7 +73,6 @@ describe("receiptsOf", () => {
     expect(receipts.map((r) => r.payment.id)).toEqual([newer.id, older.id]);
     expect(receipts.map((r) => r.confirmed)).toEqual([false, true]);
     expect(receipts[0]?.job).toBe(b);
-    expect(paidTotal(receipts)).toBe(105_000);
   });
 
   it("leaves out payments only asked for or disputed, someone else's, and those with no job on this phone", () => {
@@ -86,6 +85,5 @@ describe("receiptsOf", () => {
       pay(elsewhere, "confirmed", "2026-10-13T10:00:00+05:30"),
     ];
     expect(receiptsOf([a], payments, ME)).toEqual([]);
-    expect(paidTotal([])).toBe(0);
   });
 });

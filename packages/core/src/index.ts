@@ -80,6 +80,7 @@ export {
   pricePrompt,
 } from "./interview/price-model.js";
 export { readScope, SCOPE_READ, type ScopeChip, ScopeKey, scopeFromWords } from "./interview/scope-read.js";
+export * from "./job/activity.js";
 export * from "./job/advice.js";
 export * from "./job/aftercare.js";
 export { QUESTIONS } from "./job/ask.js";
@@ -89,6 +90,7 @@ export { asciiDigits, countIn, YES_NO_QUESTIONS } from "./job/details.js";
 export * from "./job/device.js";
 export * from "./job/explain.js";
 export * from "./job/explain-model.js";
+export * from "./job/groups.js";
 export * from "./job/negotiate.js";
 export * from "./job/settle.js";
 export * from "./job/store.js";
@@ -120,6 +122,7 @@ export * from "./net/api.js";
 export { claimLegacyRecords } from "./owner/claim.js";
 export * from "./owner/storage.js";
 export * from "./payments/book.js";
+export * from "./payments/paid-record.js";
 export * from "./payments/passbook.js";
 export * from "./payments/payee.js";
 export * from "./payments/receipts.js";

@@ -134,12 +134,11 @@
   }
 }
 
-/* "My work record" in Receipts: three totals side by side, then one line per job GigSync keeps. */
-.passbook-totals.kept-totals {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-.kept-job {
+/* "Download my work record" in Records: one quiet row, its button over the line that says what it holds. */
+.record-download {
   display: grid;
-  gap: 2px;
-  padding: 10px 14px;
+  justify-items: start;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
 }

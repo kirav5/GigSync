@@ -65,7 +65,7 @@ describe("a job restored from the record", () => {
     expect(restoredPayments([restoredJob(unconfirmed, ME)])[0]).toMatchObject({ payer: ME, status: "paid" });
   });
 
-  it("counts on the worker's passbook and record, and on the household's receipts", () => {
+  it("counts on the worker's passbook and record, and on the household's Records", () => {
     const worker = [restoredJob(exported(), ME)];
     expect(passbook(worker, restoredPayments(worker), ME, NOW, IST).rows).toHaveLength(1);
     const record = workRecord(worker, restoredPayments(worker), ME, NOW, IST);

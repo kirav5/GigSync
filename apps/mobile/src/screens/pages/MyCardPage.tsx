@@ -21,7 +21,7 @@ interface Props {
 }
 
 /** A worker GigSync keeps no job for yet: their card shows zeros, not nothing. */
-const NO_JOBS: WorkerRecord = { jobs: 0, rated: 0, came_back: 0 };
+const NO_JOBS: WorkerRecord = { jobs: 0, rated: 0 };
 
 /**
  * My card, as collab's: one card, centred, with who the owner is as others see them (for a worker, their card and

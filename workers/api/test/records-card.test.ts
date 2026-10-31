@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { call } from "./mentor-helpers.js";
 import { type Person, signIn } from "./people.js";
 import { worker } from "./qr-helpers.js";
-import { cardOf, consented, MYSURU, rate, storedJob, workerCard } from "./record-helpers.js";
+import { cardOf, consented, doneJob, MYSURU, rate, storedJob, workerCard } from "./record-helpers.js";
 
 /** A worker with a card on the board and the notice accepted. */
 async function listedWorker(phone: string, name: string, km = 0): Promise<Person> {
@@ -20,19 +20,22 @@ async function myCard(w: Person): Promise<MyBoardProfile> {
 }
 
 describe("a worker's record, computed from stored jobs", () => {
-  it("counts stored jobs and households that came back, never cancelled jobs, and ignores a published record", async () => {
+  it("counts jobs done only, never agreed or cancelled ones, has no came back, and ignores a published record", async () => {
     const w = await listedWorker("+919888330001", "Mahadeva");
     const home = await consented("+919888330002");
     const viewer = await signIn("+919888330003");
     expect(await cardOf(viewer, w.session.user)).not.toHaveProperty("record");
+    // Agreed work still ahead is not done: no record yet.
     await storedJob(w, home);
-    await storedJob(w, home);
+    expect(await cardOf(viewer, w.session.user)).not.toHaveProperty("record");
+    await doneJob(w, home);
+    await doneJob(w, home);
     const dropped = await storedJob(w, home);
     await call(home, HttpMethod.post, `/jobs/records/${dropped}/status`, { status: "cancelled" });
-    expect((await cardOf(viewer, w.session.user)).record).toEqual({ jobs: 2, rated: 0, came_back: 1 });
-    const claim = { jobs: 90, rated: 80, average: 5, came_back: 40 };
+    expect((await cardOf(viewer, w.session.user)).record).toEqual({ jobs: 2, rated: 0 });
+    const claim = { jobs: 90, rated: 80, average: 5 };
     await w.api.publishProfile({ ...workerCard("Mahadeva"), record: claim });
-    expect((await cardOf(viewer, w.session.user)).record).toEqual({ jobs: 2, rated: 0, came_back: 1 });
+    expect((await cardOf(viewer, w.session.user)).record).toEqual({ jobs: 2, rated: 0 });
   });
 
   it("shows the average only once three jobs were rated, to one decimal", async () => {
@@ -40,17 +43,17 @@ describe("a worker's record, computed from stored jobs", () => {
     const viewer = await signIn("+919888330005");
     const homes = await Promise.all(["+919888330006", "+919888330007", "+919888330008"].map(consented));
     const [first, second, third] = homes as [Person, Person, Person];
-    await rate(first, await storedJob(w, first), 5);
-    await rate(second, await storedJob(w, second), 4);
-    expect((await cardOf(viewer, w.session.user)).record).toEqual({ jobs: 2, rated: 2, came_back: 0 });
-    await rate(third, await storedJob(w, third), 4);
-    expect((await cardOf(viewer, w.session.user)).record).toEqual({ jobs: 3, rated: 3, average: 4.3, came_back: 0 });
+    await rate(first, await doneJob(w, first), 5);
+    await rate(second, await doneJob(w, second), 4);
+    expect((await cardOf(viewer, w.session.user)).record).toEqual({ jobs: 2, rated: 2 });
+    await rate(third, await doneJob(w, third), 4);
+    expect((await cardOf(viewer, w.session.user)).record).toEqual({ jobs: 3, rated: 3, average: 4.3 });
   });
 
   it("hides the whole record from others when the worker turns it off, and keeps showing it to her", async () => {
     const w = await listedWorker("+919888330009", "Puttaraju");
     const home = await consented("+919888330010");
-    await storedJob(w, home);
+    await doneJob(w, home);
     await w.api.publishProfile({ ...workerCard("Puttaraju"), show_record: false });
     expect(await cardOf(home, w.session.user)).not.toHaveProperty("record");
     const found = await home.api.searchWorkers({ trade: "painter", ...MYSURU });
@@ -62,7 +65,7 @@ describe("a worker's record, computed from stored jobs", () => {
     await w.api.publishProfile(workerCard("Puttaraju"));
     expect(await cardOf(home, w.session.user)).not.toHaveProperty("record");
     await w.api.publishProfile({ ...workerCard("Puttaraju"), show_record: true });
-    expect((await cardOf(home, w.session.user)).record).toEqual({ jobs: 1, rated: 0, came_back: 0 });
+    expect((await cardOf(home, w.session.user)).record).toEqual({ jobs: 1, rated: 0 });
     expect(await myCard(w)).toMatchObject({ show_record: true });
   });
 

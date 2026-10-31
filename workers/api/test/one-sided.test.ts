@@ -10,6 +10,7 @@ import {
   cardOf,
   consented,
   deliverAgree,
+  markDone,
   newEngagement,
   newHash,
   paintJob,
@@ -34,13 +35,15 @@ async function oneSided(w: Person, home: Person, price?: number) {
 }
 
 describe("one-sided jobs: only the worker's side reached the server", () => {
-  it("count on her record, came back included, once the household's agree was delivered, without its consent", async () => {
+  it("count on her record once the household's agree was delivered and she marked them done, without its consent", async () => {
     const w = await consented("+919888350001");
     await w.api.publishProfile(workerCard("Ugramma"));
     const home = await signIn("+919888350002");
+    const first = await oneSided(w, home);
     await oneSided(w, home);
-    await oneSided(w, home);
-    expect((await cardOf(home, w.session.user)).record).toEqual({ jobs: 2, rated: 0, came_back: 1 });
+    expect(await cardOf(home, w.session.user)).not.toHaveProperty("record");
+    await markDone(w, first.engagement);
+    expect((await cardOf(home, w.session.user)).record).toEqual({ jobs: 1, rated: 0 });
     const { jobs } = await exportOf(w);
     expect(jobs.map((j) => [j.attested, j.counterpart])).toEqual([
       [false, home.session.user],

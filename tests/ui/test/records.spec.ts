@@ -1,11 +1,28 @@
-import { readFileSync } from "node:fs";
 import { type MessageKey, plural, questionText, RecordsAnswer, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { chooseLanguage, completeSignIn, MovePrompt, newPhone, open, Role, RUN, SHOTS, signIn } from "./helpers.js";
+import {
+  chooseLanguage,
+  completeSignIn,
+  MovePrompt,
+  newPhone,
+  open,
+  Role,
+  RUN,
+  reveal,
+  SHOTS,
+  signIn,
+} from "./helpers.js";
 import { fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 import { seedServedJobs } from "./record-seed.js";
-import { blockConsent, consentAccepted, expectAgreed, storedAnswer, unblockConsent } from "./records.js";
+import {
+  blockConsent,
+  consentAccepted,
+  downloadRecord,
+  expectAgreed,
+  storedAnswer,
+  unblockConsent,
+} from "./records.js";
 
 /**
  * Job records kept by GigSync (ADR 0038), through the app's screens against the real API: the line under Continue on
@@ -22,7 +39,7 @@ const FOLDER = "records";
 /** How long the worker's lone job may take to reach his record, and how long each look at it waits. */
 const ONE_SIDED_MS = 120_000;
 const RETRY_STEP_MS = 5_000;
-/** Three jobs for two households, one of whom came back; rated 5, 4 and 5. */
+/** Three jobs done for two households; rated 5, 4 and 5. */
 const RATED = [
   { household: 1, stars: 5 },
   { household: 1, stars: 4 },
@@ -128,33 +145,22 @@ test("an owner signed in before the line has it recorded once on opening, with o
   await expect(toast).toHaveCount(0);
 });
 
-test("My work record is pulled from GigSync and downloads as a file", async ({ browser }) => {
+test("Download my work record, one quiet row in Records, pulls the record from GigSync as a file", async ({
+  browser,
+}) => {
   const page = await phone(browser);
   await seededCook(page, `Revathi ${RUN}`);
-  // No share sheet here, so Download is an ordinary download.
-  await page.evaluate(() => Object.defineProperty(navigator, "share", { value: undefined }));
-  await open(page, "nav.receipts");
-  const kept = page.getByRole("region", { name: t(en, "records.export_title") });
-  await kept.getByRole("button", { name: t(en, "records.export_open") }).click();
-  await expect(kept.getByRole("listitem")).toHaveCount(RATED.length);
-  for (const job of await kept.getByRole("listitem").all())
-    await expect(job).toContainText(t(en, "records.attested_both"));
-  await expect(kept.getByText(t(en, "records.export_jobs")).locator("xpath=..")).toContainText(String(RATED.length));
+  await open(page, "nav.records");
+  await expect(page.getByText(t(en, "records.download_about"))).toBeVisible();
   await shot(page, "work-record");
-  const saving = page.waitForEvent("download");
-  await kept.getByRole("button", { name: t(en, "records.download") }).click();
-  const file = await saving;
-  expect(file.suggestedFilename()).toMatch(/^gigsync-work-record-\d{4}-\d{2}-\d{2}\.csv$/);
-  const lines = readFileSync(await file.path(), "utf8")
-    .trim()
-    .split("\r\n");
+  const { file, lines } = await downloadRecord(page);
   expect(lines[0]).toBe("Date,Work,Price (₹),Received (₹),Paid by,Status,Confirmed by,Stars");
   expect(lines.slice(1).map((l) => l.split(",").slice(1, 3).concat(l.split(",").slice(5)))).toEqual([
     ["Cook", "11000.00", "Done", "Both", "5"],
     ["Cook", "11000.00", "Done", "Both", "4"],
     ["Cook", "11000.00", "Done", "Both", "5"],
   ]);
-  await expect(kept).toContainText(t(en, "records.downloaded", { file: file.suggestedFilename() }));
+  await expect(page.getByRole("status").filter({ hasText: file })).toHaveText(t(en, "records.downloaded", { file }));
 });
 
 test("Delete my records from GigSync says what goes, then the card's record is zero and nothing is kept", async ({
@@ -164,7 +170,7 @@ test("Delete my records from GigSync says what goes, then the card's record is z
   await seededCook(page, `Nirmala ${RUN}`);
   await open(page, "nav.card");
   const mine = page.getByRole("region", { name: t(en, "page.card_seen") });
-  await expect(mine.getByRole("definition")).toHaveText(["3", t(en, "record.card_stars", { stars: "4.7" }), "1"]);
+  await expect(mine.getByRole("definition")).toHaveText(["3", t(en, "record.card_stars", { stars: "4.7" })]);
 
   await open(page, "nav.privacy");
   const section = privacy(page, en);
@@ -178,7 +184,7 @@ test("Delete my records from GigSync says what goes, then the card's record is z
   await expect(section.getByRole("button", { name: t(en, "records.privacy_agree") })).toBeVisible();
 
   await open(page, "nav.card");
-  await expect(mine.getByRole("definition")).toHaveText(["0", t(en, "record.card_no_stars"), "0"]);
+  await expect(mine.getByRole("definition")).toHaveText(["0", t(en, "record.card_no_stars")]);
   // Opening the app again records nothing: the owner chose to stop, and Privacy offers it again.
   await page.reload();
   await expect(page.getByRole("banner")).toBeVisible();
@@ -228,18 +234,21 @@ test("a household deleted its records; the worker's job still counts, marked as 
   await answer.getByRole("button", { name: t(en, "job.send_answers") }).click();
   await signBoth({ worker, household }, FOLDER);
 
-  // Only his phone sent the job; GigSync keeps it as his once her signature reached him, and it counts on his card.
-  const kept = workerPage.getByRole("region", { name: t(en, "records.export_title") });
-  await expect(async () => {
-    // Opened afresh each time: a pull that found nothing yet shows that until the screen opens again.
-    await open(workerPage, "nav.activity");
-    await open(workerPage, "nav.receipts");
-    await kept.getByRole("button", { name: t(en, "records.export_open") }).click({ timeout: RETRY_STEP_MS });
-    await expect(kept.getByRole("listitem")).toHaveCount(1, { timeout: RETRY_STEP_MS });
-  }).toPass({ timeout: ONE_SIDED_MS });
-  await expect(kept.getByRole("listitem")).toContainText(t(en, "records.attested_you"));
-  await shot(workerPage, "one-sided");
-  await open(workerPage, "nav.card");
+  // He does the job. Only his phone sent it; GigSync keeps it as his once her signature reached him, and once done it
+  // counts on his card.
+  await open(workerPage, "nav.activity");
+  const job = workerPage.getByRole("article", { name: t(en, "a11y.job_with", { name: who.name }) });
+  await reveal(workerPage, job.getByRole("button", { name: t(en, "job.mark_done") }));
+  await job.getByRole("button", { name: t(en, "job.mark_done") }).click();
   const mine = workerPage.getByRole("region", { name: t(en, "page.card_seen") });
-  await expect(mine.getByRole("definition").first()).toHaveText("1");
+  await expect(async () => {
+    // Opened afresh each time: the card's record is read again when My card opens.
+    await open(workerPage, "nav.activity");
+    await open(workerPage, "nav.card");
+    await expect(mine.getByRole("definition").first()).toHaveText("1", { timeout: RETRY_STEP_MS });
+  }).toPass({ timeout: ONE_SIDED_MS });
+  await open(workerPage, "nav.records");
+  const { lines } = await downloadRecord(workerPage);
+  expect(lines.slice(1).map((l) => l.split(",").slice(5, 7))).toEqual([["Done", "You only"]]);
+  await shot(workerPage, "one-sided");
 });

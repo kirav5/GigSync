@@ -4,6 +4,9 @@ Date: 2026-10-31. Status: accepted. Supersedes [ADR 0037](0037-server-held-recor
 (stars and monthly earnings sent on their own) and amends the [HLD](../gigsync/HLD.md) §2 non-goal "a central database
 of workers that the worker cannot see": the database exists, and the worker can see and take all of it.
 
+**Amended 2026-10-31:** §3's record counts only jobs with status done (one-sided ones still only once the household's
+agree was delivered), and no longer counts households who came back (ADR 0036, amended).
+
 ## Context
 
 The founders want each worker's record (jobs, work done, stars, payments) held by GigSync so it survives any phone,

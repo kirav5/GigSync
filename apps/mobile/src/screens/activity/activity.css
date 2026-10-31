@@ -1,0 +1,70 @@
+/* Activity's counters, as collab's radar: four numbers in one bordered row, the open tab underlined in the accent.
+   Awaiting you's number is in the wait colour whenever something waits. Sizes and colours come from styles.css. */
+.radar {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.radar-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.radar-count {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  align-content: center;
+  min-height: 64px;
+  padding: 12px 4px;
+  border: 0;
+  border-right: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--text3);
+  font: inherit;
+  cursor: pointer;
+}
+.radar-count.closed {
+  border-right: 0;
+}
+.radar-count b {
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.radar-count span {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.radar-count[aria-selected="true"] {
+  color: var(--text);
+  box-shadow: inset 0 -3px 0 var(--accent);
+}
+.radar-count.awaiting b {
+  color: var(--wait);
+}
+.radar-count:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* The panel under the counters: its job cards, or what the tab says when empty. */
+.radar-panel {
+  display: grid;
+  gap: 14px;
+}
+
+/* The foot: finished jobs are in Records, with the way there. */
+.activity-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}

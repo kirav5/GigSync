@@ -180,10 +180,13 @@ test("a newcomer picks a woman mentor from the list, they link for 30 days, then
 /** Profile's mentor links, in the owner's language. */
 const linksOn = ({ page, lang }: Phone) => page.getByRole("region", { name: t(lang, "mentor.links") });
 
-/** One finished job's card, unfolded from under Earlier on Today (a worker) or My jobs (a household). */
-async function pastJob(p: Phone, tab: "nav.activity" | "nav.my_jobs", them: string) {
-  await open(p.page, tab, p.lang);
-  await p.page.getByText(t(p.lang, "home.earlier"), { exact: true }).click();
+/** One finished job's card, opened from its row in Records, where finished jobs live for a worker and a household. */
+async function pastJob(p: Phone, them: string) {
+  await open(p.page, "nav.records", p.lang);
+  await p.page
+    .getByRole("button", { name: t(p.lang, "record.open"), exact: true })
+    .filter({ hasText: them })
+    .click();
   return p.page.getByRole("article", { name: t(p.lang, "a11y.job_with", { name: them }) });
 }
 
@@ -215,12 +218,12 @@ test("a household introduces two workers it signed jobs with, both say yes, and 
   await seedSignedJob(s, m);
 
   // ── Asha asks Suresh whether he knows someone in Bengaluru, from the job they signed ───────────────────────────
-  const withSuresh = await pastJob(asha, "nav.activity", s.name);
+  const withSuresh = await pastJob(asha, s.name);
   await withSuresh.getByRole("button", { name: t(hi, "mentor.intro_ask", { city: city(hi) }) }).click();
   await expect(statusOn(asha.page, t(hi, "mentor.intro_asked", { name: s.name }))).toBeVisible();
 
   // ── Suresh reads her ask with that job, and introduces Mukesh to her from it ───────────────────────────────────
-  const withAsha = await pastJob(suresh, "nav.my_jobs", a.name);
+  const withAsha = await pastJob(suresh, a.name);
   await expect(withAsha.getByRole("list", { name: t(en, "a11y.notes") })).toBeVisible();
   await withAsha.getByRole("button", { name: t(en, "mentor.introduce", { name: a.name }) }).click();
   await withAsha.getByRole("button", { name: t(en, "mentor.intro_send", { name: m.name }) }).click();

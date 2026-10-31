@@ -6,6 +6,7 @@ import {
   type EngagementId,
   EnvelopeKind,
   type JobQuantities,
+  JobRecordStatus,
   type JobRecordSubmitInput,
   JobSubmitState,
   RECORDS_NOTICE_VERSION,
@@ -80,6 +81,21 @@ export async function storedJob(w: Person, home: Person, price?: number): Promis
   expect(await stateOf(await asHousehold(home, w, job))).toBe(JobSubmitState.enum.pending);
   expect(await stateOf(await asWorker(w, home, job))).toBe(JobSubmitState.enum.stored);
   return job.engagement;
+}
+
+/** `as` (either side) marks a stored job done, as its phone does once the work is handed over. */
+export async function markDone(as: Person, engagement: EngagementId): Promise<void> {
+  const res = await call(as, HttpMethod.post, `/jobs/records/${engagement}/status`, {
+    status: JobRecordStatus.enum.done,
+  });
+  expect(res.status).toBe(OK);
+}
+
+/** A job both sides attested and the worker marked done: one that counts on her card. */
+export async function doneJob(w: Person, home: Person, price?: number): Promise<EngagementId> {
+  const engagement = await storedJob(w, home, price);
+  await markDone(w, engagement);
+  return engagement;
 }
 
 /** The household gives stars on a stored job. */

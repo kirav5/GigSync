@@ -4,7 +4,7 @@ import type { shell as en } from "../en/shell.js";
 export const shell: Readonly<Record<keyof typeof en, string>> = {
   "nav.talk": "बात करें",
   "nav.activity": "गतिविधि",
-  "nav.receipts": "रसीदें",
+  "nav.records": "रिकॉर्ड",
   "nav.about": "मेरे बारे में",
   "nav.privacy": "निजता",
   "nav.settings": "सेटिंग्स",

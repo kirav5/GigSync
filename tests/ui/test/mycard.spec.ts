@@ -23,7 +23,7 @@ const BOARD_PROFILE = `${API}/v1/board/profile`;
 /** The card goes to the board again soon after the Privacy switch moves. */
 const PUBLISH_MS = 30_000;
 const ABOUT = "Home food, South Indian and North Indian";
-/** Five jobs for four households, one of whom came back; four rated them 5, 4, 5 and 5. */
+/** Five jobs done for four households; four rated them 5, 4, 5 and 5. */
 const RATED = [
   { household: 1, stars: 5 },
   { household: 1, stars: 4 },
@@ -94,8 +94,10 @@ test("a worker's My card shows their card, their record, the QR and one Edit my 
   await expect(mine).toContainText("Cook · Jayanagar");
   await expect(mine).toContainText(say("find.from", { price: "₹11,000" }));
   await expect(mine).toContainText(ABOUT);
-  // GigSync's record of her jobs: the average of 5, 4, 5, 5 to one decimal, over four ratings.
-  await expect(stats(mine)).toHaveText(["5", "★ 4.8", "1"]);
+  // GigSync's record of her jobs: jobs done, and the average of 5, 4, 5, 5 to one decimal, over four ratings.
+  await expect(stats(mine)).toHaveText(["5", "★ 4.8"]);
+  await expect(mine.getByRole("term").first()).toHaveText(say("record.card_jobs"));
+  await expect(mine).not.toContainText("Came back");
   await expect(mine).toContainText(plural(en, "record.card_rated", 4));
   await expect(mine.getByRole("img", { name: say("qr.alt", { name }) })).toBeVisible();
   await expect(mine).toContainText(say("qr.about_worker", { name: "Lakshmi" }));
@@ -121,7 +123,7 @@ test("a new worker's record is zeros and not yet rated, and Edit my card opens t
   await cook(page, `Mohan ${RUN}`);
   await open(page, "nav.card");
   const mine = card(page, "page.card_seen");
-  await expect(stats(mine)).toHaveText(["0", say("record.card_no_stars"), "0"]);
+  await expect(stats(mine)).toHaveText(["0", say("record.card_no_stars")]);
   await expect(mine).toContainText(say("record.card_not_rated"));
   await shots(page, "worker-new");
   await page.getByRole("button", { name: say("shell.edit_card"), exact: true }).click();
@@ -175,13 +177,13 @@ test("a household scanning a worker sees the record GigSync keeps, and none once
   await open(worker, "nav.card");
   const qr: QrCode = MyQr.parse(await (await code).json()).code;
   // Nothing about a record goes to the board with her card: the server computes it.
-  await expect(stats(card(worker, "page.card_seen"))).toHaveText(["5", "★ 4.8", "1"]);
+  await expect(stats(card(worker, "page.card_seen"))).toHaveText(["5", "★ 4.8"]);
 
   await signIn(household, { role: Role.consumer, name: `Asha ${RUN}`, phone: newPhone(), address: "Jayanagar" });
   await household.goto(`${APP}/?to=${qr}`);
   const seen = household.getByRole("region", { name: "Kavya" });
   await expect(seen).toContainText(ABOUT);
-  await expect(stats(seen)).toHaveText(["5", "★ 4.8", "1"]);
+  await expect(stats(seen)).toHaveText(["5", "★ 4.8"]);
 
   const hidden = published(worker, (sent) => sent.show_record === false);
   await open(worker, "nav.privacy");

@@ -1,16 +1,19 @@
 import type { page as en } from "../en/page.js";
 
-/** Kannada: the pages the menu opens, each on its own: My card, a household's Receipts, About me, Privacy and Settings. */
+/** Kannada: the pages the menu opens, each on its own: My card, Records, About me, Privacy and Settings. */
 export const page: Readonly<Record<keyof typeof en, string>> = {
   // My card
   "page.card_soft_worker": "ಇದನ್ನು ಹಂಚಿ — ಯಾರಾದರೂ ಕೆಲಸಕ್ಕೆ ನಿಮ್ಮನ್ನು ಕೇಳಬಹುದು.",
   "page.card_seen": "ಮನೆಯವರು ಇದನ್ನು ನೋಡುತ್ತಾರೆ",
   "page.card_none": 'ನಿಮ್ಮ ಕಾರ್ಡ್ ಇನ್ನೂ ಇಲ್ಲ. "ನನ್ನ ಕಾರ್ಡ್ ಬದಲಿಸಿ" ಮೂಲಕ ಮಾಡಿ, ಅಥವಾ ಚಾಟ್‌ನಲ್ಲಿ ನಿಮ್ಮ ಏಜೆಂಟ್‌ಗೆ ನಿಮ್ಮ ಕೆಲಸದ ಬಗ್ಗೆ ಹೇಳಿ.',
   "page.card_soft": "ಇದನ್ನು ಹಂಚಿ — ಕೆಲಸಗಾರರು ನಿಮಗಾಗಿ ಕೆಲಸ ಮಾಡಲು ಮುಂದೆ ಬರಬಹುದು.",
-  // A household's Receipts
-  "page.receipts_soft": "GigSync ನಲ್ಲಿ ನೀವು ಹಣ ಕೊಟ್ಟ ಕೆಲಸಗಳು.",
-  "page.receipts_total": "ಒಟ್ಟು ಕೊಟ್ಟದ್ದು",
-  "page.receipts_empty": "ಇನ್ನೂ ಏನೂ ಕೊಟ್ಟಿಲ್ಲ. ನೀವು ಹಣ ಕೊಡುವ ಕೆಲಸಗಳು ಇಲ್ಲಿ ಕಾಣುತ್ತವೆ.",
+  // Records: completed work, and for a household what it paid
+  "page.records_soft_worker": "GigSync ನಲ್ಲಿ ನೀವು ಮುಗಿಸಿದ ಕೆಲಸಗಳು ಮತ್ತು ಅವುಗಳ ಗಳಿಕೆ.",
+  "page.records_soft": "GigSync ನಲ್ಲಿ ನಿಮಗಾಗಿ ಆದ ಕೆಲಸಗಳು ಮತ್ತು ನೀವು ಕೊಟ್ಟ ಹಣ.",
+  "page.records_total": "ಒಟ್ಟು ಕೊಟ್ಟದ್ದು",
+  "page.records_empty": "ಇನ್ನೂ ಯಾವ ಕೆಲಸವೂ ಮುಗಿದಿಲ್ಲ. ಕೆಲಸ ಮುಗಿದ ಮೇಲೆ ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತದೆ.",
+  "page.not_paid": "ಯಾವ ಪಾವತಿಯೂ ದಾಖಲಾಗಿಲ್ಲ",
+  "page.not_completed": "ಮುಗಿಯದವು · {count}",
   "page.paid": "{price} ಕೊಟ್ಟಿದ್ದೀರಿ",
   "page.paid_unconfirmed": "{price} ಕೊಟ್ಟಿದ್ದೀರಿ · ಇನ್ನೂ ಖಚಿತವಾಗಿಲ್ಲ",
   // About me

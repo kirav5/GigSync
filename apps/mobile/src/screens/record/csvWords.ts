@@ -13,7 +13,7 @@ const HEADING: Readonly<Record<CsvColumn, MessageKey>> = {
   stars: "records.col_stars",
 };
 
-export const STATUS_WORD: Readonly<Record<JobRecordStatus, MessageKey>> = {
+const STATUS_WORD: Readonly<Record<JobRecordStatus, MessageKey>> = {
   agreed: "records.status_agreed",
   done: "records.status_done",
   cancelled: "records.status_cancelled",

@@ -35,7 +35,7 @@ test("Back closes the open menu first, and going back to the chat with × leaves
   await page.goBack();
   await expect(drawer(page)).toBeHidden();
   expect(page.url().startsWith(APP)).toBe(true);
-  await open(page, "nav.receipts");
+  await open(page, "nav.records");
   await open(page, "nav.talk");
   await page.goBack();
   expect(page.url().startsWith(APP)).toBe(false);

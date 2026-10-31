@@ -133,7 +133,7 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
       textOf(hi, "iv.ask.rate_month"),
     ]);
   });
-  await test.step("New chat keeps this chat in the menu with its open question, and earnings come from Passbook", async () => {
+  await test.step("New chat keeps this chat in the menu with its open question, and earnings come from Records", async () => {
     await openDrawer(page, hi);
     await drawer(page, hi)
       .getByRole("button", { name: t(hi, "chats.new"), exact: true })

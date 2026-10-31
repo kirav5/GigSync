@@ -173,7 +173,7 @@ describe("ApiClient worker card", () => {
     rate_paise: 70000,
     languages: ["kn"],
     about: "",
-    record: { jobs: 4, rated: 3, average: 4.7, came_back: 1 },
+    record: { jobs: 4, rated: 3, average: 4.7 },
   };
 
   it("reads one worker's served card, record and all", async () => {

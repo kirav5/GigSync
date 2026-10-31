@@ -1,7 +1,6 @@
 import { type MessageKey, type RecordMonth, type RecordRow, RecordState, type WorkRecord } from "@gigsync/core";
 import { useId } from "react";
 import { type I18n, useI18n } from "../../i18n.js";
-import { C } from "../../ui/cls.js";
 import { money } from "../../ui/places.js";
 import { type CardProps, type OpenRow, RecordLine } from "./RecordLine.js";
 import { type Chip, monthText, Tag, weekdayText, whoOf } from "./text.js";
@@ -33,9 +32,8 @@ function factsOf(t: I18n["t"], row: RecordRow): string[] {
 }
 
 /**
- * The worker's record: how many jobs, for how many households, since when (no day counts, no claims beyond the jobs
- * themselves), then every finished job by month, newest first. With signed work but none finished, it says where
- * finished jobs will show.
+ * The worker's completed work: how many jobs, for how many households, since when (no day counts, no claims beyond
+ * the jobs themselves), then every completed job by month, newest first.
  */
 export function WorkDone({ record, ...rows }: Props) {
   const { lang, t, plural } = useI18n();
@@ -51,11 +49,9 @@ export function WorkDone({ record, ...rows }: Props) {
       )}
       <section className="record" aria-labelledby={heading}>
         <h2 id={heading}>{t("record.title")}</h2>
-        {record.months.length === 0 ? (
-          <p className={C.empty}>{t("record.empty")}</p>
-        ) : (
-          record.months.map((m) => <Month key={m.month} {...m} {...rows} />)
-        )}
+        {record.months.map((m) => (
+          <Month key={m.month} {...m} {...rows} />
+        ))}
       </section>
     </>
   );

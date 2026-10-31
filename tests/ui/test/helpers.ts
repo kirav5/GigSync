@@ -2,9 +2,11 @@ import { mkdirSync } from "node:fs";
 import { ApiClient, Header, type MessageKey, type Params, type PluralKey, SecretKeys, t } from "@gigsync/core";
 import { newDeviceSecrets } from "@gigsync/crypto";
 import { DEFAULT_LANG, type Lang, type Place, type Trade } from "@gigsync/protocol";
-import { expect, type Locator, type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { open } from "./menu.js";
 
+/** Job cards on Activity and Records, wherever a job is filed now (jobs.ts). */
+export * from "./jobs.js";
 /** The app's frame, as the specs reach it (menu.ts): the menu, its screens, the chat, sign-out and My card's form. */
 export * from "./menu.js";
 
@@ -179,40 +181,6 @@ export async function noSpeech(page: Page) {
       if (name in globalThis) Object.defineProperty(globalThis, name, { value: undefined, configurable: true });
     }
   });
-}
-
-/** Opens the folded sections (Earlier, Details, the agents' talks) whose summary reads `summary`, inside `scope`. */
-export async function expand(scope: Page | Locator, summary: MessageKey | RegExp, lang: Lang = DEFAULT_LANG) {
-  const text = summary instanceof RegExp ? summary : t(lang, summary);
-  await expect(scope.locator("summary").filter({ hasText: text }).first()).toBeVisible();
-  for (const closed of await scope.locator("details:not([open]) > summary").filter({ hasText: text }).all()) {
-    await closed.click();
-  }
-}
-
-/**
- * Waits for `target` while the job may still move: a paid one-off job goes to Earlier, a job waiting on the other side
- * to the agents' talks. Each try opens every folded section first.
- */
-export async function reveal(page: Page, target: Locator) {
-  await expect(async () => {
-    await page.locator("details:not([open])").evaluateAll((folds) => {
-      for (const fold of folds) if (fold instanceof HTMLDetailsElement) fold.open = true;
-    });
-    await expect(target).toBeVisible({ timeout: 2_000 });
-  }).toPass();
-}
-
-/**
- * The job cards under one heading of Today or My jobs: those whose nearest section heading above is `heading`. Cards in
- * a fold (Earlier, the agents' talks) are never under a heading.
- */
-export function inSection(page: Page, heading: MessageKey, lang: Lang = DEFAULT_LANG): Locator {
-  const title = t(lang, heading);
-  const nearest = "preceding::*[self::h1 or self::h2 or self::h3][not(ancestor::article)][1]";
-  return page.locator(
-    `xpath=//article[not(ancestor::details)][${nearest}[starts-with(normalize-space(.), "${title}")]]`,
-  );
 }
 
 /**

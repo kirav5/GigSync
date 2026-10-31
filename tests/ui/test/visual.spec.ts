@@ -46,8 +46,8 @@ for (const lang of Lang.options)
       await open(worker, "nav.talk", lang);
       await expect(worker.getByRole("log")).toBeVisible();
       await snap(worker, dir, "02-worker-talk");
-      await open(worker, "nav.receipts", lang);
-      await snap(worker, dir, "03-worker-passbook");
+      await open(worker, "nav.records", lang);
+      await snap(worker, dir, "03-worker-records");
       await open(worker, "nav.about", lang);
       await snap(worker, dir, "04-worker-about");
 
@@ -60,6 +60,8 @@ for (const lang of Lang.options)
       });
       await snap(household, dir, "05-household-find");
       await open(household, "nav.my_jobs", lang);
-      await snap(household, dir, "06-household-my-jobs");
+      await snap(household, dir, "06-household-activity");
+      await open(household, "nav.records", lang);
+      await snap(household, dir, "07-household-records");
       await household.context().close();
     });

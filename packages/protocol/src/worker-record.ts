@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 /**
- * A worker's record on their card (ADR 0036, computed per ADR 0038): stored jobs nobody cancelled (attested by both
+ * A worker's record on their card (ADR 0036, computed per ADR 0038): stored jobs the worker finished (attested by both
  * sides, or one-sided when only the worker's side reached the server), how many households rated them and the average
- * of their stars, and how many households hired them again. The server computes it from stored job records and serves
- * it on every card unless the worker hid it. Nothing ever sorts, filters or ranks workers by it.
+ * of their stars. The server computes it from stored job records and serves it on every card unless the worker hid it.
+ * Nothing ever sorts, filters or ranks workers by it.
  */
 
 /** Stars a household gives in a review, lowest and highest. */
@@ -23,16 +23,14 @@ export const roundAverage = (stars: number): number => Math.round(stars * AVERAG
 const count = z.number().int().nonnegative().max(MAX_RECORD_COUNT);
 
 /**
- * The three numbers, as the server serves them; `average` is present only when `rated` is at least MIN_RATED.
+ * The record as the server serves it; `average` is present only when `rated` is at least MIN_RATED.
  */
 export const WorkerRecord = z.object({
-  /** Stored jobs not cancelled: attested by both sides, or one-sided (only the worker's side reached the server). */
+  /** Stored jobs done: attested by both sides, or one-sided (only the worker's side reached the server). */
   jobs: count,
   /** Stored jobs the household rated, one rating per job. */
   rated: count,
   /** The average of those stars, to one decimal. */
   average: z.number().min(MIN_STARS).max(MAX_STARS).optional(),
-  /** Households that signed two or more jobs with the worker. */
-  came_back: count,
 });
 export type WorkerRecord = z.infer<typeof WorkerRecord>;
