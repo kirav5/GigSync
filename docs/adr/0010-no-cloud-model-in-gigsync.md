@@ -5,9 +5,10 @@ for GigSync.
 
 ## Decision
 
-GigSync keeps steps 1 and 2 of the sanitize ADR:
-1. The sanitizer runs in code on the phone.
-2. The local model reads only sanitized text.
+GigSync keeps the sanitize ADR's detectors in code on the phone, and changes where they run
+(ADR 0015):
+1. The worker's own data stays raw on the phone, and the offline model may read it when answering the worker.
+2. When another agent is involved, the model sees placeholders; an edge check gates everything that leaves.
 
 GigSync has no cloud step at all. No frontier or cloud model is used anywhere in GigSync:
 - **Phone:** speech, translation and phrasing run on the phone. The keyword router and templates cover every path

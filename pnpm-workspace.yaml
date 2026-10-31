@@ -3,3 +3,4 @@ packages:
   - workers/*
   - apps/*
   - plugins/*
+  - tests/*

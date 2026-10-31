@@ -1,0 +1,160 @@
+import {
+  type Agree,
+  type Answers,
+  type Cancel as CancelBody,
+  type Clarify,
+  type ContactRelease,
+  type DeviceId,
+  type EngagementId,
+  EngagementStatus,
+  EnvelopeKind,
+  type JobRequest,
+  type JobReview,
+  type Offer,
+  type PaymentRecord,
+  type PaymentRequest,
+  Role,
+  SIDE_CHANNEL_KINDS,
+  type UserId,
+} from "@gigsync/protocol";
+import { apply, TransitionError } from "../engagement/machine.js";
+import { log } from "../log.js";
+import type { Received } from "../mail/transport.js";
+import * as after from "./aftercare.js";
+import * as consumer from "./consumer.js";
+import type { JobContext } from "./context.js";
+import * as deal from "./deal.js";
+import type { JobRecord, Need } from "./store.js";
+import * as worker from "./worker.js";
+
+const K = EnvelopeKind.enum;
+const R = Role.enum;
+
+/** Which kinds each side may receive; anything else from the other party is ignored. */
+const RECEIVES: Readonly<Record<Role, ReadonlySet<EnvelopeKind>>> = {
+  [R.provider]: new Set([
+    K.request,
+    K.response,
+    K.counter,
+    K.agree,
+    K.contact_release,
+    K.cancel,
+    K.payment_record,
+    K.review,
+  ]),
+  [R.requester]: new Set([
+    K.clarify,
+    K.quote,
+    K.agree,
+    K.contact_release,
+    K.cancel,
+    K.update,
+    K.delivery,
+    K.payment_request,
+    K.payment_record,
+  ]),
+};
+
+export class DispatchError extends Error {}
+
+/** The consumer's need behind a job; every consumer job has one. */
+export async function needOf(ctx: JobContext, r: JobRecord): Promise<Need> {
+  const need = await ctx.store.need(r.engagement.group);
+  if (!need) throw new DispatchError(`no need for ${r.engagement.id}`);
+  return need;
+}
+
+/**
+ * Takes one verified, opened envelope into its job: only from the job's counterpart, only kinds this side may
+ * receive, only moves the engagement allows. Then lets the right agent answer it.
+ */
+export async function dispatch(ctx: JobContext, rules: worker.WorkerRules | undefined, item: Received): Promise<void> {
+  const { envelope: e, body } = item;
+  const existing = await ctx.store.job(e.engagement);
+  const r =
+    existing ??
+    (e.kind === K.request && rules ? newWorkerJob(ctx, e.engagement, e.from.user, body as JobRequest) : undefined);
+  if (!r || e.from.user !== r.engagement.counterpart || !RECEIVES[r.engagement.role].has(e.kind)) {
+    log.warn("envelope not for any job here", { messageId: e.id, kind: e.kind });
+    return;
+  }
+  let moved = r;
+  if (!SIDE_CHANNEL_KINDS.has(e.kind)) {
+    try {
+      moved = { ...r, engagement: apply(r.engagement, e.kind, ctx.clock.now()) };
+    } catch (err) {
+      if (!(err instanceof TransitionError)) throw err;
+      log.warn("envelope out of turn", { messageId: e.id, kind: e.kind, status: r.engagement.status });
+      return;
+    }
+  }
+  await ctx.store.saveJob(moved);
+  await react(ctx, rules, moved, e.kind, body, e.from.device);
+}
+
+async function react(
+  ctx: JobContext,
+  w: worker.WorkerRules | undefined,
+  r: JobRecord,
+  kind: EnvelopeKind,
+  body: unknown,
+  from: DeviceId,
+): Promise<void> {
+  switch (kind) {
+    case K.request:
+      if (w) await worker.onRequest(ctx, w, r);
+      return;
+    case K.response:
+      if (w) await worker.onAnswers(ctx, w, r, body as Answers);
+      return;
+    case K.counter:
+      if (w) await worker.onCounter(ctx, w, r, body as Offer);
+      return;
+    case K.clarify:
+      await consumer.onClarify(ctx, await needOf(ctx, r), r, body as Clarify);
+      return;
+    case K.quote:
+      await consumer.onQuote(ctx, await needOf(ctx, r), r, body as Offer);
+      return;
+    case K.agree:
+      await deal.onAgree(ctx, r, body as Agree, from);
+      return;
+    case K.contact_release:
+      await deal.onContact(ctx, r, body as ContactRelease);
+      return;
+    case K.cancel:
+      await deal.onCancel(ctx, r, body as CancelBody);
+      return;
+    case K.payment_request:
+      await after.onPaymentRequest(ctx, r, body as PaymentRequest);
+      return;
+    case K.payment_record:
+      await after.onPaymentRecord(ctx, r, body as PaymentRecord);
+      return;
+    case K.review:
+      await ctx.store.saveJob({ ...r, review: body as JobReview });
+      return;
+    default:
+      return; // update, delivery: the status change is all there is
+  }
+}
+
+function newWorkerJob(ctx: JobContext, id: EngagementId, from: UserId, request: JobRequest): JobRecord {
+  const at = ctx.clock.now().toISOString();
+  return {
+    engagement: {
+      id,
+      group: id,
+      role: R.provider,
+      counterpart: from,
+      status: EngagementStatus.enum.draft,
+      brief: { text: request.need, topic: request.trade, shared: request.details },
+      created_at: at,
+      updated_at: at,
+    },
+    request,
+    offers: [],
+    offers_made: 0,
+    asked: false,
+  };
+}

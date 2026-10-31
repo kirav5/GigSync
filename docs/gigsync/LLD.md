@@ -64,6 +64,9 @@ referred to by name in code (`Topic.enum.contact`).
 
 ### 2.2 Envelope (`envelope.ts`, built; kinds extended)
 
+Built as in [ADR 0014](../adr/0014-agent-to-agent-jobs.md): the kinds are `quote`/`counter`/`agree`/`contact_release` rather
+than the `job_*` names below, and the envelope carries `epk` and the per-device `keys` map.
+
 ```ts
 EnvelopeHeader = { v: 1, id: MsgId, from: { user: UserId, device: DeviceId }, to: { user: UserId },
   engagement: EngagementId, seq: number, kind: EnvelopeKind, sent_at: ISO, expires_at: ISO, hop: 0..3 }
@@ -459,12 +462,31 @@ Evaluation order (first deny wins): `expired` → `flagged` (if `decline`) → `
 both signatures exists for that engagement and the grant has not closed; `aadhaar_last4` additionally needs
 `consumer_tier ≥ 2`. SOS fields: allowed only under the worker's `SosGrant` and its trigger.
 
-### 3.4 Identifier detectors and the edge check (`pii/`, ADR 0015)
+### 3.4 Identifier detectors and the edge check (`pii/`, [ADR 0015](../adr/0015-raw-pii-on-device-check-at-the-edge.md))
 
-`detect(text)` (Aadhaar with Verhoeff, card with Luhn, PAN, UPI, IFSC, phone, email, voter ID, DL, passport).
-`tagPrivate` on the worker's own input; `toPlaceholders` on other agents' text and drafts; `edgeCheck(body, grants)`
-on every outgoing envelope, export, circle post, handover, notice variable and log line. Vectors:
-`vectors/edge_check.json`.
+`detect(text) → Finding[]` finds identifiers in a fixed order, longest match first:
+
+| Kind                   | Rule                                | Check        |
+| ---------------------- | ----------------------------------- | ------------ |
+| AADHAAR                | 12 digits, first 2–9, spaced or not | Verhoeff     |
+| CARD                   | 13–19 digits                        | Luhn         |
+| PAN                    | `[A-Z]{5}[0-9]{4}[A-Z]`             | 4th char set |
+| UPI                    | `[\w.-]{2,256}@[a-z]{2,64}`         | handle list  |
+| IFSC                   | `[A-Z]{4}0[A-Z0-9]{6}`              | —            |
+| PHONE                  | `(\+91[\s-]?)?[6-9]\d{9}`           | —            |
+| EMAIL                  | RFC 5322 subset                     | —            |
+| VOTER_ID, DL, PASSPORT | state formats                       | —            |
+
+Three uses, one detector:
+
+| Function                                  | Where it runs                                                                        | Does                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| `tagPrivate(text)`                        | the worker's own input, before storing                                               | stores the raw value; tags each identifier's kind, high sensitivity |
+| `toPlaceholders(text) → { text, map }`    | other agents' text, and drafts addressed to them                                     | `PHONE_1`, `AADHAAR_1` …; the map never leaves the phone            |
+| `edgeCheck(body, grants) → ok or blocked` | every outgoing envelope, export, circle post, handover, notice variable and log line | lets a value out only if an active grant allows its field           |
+
+`restore(text, map, allowed)` puts real values back only for kinds the edge check allowed. Logs print identifiers
+only through `pii()`, and only when `ENVIRONMENT=local`. Vectors: `vectors/edge_check.json`.
 
 ### 3.5 Message pipeline (`pipeline/`, planned)
 
@@ -1024,6 +1046,24 @@ OpenAI or any hosted API is used, including a browser's built-in model. The mode
 intent and phrasing; load only when `freeMemoryMb ≥ 1500`. Speech: IndicConformer ONNX or Sarvam Edge, device
 test on a 4 GB phone first; pilot languages Kannada, Hindi, Telugu, English/Hinglish.
 
+### 9.1 Choosing the model (Settings › On-device model)
+
+The app hands core one `Model`: `ChosenModel` (`apps/mobile/src/adapters/model.ts`), which routes each call to the
+engine chosen in Settings and kept on the device:
+
+| Choice       | Uses                                                                          |
+| ------------ | ----------------------------------------------------------------------------- |
+| Auto         | the device's model if `status().available` and ≥ 1500 MB free, else lite mode |
+| On-device    | always the device's model (LiteRT-LM, Apple Foundation Models, web engine)    |
+| Lite mode    | no model; rules and templates                                                 |
+| Ollama (dev) | development builds only; Settings lists the models `ollama serve` has pulled  |
+
+On the web the device's model is the in-browser engine on WebGPU running the same open model family as Android
+(planned G3). Until it ships, the web build reports no device model, so Auto and On-device fall back to lite mode.
+
+Settings shows what the device reports (engine, ready or not, free memory) and which engine is answering now; the
+agent screen shows the same line. No choice ever reaches a cloud model (ADR 0010).
+
 ## 10. Observability
 
 One logger: `pii()` for any identifying value; `LOG_PII` only when `ENVIRONMENT=local`; phone logs stay on the
@@ -1072,5 +1112,7 @@ PR → green → squash merge; DCO sign-off; `pnpm lint` before every commit.
 ## 14. Naming and first deploy
 
 Scope `@gigsync/*`, Workers `gigsync-*`, app id `app.gigsync`, NSIDs `app.gigsync.*`, `plugins/gigsync-llm`.
-`workers/index` is retired; the board lives in the API on Neon (PR #8). Before the first deploy: Hyperdrive
-binding (ADR 0013), domain, routes, content signing key, WhatsApp provider and DLT header.
+`workers/index` is retired; the board lives in the API on Neon (PR #8). Domains: the app on `gigsync.network`
+and `www.gigsync.network`, the API on `api.gigsync.network` (the `API_BASE` repo variable); no workers.dev URL is
+used. Before a new Worker's first deploy: Hyperdrive binding (ADR 0013), routes, content signing key, WhatsApp
+provider and DLT header.

@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # The API address baked into the app build. Set the API_BASE repository variable to move it (e.g. a custom domain).
-      VITE_API_BASE: ${{ vars.API_BASE || 'https://gigsync-api.gigsync.workers.dev' }}
+      VITE_API_BASE: ${{ vars.API_BASE || 'https://api.gigsync.network' }}
       HAS_CLOUDFLARE: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
     steps:
       - uses: actions/checkout@v4
@@ -20,16 +20,16 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @gigsync/protocol --filter @gigsync/core build
+      - run: pnpm --filter @gigsync/protocol --filter @gigsync/crypto --filter @gigsync/core build
       - name: Skipped (no Cloudflare secrets yet)
         if: env.HAS_CLOUDFLARE != 'true'
         run: echo "Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID to deploy."
+      # The directory is Neon Postgres (ADR 0013). Migrations run over the direct URL, before the code that needs them.
       - name: Migrate directory
         if: env.HAS_CLOUDFLARE == 'true'
-        run: pnpm --filter @gigsync/worker-api exec wrangler d1 migrations apply gigsync-directory --remote
+        run: pnpm --filter @gigsync/worker-api db:migrate
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DATABASE_URL_UNPOOLED: ${{ secrets.DATABASE_URL_UNPOOLED }}
       - name: Deploy API + Mailbox
         if: env.HAS_CLOUDFLARE == 'true'
         run: pnpm --filter @gigsync/worker-api exec wrangler deploy

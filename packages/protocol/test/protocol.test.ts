@@ -22,6 +22,8 @@ const envelope = {
   kind: "request",
   sent_at: "2026-10-21T09:14:03+05:30",
   expires_at: "2026-10-22T09:14:03+05:30",
+  epk: "ZXBr",
+  keys: { [`dev_${ULID}`]: "a2V5" },
   ciphertext: "aGVsbG8=",
   sig: "c2ln",
 };
@@ -33,6 +35,9 @@ describe("Envelope", () => {
   it("rejects a hop deeper than the limit", () => {
     const deep = { ...envelope, hop: { chain: `chn_${ULID}`, depth: MAX_HOP_DEPTH + 1 } };
     expect(Envelope.safeParse(deep).success).toBe(false);
+  });
+  it("rejects an envelope sealed to no device", () => {
+    expect(Envelope.safeParse({ ...envelope, keys: {} }).success).toBe(false);
   });
   it("rejects an id without its prefix", () => {
     expect(Envelope.safeParse({ ...envelope, id: ULID }).success).toBe(false);
@@ -48,14 +53,20 @@ describe("Engagement transitions", () => {
     expect(nextStatus("sent", "response")).toBe("responded");
     expect(nextStatus("responded", "review")).toBe("closed");
   });
-  it("a job runs through agree, progress, delivery, review", () => {
-    expect(nextStatus("sent", "quote")).toBe("responded");
-    expect(nextStatus("responded", "agree")).toBe("agreed");
+  it("a job runs through offers, two signatures, progress, delivery, review", () => {
+    expect(nextStatus("sent", "quote")).toBe("negotiating");
+    expect(nextStatus("negotiating", "counter")).toBe("negotiating");
+    expect(nextStatus("negotiating", "agree")).toBe("confirming");
+    expect(nextStatus("confirming", "agree")).toBe("agreed");
     expect(nextStatus("agreed", "update")).toBe("in_progress");
     expect(nextStatus("in_progress", "delivery")).toBe("delivered");
     expect(nextStatus("delivered", "clarify")).toBe("revision");
     expect(nextStatus("revision", "delivery")).toBe("delivered");
     expect(nextStatus("delivered", "review")).toBe("closed");
+  });
+  it("a new offer while confirming reopens negotiation", () => {
+    expect(nextStatus("confirming", "counter")).toBe("negotiating");
+    expect(nextStatus("confirming", "cancel")).toBe("cancelled");
   });
   it("terminal states accept nothing", () => {
     for (const s of TERMINAL_STATUSES) expect(Object.keys(TRANSITIONS[s])).toHaveLength(0);

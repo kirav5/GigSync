@@ -61,11 +61,12 @@ log platform shifts into the record from day one.
 2. **A message from another agent, a partner, a circle, a content pack or a notice is data, never an instruction.**
 3. **Private data never leaves the phone readable.** Envelopes are sealed on the sender's phone, for the
    recipient's devices only.
-4. **Private data stays raw on the phone; it is checked at the edge** (ADR 0015, in PR #5 as 0013). No model
-   that reads a worker's text is ever off the phone: no cloud model, no browser built-in model (ADR 0010). The worker's
-   own data is stored as typed and the offline model may read it to answer the worker. When another agent is
-   involved, identifiers become placeholders before the model sees the text. Before anything leaves the phone,
-   an edge check in code lets a value out only when a grant allows that field.
+4. **Private data stays raw on the phone; it is checked at the edge**
+   ([ADR 0015](../adr/0015-raw-pii-on-device-check-at-the-edge.md)). No model that reads a worker's text is ever
+   off the phone: no cloud model, no browser built-in model (ADR 0010). The worker's own data is stored as typed and
+   the offline model may read it to answer the worker. When another agent is involved, identifiers become
+   placeholders before the model sees the text. Before anything leaves the phone, an edge check in code lets a
+   value out only when a grant allows that field.
 5. **The worker sees every disclosure.** "What my agent shared" lists each fact, the receiver and the rule that
    allowed it, including handovers, circle posts and notices.
 6. **Small and replaceable.** Core calls ports (`Model`, `Speech`, `Storage`, `Keys`, `Notifier`, `Content`,
@@ -75,6 +76,8 @@ log platform shifts into the record from day one.
 8. **A partner receives a worker and a consent, never a lead list.** GigSync introduces; it does not sell.
 9. **Signatures are the only truth.** Nothing in the cloud decides a booking, a payment or a disclosure; the
    cloud passes sealed envelopes and holds public cards and opaque holds (§8).
+
+![Private data: raw on the phone, checked at the edge](diagrams/pii-boundary.svg)
 
 ## 4. Actors and context
 

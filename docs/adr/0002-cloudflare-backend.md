@@ -1,6 +1,7 @@
 # ADR 0002: Cloudflare Workers and Durable Objects for the backend
 
-Date: 2026-10-21. Status: accepted.
+Date: 2026-10-21. Status: accepted; the directory part is superseded by
+[ADR 0013](0013-neon-postgres-directory.md) (Neon Postgres through Hyperdrive).
 
 ## Decision
 

@@ -79,6 +79,6 @@ never blocks using GigSync; it removes the safety net for a forgotten password.
 - Onboarding has one more screen; sign-up on bsky.social needs an email. Drop-off at this step must be measured in
   the pilot; if it is high, ADR 0003's own PDS (DID created by our API, no Bluesky) is the fallback.
 - Public records sit on Bluesky's servers in the US under Bluesky's terms; private data is unaffected.
-- Handles are `name.bsky.social`; `name.gigsync.app` can be offered later through a Worker serving
+- Handles are `name.bsky.social`; `name.gigsync.network` can be offered later through a Worker serving
   `/.well-known/atproto-did`.
 - Private chats and notes reach the Bluesky repo only as ciphertext the user alone can open (ADR 0007); the public records are the ones the user publishes.

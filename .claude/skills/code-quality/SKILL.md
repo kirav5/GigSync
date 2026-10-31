@@ -1,6 +1,6 @@
 ---
 name: code-quality
-description: Code quality standards for all of GigSync. Load BEFORE writing, changing or reviewing any code — workers/ (Hono API, Durable Objects, index), packages/protocol, packages/core, apps/mobile, plugins/, infra/wrangler (D1 migrations, SQL), wrangler.toml, scripts/ and CI workflows — and when designing tables, routes or data flows. Covers named constants (no magic strings or numbers), structure, file size limits, validation, errors, logging, security, D1 schema and queries, Durable Objects, performance on Workers, app code, and tests.
+description: Code quality standards for all of GigSync. Load BEFORE writing, changing or reviewing any code — workers/ (Hono API, Durable Objects, index), packages/protocol, packages/core, apps/mobile, plugins/, infra/postgres (directory migrations, SQL), wrangler.toml, scripts/ and CI workflows — and when designing tables, routes or data flows. Covers named constants (no magic strings or numbers), structure, file size limits, validation, errors, logging, security, Postgres and D1 schema and queries, Durable Objects, performance on Workers, app code, and tests.
 ---
 
 # Code quality for GigSync
@@ -25,9 +25,11 @@ Read the reference that matches the work before you write code:
 | Mailbox           | `workers/mailbox` (Durable Object/user)   | Own SQLite; expiry by alarm                              |
 | Search index      | `workers/index` (Worker + D1 + IndexHub)  | Fed by Jetstream; D1 is a rebuildable copy               |
 | Schemas           | `packages/protocol` (zod)                 | The only place schemas live                              |
-| Agent logic       | `packages/core`                           | Plain TS, no platform APIs; also the shared logger and HTTP names |
+| Agent logic       | `packages/core`                           | Plain TS, no platform APIs; jobs, mail transport, API client, logger, HTTP names |
+| Crypto            | `packages/crypto`                         | Seal/open, sign/verify, terms hash; pure JS (noble), no secrets kept |
+| E2E journeys      | `tests/e2e`                               | Real devices against a running API + Neon; `pnpm test:e2e` |
 | App               | `apps/mobile` (React + Capacitor)         | UI and adapters; platform APIs only in `src/adapters`    |
-| Directory DB      | D1 `gigsync-directory`                     | Migrations in `infra/wrangler/d1/directory`              |
+| Directory DB      | Neon Postgres via Hyperdrive (ADR 0013)   | `pg`; migrations in `infra/postgres/directory`           |
 
 ## Hard rules
 
@@ -43,7 +45,7 @@ Read the reference that matches the work before you write code:
 5. **No magic strings or numbers.** A value that carries meaning gets a name (see "Named values" below). `pnpm lint`
    fails on a string compared with `===`/`!==` or used as a `case`, and on any string repeated 3+ times in a file.
 6. **No `any`.** Use the branded ids (`UserId`, `DeviceId`, `MessageId`) from `@gigsync/protocol`, `unknown` plus
-   parsing for outside data, and real D1 row types.
+   parsing for outside data, and real database row types.
 7. **No dead code.** No commented-out code, unused exports, bare `console.log` (use `log`), or speculative options.
    `TODO` only with a milestone, as the repo does: `// TODO(M2): verify sig against the directory key.`
 8. **SQL values are always bound** (`prepare(...).bind(...)`), never interpolated into the string.
@@ -129,8 +131,8 @@ the existing code.
 - The free plan allows 10 ms of CPU per request. Keep crypto, JSON work and loops per request small; move heavy
   work to a cron, queue or Durable Object alarm.
 - Run independent awaits together with `Promise.all`. Never `await` inside a loop over remote calls.
-- D1 is remote: one round trip per statement. Use `db.batch([...])` for several statements, `IN (...)` instead of a
-  loop of lookups. Durable Object SQLite is local and synchronous, so a loop of `sql.exec` there is fine.
+- D1 and the Postgres directory are remote: one round trip per statement. Group writes (`db.batch` on D1, one
+  `transaction` on Postgres), use `IN (...)` / `= ANY($1)` instead of a loop of lookups. Durable Object SQLite is local and synchronous, so a loop of `sql.exec` there is fine.
 - Select only the columns you use, always `LIMIT` lists, and make sure an index serves each hot query.
 - Use Web Platform APIs (`crypto.subtle`, `fetch`, `Response.json`) before adding a dependency. A new dependency
   needs a reason: it must run on Workers and be worth its bundle size.
@@ -138,9 +140,9 @@ the existing code.
 ## Workflow
 
 1. Schema in `packages/protocol` → build it (`pnpm --filter @gigsync/protocol build`).
-2. Migration in `infra/wrangler/d1/<db>/` if the data model changes (see `references/data.md`).
+2. Migration in `infra/postgres/directory/` (or the index's D1) if the data model changes (see `references/data.md`).
 3. Data-access functions, then domain logic, then the route.
-4. Tests in the Worker's `test/` folder (`@cloudflare/vitest-pool-workers`, `applyD1Migrations`).
+4. Tests in the Worker's `test/` folder (`@cloudflare/vitest-pool-workers`; the API's run on a local Postgres).
 5. `pnpm lint && pnpm typecheck && pnpm test` must pass. Run `pnpm lint` before **every** commit, including
    docs-only ones: Biome formats Markdown (tables, lists) and the file-size check reads every tracked file. The
    committed hooks in `.githooks/` (installed by `pnpm install` via `prepare`) run lint on commit and typecheck on

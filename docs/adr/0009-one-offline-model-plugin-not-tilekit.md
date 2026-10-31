@@ -30,7 +30,7 @@ GigSync's offline model plugin already covers every platform it targets:
    every platform. Behind it:
    - LiteRT-LM on Android;
    - Foundation Models on Apple;
-   - a WebGPU in-browser engine on the web;
+   - Chrome's built-in Gemini Nano on the web (desktop Chrome 138+; not available in phone browsers);
    - Ollama in development only.
 2. GigSync does not depend on Tiles or Tilekit. The union desk is the same app in union mode, usually the web build,
    not a separate desktop app.

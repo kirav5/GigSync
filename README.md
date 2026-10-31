@@ -16,11 +16,10 @@ order, phases, risks). The decisions are in [docs/adr](docs/adr); start with
 circles, work modes, registration, no ratings). The market research behind the vision is in
 `reports/India gig worker benefits and GigSync fit.md`. GigSync is a working name.
 
-On `main` the code is the M0 foundation (agent core, protocol, mailbox, policy engine and offline model plugin);
-the agent-to-agent job flow is in [PR #8](https://github.com/kirav5/GigSync/pull/8) on top of the Neon directory
-in [PR #7](https://github.com/kirav5/GigSync/pull/7). `gigsync.app` is a placeholder domain: custom domains are
-commented out in the `wrangler.toml` files and the database ids are placeholders until GigSync's own Cloudflare
-and Neon resources exist.
+On `main` the code is the M0 foundation (agent core, protocol, mailbox, policy engine and offline model plugin) with
+the agent-to-agent job flow ([#11](https://github.com/kirav5/GigSync/pull/11)) on the Neon directory
+([#7](https://github.com/kirav5/GigSync/pull/7)). The pilot runs on `gigsync.network`: the app on `gigsync.network` and
+`www.`, the API on `api.gigsync.network`.
 
 The skeleton builds, tests and deploys end to end. Nothing in GigSync calls a cloud model: the only models are
 small, open ones that run on the phone, and the app works with none installed.
@@ -28,14 +27,18 @@ small, open ones that run on the phone, and the app works with none installed.
 ## Layout
 
 ```
-packages/protocol   zod schemas shared by the app and every Worker (envelope, engagement, grant, records)
-packages/core       the agent: router, experts, engagement machine, policy engine, outbox/inbox (plain TS)
-workers/api         sign-in, directory, mailbox and inbox routes (Hono on Workers, D1); deploys the Mailbox DO
+packages/protocol   zod schemas shared by the app and every Worker (envelope, job bodies, board, engagement, records)
+packages/crypto     device keys, sealing to devices (X25519 + XChaCha20-Poly1305), Ed25519 signatures, terms hash
+packages/core       the agent: jobs (negotiate, deal, payment), mail transport, API client, policy (plain TS)
+workers/api         sign-in, directory, job board, mailbox and inbox routes (Hono on Workers, Neon); deploys the Mailbox DO
 workers/mailbox     the Mailbox Durable Object, one per user
 workers/index       search index over public records (Workers + D1), carried over from the Swift app
 apps/mobile         the Capacitor app: React UI + adapters that implement core's ports; android/ and ios/ inside
 plugins/gigsync-llm Capacitor plugin for the offline model: LiteRT-LM (Android), Foundation Models (Apple), web
-infra/              D1 migrations; an unused PDS docker-compose (ADR 0005)
+infra/              directory migrations for Neon Postgres (ADR 0013); an unused PDS docker-compose (ADR 0005)
+neon.ts             the Neon services the project's branches get (Postgres)
+tests/e2e           consumers and workers on real devices against a running API and Neon (ADR 0014)
+tests/ui            the same journey through the app's screens, two browser profiles side by side (Playwright)
 docs/               design and ADRs
 ```
 
@@ -54,18 +57,31 @@ changing anything under `packages/` or `plugins/`:
 pnpm -r --filter './packages/*' --filter './plugins/*' run build
 ```
 
+The API tests need a throwaway Postgres 18 on port 54329, which they wipe on every run (CI runs the same):
+
+```bash
+docker run -d --name gigsync-test-db -e POSTGRES_PASSWORD=postgres -p 54329:5432 postgres:18
+```
+
 ```bash
 pnpm test
 ```
 
-Local settings for the API (sign-in code `000000`, full logs), then the local directory database:
+Local settings for the API (sign-in code `000000`, full logs):
 
 ```bash
 cp workers/api/.dev.vars.example workers/api/.dev.vars
 ```
 
+The directory is Neon Postgres (ADR 0013). Pull its connection strings into `.env.local` (git-ignored; needs
+`npm i -g neon` and `neon login`), then create the tables. `pnpm dev:workers` reads the same file:
+
 ```bash
-pnpm --filter @gigsync/worker-api exec wrangler d1 migrations apply gigsync-directory --local
+neon env pull
+```
+
+```bash
+pnpm --filter @gigsync/worker-api db:migrate
 ```
 
 ```bash
@@ -85,6 +101,29 @@ Try the local API:
 
 ```bash
 curl -s -X POST localhost:8787/v1/auth/otp/verify -H 'content-type: application/json' -d '{"phone":"+919800000001","code":"000000","device":{"signing_key":"a","encryption_key":"b","protocol":1}}'
+```
+
+### Two people, end to end
+
+Consumers find workers on the board, and their agents negotiate, sign, swap contacts and settle payment through the
+API, sealed and signed on each device ([ADR 0014](docs/adr/0014-agent-to-agent-jobs.md)). With `pnpm dev:workers`
+running (it needs the Neon directory migrated, above), play several electricians, plumbers, maids and their customers
+against it:
+
+```bash
+pnpm test:e2e
+```
+
+Each run lists its workers at a random spot in India and unlists them afterwards; a run takes several minutes locally,
+since every call crosses to Neon in Singapore.
+
+The same journey through the app's screens: a customer and an electrician, each in their own browser profile, from
+search to signed deal, contacts, UPI payment and review. It drives the Chrome installed on this machine, starts
+`pnpm dev:app` and `pnpm dev:workers` if they are not running, and saves both screens at every step in
+`tests/ui/screenshots/`:
+
+```bash
+pnpm test:ui
 ```
 
 ### A local model (optional)
