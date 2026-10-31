@@ -12,7 +12,7 @@ jobs:
     runs-on: macos-15
     env:
       # The API address baked into the app build. Set the API_BASE repository variable to move it (e.g. a custom domain).
-      VITE_API_BASE: ${{ vars.API_BASE || 'https://gigsync-api.gigsync.workers.dev' }}
+      VITE_API_BASE: ${{ vars.API_BASE || 'https://api.gigsync.network' }}
       HAS_APPLE: ${{ secrets.APPLE_CERT_P12_BASE64 != '' && secrets.APP_STORE_CONNECT_API_KEY_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4

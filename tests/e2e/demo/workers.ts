@@ -5,7 +5,7 @@ import { type Person, worker } from "../test/world.js";
 /**
  * Lists a few workers around Bengaluru on the local board and keeps their agents running, so one person can try the
  * consumer side in the app without a second phone. Each demo worker signs the deal its agent reaches, does the job,
- * asks for payment and confirms it. Ctrl+C takes them off the board.
+ * asks for payment and confirms it. Ctrl+C (or SIGTERM) takes them off the board.
  *
  *   pnpm dev:workers   # the API on :8787
  *   pnpm demo:workers
@@ -72,9 +72,12 @@ const listed = await Promise.all(
 log.info("demo workers listed", { workers: listed.map((p) => p.name).join(", ") });
 
 let stopping = false;
-process.on("SIGINT", () => {
-  stopping = true;
-});
+// Ctrl+C, or a terminal or tool stopping the process: either way, take the demo cards off the board first.
+for (const signal of ["SIGINT", "SIGTERM"] as const) {
+  process.on(signal, () => {
+    stopping = true;
+  });
+}
 
 while (!stopping) {
   await Promise.all(

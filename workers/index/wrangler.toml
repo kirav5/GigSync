@@ -6,8 +6,7 @@ compatibility_date = "2026-09-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "gigsync-index"
-# Placeholder: replace with the id from `wrangler d1 create gigsync-index` (never reuse Collab's database).
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "4ab1855f-cf3a-4c6e-b1e0-0e8a18612934"
 
 # One Durable Object follows Jetstream (outbound WebSocket keeps it alive) and holds open searches (hibernatable sockets).
 [[durable_objects.bindings]]

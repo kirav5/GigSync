@@ -624,16 +624,16 @@ web build check. Branch → PR → green → squash merge; DCO sign-off (see `.c
 
 ## 14. Rename from Collab (done in G0)
 
-| Collab (collabai.network)                             | GigSync                                                                                          |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| root `collabai.network`, scope `@collab/*`            | root `gigsync`, scope `@gigsync/*`                                                               |
-| Workers `collab-api`, `collab-index`, `collab-app`    | `gigsync-api`, `gigsync-index` (→ `gigsync-board`), `gigsync-app`                                |
-| D1 `collab-directory`, `collab-index`                 | Neon directory (ADR 0013) via Hyperdrive, D1 `gigsync-index`; ids are placeholders until created |
-| domains `collabai.network`, `api.`, `www.`            | `gigsync.app` placeholder; custom-domain routes commented out                                    |
-| NSIDs `network.collabai.*`                            | `app.gigsync.*`                                                                                  |
-| app id `network.collabai.app`, name "Collab"          | `app.gigsync`, "GigSync" (Android, iOS, Capacitor)                                               |
-| `plugins/collab-llm`, `CollabLLM*`, `CollabPluginLlm` | `plugins/gigsync-llm`, `GigSyncLLM*`, `GigsyncPluginLlm`                                         |
-| workers.dev subdomain `collab-index-worker`           | `gigsync` (set the `API_BASE` repo variable if yours differs)                                    |
+| Collab (collabai.network)                             | GigSync                                                                  |
+| ----------------------------------------------------- | ------------------------------------------------------------------------ |
+| root `collabai.network`, scope `@collab/*`            | root `gigsync`, scope `@gigsync/*`                                       |
+| Workers `collab-api`, `collab-index`, `collab-app`    | `gigsync-api`, `gigsync-index` (→ `gigsync-board`), `gigsync-app`        |
+| D1 `collab-directory`, `collab-index`                 | Neon directory (ADR 0013) via Hyperdrive, D1 `gigsync-index`             |
+| domains `collabai.network`, `api.`, `www.`            | `gigsync.network`, `api.`, `www.`                                        |
+| NSIDs `network.collabai.*`                            | `app.gigsync.*`                                                          |
+| app id `network.collabai.app`, name "Collab"          | `app.gigsync`, "GigSync" (Android, iOS, Capacitor)                       |
+| `plugins/collab-llm`, `CollabLLM*`, `CollabPluginLlm` | `plugins/gigsync-llm`, `GigSyncLLM*`, `GigsyncPluginLlm`                 |
+| workers.dev subdomain `collab-index-worker`           | not used: the app calls `api.gigsync.network` (`API_BASE` repo variable) |
 
 Kept on purpose: `workers/index` still reads the Swift Collab app's Nostr wire format (`collab` tag,
 `collab-` category prefix, `dev.collab.*` collections) because its signed test fixtures must keep verifying; the
