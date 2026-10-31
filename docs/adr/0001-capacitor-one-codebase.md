@@ -11,8 +11,7 @@ Kotlin and Swift code is limited to plugins behind the interfaces in `packages/c
 
 - Android first for India, iPhone and Mac next, from the same code: about 8–10 developer-weeks to add Apple
   instead of 4–5 months for a second native app.
-- The web app (collab-market) and the Swift app's model code can both be reused: the first in the UI, the
-  second inside the iOS plugins.
+- The web UI and the native model plugins are reused across every platform from one codebase.
 - Hiring: TypeScript is the easiest skill to find.
 
 ## Consequences
