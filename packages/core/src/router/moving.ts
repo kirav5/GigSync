@@ -1,6 +1,7 @@
 import { City, Lang } from "@gigsync/protocol";
 import { normalize } from "../interview/normalize.js";
 import { startsWord, type WordTest } from "../landing/ask-words.js";
+import { aboutSomeoneElse } from "./speaker.js";
 
 const L = Lang.enum;
 
@@ -43,10 +44,14 @@ export interface MovingIntent {
   certain: boolean;
 }
 
-/** Moving to a new city, when the owner's words say so ("I'm moving to Bengaluru", "मैं बेंगलुरु जा रहा हूँ"). */
+/**
+ * Moving to a new city, when the owner's words say so ("I'm moving to Bengaluru", "मैं बेंगलुरु जा रहा हूँ"), and not
+ * when they are about someone else moving.
+ */
 export function movingIntent(text: string, lang: Lang): MovingIntent | undefined {
   const said = normalize(text);
-  if (said.length === 0) return undefined;
+  // "My brother is moving to Bengaluru" is news, not the owner's move.
+  if (said.length === 0 || aboutSomeoneElse(text, lang)) return undefined;
   const city = CITY_TESTS.find(({ names }) => names.some((named) => named(said)))?.city;
   const moving = MOVING_TESTS[lang].some((heard) => heard(said));
   const going = city !== undefined && GOING_TESTS[lang].some((heard) => heard(said));

@@ -51,6 +51,9 @@ export const estimate = {
   "estimate.reason_jobs.other": "The usual rate for this job is {low}–{high}, from {count} jobs on GigSync.",
   "estimate.market_none":
     "I can't say yet what {trade} usually charges in {place}: too few jobs on GigSync and too few prices on the web.",
+  "estimate.amount_below": "{amount} is below that range.",
+  "estimate.amount_within": "{amount} is within that range.",
+  "estimate.amount_above": "{amount} is above that range.",
   "estimate.answer": "{text}",
   "estimate.legal_min": "Nothing here is below the legal minimum of {min}.",
   "estimate.sources": "Sources",

@@ -34,7 +34,7 @@ export { cardEstimate, withEstimate } from "./card-estimate.js";
 export { aboutIsPrivate, choose, hear } from "./card-parse.js";
 export { legalLines, legalMonthly, rateHint, rateNote } from "./card-rates.js";
 export { estimateLines, type FoundEstimate } from "./estimate-lines.js";
-export { editIntent } from "./lexicon.js";
+export { editIntent, type Field } from "./lexicon.js";
 
 /** The chip for each field the owner can change from confirm, labelled as on the My card form. */
 const FIELD_LABEL: Readonly<Record<Field, MessageKey>> = {

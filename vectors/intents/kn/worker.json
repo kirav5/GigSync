@@ -1,0 +1,192 @@
+{
+  "cases": [
+    {
+      "id": "kn-edit-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನನ್ನ ದರ ಬದಲಾಯಿಸಿ",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "list"
+    },
+    {
+      "id": "kn-edit-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನನ್ನ ಏರಿಯಾ ಬದಲಿಸಿ",
+      "intent": "editCard",
+      "slots": { "field": "area" },
+      "source": "list"
+    },
+    {
+      "id": "kn-edit-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nanna rate change maadi",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "list"
+    },
+    {
+      "id": "kn-edit-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ರೇಟ್ ಸ್ವಲ್ಪ ಜಾಸ್ತಿ ಮಾಡಿ, 700 ಇಡಿ",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-edit-05",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಈಗ ಪೇಂಟಿಂಗ್ ಕೆಲಸ ಮಾಡಲ್ಲ, ಬರೀ ಪ್ಲಂಬಿಂಗ್ ಮಾಡ್ತೀನಿ",
+      "intent": "editCard",
+      "slots": { "field": "trade" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpOffer-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೊಸಬರಿಗೆ ಸಹಾಯ ಮಾಡ್ತೀನಿ",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "kn-helpOffer-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಮ್ಮೂರಿಂದ ಯಾರಾದ್ರೂ ಬೆಂಗಳೂರಿಗೆ ಬಂದ್ರೆ ನಾನು ಎಲ್ಲಾ ತೋರಿಸ್ತೀನಿ",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಸಹಾಯ ನಿಲ್ಲಿಸಿ, ಈಗ ಟೈಮ್ ಇಲ್ಲ",
+      "intent": "helpStop",
+      "source": "list"
+    },
+    {
+      "id": "kn-helpStop-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "mentor list inda nanna hesaru tegedu haaki",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-earnings-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಈ ವಾರ ಎಷ್ಟು ಸಂಪಾದನೆ ಆಯ್ತು?",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "kn-earnings-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಈ ತಿಂಗಳು ಎಷ್ಟು ದುಡ್ಡು ಬಂತು?",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "kn-earnings-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ee vaara eshtu duddu bantu?",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kn-earnings-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೋದ ವಾರದ ಹಣ ಎಲ್ಲಾ ಬಂತಾ?",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kn-chat-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನನ್ನ ದುಡಿಮೆಯಿಂದಲೇ ಮನೆ ನಡೆಯೋದು",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "kn-moving-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಮುಂದಿನ ತಿಂಗಳು ಬೆಂಗಳೂರಿಗೆ ಶಿಫ್ಟ್ ಆಗ್ತಿದ್ದೀನಿ",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "kn-moving-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "kelsakke Bangalore ge hogtidini",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-moving-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ದೀಪಾವಳಿ ಆದ್ಮೇಲೆ ಕೆಲಸ ಹುಡುಕ್ಕೊಂಡು ಬೆಂಗಳೂರಿಗೆ ಬರ್ತೀನಿ",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-chat-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನನ್ನ ತಮ್ಮ ಬೆಂಗಳೂರಿಗೆ ಶಿಫ್ಟ್ ಆಗ್ತಿದ್ದಾನೆ",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "kn-guide-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಮೊದಲ ಕೆಲವು ದಿನ ಎಲ್ಲಿ ಉಳಿಯಬಹುದು?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kn-guide-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೊಸ ಸಿಮ್ ಹೇಗೆ ತಗೊಳ್ಳೋದು?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kn-guide-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಓನರ್ ಎರಡು ವಾರದಿಂದ ದುಡ್ಡು ಕೊಟ್ಟಿಲ್ಲ, ಏನು ಮಾಡ್ಲಿ?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kn-guide-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "bank account hege open maadodu?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    }
+  ]
+}

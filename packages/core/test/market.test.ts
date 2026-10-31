@@ -2,7 +2,9 @@ import { City, type EstimateRequest, Lang, Trade } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import { lineSentence } from "../src/estimate/market.js";
 import {
+  amountLine,
   ExplainedBy,
+  marketAnswer,
   marketLines,
   marketQuestion,
   marketRequest,
@@ -23,7 +25,7 @@ const AREAS = [
   { key: "jayanagar", names: ["Jayanagar", "जयनगर", "ಜಯನಗರ"] },
   { key: "hsr_layout", names: ["HSR Layout", "HSR", "एचएसआर लेआउट"] },
 ];
-const options = { areas: AREAS, today: "2026-10-31" };
+const options = { areas: AREAS };
 const ask = (text: string, lang: Lang = en, own?: Trade) => marketQuestion(text, lang, { ...options, own });
 
 describe("hearing a market question", () => {
@@ -122,5 +124,32 @@ describe("wording the answer", () => {
     const hindi = said("जयनगर में कुक आम तौर पर ₹10,500 से ₹12,500 महीना लेते हैं।");
     expect((await wordMarket(new FakeModel(hindi), en, lines)).by).toBe(ExplainedBy.template);
     expect((await wordMarket(new FakeModel(new Error("down")), en, lines)).by).toBe(ExplainedBy.template);
+  });
+});
+
+describe("an amount the owner asked about", () => {
+  const q = { trade: T.cook, area: "jayanagar", details: {} };
+  const found = { request: marketRequest(city, q) as EstimateRequest, estimate: COOK_GIGSYNC };
+  const verdict = (paise: number, lang: Lang = en) => lineSentence(lang, amountLine(paise, found));
+
+  it("falls below, within or above the range, said in each language", () => {
+    expect(verdict(800_000)).toBe("₹8,000 is below that range.");
+    expect(verdict(1_100_000)).toBe("₹11,000 is within that range.");
+    expect(verdict(1_500_000, hi)).toBe("₹15,000 इस दायरे से ज़्यादा है।");
+    expect(verdict(800_000, kn)).toBe("₹8,000 ಈ ವ್ಯಾಪ್ತಿಗಿಂತ ಕಡಿಮೆ.");
+  });
+
+  it("is said after the facts as the template says it, even when a model words the facts", async () => {
+    const asked = { ...q, amount_paise: 800_000 };
+    const plain = await marketAnswer(undefined, en, city, asked, found);
+    expect(plain.text.endsWith(" ₹8,000 is below that range.")).toBe(true);
+    const facts = marketLines(en, city, q, found)
+      .map((l) => lineSentence(en, l))
+      .join(" ");
+    const model = new FakeModel(JSON.stringify({ text: facts }));
+    const worded = await marketAnswer(model, en, city, asked, found);
+    expect(worded).toEqual({ text: `${facts} ₹8,000 is below that range.`, by: ExplainedBy.model });
+    expect(model.prompts[0]).not.toContain("below that range");
+    expect((await marketAnswer(undefined, en, city, asked, undefined)).text).not.toContain("₹8,000");
   });
 });

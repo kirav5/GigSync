@@ -133,12 +133,18 @@ export const showSection = (deps: MoveDeps, ref: ChatRef, said: string, city: Ci
  * something the guide covers (then saying it has nothing yet). False when the words are not about the guide at all,
  * so they go to the agent as any other note.
  */
-export async function answerFromGuide(deps: MoveDeps, said: string, city: City): Promise<boolean> {
+export async function answerFromGuide(
+  deps: MoveDeps,
+  said: string,
+  city: City,
+  answering: () => void,
+): Promise<boolean> {
   const ref = openRef();
   const guide = await guideOf(deps, city);
   if (!guide) return false;
   const reply = await questionReply(guide, said, { lang: deps.lang, model: deps.ports.model });
   if (!reply && !asksGuide(said, deps.lang)) return false;
+  answering();
   say(ref, noteTurn(said), guideTurn(city, reply ?? {}));
   return true;
 }

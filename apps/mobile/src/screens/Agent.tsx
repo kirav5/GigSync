@@ -1,18 +1,17 @@
 import {
-  type Card,
   CardKind,
+  ChatIntent,
+  ChatRole,
+  type ChatRoute,
   type Agent as CoreAgent,
-  earningsIntent,
   edit,
-  editIntent,
   type GigDevice,
-  HelpIntent,
-  helpIntent,
   log,
   movingIntent,
   type Ports,
   passbook,
   prompt,
+  RouteVia,
   Slot,
   start,
 } from "@gigsync/core";
@@ -24,14 +23,17 @@ import {
   addNote,
   answerInterview,
   beginInterview,
+  dropNote,
+  type NoteRef,
   noteAnswered,
   pauseInterview,
   relanguageInterview,
   resumeInterview,
 } from "../card/interviewStore.js";
 import { accountDraft } from "../card/publish.js";
-import { answerMarket, heardMarket } from "../estimate/market.js";
+import { answerMarket, routedMarket } from "../estimate/market.js";
 import { useI18n } from "../i18n.js";
+import { moveCity } from "../talk/moveStore.js";
 import { openChat, useTalk } from "../talk/talkStore.js";
 import { useMoves } from "../talk/useMoves.js";
 import { Composer, Via } from "../ui/Composer.js";
@@ -43,6 +45,16 @@ import type { GigView } from "../useGig.js";
 import { Interview } from "./Interview.js";
 import { type Suggestion, Suggestions } from "./talk/TalkStart.js";
 import "./talk.css";
+
+/** What the agent's own experts answer: notes, questions, contacts, finding and chat. */
+const AGENT_INTENTS: ReadonlySet<ChatIntent> = new Set([
+  ChatIntent.remember,
+  ChatIntent.askSelf,
+  ChatIntent.askContact,
+  ChatIntent.setRule,
+  ChatIntent.find,
+  ChatIntent.chat,
+]);
 
 interface TalkProps {
   agent: CoreAgent;
@@ -102,13 +114,12 @@ export function AgentScreen(props: TalkProps) {
 
   const fresh = () => start(interviewConfig(lang), accountDraft(account));
 
-  /** The owner's words and the answer from this phone's passbook: received this week and month, and still to come. */
-  function answerEarnings(own: string) {
+  /** The answer to a note from this phone's passbook: received this week and month, and still to come. */
+  function answerEarnings(note: NoteRef) {
     const now = new Date();
     const { totals } = passbook(view.jobs, view.payments, account.session.user, now, -now.getTimezoneOffset());
     const params = { week: money(totals.week), month: money(totals.month), waiting: money(totals.waiting) };
-    const card: Card = { kind: CardKind.text, say: { key: "agent.earnings", params } };
-    noteAnswered(addNote(own), card);
+    noteAnswered(note, { kind: CardKind.text, say: { key: "agent.earnings", params } });
   }
 
   const isWorker = account.role === AccountRole.worker;
@@ -122,46 +133,53 @@ export function AgentScreen(props: TalkProps) {
           } as const,
         ]
       : []),
-    { label: "agent.suggest_earned", run: answerEarnings },
+    { label: "agent.suggest_earned", run: (said: string) => answerEarnings(addNote(said)) },
     ...(isWorker ? [{ label: "moving.suggest", run: (said: string) => moves.start(said, undefined) } as const] : []),
   ];
 
-  async function sendNote(own: string) {
-    const field = editIntent(own);
-    if (field) {
-      beginInterview(account.worker ? edit(fresh(), field) : fresh(), own);
-      return;
-    }
-    const help = isWorker ? helpIntent(own, lang) : undefined;
-    if (help) return help === HelpIntent.offer ? moves.offer(own) : moves.stop(own);
-    const moving = movingIntent(own, lang);
-    if (moving) return moves.start(own, moving.city);
-    const market = heardMarket(own, lang, ports.clock.now(), account.worker?.trades[0]);
+  /** Words that go on to an answer showing them itself: the note shown while routing makes way for it. */
+  const handOver = (note: NoteRef, then: () => void) => {
+    dropNote(note);
+    then();
+  };
+
+  /** Where a routed note goes; the agent's experts answer whatever no screen handles. */
+  async function follow(route: ChatRoute, own: string, note: NoteRef): Promise<void> {
+    const { intent, slots } = route;
+    if (intent === ChatIntent.editCard)
+      return handOver(note, () =>
+        beginInterview(account.worker && slots.field ? edit(fresh(), slots.field) : fresh(), own),
+      );
+    if (intent === ChatIntent.helpOffer) return handOver(note, () => moves.offer(own));
+    if (intent === ChatIntent.helpStop) return handOver(note, () => moves.stop(own));
+    if (intent === ChatIntent.moving) return handOver(note, () => moves.start(own, slots.city));
+    if (intent === ChatIntent.earnings) return answerEarnings(note);
+    const market = intent === ChatIntent.market ? routedMarket(own, slots, account.worker?.trades[0]) : undefined;
     if (market) {
       // What the market pays, from the estimate route (ADR 0039 §2); the answer lands under the words when it comes.
-      const id = addNote(own);
       const answer = await answerMarket(account.session, ports.model, lang, market);
-      noteAnswered(id, { kind: CardKind.text, words: { text: answer.text, lang } });
-      return;
+      return noteAnswered(note, { kind: CardKind.text, words: { text: answer.text, lang } });
     }
-    if (earningsIntent(own, lang)) {
-      answerEarnings(own);
-      return;
-    }
+    // In a chat about a move, a question the city's guide answers is answered from it. Without a model the guide's
+    // own words decide, as they always did: the word lists cannot see what the guide covers.
+    const guide = intent === ChatIntent.guide || (route.via === RouteVia.keywords && AGENT_INTENTS.has(intent));
+    if (guide && (await moves.followUp(own, () => dropNote(note)))) return;
+    noteAnswered(note, await agent.answer(own, route));
+  }
+
+  async function sendNote(own: string) {
     if (busy || moves.busy) return;
     setBusy(true);
-    // In a chat about a move, a question the city's guide answers is answered from it.
-    if (await moves.followUp(own)) {
-      setBusy(false);
-      return;
-    }
     // Kept outside the screen: an answer that comes after the owner went to another screen still lands under its note.
-    const id = addNote(own);
+    const note = addNote(own);
     try {
-      noteAnswered(id, (await agent.handle(own)).card);
+      const trades = account.worker?.trades ?? [];
+      const role = isWorker ? ChatRole.worker : ChatRole.household;
+      const route = await agent.route(own, { lang, role, trades, inMove: moveCity(turns) !== undefined });
+      await follow(route, own, note);
     } catch (err) {
       log.warn("note failed", { error: err instanceof Error ? err.message : String(err) });
-      noteAnswered(id, { kind: CardKind.text, say: { key: errorKey(err) } });
+      noteAnswered(note, { kind: CardKind.text, say: { key: errorKey(err) } });
     } finally {
       setBusy(false);
     }

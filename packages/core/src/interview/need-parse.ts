@@ -216,21 +216,30 @@ function detailsIn(text: string, words: string): Partial<Record<QuestionKey, str
   return details;
 }
 
-/** Everything one sentence about a need gives: "bedroom fan not working, need an electrician tomorrow morning, up to 700". */
-export function parseNeed(text: string, { areas, today }: NeedParseOptions): NeedFill {
+/** The job a sentence names: its trade, its area and its details, without the day, the time or the budget. */
+export type JobFill = Pick<NeedFill, "trade" | "area" | "details" | "words">;
+
+/** The job one sentence names, as a market question reads it: "painting a 2BHK in Jayanagar" is a painter's job. */
+export function jobIn(text: string, areas: readonly AreaChoice[]): JobFill {
   const trade = tradeIn(text);
   const area = areaNamedIn(text, areas);
+  const words = withoutMoney(text);
+  return { ...(trade ? { trade } : {}), ...(area ? { area } : {}), details: detailsIn(text, words), words };
+}
+
+/** Everything one sentence about a need gives: "bedroom fan not working, need an electrician tomorrow morning, up to 700". */
+export function parseNeed(text: string, { areas, today }: NeedParseOptions): NeedFill {
+  const { trade, area, details, words } = jobIn(text, areas);
   const day = dayIn(text, today);
   const time = timeIn(text);
   const budget_paise = amountIn(text, true);
-  const words = withoutMoney(text);
   return {
     ...(trade ? { trade } : {}),
     ...(area ? { area } : {}),
     ...(day ? { day } : {}),
     ...(time ? { time } : {}),
     ...(budget_paise ? { budget_paise } : {}),
-    details: detailsIn(text, words),
+    details,
     words,
   };
 }

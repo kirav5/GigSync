@@ -25,8 +25,11 @@ export interface MoveNav {
 export interface Moves {
   busy: boolean;
   start: (said: string, city: City | undefined) => void;
-  /** A question in a chat about a move, answered from the guide; false when the guide is not what it asks about. */
-  followUp: (said: string) => Promise<boolean>;
+  /**
+   * A question in a chat about a move, answered from the guide; false when the guide is not what it asks about.
+   * `answering` runs just before the answer lands, so the words shown while it was found make way for it.
+   */
+  followUp: (said: string, answering: () => void) => Promise<boolean>;
   offer: (said: string) => void;
   stop: (said: string) => void;
   stay: (city: City, label: string) => void;
@@ -88,10 +91,10 @@ export function useMoves(deps: MoveDeps, nav: MoveNav): Moves {
   return {
     busy,
     start: (said, city) => guard("move failed", () => startMove(deps, said, city)),
-    followUp: async (said) => {
+    followUp: async (said, answering) => {
       const city = moveCity(turnsOf(openRef()));
       if (!city || working.current) return false;
-      return answerFromGuide(deps, said, city).catch(() => false);
+      return answerFromGuide(deps, said, city, answering).catch(() => false);
     },
     offer: (said) => guard("offer to help failed", () => offerHelp(deps, openRef(), said)),
     stop: (said) => guard("stop helping failed", () => stopHelping(deps, openRef(), said)),

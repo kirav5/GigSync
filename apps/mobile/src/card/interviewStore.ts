@@ -88,6 +88,20 @@ export function noteAnswered(note: NoteRef, card: Card): void {
   });
 }
 
+/** Takes a note away again: its words go on to whatever answers them, which shows them itself. */
+export function dropNote(note: NoteRef): void {
+  if (note.generation !== talkGeneration()) return;
+  updateTalk((t) => {
+    const turns = turnsIn(t, note.chat);
+    if (!turns.some((turn) => turn.id === note.id)) return t;
+    return withChatTurns(
+      t,
+      note.chat,
+      turns.filter((turn) => turn.id !== note.id),
+    );
+  });
+}
+
 function answered(next: (state: InterviewState) => InterviewState, label: string): void {
   inOpen((t, live) => {
     const state = next(live.state);

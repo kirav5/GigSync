@@ -1,9 +1,10 @@
 import { Lang, type Trade } from "@gigsync/protocol";
 import type { AreaChoice } from "../interview/card.js";
-import { amountIn, parseNeed } from "../interview/need-parse.js";
+import { amountIn, jobIn } from "../interview/need-parse.js";
 import { normalize } from "../interview/normalize.js";
 import { startsWord, type WordTest } from "../landing/ask-words.js";
 import { earningsIntent } from "./earnings.js";
+import type { ChatSlots } from "./intent.js";
 
 const L = Lang.enum;
 
@@ -56,13 +57,13 @@ export interface MarketQuestion {
   trade: Trade;
   area?: string;
   details: Readonly<Record<string, string>>;
+  /** An amount the owner asks about ("is ₹8,000 fair?"), in paise: the answer says where it falls in the range. */
+  amount_paise?: number;
 }
 
 export interface MarketOptions {
   /** The pilot's areas and every name each is said by. */
   areas: readonly AreaChoice[];
-  /** The phone's calendar day, "YYYY-MM-DD", which reading a need's words takes. */
-  today: string;
   /** The asker's own trade (a worker's card), for "what is the rate in Jayanagar?" said with an area but no trade. */
   own?: Trade;
 }
@@ -72,8 +73,24 @@ export function marketQuestion(text: string, lang: Lang, o: MarketOptions): Mark
   const said = normalize(text);
   if (said.length === 0 || !PRICE_TESTS[lang].some((heard) => heard(said))) return undefined;
   if (earningsIntent(text, lang) || amountIn(text, false) !== undefined) return undefined;
-  const fill = parseNeed(text, { areas: o.areas, today: o.today });
+  const fill = jobIn(text, o.areas);
   const trade = fill.trade ?? (fill.area ? o.own : undefined);
   if (!trade) return undefined;
   return { trade, ...(fill.area ? { area: fill.area } : {}), details: fill.details };
+}
+
+/**
+ * The market question a routed message asks: the trade, area and amount the route named (each already checked), the
+ * asker's own trade when it named none, and the job's size read from the words. Undefined without any trade to price.
+ */
+export function marketOfRoute(text: string, slots: ChatSlots, o: MarketOptions): MarketQuestion | undefined {
+  const trade = slots.trade ?? o.own;
+  if (!trade) return undefined;
+  const { details } = jobIn(text, o.areas);
+  return {
+    trade,
+    ...(slots.area ? { area: slots.area } : {}),
+    details,
+    ...(slots.amount_paise ? { amount_paise: slots.amount_paise } : {}),
+  };
 }

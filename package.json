@@ -21,7 +21,8 @@
     "test:e2e": "pnpm --filter @gigsync/e2e e2e",
     "demo:workers": "pnpm --filter @gigsync/e2e demo:workers",
     "test:ui": "pnpm --filter @gigsync/ui-tests ui",
-    "i18n:sheet": "pnpm --filter @gigsync/core build && node scripts/i18n-sheet.mjs && biome format --write docs/gigsync/i18n-review.md"
+    "i18n:sheet": "pnpm --filter @gigsync/core build && node scripts/i18n-sheet.mjs && biome format --write docs/gigsync/i18n-review.md",
+    "eval:intent": "pnpm --filter @gigsync/core build && node scripts/eval-intent.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.2",

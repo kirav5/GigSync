@@ -1,0 +1,130 @@
+{
+  "cases": [
+    {
+      "id": "en-market-01",
+      "lang": "en",
+      "role": "household",
+      "text": "what do cooks charge in Jayanagar?",
+      "intent": "market",
+      "slots": { "trade": "cook", "area": "jayanagar" },
+      "source": "list"
+    },
+    {
+      "id": "en-market-02",
+      "lang": "en",
+      "role": "household",
+      "text": "how much does a plumber take for fixing a tap?",
+      "intent": "market",
+      "slots": { "trade": "plumber" },
+      "source": "list"
+    },
+    {
+      "id": "en-market-03",
+      "lang": "en",
+      "role": "household",
+      "text": "is ₹8,000 fair for a cook?",
+      "intent": "market",
+      "slots": { "trade": "cook", "amount_paise": 800000 },
+      "source": "miss"
+    },
+    {
+      "id": "en-market-04",
+      "lang": "en",
+      "role": "household",
+      "text": "how much do painters take for a 2BHK",
+      "intent": "market",
+      "slots": { "trade": "painter" },
+      "source": "list"
+    },
+    {
+      "id": "en-market-05",
+      "lang": "en",
+      "role": "household",
+      "text": "what's the going rate for a full-time maid in Koramangala?",
+      "intent": "market",
+      "slots": { "trade": "maid", "area": "koramangala" },
+      "source": "list"
+    },
+    {
+      "id": "en-market-06",
+      "lang": "en",
+      "role": "household",
+      "text": "what are electricians asking these days in HSR?",
+      "intent": "market",
+      "slots": { "trade": "electrician", "area": "hsr_layout" },
+      "source": "miss"
+    },
+    {
+      "id": "en-market-07",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "what is the rate in Whitefield?",
+      "intent": "market",
+      "slots": { "trade": "cook", "area": "whitefield" },
+      "source": "list"
+    },
+    {
+      "id": "en-market-08",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["driver"],
+      "text": "am I asking too little compared to other drivers?",
+      "intent": "market",
+      "slots": { "trade": "driver" },
+      "source": "miss"
+    },
+    {
+      "id": "en-market-09",
+      "lang": "en",
+      "role": "household",
+      "text": "someone quoted 15000 for painting two rooms, is that too much?",
+      "intent": "market",
+      "slots": { "trade": "painter", "amount_paise": 1500000 },
+      "source": "miss"
+    },
+    {
+      "id": "en-market-10",
+      "lang": "en",
+      "role": "household",
+      "text": "how much for an AC service in Indiranagar?",
+      "intent": "market",
+      "slots": { "trade": "ac_technician", "area": "indiranagar" },
+      "source": "list"
+    },
+    {
+      "id": "en-chat-03",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "I cooked for 8 people yesterday",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-find-01",
+      "lang": "en",
+      "role": "household",
+      "text": "need a cook, pay 12000",
+      "intent": "find",
+      "slots": { "trade": "cook" },
+      "source": "list"
+    },
+    {
+      "id": "en-chat-04",
+      "lang": "en",
+      "role": "household",
+      "text": "the price of tomatoes has doubled",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "en-chat-05",
+      "lang": "en",
+      "role": "household",
+      "text": "my driver asked for a raise and I said yes",
+      "intent": "chat",
+      "source": "miss"
+    }
+  ]
+}

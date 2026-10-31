@@ -42,6 +42,17 @@ export function marketLines(own: Lang, city: City, q: MarketQuestion, found: Fou
   return [{ key: "estimate.market_none", names: { trade: [`trade.${q.trade}`], place: placeKey(city, q) } }];
 }
 
+/** Where an amount the owner asked about falls against the range ("is ₹8,000 fair?"): code compares, never a model. */
+export function amountLine(amount: number, { estimate }: FoundEstimate): Line {
+  const key =
+    amount < estimate.low_paise
+      ? "estimate.amount_below"
+      : amount > estimate.high_paise
+        ? "estimate.amount_above"
+        : "estimate.amount_within";
+  return { key, prices: { amount } };
+}
+
 /** A line as one sentence in the owner's language: prices as rupees, names and dates in that language. */
 export function lineSentence(own: Lang, line: Line): string {
   const prices = Object.fromEntries(Object.entries(line.prices ?? {}).map(([k, paise]) => [k, priceText(paise)]));
@@ -84,4 +95,21 @@ export async function wordMarket(
     log.warn("market answer wording failed", { error: err instanceof Error ? err.name : String(err) });
     return fallback;
   }
+}
+
+/**
+ * The whole answer to a market question: the facts, worded as `wordMarket` words them, then where the owner's amount
+ * falls, always as the template says it. A small model rewording "below that range" can turn it into "the lowest in
+ * this range" with every number still right, so that sentence is never handed to it.
+ */
+export async function marketAnswer(
+  model: Model | undefined,
+  own: Lang,
+  city: City,
+  q: MarketQuestion,
+  found: FoundEstimate | undefined,
+): Promise<Explanation> {
+  const worded = await wordMarket(model, own, marketLines(own, city, q, found));
+  if (!found || q.amount_paise === undefined) return worded;
+  return { ...worded, text: `${worded.text}${SENTENCE_GAP}${lineSentence(own, amountLine(q.amount_paise, found))}` };
 }

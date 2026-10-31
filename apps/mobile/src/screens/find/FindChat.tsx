@@ -1,4 +1,5 @@
 import {
+  ChatIntent,
   type GigDevice,
   type Line,
   log,
@@ -16,7 +17,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
 import { stopSpeaking } from "../../adapters/speech.js";
 import { needConfig } from "../../card/choices.js";
-import { answerMarket, heardMarket } from "../../estimate/market.js";
+import { answerMarket, routedMarket } from "../../estimate/market.js";
 import { fetchEstimate } from "../../estimate/useEstimate.js";
 import { askedTo, askWorkers, needOf, searchBoard } from "../../find/ask.js";
 import { claimSearch, startFindChat, useNeed } from "../../find/findChats.js";
@@ -31,6 +32,7 @@ import {
   relanguageNeed,
   showOwner,
 } from "../../find/needStore.js";
+import { findRoute } from "../../find/route.js";
 import { useI18n } from "../../i18n.js";
 import { Composer, Via } from "../../ui/Composer.js";
 import { C } from "../../ui/cls.js";
@@ -141,21 +143,25 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   // The first answer, the need in the owner's words: in English the phone's model helps read it, and in every
   // language its scope is read into chips the owner confirms before the estimate is asked (ADR 0033 §5).
   async function send(text: string, via: Via) {
-    if (!state || busy) return;
+    if (!state || busy || reading) return;
     const chat = open;
     const aloud = via === Via.voice;
-    // "What do painters charge?" is answered in the chat from the estimate route (ADR 0039 §2); the need waits.
-    const market = heardMarket(text, lang, ports.clock.now());
-    if (market) {
+    const first = state.slot === NeedSlot.trade;
+    if (first) {
       showOwner(chat, text);
+      setReading(true);
+    }
+    const route = await findRoute(ports, lang, text, state.slot);
+    // "What do painters charge?" is answered in the chat from the estimate route (ADR 0039 §2); the need waits.
+    const market = route.intent === ChatIntent.market ? routedMarket(text, route.slots) : undefined;
+    if (market) {
+      if (!first) showOwner(chat, text);
       setReading(true);
       const answer = await answerMarket(account.session, ports.model, lang, market);
       setReading(false);
       return needSay(chat, { key: "estimate.answer", params: { text: answer.text } });
     }
-    if (state.slot !== NeedSlot.trade) return answerNeed(chat, text, aloud);
-    showOwner(chat, text);
-    setReading(true);
+    if (!first) return answerNeed(chat, text, aloud);
     const { areas, today } = state.config;
     const hint = await understandNeed(ports.model, text, { areas, lang });
     const trade = parseNeed(text, { areas, today }).trade ?? hint.trade ?? state.draft.trade;

@@ -98,9 +98,18 @@ export interface Keys {
 /** Reply length when a caller does not ask for one: enough for a chat answer, short enough for a phone. */
 export const DEFAULT_MAX_TOKENS = 256;
 
+/**
+ * How a model should answer: at most `maxTokens`, and how freely (`temperature` 0: the same answer to the same prompt,
+ * which routing needs). An engine that cannot honour an option ignores it.
+ */
+export interface GenerateOptions {
+  maxTokens?: number;
+  temperature?: number;
+}
+
 export interface Model {
   /** Returns null when no model is available; the agent then says so instead of guessing. */
-  generate(prompt: string, options?: { maxTokens?: number }): Promise<string | null>;
+  generate(prompt: string, options?: GenerateOptions): Promise<string | null>;
 }
 
 export interface Clock {

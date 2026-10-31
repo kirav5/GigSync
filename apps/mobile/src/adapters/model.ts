@@ -1,4 +1,12 @@
-import { Collection, DEFAULT_MAX_TOKENS, type MessageKey, type Model, type Params, type Storage } from "@gigsync/core";
+import {
+  Collection,
+  DEFAULT_MAX_TOKENS,
+  type GenerateOptions,
+  type MessageKey,
+  type Model,
+  type Params,
+  type Storage,
+} from "@gigsync/core";
 import { GigSyncLLM, type ModelStatus } from "@gigsync/plugin-llm";
 import { useSyncExternalStore } from "react";
 import { OllamaModel } from "./ollama.js";
@@ -55,11 +63,12 @@ export const deviceUsable = (s: ModelStatus | undefined) =>
   Boolean(s?.available) && (s?.freeMemoryMb === undefined || s.freeMemoryMb >= MIN_FREE_MB);
 
 class DeviceModel implements Model {
-  async generate(prompt: string, options?: { maxTokens?: number }) {
+  async generate(prompt: string, options?: GenerateOptions) {
     try {
       const { text, available } = await GigSyncLLM.generate({
         prompt,
         maxTokens: options?.maxTokens ?? DEFAULT_MAX_TOKENS,
+        ...(options?.temperature === undefined ? {} : { temperature: options.temperature }),
       });
       return available ? text : null;
     } catch {
@@ -112,7 +121,7 @@ export class ChosenModel implements Model {
     this.notify();
   }
 
-  async generate(prompt: string, options?: { maxTokens?: number }): Promise<string | null> {
+  async generate(prompt: string, options?: GenerateOptions): Promise<string | null> {
     switch (this.settings.choice) {
       case ModelChoice.lite:
         return null;
