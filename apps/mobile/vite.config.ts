@@ -49,8 +49,9 @@ export default defineConfig({
     outDir: "dist",
     target: "es2022",
     sourcemap: true,
-    // Two pages: the app (index.html, what Capacitor loads) and the website (home.html).
-    rollupOptions: { input: { app: INDEX, home: "home.html" } },
+    // Three pages: the app (index.html, what Capacitor loads), the worker-facing site (home.html) and the paged
+    // "what we are building" site (website.html, served at /website).
+    rollupOptions: { input: { app: INDEX, home: "home.html", website: "website.html" } },
   },
   server: { port: 5173, host: true },
 });

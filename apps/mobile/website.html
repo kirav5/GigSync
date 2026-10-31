@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>GigSync — what we are building</title>
+<meta name="description" content="GigSync puts an AI agent on a home-service worker's own phone: it finds work, agrees fair pay with the household's agent, and keeps her record. No platform in the middle." />
+<meta name="theme-color" content="#f4f1ec" />
+<link rel="icon" type="image/svg+xml" href="./icon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Kannada:wght@400;600&display=swap" />
+<script>
+  // The site's own light/dark choice; it never touches the app's setting.
+  let look = null;
+  try { look = localStorage.getItem("gigsync-site-theme"); } catch {}
+  document.documentElement.dataset.theme =
+    look === "light" || look === "dark" ? look : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+</script>
+<link rel="stylesheet" href="./website/site.css" />
+</head>
+<body>
+
+<nav class="top">
+  <a class="brand" href="./website.html"><span class="mark"></span>GigSync</a>
+  <span class="where"><span id="pageNo">01</span> / <span id="pageTotal">11</span> · <span id="pageName">Her price</span></span>
+  <button class="icon" id="animBtn" type="button" aria-pressed="true" title="Animation on or off">◉</button>
+  <button class="icon" id="themeBtn" type="button" aria-label="Switch light or dark">◐</button>
+  <a class="btn sm" href="./index.html">Open the app</a>
+</nav>
+
+<main id="pages">
+
+<!-- 1 · Hero: the cut, as a slider -->
+<section class="page on" data-name="Her price">
+  <div class="wrap h1">
+    <div>
+      <span class="label">A worker's own agent</span>
+      <h1>She keeps the <em>whole</em> price.</h1>
+      <p class="lede">GigSync puts an AI agent on a home-service worker's own phone. It finds work, agrees fair pay with the household's agent, and keeps the record. No platform in the middle.</p>
+      <div class="ctas"><button class="btn accent" type="button" data-go="4">See how a job is agreed</button><a class="btn ghost" href="https://github.com/kirav5/GigSync">Read the code</a></div>
+    </div>
+    <div class="cut">
+      <div class="row"><div class="who">Platform<small>takes a cut, pays later</small></div><div class="bar-track"><div class="bar-fill keep" id="pKeep"></div><div class="bar-fill cut-p" id="pCut"></div></div><div class="amt num"><span id="pAmt">₹720</span><small>in 15 days</small></div></div>
+      <div class="row"><div class="who">GigSync<small>no cut, UPI same day</small></div><div class="bar-track"><div class="bar-fill keep" style="width:100%"></div></div><div class="amt num"><span id="gAmt">₹1,000</span><small>same day</small></div></div>
+      <label for="job" class="label" style="display:block;margin-top:14px">Job value <span id="jobV" class="num fg">₹1,000</span></label>
+      <input type="range" id="job" min="300" max="3000" step="50" value="1000" />
+      <div class="legend"><span>she keeps</span><span class="c">platform cut, 28%</span></div>
+      <details><summary>Where the 28% comes from</summary>Urban Company's reported take on core services. Workers we spoke to described a ₹100 job paid at ₹50 after a rating drop; that story is on the evidence page.</details>
+    </div>
+  </div>
+</section>
+
+<!-- 2 · Two phones, one locked relay -->
+<section class="page" data-name="Phone to phone">
+  <div class="wrap h2">
+    <div>
+      <span class="label">Agent to agent</span>
+      <h1>Her agent agrees the job on her terms.</h1>
+      <p class="lede">Every message travels locked through a mailbox the server cannot read. Her number and address move only after both phones sign.</p>
+      <div class="scrub" id="scrub2"><button type="button" data-i="0" class="on">1 ask</button><button type="button" data-i="1">2 match</button><button type="button" data-i="2">3 negotiate</button><button type="button" data-i="3">4 sign</button><button type="button" data-i="4">5 paid</button><button type="button" class="play" id="play2">▶ Play</button></div>
+    </div>
+    <div class="relay">
+      <div class="ph"><div class="scr"><div class="nm">Household's agent<small>Asks for the work</small></div><div class="bub on" data-s="0">Cleaning, Mon–Fri 8–11, Koramangala. Budget ₹500.</div><div class="bub" data-s="2">₹450 and Sunday off? Agreed.</div><div class="bub acc" data-s="3">Signed · 7f3a…c21e</div><div class="bub" data-s="4">₹450 paid · UPI</div><div class="priv" id="privH">her number: not visible</div></div></div>
+      <div class="server"><div class="box"><b>MAILBOX · SERVER</b><div class="ct" id="ct2">waiting…</div></div><div class="env" id="env2"></div></div>
+      <div class="ph"><div class="scr"><div class="nm">Lakshmi's agent<small>Works for her alone</small></div><div class="bub" data-s="1">Matches: skill, 2 km, above her ₹400 minimum.</div><div class="bub acc" data-s="2">Offer: ₹450 a visit, Sunday off, paid by the day.</div><div class="bub acc" data-s="3">Both signed. Slot held.</div><div class="bub" data-s="4">Record updated · ₹450 received</div><div class="priv" id="privL">phone · address · ID: on this phone</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · Her words, four languages -->
+<section class="page" data-name="Her words">
+  <div class="wrap h3">
+    <div>
+      <span class="label">Voice first · on-device model</span>
+      <h1>She says it. The agent does the asking.</h1>
+      <div class="lang" id="lang3"><button type="button" data-l="hi" class="on">हिन्दी</button><button type="button" data-l="hg">Hinglish</button><button type="button" data-l="en">English</button><button type="button" data-l="kn">ಕನ್ನಡ</button></div>
+      <p class="lede">Sub-3B open model, 4-bit, on a ₹10,000 phone. It names the intent; plain rules do the rest.</p>
+    </div>
+    <div class="talk">
+      <div class="u hi" id="u3">मुझे सोमवार से शुक्रवार सुबह कोरमंगला में सफ़ाई का काम चाहिए, चार सौ से कम नहीं।</div>
+      <div class="a fade" id="a3"><span class="k">Agent · on device · 0.9 s</span><div class="grid"><span>Intent</span><b>find work</b><span>Trade</span><b>cleaning</b><span>Area</span><b>Koramangala</b><span>Days</span><b>Mon–Fri, mornings</b><span>Minimum</span><b>₹400 / visit</b></div><p class="reply">Asking 3 households nearby. I will not share your number.<span class="typing"></span></p></div>
+      <div class="foot"><span class="chip lock"><i></i>nothing left the phone</span><span class="mic"><i></i></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 · How it works: step scrubber, two views -->
+<section class="page" data-name="How a job works">
+  <div class="wrap">
+    <span class="label">How it works</span>
+    <h1 class="pt">How a job is agreed, phone to phone.</h1>
+    <div class="steps5" id="steps21">
+      <button type="button" class="on" data-i="0"><span class="n">STEP 1</span><b>Household asks</b></button>
+      <button type="button" data-i="1"><span class="n">STEP 2</span><b>Her agent matches</b></button>
+      <button type="button" data-i="2"><span class="n">STEP 3</span><b>Agents negotiate</b></button>
+      <button type="button" data-i="3"><span class="n">STEP 4</span><b>Both phones sign</b></button>
+      <button type="button" data-i="4"><span class="n">STEP 5</span><b>Job done, UPI paid</b></button>
+    </div>
+    <div class="progress"><i id="prog21"></i></div>
+    <div class="views"><div class="view her" id="her21"></div><div class="view srv" id="srv21"></div></div>
+  </div>
+</section>
+
+<!-- 5 · Small / Intentional / Tailored -->
+<section class="page" data-name="Human-scale">
+  <div class="wrap">
+    <span class="label">Human-scale AI</span>
+    <h1 class="pt">Small. Intentional. Tailored.</h1>
+    <div class="tiles">
+      <div class="tile" data-tile>
+        <div class="big"><small>Small</small>&lt;3B</div>
+        <p>One small open model, 4-bit, on the phone. No frontier model anywhere.</p>
+        <button class="more" type="button">What runs where</button>
+        <div class="detail"><div>
+          <div class="meter"><div class="m"><span>Frontier API</span><i style="--w:100%"></i><b>~1T</b></div><div class="m"><span>Llama 70B</span><i style="--w:74%"></i><b>70B</b></div><div class="m"><span>"Small" cutoff</span><i style="--w:52%"></i><b>10B</b></div><div class="m us"><span>GigSync</span><i style="--w:38%"></i><b>&lt;3B</b></div></div>
+          <table><tr><td>Matching, negotiation, ledger</td><td>Plain rules, no model · phone</td></tr><tr><td>Phrasing in Hindi, Hinglish, English</td><td>Sub-3B open model, 4-bit · phone</td></tr><tr><td>Speech input</td><td>On-device speech model · phone</td></tr><tr><td>Message relay</td><td>Store-and-forward mailbox, ciphertext only · edge</td></tr><tr><td>Frontier model API</td><td>None · nowhere</td></tr></table>
+        </div></div>
+      </div>
+      <div class="tile" data-tile>
+        <div class="big"><small>Intentional</small>0</div>
+        <p>Server-side profiles. Her data lives encrypted on her phone; she can leave with her record.</p>
+        <button class="more" type="button">Her four controls</button>
+        <div class="detail"><div><table><tr><td>Private by construction</td><td>Skills, rates, history, location in an encrypted store on the phone. The relay sees who, whom and when. Never what.</td></tr><tr><td>Public by choice</td><td>Only a signed record she publishes: what she offers and a coarse area. She edits or withdraws any time.</td></tr><tr><td>Her rules, not a model</td><td>Minimum rate, hours, areas, flagged customers are plain rules the agent cannot override. Consent per purpose, in her language, under DPDP.</td></tr><tr><td>Forkable</td><td>Identity, records and protocol are open. A workers' collective can run its own relay or fork the app.</td></tr></table></div></div>
+      </div>
+      <div class="tile" data-tile>
+        <div class="big"><small>Tailored</small>₹10k</div>
+        <p>Built for a 4–6 GB Android on patchy 4G, in Hindi, Hinglish and English, from what workers told us.</p>
+        <button class="more" type="button">What we heard, what changed</button>
+        <div class="detail"><div><table><tr><td>"The platform takes a cut"</td><td>Agents deal directly; GigSync never holds money</td></tr><tr><td>"Paid every fifteen days"</td><td>UPI from household to worker when the job is done</td></tr><tr><td>"Pay drops when the rating drops"</td><td>No platform rating; her own signed record</td></tr><tr><td>"Alone in a new city"</td><td>An agent that knows local rates and asks for her</td></tr><tr><td>"Typing is slow"</td><td>Three languages, voice first</td></tr><tr><td>"₹10,000 phone, patchy 4G"</td><td>Sub-3B on device, offline-tolerant, Wi-Fi-only downloads</td></tr></table></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 · Who sees what -->
+<section class="page" data-name="Who sees what">
+  <div class="wrap">
+    <span class="label">Intentional</span>
+    <h1 class="pt">The same record. Three readers.</h1>
+    <div class="seen">
+      <div class="sw" id="sw32"><button type="button" class="on" data-v="her">Her phone<small>everything, decrypted</small></button><button type="button" data-v="srv">The server<small>ciphertext and routing</small></button><button type="button" data-v="pub">Anyone<small>her public card</small></button></div>
+      <div class="card" id="card32"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 · Evidence -->
+<section class="page" data-name="What workers told us">
+  <div class="wrap">
+    <span class="label">What workers told us</span>
+    <h1 class="pt">Workers who arrive with a guide earn more. Many arrive alone.</h1>
+    <div class="stats">
+      <div class="stat"><div class="v num"><s>₹100</s><span data-count="50" data-prefix="₹">₹0</span></div><p>What one worker said she was owed for a job, and what she was paid after her rating dropped.</p><details><summary></summary>Paraphrased from a conversation with an Urban Company home-service worker, October 2026. Not recorded verbatim.</details></div>
+      <div class="stat"><div class="v num"><span data-count="65" data-suffix="%">0%</span></div><p>of Bengaluru platform workers found gig work through friends. Not ads, not the app.</p><details><summary></summary>ISEC Policy Brief 73 (2025).</details></div>
+      <div class="stat"><div class="v num">+<span data-count="14" data-suffix="%">0%</span></div><p>per hour earned by referred delivery workers over comparable non-referred workers.</p><details><summary></summary>Shukla, Sevcenko &amp; Singh, INSEAD/SSRN (2026). The agent is the cousin for workers who have none.</details></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 · Quote wall -->
+<section class="page" data-name="In their words">
+  <div class="wrap">
+    <span class="label">In their words</span>
+    <h1 class="pt">What one worker told us when we asked who guided her.</h1>
+    <div class="wall">
+      <div class="qc" data-q><span class="ph-tag">placeholder · worker</span><blockquote class="hi">“मैं पिछले महीने उड़ीसा से आई। मेरे भाई ने मुझे जुड़वाया।”</blockquote><div class="tr"><div>"I came from Orissa last month. My cousin helped me enroll." A home-service worker, Bengaluru, October 2026. Permission to quote: to confirm.</div></div><div class="who"><i>HW</i><div><b>Name</b>Home-service worker</div></div><button class="x" type="button">Translation and context</button></div>
+      <div class="qc" data-q><span class="ph-tag">placeholder · worker</span><blockquote>“₹100 ka kaam tha. ₹50 mila.”</blockquote><div class="tr"><div>"It was a ₹100 job. I got ₹50." On the rating penalty: same work, half the money, a rating she cannot see into.</div></div><div class="who"><i>UC</i><div><b>Name</b>Urban Company worker</div></div><button class="x" type="button">Translation and context</button></div>
+      <div class="qc" data-q><span class="ph-tag">placeholder · household</span><blockquote>“Quote from a household about signing from a WhatsApp link.”</blockquote><div class="tr"><div>Context line: what they hired for, that they never installed anything, that the terms were written down before anyone came to the door.</div></div><div class="who"><i>HH</i><div><b>Name</b>Household, Bengaluru</div></div><button class="x" type="button">Context</button></div>
+      <div class="qc" data-q><span class="ph-tag">placeholder · worker</span><blockquote class="hi">“कोई नहीं बताता कि यहाँ सही रेट क्या है।”</blockquote><div class="tr"><div>"Nobody tells you what the right rate is here." On arriving alone in a new city. The agent knows local rates and does the asking.</div></div><div class="who"><i>HW</i><div><b>Name</b>Independent worker</div></div><button class="x" type="button">Translation and context</button></div>
+      <div class="qc" data-q><span class="ph-tag">placeholder · union</span><blockquote>“Quote from a union or collective on running their own relay or circle.”</blockquote><div class="tr"><div>Context line: what they would do with a forkable app and a members' record.</div></div><div class="who"><i>UN</i><div><b>Name</b>Workers' collective</div></div><button class="x" type="button">Context</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 · Voice notes -->
+<section class="page" data-name="Voice notes">
+  <div class="wrap">
+    <span class="label">Voice notes</span>
+    <h1 class="pt">Press play. Real recordings replace these.</h1>
+    <div class="notes" id="notes52">
+      <div class="note"><div class="top"><i>HW</i><div><b>Home-service worker</b><span class="dim">Bengaluru · 0:18</span></div></div><div class="wave"></div><button class="pl" type="button">▶ Play</button><div class="txt"><div>Placeholder transcript. "I came from Orissa last month. My cousin helped me enroll. Without him I would not have known where to go."</div></div></div>
+      <div class="note"><div class="top"><i>UC</i><div><b>Urban Company worker</b><span class="dim">Bengaluru · 0:24</span></div></div><div class="wave"></div><button class="pl" type="button">▶ Play</button><div class="txt"><div>Placeholder transcript. On the cut, the fifteen-day wait, and the rating she cannot see.</div></div></div>
+      <div class="note"><div class="top"><i>HH</i><div><b>Household</b><span class="dim">Bengaluru · 0:12</span></div></div><div class="wave"></div><button class="pl" type="button">▶ Play</button><div class="txt"><div>Placeholder transcript. On signing terms from a link, without installing anything.</div></div></div>
+      <div class="note"><div class="top"><i>UN</i><div><b>Workers' collective</b><span class="dim">0:31</span></div></div><div class="wave"></div><button class="pl" type="button">▶ Play</button><div class="txt"><div>Placeholder transcript. On what a forkable app and a members' record would change.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 · Status board -->
+<section class="page" data-name="Where we are">
+  <div class="wrap">
+    <span class="label">Status</span>
+    <h1 class="pt">Where we are, honestly.</h1>
+    <div class="board">
+      <div class="col b"><h3><i></i>Built</h3>
+        <div class="item" data-item>Encrypted store, device keys, locked mailbox<small><span>X25519 sealing, Ed25519 signatures; one mailbox per user at the edge; open design.</span></small></div>
+        <div class="item" data-item>App shell and sign-in<small><span>Android, iPhone, Mac and web from one codebase. Lite mode with no model.</span></small></div>
+        <div class="item" data-item>Policy rules with shared test cases<small><span>Plain rules decide what leaves the phone; the same cases run on every platform.</span></small></div>
+        <div class="item" data-item>Indian ID sanitizer<small><span>Aadhaar, PAN and phone patterns stripped in code before any model sees text.</span></small></div>
+      </div>
+      <div class="col p"><h3><i></i>In progress</h3>
+        <div class="item" data-item>Job matching for home services<small><span>By trade, distance, time window and her minimum rate.</span></small></div>
+        <div class="item" data-item>Agent-to-agent negotiation<small><span>Structured offers, capped counters, she can step in at any turn.</span></small></div>
+        <div class="item" data-item>Choosing and benchmarking the on-device model<small><span>Sub-3B candidates, 4-bit, tokens per second on a ₹10–15k phone.</span></small></div>
+        <div class="item" data-item>Removing every cloud-inference path<small><span>So "does core functionality call a frontier API" is answered no, provably.</span></small></div>
+      </div>
+      <div class="col n"><h3><i></i>Next</h3>
+        <div class="item" data-item>A small pilot<small><span>N workers, N households, one locality. Four weeks.</span></small></div>
+        <div class="item" data-item>Record workers' words, with consent<small><span>Go back to the workers we spoke to; voice notes for the previous page.</span></small></div>
+        <div class="item" data-item>Open-source decision and licence<small><span>Permissive licence under consideration.</span></small></div>
+        <div class="item" data-item>Measured speed on a ₹10–15k phone<small><span>Tokens per second and time for a full negotiation round.</span></small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 · The ask -->
+<section class="page" data-name="What a year unlocks">
+  <div class="wrap ask">
+    <div>
+      <span class="label">The next twelve months</span>
+      <h1>A part-time prototype becomes a field-tested product.</h1>
+      <div class="total">12 months<small>one city · one small model · open source</small></div>
+      <p class="lede">By the end of it: live in one city, workers paid the full price the same day, a named small model running the whole flow on a 4 GB phone, client and protocol open-sourced.</p>
+      <div class="ctas"><a class="btn accent" href="https://github.com/kirav5/GigSync">Follow the work on GitHub</a><button class="btn ghost" type="button" data-go="1">Start again</button></div>
+    </div>
+    <div class="alloc" id="alloc7">
+      <div class="al" style="--w:45%"><span class="nm">People</span><div class="tr"><i></i><span>45%</span></div><div class="d"><div>Full-time engineering and community time. The largest line.</div></div></div>
+      <div class="al" style="--w:15%"><span class="nm">Devices, field</span><div class="tr"><i></i><span>15%</span></div><div class="d"><div>A bench of real low-end phones; stipends and travel for worker co-design and pilot support.</div></div></div>
+      <div class="al" style="--w:20%"><span class="nm">Model work</span><div class="tr"><i></i><span>20%</span></div><div class="d"><div>Evaluation, fine-tuning for Hindi and Hinglish negotiation, a public eval set.</div></div></div>
+      <div class="al" style="--w:12%"><span class="nm">Trust, safety</span><div class="tr"><i></i><span>12%</span></div><div class="d"><div>Phone-identity verification, dispute flow, UPI and DPDP legal review.</div></div></div>
+      <div class="al" style="--w:8%"><span class="nm">Infra, openness</span><div class="tr"><i></i><span>8%</span></div><div class="d"><div>Relay hosting, SMS registration, documentation. Modest by design.</div></div></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="pager">
+  <button class="nav" id="prevBtn" type="button" aria-label="Previous page">←</button>
+  <div class="dots" id="dots" role="tablist" aria-label="Pages"></div>
+  <button class="nav" id="nextBtn" type="button" aria-label="Next page">→</button>
+</footer>
+
+<script type="module" src="./website/site.js"></script>
+</body>
+</html>
