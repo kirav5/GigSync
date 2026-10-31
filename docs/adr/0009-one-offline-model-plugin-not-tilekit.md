@@ -1,6 +1,7 @@
 # ADR 0009: One offline model plugin on every platform, not Tiles/Tilekit
 
-Date: 2026-10-25. Status: accepted.
+Date: 2026-10-25. Status: accepted. The web engine is WebLLM, not Chrome's built-in model: see
+[ADR 0040's amendment](0040-on-phone-model-router.md#amendment-2026-10-31-the-web-engine-is-webllm).
 
 ## Context
 

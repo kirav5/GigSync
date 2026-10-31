@@ -12,7 +12,7 @@
     "lint": "biome check . && node scripts/check-file-size.mjs && node scripts/check-magic-strings.mjs",
     "lint:fix": "biome check --write .",
     "typecheck": "pnpm -r --filter './packages/*' --filter './workers/*' --filter './apps/*' --filter './plugins/*' --filter './tests/*' run typecheck",
-    "test": "pnpm -r --filter './packages/*' --filter './workers/*' run test",
+    "test": "pnpm -r --filter './packages/*' --filter './workers/*' --filter './plugins/*' run test",
     "build": "pnpm -r --filter './packages/*' --filter './plugins/*' --filter './apps/*' run build",
     "build:workers": "pnpm --filter @gigsync/worker-api exec wrangler deploy --dry-run --outdir dist && pnpm --filter @gigsync/worker-index exec wrangler deploy --dry-run --outdir dist",
     "dev:workers": "pnpm --filter @gigsync/worker-api dev",

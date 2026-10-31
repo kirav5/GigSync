@@ -3,17 +3,27 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig, type Plugin, type Rolldown } from "vite";
 
 const SW_SOURCE = new URL("./sw/sw.js", import.meta.url);
 const PUBLIC = fileURLToPath(new URL("./public/", import.meta.url));
 const INDEX = "index.html";
 const ASSETS = "assets/";
 const SOURCE_MAP = ".map";
+/** The on-device model's engine (WebLLM, about 12 MB in two files): fetched on its first use, never precached. */
+const MODEL_ENGINE = "/@mlc-ai/web-llm/";
+const MODEL_WORKER = `${ASSETS}model-worker-`;
+
+/** WebLLM's chunk and the worker that runs it: only phones that download the model ever fetch them. */
+function modelEngine(file: Rolldown.OutputChunk | Rolldown.OutputAsset): boolean {
+  if (file.type === "asset") return file.fileName.startsWith(MODEL_WORKER);
+  return file.moduleIds.some((id) => id.includes(MODEL_ENGINE));
+}
 
 /**
  * Writes sw.js into the build with the app shell it precaches: ./, index.html, the manifest and icons (everything in
- * public/), and every emitted file under assets/ except source maps. The cache is named by a hash of those names and
+ * public/), and every emitted file under assets/ except source maps and the on-device model's engine (the worker
+ * caches that on its first fetch, when the owner downloads the model). The cache is named by a hash of those names and
  * index.html, so each release gets its own cache and the browser sees a changed worker.
  */
 function serviceWorker(): Plugin {
@@ -24,7 +34,9 @@ function serviceWorker(): Plugin {
     generateBundle: {
       order: "post",
       handler(_output, bundle) {
-        const built = Object.keys(bundle).filter((f) => f.startsWith(ASSETS) && !f.endsWith(SOURCE_MAP));
+        const built = Object.entries(bundle)
+          .filter(([f, file]) => f.startsWith(ASSETS) && !f.endsWith(SOURCE_MAP) && !modelEngine(file))
+          .map(([f]) => f);
         const copied = readdirSync(PUBLIC, { recursive: true, withFileTypes: true })
           .filter((entry) => entry.isFile())
           .map((entry) => relative(PUBLIC, join(entry.parentPath, entry.name)).split(sep).join("/"));
@@ -52,5 +64,7 @@ export default defineConfig({
     // Two pages: the app (index.html, what Capacitor loads) and the website (home.html).
     rollupOptions: { input: { app: INDEX, home: "home.html" } },
   },
+  // The model's Web Worker under a name the service worker can leave out of its precache.
+  worker: { format: "es", rollupOptions: { output: { entryFileNames: `${MODEL_WORKER}[hash].js` } } },
   server: { port: 5173, host: true },
 });

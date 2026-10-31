@@ -11,6 +11,7 @@ public class GigSyncLLMPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "status", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "generate", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "prepare", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "remove", returnType: CAPPluginReturnPromise),
     ]
 
     @objc func status(_ call: CAPPluginCall) {
@@ -19,6 +20,11 @@ public class GigSyncLLMPlugin: CAPPlugin, CAPBridgedPlugin {
 
     /// Apple's on-device model is part of the OS: nothing to download, so this reports the same as status.
     @objc func prepare(_ call: CAPPluginCall) {
+        status(call)
+    }
+
+    /// Nothing is downloaded for Apple's model, so nothing to delete.
+    @objc func remove(_ call: CAPPluginCall) {
         status(call)
     }
 

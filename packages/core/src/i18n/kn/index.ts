@@ -14,6 +14,7 @@ import { job } from "./job.js";
 import { landing } from "./landing.js";
 import { memory } from "./memory.js";
 import { mentor } from "./mentor.js";
+import { model } from "./model.js";
 import { money } from "./money.js";
 import { moving } from "./moving.js";
 import { need } from "./need.js";
@@ -35,6 +36,7 @@ export const kn: Strings = {
   ...job,
   ...screens,
   ...worker,
+  ...model,
   ...agent,
   ...shell,
   ...money,

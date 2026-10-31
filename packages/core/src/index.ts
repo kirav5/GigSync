@@ -1,6 +1,7 @@
 export * from "./agent.js";
 export * from "./chat/index.js";
 export * from "./contacts/index.js";
+export * from "./device-model/index.js";
 export * from "./engagement/machine.js";
 export * from "./estimate/area-names.js";
 export * from "./estimate/areas.js";

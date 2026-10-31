@@ -2,6 +2,7 @@
 
 Date: 2026-10-31. Status: accepted. Amends [LLD §3.5 and §8.4](../gigsync/LLD.md) (intent only "when the keyword
 router is unsure"); keeps [ADR 0010](0010-no-cloud-model-in-gigsync.md) (no cloud model reads what owners type).
+Amended 2026-10-31: the web engine is WebLLM running Qwen2.5-0.5B-Instruct ([Amendment](#amendment-2026-10-31-the-web-engine-is-webllm)).
 
 ## Context
 
@@ -25,7 +26,7 @@ would then leave the phone. The founders chose that it does not.
    trade or area from the lexicon, a contact the owner has, an amount that appears in the words). Code then runs the
    action and computes every number, as before (ADR 0033's rule).
 3. **Model first when the phone has one.** Auto uses the phone's own engine (LiteRT-LM, Apple Foundation Models,
-   Chrome's built-in model on desktop; Ollama in development builds) when Settings' rules say it is usable. The keyword
+   WebLLM in the web app, see the amendment; Ollama in development builds) when Settings' rules say it is usable. The keyword
    lists answer when there is no usable model, when the model is slow past a time limit, or when its reply fails the
    schema or names a slot core does not know. Lite mode stays complete.
 4. **Chat text never leaves the phone for routing.** No server or cloud fallback. ADR 0010 stands.
@@ -45,3 +46,39 @@ would then leave the phone. The founders chose that it does not.
   66%, model first with the lists as fallback 67%; English 84%, Hindi 69%, Kannada 49% against 61% for the lists
   alone. The founders chose to keep the model first in every language, Kannada included, rather than route Kannada by
   the lists only; the Kannada figure is to be rechecked with native-reviewed cases on a real phone's model.
+
+## Amendment 2026-10-31: the web engine is WebLLM
+
+The web app, also when installed to the home screen on Android or iPhone, runs its own open model on the phone:
+[WebLLM](https://github.com/mlc-ai/web-llm) (`@mlc-ai/web-llm` 0.2.86, Apache-2.0) on WebGPU, in a Web Worker. No
+browser built-in model is used (Chrome's Gemini Nano engine is removed): the model must be open-weights, ours to
+choose, and the same on every browser that can run it. Details in [LLD §9.1](../gigsync/LLD.md).
+1. **Model.** Default Qwen2.5-0.5B-Instruct (Apache-2.0), 4-bit, about 300 MB to download (WebLLM ids
+   `Qwen2.5-0.5B-Instruct-q4f16_1-MLC`, or `-q4f32_1-MLC` where the GPU has no `shader-f16`). Qwen2.5-1.5B-Instruct
+   (about 900 MB) only when the owner chooses it in Settings on a phone that can hold it. Why: the founders' choice of
+   the family the first eval used (qwen2.5:1.5b, 66% model-only against 58% for the lists), at the smallest size a
+   budget phone can download and run.
+2. **Gate.** Offered only where WebGPU gives an adapter whose limits meet WebLLM's (buffers of 256 MB, bindings of
+   128 MB, 32 KB workgroup storage, 10 storage buffers per stage), `navigator.deviceMemory` is at least 4 (8 for the
+   1.5B) where the browser reports it (an iPhone does not: allowed, and a failed load falls back to lite mode), and
+   storage has room for the model plus 200 MB. The app then asks `navigator.storage.persist()`.
+3. **Download rules.** Never without the owner's tap: one quiet offer in the chat after sign-in, shown until they
+   answer, and the button in Settings. Where the browser reports mobile data or the data saver, the offer says it
+   uses mobile data, and a download that stopped never resumes by itself; where it cannot tell (iPhone), the app
+   asks; only on Wi-Fi does a stopped download carry on by itself. WebLLM's cache keeps the shards already fetched,
+   so a resume continues. A model the browser evicted is offered again, never fetched behind the owner's back.
+   The files come from Hugging Face for now; `VITE_MODEL_BASE_URL` moves them (to Cloudflare R2) without a code change.
+4. **Speed guard.** Each routing answer's time is measured. When 3 of the first 5 on a phone take longer than the
+   router's limit (`MODEL_ROUTE_TIMEOUT_MS`, 5 s), Auto stops using the model there and Settings says so once, with
+   "Try again". On-device (chosen by hand) still uses it.
+
+Consequences:
+- Chat text still never leaves the phone; the only network use is fetching the model's files once.
+- Phones without WebGPU stay on the lists: Chrome on Android before version 121 or Android 12, GPUs Chrome does not
+  enable, and iPhones before iOS 26.
+- The routing prompt is about 1,560 tokens for a worker. A Mac's GPU answers in about 3.5 s; a phone will be slower,
+  and the speed guard may turn the model off on many budget phones. Cutting three market examples saved 8% of the
+  prompt but lowered accuracy (69% to 68% combined, English 84% to 79%), so the prompt is unchanged.
+- The first eval showed Kannada worse with qwen2.5:1.5b (49%) than with the lists (61%); Qwen2.5-0.5B is untested on
+  Indic text, and likely weaker. It must be measured on real phones before the pilot.
+- WebLLM 0.2.86 fails JSON mode without a schema; the engine passes `{"type":"object"}` and core checks the fields.

@@ -1,34 +1,100 @@
-export interface GenerateOptions {
+import type { PluginListenerHandle } from "@capacitor/core";
+
+/**
+ * Which model the web engine runs (LLD §9.1): `small` is the founders' default, Qwen2.5-0.5B-Instruct; `large`,
+ * Qwen2.5-1.5B-Instruct, only when the owner chooses it in Settings on a phone that can hold it.
+ */
+export const ModelSize = { small: "small", large: "large" } as const;
+export type ModelSize = (typeof ModelSize)[keyof typeof ModelSize];
+
+/** Where the device's model stands. Engines that only say `available` (the native stubs) leave it out. */
+export const ModelState = {
+  available: "available",
+  downloadable: "downloadable",
+  downloading: "downloading",
+  unavailable: "unavailable",
+} as const;
+export type ModelState = (typeof ModelState)[keyof typeof ModelState];
+
+/** Why this device cannot run the model at all; the app then stays in lite mode and says why in Settings. */
+export const Unsupported = {
+  /** No `navigator.gpu`, or the browser offers no GPU adapter. */
+  noWebGpu: "no_webgpu",
+  /** The GPU's buffers are smaller than the model's tensors need. */
+  gpuLimits: "gpu_limits",
+  /** The browser reports less memory than the model needs. */
+  lowMemory: "low_memory",
+  /** Too little room in the browser's storage for the model and a margin. */
+  lowStorage: "low_storage",
+  /** No Web Workers or Cache API (an old browser, or a page not served over HTTPS). */
+  browser: "browser",
+} as const;
+export type Unsupported = (typeof Unsupported)[keyof typeof Unsupported];
+
+/** Which model, and from where; every call takes them, so the plugin keeps no settings of its own. */
+export interface ModelOptions {
+  size?: ModelSize;
+  /** Where the model files are served from instead of WebLLM's default (Hugging Face); LLD §9.1 has the layout. */
+  baseUrl?: string;
+}
+
+export interface GenerateOptions extends ModelOptions {
   prompt: string;
   maxTokens?: number;
-  /** 0 for the same answer to the same prompt. Engines that cannot set it (Chrome's, for web pages) ignore it. */
+  /** 0 for the same answer to the same prompt. */
   temperature?: number;
+  /** Ask for one JSON object (the router's reply); the engine constrains its output to JSON. */
+  json?: boolean;
 }
 
 export interface GenerateResult {
   /** False when no model is loaded on this device; `text` is then empty and the agent runs in lite mode. */
   available: boolean;
   text: string;
-  /** Which engine answered: "foundation-models" (Apple), "litert" (Android), "chrome-built-in" (desktop Chrome), "none". */
+  /** Which engine answered: "webllm" (the web), "litert" (Android), "foundation-models" (Apple), "none". */
   engine: string;
+  /** How long the answer itself took, not counting loading the model into memory first. */
+  elapsedMs?: number;
 }
 
-/** A model the engine could fetch: Chrome downloads its built-in model once per profile, after a user tap. */
-export const ModelDownload = { downloadable: "downloadable", downloading: "downloading" } as const;
-export type ModelDownload = (typeof ModelDownload)[keyof typeof ModelDownload];
+/** The model an engine runs or would download. */
+export interface ModelInfo {
+  /** The engine's own id, e.g. WebLLM's "Qwen2.5-0.5B-Instruct-q4f16_1-MLC". */
+  id: string;
+  /** As people read it: "Qwen2.5-0.5B-Instruct". */
+  name: string;
+  /** What the download costs in data, rounded up. */
+  downloadMb: number;
+}
 
 export interface ModelStatus {
   available: boolean;
   engine: string;
   /** Free RAM in MB as the OS reports it, so the app can decide whether to load a model at all. */
   freeMemoryMb?: number;
-  /** Set when a model exists for this engine but is not on the device yet. */
-  download?: ModelDownload;
+  state?: ModelState;
+  /** 0–1 while downloading. */
+  progress?: number;
+  /** While downloading: how much of `model.downloadMb` has arrived. */
+  downloadedMb?: number;
+  /** Set when `state` is unavailable. */
+  reason?: Unsupported;
+  model?: ModelInfo;
 }
 
+/** The event `prepare()` sends with each step of a download. */
+export const PROGRESS_EVENT = "modelProgress";
+
 export interface GigSyncLLMPlugin {
-  status(): Promise<ModelStatus>;
+  status(options?: ModelOptions): Promise<ModelStatus>;
   generate(options: GenerateOptions): Promise<GenerateResult>;
-  /** Fetches the engine's model if it has to be downloaded first. Call only from a user's tap. */
-  prepare(): Promise<ModelStatus>;
+  /**
+   * Downloads the model and loads it, sending PROGRESS_EVENT on the way; resolves when it is ready or the download
+   * stopped (then `state` is downloadable again, and a second call carries on from the files already fetched).
+   * Call only after the owner agreed to the download.
+   */
+  prepare(options?: ModelOptions): Promise<ModelStatus>;
+  /** Deletes the downloaded model from this device. */
+  remove(options?: ModelOptions): Promise<ModelStatus>;
+  addListener(event: typeof PROGRESS_EVENT, listener: (status: ModelStatus) => void): Promise<PluginListenerHandle>;
 }

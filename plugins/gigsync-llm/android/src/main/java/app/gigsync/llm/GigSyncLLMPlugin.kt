@@ -30,6 +30,10 @@ class GigSyncLLMPlugin : Plugin() {
     @PluginMethod
     fun prepare(call: PluginCall) = status(call)
 
+    /** Nothing downloaded yet (M0), so nothing to delete; reports the same as status. */
+    @PluginMethod
+    fun remove(call: PluginCall) = status(call)
+
     @PluginMethod
     fun generate(call: PluginCall) {
         if (call.getString("prompt").isNullOrBlank()) {

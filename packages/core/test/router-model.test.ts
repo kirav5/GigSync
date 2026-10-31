@@ -35,6 +35,7 @@ describe("modelRoute", () => {
     });
     expect(model.prompts[0]).toContain(JSON.stringify(FAIR));
     expect(model.options[0]?.temperature).toBe(0);
+    expect(model.options[0]?.json).toBe(true);
   });
 
   it("reads JSON wrapped in prose or fences, slots nested or not, and digits in any script", async () => {

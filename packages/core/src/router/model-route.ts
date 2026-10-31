@@ -159,7 +159,11 @@ export async function modelRoute(
 ): Promise<ChatRoute | undefined> {
   if (!text.trim()) return undefined;
   try {
-    const answer = model.generate(routePrompt(text, ctx), { maxTokens: MAX_TOKENS, temperature: ROUTING_TEMPERATURE });
+    const answer = model.generate(routePrompt(text, ctx), {
+      maxTokens: MAX_TOKENS,
+      temperature: ROUTING_TEMPERATURE,
+      json: true,
+    });
     const reply = await within(answer, opts?.timeoutMs ?? MODEL_ROUTE_TIMEOUT_MS);
     const route = reply ? checkedRoute(reply, text, ctx) : undefined;
     if (reply && !route) log.debug("chat: model route rejected", { chars: reply.length });

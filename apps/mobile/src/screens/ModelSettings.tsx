@@ -1,18 +1,10 @@
 import type { MessageKey, Ports } from "@gigsync/core";
-import { ModelDownload } from "@gigsync/plugin-llm";
 import { useEffect, useState } from "react";
-import {
-  deviceUsable,
-  ENGINE_NONE,
-  engineName,
-  MIN_FREE_MB,
-  ModelChoice,
-  OLLAMA_OFFERED,
-  useChosenModel,
-} from "../adapters/model.js";
+import { ModelChoice, OLLAMA_OFFERED, useChosenModel } from "../adapters/model.js";
 import { listOllamaModels } from "../adapters/ollama.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
+import { OnDeviceModel } from "./model/OnDeviceModel.js";
 
 const CHOICES: readonly { choice: ModelChoice; label: MessageKey; about: MessageKey }[] = [
   { choice: ModelChoice.auto, label: "model.auto", about: "model.auto_about" },
@@ -27,7 +19,6 @@ const CHOICES: readonly { choice: ModelChoice; label: MessageKey; about: Message
 export function ModelSettings({ ports }: { ports: Ports }) {
   const { t } = useI18n();
   const model = useChosenModel();
-  const status = model.deviceInfo;
   const [ollamaName, setOllamaName] = useState(model.current.ollamaModel);
   const [pulled, setPulled] = useState<string[]>();
   const choice = model.current.choice;
@@ -40,27 +31,14 @@ export function ModelSettings({ ports }: { ports: Ports }) {
   }, [choice]);
 
   const choose = (next: ModelChoice) => void model.save(ports.storage, { ...model.current, choice: next });
-  const saveOllama = () => void model.save(ports.storage, { choice: ModelChoice.ollama, ollamaModel: ollamaName });
-
-  const engine = status ? engineName(status.engine) : "…";
-  const deviceLine = !status
-    ? t("model.checking")
-    : status.engine === ENGINE_NONE
-      ? t("model.none")
-      : `${engine} · ${t(status.available ? "model.ready" : "model.not_ready")}${
-          status.freeMemoryMb === undefined ? "" : ` · ${t("model.free_mb", { mb: status.freeMemoryMb })}`
-        }`;
+  const saveOllama = () =>
+    void model.save(ports.storage, { ...model.current, choice: ModelChoice.ollama, ollamaModel: ollamaName });
   const chosen = CHOICES.find((c) => c.choice === choice);
 
   return (
-    <div className={C.card}>
+    <section className={C.card} aria-label={t("model.title")}>
       <span className={C.label}>{t("model.title")}</span>
-      <div className={C.row}>
-        <span className={C.muted}>{deviceLine}</span>
-        <button type={C.button} className={`${C.linkBtn} end`} onClick={() => void model.refresh()}>
-          {t("model.check")}
-        </button>
-      </div>
+      <OnDeviceModel ports={ports} />
       <div className={C.row}>
         {CHOICES.map((c) => (
           <button
@@ -74,20 +52,7 @@ export function ModelSettings({ ports }: { ports: Ports }) {
           </button>
         ))}
       </div>
-      {status?.download === ModelDownload.downloadable && (
-        <div className={C.stack}>
-          <span className={C.muted}>{t("model.chrome_download_about")}</span>
-          <div>
-            <button type={C.button} className={C.secondary} onClick={() => void model.prepare()}>
-              {t("model.chrome_download")}
-            </button>
-          </div>
-        </div>
-      )}
-      {status?.download === ModelDownload.downloading && (
-        <span className={C.muted}>{t("model.chrome_downloading")}</span>
-      )}
-      {chosen && <span className={C.faint}>{t(chosen.about, { mb: MIN_FREE_MB })}</span>}
+      {chosen && <span className={C.faint}>{t(chosen.about)}</span>}
       {choice === ModelChoice.ollama && OLLAMA_OFFERED && (
         <div className={C.row}>
           {pulled && pulled.length > 0 ? (
@@ -120,9 +85,9 @@ export function ModelSettings({ ports }: { ports: Ports }) {
         </div>
       )}
       <span className={C.label}>{t("model.now", { model: model.label(t) })}</span>
-      {choice === ModelChoice.auto && !deviceUsable(status) && status && (
+      {choice === ModelChoice.auto && model.answering() === ModelChoice.lite && model.deviceInfo && (
         <span className={C.faint}>{t("model.still_works")}</span>
       )}
-    </div>
+    </section>
   );
 }

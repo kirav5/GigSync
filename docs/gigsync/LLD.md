@@ -1046,30 +1046,91 @@ the Keystore. `contacts` is a separate table purged on grant close so a stolen p
 
 ## 9. Offline model and speech
 
-Plugin `status()` / `generate()`; LiteRT-LM (Android, stub), Apple Foundation Models (stub), an in-browser engine
-on WebGPU running the same open model family as Android (web, planned G3; lite mode until then), Ollama (dev builds
-only); `ChosenModel` in Settings (PR #5). Every model is open-weights and runs on the device; nothing from Google,
-OpenAI or any hosted API is used, including a browser's built-in model. The model is used only for
-intent and phrasing; load only when `freeMemoryMb ≥ 1500`. Speech: IndicConformer ONNX or Sarvam Edge, device
-test on a 4 GB phone first; pilot languages Kannada, Hindi, Telugu, English/Hinglish.
+Plugin `status()` / `generate()` / `prepare()` / `remove()` (`plugins/gigsync-llm`); WebLLM on WebGPU in the web app
+and the app installed to the home screen (§9.1), LiteRT-LM (Android, stub), Apple Foundation Models (stub), Ollama
+(dev builds only); `ChosenModel` in Settings. Every model is open-weights and runs on the device; nothing from
+Google, OpenAI or any hosted API is used, including a browser's built-in model (ADR 0010, ADR 0040's amendment). The
+model is used only for intent and phrasing; native engines load only when `freeMemoryMb ≥ 1500`. Speech:
+IndicConformer ONNX or Sarvam Edge, device test on a 4 GB phone first; pilot languages Kannada, Hindi, Telugu,
+English/Hinglish.
 
 ### 9.1 Choosing the model (Settings › On-device model)
 
 The app hands core one `Model`: `ChosenModel` (`apps/mobile/src/adapters/model.ts`), which routes each call to the
-engine chosen in Settings and kept on the device:
+engine chosen in Settings and kept on the device; `OnDevice` (`adapters/model-device.ts`) holds the device model's
+status, the download and the speed guard:
 
-| Choice       | Uses                                                                          |
-| ------------ | ----------------------------------------------------------------------------- |
-| Auto         | the device's model if `status().available` and ≥ 1500 MB free, else lite mode |
-| On-device    | always the device's model (LiteRT-LM, Apple Foundation Models, web engine)    |
-| Lite mode    | no model; rules and templates                                                 |
-| Ollama (dev) | development builds only; Settings lists the models `ollama serve` has pulled  |
+| Choice       | Uses                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------------- |
+| Auto         | the device's model once ready, with ≥ 1500 MB free where the OS says, and not too slow; else lite |
+| On-device    | always the device's model (WebLLM, LiteRT-LM, Apple Foundation Models)                            |
+| Lite mode    | no model; rules and templates                                                                     |
+| Ollama (dev) | development builds only; Settings lists the models `ollama serve` has pulled                      |
 
-On the web the device's model is the in-browser engine on WebGPU running the same open model family as Android
-(planned G3). Until it ships, the web build reports no device model, so Auto and On-device fall back to lite mode.
+**The web engine** (`plugins/gigsync-llm/src/web.ts`): `@mlc-ai/web-llm` 0.2.86 (Apache-2.0) in a Web Worker
+(`worker.ts`, `CreateWebWorkerMLCEngine`'s engine), so the screen never freezes. The package (about 6 MB, plus the
+same again for the worker) is imported only on the first download or answer, and the service worker leaves both
+files out of its precache: the app's first load does not grow (app chunk 1,176 kB before, 1,189 kB after, for the new
+screens and strings). Models, from WebLLM's `prebuiltAppConfig`:
 
-Settings shows what the device reports (engine, ready or not, free memory) and which engine is answering now; the
-agent screen shows the same line. No choice ever reaches a cloud model (ADR 0010).
+| Size             | Model                 | WebLLM id (`shader-f16` GPU / other)                                      | Download |
+| ---------------- | --------------------- | ------------------------------------------------------------------------- | -------- |
+| small, default   | Qwen2.5-0.5B-Instruct | `Qwen2.5-0.5B-Instruct-q4f16_1-MLC` / `Qwen2.5-0.5B-Instruct-q4f32_1-MLC` | ~300 MB  |
+| large, by choice | Qwen2.5-1.5B-Instruct | `Qwen2.5-1.5B-Instruct-q4f16_1-MLC` / `Qwen2.5-1.5B-Instruct-q4f32_1-MLC` | ~900 MB  |
+
+`generate()` sends one user turn with `max_tokens` and `temperature`, and `response_format: json_object` (with the
+schema `{"type":"object"}`, which WebLLM 0.2.86 requires) when core asks for `json` (the router does). It returns the
+answer's time (`elapsedMs`), not counting loading the model into GPU memory.
+
+**The gate** (`gate.ts`, pure and tested; `facts.ts` reads the browser): a Worker and the Cache API; a WebGPU
+adapter; adapter limits at least WebLLM's own (`maxBufferSize` 256 MB, `maxStorageBufferBindingSize` 128 MB,
+`maxComputeWorkgroupStorageSize` 32 KB, `maxStorageBuffersPerShaderStage` 10); `navigator.deviceMemory` ≥ 4 (≥ 8
+for the 1.5B) where reported (iPhones do not report it: allowed, and a failed load falls back to lite mode); free
+quota (`navigator.storage.estimate`) for the model plus 200 MB. Each failure is a reason Settings shows
+(`no_webgpu`, `gpu_limits`, `low_memory`, `low_storage`, `browser`). Before downloading, the app asks
+`navigator.storage.persist()`. The 1.5B option shows only when the gate passes for it.
+
+**The download:**
+- After sign-in, on a capable phone with no model, the chat shows one quiet card until the owner answers: "Help your
+  agent understand you better: download about 300 MB to this phone. [Download] [Later]". Later puts it away; Settings
+  keeps the button.
+- Wi-Fi rule (`core/device-model/network.ts`): where `navigator.connection` reports `cellular` (or the data saver),
+  the card says it uses mobile data and a stopped download never resumes by itself; where the browser says nothing
+  (Safari, so every iPhone), the card advises Wi-Fi and a stopped download waits for a tap; on Wi-Fi it resumes when
+  the app opens.
+- Progress: a slim line in the chat and a bar in Settings, from WebLLM's `initProgressCallback` (`progress.ts`:
+  "Fetching param cache" is the download, "Loading model from cache" counts as downloaded, "Finish loading" is ready).
+- Resume: WebLLM keeps each fetched shard in the Cache API (`webllm/model`) and skips shards already there, so a
+  second `prepare()` continues; the 0.5B has 8 shards of about 35 MB. Lite mode works throughout.
+- Ready: one line in the chat, "Your agent now runs on this phone, even offline", then nothing more.
+- Which models finished is kept in localStorage (`gigsync-webllm-ready`), so `status()` never loads WebLLM. Before
+  loading a model the engine checks the cache still has it (`hasModelInCache`); one the browser evicted is offered
+  again, never fetched silently. Remove (`deleteModelAllInfoInCache`) deletes it; downloading one size deletes the
+  other.
+
+**The speed guard** (`core/device-model/speed.ts`): routing answers (asked as JSON) are timed. When 3 of the first 5
+on a phone take longer than `MODEL_ROUTE_TIMEOUT_MS`, Auto stops using the model there; Settings says "Too slow on
+this phone; using lite mode" with "Try again", which starts the count afresh. The routing prompt is about 1,560
+tokens for a worker (1,080 for a household); on a Mac's GPU one answer takes about 3.5 s.
+
+**Model files:** WebLLM's default hosting (Hugging Face for weights, GitHub for the WebGPU library) for now. To move
+them to Cloudflare R2, set `VITE_MODEL_BASE_URL` at build time (e.g. `https://models.gigsync.network`) and fill the
+bucket so that:
+- each model repo is at `<base>/<model_id>/resolve/main/…` (copy every file of
+  `huggingface.co/mlc-ai/<model_id>`: `mlc-chat-config.json`, `tensor-cache.json`, the `params_shard_*.bin`, the
+  tokenizer files);
+- each WebGPU library is at `<base>/libs/<file>.wasm` (the file named in the record's `model_lib`, from
+  `binary-mlc-llm-libs/web-llm-models/v0_2_86/base/`);
+- the bucket answers with `Access-Control-Allow-Origin` for the app's origins.
+
+A new WebLLM version may need new libraries (its `modelVersion`); copy them when the package is upgraded.
+
+Tests: the gate, progress mapping and requests in `plugins/gigsync-llm/test`; the speed guard and Wi-Fi rule in
+`packages/core/test/device-model.test.ts`; the experience with the dev build's fake engine
+(`adapters/model-fake.ts`, `localStorage["gigsync-fake-model"]`) in `tests/ui/test/on-device-model.spec.ts`; a real
+download and answer on a GPU in `on-device-real.spec.ts` (`REAL_MODEL=1`). Settings shows the model's name, size and
+state, the reason it cannot run, Remove, and which engine is answering now; no choice ever reaches a cloud model
+(ADR 0010).
 
 ## 10. Observability
 
