@@ -1,0 +1,328 @@
+/* The lower sections of the four direction sites (two phones, passbook, poster, lab notebook). Each site sets the
+   --d-* variables in its own file, so the same markup takes that direction's palette, type and corner radius. */
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--d-bg);
+  color: var(--d-fg);
+  font: 15.5px / 1.55 var(--d-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+h1,
+h2,
+h3 {
+  margin: 0;
+  text-wrap: balance;
+  font-family: var(--d-display);
+  letter-spacing: var(--d-track, -0.02em);
+}
+p {
+  margin: 0;
+}
+a {
+  color: inherit;
+}
+.gutter {
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap {
+  max-width: 1160px;
+  margin: 0 auto;
+  min-width: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001s;
+    transition-duration: 0.001s;
+  }
+}
+.rv {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+}
+.rv.pre {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.d-sec {
+  padding-block: 64px;
+  border-top: var(--d-rule, 1px solid var(--d-line));
+}
+.d-eyebrow {
+  font-family: var(--d-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--d-accent);
+  font-weight: 500;
+}
+.d-sec h2 {
+  font-size: clamp(26px, 3.4vw, 40px);
+  font-weight: var(--d-heavy, 800);
+  line-height: 1.05;
+  margin: 10px 0 8px;
+  max-width: 22ch;
+}
+.d-sec > .wrap > p {
+  color: var(--d-muted);
+  max-width: 60ch;
+  margin-bottom: 28px;
+}
+.d-steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  counter-reset: s;
+}
+.d-steps div {
+  border-top: 2px solid var(--d-line);
+  padding-top: 12px;
+  min-width: 0;
+}
+.d-steps div::before {
+  counter-increment: s;
+  content: "Step " counter(s);
+  font-family: var(--d-mono);
+  font-size: 10.5px;
+  color: var(--d-accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.d-steps div.hot {
+  border-top-color: var(--d-accent);
+}
+.d-steps b {
+  display: block;
+  font-family: var(--d-display);
+  font-size: 15px;
+  margin-top: 6px;
+}
+.d-steps span {
+  display: block;
+  color: var(--d-muted);
+  font-size: 13px;
+  margin-top: 4px;
+}
+@media (max-width: 900px) {
+  .d-steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.d-tbl {
+  overflow-x: auto;
+}
+.d-tbl table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.d-tbl th,
+.d-tbl td {
+  text-align: left;
+  padding: 11px 10px;
+  border-bottom: 1px solid var(--d-line);
+  vertical-align: top;
+}
+.d-tbl th {
+  font-family: var(--d-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--d-muted);
+  font-weight: 500;
+}
+.d-tbl td.n {
+  font-family: var(--d-mono);
+  white-space: nowrap;
+}
+.d-pill {
+  font-family: var(--d-mono);
+  font-size: 10.5px;
+  padding: 2px 8px;
+  border-radius: var(--d-radius, 3px);
+  background: var(--d-soft);
+  color: var(--d-accent);
+  white-space: nowrap;
+}
+.d-pill.ok {
+  background: var(--d-ok-soft);
+  color: var(--d-ok);
+}
+.d-quotes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.d-q {
+  border: 1px solid var(--d-line);
+  border-radius: var(--d-radius, 6px);
+  padding: 20px;
+  background: var(--d-card);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.d-q .ph {
+  font-family: var(--d-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--d-muted);
+  align-self: flex-start;
+  border: 1px dashed var(--d-line);
+  padding: 3px 7px;
+  border-radius: var(--d-radius, 3px);
+}
+.d-q p {
+  font-family: var(--d-display);
+  font-size: 17px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+.d-q p::before {
+  content: "“";
+  color: var(--d-accent);
+}
+.d-q p::after {
+  content: "”";
+  color: var(--d-accent);
+}
+.d-q .who {
+  margin-top: auto;
+  font-size: 13px;
+  color: var(--d-muted);
+}
+.d-q .who b {
+  display: block;
+  color: var(--d-fg);
+}
+@media (max-width: 860px) {
+  .d-quotes {
+    grid-template-columns: 1fr;
+  }
+}
+.d-open {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.d-open div {
+  border: 1px solid var(--d-line);
+  border-radius: var(--d-radius, 6px);
+  padding: 16px;
+  min-width: 0;
+  background: var(--d-card);
+}
+.d-open b {
+  display: block;
+  font-family: var(--d-mono);
+  font-size: 24px;
+  letter-spacing: -0.02em;
+}
+.d-open span {
+  display: block;
+  color: var(--d-muted);
+  font-size: 13px;
+  margin-top: 4px;
+}
+@media (max-width: 900px) {
+  .d-open {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.d-team {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.d-team div {
+  display: flex;
+  gap: 14px;
+  min-width: 0;
+}
+.d-team i {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--d-radius, 6px);
+  background: var(--d-soft);
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-family: var(--d-mono);
+  font-size: 10px;
+  color: var(--d-muted);
+  font-style: normal;
+}
+.d-team b {
+  display: block;
+  font-family: var(--d-display);
+}
+.d-team span {
+  color: var(--d-muted);
+  font-size: 13.5px;
+}
+@media (max-width: 860px) {
+  .d-team {
+    grid-template-columns: 1fr;
+  }
+}
+.d-foot {
+  border-top: var(--d-rule, 1px solid var(--d-line));
+  padding-block: 28px 48px;
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--d-muted);
+}
+.d-foot .end {
+  margin-left: auto;
+}
+.d-closing {
+  padding-block: 72px 24px;
+}
+.d-closing h2 {
+  font-size: clamp(34px, 5.6vw, 72px);
+  line-height: 1;
+  max-width: 14ch;
+  font-weight: var(--d-heavy, 800);
+}
+.d-closing .ctas {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+.d-btn {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--d-display);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 11px 18px;
+  border-radius: var(--d-btn-radius, 4px);
+  background: var(--d-fg);
+  color: var(--d-bg);
+  text-decoration: none;
+  border: 1.5px solid var(--d-fg);
+}
+.d-btn.accent {
+  background: var(--d-accent);
+  border-color: var(--d-accent);
+  color: var(--d-on-accent);
+}
+.d-btn.ghost {
+  background: transparent;
+  color: var(--d-fg);
+}

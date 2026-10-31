@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>GigSync — documentation</title>
+<link rel="icon" type="image/svg+xml" href="../../icon.svg" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Kannada:wght@400;600&display=swap" />
+<script>
+  let look = null;
+  try { look = localStorage.getItem("gigsync-site-theme"); } catch {}
+  document.documentElement.dataset.theme = look === "light" || look === "dark" ? look : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+</script>
+<link rel="stylesheet" href="./shared.css" />
+<style>
+/* Layout 3, "documentation": a sticky numbered index, key-value blocks, tables and diagrams. Minimal motion. */
+.page { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px; align-items: start }
+.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); display: grid; gap: 2px; font-size: 13px; padding-top: 72px }
+.toc a { text-decoration: none; color: var(--fg3); padding: 6px 10px; border-left: 2px solid var(--line); display: flex; gap: 10px; transition: color .2s, border-color .2s }
+.toc a span:first-child { font-family: var(--mono); font-size: 11px; width: 20px; flex: none }
+.toc a.on { color: var(--fg); border-left-color: var(--accent) }
+@media (max-width: 900px) { .page { grid-template-columns: 1fr } .toc { display: none } }
+.doc h1 { font-size: clamp(32px, 4.4vw, 54px); font-weight: 700; line-height: 1.04; letter-spacing: -.03em; max-width: 20ch; margin-top: 14px }
+.doc .lede { font-size: 17px; color: var(--fg2); max-width: 60ch; margin-top: 18px }
+.doc .hero { padding-block: 72px 48px; border-bottom: 1px solid var(--line) }
+.d { padding-block: 48px; border-bottom: 1px solid var(--line); scroll-margin-top: 20px }
+.d h2 { font-size: 26px; font-weight: 700; display: flex; gap: 14px; align-items: baseline } .d h2 .n { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 500; letter-spacing: .08em }
+.d > p { color: var(--fg2); max-width: 68ch; margin-top: 12px; font-size: 15.5px }
+.d .body { margin-top: 24px }
+.kv { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 8px 16px; font-size: 14.5px }
+.kv dt { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--fg3); padding-top: 3px } .kv dd { margin: 0; color: var(--fg); min-width: 0 }
+.kv dd small { display: block; color: var(--fg2) }
+@media (max-width: 600px) { .kv { grid-template-columns: 1fr } }
+.status-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px }
+.ctas { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px }
+</style>
+</head>
+<body>
+<div class="gutter"><div class="wrap">
+  <nav class="site-nav"><a class="brand" href="./docs.html"><svg viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke-width="8"><path class="you" d="M42 12H12V40H42"/><path class="them" d="M22 24H52V52H22"/></g></svg>GigSync</a><span class="links"><a href="#d1">Overview</a><a href="#d9">Decisions</a><a href="#d15">Code</a></span><button class="theme" id="themeBtn" type="button" aria-label="Switch light or dark">◐</button><span class="tag fresh">G1 · in review · gigsync.network</span></nav>
+  <div class="page">
+    <aside class="toc" id="toc">
+      <a href="#d1" class="on"><span>01</span><span>Summary</span></a><a href="#d2"><span>02</span><span>The problem</span></a><a href="#d3"><span>03</span><span>What we built</span></a><a href="#d4"><span>04</span><span>How a job works</span></a><a href="#d5"><span>05</span><span>Small</span></a><a href="#d6"><span>06</span><span>Intentional</span></a><a href="#d7"><span>07</span><span>Tailored</span></a><a href="#d8"><span>08</span><span>Architecture</span></a><a href="#d9"><span>09</span><span>Refusals</span></a><a href="#d10"><span>10</span><span>Traction</span></a><a href="#d11"><span>11</span><span>Voices</span></a><a href="#d12"><span>12</span><span>Roadmap</span></a><a href="#d13"><span>13</span><span>Sustainability</span></a><a href="#d14"><span>14</span><span>Team</span></a><a href="#d15"><span>15</span><span>In the open</span></a>
+    </aside>
+    <div class="doc">
+      <section class="hero">
+        <span class="label sq">GigSync · a worker-held agent · proposal to Mozilla Human-Scale AI</span>
+        <h1>The agent is on the phone. The cloud only carries sealed envelopes.</h1>
+        <p class="lede">GigSync is a gig worker's own agent for their whole working life. It finds work in any mode, agrees each job with the household's agent, and keeps a signed, hash-chained record on the device. No central database of workers, no cloud model, no cut. Pilot: 50 domestic workers, one union, Bengaluru.</p>
+        <div class="status-row"><span class="tag fresh">Working code on main</span><span class="tag fresh">e2e on real devices</span><span class="tag peri">Zero cloud model calls</span><span class="tag wait">Pilot: Aug–Oct 2027</span></div>
+        <div class="ctas"><a class="btn accent" href="https://github.com/kirav5/GigSync">Two-minute demo</a><a class="btn ghost" href="https://github.com/kirav5/GigSync/tree/main/docs/gigsync">HLD</a><a class="btn ghost" href="https://github.com/kirav5/GigSync/tree/main/docs/gigsync">LLD</a><a class="btn ghost" href="https://github.com/kirav5/GigSync">GitHub</a></div>
+      </section>
+
+      <section class="d" id="d1"><h2><span class="n">01</span>Summary</h2><p>One sentence, one table. GigSync never stands between the worker and the customer, the money, or the record. Partners and unions do what needs a human or a building.</p>
+        <div class="body"><dl class="kv"><dt>For</dt><dd>Domestic, beauty and home-service workers in Bengaluru first; delivery, rides and construction on the same core<small>Also: the household that hires, the union that stewards, the partner that receives a worker with a consent</small></dd><dt>Does</dt><dd>Finds work, negotiates and signs, keeps the record, lands the worker in a new city, protects their contact details</dd><dt>Never</dt><dd>Sets the price, ranks workers, holds the money, takes a cut, holds a worker database, calls a cloud model</dd><dt>Runs on</dt><dd>A 4 GB Android phone, offline, with no model; also iPhone, Mac and the web from one codebase</dd><dt>Stage</dt><dd>G1 in review; agent-to-agent job flow deployed on gigsync.network; 41 ADRs public</dd></dl></div></section>
+
+      <section class="d" id="d2"><h2><span class="n">02</span>The problem</h2><p>India's platforms keep the record and take the cut. Government registries hold what platforms upload, not what the worker did off-platform. Workers who move cities start from zero, pay fake "job agents" ₹4,800 to register, and sleep in ₹500 windowless rooms because nothing sits between those and ₹8,000 PGs.</p>
+        <div class="body tbl"><table class="t"><tr><th>Model</th><th>What the worker nets</th><th>What is extracted</th></tr><tr><td>Urban Company core</td><td class="n">~₹100 on a ₹767 job (worker accounts)</td><td>28% commission, ₹1,000 ten-day plans, credit floats, kits, ID blocks</td></tr><tr><td>Instant-help apps (InstaHelp, Snabbit, Pronto)</td><td class="n">₹83–128 of logged time</td><td>Unpaid waiting, docked leave, uniform purchases, footage sold as AI data</td></tr><tr><td>Namma Yatri</td><td class="n">100% of fare</td><td>₹25 a day; loses ₹51 Cr a year</td></tr><tr><td>GigSync</td><td class="n">100% of the agreed rate</td><td>Nothing. Institutions pay for outcomes</td></tr></table></div></section>
+
+      <section class="d" id="d3"><h2><span class="n">03</span>What we built</h2><p>A job is two agents and two signatures. Everything else is a port behind the agent: a mailbox that cannot read, a board that does not rank, a web signer for a household with no app, a desk for the union, a registry of vouched partners.</p>
+        <div class="body grid3 rv"><div><h3><small>Phone</small>The agent</h3><ul><li>Negotiates under the worker's rules</li><li>Signs; holds the slot</li><li>Hash-chained record</li><li>Landing journey, offline</li></ul></div><div><h3><small>Cloud</small>Board and mailbox</h3><ul><li>Cards by trade and area</li><li>Sealed envelopes, opaque holds</li><li>Workers + one Durable Object per user</li><li>Neon Postgres directory</li></ul></div><div><h3><small>Browser</small>Signer and desk</h3><ul><li>WhatsApp or SMS link to sign and pay</li><li>Union: circles, flags, members, vouches</li><li>City packs on R2</li></ul></div></div></section>
+
+      <section class="d" id="d4"><h2><span class="n">04</span>How a job works</h2><p>The first pair of matching signatures on one terms hash wins; the others are told "taken". Nothing in the cloud decides a booking.</p>
+        <div class="body steps rv"><div><b>Request</b><span>Sealed, to at most three workers</span></div><div><b>Rules</b><span>Min rate, days off, leave, notice</span></div><div><b>Terms</b><span>Rate, hours, off, leave, schedule</span></div><div class="hot"><b>Both sign</b><span>One hash, two signatures; contact released</span></div><div><b>Work</b><span>Receipt per visit or stage, countersigned in 48 h</span></div><div><b>Paid</b><span>UPI direct, no escrow</span></div><div><b>Record</b><span>Hash-chained on the phone</span></div></div></section>
+
+      <section class="d" id="d5"><h2><span class="n">05</span>Small</h2><p>Nothing in GigSync calls a cloud model. The only models are small, open ones on the phone, and the app is complete with none installed.</p>
+        <div class="body"><dl class="kv"><dt>Engines</dt><dd>LiteRT-LM on Android; Apple Foundation Models on iPhone and Mac; the browser's built-in model on the web; Ollama in development builds only</dd><dt>Largest model</dt><dd>Under 3B parameters, 4-bit, optional. The form's answer: "10B or fewer".</dd><dt>What the model does</dt><dd>Names an intent and fills slots from a fixed list (trade, area, city, amount, contact). Reply is JSON checked by a zod schema; slot values must be ones code already knows. Code runs the action and computes every number. (ADR 0040)</dd><dt>Fallback</dt><dd>Keyword lists in English, Hindi, Kannada and Hinglish answer when there is no model, when it is slow, or when its reply fails the schema. Measured by an eval set, reported per intent in the build.</dd><dt>Speech</dt><dd>On device first (IndicConformer under test); cloud speech only with explicit consent (ADR 0023)</dd><dt>Hardware floor</dt><dd>Every screen on a 4 GB phone, offline. Lite mode is a test target, not a degraded mode.</dd></dl></div></section>
+
+      <section class="d" id="d6"><h2><span class="n">06</span>Intentional</h2><p>Private data never leaves the phone readable. The worker sees every disclosure, including every handover to a partner, before it happens.</p>
+        <div class="body"><dl class="kv"><dt>Record</dt><dd>Signed, hash-chained, on the device; exported only in the part the worker picks, to whoever they pick</dd><dt>Data per owner</dt><dd>One record per owner on the phone; another owner on the same phone sees none of it (ADR 0032)</dd><dt>Disclosure</dt><dd>"What my agent shared" lists every envelope sent. A partner receives a worker and a consent, never a lead list.</dd><dt>Governance</dt><dd>The union runs the circles and issues the flags members trust (ADR 0017). GigSync does not own the community.</dd><dt>Lost phone</dt><dd>A server-held copy of the job record, sealed to the worker's keys, so earnings survive a moved phone (ADR 0037)</dd></dl></div></section>
+
+      <section class="d" id="d7"><h2><span class="n">07</span>Tailored</h2><p>Built with domestic workers and their union in Bengaluru. The people, the problem and the city shaped what it does, how it works and how it is deployed.</p>
+        <div class="body"><dl class="kv"><dt>Language</dt><dd>Kannada mandatory; Hindi, Telugu, Bhojpuri, Odia, Bengali follow the pilot roster. Titles never cut through a Kannada or Hindi syllable.</dd><dt>Voice first</dt><dd>A worker speaks; the agent writes the terms. For low-literacy use and a phone held in one hand on a bus.</dd><dt>The household</dt><dd>Signs from a WhatsApp or SMS link without installing anything (ADR 0021). The pilot measures how many do.</dd><dt>Moving</dt><dd>The landing journey exists because workers move cities and start from zero: bed, circle, e-Shram, documents, a cash plan for the first two weeks</dd><dt>Payment</dt><dd>UPI, one ID in the profile, auto-detected from the notification; schedules by day, stage or month because that is how these jobs are paid (ADR 0022)</dd></dl></div></section>
+
+      <section class="d" id="d8"><h2><span class="n">08</span>Architecture</h2><p>Raw personal data on the device; a check at the edge; sealed envelopes in the mailbox; only a card in public.</p>
+        <div class="body diagram rv"><svg viewBox="0 0 560 230" role="img" aria-label="Data flow diagram"><rect x="10" y="20" width="160" height="180" rx="6" fill="var(--peri-fill)" stroke="var(--peri)"/><text x="90" y="45" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--peri)">WORKER'S PHONE</text><text x="22" y="74" font-family="Manrope, sans-serif" font-size="12" fill="var(--fg)">Keys · rules · record</text><text x="22" y="94" font-family="Manrope, sans-serif" font-size="12" fill="var(--fg)">Phone, address, ID</text><text x="22" y="114" font-family="Manrope, sans-serif" font-size="12" fill="var(--fg)">Small model, optional</text><text x="22" y="160" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--peri)">never leaves readable</text><rect x="200" y="70" width="160" height="90" rx="6" fill="var(--bg)" stroke="var(--fg3)" stroke-dasharray="4 3"/><text x="280" y="95" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--fg3)">MAILBOX · BOARD</text><text x="280" y="118" text-anchor="middle" font-family="Manrope, sans-serif" font-size="12" fill="var(--fg)">sealed envelopes · holds</text><text x="280" y="140" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--fg3)">cannot read them</text><rect x="390" y="20" width="160" height="180" rx="6" fill="var(--surface2)" stroke="var(--fg3)"/><text x="470" y="45" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--fg3)">HOUSEHOLD</text><text x="402" y="74" font-family="Manrope, sans-serif" font-size="12" fill="var(--fg)">App, or a WhatsApp link</text><text x="402" y="94" font-family="Manrope, sans-serif" font-size="12" fill="var(--fg)">Reads, counters, signs</text><text x="402" y="114" font-family="Manrope, sans-serif" font-size="12" fill="var(--fg)">Pays by UPI, direct</text><line x1="170" y1="115" x2="200" y2="115" stroke="var(--accent)" stroke-width="2"/><line x1="360" y1="115" x2="390" y2="115" stroke="var(--accent)" stroke-width="2"/><text x="280" y="220" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--fresh)">contact released only after both signatures on one terms hash</text></svg><div class="cap">Fig. 1 · pii-boundary.svg. Figs. 2–5 on the real site: context, containers, job-agreed, payment (all exist in docs/gigsync/diagrams).</div></div>
+        <div class="body tbl"><table class="t"><tr><th>Layer</th><th>Choice</th><th>Why</th></tr><tr><td>App</td><td>Capacitor, React, one TypeScript codebase</td><td>Android, iPhone, Mac and web from one tree (ADR 0001)</td></tr><tr><td>Crypto</td><td>X25519 + XChaCha20-Poly1305 sealing; Ed25519 signatures</td><td>Device keys; nothing readable in transit or at rest in the cloud</td></tr><tr><td>Backend</td><td>Cloudflare Workers, Hono, one Durable Object per user</td><td>Cheap at the edge in India; a mailbox, not a database (ADR 0002, 0004)</td></tr><tr><td>Directory</td><td>Neon Postgres through Hyperdrive</td><td>Cards and the partner registry only (ADR 0013)</td></tr><tr><td>Model plugin</td><td>LiteRT-LM, Apple Foundation Models, web built-in</td><td>One offline model plugin, replaceable (ADR 0009, 0010)</td></tr></table></div></section>
+
+      <section class="d" id="d9"><h2><span class="n">09</span>Refusals</h2><p>Nothing GigSync earns may depend on the worker earning less. Each refusal is recorded as a decision.</p>
+        <div class="body refuse rv"><div><b>No cut</b><span>No percentage, no access fee, no paid placement (REVENUE §2)</span></div><div><b>No ranking</b><span>No stars; countersigned "worked together" receipts (ADR 0020)</span></div><div><b>No money held</b><span>UPI direct, no escrow (ADR 0011, 0022)</span></div><div><b>No worker database</b><span>Keys, cards, sealed envelopes (HLD §9)</span></div><div><b>No cloud model</b><span>ADR 0010</span></div><div><b>No WhatsApp bot</b><span>A door, never the agent (ADR 0021)</span></div><div><b>No lead lists</b><span>A worker and a consent per handover (VISION §8)</span></div><div><b>No data sales</b><span>DPDP purpose limitation; never trained on</span></div></div></section>
+
+      <section class="d" id="d10"><h2><span class="n">10</span>Traction and product-community fit</h2><p>What runs today, what is being tested, and what the pilot will measure. The targets are published before the pilot so the numbers cannot be chosen afterward.</p>
+        <div class="body open-grid rv"><div><b>main</b><span>Agent-to-agent job flow deployed on gigsync.network; e2e suite on real devices against the live API</span></div><div><b>G1</b><span>Ledger hash chain, encrypted store and payment schedules in review</span></div><div><b>3</b><span>Languages in the app: English, Hindi, Kannada</span></div><div><b>1</b><span>Union partner in conversation for the pilot (name on the real site)</span></div></div>
+        <div class="body tbl"><table class="t"><tr><th>Pilot measure (G5)</th><th>Target</th><th>Status</th></tr><tr><td>Workers with at least one both-signed agreement</td><td class="n">30 of 50</td><td><span class="tag wait">pilot not started</span></td></tr><tr><td>Receipts countersigned within 48 h</td><td class="n">≥ 70%</td><td><span class="tag wait">pilot not started</span></td></tr><tr><td>Evidence packs accepted by a receiver as filed</td><td class="n">≥ 5</td><td><span class="tag wait">pilot not started</span></td></tr><tr><td>Newcomers landed: bed, circle, e-Shram in 14 days</td><td class="n">10</td><td><span class="tag wait">pilot not started</span></td></tr><tr><td>Workers newly on e-Shram through the app</td><td class="n">≥ 40 of 50</td><td><span class="tag wait">pilot not started</span></td></tr><tr><td>Contact leaks before signature</td><td class="n">0</td><td><span class="tag fresh">data-flow test passing</span></td></tr><tr><td>Every screen on a 4 GB phone, no model, offline</td><td class="n">all</td><td><span class="tag fresh">lite mode shipped</span></td></tr></table></div></section>
+
+      <section class="d" id="d11"><h2><span class="n">11</span>Voices</h2><p>Workers, a steward, a household. Three slots for the real quotes.</p>
+        <div class="body quotes rv"><div class="q"><span class="ph">Placeholder · worker</span><p>On holding back her number, or on a record she can show.</p><div class="who"><i>LK</i><div><b>Name</b>Cleaning, Koramangala</div></div></div><div class="q"><span class="ph">Placeholder · union</span><p>On circles, flags and evidence.</p><div class="who"><i>UN</i><div><b>Name</b>Steward</div></div></div><div class="q"><span class="ph">Placeholder · household</span><p>On signing from a WhatsApp link.</p><div class="who"><i>HH</i><div><b>Name</b>Household</div></div></div></div></section>
+
+      <section class="d" id="d12"><h2><span class="n">12</span>Roadmap</h2><p>Record first, then landing, then circles, then the pilot. The 12-month cohort from April 2027 covers G3 to G6.</p>
+        <div class="body road rv"><div class="now"><span class="g">G1</span></div><div class="d">Nov 2026 – Jan 2027</div><div class="w">Ledger hash chain; receipts; encrypted store; terms gain mode, schedule, leave, notice</div><div><span class="g">G2</span></div><div class="d">Feb – Mar 2027</div><div class="w">Registration helper; evidence packs in Labourline, IPGRS and Board formats; union desk; "What my agent shared"</div><div><span class="g">G3</span></div><div class="d">Apr – May 2027</div><div class="w">Landing journey; Bengaluru city pack; partner registry and vouches; on-device speech test</div><div><span class="g">G4</span></div><div class="d">Jun – Jul 2027</div><div class="w">Circles; landing request and mentor offer; background responder; flag governance</div><div><span class="g">G5</span></div><div class="d">Aug – Oct 2027</div><div class="w">Pilot: 50 service workers, 10 newcomers, one union, Bengaluru</div><div><span class="g">G6</span></div><div class="d">Nov – Dec 2027</div><div class="w">Lender scope and income proof; skilling postings; second city and language set</div></div></section>
+
+      <section class="d" id="d13"><h2><span class="n">13</span>Sustainability</h2><p>No platform that refuses a cut has published a profit. The only near-sustainable models without a cut are paid per outcome by an institution. GigSync sells exactly that.</p>
+        <div class="body"><dl class="kv"><dt>Sold</dt><dd>A registered, day-counted worker and a filed, evidenced grievance: the outputs of the Record and Landing pillars</dd><dt>Buyers</dt><dd>Karnataka's gig-worker welfare board; CSR programmes in the Haqdarshak mould; the state domestic-workers board once the Bill passes; foundations already funding Bengaluru gig-worker infrastructure</dd><dt>Test</dt><dd>No line of revenue rises when a worker's rate falls, waits longer, is steered, or is ranked</dd><dt>Open questions</dt><dd>First institutional buyer; whether to take a flat partner handover fee; whether person-to-person UPI sits outside payment-aggregator rules (counsel not yet asked)</dd></dl></div></section>
+
+      <section class="d" id="d14"><h2><span class="n">14</span>Team</h2><p>Names, roles, lived experience, and the union partner.</p>
+        <div class="body team rv"><div><i>photo</i><div><b>Founder name</b><span>Role · background · why this problem</span></div></div><div><i>photo</i><div><b>Founder name</b><span>Role · background · why this problem</span></div></div><div><i>logo</i><div><b>Union partner</b><span>Runs the circles and flags in the pilot</span></div></div></div></section>
+
+      <section class="d" id="d15"><h2><span class="n">15</span>In the open</h2><p>Everything is on GitHub: code, design, and the reasons. What the cohort will leave behind that others can build on.</p>
+        <div class="body open-grid rv"><div><b>41</b><span>ADRs with context, decision and consequences</span></div><div><b>4 packages</b><span>protocol (zod schemas), crypto, core (the agent), the offline model plugin</span></div><div><b>5</b><span>Diagrams: context, containers, PII boundary, job agreed, payment</span></div><div><b>Eval</b><span>Intent-routing eval set in English, Hindi, Kannada and Hinglish, results in the build</span></div></div></section>
+
+      <section class="closing"><h2>Agree first. Get paid. <span class="soft">Keep the proof.</span></h2><div class="ctas"><a class="btn accent" href="https://github.com/kirav5/GigSync">Two-minute demo</a><a class="btn" href="https://github.com/kirav5/GigSync">Read the code</a></div></section>
+    </div>
+  </div>
+</div></div>
+<script type="module">
+  import { startShared } from "./shared.js";
+
+  startShared();
+  // The index follows the section in view.
+  const sections = document.querySelectorAll(".d");
+  const links = document.querySelectorAll("#toc a");
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          for (const a of links) a.classList.toggle("on", a.getAttribute("href") === `#${entry.target.id}`);
+        }
+      },
+      { rootMargin: "-20% 0px -70% 0px" },
+    );
+    for (const s of sections) io.observe(s);
+  }
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 // The interactive pieces on the website's pages: the cut slider, the phone-to-phone relay, the language switch, the
 // step scrubber, who-sees-what, the counters, voice notes and the budget bars. Everything is example content.
-import { EMPTY_LABEL, NOT_STORED, RECORD, RELAY, SAID, SIGNED_STEP, STEPS, VIEW_CLASS } from "./content.js";
+import { EMPTY_LABEL, NOT_STORED, RECORD, RELAY, SAID, SIGNED_STEP, STEPS, VIEW_CLASS } from "./samples-content.js";
 
 const ON = "on";
 const OPEN = "open";

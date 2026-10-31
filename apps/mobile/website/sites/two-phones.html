@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>GigSync — two phones, one wall</title>
+<link rel="icon" type="image/svg+xml" href="../../icon.svg" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+<style>
+/* Direction A, "two phones, one wall": near-black, hairlines, one magenta, mono labels; the hero is a live
+   agent-to-agent negotiation with the privacy wall drawn between two phones. */
+:root { --d-bg: #0a0a0a; --d-card: #121212; --d-fg: #f4f4f4; --d-muted: #a3a3a3; --d-line: #262626; --d-accent: #ff3ea5; --d-on-accent: #0a0a0a; --d-soft: #1c0f17; --d-ok: #3ddc97; --d-ok-soft: #0b2519;
+  --d-display: "Archivo", system-ui, sans-serif; --d-body: "Archivo", system-ui, sans-serif; --d-mono: "JetBrains Mono", ui-monospace, monospace; --d-radius: 4px; --d-btn-radius: 3px; --d-track: -.03em; color-scheme: dark }
+</style>
+<link rel="stylesheet" href="./direction.css" />
+<style>
+nav { display: flex; align-items: center; gap: 18px; padding: 16px 0; border-bottom: 1px solid #232323 }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; text-decoration: none }
+.brand svg { width: 22px; height: 22px }
+nav .links { margin-left: auto; display: flex; gap: 20px; font-family: var(--d-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #a3a3a3 }
+nav .links a { text-decoration: none }
+nav .cta { font-family: var(--d-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; background: #ff3ea5; color: #0a0a0a; padding: 8px 12px; border-radius: 3px; font-weight: 600; text-decoration: none }
+.hero { padding: 64px 0 36px; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 40px; align-items: end }
+.eyebrow { font-family: var(--d-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #a3a3a3 }
+.eyebrow::before { content: "■ "; color: #ff3ea5 }
+h1 { font-size: clamp(38px, 5.6vw, 74px); line-height: .98; letter-spacing: -.04em; font-weight: 800; margin-top: 16px; max-width: 14ch }
+h1 .soft { color: #7a7a7a; font-weight: 500 }
+.lede { color: #b4b4b4; font-size: 17px; max-width: 46ch; margin: 20px 0 0 }
+.facts { display: grid; gap: 1px; background: #232323; border: 1px solid #232323; border-radius: 6px; overflow: hidden }
+.facts div { background: #121212; padding: 14px 16px }
+.facts b { display: block; font-size: 26px; letter-spacing: -.03em; font-weight: 700 }
+.facts span { font-family: var(--d-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8a8a8a }
+.stage { margin: 28px 0 0; border: 1px solid #262626; border-radius: 8px; background: #121212; overflow: hidden }
+.shead { display: flex; gap: 10px; align-items: center; padding: 10px 14px; border-bottom: 1px solid #262626; font-family: var(--d-mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: #8a8a8a; flex-wrap: wrap }
+.live { width: 7px; height: 7px; border-radius: 50%; background: #3fd8f2; box-shadow: 0 0 0 3px rgba(63,216,242,.25) }
+.tag { border: 1px solid #333; padding: 2px 7px; border-radius: 2px; font-size: 10px; color: #a3a3a3 }
+.tag.peri { color: #a5a8f0; background: #1d1e33; border-color: #2c2e55 } .tag.fresh { color: #3ddc97; background: #0b2519; border-color: #16472f }
+.sbody { display: grid; grid-template-columns: 220px minmax(0, 1fr) 220px }
+.side { padding: 16px 14px; display: flex; flex-direction: column; gap: 12px; font-size: 13px }
+.side.l { border-right: 1px solid #262626 } .side.r { border-left: 1px solid #262626 }
+.who { display: flex; gap: 10px; align-items: center } .who b { display: block; font-size: 13.5px } .who span { font-size: 11.5px; color: #8a8a8a }
+.av { width: 34px; height: 34px; border-radius: 4px; display: grid; place-items: center; font-family: var(--d-mono); font-weight: 700; font-size: 12px }
+.av.you { background: #ff3ea5; color: #0a0a0a } .av.them { background: #f4f4f4; color: #0a0a0a }
+.ctx { border: 1px solid #262626; border-radius: 5px; padding: 9px 10px; display: grid; gap: 6px; font-size: 12.5px; background: #0a0a0a }
+.ctx .row { display: flex; justify-content: space-between; gap: 8px } .ctx .k { color: #8a8a8a }
+.ctx.private { border-color: #3a3c70; background: #1d1e33 } .ctx.private .v { color: #a5a8f0; font-family: var(--d-mono); font-size: 10.5px; letter-spacing: .05em }
+.feed { padding: 16px; display: flex; flex-direction: column; gap: 9px; justify-content: flex-end; min-height: 260px }
+.msg { max-width: 80%; padding: 9px 11px; border-radius: 6px; font-size: 13.5px; border: 1px solid #262626; background: #0a0a0a; line-height: 1.4; animation: pop 12s infinite both }
+.msg:nth-child(2) { animation-delay: 2s } .msg:nth-child(3) { animation-delay: 4s } .msg:nth-child(4) { animation-delay: 6s }
+@keyframes pop { 0% { opacity: 0; transform: translateY(8px) } 4% { opacity: 1; transform: none } 88% { opacity: 1 } 94%, 100% { opacity: 0 } }
+.msg.me { align-self: flex-end; border-color: #4a2238; background: #1c0f17 }
+.msg .meta { display: block; font-family: var(--d-mono); font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; color: #8a8a8a; margin-bottom: 3px }
+.msg.sys { align-self: center; background: #0b2519; border-color: #16472f; color: #3ddc97; font-family: var(--d-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; max-width: none }
+.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: #232323; margin: 40px 0 0; border-top: 1px solid #232323 }
+.three div { background: #0a0a0a; padding: 26px 22px }
+.three h3 { font-size: 20px; letter-spacing: -.02em; font-weight: 700 } .three h3 small { display: block; font-family: var(--d-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: #ff3ea5; margin-bottom: 8px; font-weight: 500 }
+.three p { color: #a3a3a3; font-size: 14px; margin: 10px 0 0 }
+@media (max-width: 900px) { .hero, .three { grid-template-columns: 1fr } .sbody { grid-template-columns: 1fr } .side.l, .side.r { border: 0; border-bottom: 1px solid #262626 } nav .links { display: none } }
+</style>
+</head>
+<body>
+<div class="gutter"><div class="wrap">
+  <nav><a class="brand" href="./two-phones.html"><svg viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke-width="8"><path d="M42 12H12V40H42" stroke="#ff3ea5"/><path d="M22 24H52V52H22" stroke="#f4f4f4"/></g></svg>GigSync</a><span class="links"><a href="https://github.com/kirav5/GigSync/tree/main/docs/gigsync">How it works</a><a href="https://github.com/kirav5/GigSync/tree/main/docs/gigsync">Small</a><a href="https://github.com/kirav5/GigSync/tree/main/docs/gigsync">Record</a><a href="https://github.com/kirav5/GigSync/tree/main/docs/gigsync">Pilot</a><a href="https://github.com/kirav5/GigSync/tree/main/docs/gigsync">Code</a></span><a class="cta" href="https://github.com/kirav5/GigSync">Read the design</a></nav>
+  <div class="hero">
+    <div>
+      <div class="eyebrow">Human-scale AI for gig workers · Bengaluru</div>
+      <h1>An agent that fits <span class="soft">in a ₹10,000 phone.</span></h1>
+      <p class="lede">A gig worker's own agent agrees each job with the household's agent, holds back their number until both phones sign, and keeps a signed record of every job and payment that belongs to them. No cloud model. No cut.</p>
+    </div>
+    <div class="facts">
+      <div><b>0</b><span>Calls to a cloud model</span></div>
+      <div><b>&lt; 3B</b><span>Largest on-device model, optional</span></div>
+      <div><b>4 GB</b><span>Phone it must run on, offline</span></div>
+      <div><b>0%</b><span>Taken from any job</span></div>
+    </div>
+  </div>
+  <div class="stage">
+    <div class="shead"><span class="live"></span> Example · House cleaning, Koramangala <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><span class="tag peri">Agent to agent</span><span class="tag">On the worker's phone</span><span class="tag fresh">Both signed</span></span></div>
+    <div class="sbody">
+      <div class="side l"><div class="who"><span class="av them">H</span><div><b>Household's agent</b><span>Asks for the work</span></div></div><div class="ctx"><div class="row"><span class="k">Needs</span><span>Cleaning</span></div><div class="row"><span class="k">Area</span><span>Koramangala</span></div><div class="row"><span class="k">When</span><span>Mon–Fri, 8–11</span></div></div></div>
+      <div class="feed">
+        <div class="msg"><span class="meta">Household · Request</span>Cleaning Mon–Fri, 8–11, Koramangala. Who can do it?</div>
+        <div class="msg me"><span class="meta">Worker's agent · Terms</span>₹450 a visit, Sunday off, 4 days' paid leave a year. Paid by the day, UPI.</div>
+        <div class="msg"><span class="meta">Household · Countersign</span>Accepted. Rate, days and hours fit the rules.</div>
+        <div class="msg sys">Both phones signed the same terms hash · contact released</div>
+      </div>
+      <div class="side r"><div class="who"><span class="av you">L</span><div><b>Lakshmi's agent</b><span>Works for her alone</span></div></div><div class="ctx private"><div class="row"><span class="k">Phone</span><span class="v">HELD UNTIL SIGNED</span></div><div class="row"><span class="k">Address</span><span class="v">NEVER SENT</span></div><div class="row"><span class="k">Rules</span><span class="v">MIN ₹400 · SUN OFF</span></div></div></div>
+    </div>
+  </div>
+  <div class="three">
+    <div><h3><small>Small</small>Models propose, code decides.</h3><p>A policy checker in plain rules decides what leaves the phone. The only model is a small open one on the device, and the app works with none installed.</p></div>
+    <div><h3><small>Intentional</small>The worker holds the record.</h3><p>Every agreement, visit and payment is signed and hash-chained on the phone. The worker exports only the part they pick, to whoever they pick.</p></div>
+    <div><h3><small>Tailored</small>Built with one union, in Kannada.</h3><p>Domestic and home-service workers in Bengaluru first. Households sign from a WhatsApp link, no install. Circles are run by the union, not by us.</p></div>
+  </div>
+</div></div>
+<div class="gutter">
+<section class="d-sec"><div class="wrap">
+  <span class="d-eyebrow">How a job works</span>
+  <h2>Agree first. Then share.</h2>
+  <p>The first pair of matching signatures on one terms hash wins. Until then, her number and address stay on her phone. After the job ends, they are withdrawn again.</p>
+  <div class="d-steps rv">
+    <div><b>Household asks</b><span>The job, time window, budget. No name, no number.</span></div>
+    <div><b>Her agent matches</b><span>Skill, distance, hours, her minimum rate.</span></div>
+    <div><b>Agents negotiate</b><span>Structured offers, capped counters. She can step in.</span></div>
+    <div class="hot"><b>Both phones sign</b><span>Rate, time, scope. Contact released only now.</span></div>
+    <div><b>Job done, UPI paid</b><span>Household pays her directly. Both ledgers update.</span></div>
+  </div>
+</div></section>
+
+<section class="d-sec"><div class="wrap">
+  <span class="d-eyebrow">Built small</span>
+  <h2>For a ₹10,000 phone. No frontier model anywhere.</h2>
+  <p>Matching, negotiation and the ledger are plain rules. One small open model, under 3B parameters, 4-bit, only helps with wording and speech. The app is complete with no model at all.</p>
+  <div class="d-tbl rv"><table>
+    <tr><th>Part</th><th>Runs with</th><th>Where</th></tr>
+    <tr><td>Matching rules, negotiation protocol, ledger</td><td>Plain rules, no model</td><td>Phone</td></tr>
+    <tr><td>Understanding and phrasing in Hindi, Hinglish, English, Kannada</td><td>One small open model, under 3B, 4-bit</td><td>Phone</td></tr>
+    <tr><td>Speech input</td><td>On-device speech model</td><td>Phone</td></tr>
+    <tr><td>Message relay</td><td>Store-and-forward mailbox, ciphertext only</td><td>Cloudflare Workers</td></tr>
+    <tr><td>Frontier model API</td><td>None</td><td>Nowhere</td></tr>
+  </table></div>
+</div></section>
+
+<section class="d-sec"><div class="wrap">
+  <span class="d-eyebrow">Where we are, honestly</span>
+  <h2>Working code. A pilot to run.</h2>
+  <p>The agent-to-agent job flow runs end to end on gigsync.network with tests on real devices. The pilot targets are published before the pilot starts.</p>
+  <div class="d-tbl rv"><table>
+    <tr><th>Pilot measure</th><th>Target</th><th>Status today</th></tr>
+    <tr><td>Workers with at least one both-signed agreement</td><td class="n">30 of 50</td><td><span class="d-pill">pilot not started</span></td></tr>
+    <tr><td>Receipts countersigned within 48 h</td><td class="n">≥ 70%</td><td><span class="d-pill">pilot not started</span></td></tr>
+    <tr><td>Newcomers landed: bed, circle and e-Shram in 14 days</td><td class="n">10</td><td><span class="d-pill">pilot not started</span></td></tr>
+    <tr><td>Contact leaks before signature</td><td class="n">0</td><td><span class="d-pill ok">data-flow test passing</span></td></tr>
+    <tr><td>Every screen works on a 4 GB phone, no model, offline</td><td class="n">all</td><td><span class="d-pill ok">lite mode shipped</span></td></tr>
+  </table></div>
+</div></section>
+
+<section class="d-sec"><div class="wrap">
+  <span class="d-eyebrow">In their words</span>
+  <h2>What workers told us.</h2>
+  <p>Real quotes replace these three slots once they are recorded with consent.</p>
+  <div class="d-quotes rv">
+    <div class="d-q"><span class="ph">placeholder · worker</span><p>I came from Orissa last month. My cousin helped me enroll.</p><div class="who"><b>Name</b>Home-service worker, Bengaluru</div></div>
+    <div class="d-q"><span class="ph">placeholder · worker</span><p>It was a ₹100 job. I got ₹50.</p><div class="who"><b>Name</b>Urban Company worker</div></div>
+    <div class="d-q"><span class="ph">placeholder · household</span><p>A household on signing terms from a WhatsApp link without installing anything.</p><div class="who"><b>Name</b>Household, Bengaluru</div></div>
+  </div>
+</div></section>
+
+<section class="d-sec"><div class="wrap">
+  <span class="d-eyebrow">In the open</span>
+  <h2>What we leave for others to build on.</h2>
+  <div class="d-open rv">
+    <div><b>Protocol</b><span>Agent-to-agent negotiation: bounded, structured, any app can implement it</span></div>
+    <div><b>Eval set</b><span>Hindi, Hinglish, English, Kannada negotiation and matching tasks for sub-3B models</span></div>
+    <div><b>Record format</b><span>Open formats for agreements and signed receipts a union or helpline can read</span></div>
+    <div><b>41 ADRs</b><span>Every decision with its context and consequences, on GitHub</span></div>
+  </div>
+</div></section>
+
+<section class="d-sec"><div class="wrap">
+  <span class="d-eyebrow">Team</span>
+  <h2>Who is building it.</h2>
+  <div class="d-team rv">
+    <div><i>photo</i><div><b>Founder name</b><span>Role · background · why this problem</span></div></div>
+    <div><i>photo</i><div><b>Founder name</b><span>Role · background · why this problem</span></div></div>
+    <div><i>logo</i><div><b>Union partner</b><span>Runs the circles and flags in the pilot</span></div></div>
+  </div>
+</div></section>
+
+<section class="d-closing"><div class="wrap">
+  <span class="d-eyebrow">GigSync · Bengaluru · 2026</span>
+  <h2 style="margin-top:12px">Agree first. Get paid. Keep the proof.</h2>
+  <div class="ctas"><a class="d-btn accent" href="https://github.com/kirav5/GigSync">Read the code</a><a class="d-btn ghost" href="https://github.com/kirav5/GigSync">Watch the demo</a></div>
+</div></section>
+<footer class="d-foot"><div class="wrap" style="display:flex;gap:18px;flex-wrap:wrap"><span>GigSync is a working name.</span><span>hello@gigsync.network</span><span class="end">Design, decisions and code on GitHub</span></div></footer>
+
+</div>
+<script type="module">
+  import { revealOnScroll } from "./direction.js";
+
+  revealOnScroll();
+</script>
+</body>
+</html>

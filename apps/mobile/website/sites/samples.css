@@ -1,4 +1,4 @@
-/* The paged website at /website: one section per page, a pager at the bottom. One token set, light and dark; the
+/* The interactive samples site: every section is a working component, with little text and detail on demand. One token set, light and dark; the
    accent is the rust from the pitch deck. Nothing here is shared with the app's stylesheet. */
 :root {
   --bg: #f4f1ec;
@@ -46,19 +46,13 @@
 * {
   box-sizing: border-box;
 }
-html,
-body {
-  height: 100%;
-}
 body {
   margin: 0;
   background: var(--bg);
   color: var(--fg);
   font: 15.5px / 1.55 var(--body);
   -webkit-font-smoothing: antialiased;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  overflow-x: hidden;
 }
 h1,
 h2,
@@ -168,176 +162,8 @@ a {
   *,
   *::before,
   *::after {
-    animation-duration: 0.001s !important;
-    transition-duration: 0.001s !important;
-  }
-}
-
-/* chrome */
-.top {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
-  padding-top: calc(10px + env(safe-area-inset-top, 0px));
-  border-bottom: 1px solid var(--line);
-  flex: none;
-  background: var(--bg);
-}
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: 16px;
-  text-decoration: none;
-}
-.brand .mark {
-  width: 12px;
-  height: 12px;
-  background: var(--accent);
-  transform: rotate(45deg);
-  display: inline-block;
-}
-.where {
-  margin-left: auto;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--fg3);
-}
-.where #pageNo {
-  color: var(--fg);
-}
-.icon {
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: transparent;
-  font-size: 14px;
-  display: grid;
-  place-items: center;
-}
-.icon[aria-pressed="false"] {
-  color: var(--fg3);
-}
-@media (max-width: 600px) {
-  .where #pageName {
-    display: none;
-  }
-  .top .btn {
-    display: none;
-  }
-}
-#pages {
-  flex: 1;
-  min-height: 0;
-  position: relative;
-}
-.page {
-  position: absolute;
-  inset: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 36px max(16px, env(safe-area-inset-right, 0px)) 36px max(16px, env(safe-area-inset-left, 0px));
-  opacity: 0;
-  visibility: hidden;
-  transform: translateX(24px);
-  transition:
-    opacity 0.35s ease,
-    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
-    visibility 0s 0.35s;
-}
-.page.on {
-  opacity: 1;
-  visibility: visible;
-  transform: none;
-  transition-delay: 0s;
-}
-.page.back {
-  transform: translateX(-24px);
-}
-.wrap {
-  max-width: 1120px;
-  margin: 0 auto;
-  min-width: 0;
-  min-height: 100%;
-  display: grid;
-  align-content: center;
-  gap: 0 40px;
-}
-.wrap > .label {
-  display: block;
-}
-.pt {
-  font-size: clamp(26px, 3.4vw, 40px);
-  font-weight: 700;
-  line-height: 1.08;
-  margin: 10px 0 24px;
-  max-width: 24ch;
-}
-.pager {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px))
-    max(16px, env(safe-area-inset-left, 0px));
-  border-top: 1px solid var(--line);
-  background: var(--bg);
-}
-.pager .nav {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-  background: transparent;
-  font-size: 16px;
-  flex: none;
-}
-.pager .nav:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
-.dots {
-  flex: 1;
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  justify-content: safe center;
-  min-width: 0;
-  scrollbar-width: none;
-}
-.dots button {
-  flex: none;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  border: 1px solid var(--line);
-  background: transparent;
-  padding: 7px 10px;
-  border-radius: 999px;
-  color: var(--fg2);
-  white-space: nowrap;
-  transition:
-    background 0.2s,
-    color 0.2s;
-}
-.dots button.on {
-  background: var(--fg);
-  color: var(--bg);
-  border-color: var(--fg);
-}
-.dots button span {
-  display: none;
-}
-@media (min-width: 900px) {
-  .dots button span {
-    display: inline;
-    margin-left: 6px;
+    animation-duration: 0.001s;
+    transition-duration: 0.001s;
   }
 }
 

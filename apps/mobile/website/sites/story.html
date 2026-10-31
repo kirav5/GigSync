@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>GigSync — Lakshmi's week</title>
+<link rel="icon" type="image/svg+xml" href="../../icon.svg" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Kannada:wght@400;600&display=swap" />
+<script>
+  let look = null;
+  try { look = localStorage.getItem("gigsync-site-theme"); } catch {}
+  document.documentElement.dataset.theme = look === "light" || look === "dark" ? look : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+</script>
+<link rel="stylesheet" href="./shared.css" />
+<style>
+/* Layout 2, "story scroll": one worker's week in chapters; a phone stays pinned and changes screen as you read. */
+.hero { padding-block: 80px 56px; max-width: 900px }
+.hero h1 { font-size: clamp(40px, 6vw, 84px); font-weight: 800; line-height: .98; letter-spacing: -.04em; margin-top: 16px }
+.hero .lede { font-size: clamp(17px, 1.9vw, 21px); color: var(--fg2); max-width: 46ch; margin-top: 24px }
+.story { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 60px; align-items: start; padding-block: 20px 60px; border-bottom: 1px solid var(--line) }
+.ch { min-height: 70vh; display: flex; flex-direction: column; justify-content: center; padding-block: 40px; border-top: 1px solid var(--line) }
+.ch .label { margin-bottom: 10px }
+.ch h2 { font-size: clamp(28px, 3.6vw, 46px); font-weight: 700; line-height: 1.05; max-width: 16ch; transition: color .4s }
+.ch p { color: var(--fg2); font-size: 16.5px; max-width: 52ch; margin-top: 16px }
+.ch ul { margin: 14px 0 0; padding-left: 18px; color: var(--fg2); font-size: 14.5px; display: grid; gap: 5px; max-width: 52ch }
+.ch:not(.on) h2 { color: var(--fg2) }
+.sticky { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 80px) }
+.phone { width: 300px; max-width: 100%; aspect-ratio: 9 / 18.6; background: var(--inverse); border-radius: 34px; padding: 10px; box-shadow: 0 30px 60px -24px rgba(0,0,0,.5); margin: 0 auto }
+.screen { background: #0a0a0a; color: #f4f4f4; border-radius: 26px; height: 100%; position: relative; overflow: hidden; font-size: 13px }
+.scr { position: absolute; inset: 0; padding: 24px 16px 16px; display: flex; flex-direction: column; gap: 10px; opacity: 0; transition: opacity .45s ease }
+.scr.on { opacity: 1 }
+.scr .top { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8a8a8a }
+.scr .big { font-family: var(--display); font-size: 22px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1 }
+.scr .card { border: 1px solid #2a2a2a; border-radius: 10px; padding: 10px 11px; display: grid; gap: 6px; background: #121212 }
+.scr .r { display: flex; justify-content: space-between; gap: 8px; color: #b0b0b0 } .scr .r b { color: #f4f4f4; font-weight: 600 }
+.scr .held { color: #a5a8f0; font-family: var(--mono); font-size: 10.5px }
+.scr .ok { margin-top: auto; background: #ff3ea5; color: #0a0a0a; border-radius: 10px; text-align: center; padding: 11px; font-weight: 700 }
+.scr .mic { align-self: center; width: 54px; height: 54px; border-radius: 50%; border: 2px solid #ff3ea5; display: grid; place-items: center; color: #ff3ea5; margin-top: auto }
+.scr .mic i { width: 14px; height: 14px; border-radius: 50%; background: #ff3ea5; display: block }
+body.anim .scr.on .mic i { animation: pulse 1.6s infinite }
+@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1 } 50% { transform: scale(1.5); opacity: .5 } }
+.scr .green { color: #3ddc97; font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase }
+.scr .line { display: flex; justify-content: space-between; border-bottom: 1px dashed #2a2a2a; padding: 6px 0; font-size: 12.5px } .scr .line span:last-child { font-family: var(--mono) }
+.scr .chk { display: flex; gap: 8px; align-items: center; font-size: 12.5px } .scr .chk i { width: 14px; height: 14px; border: 1.5px solid #3ddc97; border-radius: 3px; display: inline-block; font-style: normal; font-size: 9px; color: #3ddc97; text-align: center; line-height: 12px }
+@media (max-width: 900px) { .story { grid-template-columns: 1fr } .sticky { position: static } .ch { min-height: 0 } .phone { width: 260px } }
+.band { padding-block: 64px; border-bottom: 1px solid var(--line) }
+</style>
+</head>
+<body>
+<div class="gutter"><div class="wrap">
+  <nav class="site-nav"><a class="brand" href="./story.html"><svg viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke-width="8"><path class="you" d="M42 12H12V40H42"/><path class="them" d="M22 24H52V52H22"/></g></svg>GigSync</a><span class="links"><a href="#week">Lakshmi's week</a><a href="#small">Human-scale</a><a href="#refusals">Refusals</a><a href="#pilot">Pilot</a><a href="#team">Team</a></span><button class="theme" id="themeBtn" type="button" aria-label="Switch light or dark">◐</button><a class="btn accent" href="https://github.com/kirav5/GigSync">Watch the demo</a></nav>
+
+  <section class="hero">
+    <div class="label sq">Human-scale AI · a worker's own agent · Bengaluru</div>
+    <h1>Her number stays on her phone <span class="soft">until both sides sign.</span></h1>
+    <p class="lede">This is one week with GigSync, told from Lakshmi's phone. Scroll, and the phone on the right shows what she sees. The agent speaks Kannada, works with no internet and no model, and never takes a cut.</p>
+  </section>
+
+  <div class="story" id="week">
+    <div class="chapters">
+      <div class="ch on" data-s="0"><span class="label sq">Monday · 7:40 am</span><h2>She asks for work in her own words.</h2><p>Lakshmi holds the button and says, in Kannada, that she is free Monday to Friday mornings in Koramangala. The small model on her phone names the intent and fills the slots: trade, area, days. Code checks the reply against a schema and computes every number. If there is no model, keyword lists do the same.</p><ul><li>Speech on device first; cloud speech only with consent (ADR 0023)</li><li>One on-phone model router, JSON checked by a schema (ADR 0040)</li><li>Chat text never leaves the phone for routing</li></ul></div>
+      <div class="ch" data-s="1"><span class="label sq">Monday · 9:15 am</span><h2>Her agent negotiates. She only confirms.</h2><p>A household's agent sends a sealed request. Lakshmi's agent answers under her rules: at least ₹400 a visit, Sunday off, four days' leave. The two agents settle on ₹450, paid by the day. Nothing private crosses the wall; her phone and address are held.</p><ul><li>Rate, hours, weekly off, leave and a payment schedule in the terms</li><li>Unpredictable negotiation tactics so a household's agent cannot game hers (ADR 0033)</li><li>Request to at most three workers; first pair of signatures wins</li></ul></div>
+      <div class="ch" data-s="2"><span class="label sq">Monday · 9:22 am</span><h2>Both phones sign the same terms. Then, and only then, her number is released.</h2><p>Two signatures on one terms hash. The household gets her number for the length of the job; her address is never sent. Her phone holds the slot so no second household can book the same hours.</p><ul><li>Ed25519 signatures on the device; terms hash shared, terms sealed</li><li>Contact leaks before signature: the pilot target is zero, and a data-flow test enforces it</li><li>Household without the app signs from a WhatsApp or SMS link</li></ul></div>
+      <div class="ch" data-s="3"><span class="label sq">Friday · 11:05 am</span><h2>Each visit is a receipt. Each receipt is paid by UPI, straight to her.</h2><p>After the visit, her agent sends a receipt; the household countersigns within 48 hours and pays by UPI to the one UPI ID in her profile. GigSync never holds a rupee, never routes the payment, never takes a cut.</p><ul><li>Payment by day or by stage, countersigned receipts, no escrow (ADR 0022)</li><li>Payment auto-detected from the UPI notification (ADR 0012)</li><li>Earnings and job record kept per owner on the phone, with a server-held copy for a lost phone (ADR 0037)</li></ul></div>
+      <div class="ch" data-s="4"><span class="label sq">Three months later</span><h2>She moves to Hyderabad. The record moves with her.</h2><p>The agent walks her from "I am going" to settled: real going rates from countersigned records, a vouched partner bed, a circle of workers from her region run by her union, e-Shram and state-board registration, the documents she needs, a cash plan for the first two weeks.</p><ul><li>City packs: signed, offline guides on the phone</li><li>Partners receive a worker and a consent, never a lead list</li><li>Registration helper and eligibility counter for welfare she is owed (ADR 0019)</li></ul></div>
+    </div>
+    <div class="sticky">
+      <div class="phone"><div class="screen">
+        <div class="scr on"><div class="top">Talk · ಕನ್ನಡ</div><div class="kn big">ಸೋಮವಾರದಿಂದ ಶುಕ್ರವಾರ ಬೆಳಿಗ್ಗೆ ಕೆಲಸ ಬೇಕು</div><div style="color:#b0b0b0">"I need work Monday to Friday mornings"</div><div class="card"><div class="r"><span>Trade</span><b>Cleaning</b></div><div class="r"><span>Area</span><b>Koramangala</b></div><div class="r"><span>Days</span><b>Mon–Fri, am</b></div><div class="r"><span>Model</span><b class="held">on device</b></div></div><div class="mic"><i></i></div></div>
+        <div class="scr"><div class="top">Offer · household's agent</div><div class="big">₹450 a visit, Mon–Fri 8–11</div><div class="card"><div class="r"><span>Rate</span><b>₹450 / visit</b></div><div class="r"><span>Weekly off</span><b>Sunday</b></div><div class="r"><span>Leave</span><b>4 days / year</b></div><div class="r"><span>Paid</span><b>by the day, UPI</b></div><div class="r"><span>Your number</span><b class="held">HELD</b></div><div class="r"><span>Your address</span><b class="held">NEVER SENT</b></div></div><div class="ok">Agree and sign</div></div>
+        <div class="scr"><div class="top">Agreed · Monday 8 am</div><div class="green">● Both signed · 7f3a…c21e</div><div class="big">Contact released for this job</div><div class="card"><div class="r"><span>Household</span><b>+91 98•• ••• 412</b></div><div class="r"><span>Your number</span><b>shared until job ends</b></div><div class="r"><span>Slot</span><b>held on this phone</b></div></div><div class="ok">Open the chat</div></div>
+        <div class="scr"><div class="top">Record · this week</div><div class="big">₹2,250 · 5 visits</div><div class="line"><span>Mon · Cleaning</span><span>₹450 ✓</span></div><div class="line"><span>Tue · Cleaning</span><span>₹450 ✓</span></div><div class="line"><span>Wed · Cleaning</span><span>₹450 ✓</span></div><div class="line"><span>Thu · Cleaning</span><span>₹450 ✓</span></div><div class="line"><span>Fri · Cleaning</span><span style="color:#3ddc97">₹450 paid</span></div><div class="green" style="margin-top:auto">signed on this phone · export only what you pick</div></div>
+        <div class="scr"><div class="top">Moving · Hyderabad</div><div class="big">Landing checklist</div><div class="chk"><i>✓</i>Partner bed · Ameerpet · ₹1,600</div><div class="chk"><i>✓</i>Circle · Kannada speakers, cleaning</div><div class="chk"><i>✓</i>e-Shram · registered</div><div class="chk"><i>✓</i>SIM and bank · done</div><div class="chk"><i></i>Telangana board · 14 days left</div><div class="green" style="margin-top:auto">record moved with you</div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <section class="band" id="small">
+    <div class="sec-head"><div><span class="label sq">Human-scale AI</span><h2>Small. Intentional. <span class="soft">Tailored.</span></h2></div><p>What made each chapter above possible, and the decision behind it.</p></div>
+    <div class="grid3 rv">
+      <div><h3><small>Small</small>No cloud model, by design</h3><p>LiteRT-LM on Android, Apple Foundation Models on iPhone, the browser's own model on the web. The model names an intent; code decides. Lite mode with no model is complete.</p></div>
+      <div><h3><small>Intentional</small>The worker sees every disclosure</h3><p>Private data never leaves the phone readable. "What my agent shared" lists every envelope. The union runs the circles and flags, not GigSync.</p></div>
+      <div><h3><small>Tailored</small>Domestic workers, Bengaluru, Kannada</h3><p>Voice first for low-literacy use. Households sign from a link. The landing journey exists because workers move cities and start from zero.</p></div>
+    </div>
+  </section>
+
+  <section class="band" id="refusals">
+    <div class="sec-head"><div><span class="label sq">What GigSync is not</span><h2>Nothing we earn can depend on <span class="soft">her earning less.</span></h2></div></div>
+    <div class="refuse rv">
+      <div><b>No cut</b><span>Not a percentage of any job, not an access fee, not paid placement.</span></div>
+      <div><b>No ranking</b><span>No stars. "Worked together, countersigned, N times" is a fact, not a score.</span></div>
+      <div><b>No money held</b><span>UPI goes to the worker. No wallet, no escrow, no lending.</span></div>
+      <div><b>No worker database</b><span>Keys, cards, sealed envelopes and a partner registry. Nothing readable.</span></div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="sec-head"><div><span class="label sq">Voices</span><h2>From the people <span class="soft">it is built with.</span></h2></div><p>Real quotes replace these three slots.</p></div>
+    <div class="quotes rv">
+      <div class="q"><span class="ph">Placeholder · worker</span><p>A worker on holding back her number, or on a record she can show.</p><div class="who"><i>LK</i><div><b>Name</b>Cleaning, Koramangala</div></div></div>
+      <div class="q"><span class="ph">Placeholder · union</span><p>A steward on circles, flags and evidence.</p><div class="who"><i>UN</i><div><b>Name</b>Steward</div></div></div>
+      <div class="q"><span class="ph">Placeholder · household</span><p>A household on signing from a WhatsApp link.</p><div class="who"><i>HH</i><div><b>Name</b>Household, Bengaluru</div></div></div>
+    </div>
+  </section>
+
+  <section class="band" id="pilot">
+    <div class="sec-head"><div><span class="label sq">Where it stands</span><h2>Working code. <span class="soft">A pilot to run.</span></h2></div><p>The job flow above runs today on gigsync.network with tests on real devices. The pilot with 50 workers and one union is phase G5, August to October 2027. Targets are public before it starts.</p></div>
+    <div class="tbl rv"><table class="t">
+      <tr><th>Pilot measure</th><th>Target</th><th>Status</th></tr>
+      <tr><td>Workers with at least one both-signed agreement</td><td class="n">30 of 50</td><td><span class="tag wait">pilot not started</span></td></tr>
+      <tr><td>Receipts countersigned within 48 h</td><td class="n">≥ 70%</td><td><span class="tag wait">pilot not started</span></td></tr>
+      <tr><td>Newcomers landed within 14 days</td><td class="n">10</td><td><span class="tag wait">pilot not started</span></td></tr>
+      <tr><td>Contact leaks before signature</td><td class="n">0</td><td><span class="tag fresh">data-flow test passing</span></td></tr>
+      <tr><td>Every screen on a 4 GB phone, no model, offline</td><td class="n">all</td><td><span class="tag fresh">lite mode shipped</span></td></tr>
+    </table></div>
+  </section>
+
+  <section class="band" id="team">
+    <div class="sec-head"><div><span class="label sq">Team · in the open</span><h2>Who is building it, <span class="soft">and where to read everything.</span></h2></div></div>
+    <div class="team rv" style="margin-bottom:28px">
+      <div><i>photo</i><div><b>Founder name</b><span>Role · background · why this problem</span></div></div>
+      <div><i>photo</i><div><b>Founder name</b><span>Role · background · why this problem</span></div></div>
+      <div><i>logo</i><div><b>Union partner</b><span>Runs the circles and flags in the pilot</span></div></div>
+    </div>
+    <div class="open-grid rv">
+      <div><b>41</b><span>Architecture decision records on GitHub</span></div>
+      <div><b>HLD · LLD</b><span>Design, flows, security model, targets</span></div>
+      <div><b>1 codebase</b><span>Android, iPhone, Mac, web</span></div>
+      <div><b>G1</b><span>Phase in review; pilot at G5</span></div>
+    </div>
+  </section>
+
+  <section class="closing">
+    <h2>Agree first. Get paid. <span class="soft">Keep the proof.</span></h2>
+    <div class="ctas"><a class="btn accent" href="https://github.com/kirav5/GigSync">Watch the demo</a><a class="btn" href="https://github.com/kirav5/GigSync">Read the code</a></div>
+  </section>
+  <footer class="site-foot">
+    <div><span class="brand"><svg viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke-width="8"><path class="you" d="M42 12H12V40H42"/><path class="them" d="M22 24H52V52H22"/></g></svg>GigSync</span><p style="margin-top:10px;max-width:38ch">A gig worker's own agent, on their own phone, for their whole working life.</p></div>
+    <div><h4>Design</h4><ul><li>Vision</li><li>HLD</li><li>LLD</li><li>Roadmap</li></ul></div>
+    <div><h4>Decisions</h4><ul><li>All 41 ADRs</li></ul></div>
+    <div><h4>Contact</h4><ul><li>hello@gigsync.network</li><li>GitHub</li></ul></div>
+  </footer>
+</div></div>
+<script type="module">
+  import { startShared } from "./shared.js";
+
+  startShared();
+  // The chapter in the middle of the viewport drives the phone screen.
+  const chapters = document.querySelectorAll(".ch");
+  const screens = document.querySelectorAll(".scr");
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const i = Number(entry.target.dataset.s);
+          for (const c of chapters) c.classList.toggle("on", c === entry.target);
+          screens.forEach((s, j) => {
+            s.classList.toggle("on", j === i);
+          });
+        }
+      },
+      { rootMargin: "-45% 0px -45% 0px" },
+    );
+    for (const c of chapters) io.observe(c);
+  }
+</script>
+</body>
+</html>
