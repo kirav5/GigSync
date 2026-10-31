@@ -4,6 +4,7 @@ import { countIn, YES_NO_QUESTIONS } from "../job/details.js";
 import { EVERY_DAY } from "../job/when.js";
 import { type Line, Pick } from "./card.js";
 import { minAloud } from "./card-parse.js";
+import { withWordDrivers } from "./driver-ask.js";
 import { areaIn, isSkip, yesNo } from "./lexicon.js";
 import {
   answerMyself,
@@ -23,6 +24,7 @@ import {
   tradeFor,
   withTrade,
 } from "./need.js";
+import { chooseDriver, hearDriver } from "./need-drivers.js";
 import { suggestedBudget } from "./need-estimate.js";
 import { MemoryPick } from "./need-memory.js";
 import type { NeedHint } from "./need-model.js";
@@ -78,6 +80,12 @@ function fillEmpty(d: NeedDraft, fill: NeedFill): NeedDraft {
     time: next.time ?? fill.time,
     budget_paise: next.budget_paise ?? fill.budget_paise,
   };
+}
+
+/** At a price question: the answer's other details and drivers kept, whatever the question takes. */
+function driverDraft(s: NeedState, text: string): NeedDraft {
+  const fill = parseNeed(text, options(s));
+  return withWordDrivers(fillEmpty(s.draft, fill), fill.words);
 }
 
 /** Like the lowest rate on a card: the budget is read back aloud only if the owner said it aloud. */
@@ -155,7 +163,7 @@ function onAnswer(s: NeedState, text: string, aloud: boolean, hint: NeedHint): N
   const offer = onOffer(s, text);
   if (offer) return offer;
   const fill = parseNeed(text, options(s));
-  const draft = fillFromHint(fillEmpty(s.draft, fill), hint, fill.words);
+  const draft = withWordDrivers(fillFromHint(fillEmpty(s.draft, fill), hint, fill.words), fill.words);
   const answered = onSlot(s, draft, text, fill, aloud);
   if (answered) return answered;
   // The question stays open, but whatever else the answer gave is kept.
@@ -208,10 +216,13 @@ export function hearNeed(s: NeedState, text: string, aloud = false, hint: NeedHi
       return onConfirm(s, text);
     case NeedSlot.scope:
       return hearScope(s, text);
+    case NeedSlot.driver:
+      return hearDriver(s, text, driverDraft(s, text));
     case NeedSlot.nobody:
       return onNobody(s, text);
     case NeedSlot.done:
     case NeedSlot.found:
+    case NeedSlot.outside:
       return s;
     default:
       return onAnswer(s, text, aloud, hint);
@@ -236,6 +247,7 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
   const memory = onMemoryPick(s, value);
   if (memory) return memory;
   if (s.slot === NeedSlot.scope) return chooseScope(s, value) ?? s;
+  if (s.slot === NeedSlot.driver) return chooseDriver(s, value) ?? s;
   switch (s.slot) {
     case NeedSlot.trade: {
       const trade = Trade.options.find((tr) => tr === value);

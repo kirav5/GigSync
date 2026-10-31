@@ -15,7 +15,7 @@ import { estimateRequest } from "./scope.js";
 /**
  * The answer to a market question in the chat (ADR 0039 §2). The facts are built by code from the server's estimate
  * (the same route the rate and budget questions use): the range for the trade and job size, what it rests on (jobs on
- * GigSync and the area or city, or web sources), and the legal minimum. A model may word them in the owner's language;
+ * GigSync and the area or city, and the city's rate card), and the legal minimum. A model may word them in the owner's language;
  * its text is kept only when every number in it is one of the facts' (as ADR 0033 checks an offer's explanation), else
  * the owner reads the template sentences.
  */

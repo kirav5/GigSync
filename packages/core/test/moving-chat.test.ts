@@ -60,7 +60,7 @@ describe("offering to help newcomers, and stopping", () => {
 });
 
 describe("the work outlook", () => {
-  it("gives the estimate's range, its sources and the legal minimum, the board count and the estimate note", () => {
+  it("gives the estimate's range, what it rests on and the legal minimum, the board count and the estimate note", () => {
     const outlook = workOutlook({
       city: blr,
       trades: [cook],
@@ -70,11 +70,10 @@ describe("the work outlook", () => {
     });
     const said = text(outlook.lines);
     expect(said[0]).toContain("₹10,000–₹12,000 a month");
-    expect(said).toContain("From 3 sources, checked 2/11/2026.");
+    expect(said).toContain("From Bengaluru rate card: Karnataka minimum wages 2026.");
     expect(said).toContain("Nothing here is below the legal minimum of ₹6,430.");
     expect(said).toContain("On GigSync, 4 workers in Bengaluru list Cook.");
     expect(said.at(-1)).toBe("These figures are estimates from public sources, not a promise of pay.");
-    expect(outlook.sources).toHaveLength(COOK_MONTH.basis.sources.length);
   });
 
   it("falls back to the static band and the law without an estimate, and says when a trade has no figure", () => {
@@ -84,7 +83,6 @@ describe("the work outlook", () => {
     expect(said[1]).toContain("Legal minimum for Maid");
     expect(said).toContain("Plumber: no usual range for this work yet.");
     expect(said).toContain("Researched from public sources, not yet checked by a union.");
-    expect(outlook.sources).toEqual([]);
   });
 
   it("says a full board page is that many or more, and has no figures for a city without a guide", () => {

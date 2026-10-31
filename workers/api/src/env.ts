@@ -20,10 +20,6 @@ export interface Env {
   PHONE_HMAC_KEY?: string;
   /** Secret: the key admin-only routes (setting a mentor's vouched badge) expect. Unset means nobody is admin. */
   ADMIN_KEY?: string;
-  /** Secret: the model that reads web pages for rate estimates (ADR 0030). Unset means no estimates, never an error. */
-  ANTHROPIC_API_KEY?: string;
-  /** "fixture" serves canned quotes instead of the web; honoured only where ENVIRONMENT is "local". */
-  ESTIMATE_SOURCE?: string;
 }
 
 /** A secret the Worker cannot work without. Fails the request (500) rather than fall back to a guessable value. */

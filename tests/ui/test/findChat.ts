@@ -55,6 +55,14 @@ export async function say({ page, lang }: Phone, words: string) {
   await box.getByRole("button", { name: t(lang, "a11y.send") }).click();
 }
 
+/**
+ * Answers the first price question (ADR 0041) with "I don't know", which ends them: the estimate assumes the rest. Every
+ * trade asks at least one with no phone model, so the journeys that walk Find by hand take this step before the budget.
+ */
+export async function skipPriceQuestions({ page, lang }: Phone) {
+  await chip(page, t(lang, "driver.dont_know")).last().click();
+}
+
 /** Stands in for a line's `{name}` while matching it: the rest of the line must be there as written. */
 const BLANK = "\u0000";
 
@@ -88,6 +96,8 @@ async function answer(phone: Phone, ask: NeedAnswers): Promise<boolean> {
     "terms.scope_ok",
     ...(ask.trade ? [`trade.${ask.trade}` as MessageKey] : []),
     areaKey(ask.area),
+    // A price question (ADR 0041): the journeys leave it to the estimate to assume.
+    "driver.dont_know",
     "iv.skip",
     "flag.no",
   ] as const satisfies readonly MessageKey[];

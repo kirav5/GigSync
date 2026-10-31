@@ -1,7 +1,13 @@
 import type { EngagementId, ExportedJob, ExportedPayment, MyJobRecords, UserId } from "@gigsync/protocol";
 import type { RecordRowOut } from "../db/job-records.js";
+import { quantitiesOf } from "../db/record-quantities.js";
 import { termsOf, workOf } from "./fields.js";
 import { roleOf, Side } from "./sides.js";
+
+function quantitiesField(r: RecordRowOut) {
+  const quantities = quantitiesOf(r);
+  return quantities ? { quantities } : {};
+}
 
 /** One stored job from the caller's side: their role, the other party (null once they deleted theirs), the rest as kept. */
 function exportedJob(r: RecordRowOut, user: UserId, payments: ExportedPayment[]): ExportedJob {
@@ -11,6 +17,7 @@ function exportedJob(r: RecordRowOut, user: UserId, payments: ExportedPayment[])
     role: roleOf(mine),
     counterpart: mine === Side.worker ? r.household_id : r.worker_id,
     work: workOf(r),
+    ...quantitiesField(r),
     terms: termsOf(r),
     price_paise: r.price_paise,
     status: r.status,

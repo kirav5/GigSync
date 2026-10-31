@@ -51,6 +51,12 @@ describe("otp verify", () => {
     expect(statuses.filter((s) => s === 429)).toHaveLength(0);
   });
 
+  it("locally, the loopback address wrangler dev gives every browser is not a client: each number counts apart", async () => {
+    const statuses: number[] = [];
+    for (let i = 0; i < 11; i++) statuses.push((await verify(`+91981100030${i % 10}`, "123456", "::1")).status);
+    expect(statuses.filter((s) => s === 429)).toHaveLength(0);
+  });
+
   it("rejects malformed input", async () => {
     const res = await verify("+919811000004", "000000", undefined, {
       phone: "+919811000004",

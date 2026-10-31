@@ -6,11 +6,7 @@ import { ASHA, BENGALURU, BENGALURU_RATES, cook, cookNeed, MemoryRelay, phone, R
 
 const T = Trade.enum;
 const byTrade = (request: EstimateRequest) =>
-  request.trade === T.painter
-    ? PAINT_2BHK
-    : request.trade === T.cook
-      ? COOK_MONTH
-      : { none: "too_few_quotes" as const };
+  request.trade === T.painter ? PAINT_2BHK : request.trade === T.cook ? COOK_MONTH : { none: "unavailable" as const };
 
 /** Kiran paints in Bengaluru: no city band for painting, his own floor ₹12,000, his usual rate ₹20,000. */
 const kiran = (min = 1_200_000): WorkerRules => ({
@@ -38,7 +34,7 @@ async function pair(rules: WorkerRules, api: FakeEstimateApi) {
 }
 
 describe("the worker's agent plans from the estimate for the job's scope", () => {
-  it("a painter with no city band gets a plan from the estimate, with its sources as the reason", async () => {
+  it("a painter with no city band gets a plan from the estimate, with its range as the reason", async () => {
     const api = new FakeEstimateApi(byTrade);
     const { worker, household, talk } = await pair(kiran(), api);
     const [job] = await household.device.request(paintNeed(1_700_000), [worker.user]);
@@ -48,13 +44,13 @@ describe("the worker's agent plans from the estimate for the job's scope", () =>
       city: City.enum.bengaluru,
       trade: T.painter,
       scope: { rooms: "bhk2", labour_only: "yes" },
+      drivers: { rooms: 2, paint_by: "household" },
     });
     expect(mine.estimate).toEqual(PAINT_2BHK);
     expect(mine.advice?.reasons[0]).toEqual({
       kind: ReasonKind.band,
       low_paise: 1_400_000,
       high_paise: 1_800_000,
-      sources: 5,
     });
     // Limit: his own floor, never raised to the estimate's low (ADR 0030 §5); opening: drawn for this job between the
     // estimate's typical and high figures (ADR 0033).
@@ -82,11 +78,11 @@ describe("the worker's agent plans from the estimate for the job's scope", () =>
     const reasons = (await worker.device.job(job?.engagement.id as EngagementId)).advice?.reasons ?? [];
     expect(reasons).toContainEqual({ kind: ReasonKind.scope, key: "pets", percent: 15 });
     expect(reasons.some((r) => r.kind === ReasonKind.scope && r.key === "people")).toBe(false);
-    expect(reasons[0]).toMatchObject({ low_paise: 1_150_000, high_paise: 1_380_000, sources: 3 });
+    expect(reasons[0]).toEqual({ kind: ReasonKind.band, low_paise: 1_150_000, high_paise: 1_380_000 });
   });
 
   it("falls back to the city band when there is no estimate, and when the server cannot be reached", async () => {
-    for (const answer of [{ none: "too_few_quotes" as const }, new Error("offline")]) {
+    for (const answer of [{ none: "unavailable" as const }, new Error("offline")]) {
       const rules = { ...cook(), rates: BENGALURU_RATES };
       const { worker, household, talk } = await pair(rules, new FakeEstimateApi(() => answer));
       const [job] = await household.device.request(cookNeed(1_000_000, { people: "3", meals: "2", pets: "no" }), [

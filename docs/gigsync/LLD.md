@@ -465,6 +465,13 @@ notification. CI fails if Kotlin and TS disagree on any vector.
 | POST   | `/v1/unions/:id/join`    | Bearer         | Join request (union approves in union mode)     | new              |
 | GET    | `/v1/unions/:id/flags`   | Bearer, member | Signed flag list since cursor                   | new              |
 | DELETE | `/v1/account`            | Bearer         | DPDP erasure: directory, sessions, mailbox      | new              |
+| POST   | `/v1/estimates`          | Bearer         | A job's range (ADR 0039, 0041)                  | exists           |
+
+Where estimates come from (ADR 0041): code computes every range from two sources only, GigSync's agreed jobs (once a
+group holds at least 10 jobs between 10 workers and 10 households) and the city's community rate card, each entry of
+which names its provenance; the legal minimum is the floor. A request carries the job's drivers, or, from an older
+phone, scope buckets that the server reads as drivers (`workers/api/src/estimates/drivers.ts`). No cloud model and no
+web search produces a price (ADR 0010).
 
 Errors: `{ error: { code, message, request_id } }`, codes `bad_request | unauthorized | forbidden | not_found |
 rate_limited | conflict | internal`. Every response carries `x-request-id` (exists).

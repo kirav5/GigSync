@@ -125,13 +125,13 @@ export function Interview({
   /** Choices are offered while a question is open, not once the owner has said yes and the card is being sent. */
   const asking = active && state.slot !== Slot.done;
   const newest = [...turns].reverse().find((turn) => turn.who === Speaker.app);
-  // A trade named: the usual range for it at its default scope, in the worker's area once named (else the city), for
-  // the rate questions (ADR 0030, ADR 0039).
+  // A trade and area named: the usual range for it at its default scope in the worker's area, for the rate questions
+  // (ADR 0030, ADR 0039). Asked once, when both are known, never once per answer (ADR 0041).
   const trade = state?.draft.trades?.[0];
   const area = state?.draft.area;
   const session = account.session;
   useEffect(() => {
-    const request = trade && estimateRequest(PILOT_CITY, trade, {}, area && areaSlug(area));
+    const request = trade && area ? estimateRequest(PILOT_CITY, trade, {}, areaSlug(area)) : undefined;
     if (!request) return;
     // Only the newest request's answer counts: the city's range must not land after the area's.
     let live = true;
@@ -178,7 +178,7 @@ export function Interview({
     if (turn.who === Speaker.owner) return <Own key={turn.id} text={turn.text} />;
     if (turn.who === Speaker.note) return <Note key={turn.id} text={turn.text} card={turn.card} />;
     return (
-      <Ask key={turn.id} lines={turn.lines} sources={turn.sources}>
+      <Ask key={turn.id} lines={turn.lines}>
         {asking && turn.id === newest?.id && <Choices choices={turn.choices} />}
       </Ask>
     );

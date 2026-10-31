@@ -5,6 +5,7 @@ import {
   type City,
   DEFAULT_SCOPE,
   DetailFlag,
+  type DriverValues,
   ElectricianProblem,
   type Estimate,
   EstimateBasisKind,
@@ -20,6 +21,7 @@ import {
   Trade,
 } from "@gigsync/protocol";
 import { countIn } from "../job/details.js";
+import { detailsToDrivers, tradeDrivers } from "./driver-details.js";
 
 /**
  * A job's details as an estimate request (ADR 0030 §1): the structured details that change the price for its trade,
@@ -101,8 +103,17 @@ export function estimateRequest(
   trade: Trade,
   details: Details = {},
   area?: AreaKey,
+  drivers?: DriverValues,
 ): EstimateRequest | undefined {
-  return EstimateRequest.safeParse({ city, ...(area ? { area } : {}), trade, scope: tradeScope(trade, details) }).data;
+  // The job's details are its drivers when none are passed: otherwise every driver would count as unknown.
+  const known = tradeDrivers(trade, drivers ?? detailsToDrivers(trade, details));
+  return EstimateRequest.safeParse({
+    city,
+    ...(area ? { area } : {}),
+    trade,
+    scope: tradeScope(trade, details),
+    ...(known && Object.keys(known).length > 0 ? { drivers: known } : {}),
+  }).data;
 }
 
 /** Two requests ask for the same estimate. */
@@ -126,11 +137,9 @@ export function perJob(estimate: Estimate, details: Details): Estimate | undefin
   };
 }
 
-/** How many pages an estimate rests on: a page quoted twice counts once. */
-export const sourceCount = (estimate: Estimate): number => new Set(estimate.basis.sources.map((s) => s.url)).size;
-
-/** What an estimate rests on, counted: the GigSync jobs it was computed from (ADR 0039), or the pages it was read from. */
-export const basisCount = (estimate: Estimate): { jobs: number } | { sources: number } =>
-  estimate.basis.kind === EstimateBasisKind.enum.gigsync
-    ? { jobs: estimate.basis.gigsync_jobs }
-    : { sources: sourceCount(estimate) };
+/**
+ * What an estimate rests on, counted: the GigSync jobs it was computed from (ADR 0039), or nothing to count for a range
+ * that rests on the city's rate card (ADR 0041), which its own lines name.
+ */
+export const basisCount = (estimate: Estimate): { jobs: number } | Record<string, never> =>
+  estimate.basis.kind === EstimateBasisKind.enum.gigsync ? { jobs: estimate.basis.gigsync_jobs } : {};

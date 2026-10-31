@@ -1,8 +1,9 @@
-import { type ApiClient, plural, questionText, t } from "@gigsync/core";
-import { Lang } from "@gigsync/protocol";
+import { type ApiClient, plural, priceText, questionText, t } from "@gigsync/core";
+import { Lang, QuestionKey, Trade } from "@gigsync/protocol";
 import { type Browser, type BrowserContext, expect, test } from "@playwright/test";
 import { listWorker, newPhone, open, openCard, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
 import { dealPaise, fillAsk, type Phone, publishCard, sendNote, signBoth, unlistCards } from "./journey.js";
+import { planBandHigh } from "./market-seed.js";
 import { pairKey, type TranslationTable, useTableTranslator } from "./translator.js";
 
 /**
@@ -19,6 +20,7 @@ import { pairKey, type TranslationTable, useTableTranslator } from "./translator
  * on a tie, so a new worker there never shows. Jayanagar has none; `unlistCards` keeps it that way.
  */
 const JAYANAGAR = { lat: 12.9308, lon: 77.5838 };
+const JAYANAGAR_AREA = "jayanagar";
 const { hi, kn, en } = Lang.enum;
 
 const KN_NEED = "ಬೆಳಗ್ಗೆ ಅಡುಗೆ ಮಾಡುವವರು ಬೇಕು";
@@ -75,6 +77,13 @@ async function twoPhones(browser: Browser, langs: [Lang, Lang]): Promise<[Phone,
     { page: pages[1], lang: langs[1] },
   ] as [Phone, Phone];
 }
+
+/** Ravi's job as Asha's agent prices it: his answers to her questions, three people and a dog. */
+const COOK_DETAILS = {
+  [QuestionKey.enum.people]: "3",
+  [QuestionKey.enum.meals]: KN_MEALS,
+  [QuestionKey.enum.pets]: "yes",
+};
 
 const pagesOf = (phones: Record<string, Phone>) =>
   Object.fromEntries(Object.entries(phones).map(([k, p]) => [k, p.page]));
@@ -151,7 +160,10 @@ test("Hindi cook, Kannada household: every screen in its own language, free text
   // The plan is under the card's Details.
   const plan = asha.page.getByRole("group", { name: t(hi, "a11y.plan") });
   await reveal(asha.page, plan);
-  await expect(plan).toContainText("₹12,600"); // the band's high with the dog and the extra person
+  // The band's high with the dog, from the API's estimate for the job (ADR 0041), asked now: it rests on the rate card,
+  // or on GigSync's jobs in Jayanagar when other specs left some.
+  const high = await planBandHigh(Trade.enum.cook, COOK_DETAILS, JAYANAGAR_AREA);
+  await expect(plan).toContainText(priceText(high));
   await shoot("asha-checks-the-dog", shots, folder);
   // Her agent opens at a point drawn for this job inside that range (ADR 0033), so the button's price varies.
   await check.getByRole("button", { name: textOf(hi, "approve.yes") }).click();

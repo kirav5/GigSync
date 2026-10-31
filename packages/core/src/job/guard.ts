@@ -33,6 +33,7 @@ const LONG_DIGITS = /\d{3,}|(?:\d[\s.-]?){5,}/;
 /** A sentence that ends and goes on: one question asks one thing. */
 const TWO_SENTENCES = /[.!?।]\s+\S/u;
 const SPACES = /\s+/g;
+const ONE_SPACE = " ";
 const NOT_WORD = /[^\p{L}\p{N}]+/gu;
 const SCRIPT_LANG: ReadonlyArray<readonly [RegExp, Lang]> = [
   [/\p{Script=Kannada}/u, Lang.enum.kn],
@@ -53,8 +54,8 @@ export interface Guarded {
 }
 
 /** The language a question is written in, by its script; Latin (or none) is the model's English. */
-const langOf = (text: string): Lang => SCRIPT_LANG.find(([script]) => script.test(text))?.[1] ?? Lang.enum.en;
-const sameness = (text: string) => text.toLowerCase().replace(NOT_WORD, " ").trim();
+export const langOf = (text: string): Lang => SCRIPT_LANG.find(([script]) => script.test(text))?.[1] ?? Lang.enum.en;
+const sameness = (text: string) => text.toLowerCase().replace(NOT_WORD, ONE_SPACE).trim();
 
 /** What the guards check a question against. */
 export interface GuardRules {
@@ -88,6 +89,10 @@ function problemWith(text: string, seen: Seen): DropReason | undefined {
   return undefined;
 }
 
+/** Why one question on its own must not reach its reader (length, mark, money, contacts, long numbers), if any. */
+export const questionProblem = (text: string, known: readonly QuestionKey[] = []): DropReason | undefined =>
+  problemWith(text.replace(SPACES, ONE_SPACE).trim(), { known: new Set(known), said: "", asked: new Set() });
+
 function parse(reply: string): unknown[] | undefined {
   const object = firstObject(reply);
   if (!object) return undefined;
@@ -112,7 +117,7 @@ export function guardQuestions(reply: string, rules: GuardRules = {}): Guarded {
       dropped.push({ text: String(JSON.stringify(raw)).slice(0, ASK_TEXT_MAX), reason: DropReason.shape });
       continue;
     }
-    const text = candidate.data.text.replace(SPACES, " ").trim();
+    const text = candidate.data.text.replace(SPACES, ONE_SPACE).trim();
     const reason = kept.length >= limit ? DropReason.over : problemWith(text, seen);
     if (reason) {
       dropped.push({ text, reason });

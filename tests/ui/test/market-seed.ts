@@ -1,6 +1,15 @@
-import { HttpError, NetError } from "@gigsync/core";
-import type { AreaKey, EngagementId, Estimate, EstimateRequest, JobTerms, OfferId } from "@gigsync/protocol";
-import { isEstimate, Role } from "@gigsync/protocol";
+import {
+  CITY_RATES,
+  estimateBand,
+  estimateRequest,
+  HttpError,
+  NetError,
+  perJob,
+  proposeMandate,
+  ReasonKind,
+} from "@gigsync/core";
+import type { EngagementId, Estimate, EstimateRequest, JobTerms, OfferId, Trade } from "@gigsync/protocol";
+import { AreaKey, isEstimate, Role } from "@gigsync/protocol";
 import { newPhone } from "./helpers.js";
 import { id, person, submit } from "./record-seed.js";
 
@@ -63,4 +72,21 @@ export async function estimateNow(request: EstimateRequest): Promise<Estimate | 
   const asker = await person(newPhone());
   const answer = await steady(() => asker.api.estimate(request));
   return isEstimate(answer) ? answer : undefined;
+}
+
+/**
+ * The high of the band a worker's plan shows for a job (ADR 0041): the API's estimate for it, asked as the phone asks
+ * it, scaled by the city band's rules the estimate does not price (a dog, say), exactly as the worker's agent plans.
+ */
+export async function planBandHigh(trade: Trade, details: Readonly<Record<string, string>>, area: string) {
+  const request = estimateRequest(COOK_REQUEST.city, trade, details, AreaKey.parse(area));
+  const found = request && (await estimateNow(request));
+  const estimate = found && perJob(found, details);
+  if (!estimate) throw new Error("The API gave no estimate for the job");
+  const cityBand = CITY_RATES.bands.find((b) => b.trade === trade);
+  // The floor only sets the limit, not the band.
+  const plan = proposeMandate({ band: estimateBand(estimate, trade, cityBand), details, history: [], floor_paise: 0 });
+  const band = plan.reasons.find((r) => r.kind === ReasonKind.band);
+  if (band?.kind !== ReasonKind.band) throw new Error("The plan has no band");
+  return band.high_paise;
 }

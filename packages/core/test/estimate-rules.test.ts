@@ -1,13 +1,4 @@
-import {
-  City,
-  type Estimate,
-  type EstimateSource,
-  Lang,
-  type RateBand,
-  RateUnit,
-  Role,
-  Trade,
-} from "@gigsync/protocol";
+import { City, type Estimate, Lang, type RateBand, RateUnit, Role, Trade } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import {
   ApiClient,
@@ -22,7 +13,6 @@ import {
   ReasonKind,
   reasonText,
   SCOPE_KEYS,
-  sourceCount,
   suggestForHousehold,
   suggestForWorker,
   suggestFromEstimate,
@@ -76,6 +66,8 @@ describe("a job's details as an estimate request", () => {
       city,
       trade: T.painter,
       scope: { rooms: "bhk2", labour_only: "no" },
+      // The details travel as drivers too, so the estimate knows them (ADR 0041 §3).
+      drivers: { rooms: 2, paint_by: "worker" },
     });
     expect(estimateRequest(city, T.painter, { rooms: "५ कमरे" })?.scope).toEqual({
       rooms: "bhk4_plus",
@@ -113,17 +105,6 @@ describe("a job's details as an estimate request", () => {
     expect(perJob(PAINT_SQFT, {})).toBeUndefined();
     expect(perJob(PAINT_2BHK, {})).toBe(PAINT_2BHK);
   });
-
-  it("counts each page once", () => {
-    const twice = {
-      ...PAINT_2BHK,
-      basis: {
-        ...PAINT_2BHK.basis,
-        sources: [...PAINT_2BHK.basis.sources, PAINT_2BHK.basis.sources[0] as EstimateSource],
-      },
-    };
-    expect(sourceCount(twice)).toBe(5);
-  });
 });
 
 describe("the note on an offer far outside the estimate", () => {
@@ -153,10 +134,9 @@ describe("an estimate as the agent's band", () => {
     expect(estimateBand(PAINT_2BHK, T.painter).scope.map((r) => r.key)).toEqual(["coats"]);
   });
 
-  it("says how many sources the band rests on", () => {
-    const reason = { kind: ReasonKind.band, low_paise: 1_400_000, high_paise: 1_800_000, sources: 5 } as const;
-    expect(reasonText(Lang.enum.en, reason)).toBe("The usual rate for this job is ₹14,000–₹18,000, from 5 sources.");
-    expect(reasonText(Lang.enum.en, { ...reason, sources: undefined })).toContain("going rate");
+  it("says the going rate for a band that does not rest on GigSync's jobs", () => {
+    const reason = { kind: ReasonKind.band, low_paise: 1_400_000, high_paise: 1_800_000 } as const;
+    expect(reasonText(Lang.enum.en, reason)).toContain("going rate");
   });
 });
 
@@ -172,10 +152,8 @@ describe("the API client's estimate calls", () => {
       PAINT_2BHK,
     );
     expect(
-      await client({ none: "too_few_quotes" }).estimate({ city, trade: T.driver, scope: { hours: "7_to_9" } }),
-    ).toEqual({
-      none: "too_few_quotes",
-    });
+      await client({ none: "unavailable" }).estimate({ city, trade: T.driver, scope: { hours: "7_to_9" } }),
+    ).toEqual({ none: "unavailable" });
     await expect(
       client({ low_paise: "lots" }).estimate({ city, trade: T.driver, scope: { hours: "7_to_9" } }),
     ).rejects.toThrow();

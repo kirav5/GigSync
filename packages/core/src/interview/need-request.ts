@@ -1,4 +1,5 @@
 import type { Estimate, Lang, Place, Trade } from "@gigsync/protocol";
+import { driversToDetails } from "../estimate/driver-details.js";
 import { t } from "../i18n/t.js";
 import { YES_NO_QUESTIONS } from "../job/details.js";
 import type { NewNeed } from "../job/device.js";
@@ -68,10 +69,14 @@ export function resolveDay(day: string, now: Date, offsetMinutes: number): strin
   return day;
 }
 
-/** The details the chat gathered, by question key: the scope chips the owner confirmed, and the first question's answer. */
+/**
+ * The details the chat gathered, by question key: the price drivers read or answered (ADR 0041), the scope chips the
+ * owner confirmed, and the first question's answer.
+ */
 export function draftDetails(d: NeedDraft): Record<string, string> {
   const first = firstQuestion(d.trade);
-  return { ...scopeDetails(d), ...(first && d.detail ? { [first]: d.detail } : {}) };
+  const drivers = d.trade && d.drivers ? driversToDetails(d.trade, d.drivers) : {};
+  return { ...drivers, ...scopeDetails(d), ...(first && d.detail ? { [first]: d.detail } : {}) };
 }
 
 /**

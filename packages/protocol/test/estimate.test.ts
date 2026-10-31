@@ -10,7 +10,6 @@ import {
   mealsBucket,
   peopleBand,
   QuestionKey,
-  QuoteExtraction,
   roomsBucket,
   Trade,
 } from "../src/index.js";
@@ -22,7 +21,7 @@ const estimate = {
   typical_paise: 1800000,
   high_paise: 2200000,
   unit: "job",
-  basis: { sources: [], gigsync_jobs: 0, floored: false },
+  basis: { kind: "rate_card", gigsync_jobs: 0, floored: false },
   as_of: "2026-10-29T10:00:00.000Z",
 };
 
@@ -83,10 +82,11 @@ describe("estimates", () => {
   });
 
   it("a response is an estimate or a reason there is none", () => {
-    const none = EstimateResponse.parse({ none: "too_few_quotes" });
+    const none = EstimateResponse.parse({ none: "unavailable" });
     expect(isEstimate(none)).toBe(false);
     expect(isEstimate(EstimateResponse.parse(estimate))).toBe(true);
     expect(EstimateResponse.safeParse({ none: "because" }).success).toBe(false);
+    expect(EstimateResponse.safeParse({ none: "too_few_quotes" }).success).toBe(false);
   });
 });
 
@@ -96,7 +96,7 @@ describe("market areas and bases (ADR 0039)", () => {
     expect(EstimateRequest.safeParse({ ...painter, area: "12 MG Road" }).success).toBe(false);
   });
 
-  it("a basis says whether the range is GigSync's, with its jobs and area, or the web's", () => {
+  it("a basis says whether the range is GigSync's, with its jobs and area, or the rate card's", () => {
     const gigsync = {
       ...estimate,
       basis: { kind: "gigsync", sources: [], gigsync_jobs: 34, area: "jayanagar", floored: false },
@@ -105,22 +105,16 @@ describe("market areas and bases (ADR 0039)", () => {
     expect(Estimate.safeParse({ ...gigsync, basis: { ...gigsync.basis, kind: "shared" } }).success).toBe(false);
   });
 
-  it("an estimate kept from before has no kind, and was the web's", () => {
-    expect(Estimate.parse(estimate).basis.kind).toBe("web");
+  it("no range rests on web quotes or a model: those kinds, and a basis with no kind, are refused", () => {
+    for (const kind of ["web", "model", undefined]) {
+      expect(Estimate.safeParse({ ...estimate, basis: { ...estimate.basis, kind } }).success).toBe(false);
+    }
   });
-});
 
-describe("quote extraction", () => {
-  it("is loose about lengths so the checks, not the parser, drop a bad quote", () => {
-    const quote = {
-      url: "https://example.in/painting-cost",
-      sentence: "A 2BHK repaint costs ₹14,000.",
-      amount_rupees: 14000,
-      unit: "job",
-      covers: { rooms: 2, materials_included: false },
-      site: "example.in",
-    };
-    expect(QuoteExtraction.safeParse({ quotes: [quote] }).success).toBe(true);
-    expect(QuoteExtraction.safeParse({ quotes: [{ ...quote, unit: "fortnight" }] }).success).toBe(false);
+  it("the source list an older phone requires is always empty", () => {
+    const listed = { ...estimate, basis: { ...estimate.basis, sources: [] } };
+    expect(Estimate.parse(listed).basis.sources).toEqual([]);
+    const quoted = { ...estimate, basis: { ...estimate.basis, sources: [{ url: "https://example.in" }] } };
+    expect(Estimate.safeParse(quoted).success).toBe(false);
   });
 });

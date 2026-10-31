@@ -1,13 +1,5 @@
 import type { ArrivalWeeks, FoundBy, Line, ListingAnswer, ListingDraft, SectionRef } from "@gigsync/core";
-import {
-  City,
-  type EstimateSource,
-  GuidePlace,
-  GuideSection,
-  MentorProfile,
-  type Trade,
-  type UserId,
-} from "@gigsync/protocol";
+import { City, GuidePlace, GuideSection, MentorProfile, type Trade, type UserId } from "@gigsync/protocol";
 
 /**
  * The turns a chat about moving to a new city holds (ADR 0035 keeps chats of any kind of turn): the move itself (what
@@ -76,7 +68,6 @@ export type MoveTurn =
       who: typeof MoveSpeaker.outlook;
       trades: readonly Trade[];
       lines: readonly Line[];
-      sources: readonly EstimateSource[];
       phrased?: string | undefined;
     }
   | { id: number; who: typeof MoveSpeaker.guide; city: City; answer: GuideAnswerKept }
@@ -116,7 +107,7 @@ export function isMoveTurn(value: unknown): value is MoveTurn {
     case MoveSpeaker.moving:
       return isArray(value.steps) && (value.city === undefined || City.safeParse(value.city).success);
     case MoveSpeaker.outlook:
-      return isArray(value.trades) && isArray(value.lines) && isArray(value.sources);
+      return isArray(value.trades) && isArray(value.lines);
     case MoveSpeaker.guide:
       return City.safeParse(value.city).success && isAnswer(value.answer);
     case MoveSpeaker.mentors:

@@ -160,6 +160,14 @@ export const TOPIC: Readonly<Record<QuestionKey, readonly RegExp[]>> = {
   frequency: [latin(["how often", "every day", "daily", "weekly", "alternate days?"]), indic(["रोज़", "ಪ್ರತಿದಿನ"])],
   hours: [latin(["hours?"]), indic(["घंटे", "ಗಂಟೆ"])],
   coats: [latin(["coats?"]), indic(["कोट", "ಕೋಟ್"])],
+  surface: [latin(["(?:in|out)side", "exterior", "interior", "walls?"]), indic(["दीवार", "ಗೋಡೆ"])],
+  floors: [latin(["floors?", "storeys?", "stories"]), indic(["मंजिल", "मंज़िल", "ಮಹಡಿ"])],
+  house_type: [latin(["villa", "flat", "apartment", "independent house"]), indic(["विला", "फ्लैट", "ವಿಲ್ಲಾ"])],
+  finish: [latin(["finish", "texture", "plain paint"]), indic(["टेक्सचर", "ಟೆಕ್ಸ್ಚರ್"])],
+  days_week: [latin(["days? a week", "days? per week", "which days"]), indic(["हफ्ते में", "ವಾರಕ್ಕೆ"])],
+  tasks: [latin(["tasks?", "dishes", "sweep", "mop", "laundry"]), indic(["बर्तन", "झाड़ू", "ಪಾತ್ರೆ"])],
+  vehicle: [latin(["car", "vehicle", "suv", "sedan", "hatchback"]), indic(["गाड़ी", "ಕಾರು"])],
+  points: [latin(["points?", "how many switch", "how many taps?"]), indic(["पॉइंट", "ಪಾಯಿಂಟ್"])],
 };
 
 /** The standard detail a question's words are about, if any. */

@@ -17,14 +17,12 @@ export default defineConfig({
   plugins: [
     cloudflareTest({
       wrangler: { configPath: "./wrangler.toml" },
-      // Estimates read canned pages (src/estimates/fixture.ts), which only a local environment allows: no web, no key.
       miniflare: {
         bindings: {
           DEV_OTP: "000000",
           PHONE_HMAC_KEY: "test-only-key",
           ADMIN_KEY: "test-only-admin-key",
           ENVIRONMENT: "local",
-          ESTIMATE_SOURCE: "fixture",
         },
       },
     }),

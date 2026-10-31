@@ -3,7 +3,6 @@ import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { money } from "../../ui/places.js";
 import { lineText } from "../talk/Bubbles.js";
-import { Sources } from "./Sources.js";
 
 /** One suggested amount and what it is for; tapping it puts the amount in that field, for the owner to keep or change. */
 export interface Suggested {
@@ -14,7 +13,7 @@ export interface Suggested {
 }
 
 /**
- * An estimate on a form (My card, Find's form): the range for the scope with its sources and date, and the amounts it
+ * An estimate on a form (My card, Find's form): the range for the scope with what it rests on, and the amounts it
  * suggests as buttons that fill a field. Nothing is filled until the owner taps.
  */
 export function EstimateBox({ found, suggested }: { found: FoundEstimate; suggested: readonly Suggested[] }) {
@@ -27,7 +26,6 @@ export function EstimateBox({ found, suggested }: { found: FoundEstimate; sugges
           {lineText(i18n, line)}
         </span>
       ))}
-      <Sources sources={found.estimate.basis.sources} />
       <div className={C.row}>
         {suggested.map((s) => (
           <button key={s.field} type={C.button} className={C.chip} onClick={() => s.onUse(s.paise)}>

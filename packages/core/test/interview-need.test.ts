@@ -4,6 +4,7 @@ import {
   CITY_RATES,
   chooseNeed,
   chooseNeedDate,
+  DriverPick,
   draftDetails,
   EVERY_DAY,
   hearNeed,
@@ -37,13 +38,17 @@ describe("the need interview", () => {
   });
 
   it("asks only what one sentence left out", () => {
-    const s = hearNeed(
+    const asked = hearNeed(
       startNeed(config("en")),
       "bedroom fan not working, need an electrician tomorrow morning, up to 700",
     );
-    expect(s.slot).toBe(NeedSlot.area);
-    expect(keys(s)).toEqual(["need.ask.area"]);
-    const atConfirm = hearNeed(s, "HSR");
+    expect(asked.slot).toBe(NeedSlot.area);
+    expect(keys(asked)).toEqual(["need.ask.area"]);
+    // The fan is read from the words; how many points is the price question left (ADR 0041), and "don't know" ends it.
+    const s = hearNeed(asked, "HSR");
+    expect(s.slot).toBe(NeedSlot.driver);
+    expect(keys(s)).toEqual(["driver.ask.points"]);
+    const atConfirm = hearNeed(s, "don't know");
     expect(atConfirm.slot).toBe(NeedSlot.confirm);
     expect(atConfirm.draft).toMatchObject({
       trade: T.electrician,
@@ -73,7 +78,7 @@ describe("the need interview", () => {
   });
 
   it("defaults monthly work to every day and asks the budget with the city's band", () => {
-    const s = run(startNeed(config("hi")), ["खाना बनाने वाली चाहिए", "4 लोग", "कोरमंगला"]);
+    const s = run(startNeed(config("hi")), ["खाना बनाने वाली चाहिए", "4 लोग", "कोरमंगला", "पता नहीं"]);
     expect(s.draft.day).toBe(EVERY_DAY);
     expect(s.slot).toBe(NeedSlot.budget);
     const p = needPrompt(s);
@@ -88,7 +93,7 @@ describe("the need interview", () => {
   });
 
   it("runs on taps alone", () => {
-    let s = tap(startNeed(config("hi")), [T.electrician, "skip", "koramangala", "tomorrow"]);
+    let s = tap(startNeed(config("hi")), [T.electrician, "skip", "koramangala", DriverPick.dontKnow, "tomorrow"]);
     expect(s.slot).toBe(NeedSlot.budget);
     s = hearNeed(s, "800");
     expect(s.slot).toBe(NeedSlot.confirm);
@@ -101,12 +106,15 @@ describe("the need interview", () => {
     const again = hearNeed(s, "tomorrow");
     expect(again.slot).toBe(NeedSlot.area);
     expect(keys(again)).toEqual(["need.again", "need.ask.area"]);
-    expect(hearNeed(again, "Koramangala").slot).toBe(NeedSlot.budget);
-    expect(keys(hearNeed(run(again, ["Koramangala"]), "lots"))).toEqual(["need.again_budget", "need.ask.budget"]);
+    expect(run(again, ["Koramangala", "don't know"]).slot).toBe(NeedSlot.budget);
+    expect(keys(hearNeed(run(again, ["Koramangala", "don't know"]), "lots"))).toEqual([
+      "need.again_budget",
+      "need.ask.budget",
+    ]);
   });
 
   it("takes a date from the calendar, never a past one", () => {
-    const s = run(startNeed(config("en")), ["painter", "300 sq ft", "HSR"]);
+    const s = run(startNeed(config("en")), ["painter", "300 sq ft", "HSR", "don't know"]);
     expect(s.slot).toBe(NeedSlot.when);
     expect(chooseNeed(s, NeedPick.date)).toBe(s);
     expect(chooseNeedDate(s, "2026-10-01")).toBe(s);
@@ -115,7 +123,7 @@ describe("the need interview", () => {
 });
 
 describe("the readback", () => {
-  const atConfirm = run(startNeed(config("en")), ["plumber, tap leaking, HSR, today, up to 600"]);
+  const atConfirm = run(startNeed(config("en")), ["plumber, tap leaking, HSR, today, up to 600", "don't know"]);
 
   it("searches on yes", () => {
     expect(atConfirm.slot).toBe(NeedSlot.confirm);

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Role } from "./engagement.js";
 import { EngagementId, UserId } from "./ids.js";
+import { JobQuantities } from "./job-quantities.js";
 import { JobRecordStatus, JobTermsFields, JobWork, PaymentReport } from "./job-record.js";
 import { Paise } from "./payment.js";
 import { MAX_STARS, MIN_STARS } from "./worker-record.js";
@@ -34,6 +35,8 @@ export const ExportedJob = z.object({
   role: Role,
   counterpart: UserId.nullable(),
   work: JobWork,
+  /** The job's quantities (ADR 0041 §4), when a phone sent them. */
+  quantities: JobQuantities.optional(),
   terms: JobTermsFields,
   price_paise: Paise,
   status: JobRecordStatus,

@@ -6,7 +6,6 @@ import { ActKind, type GuideAnswerKept, type MoveSpeaker, type MoveTurn } from "
 import type { Moves } from "../../talk/useMoves.js";
 import { C } from "../../ui/cls.js";
 import { SpeakButton } from "../../ui/SpeakButton.js";
-import { Sources } from "../estimate/Sources.js";
 import { ExternalLink, GUIDE_LANG, GuideText, SectionView } from "../landing/SectionView.js";
 import { lineText, spoken } from "./Bubbles.js";
 
@@ -45,17 +44,11 @@ export function AgentLines({ lines, children }: { lines: readonly Line[]; childr
   );
 }
 
-/** The outlook: the model's wording with the figures folded under it, or the figures; then their sources. */
+/** The outlook: the model's wording with the figures folded under it, or the figures. */
 export function OutlookView({ turn }: { turn: Of<typeof MoveSpeaker.outlook> }) {
   const i18n = useI18n();
   const figures = turn.lines.map((line) => <p key={lineKey(line)}>{lineText(i18n, line)}</p>);
-  if (!turn.phrased) {
-    return (
-      <AgentLines lines={turn.lines}>
-        <Sources sources={turn.sources} />
-      </AgentLines>
-    );
-  }
+  if (!turn.phrased) return <AgentLines lines={turn.lines} />;
   return (
     <div className={BUBBLE}>
       <div className="iv-say">
@@ -68,7 +61,6 @@ export function OutlookView({ turn }: { turn: Of<typeof MoveSpeaker.outlook> }) 
         <summary className={C.faint}>{i18n.t("moving.figures")}</summary>
         <div className={TEXT}>{figures}</div>
       </details>
-      <Sources sources={turn.sources} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 /**
- * Rate estimates (ADR 0030, ADR 0039): the range under the worker's rate question, beside the household's budget and
- * in answer to a market question in the chat, with what it rests on (jobs on GigSync, or web sources), the suggestion
+ * Rate estimates (ADR 0039, ADR 0041): the range under the worker's rate question, beside the household's budget and
+ * in answer to a market question in the chat, with what it rests on (jobs on GigSync, the city's rate card), the suggestion
  * each owner confirms or changes, and the note on an offer far outside the range.
  */
 export const estimate = {
@@ -43,8 +43,6 @@ export const estimate = {
   "estimate.problem.service": "a service",
   "estimate.problem.gas_refill": "a gas refill",
   "estimate.problem.install": "installing one",
-  "estimate.basis.one": "From {count} source, checked {date}.",
-  "estimate.basis.other": "From {count} sources, checked {date}.",
   "estimate.jobs.one": "From {count} job on GigSync in {place}.",
   "estimate.jobs.other": "From {count} jobs on GigSync in {place}.",
   "estimate.reason_jobs.one": "The usual rate for this job is {low}–{high}, from {count} job on GigSync.",
@@ -56,13 +54,10 @@ export const estimate = {
   "estimate.amount_above": "{amount} is above that range.",
   "estimate.answer": "{text}",
   "estimate.legal_min": "Nothing here is below the legal minimum of {min}.",
-  "estimate.sources": "Sources",
   "estimate.suggest_rate": "I suggest opening at {price}. Tap to use it, or say your own.",
   "estimate.suggest_min": "I suggest {price} as the least you take. Tap to use it, or say your own.",
   "estimate.suggest_budget": "I suggest a budget of {price}. Tap to use it, or say your own.",
   "estimate.use": "Use {price}",
-  "estimate.reason.one": "The usual rate for this job is {low}–{high}, from {count} source.",
-  "estimate.reason.other": "The usual rate for this job is {low}–{high}, from {count} sources.",
   "estimate.below": "Well below the usual rate for this job ({low}–{high}).",
   "estimate.above": "Well above the usual rate for this job ({low}–{high}).",
 } as const;

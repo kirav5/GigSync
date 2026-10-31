@@ -13,11 +13,12 @@ import type { JobRecord } from "./store.js";
 
 /**
  * The worker's agent proposes a price plan (an opening price and a private limit) from three kinds of data: the
- * band for the job (the estimate for its scope when there is one, ADR 0030, else the city's band for the trade),
+ * band for the job (the estimate for its scope when there is one, ADR 0041, else the city's band for the trade),
  * adjusted for scope the band does not already price; what this worker was actually paid before; and the floor they
  * set. Plain arithmetic, checkable by a union steward; only where the opening falls in its range is drawn at random
  * per job (ADR 0033), so the opening says nothing about the floor. No model produces a number here: an estimate's
- * figures are computed by code from sourced quotes, and a model may only reword the reasons.
+ * figures are computed by code from GigSync's agreed jobs and the city's rate card, and a model may only reword the
+ * reasons.
  */
 
 /** Open a little above what the worker usually gets, so there is room to concede. */
@@ -30,7 +31,7 @@ export const ReasonKind = { band: "band", scope: "scope", history: "history", fl
 
 /** Why the agent proposes what it proposes, as data. Each phone renders it in its owner's language (`reasonText`). */
 export type Reason =
-  | { kind: typeof ReasonKind.band; low_paise: number; high_paise: number; sources?: number; jobs?: number }
+  | { kind: typeof ReasonKind.band; low_paise: number; high_paise: number; jobs?: number }
   | { kind: typeof ReasonKind.scope; key: QuestionKey; percent: number }
   | { kind: typeof ReasonKind.history; median_paise: number; count: number }
   | { kind: typeof ReasonKind.floor; floor_paise: number }
@@ -49,8 +50,7 @@ export interface AdviceInput {
   history: readonly number[];
   /** The least the worker will take for any job of this trade. */
   floor_paise: number;
-  /** When the band is an estimate: how many sources it rests on, or GigSync jobs (ADR 0039), for the reasons. */
-  sources?: number;
+  /** When the band is an estimate from GigSync's jobs (ADR 0039): how many it rests on, for the reasons. */
   jobs?: number;
   /** The usual price for the job (the estimate's typical figure); the middle of the band when there is none. */
   typical_paise?: number;
@@ -112,9 +112,8 @@ export function proposeMandate(i: AdviceInput): Advice {
   const at = Math.min(1, Math.max(0, i.opening_at ?? 1));
   const opening = Math.max(limit, Math.min(high, roundUp(from + (to - from) * at)));
 
-  const sources = i.sources === undefined ? {} : { sources: i.sources };
   const jobs = i.jobs === undefined ? {} : { jobs: i.jobs };
-  const reasons: Reason[] = [{ kind: ReasonKind.band, low_paise: low, high_paise: high, ...sources, ...jobs }];
+  const reasons: Reason[] = [{ kind: ReasonKind.band, low_paise: low, high_paise: high, ...jobs }];
   for (const a of applied) reasons.push({ kind: ReasonKind.scope, ...a });
   if (usual !== undefined) reasons.push({ kind: ReasonKind.history, median_paise: usual, count: i.history.length });
   reasons.push({ kind: ReasonKind.floor, floor_paise: i.floor_paise });

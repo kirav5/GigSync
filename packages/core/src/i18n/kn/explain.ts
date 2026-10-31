@@ -12,8 +12,6 @@ export const explain: Readonly<Record<keyof typeof en, string>> = {
   "explain.held_theirs": "{name} ಬೆಲೆ {price} ಉಳಿಸಿ ಷರತ್ತು ಬದಲಿಸಿದರು.",
   "explain.terms_mine": "ನಿಮ್ಮ ಏಜೆಂಟ್ ಹೇಳಿದ್ದು: {terms}.",
   "explain.terms_theirs": "{name} ಹೇಳಿದ್ದು: {terms}.",
-  "explain.usual.one": "ಸಾಮಾನ್ಯ ದರ {typical} ({low}–{high}, {count} ಮೂಲದಿಂದ).",
-  "explain.usual.other": "ಸಾಮಾನ್ಯ ದರ {typical} ({low}–{high}, {count} ಮೂಲಗಳಿಂದ).",
   "explain.usual_jobs.one": "ಸಾಮಾನ್ಯ ದರ {typical} ({low}–{high}, GigSync ನ {count} ಕೆಲಸದಿಂದ).",
   "explain.usual_jobs.other": "ಸಾಮಾನ್ಯ ದರ {typical} ({low}–{high}, GigSync ನ {count} ಕೆಲಸಗಳಿಂದ).",
   "explain.usual_range": "ಸಾಮಾನ್ಯ ದರ {low}–{high}.",

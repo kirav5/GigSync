@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   CITY_RATES,
   chooseNeed,
+  DriverPick,
   hearNeed,
   type NeedMemory,
   NeedSlot,
@@ -88,13 +89,13 @@ describe("Answer for me: the agent fills in what it remembers, and says so", () 
     const s = chooseNeed(start(remembered), T.maid);
     expect(s.draft.detail).toBe("3");
     expect(s.draft.area).toBe("hsr_layout");
-    // A maid comes every day, so the next thing missing is the budget.
-    expect(s.slot).toBe(NeedSlot.budget);
+    // A maid comes every day; what moves her price most (ADR 0041) is asked next, then the budget.
+    expect(s.slot).toBe(NeedSlot.driver);
     expect(lines(s).slice(0, 2)).toEqual([
       { key: "memory.filled_detail", params: { value: "3" }, names: { detail: ["detail.rooms"] } },
       { key: "memory.filled_area", names: { area: ["area.hsr_layout"] } },
     ]);
-    expect(needPrompt(s).choices).toEqual([
+    expect(needPrompt(s).choices?.slice(0, 2)).toEqual([
       { value: MemoryPick.redoDetail, key: "memory.change_detail", params: { detail: "rooms" } },
       { value: MemoryPick.redoArea, key: "memory.change_area" },
     ]);
@@ -106,8 +107,8 @@ describe("Answer for me: the agent fills in what it remembers, and says so", () 
     expect(lines(s)).toEqual([{ key: "question.rooms" }]);
     const answered = hearNeed(s, "2 rooms");
     expect(answered.draft.detail).toBe("2 rooms");
-    expect(answered.slot).toBe(NeedSlot.budget);
-    expect(needPrompt(answered).choices).toBeUndefined();
+    expect(answered.slot).toBe(NeedSlot.driver);
+    expect(needPrompt(answered).choices?.some((c) => c.value.startsWith("memory"))).toBe(false);
   });
 
   it("what the owner's own words said is kept; memory fills only what is missing", () => {
@@ -135,6 +136,7 @@ describe("the Find chat without memory, and the budget", () => {
     for (const mode of [ask, auto]) {
       let s = chooseNeed(start({ mode, area: fresh("hsr_layout"), facts: { rooms: fresh("3") } }), T.maid);
       if (mode === ask) s = chooseNeed(chooseNeed(s, MemoryPick.use), MemoryPick.use);
+      s = chooseNeed(s, DriverPick.dontKnow);
       expect(s.slot).toBe(NeedSlot.budget);
       expect(s.draft.budget_paise).toBeUndefined();
       expect(needPrompt(s).lines.some((l) => l.key.startsWith("memory.offer"))).toBe(false);

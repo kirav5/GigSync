@@ -5,6 +5,9 @@ export * from "./engagement/machine.js";
 export * from "./estimate/area-names.js";
 export * from "./estimate/areas.js";
 export * from "./estimate/band.js";
+export * from "./estimate/driver-details.js";
+export * from "./estimate/driver-price.js";
+export * from "./estimate/driver-rates.js";
 export * from "./estimate/lookup.js";
 export { amountLine, marketAnswer, marketLines, marketRequest, wordMarket } from "./estimate/market.js";
 export * from "./estimate/note.js";
@@ -16,7 +19,19 @@ export * from "./i18n/reasons.js";
 export * from "./i18n/t.js";
 export * from "./i18n/terms-text.js";
 export * from "./i18n/translate.js";
+export {
+  awaitingModel,
+  currentQuestion,
+  draftDrivers,
+  driverToAsk,
+  priceOpen,
+  topDriver,
+  WORTH_ASKING,
+} from "./interview/driver-ask.js";
+export { type DriverAnswer, driverAnswer, driversIn, saysDontKnow } from "./interview/driver-parse.js";
+export { looksLikeAddress, scrubFacts, scrubJobType, scrubText } from "./interview/fact-scrub.js";
 export * from "./interview/index.js";
+export { checkJobType, jobTypePrompt, modelJobType, withJobType } from "./interview/job-type.js";
 export {
   DayWord,
   type NeedConfig,
@@ -32,7 +47,13 @@ export {
   searchFailed,
   startNeed,
 } from "./interview/need.js";
-export { needDetails, needEstimate, needRequest, needWithEstimate } from "./interview/need-estimate.js";
+export { DriverPick, priceContext, withPriceStep } from "./interview/need-drivers.js";
+export {
+  needDetails,
+  needEstimate,
+  needRequest,
+  needWithEstimate,
+} from "./interview/need-estimate.js";
 export { chooseNeed, chooseNeedDate, hearNeed, NeedPick } from "./interview/need-hear.js";
 export { type NeedHint, understandNeed } from "./interview/need-model.js";
 export { type NeedFill, parseNeed, TIME_MAX } from "./interview/need-parse.js";
@@ -48,6 +69,16 @@ export {
 } from "./interview/need-request.js";
 export { chipChoice, ScopePick, scopeDetails } from "./interview/need-scope.js";
 export { needTerms, windowOf } from "./interview/need-terms.js";
+export {
+  checkPriceStep,
+  MAX_PRICE_QUESTIONS,
+  modelPriceStep,
+  type PriceContext,
+  type PriceQA,
+  type PriceQuestion,
+  type PriceStep,
+  pricePrompt,
+} from "./interview/price-model.js";
 export { readScope, SCOPE_READ, type ScopeChip, ScopeKey, scopeFromWords } from "./interview/scope-read.js";
 export * from "./job/advice.js";
 export * from "./job/aftercare.js";

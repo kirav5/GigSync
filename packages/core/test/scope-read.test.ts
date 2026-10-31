@@ -4,9 +4,11 @@ import {
   CITY_RATES,
   chooseNeed,
   draftDetails,
+  estimateRequest,
   hearNeed,
   NeedSlot,
   type NeedState,
+  needDetails,
   needPrompt,
   needRequest,
   needTerms,
@@ -149,16 +151,22 @@ describe("the scope chips in the need interview", () => {
   it("a confirmed chip becomes a detail the estimate and the workers read; a removed one is gone", () => {
     const s = chooseNeed(chooseNeed(read(startNeed(config("en"))), "scope_drop:rooms"), ScopePick.ok);
     expect(s.slot).toBe(NeedSlot.detail);
-    expect(draftDetails(s.draft)).toEqual({ labour_only: "yes", coats: "2" });
-    expect(needRequest(City.enum.bengaluru, s.draft)?.scope).toEqual({ rooms: "bhk2", labour_only: "yes" });
+    // "flat" is a price driver read from the same words (ADR 0041); the removed rooms chip stays gone.
+    expect(draftDetails(s.draft)).toEqual({ labour_only: "yes", coats: "2", house_type: "flat" });
+    // No estimate request until the area is known and the price questions are done (one request per job).
+    expect(needRequest(City.enum.bengaluru, s.draft)).toBeUndefined();
+    expect(estimateRequest(City.enum.bengaluru, T.painter, needDetails(s.draft))?.scope).toEqual({
+      rooms: "bhk2",
+      labour_only: "yes",
+    });
   });
 
   it("a yes confirms them all and fills the first question; a no removes them", () => {
     const yes = hearNeed(read(startNeed(config("en"))), "yes");
     expect(yes.draft.detail).toBe("3 rooms");
-    expect(yes.slot).toBe(NeedSlot.budget);
+    expect(yes.slot).toBe(NeedSlot.driver);
     const no = hearNeed(read(startNeed(config("en"))), "no");
-    expect(draftDetails(no.draft)).toEqual({});
+    expect(draftDetails(no.draft)).toEqual({ house_type: "flat" });
   });
 
   it("the household's terms come from what it said and confirmed, nothing guessed", () => {

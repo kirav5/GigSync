@@ -14,8 +14,11 @@ import {
   needPrompt,
   needWithConfig,
   needWithEstimate,
+  type PriceStep,
   searchedNeed,
   searchFailed,
+  withJobType,
+  withPriceStep,
 } from "@gigsync/core";
 import type { BoardWorker } from "@gigsync/protocol";
 import { changeChat, type FindChat, movedOnFrom, type SearchClaim, settleSearch, withNeedTurns } from "./findChats.js";
@@ -32,7 +35,7 @@ import { appSaid, foundSaid, NeedSpeaker, type NeedTurn, ownerSaid } from "./nee
 function asked(state: NeedState): NeedTurn[] {
   if (state.slot === NeedSlot.found) return [];
   const p = needPrompt(state);
-  return [appSaid(p.lines, p.choices ?? [], p.sources)];
+  return [appSaid(p.lines, p.choices ?? [])];
 }
 
 /** The chat's need moved to `next` after `said`: what was said, then the next question if the need moved on. */
@@ -70,6 +73,16 @@ export function tapNeed(chat: string, value: string, label: string): void {
   moved(chat, (state) => chooseNeed(state, value), [ownerSaid(label)]);
 }
 
+/** The phone's model's next price question (or that it is done), taken into the need; nothing was said. */
+export function stepNeed(chat: string, step: PriceStep): void {
+  moved(chat, (state) => withPriceStep(state, step), []);
+}
+
+/** A need outside the trades, named by the phone's model; the owner's words are on screen already. */
+export function jobTypeNeed(chat: string, jobType: string, words: string): void {
+  moved(chat, (state) => withJobType(state, jobType, words), []);
+}
+
 /** A date picked on the calendar at the When question; `label` is the date as the owner reads it. */
 export function pickNeedDate(chat: string, day: string, label: string): void {
   moved(chat, (state) => chooseNeedDate(state, day), [ownerSaid(label)]);
@@ -88,7 +101,7 @@ function withEstimateShown(c: FindChat, state: NeedState, next: NeedState): Find
   if (next.slot !== NeedSlot.budget || last?.who !== NeedSpeaker.app || needEstimate(next) === needEstimate(state))
     return { ...c, need: next };
   const p = needPrompt(next);
-  const shown: NeedTurn = { ...last, lines: p.lines, choices: p.choices ?? [], sources: p.sources };
+  const shown: NeedTurn = { ...last, lines: p.lines, choices: p.choices ?? [] };
   return { ...withNeedTurns(c, [...c.turns.slice(0, -1), shown]), need: next };
 }
 

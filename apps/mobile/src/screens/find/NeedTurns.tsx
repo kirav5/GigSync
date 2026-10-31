@@ -123,7 +123,7 @@ export function NeedTurns({
       return <Found key={turn.id} chat={chat} turn={turn} active={active} busy={busy} onAsk={onAsk} />;
     }
     return (
-      <Ask key={turn.id} lines={turn.lines} sources={turn.sources}>
+      <Ask key={turn.id} lines={turn.lines}>
         {asking && turn.id === lastQuestion && turn.choices.length > 0 && (
           <Choices chat={chat} choices={turn.choices} today={state.config.today} />
         )}

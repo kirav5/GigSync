@@ -1,6 +1,7 @@
 import { chatTitle, type MessageKey, type Params, plural, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, type Page, test } from "@playwright/test";
+import { skipPriceQuestions } from "./findChat.js";
 import {
   completeSignIn,
   drawer,
@@ -177,6 +178,7 @@ test("a household's Find chats are kept: a sent need stays to read, new chats ke
       await tell(page, FAN);
       await expect(talkLog(page)).toContainText(say("need.ask.area"));
       await tell(page, "HSR");
+      await skipPriceQuestions({ page, lang: en });
       await talkLog(page)
         .getByRole("button", { name: say("flag.yes"), exact: true })
         .click();

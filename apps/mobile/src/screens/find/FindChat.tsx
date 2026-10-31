@@ -4,6 +4,7 @@ import {
   type Line,
   log,
   type MessageKey,
+  modelJobType,
   NeedSlot,
   needPrompt,
   needRequest,
@@ -15,6 +16,7 @@ import {
 } from "@gigsync/core";
 import { useEffect, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
+import { chosenModel, ModelChoice } from "../../adapters/model.js";
 import { stopSpeaking } from "../../adapters/speech.js";
 import { needConfig } from "../../card/choices.js";
 import { answerMarket, routedMarket } from "../../estimate/market.js";
@@ -24,6 +26,7 @@ import { claimSearch, startFindChat, useNeed } from "../../find/findChats.js";
 import {
   answerNeed,
   beginNeed,
+  jobTypeNeed,
   needAsked,
   needEstimateFound,
   needFound,
@@ -33,6 +36,7 @@ import {
   showOwner,
 } from "../../find/needStore.js";
 import { findRoute } from "../../find/route.js";
+import { usePriceQuestions } from "../../find/usePriceQuestions.js";
 import { useI18n } from "../../i18n.js";
 import { Composer, Via } from "../../ui/Composer.js";
 import { C } from "../../ui/cls.js";
@@ -51,6 +55,8 @@ interface Props {
   onAsked: () => void;
 }
 
+/** The phone has a usable model now: it decides the price questions (ADR 0041 §2); lite mode asks the fixed ones. */
+const modelOn = () => chosenModel.answering() !== ModelChoice.lite;
 const failure = (err: unknown) => ({ error: err instanceof Error ? err.message : String(err) });
 const ASKED: Line = { key: "need.asked" };
 /** Said if a yes ever comes before the need is whole: the readback asks again. */
@@ -79,7 +85,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     if (!empty) return;
     const config = needConfig(lang, phoneDay(ports.clock.now()));
     void needMemory(ports, account).then((remembered) =>
-      beginNeed(open, startNeed(withMemory(config, remembered), to)),
+      beginNeed(open, startNeed({ ...withMemory(config, remembered), modelQuestions: modelOn() }, to)),
     );
   }, [empty, open, to, lang, ports, account]);
 
@@ -105,6 +111,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   const request = state ? needRequest(PILOT_CITY, state.draft) : undefined;
   const requestKey = request && JSON.stringify(request);
   const session = account.session;
+  usePriceQuestions(ports, open, state);
   // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the request's JSON, not its identity
   useEffect(() => {
     if (request) void fetchEstimate(session, request).then((found) => needEstimateFound(open, found));
@@ -165,6 +172,12 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     const { areas, today } = state.config;
     const hint = await understandNeed(ports.model, text, { areas, lang });
     const trade = parseNeed(text, { areas, today }).trade ?? hint.trade ?? state.draft.trade;
+    // Outside the trades, the phone's model may name the work, and the need goes on to its questions and estimate.
+    const jobType = !trade && state.draft.modelAsk ? await modelJobType(ports.model, text, lang) : undefined;
+    if (jobType) {
+      setReading(false);
+      return jobTypeNeed(chat, jobType, text);
+    }
     const scope = trade ? await readScope(ports.model, text, { trade, lang }) : [];
     setReading(false);
     answerNeed(chat, text, aloud, { ...hint, scope }, true);
@@ -208,7 +221,8 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
         </Dock>
       </>
     );
-  const waiting = !state || state.slot === NeedSlot.done || state.slot === NeedSlot.found;
+  const waiting =
+    !state || state.slot === NeedSlot.done || state.slot === NeedSlot.found || state.slot === NeedSlot.outside;
   return (
     <>
       {conversation}

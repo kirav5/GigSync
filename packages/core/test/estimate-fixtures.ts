@@ -1,31 +1,25 @@
-import {
-  City,
-  type Estimate,
-  type EstimateRequest,
-  type EstimateResponse,
-  type EstimateSource,
-  RateUnit,
-} from "@gigsync/protocol";
-import type { EstimateApi, EstimateOptions } from "../src/index.js";
+import { City, type Estimate, type EstimateRequest, type EstimateResponse, RateUnit } from "@gigsync/protocol";
+import { type EstimateApi, type EstimateOptions, GIGSYNC_SEED, KARNATAKA_MINIMUM } from "../src/index.js";
 
-/** Estimates as the server's fixture source answers them (workers/api, ESTIMATE_SOURCE=fixture). */
+/** Estimates as the server answers them from the city's rate card (ADR 0041), with no GigSync jobs to go on. */
 
 const AS_OF = "2026-11-02T09:00:00.000Z";
-const source = (n: number, unit: RateUnit = RateUnit.enum.job): EstimateSource => ({
-  url: `https://site${n % 3}.example/page${n}`,
-  site: `site${n % 3}.example`,
-  sentence: `Painting a 2BHK costs Rs ${14 + n},000.`,
-  amount_paise: (14_000 + n * 1000) * 100,
-  unit,
-});
+const RATE_CARD = "rate card";
 
-/** A 2BHK painted, labour only: ₹14,000 / ₹16,000 / ₹18,000 for the job, from five pages on three sites. */
+/** A 2BHK painted, labour only: ₹14,000 / ₹16,000 / ₹18,000 for the job, from the rate card's seed figures. */
 export const PAINT_2BHK: Estimate = {
   low_paise: 1_400_000,
   typical_paise: 1_600_000,
   high_paise: 1_800_000,
   unit: RateUnit.enum.job,
-  basis: { kind: "web", sources: [0, 1, 2, 3, 4].map((n) => source(n)), gigsync_jobs: 0, floored: false },
+  basis: {
+    kind: "rate_card",
+    sources: [],
+    gigsync_jobs: 0,
+    floored: false,
+    blend: ["rate_card"],
+    rate_card: { name: RATE_CARD, sources: [GIGSYNC_SEED] },
+  },
   as_of: AS_OF,
 };
 
@@ -36,11 +30,13 @@ export const COOK_MONTH: Estimate = {
   high_paise: 1_200_000,
   unit: RateUnit.enum.month,
   basis: {
-    kind: "web",
-    sources: [0, 1, 2].map((n) => source(n)),
+    kind: "rate_card",
+    sources: [],
     gigsync_jobs: 0,
     legal_minimum_paise: 643_000,
     floored: false,
+    blend: ["rate_card"],
+    rate_card: { name: RATE_CARD, sources: [KARNATAKA_MINIMUM] },
   },
   as_of: AS_OF,
 };

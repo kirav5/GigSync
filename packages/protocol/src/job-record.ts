@@ -14,6 +14,7 @@ import {
 } from "./estimate-scope.js";
 import { EngagementId, PaymentId, UserId } from "./ids.js";
 import { TermsHash } from "./job.js";
+import { JobQuantities, quantitiesFit } from "./job-quantities.js";
 import { Paise, PaymentMethod } from "./payment.js";
 import { Terms, TermWhen, termsFit } from "./terms.js";
 import { Trade } from "./trade.js";
@@ -72,12 +73,15 @@ export const JobRecordSubmit = z
     role: Role,
     work: JobWork,
     area: AreaKey.optional(),
+    /** ADR 0041 §4: the job's quantities, for per-unit rates; not compared between the two sides (see attest). */
+    quantities: JobQuantities.optional(),
     terms: JobTermsFields.default({}),
     price_paise: Paise,
     terms_hash: TermsHash,
     sig: Base64,
   })
-  .refine((s) => termsFit(s.work.trade, s.terms), "a term this trade does not negotiate");
+  .refine((s) => termsFit(s.work.trade, s.terms), "a term this trade does not negotiate")
+  .refine((s) => quantitiesFit(s.work.trade, s.quantities), "a quantity this trade does not have");
 export type JobRecordSubmit = z.infer<typeof JobRecordSubmit>;
 export type JobRecordSubmitInput = z.input<typeof JobRecordSubmit>;
 
@@ -92,6 +96,11 @@ export const JobRecordFields = z.strictObject({
   household: UserId,
   work: JobWork,
   area: AreaKey.optional(),
+  /**
+   * Quantities as this side sent them. Two sides are compared without them (an older phone sends none), and where both
+   * sent different ones the record keeps none.
+   */
+  quantities: JobQuantities.optional(),
   terms: JobTermsFields,
   price_paise: Paise,
   terms_hash: TermsHash,

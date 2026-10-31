@@ -40,7 +40,7 @@ describe("a need addressed to one worker", () => {
   });
 
   it("asks at the readback whether to ask them, and on yes says it is asking them, with no search", () => {
-    const filled = ["Bedroom fan not working, tomorrow, up to 700", "HSR"].reduce(
+    const filled = ["Bedroom fan not working, tomorrow, up to 700", "HSR", "don't know"].reduce(
       (at, a) => hearNeed(at, a),
       startNeed(config("en"), ravi([T.electrician])),
     );

@@ -2,7 +2,6 @@ import {
   type BoardQueryInput,
   type BoardWorker,
   type City,
-  type EstimateSource,
   type Lang,
   MAX_RESULTS,
   type RateCard,
@@ -19,7 +18,7 @@ import { log } from "../log.js";
 
 /**
  * The work outlook for someone moving to a city, for each of their trades: the usual range there from the estimate
- * (with how many sources and the legal minimum), else the static band the app ships for that city, else that there is
+ * (with what it rests on and the legal minimum), else the static band the app ships for that city, else that there is
  * no figure; how many workers of that trade have a card on the board there, when known; and one line saying the
  * figures are estimates. Every number is the estimate's, the band's, the law's or the board's: built here by code,
  * never by a model.
@@ -40,8 +39,6 @@ export interface OutlookInput {
 
 export interface Outlook {
   lines: Line[];
-  /** The pages the estimates rest on, to fold under the lines. */
-  sources: EstimateSource[];
 }
 
 /** The card's city is the move's: another city's band is never shown as this one's. */
@@ -67,7 +64,7 @@ function listedLine(i: OutlookInput, trade: Trade): Line[] {
 
 /** The outlook's lines in order, trade by trade, then the notes; "no figures" alone when there is no city. */
 export function workOutlook(i: OutlookInput): Outlook {
-  if (i.city === undefined) return { lines: [{ key: "moving.no_outlook" }], sources: [] };
+  if (i.city === undefined) return { lines: [{ key: "moving.no_outlook" }] };
   const card = cardFor(i.rates ?? CITY_RATES, i.city);
   const each = i.trades.map((trade) => ({ trade, ...tradeLines(i, trade, card) }));
   const banded = each.filter((e) => e.band).map((e) => e.trade);
@@ -76,8 +73,7 @@ export function workOutlook(i: OutlookInput): Outlook {
     ...(card ? rateNote(card, banded) : []),
     { key: "moving.estimates" } satisfies Line,
   ];
-  const sources = i.trades.flatMap((trade) => i.estimates[trade]?.estimate.basis.sources ?? []);
-  return { lines, sources };
+  return { lines };
 }
 
 /** The board's search, as `ApiClient.searchWorkers` does it. */

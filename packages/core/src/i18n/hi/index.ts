@@ -4,6 +4,7 @@ import { ask } from "./ask.js";
 import { bargain } from "./bargain.js";
 import { chats } from "./chats.js";
 import { contacts } from "./contacts.js";
+import { drivers } from "./drivers.js";
 import { estimate } from "./estimate.js";
 import { explain } from "./explain.js";
 import { home } from "./home.js";
@@ -51,6 +52,7 @@ export const hi: Strings = {
   ...landing,
   ...mentor,
   ...estimate,
+  ...drivers,
   ...bargain,
   ...terms,
   ...explain,

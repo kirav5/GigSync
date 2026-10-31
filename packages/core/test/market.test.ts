@@ -43,6 +43,7 @@ describe("hearing a market question", () => {
       city,
       trade: T.painter,
       scope: { rooms: "bhk2", labour_only: "yes" },
+      drivers: { rooms: 2 },
     });
     const there = ask("what do cooks charge in HSR");
     expect(there && marketRequest(city, there)?.area).toBe("hsr-layout");
@@ -77,9 +78,9 @@ describe("the answer's facts", () => {
     expect(hindi[1]).toBe("जयनगर में GigSync के 34 कामों से।");
   });
 
-  it("say the web's sources when the range is the web's", () => {
+  it("say the city's rate card when the range rests on it", () => {
     const lines = marketLines(en, city, q, { request, estimate: COOK_MONTH });
-    expect(lines.map((l) => l.key)).toEqual(["estimate.range_month", "estimate.basis.other", "estimate.legal_min"]);
+    expect(lines.map((l) => l.key)).toEqual(["estimate.range_month", "driver.basis_line", "estimate.legal_min"]);
   });
 
   it("say there is no range yet, for that trade and place, when there is no estimate", () => {
@@ -91,7 +92,7 @@ describe("the answer's facts", () => {
     expect(inCity?.names?.place).toEqual(["city.bengaluru"]);
   });
 
-  it("a worker's plan reason says GigSync jobs, not sources", () => {
+  it("a worker's plan reason says GigSync jobs", () => {
     const band = { kind: ReasonKind.band, low_paise: 1_050_000, high_paise: 1_250_000, jobs: 34 } as const;
     expect(reasonText(en, band)).toBe("The usual rate for this job is ₹10,500–₹12,500, from 34 jobs on GigSync.");
   });

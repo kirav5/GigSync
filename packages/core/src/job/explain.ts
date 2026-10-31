@@ -6,7 +6,7 @@ import { sameTerm } from "./terms.js";
 
 /**
  * The facts behind one offer, built by code from this phone's record (ADR 0033 §4): who moved, from what to what, the
- * usual rate and its sources, the terms that changed, and the owner's own limit. A model may phrase them
+ * usual rate and what it rests on, the terms that changed, and the owner's own limit. A model may phrase them
  * (`explain-model.ts`); every number it writes must be one of these. The limit is the owner's and only ever explained
  * to them: explanations are never sent.
  */
@@ -27,13 +27,12 @@ export type Fact =
   | { kind: typeof FactKind.moved; mine: boolean; from_paise: number; to_paise: number; delta_paise: number }
   /** A side kept its price and moved only the terms. */
   | { kind: typeof FactKind.held; mine: boolean; price_paise: number }
-  /** The usual rate for this job, from the estimate (or the worker's band), with the pages or GigSync jobs it rests on. */
+  /** The usual rate for this job, from the estimate (or the worker's band), with the GigSync jobs it rests on. */
   | {
       kind: typeof FactKind.usual;
       low_paise: number;
       high_paise: number;
       typical_paise?: number;
-      sources?: number;
       jobs?: number;
     }
   /** The owner's own limit, and how far the offer is from it. */

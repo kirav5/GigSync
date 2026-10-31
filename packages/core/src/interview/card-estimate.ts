@@ -28,7 +28,7 @@ export function workerSuggestion(state: InterviewState): WorkerSuggestion | unde
 }
 
 /**
- * Under the usual-rate question, the range with its sources and the opening suggested; under the least question,
+ * Under the usual-rate question, the range with what it rests on and the opening suggested; under the least question,
  * asked right after, only the least suggested and the legal minimum, so the range is not heard twice in a row.
  * Undefined when there is no estimate for the trade: the city band shows instead.
  */
@@ -41,11 +41,7 @@ export function estimatePrompt(state: InterviewState, least: boolean): Omit<Prom
     ? suggestion("estimate.suggest_min", suggested.limit_paise)
     : suggestion("estimate.suggest_rate", suggested.opening_paise);
   const shown = least ? estimateLegalLines(found) : estimateLines(own, found);
-  return {
-    lines: [...shown, tip.line],
-    choices: [tip.choice],
-    ...(least ? {} : { sources: found.estimate.basis.sources }),
-  };
+  return { lines: [...shown, tip.line], choices: [tip.choice] };
 }
 
 /** The amount the suggestion chip stands for on the question now asked; undefined when it offers none. */

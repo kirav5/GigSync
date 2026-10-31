@@ -4,7 +4,9 @@ import { type Db, transaction } from "../db/client.js";
 import { activeDeviceIds, activeDevices } from "../db/devices.js";
 import { dropOneSided, upsertRecord } from "../db/job-records.js";
 import { lockEngagement, otherSubmission, saveSubmission, setStates, storedFields } from "../db/job-submissions.js";
-import { columnsOf, fieldsText, jobFields } from "./fields.js";
+import { setQuantities } from "../db/record-quantities.js";
+import { columnsOf, fieldsFrom, fieldsText, jobFields } from "./fields.js";
+import { mergeQuantities, sameJob } from "./quantities.js";
 import { Side, sideOf } from "./sides.js";
 import { signingDevice } from "./verify.js";
 
@@ -44,9 +46,9 @@ export async function attest(db: Db, sender: UserId, s: JobRecordSubmit, now: Da
   return transaction(db, async (): Promise<Attested> => {
     await lockEngagement(db, s.engagement);
     const stored = await storedFields(db, s.engagement, S.stored);
-    if (stored !== undefined) return stored === text ? { state: S.stored } : differs;
+    if (stored !== undefined) return sameJob(stored, text) ? { state: S.stored } : differs;
     const theirs = await otherSubmission(db, s.engagement, s.counterpart, sender);
-    if (theirs && theirs.fields !== text) {
+    if (theirs && !sameJob(theirs.fields, text)) {
       await dropOneSided(db, s.engagement);
       await saveSubmission(db, mine, S.mismatch);
       await setStates(db, s.engagement, sides, S.mismatch);
@@ -58,6 +60,8 @@ export async function attest(db: Db, sender: UserId, s: JobRecordSubmit, now: Da
     }
     const attested = theirs !== undefined;
     if (!(await upsertRecord(db, fields, columnsOf(fields.work, fields.terms), attested, now))) return differs;
+    const theirQuantities = theirs ? fieldsFrom(theirs.fields).quantities : undefined;
+    await setQuantities(db, s.engagement, mergeQuantities(fields.quantities, theirQuantities));
     const state = attested ? S.stored : S.one_sided;
     await saveSubmission(db, mine, state);
     if (attested) await setStates(db, s.engagement, sides, S.stored);

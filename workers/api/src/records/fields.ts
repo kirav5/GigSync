@@ -20,6 +20,7 @@ export function jobFields(sender: UserId, s: JobRecordSubmit): JobFields {
     household: senderIsWorker ? s.counterpart : sender,
     work: s.work,
     ...(s.area ? { area: s.area } : {}),
+    ...(s.quantities ? { quantities: s.quantities } : {}),
     terms: s.terms,
     price_paise: s.price_paise,
     terms_hash: s.terms_hash,

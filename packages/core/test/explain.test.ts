@@ -33,18 +33,19 @@ const job = {
     { by: R.requester, offer: offer(1_300_000, 1, { when: { day: "2026-11-02", window: "morning" } }) },
     { by: R.provider, offer: offer(1_700_000, 2, { when: { day: "2026-11-02", window: "afternoon" } }) },
   ],
-  estimate: PAINT_2BHK,
+  // The 2BHK range as 34 jobs agreed on GigSync give it, so the usual rate says what it rests on.
+  estimate: { ...PAINT_2BHK, basis: { ...PAINT_2BHK.basis, kind: "gigsync", gigsync_jobs: 34, blend: ["gigsync"] } },
 } as unknown as JobRecord;
 const LIMIT = 1_900_000;
 const facts = offerFacts(job, 2, LIMIT);
 const template = factsText(Lang.enum.en, facts, "Ravi");
 
 describe("the facts behind an offer", () => {
-  it("says who moved, by how much, the usual rate with its sources, the terms changed and the owner's limit", () => {
+  it("says who moved, by how much, the usual rate with its jobs, the terms changed and the owner's limit", () => {
     expect(facts.map((f) => f.kind)).toEqual([FactKind.moved, FactKind.terms, FactKind.usual, FactKind.limit]);
     expect(template).toBe(
       "Ravi came down ₹1,250, to ₹17,000. Ravi proposed 2 Nov, afternoon. " +
-        "The usual rate is ₹16,000 (₹14,000–₹18,000, from 5 sources). That is inside your limit of ₹19,000.",
+        "The usual rate is ₹16,000 (₹14,000–₹18,000, from 34 jobs on GigSync). That is inside your limit of ₹19,000.",
     );
   });
 

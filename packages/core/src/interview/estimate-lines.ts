@@ -1,15 +1,14 @@
-import { type Estimate, EstimateBasisKind, type EstimateRequest, type Lang, RateUnit, Trade } from "@gigsync/protocol";
+import { type Estimate, type EstimateRequest, type Lang, RateUnit, Trade } from "@gigsync/protocol";
 import { areaOfSlug } from "../estimate/areas.js";
-import { sourceCount } from "../estimate/scope.js";
 import { priceText } from "../i18n/reasons.js";
 import { type MessageKey, pluralKey, t } from "../i18n/t.js";
 import { type Choice, type Line, Pick } from "./card.js";
 import { isMessageKey } from "./choices.js";
+import { blendLine, driverLines } from "./estimate-drivers.js";
 
 /**
- * An estimate as the interviews show it (ADR 0030, ADR 0039): the range for the job's scope, what it rests on (how
- * many jobs on GigSync and where, or how many web sources and when they were read), the legal minimum, and the amount
- * suggested, which the owner taps to use or says their own. Every figure is the estimate's own; nothing here computes
+ * An estimate as the interviews show it (ADR 0039, ADR 0041): the range for the job's scope, what it rests on (how
+ * many jobs on GigSync and where, and the city's rate card), the legal minimum, and the amount suggested, which the owner taps to use or says their own. Every figure is the estimate's own; nothing here computes
  * a price.
  */
 
@@ -28,8 +27,6 @@ const RANGE: Readonly<Record<RateUnit, MessageKey>> = {
   [RateUnit.enum.sqft]: "estimate.range_sqft",
 };
 const OTHER_PROBLEM = "other";
-/** Length of "YYYY-MM-DD" at the start of an ISO timestamp. */
-const DAY_LENGTH = 10;
 const T = Trade.enum;
 
 /** The scope's buckets in the reader's words: "2 BHK, labour only", "3–4 people, 2 meals a day". */
@@ -62,19 +59,12 @@ function placeKeys({ request, estimate }: FoundEstimate): MessageKey[] {
   return isMessageKey(key) ? [key] : [];
 }
 
-/** What the range rests on: the GigSync jobs and where they are, or the web's sources and when they were read. */
+/** What the range rests on: every source it blends, or, for a range from before the blend, GigSync's jobs and where. */
 function basisLine(own: Lang, found: FoundEstimate, place: readonly MessageKey[]): Line {
   const { estimate } = found;
-  if (estimate.basis.kind === EstimateBasisKind.enum.gigsync) {
-    const jobs = estimate.basis.gigsync_jobs;
-    return { key: pluralKey(own, "estimate.jobs", jobs), params: { count: jobs }, names: { place } };
-  }
-  const pages = sourceCount(estimate);
-  return {
-    key: pluralKey(own, "estimate.basis", pages),
-    params: { count: pages },
-    dates: { date: estimate.as_of.slice(0, DAY_LENGTH) },
-  };
+  if (estimate.basis.blend) return blendLine(own, found.request, estimate);
+  const jobs = estimate.basis.gigsync_jobs;
+  return { key: pluralKey(own, "estimate.jobs", jobs), params: { count: jobs }, names: { place } };
 }
 
 /** The range with its scope and place, then what it rests on, and the legal minimum if known. */
@@ -90,6 +80,7 @@ export function estimateLines(own: Lang, found: FoundEstimate): Line[] {
       prices: { low: estimate.low_paise, high: estimate.high_paise },
     },
     basisLine(own, found, place),
+    ...driverLines(estimate),
     ...estimateLegalLines(found),
   ];
 }

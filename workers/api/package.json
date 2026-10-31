@@ -13,7 +13,6 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "1.3.0",
     "@gigsync/core": "workspace:*",
     "@gigsync/crypto": "workspace:*",
     "@gigsync/protocol": "workspace:*",

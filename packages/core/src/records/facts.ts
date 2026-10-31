@@ -18,6 +18,7 @@ import type { JobRecord } from "../job/store.js";
 import { termDetails } from "../job/terms-flow.js";
 import { localDay } from "../job/when.js";
 import { FINISHED_WORK, type SignedJob } from "../payments/passbook.js";
+import { jobQuantities } from "./quantities.js";
 
 /**
  * The facts of a job GigSync keeps (ADR 0038 §1), picked field by field from what the phone holds. Nothing is copied
@@ -55,12 +56,15 @@ export function submissionOf(job: SignedJob): JobRecordSubmit | undefined {
   if (!work || !terms) return undefined;
   // The pilot area's slug, from the request both phones hold (ADR 0039 §1): never the point, never an address.
   const area = areaKeyOf(job.request.area);
+  // The job's quantities (ADR 0041 §4), from the same details both phones hold; not compared between the sides.
+  const quantities = jobQuantities(work.trade, sharedDetails(job));
   return {
     engagement: job.engagement.id,
     counterpart: job.engagement.counterpart,
     role: job.engagement.role,
     work,
     ...(area ? { area } : {}),
+    ...(quantities ? { quantities } : {}),
     terms,
     price_paise: signed.price_paise,
     terms_hash: job.mine.terms_hash,

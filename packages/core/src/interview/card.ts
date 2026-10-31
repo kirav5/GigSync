@@ -1,4 +1,4 @@
-import type { EstimateSource, Lang, QuestionKey, RateCard, Trade } from "@gigsync/protocol";
+import type { Lang, QuestionKey, RateCard, Trade } from "@gigsync/protocol";
 import type { MessageKey } from "../i18n/t.js";
 import { ASK_FIRST_DETAILS } from "../job/details.js";
 import type { TermPrefs } from "../job/terms.js";
@@ -88,8 +88,6 @@ export interface Prompt {
    * whatever the owner allowed for the other questions. Typing and the tap choices still work.
    */
   secret?: true;
-  /** The pages the estimate in `lines` rests on, for a Sources list under them. */
-  sources?: readonly EstimateSource[];
 }
 
 /** The interview between turns. Treat as opaque outside this module. */

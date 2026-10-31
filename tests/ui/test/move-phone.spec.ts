@@ -2,6 +2,7 @@ import { plural, questionText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import jsQR from "jsqr";
+import { skipPriceQuestions } from "./findChat.js";
 import {
   drawer,
   MovePrompt,
@@ -107,6 +108,7 @@ async function signedJob(meena: Phone, priya: Phone, meenaName: string) {
   await tap(page, t(en, "trade.maid"));
   await say(page, ROOMS);
   await tap(page, t(en, "area.hsr_layout"));
+  await skipPriceQuestions(priya);
   await say(page, "7000");
   await tap(page, t(en, "flag.yes"));
   const found = page.getByRole("group", { name: t(en, "a11y.ask_workers") });

@@ -13,8 +13,6 @@ export const explain = {
   "explain.held_theirs": "{name} kept the price at {price} and changed the terms.",
   "explain.terms_mine": "Your agent proposed {terms}.",
   "explain.terms_theirs": "{name} proposed {terms}.",
-  "explain.usual.one": "The usual rate is {typical} ({low}–{high}, from {count} source).",
-  "explain.usual.other": "The usual rate is {typical} ({low}–{high}, from {count} sources).",
   "explain.usual_jobs.one": "The usual rate is {typical} ({low}–{high}, from {count} job on GigSync).",
   "explain.usual_jobs.other": "The usual rate is {typical} ({low}–{high}, from {count} jobs on GigSync).",
   "explain.usual_range": "The usual range is {low}–{high}.",

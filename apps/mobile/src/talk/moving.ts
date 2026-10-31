@@ -66,9 +66,9 @@ export async function outlookTurn(deps: MoveDeps, city: City | undefined, trades
     if (f.found) estimates[f.trade] = f.found;
     if (f.listed !== undefined) listed[f.trade] = f.listed;
   }
-  const { lines, sources } = workOutlook({ city, trades, own: deps.lang, estimates, listed });
+  const { lines } = workOutlook({ city, trades, own: deps.lang, estimates, listed });
   const phrased = await phraseOutlook(deps.ports.model, lines, deps.lang);
-  return { id: nextTurnId(), who: MoveSpeaker.outlook, trades, lines, sources, phrased };
+  return { id: nextTurnId(), who: MoveSpeaker.outlook, trades, lines, phrased };
 }
 
 /** "Which work do you do?", with every trade to tap, for an owner with no card yet. */

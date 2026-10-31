@@ -31,6 +31,15 @@ export const QuestionKey = z.enum([
   "hours",
   /** Painting: coats of paint, as a number; set from the agreed terms, never asked as a standard question. */
   "coats",
+  /** ADR 0041's price drivers, as request details carry them: a driver's enum value or count, never words. */
+  "surface",
+  "floors",
+  "house_type",
+  "finish",
+  "days_week",
+  "tasks",
+  "vehicle",
+  "points",
 ]);
 export type QuestionKey = z.infer<typeof QuestionKey>;
 

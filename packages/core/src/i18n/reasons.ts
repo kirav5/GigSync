@@ -14,9 +14,7 @@ export function reasonText(lang: Lang, r: Reason): string {
     case ReasonKind.band: {
       const range = { low: priceText(r.low_paise), high: priceText(r.high_paise) };
       if (r.jobs !== undefined) return plural(lang, "estimate.reason_jobs", r.jobs, range);
-      return r.sources === undefined
-        ? t(lang, "reason.band", range)
-        : plural(lang, "estimate.reason", r.sources, range);
+      return t(lang, "reason.band", range);
     }
     case ReasonKind.scope:
       return t(lang, "reason.scope", { percent: r.percent, item: t(lang, `detail.${r.key}`) });

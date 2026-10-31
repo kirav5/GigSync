@@ -1,5 +1,8 @@
 import {
   AnswerFromMemory,
+  type DriverName,
+  type DriverValues,
+  type EstimateFact,
   type Lang,
   type QuestionKey,
   type RateCard,
@@ -10,8 +13,10 @@ import { EVERY_DAY, isMonthly } from "../job/when.js";
 import { QUESTIONS } from "../job/worker.js";
 import type { Known } from "../memory/known.js";
 import type { AreaChoice, Line } from "./card.js";
+import { priceOpen } from "./driver-ask.js";
 import type { FoundEstimate } from "./estimate-lines.js";
 import type { Recalled } from "./need-memory.js";
+import type { PriceQA, PriceQuestion } from "./price-model.js";
 import type { ScopeChip } from "./scope-read.js";
 
 /**
@@ -43,6 +48,30 @@ export interface NeedDraft {
   budget_paise?: number | undefined;
   /** Scope read from the owner's description: chips to confirm before the estimate is asked (`need-scope.ts`). */
   scope?: { chips: readonly ScopeChip[]; confirmed: boolean } | undefined;
+  /** Price drivers (ADR 0041) read from the owner's words or answered; the details give the rest (`draftDrivers`). */
+  drivers?: DriverValues | undefined;
+  /** Drivers the owner said they do not know: assumed by the estimate, never asked again. */
+  notKnown?: readonly DriverName[] | undefined;
+  /** Price questions asked so far, at most `MAX_PRICE_QUESTIONS`. */
+  askedDrivers?: number | undefined;
+  /** The price questions are over: the owner did not know or skipped one, the model was done, or none is worth it. */
+  priceDone?: boolean | undefined;
+  /** With a usable phone model: its questions (`price-model.ts`); absent in lite mode or once the model failed. */
+  modelAsk?: ModelAsk | undefined;
+  /** Facts the phone's model wrote from the answers, scrubbed; kept on the phone for the owner's agent, never sent. */
+  facts?: readonly EstimateFact[] | undefined;
+  /** A need outside GigSync's trades, as a short label the phone's model gave ("wedding photographer"). */
+  jobType?: string | undefined;
+}
+
+/** The model's side of the price questions: the question waiting, what was asked and said, what it covered. */
+export interface ModelAsk {
+  current?: PriceQuestion | undefined;
+  said: readonly PriceQA[];
+  /** Drivers the model's questions filled: the safeguard adds the top driver only when it is not among them. */
+  covered: readonly DriverName[];
+  /** The job's most price-moving unknown driver when the model began: the one question code guarantees. */
+  top?: DriverName | undefined;
 }
 
 export interface NeedConfig {
@@ -53,6 +82,8 @@ export interface NeedConfig {
   rates: RateCard;
   /** The phone's calendar day when the interview started, "YYYY-MM-DD", for dates said without a year. */
   today: string;
+  /** The phone has a usable model (ADR 0040): it decides the price questions; lite mode asks the fixed ones. */
+  modelQuestions?: boolean;
   /** What the owner's agent remembers from past jobs, and whether to ask before using it; never the budget. */
   remembered?: NeedMemory;
 }
@@ -82,6 +113,8 @@ export const NeedSlot = {
   /** The scope read from the owner's words, as chips to confirm. */
   scope: "scope",
   detail: "detail",
+  /** A price driver that moves the range most (ADR 0041), asked before the estimate. */
+  driver: "driver",
   area: "area",
   when: "when",
   budget: "budget",
@@ -92,6 +125,8 @@ export const NeedSlot = {
   found: "found",
   /** The search found nobody: look further, or change something. */
   nobody: "nobody",
+  /** A need outside the trades: GigSync has no prices for it yet and nobody offers it on GigSync. */
+  outside: "outside",
 } as const;
 export type NeedSlot = (typeof NeedSlot)[keyof typeof NeedSlot];
 
@@ -136,10 +171,12 @@ export const firstQuestion = (trade: Trade | undefined): QuestionKey | undefined
 
 /** The next field still missing, in the order asked; confirm once the need is whole. */
 export function firstMissing(d: NeedDraft): NeedSlot {
+  if (!d.trade && d.jobType) return priceOpen(d) ? NeedSlot.driver : NeedSlot.outside;
   if (!d.trade) return NeedSlot.trade;
   if (d.scope && !d.scope.confirmed) return NeedSlot.scope;
   if (firstQuestion(d.trade) && d.detail === undefined) return NeedSlot.detail;
   if (d.area === undefined) return NeedSlot.area;
+  if (priceOpen(d)) return NeedSlot.driver;
   if (d.day === undefined) return NeedSlot.when;
   if (d.budget_paise === undefined) return NeedSlot.budget;
   return NeedSlot.confirm;
@@ -159,7 +196,8 @@ export function withTrade(d: NeedDraft, trade: Trade): NeedDraft {
 /** A new need; addressed `to` one worker, it is for their trade from the start when their card has only one. */
 export function startNeed(config: NeedConfig, to?: NeedTo): NeedState {
   const [only, ...others] = to?.trades ?? [];
-  const draft: NeedDraft = only && others.length === 0 ? withTrade({ seen: {} }, only) : { seen: {} };
+  const empty: NeedDraft = config.modelQuestions ? { seen: {}, modelAsk: { said: [], covered: [] } } : { seen: {} };
+  const draft: NeedDraft = only && others.length === 0 ? withTrade(empty, only) : empty;
   return {
     config,
     draft,

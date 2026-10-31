@@ -43,7 +43,9 @@ async function askOnly(page: Page, lang: Lang, name: string) {
   await found.getByRole("button", { name: plural(lang, "find.ask", 1) }).click();
 }
 
-test("a household says what they need in one sentence and is asked only for the area", async ({ browser }) => {
+test("a household says what they need in one sentence and is asked only for the area and the price", async ({
+  browser,
+}) => {
   const worker = `Ravi ${RUN}`;
   listed.push(await listWorker(worker, ["electrician"], HSR, RATE_PAISE, { area_name: "HSR Layout", languages: [en] }));
   const context = await browser.newContext();
@@ -66,6 +68,9 @@ test("a household says what they need in one sentence and is asked only for the 
   for (const asked of ["question.problem", "need.ask.when", "need.ask.budget"] as const)
     await expect(log).not.toContainText(t(en, asked));
   await say(page, en, "HSR");
+  // What moves the price that the words did not say (ADR 0041): how many points; "I don't know" ends it.
+  await expect(log).toContainText(t(en, "driver.ask.points"));
+  await tap(page, t(en, "driver.dont_know"));
 
   // The readback: what, where and when, the words workers read (never the budget), and the budget, kept here.
   const words = "Bedroom fan not working, need an electrician tomorrow morning";
@@ -100,6 +105,8 @@ test("a Hindi household finds an electrician by tapping the choices", async ({ b
   await expect(log).toContainText(t(hi, "question.problem"));
   await tap(page, t(hi, "iv.skip"));
   await tap(page, t(hi, "area.koramangala"));
+  await expect(log).toContainText(t(hi, "driver.ask.problem"));
+  await tap(page, t(hi, "driver.dont_know"));
   await tap(page, t(hi, "when.tomorrow"));
   // The budget is the one answer typed: it is a number, and private.
   await expect(log).toContainText(t(hi, "need.ask.budget"));

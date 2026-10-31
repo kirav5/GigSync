@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { t } from "@gigsync/core";
 import { CityGuide, Lang, MENTOR_MIN_JOBS, MENTOR_MIN_MONTHS, PlaceKind } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { counted, newPhone, open, Role, RUN, shoot, signIn, textOf } from "./helpers.js";
+import { newPhone, open, Role, RUN, shoot, signIn, textOf } from "./helpers.js";
 import { type Phone, publishCard, unlistCards } from "./journey.js";
 import { seedRecord } from "./mentor-seed.js";
 import { type } from "./talk.js";
@@ -10,7 +10,7 @@ import { type } from "./talk.js";
 /**
  * Moving to a new city, driven entirely through Talk (no menu to find): a worker who has helped in Bengaluru for months
  * says "I can help people new to Bengaluru" and answers the listing's questions in the chat; a cook says "I'm moving
- * to Bengaluru" and gets the usual pay for cooks there with its sources, what to sort first, the guide's hostels on
+ * to Bengaluru" and gets the usual pay for cooks there with what it rests on, what to sort first, the guide's hostels on
  * "Where to stay", the bank section for her own question, and the listed worker under "Find someone who knows the
  * city", whom she asks. Profile no longer has a New city fold.
  */
@@ -98,15 +98,15 @@ test("a cook moving to Bengaluru gets the outlook, the guide's answers and a men
   const city = { city: t(en, "mentor.city.bengaluru") };
   await expect(mentorPage.getByText(t(en, "mentor.listed", city))).toBeVisible();
 
-  // ── The cook says she is moving: the outlook for cooks there, with sources, and what to sort first ──────────────
+  // ── The cook says she is moving: the outlook for cooks there, what it rests on, and what to sort first ──────────
   await open(cookPage, "nav.talk");
   await expect(cookPage.getByRole("button", { name: t(en, "moving.suggest"), exact: true })).toBeVisible();
   await type(cookPage, en, "I'm moving to Bengaluru");
   const log = cookPage.getByRole("log");
-  // The cook's range at the default scope, from GigSync's jobs when the shared database holds enough (ADR 0039), else
-  // the API's fixture web quotes.
+  // The cook's range at the default scope (ADR 0041): GigSync's jobs blended with the city's rate card when the shared
+  // database holds enough, else the rate card alone; either way the line names the rate card.
   await expect(log).toContainText(textOf(en, "estimate.range_month", { trade: t(en, "trade.cook") }));
-  await expect(log).toContainText(counted(en, "estimate.basis", "estimate.jobs"));
+  await expect(log).toContainText(t(en, "driver.basis.rate_card", { city: t(en, "city.bengaluru"), sources: "" }));
   await expect(log).toContainText(textOf(en, "estimate.legal_min"));
   await expect(log).toContainText(t(en, "moving.estimates"));
   await expect(log).toContainText(t(en, "moving.first", { city: t(en, "city.bengaluru") }));

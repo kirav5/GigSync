@@ -1,10 +1,8 @@
 import type { Line } from "@gigsync/core";
-import type { EstimateSource } from "@gigsync/protocol";
 import type { ReactNode } from "react";
 import { type I18n, useI18n } from "../../i18n.js";
 import { money } from "../../ui/places.js";
 import { SpeakButton } from "../../ui/SpeakButton.js";
-import { Sources } from "../estimate/Sources.js";
 import { dayDate } from "../jobGroups.js";
 
 /**
@@ -41,19 +39,8 @@ export function Own({ text }: { text: string }) {
   );
 }
 
-/**
- * A question or readback, with its replay button; the silent lines are shown but never spoken. An estimate among the
- * lines has its sources folded under them.
- */
-export function Ask({
-  lines,
-  sources,
-  children,
-}: {
-  lines: readonly Line[];
-  sources?: readonly EstimateSource[] | undefined;
-  children?: ReactNode;
-}) {
+/** A question or readback, with its replay button; the silent lines are shown but never spoken. */
+export function Ask({ lines, children }: { lines: readonly Line[]; children?: ReactNode }) {
   const i18n = useI18n();
   return (
     <div className="msg-agent iv-ask">
@@ -65,7 +52,6 @@ export function Ask({
         </div>
         <SpeakButton lang={i18n.lang} text={spoken(i18n, lines)} />
       </div>
-      {sources && <Sources sources={sources} />}
       {children}
     </div>
   );

@@ -1,6 +1,7 @@
 import { plural, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
+import { skipPriceQuestions } from "./findChat.js";
 import { expand, newPhone, open, openCard, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
 import { cleanUpLater, type Phone, signBoth, unlistCards } from "./journey.js";
 
@@ -81,9 +82,15 @@ test("a long description becomes confirmed chips, the agents settle the terms, a
   await shoot("scope-chips", { household: homePage }, FOLDER);
   await tap(homePage, t(en, "terms.scope_ok"));
 
-  // Rooms, area, day and time were all in the words: the budget is next, beside the estimate for her scope.
+  // Rooms, area, day and time were all in the words: after a price question (ADR 0041), the budget is next, beside
+  // the estimate for her scope.
+  await skipPriceQuestions(home);
   await expect(log).toContainText(t(en, "need.ask.budget"));
-  await tap(homePage, t(en, "estimate.use", { price: "₹16,000" }));
+  // The suggested budget is the rate card's usual figure for the job (ADR 0041); she takes it, whatever it is.
+  await log
+    .getByRole("button", { name: textOf(en, "estimate.use") })
+    .last()
+    .click();
   await tap(homePage, t(en, "flag.yes"));
   const found = homePage.getByRole("group", { name: t(en, "a11y.ask_workers") });
   await expect(found.getByLabel(t(en, "a11y.worker", { name }))).toBeVisible();

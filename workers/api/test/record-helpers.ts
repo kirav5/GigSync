@@ -5,6 +5,7 @@ import {
   type BoardProfile,
   type EngagementId,
   EnvelopeKind,
+  type JobQuantities,
   type JobRecordSubmitInput,
   JobSubmitState,
   RECORDS_NOTICE_VERSION,
@@ -48,8 +49,8 @@ export const paintJob = (engagement: EngagementId, hash: string, price = 900000)
   terms_hash: hash,
 });
 
-/** A job as one side submits it, with the pilot area its request named when there is one. */
-type Job = ReturnType<typeof paintJob> & { area?: string };
+/** A job as one side submits it, with the pilot area its request named and its quantities, when there are. */
+type Job = ReturnType<typeof paintJob> & { area?: string; quantities?: JobQuantities };
 
 /** `as` submits `job` as the worker (provider) or household (requester), signed with `signer`'s key (default theirs). */
 export async function submit(

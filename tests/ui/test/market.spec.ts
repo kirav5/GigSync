@@ -25,10 +25,13 @@ const SCOPE = t(en, "estimate.scope", { scope: `${t(en, "estimate.people.3_4")},
 
 let contexts: BrowserContext[] = [];
 let range: Estimate | undefined;
+/** The household's range: its request carries the drivers it said (ADR 0041), 4 people and 2 meals. */
+let homeRange: Estimate | undefined;
 
 test.beforeAll(async () => {
   await seedAreaJobs(AREA, K_MIN, PRICE_PAISE);
   range = await estimateNow({ ...COOK_REQUEST, area: AREA });
+  homeRange = await estimateNow({ ...COOK_REQUEST, area: AREA, drivers: { meals: 2, people: 4 } });
 });
 
 test.afterEach(async () => {
@@ -55,17 +58,25 @@ async function firstVisible(locators: readonly Locator[]): Promise<Locator | und
 }
 const tap = (page: Page, label: string) => log(page).getByRole("button", { name: label, exact: true }).last().click();
 
-/** The range line for a cook in Jayanagar and the line saying it rests on jobs on GigSync there. */
+/** How the app joins the parts of a blend, and a rate card's sources. */
+const JOIN = " + ";
+
+/** The range line for a cook in Jayanagar and the line saying it rests on jobs on GigSync, then the city's rate card. */
 function rangeLines(e: Estimate) {
   const prices = { low: priceText(e.low_paise), high: priceText(e.high_paise) };
+  const sources = (e.basis.rate_card?.sources ?? []).map((s) => s.name).join(JOIN);
+  const parts = [
+    t(en, "driver.basis.gigsync.other", { count: e.basis.gigsync_jobs }),
+    t(en, "driver.basis.rate_card", { city: t(en, "city.bengaluru"), sources }),
+  ].join(JOIN);
   return {
     range: textOf(en, "estimate.range_month", { trade: t(en, "trade.cook"), city: PLACE, scope: SCOPE, ...prices }),
-    basis: textOf(en, "estimate.jobs.other", { place: PLACE }),
+    basis: textOf(en, "driver.basis_line", { parts }),
   };
 }
 
 test("the API answers a cook in Jayanagar from the jobs agreed there", () => {
-  expect(range?.basis).toMatchObject({ kind: "gigsync", area: AREA, sources: [] });
+  expect(range?.basis).toMatchObject({ kind: "gigsync", area: AREA, blend: ["gigsync", "rate_card"] });
   expect(range?.basis.gigsync_jobs).toBeGreaterThanOrEqual(K_MIN);
 });
 
@@ -81,12 +92,6 @@ test("a worker's rate question shows the range from jobs on GigSync, and Talk an
   const lines = rangeLines(e);
   await expect(log(page).getByText(lines.range).last()).toBeVisible();
   await expect(log(page).getByText(lines.basis).last()).toBeVisible();
-  // Nothing to open: the range rests on jobs, not on web pages.
-  await expect(
-    log(page)
-      .locator("summary")
-      .filter({ hasText: t(en, "estimate.sources") }),
-  ).toHaveCount(0);
   await shoot("rate-question", { worker: page }, FOLDER);
 
   // Later, then a question in her own words: the answer is the same range, with what it rests on and where.
@@ -140,8 +145,18 @@ test("a household's market question and budget both show the range from jobs on 
     await expect(turns).not.toHaveCount(before);
   }
   await expect(budget).toBeVisible();
-  await expect(log(page).getByText(lines.range).last()).toBeVisible();
-  await expect(log(page).getByText(lines.basis).last()).toBeVisible();
+  // ADR 0041: GigSync's per-unit rate for 4 people and 2 meals, saying what it rests on and how sure it is.
+  const home = homeRange as Estimate;
+  expect(home.basis.blend?.[0]).toBe("gigsync");
+  const homePrices = { low: priceText(home.low_paise), high: priceText(home.high_paise) };
+  const homeLine = textOf(en, "estimate.range_month", { trade: t(en, "trade.cook"), scope: SCOPE, ...homePrices });
+  await expect(log(page).getByText(homeLine).last()).toBeVisible();
+  // What it rests on: the jobs on GigSync, then the city's rate card with its sources.
+  const jobs = t(en, "driver.basis.gigsync.other", { count: home.basis.gigsync_jobs });
+  const basis = log(page).getByText(textOf(en, "driver.basis_line")).last();
+  await expect(basis).toContainText(jobs);
+  await expect(basis).toContainText(t(en, "driver.basis.rate_card", { city: t(en, "city.bengaluru"), sources: "" }));
+  await expect(log(page).getByText(textOf(en, "driver.confidence_line")).last()).toBeVisible();
   await expect(log(page).getByText(textOf(en, "estimate.suggest_budget")).last()).toBeVisible();
   await shoot("budget", { household: page }, FOLDER);
 

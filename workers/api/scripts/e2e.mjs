@@ -46,7 +46,6 @@ await migrate(databaseUrl);
 
 process.env.CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_DIRECTORY = databaseUrl;
 const args = ["dev", "--port", PORT, "--inspector-port", INSPECTOR_PORT, "--persist-to", STATE_DIR];
-// Fixture quotes: the tests never search the web, and their ranges do not move with it.
-args.push("--var", `ALLOWED_ORIGINS:${APP_ORIGIN}`, "--var", "ESTIMATE_SOURCE:fixture");
+args.push("--var", `ALLOWED_ORIGINS:${APP_ORIGIN}`);
 const wrangler = spawn("wrangler", args, { stdio: "inherit" });
 wrangler.on("exit", (code) => process.exit(code ?? 1));

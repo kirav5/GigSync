@@ -4,6 +4,7 @@ import { recordAgree } from "../db/agree-signatures.js";
 import { type Db, transaction } from "../db/client.js";
 import { upsertRecord } from "../db/job-records.js";
 import { lockEngagement, saveSubmission, waitingWorkerSide } from "../db/job-submissions.js";
+import { setQuantities } from "../db/record-quantities.js";
 import { columnsOf, fieldsFrom } from "./fields.js";
 
 /**
@@ -23,6 +24,7 @@ export async function promoteOnAgree(
     if (!waiting) return false;
     const fields = fieldsFrom(waiting.fields);
     if (!(await upsertRecord(db, fields, columnsOf(fields.work, fields.terms), false, now))) return false;
+    await setQuantities(db, engagement, fields.quantities);
     await saveSubmission(db, waiting, JobSubmitState.enum.one_sided);
     return true;
   });

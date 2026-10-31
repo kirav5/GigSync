@@ -1,5 +1,4 @@
 import type { Card, Choice, Line } from "@gigsync/core";
-import type { EstimateSource } from "@gigsync/protocol";
 import { isMoveTurn, type MoveTurn } from "./moveTurns.js";
 
 /**
@@ -18,8 +17,6 @@ export type Turn =
       who: typeof Speaker.app;
       lines: readonly Line[];
       choices: readonly Choice[];
-      /** The pages an estimate in `lines` rests on. */
-      sources?: readonly EstimateSource[] | undefined;
     }
   | { id: number; who: typeof Speaker.owner; text: string }
   /** A note and, once the agent has answered, its card. */
@@ -38,11 +35,12 @@ export function turnIdsSeen(max: number): void {
 export const nextTurnId = (): number => ++lastId;
 export const ownerTurn = (text: string): Turn => ({ id: ++lastId, who: Speaker.owner, text });
 export const noteTurn = (text: string): Turn => ({ id: ++lastId, who: Speaker.note, text });
-export const appTurn = (
-  lines: readonly Line[],
-  choices: readonly Choice[] = [],
-  sources?: readonly EstimateSource[],
-): Turn => ({ id: ++lastId, who: Speaker.app, lines, choices, sources });
+export const appTurn = (lines: readonly Line[], choices: readonly Choice[] = []): Turn => ({
+  id: ++lastId,
+  who: Speaker.app,
+  lines,
+  choices,
+});
 
 /** The owner's own words in a turn, for the chat's title: their answers and notes, never the agent's. */
 export const wordsOf = (turn: Turn): string | undefined =>

@@ -37,13 +37,13 @@ describe("the estimate under the card's rate questions", () => {
   const atRate = (trade: string, own: Lang = "en"): InterviewState =>
     ["Koramangala"].reduce((s, a) => hear(s, a), hear(start({ own, areas: AREAS, rates: CITY_RATES }), trade));
 
-  it("shows a painter the range with its scope, sources and date, and suggests opening at the typical figure", () => {
+  it("shows a painter the range with its scope and what it rests on, and suggests opening at the typical figure", () => {
     const s = withEstimate(atRate("painter"), painterFound());
     const p = prompt(s);
     expect(keys(p.lines)).toEqual([
       "iv.ask.rate_visit",
       "estimate.range_job",
-      "estimate.basis.other",
+      "driver.basis_line",
       "estimate.suggest_rate",
     ]);
     expect(p.lines[1]).toEqual({
@@ -52,9 +52,11 @@ describe("the estimate under the card's rate questions", () => {
       params: { scope: " (2 BHK, labour only)" },
       prices: { low: 1_400_000, high: 1_800_000 },
     });
-    expect(p.lines[2]).toEqual({ key: "estimate.basis.other", params: { count: 5 }, dates: { date: "2026-11-02" } });
+    expect(p.lines[2]).toEqual({
+      key: "driver.basis_line",
+      params: { parts: "Bengaluru rate card: GigSync seed, unverified" },
+    });
     expect(p.choices).toEqual([{ value: Pick.suggested, key: "estimate.use", params: { price: "₹16,000" } }]);
-    expect(p.sources).toHaveLength(5);
   });
 
   it("the chip uses the suggestion; a worker's own amount is taken instead just the same", () => {
@@ -123,7 +125,7 @@ describe("the estimate under the card's rate questions", () => {
 describe("the estimate beside the household's budget", () => {
   const config = { own: "en" as const, areas: AREAS, rates: CITY_RATES, today: "2026-10-29" };
   const atBudget = (): NeedState =>
-    ["paint my 2BHK", "Koramangala", "tomorrow"].reduce((s, a) => hearNeed(s, a), startNeed(config));
+    ["paint my 2BHK", "Koramangala", "don't know", "tomorrow"].reduce((s, a) => hearNeed(s, a), startNeed(config));
 
   it("asks for the job the household described, rooms from their own sentence", () => {
     const s = atBudget();
@@ -133,10 +135,12 @@ describe("the estimate beside the household's budget", () => {
       area: "koramangala",
       trade: T.painter,
       scope: { rooms: "bhk2", labour_only: "yes" },
+      // ADR 0041: the drivers known, after "don't know" ended the questions (who buys the paint is assumed).
+      drivers: { rooms: 2 },
     });
   });
 
-  it("shows the range with sources and suggests a budget, which a tap uses and is not read back aloud", () => {
+  it("shows the range with what it rests on and suggests a budget, which a tap uses and is not read back aloud", () => {
     const s = needWithEstimate(atBudget(), {
       request: needRequest(city, atBudget().draft) as EstimateRequest,
       estimate: PAINT_2BHK,
@@ -145,11 +149,10 @@ describe("the estimate beside the household's budget", () => {
     expect(keys(p.lines)).toEqual([
       "need.ask.budget",
       "estimate.range_job",
-      "estimate.basis.other",
+      "driver.basis_line",
       "estimate.suggest_budget",
     ]);
     expect(p.secret).toBe(true);
-    expect(p.sources).toHaveLength(5);
     const used = chooseNeed(s, Pick.suggested);
     expect(used.draft.budget_paise).toBe(1_600_000);
     expect(used.notes).toEqual([{ key: "need.got_budget", prices: { price: 1_600_000 }, silent: true }]);

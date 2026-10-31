@@ -35,7 +35,7 @@ import { appTurn, noteTurn, ownerTurn, Speaker, type Turn } from "../talk/turns.
 const asked = (state: InterviewState): Turn[] => {
   if (state.slot === Slot.done) return [];
   const p = prompt(state);
-  return [appTurn(p.lines, p.choices ?? [], p.sources)];
+  return [appTurn(p.lines, p.choices ?? [])];
 };
 
 /** `t` with turns added to the end of chat `chat`. */
@@ -163,7 +163,7 @@ export function interviewEstimate(found: FoundEstimate | undefined): void {
     if (!open || last?.who !== Speaker.app || cardEstimate(state) === cardEstimate(live.state))
       return { ...t, live: { ...live, state } };
     const p = prompt(state);
-    const shown: Turn = { ...last, lines: p.lines, choices: p.choices ?? [], sources: p.sources };
+    const shown: Turn = { ...last, lines: p.lines, choices: p.choices ?? [] };
     return { ...withChatTurns(t, live.chat, [...turns.slice(0, -1), shown]), live: { ...live, state } };
   });
 }

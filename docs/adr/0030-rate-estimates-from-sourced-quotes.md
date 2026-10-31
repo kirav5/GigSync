@@ -1,7 +1,9 @@
 # ADR 0030: Rate estimates come from sourced quotes and opt-in GigSync prices; a model reads, code computes
 
-Date: 2026-10-29. Status: accepted. Amends [HLD](../gigsync/HLD.md) §2 (cloud models) and the rule in
-`packages/core/src/job/advice.ts` that "no model produces a number". Extends [ADR 0014](0014-agent-to-agent-jobs.md).
+Date: 2026-10-29. Status: superseded by [ADR 0041](0041-prices-from-drivers.md): no cloud model or web search
+produces a price; estimates come only from GigSync's agreed jobs and community rate cards. Amended
+[HLD](../gigsync/HLD.md) §2 (cloud models) and the rule in `packages/core/src/job/advice.ts` that "no model produces a
+number". Extended [ADR 0014](0014-agent-to-agent-jobs.md).
 
 ## Context
 

@@ -62,9 +62,9 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
   for (const [, next] of head) await nextTurn(page, hi, next, () => mic(page, hi).click());
 
   await test.step("under the rate question, the estimate for a cook in Bengaluru, what it rests on and the legal minimum", async () => {
-    // What the API answers now for a cook (3–4 people, two meals) in Koramangala: the shared database holds many
-    // cooking jobs from the record seeds, so the city's GigSync range (ADR 0039); on a fresh database, the fixture's
-    // web quotes (ADR 0030), ₹10,000–₹12,000 a month from three pages.
+    // What the API answers now for a cook (3–4 people, two meals) in Koramangala (ADR 0041): GigSync's rate blended
+    // with the city's rate card when the shared database holds enough cooking jobs from the record seeds, else the
+    // rate card alone.
     const e = await estimateNow({ ...COOK_REQUEST, area: "koramangala" });
     expect(e).toBeDefined();
     const cook = t(hi, "trade.cook");
@@ -76,11 +76,11 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
     await expect(
       page.getByText(textOf(hi, "estimate.range_month", { trade: cook, city, scope, ...prices })),
     ).toBeVisible();
-    const basis =
-      e?.basis.kind === EstimateBasisKind.enum.gigsync
-        ? textOf(hi, "estimate.jobs.other", { place: city })
-        : textOf(hi, "estimate.basis.other", { count: 3 });
-    await expect(page.getByText(basis)).toBeVisible();
+    const basis = page.getByText(textOf(hi, "driver.basis_line")).last();
+    await expect(basis).toContainText(t(hi, "driver.basis.rate_card", { city, sources: "" }));
+    if (e?.basis.kind === EstimateBasisKind.enum.gigsync) {
+      await expect(basis).toContainText(t(hi, "driver.basis.gigsync.other", { count: e.basis.gigsync_jobs }));
+    }
     await expect(page.getByText(textOf(hi, "estimate.legal_min", { min: "₹6,430" }))).toBeVisible();
     await expect(page.getByText(textOf(hi, "estimate.suggest_rate"))).toBeVisible();
   });

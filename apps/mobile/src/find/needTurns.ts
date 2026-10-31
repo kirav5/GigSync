@@ -1,5 +1,5 @@
 import type { Chat, Choice, Line } from "@gigsync/core";
-import type { BoardWorker, EstimateSource } from "@gigsync/protocol";
+import type { BoardWorker } from "@gigsync/protocol";
 
 /**
  * What a Find chat holds, turn by turn: the agent's questions, the household's answers, and the workers a search found
@@ -15,8 +15,6 @@ export type NeedTurn =
       who: typeof NeedSpeaker.app;
       lines: readonly Line[];
       choices: readonly Choice[];
-      /** The pages an estimate in `lines` rests on. */
-      sources?: readonly EstimateSource[] | undefined;
     }
   | { id: number; who: typeof NeedSpeaker.owner; text: string }
   /** What a search found, and the ones the owner picked to ask (the nearest, until they choose). */
@@ -31,11 +29,12 @@ export function needTurnIdsSeen(max: number): void {
 }
 
 export const ownerSaid = (text: string): NeedTurn => ({ id: ++lastId, who: NeedSpeaker.owner, text });
-export const appSaid = (
-  lines: readonly Line[],
-  choices: readonly Choice[] = [],
-  sources?: readonly EstimateSource[],
-): NeedTurn => ({ id: ++lastId, who: NeedSpeaker.app, lines, choices, sources });
+export const appSaid = (lines: readonly Line[], choices: readonly Choice[] = []): NeedTurn => ({
+  id: ++lastId,
+  who: NeedSpeaker.app,
+  lines,
+  choices,
+});
 export const foundSaid = (workers: readonly BoardWorker[], picked: readonly string[]): NeedTurn => ({
   id: ++lastId,
   who: NeedSpeaker.found,

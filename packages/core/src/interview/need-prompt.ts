@@ -4,6 +4,7 @@ import { YES_NO_QUESTIONS } from "../job/details.js";
 import { EVERY_DAY, isMonthly } from "../job/when.js";
 import { Pick as CardPick, type Choice, type Line, type Prompt } from "./card.js";
 import { areaChoices, areaHints, isMessageKey, YES_NO } from "./choices.js";
+import { jobTypeLines } from "./estimate-drivers.js";
 import {
   DayWord,
   firstQuestion,
@@ -15,6 +16,7 @@ import {
   recalled,
   SEARCH_RADII_KM,
 } from "./need.js";
+import { driverQuestion } from "./need-drivers.js";
 import { budgetEstimate } from "./need-estimate.js";
 import { NeedPick } from "./need-hear.js";
 import { OFFER_CHOICES, recalledLine, redoChoice } from "./need-memory.js";
@@ -164,6 +166,8 @@ function question(s: NeedState): Prompt {
       return scopeQuestion(s);
     case NeedSlot.detail:
       return detailPrompt(s);
+    case NeedSlot.driver:
+      return driverQuestion(s);
     case NeedSlot.area:
       return {
         lines: [{ key: "need.ask.area" }],
@@ -184,6 +188,8 @@ function question(s: NeedState): Prompt {
     }
     case NeedSlot.confirm:
       return confirmPrompt(s);
+    case NeedSlot.outside:
+      return { lines: jobTypeLines(s.draft.jobType ?? ""), hints: [] };
     case NeedSlot.done: {
       if (s.to) return { lines: [{ key: "need.asking_to", params: { name: s.to.name } }], hints: [] };
       const area = `area.${s.draft.area ?? ""}`;

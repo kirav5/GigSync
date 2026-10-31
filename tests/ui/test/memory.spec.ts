@@ -1,6 +1,7 @@
 import { plural, questionText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
+import { skipPriceQuestions } from "./findChat.js";
 import { newPhone, open, Role, RUN, reveal, shoot, signIn } from "./helpers.js";
 import { type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
@@ -86,6 +87,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await say(priyaPage, ROOMS);
   await expect(log.getByRole("button", { name: t(en, "memory.use"), exact: true })).toHaveCount(0);
   await tap(priyaPage, t(en, "area.hsr_layout"));
+  await skipPriceQuestions(priya);
   await say(priyaPage, BUDGET);
   await tap(priyaPage, t(en, "flag.yes"));
   await askOnly(priyaPage, meenaName);
@@ -132,6 +134,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await expect(log).toContainText(t(en, "need.ask.area"));
   await expect(log).not.toContainText(t(en, "memory.offer_area", { area: t(en, "area.hsr_layout") }));
   await tap(priyaPage, t(en, "area.hsr_layout"));
+  await skipPriceQuestions(priya);
   await say(priyaPage, BUDGET);
   await expect(log).toContainText(ROOMS);
   await tap(priyaPage, t(en, "flag.yes"));
