@@ -150,7 +150,7 @@
       "role": "worker",
       "text": "ನನ್ನ ತಮ್ಮ ಬೆಂಗಳೂರಿಗೆ ಶಿಫ್ಟ್ ಆಗ್ತಿದ್ದಾನೆ",
       "intent": "chat",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "kn-guide-01",

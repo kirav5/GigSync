@@ -167,7 +167,7 @@
       "role": "worker",
       "text": "my brother is moving to Bengaluru next week",
       "intent": "chat",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "en-guide-01",

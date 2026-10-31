@@ -1,0 +1,184 @@
+{
+  "cases": [
+    {
+      "id": "hinglish-askContact-03",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Suresh", "Lakshmi"],
+      "text": "Suresh bhai kal kaam pe aa raha hai kya",
+      "intent": "askContact",
+      "slots": { "contact": "Suresh" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askContact-04",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Lakshmi", "Geeta"],
+      "text": "Lakshmi se pucho kal ka plan kya hai",
+      "intent": "askContact",
+      "slots": { "contact": "Lakshmi" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askContact-05",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["Raju", "Asha"],
+      "text": "Raju ko pucho aaj aayega ki nahi",
+      "intent": "askContact",
+      "slots": { "contact": "Raju" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askContact-06",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["Asha", "Raju", "Mohan"],
+      "text": "asha didi kahan pahunchi",
+      "intent": "askContact",
+      "slots": { "contact": "Asha" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-askContact-07",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Imran", "Vikram"],
+      "text": "Imran ka kaam khatam hua kya",
+      "intent": "askContact",
+      "slots": { "contact": "Imran" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askContact-08",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Deepa", "Kiran"],
+      "text": "Deepa ke paas extra brush hai kya puchna",
+      "intent": "askContact",
+      "slots": { "contact": "Deepa" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askContact-09",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["Mohan", "Farida"],
+      "text": "Mohan driver ka number kya hai",
+      "intent": "askContact",
+      "slots": { "contact": "Mohan" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askContact-10",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Ramesh", "Sunita", "Babu"],
+      "text": "babu sunday ko free h kya",
+      "intent": "askContact",
+      "slots": { "contact": "Babu" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-askContact-11",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["Kavya", "Nisha"],
+      "text": "Kavya ko bolo kal 8 baje aa jaye aur pucho aayegi na",
+      "intent": "askContact",
+      "slots": { "contact": "Kavya" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askContact-12",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Arjun", "Pooja"],
+      "text": "arjun bhaiya ka ghar kidhar hai",
+      "intent": "askContact",
+      "slots": { "contact": "Arjun" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askContact-13",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Salma", "Rekha", "Anita"],
+      "text": "Rekha didi se puchna HSR wali madam ka kaam abhi bhi hai kya",
+      "intent": "askContact",
+      "slots": { "contact": "Rekha" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askContact-14",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["Ganesh", "Prakash"],
+      "text": "Ganesh electrician kal tak aa payega?",
+      "intent": "askContact",
+      "slots": { "contact": "Ganesh" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askContact-15",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Manju", "Venkat"],
+      "text": "Venkat anna ki tabiyat kaisi hai ab",
+      "intent": "askContact",
+      "slots": { "contact": "Venkat" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askContact-16",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["Sita", "Ravi"],
+      "text": "Sita ne aaj khana banaya ya nahi",
+      "intent": "askContact",
+      "slots": { "contact": "Sita" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askContact-17",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Naveen", "Shilpa"],
+      "text": "naveen ke saath kal ka job pakka hai na puchke batao",
+      "intent": "askContact",
+      "slots": { "contact": "Naveen" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askContact-18",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Kumar", "Divya", "Ajay"],
+      "text": "Ajay kitne baje free hoga",
+      "intent": "askContact",
+      "slots": { "contact": "Ajay" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-askContact-19",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["Lata", "Sunil"],
+      "text": "Lata ji ka WhatsApp number bhejo",
+      "intent": "askContact",
+      "slots": { "contact": "Lata" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askContact-20",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Mehboob", "Ravi"],
+      "text": "Mehboob ko pucho uske paas koi naya kaam hai kya",
+      "intent": "askContact",
+      "slots": { "contact": "Mehboob" },
+      "source": "miss"
+    }
+  ]
+}

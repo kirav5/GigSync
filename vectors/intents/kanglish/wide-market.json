@@ -1,0 +1,139 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-market-01",
+      "lang": "kn",
+      "role": "household",
+      "text": "plumber rate eshtu",
+      "intent": "market",
+      "slots": { "trade": "plumber" },
+      "source": "list"
+    },
+    {
+      "id": "kanglish-market-02",
+      "lang": "kn",
+      "role": "household",
+      "text": "maid ge tingalige estu kodbeku",
+      "intent": "market",
+      "slots": { "trade": "maid" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-03",
+      "lang": "kn",
+      "role": "household",
+      "text": "cook ge ₹9000 kodtidini sari na",
+      "intent": "market",
+      "slots": { "trade": "cook", "amount_paise": 900000 },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-04",
+      "lang": "kn",
+      "role": "household",
+      "text": "Indiranagar alli painter eshtu tagotaare",
+      "intent": "market",
+      "slots": { "trade": "painter", "area": "indiranagar" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-05",
+      "lang": "kn",
+      "role": "household",
+      "text": "AC service ge estu charge maadtaare",
+      "intent": "market",
+      "slots": { "trade": "ac_technician" },
+      "source": "list"
+    },
+    {
+      "id": "kanglish-market-06",
+      "lang": "kn",
+      "role": "household",
+      "text": "carpenter ondu dina ge eshtu",
+      "intent": "market",
+      "slots": { "trade": "carpenter" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-07",
+      "lang": "kn",
+      "role": "household",
+      "text": "driver ge 15000 jaasti aaytha",
+      "intent": "market",
+      "slots": { "trade": "driver", "amount_paise": 1500000 },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-08",
+      "lang": "kn",
+      "role": "household",
+      "text": "HSR alli adige maadoru eshtu kelthaare",
+      "intent": "market",
+      "slots": { "trade": "cook", "area": "hsr_layout" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-09",
+      "lang": "kn",
+      "role": "household",
+      "text": "electrician fan haakoke 500 kelidaane sari idya",
+      "intent": "market",
+      "slots": { "trade": "electrician", "amount_paise": 50000 },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-10",
+      "lang": "kn",
+      "role": "household",
+      "text": "Whitefield nalli kelsadavalige estu sambla",
+      "intent": "market",
+      "slots": { "trade": "maid", "area": "whitefield" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-11",
+      "lang": "kn",
+      "role": "household",
+      "text": "2bhk paint maadoke eshtu aagutte",
+      "intent": "market",
+      "slots": { "trade": "painter" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-12",
+      "lang": "kn",
+      "role": "household",
+      "text": "tap repair ge ₹800 andru jaasti alva",
+      "intent": "market",
+      "slots": { "trade": "plumber", "amount_paise": 80000 },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-13",
+      "lang": "kn",
+      "role": "household",
+      "text": "mane kelsadavru ge market rate enu",
+      "intent": "market",
+      "slots": { "trade": "maid" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-14",
+      "lang": "kn",
+      "role": "household",
+      "text": "ac technician bandu nodoke 600 visiting charge sari na",
+      "intent": "market",
+      "slots": { "trade": "ac_technician", "amount_paise": 60000 },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-15",
+      "lang": "kn",
+      "role": "household",
+      "text": "Jayanagar alli driver ge monthly eshtu kodtaare",
+      "intent": "market",
+      "slots": { "trade": "driver", "area": "jayanagar" },
+      "source": "miss"
+    }
+  ]
+}

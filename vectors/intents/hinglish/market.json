@@ -6,10 +6,7 @@
       "role": "household",
       "text": "Jayanagar mein cook kitna lete hain?",
       "intent": "market",
-      "slots": {
-        "trade": "cook",
-        "area": "jayanagar"
-      },
+      "slots": { "trade": "cook", "area": "jayanagar" },
       "source": "list"
     },
     {
@@ -18,10 +15,7 @@
       "role": "household",
       "text": "Koramangala mein maid ki salary kitni hai?",
       "intent": "market",
-      "slots": {
-        "trade": "maid",
-        "area": "koramangala"
-      },
+      "slots": { "trade": "maid", "area": "koramangala" },
       "source": "list"
     },
     {
@@ -30,10 +24,7 @@
       "role": "household",
       "text": "cook ke liye 8000 theek hai kya?",
       "intent": "market",
-      "slots": {
-        "trade": "cook",
-        "amount_paise": 800000
-      },
+      "slots": { "trade": "cook", "amount_paise": 800000 },
       "source": "miss"
     },
     {
@@ -42,9 +33,7 @@
       "role": "household",
       "text": "2BHK painting ka kitna lagega?",
       "intent": "market",
-      "slots": {
-        "trade": "painter"
-      },
+      "slots": { "trade": "painter" },
       "source": "list"
     },
     {
@@ -54,10 +43,7 @@
       "trades": ["electrician"],
       "text": "Whitefield mein baaki electrician kya le rahe hain?",
       "intent": "market",
-      "slots": {
-        "trade": "electrician",
-        "area": "whitefield"
-      },
+      "slots": { "trade": "electrician", "area": "whitefield" },
       "source": "miss"
     },
     {
@@ -66,9 +52,7 @@
       "role": "household",
       "text": "AC service ka rate kya chal raha hai?",
       "intent": "market",
-      "slots": {
-        "trade": "ac_technician"
-      },
+      "slots": { "trade": "ac_technician" },
       "source": "list"
     },
     {
@@ -77,9 +61,7 @@
       "role": "household",
       "text": "driver rakhna hai, mahine ka kitna dena padega?",
       "intent": "market",
-      "slots": {
-        "trade": "driver"
-      },
+      "slots": { "trade": "driver" },
       "source": "miss"
     },
     {
@@ -88,10 +70,7 @@
       "role": "household",
       "text": "Indiranagar mein plumber ka charge kitna hai?",
       "intent": "market",
-      "slots": {
-        "trade": "plumber",
-        "area": "indiranagar"
-      },
+      "slots": { "trade": "plumber", "area": "indiranagar" },
       "source": "list"
     },
     {
@@ -100,9 +79,7 @@
       "role": "household",
       "text": "kamwali bai 2 ghante ka kitna leti hai aajkal?",
       "intent": "market",
-      "slots": {
-        "trade": "maid"
-      },
+      "slots": { "trade": "maid" },
       "source": "miss"
     },
     {
@@ -120,10 +97,8 @@
       "role": "household",
       "text": "cook chahiye, 12000 dungi",
       "intent": "find",
-      "slots": {
-        "trade": "cook"
-      },
-      "source": "list"
+      "slots": { "trade": "cook" },
+      "source": "miss"
     },
     {
       "id": "hinglish-chat-04",
@@ -131,7 +106,7 @@
       "role": "household",
       "text": "pyaaz ka daam phir badh gaya",
       "intent": "chat",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "hinglish-find-07",
@@ -139,9 +114,7 @@
       "role": "household",
       "text": "4 bhk villa paint karwana hai, bahar bhi, 2 floor",
       "intent": "find",
-      "slots": {
-        "trade": "painter"
-      },
+      "slots": { "trade": "painter" },
       "source": "miss"
     },
     {

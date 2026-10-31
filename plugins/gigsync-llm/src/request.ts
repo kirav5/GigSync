@@ -12,8 +12,8 @@ const DEFAULT_MAX_TOKENS = 256;
 const USER = "user";
 const JSON_OBJECT = "json_object";
 /**
- * Any JSON object. WebLLM 0.2.86 hands `json_object` without a schema to XGrammar as undefined, which throws
- * ("Cannot pass non-string to std::string"), so the schema is always given; core checks the reply's fields itself.
+ * Any JSON object, when the caller gives no schema of its own. WebLLM 0.2.86 hands `json_object` without a schema to
+ * XGrammar as undefined, which throws ("Cannot pass non-string to std::string"), so a schema is always given.
  */
 const ANY_OBJECT_SCHEMA = JSON.stringify({ type: "object" });
 /** WebLLM's best-tested cache, and the one whose shards survive an interrupted download. */
@@ -23,14 +23,25 @@ const LIBS = "libs";
 const SLASH = "/";
 const LAST_PART = /[^/]+$/;
 
-/** One prompt as a single user turn, with the caller's length, temperature and JSON wish. */
-export function completionRequest(options: GenerateOptions): ChatCompletionRequestNonStreaming {
+/**
+ * One prompt as a single user turn, with the caller's length, temperature and JSON wish. A model that `thinks` is told
+ * not to: WebLLM then starts the reply with an empty thinking block, which a model without one would read as noise.
+ */
+export function completionRequest(options: GenerateOptions, thinks = false): ChatCompletionRequestNonStreaming {
   return {
     messages: [{ role: USER, content: options.prompt }],
     stream: false,
     max_tokens: options.maxTokens ?? DEFAULT_MAX_TOKENS,
     ...(options.temperature === undefined ? {} : { temperature: options.temperature }),
-    ...(options.json ? { response_format: { type: JSON_OBJECT, schema: ANY_OBJECT_SCHEMA } } : {}),
+    ...(options.json
+      ? {
+          response_format: {
+            type: JSON_OBJECT,
+            schema: options.schema ? JSON.stringify(options.schema) : ANY_OBJECT_SCHEMA,
+          },
+        }
+      : {}),
+    ...(thinks ? { extra_body: { enable_thinking: false } } : {}),
   };
 }
 

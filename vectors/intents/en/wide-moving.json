@@ -1,0 +1,150 @@
+{
+  "cases": [
+    {
+      "id": "en-moving-04",
+      "lang": "en",
+      "role": "worker",
+      "text": "i am going to bangalore next week for cook job",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "en-moving-05",
+      "lang": "en",
+      "role": "worker",
+      "text": "shifting to Chennai for work after Diwali",
+      "intent": "moving",
+      "source": "list"
+    },
+    {
+      "id": "en-moving-06",
+      "lang": "en",
+      "role": "worker",
+      "text": "got housekeeping job in hyderabad, leaving on 15th",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "en-moving-07",
+      "lang": "en",
+      "role": "worker",
+      "text": "I will be relocating to Bengaluru for employment in December.",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "en-moving-08",
+      "lang": "en",
+      "role": "worker",
+      "text": "leaving here and going to pune for better pay",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "en-moving-09",
+      "lang": "en",
+      "role": "worker",
+      "text": "me and my wife coming to bengaluru for work from bihar",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "en-moving-10",
+      "lang": "en",
+      "role": "worker",
+      "text": "planning to move to mumbai, my uncle got me driver job",
+      "intent": "moving",
+      "source": "list"
+    },
+    {
+      "id": "en-moving-11",
+      "lang": "en",
+      "role": "worker",
+      "text": "next month i am shifting city for work",
+      "inMove": true,
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "en-moving-12",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "going to blore for painting work in new buildings",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "en-moving-13",
+      "lang": "en",
+      "role": "worker",
+      "text": "company is transferring me to Mysore",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "en-moving-14",
+      "lang": "en",
+      "role": "worker",
+      "text": "i want to go to bangalore for work, how to start",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "en-moving-15",
+      "lang": "en",
+      "role": "worker",
+      "text": "i am coming to bangaluru on 3rd by train for maid work",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "en-moving-16",
+      "lang": "en",
+      "role": "worker",
+      "text": "I have decided to move to Delhi for a job",
+      "intent": "moving",
+      "source": "list"
+    },
+    {
+      "id": "en-moving-17",
+      "lang": "en",
+      "role": "worker",
+      "text": "my contract ends here, going back to kolkata to work there",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "en-moving-18",
+      "lang": "en",
+      "role": "worker",
+      "text": "will join a hotel in bengaluru as cook from monday, leaving tomorrow",
+      "inMove": true,
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "en-moving-19",
+      "lang": "en",
+      "role": "worker",
+      "text": "packing my bags, moving to Coimbatore for factory work",
+      "intent": "moving",
+      "source": "list"
+    },
+    {
+      "id": "en-moving-20",
+      "lang": "en",
+      "role": "worker",
+      "text": "i got a job in a new city, leaving this week",
+      "intent": "moving",
+      "source": "list"
+    }
+  ]
+}

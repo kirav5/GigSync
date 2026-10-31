@@ -1,0 +1,149 @@
+{
+  "cases": [
+    {
+      "id": "hi-helpStop-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "अब नए लोगों की मदद नहीं कर पाऊँगा",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेंटर वाला बंद कर दो",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-05",
+      "lang": "hi",
+      "role": "worker",
+      "text": "हेल्पर लिस्ट से मेरा नाम निकाल दो",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "अब कोई नया आदमी मेरे पास मत भेजना",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-07",
+      "lang": "hi",
+      "role": "worker",
+      "text": "बहुत फ़ोन आते हैं नए लोगों के, बंद करो",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-08",
+      "lang": "hi",
+      "role": "worker",
+      "text": "कुछ दिन के लिए मदद वाला रोक दो",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-09",
+      "lang": "hi",
+      "role": "worker",
+      "text": "गाँव जा रही हूँ, नए लोग को अभी मत जोड़ना",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-10",
+      "lang": "hi",
+      "role": "worker",
+      "text": "अब से मैं किसी को गाइड नहीं करूँगा",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-11",
+      "lang": "hi",
+      "role": "worker",
+      "text": "नए लोगों वाला काम छोड़ना है",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-12",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेरा नंबर नए लोगों को देना बंद करो",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-13",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मदद करते करते थक गए अब नहीं",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-14",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेरा मेंटर वाला टाइम खत्म करो",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-15",
+      "lang": "hi",
+      "role": "worker",
+      "text": "नए लोग से मिलने का टाइम नहीं है आजकल, हटा दो",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-16",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "अब नए लड़कों की ज़िम्मेदारी नहीं लूँगा",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-17",
+      "lang": "hi",
+      "role": "worker",
+      "text": "नवागंतुकों की सहायता बंद करनी है",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-18",
+      "lang": "hi",
+      "role": "worker",
+      "text": "बस अब और नहीं, किसी नए को मत भेजो",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-19",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेंटरशिप से नाम कटवाना है",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpStop-20",
+      "lang": "hi",
+      "role": "worker",
+      "text": "हमको हेल्पर से बाहर कर दो",
+      "intent": "helpStop",
+      "source": "miss"
+    }
+  ]
+}

@@ -1,0 +1,155 @@
+{
+  "cases": [
+    {
+      "id": "hi-moving-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "हम अगले हफ़्ते पटना से बेंगलुरु आ रहे हैं काम के लिए",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-moving-05",
+      "lang": "hi",
+      "role": "worker",
+      "text": "चेन्नई में काम मिला है वहाँ शिफ्ट होना है",
+      "intent": "moving",
+      "source": "list"
+    },
+    {
+      "id": "hi-moving-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "गाँव से निकल रहे हैं परसों, बैंगलोर पहुँचेंगे",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-moving-07",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "मैं हैदराबाद जा रहा हूँ नई साइट पे",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "hi-moving-08",
+      "lang": "hi",
+      "role": "worker",
+      "text": "हमको भी बेंगलुरू आना है काम ढूँढने",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-moving-09",
+      "lang": "hi",
+      "role": "worker",
+      "text": "दिल्ली वाला काम छोड़ के बेंगलुरु जा रही हूँ",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "hi-moving-10",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "मुंबई जाना है अगले महीने, वहाँ कुक का काम है",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "hi-moving-11",
+      "lang": "hi",
+      "role": "worker",
+      "text": "घरवाली के साथ बेंगलुरु शिफ्ट हो रहे हैं",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "hi-moving-12",
+      "lang": "hi",
+      "role": "worker",
+      "text": "भुवनेश्वर से बैंगलोर का टिकट कटा लिया काम के लिए",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-moving-13",
+      "lang": "hi",
+      "role": "worker",
+      "text": "अब यहाँ काम नहीं है, पुणे निकल रहा हूँ",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "hi-moving-14",
+      "lang": "hi",
+      "role": "worker",
+      "text": "परसों ट्रेन है, बेंगलुरु पहुँच के काम शुरू करूँगा",
+      "inMove": true,
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-moving-15",
+      "lang": "hi",
+      "role": "worker",
+      "text": "रांची से बेंगलुरु जाने का सोच रहे हैं",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-moving-16",
+      "lang": "hi",
+      "role": "worker",
+      "text": "हमको मैसूर में काम मिल गया है वहीं रहेंगे अब",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "hi-moving-17",
+      "lang": "hi",
+      "role": "worker",
+      "text": "कोलकाता से आ रहा हूँ बेंगलुरु, बेलंदूर में दोस्त है",
+      "inMove": true,
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "hi-moving-18",
+      "lang": "hi",
+      "role": "worker",
+      "text": "सोच रहे हैं दिवाली के बाद यहाँ से कोच्चि चले जाएँ",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "hi-moving-19",
+      "lang": "hi",
+      "role": "worker",
+      "text": "बेंगलुरु आने वाला हूँ पहला बार",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-moving-20",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["मीना", "रानी"],
+      "text": "मैं भी गाँव छोड़ के शहर जा रही हूँ कमाने",
+      "intent": "moving",
+      "source": "miss"
+    }
+  ]
+}

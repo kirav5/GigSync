@@ -1,0 +1,149 @@
+{
+  "cases": [
+    {
+      "id": "hinglish-moving-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "main pune ja raha hoon kaam ke liye",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-moving-05",
+      "lang": "hi",
+      "role": "worker",
+      "text": "agle hafte bangalore aa rahi hoon kaam dhundne",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-moving-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "patna se bengaluru shift hona hai naukri ke liye",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-moving-07",
+      "lang": "hi",
+      "role": "worker",
+      "text": "hyderabad me kaam mila hai wahan ja raha hoon",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-moving-08",
+      "lang": "hi",
+      "role": "worker",
+      "text": "main bhi bangalore aa raha hoon dost ke saath",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-moving-09",
+      "lang": "hi",
+      "role": "worker",
+      "text": "ghar chhod ke sheher ja rahi hoon kaam ke liye",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-moving-10",
+      "lang": "hi",
+      "role": "worker",
+      "text": "naye sheher jaana hai kamane",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-moving-11",
+      "lang": "hi",
+      "role": "worker",
+      "text": "december me Blr shift ho jaunga",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-moving-12",
+      "lang": "hi",
+      "role": "worker",
+      "text": "chennai me ek site pe kaam hai wahin rehna padega 6 mahine",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-moving-13",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mumbai jaane ka soch raha hoon kaam ke liye",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-moving-14",
+      "lang": "hi",
+      "role": "worker",
+      "text": "kal ki train hai bangaluru ki wahan kaam karungi",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-moving-15",
+      "lang": "hi",
+      "role": "worker",
+      "text": "main parso nikal raha hoon delhi ke liye kaam pe",
+      "inMove": true,
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-moving-16",
+      "lang": "hi",
+      "role": "worker",
+      "text": "yahan kaam nahi hai isliye bahar ja raha hoon",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-moving-17",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "bengaluru jaake painting ka kaam karunga",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-moving-18",
+      "lang": "hi",
+      "role": "worker",
+      "text": "meri company mujhe gurgaon bhej rahi hai",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-moving-19",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mai aur meri wife dono bangalore shift ho rahe hai kaam ke liye",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-moving-20",
+      "lang": "hi",
+      "role": "worker",
+      "text": "shift hona hai dusre shahar",
+      "intent": "moving",
+      "source": "list"
+    }
+  ]
+}

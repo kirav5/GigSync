@@ -1,0 +1,186 @@
+{
+  "cases": [
+    {
+      "id": "hi-askContact-03",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["सुनीता", "राजू", "पप्पू"],
+      "text": "सुनीता दीदी आज काम पे आएगी क्या",
+      "intent": "askContact",
+      "slots": { "contact": "सुनीता" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-04",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["राजू", "अनिल"],
+      "text": "राजू भैया से पूछो कल कोरमंगला वाला काम है कि नहीं",
+      "intent": "askContact",
+      "slots": { "contact": "राजू" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-05",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["कमला", "सुरेश"],
+      "text": "कमला कल छुट्टी पर है क्या?",
+      "intent": "askContact",
+      "slots": { "contact": "कमला" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-06",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["अनिल", "मुन्ना", "गीता"],
+      "text": "मुन्ना पहुँच गया क्या साइट पे",
+      "intent": "askContact",
+      "slots": { "contact": "मुन्ना" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-07",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["maid"],
+      "contacts": ["गीता", "सलमा"],
+      "text": "सलमा से पूछो उसकी मैडम को और कामवाली चाहिए क्या",
+      "intent": "askContact",
+      "slots": { "contact": "सलमा" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-08",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["रमेश", "बबलू"],
+      "text": "रमेश ड्राइवर का फ़ोन नहीं लग रहा, वो ठीक है न?",
+      "intent": "askContact",
+      "slots": { "contact": "रमेश" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-09",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["पिंकी", "संजय"],
+      "text": "संजय भाई का नंबर क्या है",
+      "intent": "askContact",
+      "slots": { "contact": "संजय" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-10",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["दीपक", "सोनू", "ललिता"],
+      "text": "ललिता को पूछो शनिवार को साथ चलेगी",
+      "intent": "askContact",
+      "slots": { "contact": "ललिता" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-11",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["प्रिया", "अमित"],
+      "text": "अमित भैया इस हफ़्ते फ़्री हैं क्या पुताई के लिए",
+      "intent": "askContact",
+      "slots": { "contact": "अमित" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-12",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["बिरजू", "शंकर"],
+      "text": "शंकर ने पैसे भेज दिए क्या पूछो ना उससे",
+      "intent": "askContact",
+      "slots": { "contact": "शंकर" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-13",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["रानी", "मंजू"],
+      "text": "मंजू दीदी ठीक है ना कल से बुखार था उसको",
+      "intent": "askContact",
+      "slots": { "contact": "मंजू" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-14",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["लक्ष्मी", "जावेद"],
+      "text": "जावेद प्लंबर कब तक आएगा",
+      "intent": "askContact",
+      "slots": { "contact": "जावेद" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-15",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["राजू", "सुनीता"],
+      "text": "राजू ने कल वाला सामान लिया कि नहीं",
+      "intent": "askContact",
+      "slots": { "contact": "राजू" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-16",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["पूजा", "अर्जुन", "कविता"],
+      "text": "कविता की मैडम वाला पता क्या था पूछ के बताओ",
+      "intent": "askContact",
+      "slots": { "contact": "कविता" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-17",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["cook"],
+      "contacts": ["मोहन", "रेखा"],
+      "text": "रेखा के पास इंदिरानगर में कोई काम है क्या",
+      "intent": "askContact",
+      "slots": { "contact": "रेखा" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-18",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["सीमा", "विकास"],
+      "text": "सीमा दीदी कल कितने बजे आएँगी",
+      "intent": "askContact",
+      "slots": { "contact": "सीमा" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-19",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["छोटू", "गुड्डू", "अजय"],
+      "text": "अजय भैया तुम कल हमको लेने आओगे",
+      "intent": "askContact",
+      "slots": { "contact": "अजय" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-askContact-20",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["नेहा", "फ़ातिमा"],
+      "text": "फ़ातिमा का बच्चा अब कैसा है",
+      "intent": "askContact",
+      "slots": { "contact": "फ़ातिमा" },
+      "source": "miss"
+    }
+  ]
+}

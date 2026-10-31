@@ -10,6 +10,7 @@ import type { GigSyncLLMWeb } from "../src/web.js";
 /** The web engine end to end, with WebLLM replaced by a fake and the browser's APIs stubbed. */
 
 const ID = MODELS[ModelSize.small].ids.f16;
+const LARGE_ID = MODELS[ModelSize.large].ids.f16;
 const ADAPTER = {
   limits: {
     maxBufferSize: MIN_BUFFER_BYTES,
@@ -20,6 +21,10 @@ const ADAPTER = {
   features: new Set([SHADER_F16]),
 };
 const GB = 1024 ** 3;
+const BIG_ADAPTER = {
+  ...ADAPTER,
+  limits: { ...ADAPTER.limits, maxBufferSize: GB, maxStorageBufferBindingSize: GB },
+};
 
 class FakeEngine implements Engine {
   loaded: string | undefined;
@@ -49,7 +54,7 @@ class FakeEngine implements Engine {
   }
 }
 
-function browser(adapter: object | null) {
+function browser(adapter: object | null, deviceMemory: number) {
   const store = new Map<string, string>();
   vi.stubGlobal("localStorage", {
     getItem: (k: string) => store.get(k) ?? null,
@@ -57,7 +62,7 @@ function browser(adapter: object | null) {
   });
   vi.stubGlobal("navigator", {
     gpu: { requestAdapter: async () => adapter },
-    deviceMemory: 4,
+    deviceMemory,
     storage: { estimate: async () => ({ quota: 10 * GB, usage: 0 }), persist: async () => true },
   });
   vi.stubGlobal("caches", {});
@@ -71,9 +76,9 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 /** A fresh plugin in a fresh module graph, since facts.ts asks for the adapter once per page. */
-async function plugin(adapter: object | null = ADAPTER): Promise<GigSyncLLMWeb> {
+async function plugin(adapter: object | null = ADAPTER, memoryGb = 4): Promise<GigSyncLLMWeb> {
   vi.resetModules();
-  browser(adapter);
+  browser(adapter, memoryGb);
   const { GigSyncLLMWeb: Web } = await import("../src/web.js");
   return new Web(() => engine);
 }
@@ -117,6 +122,8 @@ describe("the web engine", () => {
       max_tokens: 120,
       temperature: 0,
       response_format: { type: "json_object", schema: '{"type":"object"}' },
+      // Qwen3.5 answers at once, without its hidden reasoning first.
+      extra_body: { enable_thinking: false },
     });
   });
 
@@ -140,5 +147,17 @@ describe("the web engine", () => {
     await w.prepare();
     expect(await w.remove()).toMatchObject({ available: false, state: ModelState.downloadable });
     expect(engine.inCache.size).toBe(0);
+  });
+
+  it("picks the 2B for an 8 GB phone whose GPU binds its embeddings, unless asked for a size", async () => {
+    const w = await plugin(BIG_ADAPTER, 8);
+    expect(await w.status()).toMatchObject({ model: { id: LARGE_ID, size: ModelSize.large } });
+    expect(await w.status({ size: ModelSize.small })).toMatchObject({ model: { id: ID } });
+  });
+
+  it("keeps the model already on the phone rather than offering a bigger one", async () => {
+    const w = await plugin(BIG_ADAPTER, 8);
+    await w.prepare({ size: ModelSize.small });
+    expect(await w.status()).toMatchObject({ available: true, model: { id: ID, size: ModelSize.small } });
   });
 });

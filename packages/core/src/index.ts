@@ -141,5 +141,6 @@ export * from "./router/market.js";
 export * from "./router/model-route.js";
 export * from "./router/moving.js";
 export * from "./router/newcomers.js";
+export * from "./router/reply-schema.js";
 export * from "./router/route-chat.js";
 export * from "./transfer/index.js";

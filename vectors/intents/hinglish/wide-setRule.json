@@ -1,0 +1,184 @@
+{
+  "cases": [
+    {
+      "id": "hinglish-setRule-03",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Suresh", "Lakshmi"],
+      "text": "Lakshmi meri location dekh sakti hai allow kar do",
+      "intent": "setRule",
+      "slots": { "contact": "Lakshmi" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-04",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Imran", "Vikram"],
+      "text": "Vikram ko meri kamai mat dikhana",
+      "intent": "setRule",
+      "slots": { "contact": "Vikram" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-05",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["Raju", "Asha"],
+      "text": "Raju ko mere ghar ka address dekhne do",
+      "intent": "setRule",
+      "slots": { "contact": "Raju" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-06",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Deepa", "Kiran"],
+      "text": "Kiran mujhse kuch bhi puch sakta hai",
+      "intent": "setRule",
+      "slots": { "contact": "Kiran" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-07",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Ramesh", "Sunita"],
+      "text": "Ramesh ko block kar do kuch nahi dikhna chahiye usse",
+      "intent": "setRule",
+      "slots": { "contact": "Ramesh" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-08",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["Mohan", "Farida"],
+      "text": "Farida ko mera schedule dekhne ki permission do",
+      "intent": "setRule",
+      "slots": { "contact": "Farida" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-09",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Arjun", "Pooja"],
+      "text": "pooja ab se meri location nahi dekh payegi",
+      "intent": "setRule",
+      "slots": { "contact": "Pooja" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-10",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Salma", "Rekha"],
+      "text": "Salma ko mere notes mat dikhana kabhi",
+      "intent": "setRule",
+      "slots": { "contact": "Salma" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-11",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["Kavya", "Nisha"],
+      "text": "Nisha mere baare mein kuch pooche toh mat batana",
+      "intent": "setRule",
+      "slots": { "contact": "Nisha" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-12",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Manju", "Venkat"],
+      "text": "venkat anna ko sab dekhne do koi problem nahi",
+      "intent": "setRule",
+      "slots": { "contact": "Venkat" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-13",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Kumar", "Divya"],
+      "text": "Divya mera rate puche toh bata dena",
+      "intent": "setRule",
+      "slots": { "contact": "Divya" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-14",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["Sita", "Ravi"],
+      "text": "Sita ko ab mere phone number ka access hata do",
+      "intent": "setRule",
+      "slots": { "contact": "Sita" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-15",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Naveen", "Shilpa"],
+      "text": "Shilpa ko meri kamai dekhne ki ijazat hai",
+      "intent": "setRule",
+      "slots": { "contact": "Shilpa" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-16",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Babu", "Geeta"],
+      "text": "Babu ko mera kaam ka area nahi dikhna chahiye",
+      "intent": "setRule",
+      "slots": { "contact": "Babu" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-17",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["Lata", "Sunil"],
+      "text": "Sunil ko allow karo ki woh mujhse cook ke baare me puch sake",
+      "intent": "setRule",
+      "slots": { "contact": "Sunil" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-18",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Mehboob", "Ravi"],
+      "text": "mehboob bhai ko meri location share karna band karo",
+      "intent": "setRule",
+      "slots": { "contact": "Mehboob" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-19",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Ajay", "Kumar", "Divya"],
+      "text": "Ajay se meri earnings chhupa ke rakhna",
+      "intent": "setRule",
+      "slots": { "contact": "Ajay" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-setRule-20",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["Asha", "Mohan"],
+      "text": "asha didi ko mera address bata sakte ho chalega",
+      "intent": "setRule",
+      "slots": { "contact": "Asha" },
+      "source": "miss"
+    }
+  ]
+}

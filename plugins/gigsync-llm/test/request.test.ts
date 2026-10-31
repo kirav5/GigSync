@@ -19,6 +19,14 @@ describe("the completion request", () => {
     });
   });
 
+  it("hands WebLLM the caller's JSON Schema, and tells a thinking model not to", () => {
+    const schema = { type: "object", properties: { intent: { type: "string", enum: ["chat"] } }, required: ["intent"] };
+    expect(completionRequest({ prompt: PROMPT, json: true, schema }, true)).toMatchObject({
+      response_format: { type: "json_object", schema: JSON.stringify(schema) },
+      extra_body: { enable_thinking: false },
+    });
+  });
+
   it("leaves out what was not asked for, with the default length", () => {
     const request = completionRequest({ prompt: PROMPT });
     expect(request).toEqual({ messages: [{ role: "user", content: PROMPT }], stream: false, max_tokens: 256 });

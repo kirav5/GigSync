@@ -31,8 +31,8 @@ export interface ModelSettings {
   choice: ModelChoice;
   /** Only for Ollama: the name of a model pulled on this computer. */
   ollamaModel: string;
-  /** Which on-device model: the 0.5B by default, the 1.5B only when chosen on a phone that can hold it. */
-  size: ModelSize;
+  /** Which on-device model, when the owner chose one; left out, the engine picks the one this phone suits best. */
+  size?: ModelSize;
 }
 
 /** Ollama is offered only in development builds; release builds never call this computer's localhost. */
@@ -42,7 +42,6 @@ const SETTINGS_KEY = "model";
 const DEFAULTS: ModelSettings = {
   choice: ModelChoice.auto,
   ollamaModel: OLLAMA_OFFERED ? (import.meta.env.VITE_OLLAMA_MODEL ?? "") : "",
-  size: ModelSize.small,
 };
 const ENGINE_NAMES: Readonly<Record<string, string>> = {
   litert: "LiteRT-LM",
@@ -79,10 +78,21 @@ export class ChosenModel implements Model {
   refresh = () => this.device.refresh();
 
   async save(storage: Storage, next: ModelSettings): Promise<void> {
-    this.settings = { choice: next.choice, ollamaModel: next.ollamaModel.trim(), size: next.size };
+    this.settings = {
+      choice: next.choice,
+      ollamaModel: next.ollamaModel.trim(),
+      ...(next.size ? { size: next.size } : {}),
+    };
     await storage.put(Collection.settings, SETTINGS_KEY, this.settings);
     this.notify();
     await this.device.setSize(next.size);
+  }
+
+  /** The speed guard gave up on the 2B here: the owner's tap downloads the 0.8B in its place, timed afresh. */
+  async switchToSmaller(storage: Storage): Promise<void> {
+    await this.save(storage, { ...this.settings, size: ModelSize.small });
+    await this.device.retrySpeed();
+    await this.device.download();
   }
 
   async generate(prompt: string, options?: GenerateOptions): Promise<string | null> {

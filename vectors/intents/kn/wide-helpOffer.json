@@ -1,0 +1,151 @@
+{
+  "cases": [
+    {
+      "id": "kn-helpOffer-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೊಸದಾಗಿ ಬೆಂಗಳೂರಿಗೆ ಬರೋರಿಗೆ ನಾನು ಸಹಾಯ ಮಾಡೋಕೆ ರೆಡಿ",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpOffer-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಊರಿಂದ ಬಂದ ಹುಡುಗರಿಗೆ ರೂಮ್ ಹುಡುಕೋಕೆ ಹೆಲ್ಪ್ ಮಾಡ್ತೀನಿ",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpOffer-05",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನನ್ನನ್ನ ಮೆಂಟರ್ ಆಗಿ ಹಾಕಿ",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "kn-helpOffer-06",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೊಸಬರಿಗೆ ಬಸ್ ರೂಟ್, ಮಾರ್ಕೆಟ್ ಎಲ್ಲಾ ತೋರಿಸೋಕೆ ನನಗೆ ಟೈಮ್ ಇದೆ",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpOffer-07",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಗರಕ್ಕೆ ಹೊಸದಾಗಿ ಬರುವ ಕಾರ್ಮಿಕರಿಗೆ ಮಾರ್ಗದರ್ಶನ ನೀಡಲು ನಾನು ಸಿದ್ಧನಿದ್ದೇನೆ",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpOffer-08",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "ಯಾರಾದ್ರೂ ಹೊಸ ಹೆಂಗಸರು ಕೆಲಸಕ್ಕೆ ಬಂದ್ರೆ ನನ್ನ ನಂಬರ್ ಕೊಡಿ, ನಾನು ನೋಡ್ಕೋತೀನಿ",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpOffer-09",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಾನು ಹತ್ತು ವರ್ಷದಿಂದ ಇಲ್ಲೇ ಇದೀನಿ ಹೊಸಬರು ಬಂದ್ರೆ ಗೈಡ್ ಮಾಡ್ತೀನಿ",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpOffer-10",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ವೈಟ್‌ಫೀಲ್ಡ್ ಕಡೆ ಹೊಸದಾಗಿ ಬಂದವರಿಗೆ ನಾನು ಏರಿಯಾ ಪರಿಚಯ ಮಾಡಿಸ್ತೀನಿ",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpOffer-11",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೊಸಬರಿಗೆ ಸಹಾಯ ಮಾಡೋದು ಮತ್ತೆ ಶುರು ಮಾಡಿ",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "kn-helpOffer-12",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಉತ್ತರ ಕರ್ನಾಟಕದಿಂದ ಬರೋ ಜನಕ್ಕೆ ನಾನು ಕನ್ನಡದಲ್ಲೇ ಎಲ್ಲಾ ಹೇಳ್ಕೊಡ್ತೀನಿ",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpOffer-13",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["driver"],
+      "text": "ಬೆಂಗಳೂರಿಗೆ ಹೊಸದಾಗಿ ಬಂದ ಡ್ರೈವರ್‌ಗಳಿಗೆ ರೋಡ್ ಎಲ್ಲಾ ಕಲಿಸ್ತೀನಿ",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpOffer-14",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೊಸಬರ ಜೊತೆ ಮಾತಾಡೋಕೆ ನಾನು ಸಿಗ್ತೀನಿ ಅಂತ ಹೇಳಿ",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpOffer-15",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಾನು ಬಂದಾಗ ಯಾರೂ ಸಹಾಯ ಮಾಡ್ಲಿಲ್ಲ, ಈಗ ಹೊಸಬರಿಗೆ ನಾನು ಮಾಡ್ತೀನಿ",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "kn-helpOffer-16",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೊಸದಾಗಿ ಬಂದವರಿಗೆ ಬ್ಯಾಂಕ್, ಸಿಮ್ ಮಾಡಿಸೋಕೆ ಜೊತೆಗೆ ಹೋಗ್ತೀನಿ",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpOffer-17",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ವೀಕೆಂಡ್‌ನಲ್ಲಿ ಹೊಸಬರಿಗೆ ಸಹಾಯ ಮಾಡಬಹುದು",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "kn-helpOffer-18",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಮೆಂಟರ್ ಲಿಸ್ಟ್‌ನಲ್ಲಿ ನನ್ನ ಹೆಸರು ಸೇರಿಸಿ",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpOffer-19",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೊಸಬರಿಗೆ ಏನಾದ್ರೂ ಡೌಟ್ ಇದ್ರೆ ನನ್ನನ್ನ ಕೇಳ್ಲಿ",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpOffer-20",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಮಂಜು", "ಗೀತಾ"],
+      "text": "ಮಂಜು ತರ ನಾನೂ ಹೊಸಬರಿಗೆ ಹೆಲ್ಪ್ ಮಾಡ್ತೀನಿ",
+      "intent": "helpOffer",
+      "source": "miss"
+    }
+  ]
+}

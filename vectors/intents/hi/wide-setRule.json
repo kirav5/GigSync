@@ -1,0 +1,184 @@
+{
+  "cases": [
+    {
+      "id": "hi-setRule-03",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["सुनीता", "राजू"],
+      "text": "सुनीता को मेरा नंबर दिखा सकते हो",
+      "intent": "setRule",
+      "slots": { "contact": "सुनीता" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-04",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["अनिल", "गीता"],
+      "text": "अनिल को मेरी कमाई मत दिखाना",
+      "intent": "setRule",
+      "slots": { "contact": "अनिल" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-05",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["पप्पू", "मुन्ना", "रानी"],
+      "text": "मुन्ना को मेरी लोकेशन देखने मत दो अब",
+      "intent": "setRule",
+      "slots": { "contact": "मुन्ना" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-06",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["कमला", "सुरेश"],
+      "text": "कमला दीदी को मेरा पता बता सकते हो",
+      "intent": "setRule",
+      "slots": { "contact": "कमला" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-07",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["संजय", "दीपक"],
+      "text": "दीपक पूछे तो उसको बता देना मैं कहाँ काम कर रहा हूँ",
+      "intent": "setRule",
+      "slots": { "contact": "दीपक" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-08",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["ललिता", "मंजू"],
+      "text": "मंजू को मेरे बारे में कुछ भी मत बताना",
+      "intent": "setRule",
+      "slots": { "contact": "मंजू" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-09",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["शंकर", "बिरजू"],
+      "text": "बिरजू मेरा रेट पूछे तो बता देना",
+      "intent": "setRule",
+      "slots": { "contact": "बिरजू" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-10",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["पूजा", "कविता"],
+      "text": "कविता को मेरे काम का टाइम देखने दो",
+      "intent": "setRule",
+      "slots": { "contact": "कविता" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-11",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["मोहन", "रेखा"],
+      "text": "रेखा अब मुझसे कुछ नहीं पूछ सकती, ब्लॉक करो",
+      "intent": "setRule",
+      "slots": { "contact": "रेखा" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-12",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["सीमा", "विकास"],
+      "text": "विकास को मेरा फ़ोन नंबर मत देना",
+      "intent": "setRule",
+      "slots": { "contact": "विकास" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-13",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["छोटू", "अजय"],
+      "text": "अजय भैया को मेरी लोकेशन हमेशा दिखती रहे",
+      "intent": "setRule",
+      "slots": { "contact": "अजय" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-14",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["नेहा", "फ़ातिमा", "सलमा"],
+      "text": "सलमा को मेरे नोट्स नहीं दिखने चाहिए",
+      "intent": "setRule",
+      "slots": { "contact": "सलमा" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-15",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["राजू", "जावेद"],
+      "text": "जावेद को मेरा कैलेंडर देखने की परमिशन दे दो",
+      "intent": "setRule",
+      "slots": { "contact": "जावेद" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-16",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["पिंकी", "गुड्डू"],
+      "text": "गुड्डू पैसे के बारे में पूछे तो कुछ मत बोलना",
+      "intent": "setRule",
+      "slots": { "contact": "गुड्डू" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-17",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["लक्ष्मी", "प्रिया"],
+      "text": "प्रिया को घर की चाबी वाली बात बता सकते हो",
+      "intent": "setRule",
+      "slots": { "contact": "प्रिया" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-18",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["अर्जुन", "सोनू"],
+      "text": "सोनू से मेरी लोकेशन छुपा दो",
+      "intent": "setRule",
+      "slots": { "contact": "सोनू" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-19",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["रवि", "मीना", "बबलू"],
+      "text": "बबलू को सब कुछ देखने दो वो मेरा भाई है",
+      "intent": "setRule",
+      "slots": { "contact": "बबलू" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-setRule-20",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["अमित", "रमेश"],
+      "text": "रमेश अब मेरी कमाई नहीं देख पाएगा, बंद करो",
+      "intent": "setRule",
+      "slots": { "contact": "रमेश" },
+      "source": "miss"
+    }
+  ]
+}

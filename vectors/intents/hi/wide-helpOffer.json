@@ -1,0 +1,151 @@
+{
+  "cases": [
+    {
+      "id": "hi-helpOffer-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "जो नया आए उसको हम रास्ता बता देंगे",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मैं नए लड़कों को काम सिखा सकता हूँ",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-05",
+      "lang": "hi",
+      "role": "worker",
+      "text": "बिहार से जो भी आए हमको बताना, हम संभाल लेंगे",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेंटर बनना है मुझे",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "hi-helpOffer-07",
+      "lang": "hi",
+      "role": "worker",
+      "text": "नई आई दीदियों की मदद कर दूँगी कमरा ढूँढने में",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-08",
+      "lang": "hi",
+      "role": "worker",
+      "text": "हमको पाँच साल हो गया यहाँ, नए लोग को गाइड कर सकते हैं",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-09",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेरा नाम हेल्पर वाली लिस्ट में डाल दो",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-10",
+      "lang": "hi",
+      "role": "worker",
+      "text": "कोई नया आदमी आए तो मेरा नंबर दे देना",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-11",
+      "lang": "hi",
+      "role": "worker",
+      "text": "नए लोगों को बस मेट्रो सब समझा दूँगा",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-12",
+      "lang": "hi",
+      "role": "worker",
+      "text": "जो लोग पहली बार बेंगलुरु आते हैं उनके साथ रहूँगा पहले दिन",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-13",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मदद वाला काम फिर से चालू करो",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-14",
+      "lang": "hi",
+      "role": "worker",
+      "text": "ओडिशा वाले भाई लोग आएँ तो हम हैं ना",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-15",
+      "lang": "hi",
+      "role": "worker",
+      "text": "नए लोगों के लिए शनिवार को टाइम निकाल सकती हूँ",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-16",
+      "lang": "hi",
+      "role": "worker",
+      "text": "हम भी किसी की मदद करना चाहते हैं जैसे हमारी हुई थी",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-17",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["राजू", "गीता"],
+      "text": "कोई नया हो तो उसे बोलो मुझसे बात करे",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-18",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "नए कुक लोग को एरिया का रेट समझा दूँगी",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-19",
+      "lang": "hi",
+      "role": "worker",
+      "text": "नए आने वालों का साथी बनना है",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hi-helpOffer-20",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "नया लड़का आएगा तो उसको अपने साथ काम पे ले जाऊँगा",
+      "intent": "helpOffer",
+      "source": "miss"
+    }
+  ]
+}

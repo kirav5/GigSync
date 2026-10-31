@@ -1,0 +1,142 @@
+{
+  "cases": [
+    {
+      "id": "en-helpOffer-04",
+      "lang": "en",
+      "role": "worker",
+      "text": "new people coming from my village, i can guide them",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "en-helpOffer-05",
+      "lang": "en",
+      "role": "worker",
+      "text": "i am free on sundays, i can help newcomers settle",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "en-helpOffer-06",
+      "lang": "en",
+      "role": "worker",
+      "text": "put me as helper for new workers in koramangala",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpOffer-07",
+      "lang": "en",
+      "role": "worker",
+      "text": "I would like to help people who are new to Bengaluru find their way",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpOffer-08",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "if any new maid comes to jayanagar i will tell her which houses are good",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpOffer-09",
+      "lang": "en",
+      "role": "worker",
+      "text": "i know bangalore well, 8 years here, i can show new boys around",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpOffer-10",
+      "lang": "en",
+      "role": "worker",
+      "text": "can i become a guide for newcomers",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "en-helpOffer-11",
+      "lang": "en",
+      "role": "worker",
+      "text": "freshers from odisha can call me, i will help with room and work",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpOffer-12",
+      "lang": "en",
+      "role": "worker",
+      "text": "i want to help others like somebody helped me when i came",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpOffer-13",
+      "lang": "en",
+      "role": "worker",
+      "text": "sign me up to help new comers",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpOffer-14",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["driver"],
+      "text": "any new driver needs help with routes i can teach him",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpOffer-15",
+      "lang": "en",
+      "role": "worker",
+      "text": "add me in the mentor list please",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpOffer-16",
+      "lang": "en",
+      "role": "worker",
+      "text": "I can help new people open bank account and get sim, i have done it for many",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "en-helpOffer-17",
+      "lang": "en",
+      "role": "worker",
+      "text": "new girls coming for housework can stay with me first week, i will help them",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpOffer-18",
+      "lang": "en",
+      "role": "worker",
+      "text": "happy to help newcomers in whitefield side",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "en-helpOffer-19",
+      "lang": "en",
+      "role": "worker",
+      "text": "i want to do mentoring for new workers",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpOffer-20",
+      "lang": "en",
+      "role": "worker",
+      "text": "whoever is new to city tell them to contact me",
+      "intent": "helpOffer",
+      "source": "miss"
+    }
+  ]
+}

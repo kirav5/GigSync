@@ -150,7 +150,7 @@
       "role": "worker",
       "text": "mera bhai Bangalore ja raha hai",
       "intent": "chat",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "hinglish-guide-01",

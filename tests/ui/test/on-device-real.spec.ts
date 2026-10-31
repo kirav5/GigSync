@@ -4,7 +4,7 @@ import { expect, type Page, test } from "@playwright/test";
 import { newPhone, open, Role, RUN, shoot, signIn, textOf } from "./helpers.js";
 
 /**
- * A smoke test of the real web engine: WebLLM downloads Qwen2.5-0.5B-Instruct (about 300 MB from Hugging Face) and
+ * A smoke test of the real web engine: WebLLM downloads Qwen3.5-0.8B (about 440 MB from Hugging Face) and
  * answers a routing prompt on this computer's GPU. Not part of the suite: run with REAL_MODEL=1 on a machine whose
  * headless Chromium has WebGPU (a Mac does); it skips itself where the browser offers no adapter.
  */
@@ -16,7 +16,7 @@ const RECORD_KEY = "CapacitorStorage.settings:model_device";
 const DOWNLOAD_MS = 600_000;
 const QUESTION = "is ₹8,000 fair for a cook?";
 
-test.skip(!process.env.REAL_MODEL, "downloads 300 MB; run with REAL_MODEL=1");
+test.skip(!process.env.REAL_MODEL, "downloads 440 MB; run with REAL_MODEL=1");
 test.skip(({ browserName }) => browserName !== "chromium", "one engine is enough for a smoke test");
 
 const hasAdapter = (page: Page) =>

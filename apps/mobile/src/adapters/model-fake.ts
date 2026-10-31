@@ -66,7 +66,7 @@ function logFetch(id: string): void {
 
 const infoFor = (o: ModelOptions) => {
   const spec = MODELS[o.size ?? ModelSize.small];
-  return { id: spec.ids.f16, name: spec.name, downloadMb: spec.downloadMb };
+  return { id: spec.ids.f16, name: spec.name, size: spec.size, downloadMb: spec.downloadMb };
 };
 /** Steps of an earlier download that arrived before the page went away. */
 const stepsSoFar = () => Number(read(PROGRESS_KEY) ?? 0) || 0;

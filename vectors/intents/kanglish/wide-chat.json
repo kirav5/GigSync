@@ -1,0 +1,128 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-chat-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "namaskara",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-02",
+      "lang": "kn",
+      "role": "household",
+      "text": "thank you tumba upakaara aaytu",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "hegidira",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ivattu tumba male",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-05",
+      "lang": "kn",
+      "role": "household",
+      "text": "sari ok",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-06",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "ninne painter ge 4000 kotte",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-07",
+      "lang": "kn",
+      "role": "household",
+      "text": "plumber bandu tap sari maadi hoda",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-08",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "ivattu eradu mane clean maadide",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-09",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nanna tamma Hyderabad ge hogtidaane kelsakke",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-10",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nanna friend Bengaluru ge bartidaale next week",
+      "inMove": true,
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-11",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ondu kathe heli",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-12",
+      "lang": "kn",
+      "role": "household",
+      "text": "good morning",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-13",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ivattu tumba sustaagide",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-14",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "madam oota kottru ivattu chennagittu",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-15",
+      "lang": "kn",
+      "role": "household",
+      "text": "electrician kelsa chennagi maadida",
+      "intent": "chat",
+      "source": "list"
+    }
+  ]
+}

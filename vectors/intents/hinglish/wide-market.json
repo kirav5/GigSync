@@ -1,0 +1,198 @@
+{
+  "cases": [
+    {
+      "id": "hinglish-market-10",
+      "lang": "hi",
+      "role": "household",
+      "text": "maid ka rate kya hai aajkal",
+      "intent": "market",
+      "slots": { "trade": "maid" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-market-11",
+      "lang": "hi",
+      "role": "household",
+      "text": "Whitefield me cook kitna leta h",
+      "intent": "market",
+      "slots": { "trade": "cook", "area": "whitefield" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-market-12",
+      "lang": "hi",
+      "role": "household",
+      "text": "electrician visit charge kitna hota hai normally",
+      "intent": "market",
+      "slots": { "trade": "electrician" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-market-13",
+      "lang": "hi",
+      "role": "household",
+      "text": "carpenter ko 1500 dena sahi h kya ek din ka",
+      "intent": "market",
+      "slots": { "trade": "carpenter", "amount_paise": 150000 },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-market-14",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "HSR me dusri maid kitna le rahi hai mujhe bhi pata chale",
+      "intent": "market",
+      "slots": { "trade": "maid", "area": "hsr_layout" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-market-15",
+      "lang": "hi",
+      "role": "household",
+      "text": "driver ke liye 18000 zyada toh nahi",
+      "intent": "market",
+      "slots": { "trade": "driver", "amount_paise": 1800000 },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-market-16",
+      "lang": "hi",
+      "role": "household",
+      "text": "ac service ka kitna lagta hai bhai",
+      "intent": "market",
+      "slots": { "trade": "ac_technician" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-market-17",
+      "lang": "hi",
+      "role": "household",
+      "text": "kitnaa lete hai plumber ek tap fix karne ka",
+      "intent": "market",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-market-18",
+      "lang": "hi",
+      "role": "household",
+      "text": "aath hazaar cook ke liye kam hai kya koramangala me",
+      "intent": "market",
+      "slots": { "trade": "cook", "area": "koramangala", "amount_paise": 800000 },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-market-19",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "painter log aajkal sqft ka kitna charge kar rahe",
+      "intent": "market",
+      "slots": { "trade": "painter" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-market-20",
+      "lang": "hi",
+      "role": "household",
+      "text": "indiranagar me jhadu pocha wali ka kya rate chal raha",
+      "intent": "market",
+      "slots": { "trade": "maid", "area": "indiranagar" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-market-21",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "jayanagar me cook ki salary kitni chal rahi hai mai kam toh nahi le rahi",
+      "intent": "market",
+      "slots": { "trade": "cook", "area": "jayanagar" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-market-22",
+      "lang": "hi",
+      "role": "household",
+      "text": "bhai sahi bata 600 rupay electrician ne bola fan lagane ka thik h ya loot",
+      "intent": "market",
+      "slots": { "trade": "electrician", "amount_paise": 60000 },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-market-23",
+      "lang": "hi",
+      "role": "household",
+      "text": "full time driver ka mahina kitna hota hai yahan",
+      "intent": "market",
+      "slots": { "trade": "driver" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-market-24",
+      "lang": "hi",
+      "role": "household",
+      "text": "₹2500 carpenter ne maanga wardrobe ka darwaza theek karne ka, zyada hai na",
+      "intent": "market",
+      "slots": { "trade": "carpenter", "amount_paise": 250000 },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-market-25",
+      "lang": "hi",
+      "role": "household",
+      "text": "cook kitne ka",
+      "intent": "market",
+      "slots": { "trade": "cook" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-market-26",
+      "lang": "hi",
+      "role": "household",
+      "text": "AC gas bharne ka kitna lena chahiye",
+      "intent": "market",
+      "slots": { "trade": "ac_technician" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-market-27",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["plumber"],
+      "text": "whitefield wale plumber kitna lete h ek visit ka",
+      "intent": "market",
+      "slots": { "trade": "plumber", "area": "whitefield" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-market-28",
+      "lang": "hi",
+      "role": "household",
+      "text": "do ghante ki maid ke liye teen hazaar theek rahega kya",
+      "intent": "market",
+      "slots": { "trade": "maid", "amount_paise": 300000 },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-market-29",
+      "lang": "hi",
+      "role": "household",
+      "text": "kamre ki putai ka per room kitna padta hai",
+      "intent": "market",
+      "slots": { "trade": "painter" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-market-30",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["Sita", "Ravi"],
+      "text": "barah hazaar me full day cook normal hai ya kam hai",
+      "intent": "market",
+      "slots": { "trade": "cook", "amount_paise": 1200000 },
+      "source": "miss"
+    }
+  ]
+}

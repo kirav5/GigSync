@@ -1,0 +1,148 @@
+{
+  "cases": [
+    {
+      "id": "hinglish-guide-05",
+      "lang": "hi",
+      "role": "worker",
+      "text": "yahan bank account kaise khulega",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-guide-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "aadhar me address change kaise karu naye sheher ka",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-guide-07",
+      "lang": "hi",
+      "role": "worker",
+      "text": "majestic se whitefield kaise jaun bus se",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-guide-08",
+      "lang": "hi",
+      "role": "worker",
+      "text": "PG kitne ka milta hai yahan",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-guide-09",
+      "lang": "hi",
+      "role": "worker",
+      "text": "naya jio sim lena hai kya documents lagenge",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-guide-10",
+      "lang": "hi",
+      "role": "worker",
+      "text": "ration card yahan chalega kya",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-guide-11",
+      "lang": "hi",
+      "role": "worker",
+      "text": "sasta khana kahan milega idhar",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-guide-12",
+      "lang": "hi",
+      "role": "worker",
+      "text": "metro card kaise banta hai",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-guide-13",
+      "lang": "hi",
+      "role": "worker",
+      "text": "ladkiyon ke liye safe hostel batao",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-guide-14",
+      "lang": "hi",
+      "role": "worker",
+      "text": "kannada nahi aati kaam chal jayega yahan?",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-guide-15",
+      "lang": "hi",
+      "role": "worker",
+      "text": "rent agreement ke liye kya chahiye",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-guide-16",
+      "lang": "hi",
+      "role": "worker",
+      "text": "hospital kahan hai paas me",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-guide-17",
+      "lang": "hi",
+      "role": "worker",
+      "text": "bus pass kitne ka banta hai",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-guide-18",
+      "lang": "hi",
+      "role": "worker",
+      "text": "police verification karwana padta hai kya kamre ke liye",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-guide-19",
+      "lang": "hi",
+      "role": "worker",
+      "text": "paise ghar bhejne ka sabse sasta tarika kya hai yahan se",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-guide-20",
+      "lang": "hi",
+      "role": "worker",
+      "text": "shared room kahan dhundu koramangala ke paas",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    }
+  ]
+}

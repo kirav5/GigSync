@@ -25,7 +25,8 @@ type Mode = (typeof Mode)[keyof typeof Mode];
 const HALF_DOWN = "5";
 /** Long enough for a download that would start by itself to have started. */
 const SETTLE_MS = 1500;
-const SMALL_MB = 300;
+/** The 0.8B's download, as the catalog in plugins/gigsync-llm/src/catalog.ts gives it. */
+const SMALL_MB = 440;
 const SLOW_ANSWERS = 3;
 /** A share of the download between 30% and 70%. */
 const PART_WAY = /[3-6]0%/;
@@ -107,7 +108,7 @@ test("Download shows progress in the chat, says once that it is ready, and Setti
   await open(page, "nav.settings");
   const card = settingsCard(page);
   await expect(card).toContainText(t(en, "model.state_ready"));
-  await expect(card).toContainText("Qwen2.5-0.5B-Instruct");
+  await expect(card).toContainText("Qwen3.5-0.8B");
   await shoot("settings-ready", { worker: page }, FOLDER);
   await card.getByRole("button", { name: t(en, "model.remove"), exact: true }).click();
   await expect(card).toContainText(t(en, "model.state_downloadable"));
@@ -170,7 +171,7 @@ test("a phone that cannot run the model is never offered it, and Settings says w
 
 test("too slow on this phone, Auto stops using the model until Try again", async ({ page }) => {
   const done = JSON.stringify({ offer: "download", readySaid: true, speed: { times: [], verdict: "measuring" } });
-  await phone(page, Mode.slow, { [READY_KEY]: "Qwen2.5-0.5B-Instruct-q4f16_1-MLC", [RECORD_KEY]: done });
+  await phone(page, Mode.slow, { [READY_KEY]: "Qwen3.5-0.8B-q4f16_1-MLC", [RECORD_KEY]: done });
   await worker(page, "Bhavya");
   await page.getByRole("button", { name: t(en, "iv.later"), exact: true }).click();
   const box = page.getByRole("form", { name: t(en, "nav.talk") });

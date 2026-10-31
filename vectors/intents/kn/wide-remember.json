@@ -1,0 +1,161 @@
+{
+  "cases": [
+    {
+      "id": "kn-remember-04",
+      "lang": "kn",
+      "role": "household",
+      "text": "ನೆನಪಿಟ್ಕೋ ಮಂಗಳವಾರ ಕಸದವರು ಬರಲ್ಲ",
+      "intent": "remember",
+      "slots": { "note": "ಮಂಗಳವಾರ ಕಸದವರು ಬರಲ್ಲ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-remember-05",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಬರ್ಕೊಳಿ: ಕೋರಮಂಗಲ ಮೇಡಂ ಮನೆ ಕೀ ವಾಚ್‌ಮ್ಯಾನ್ ಹತ್ರ ಇರುತ್ತೆ",
+      "intent": "remember",
+      "slots": { "note": "ಕೋರಮಂಗಲ ಮೇಡಂ ಮನೆ ಕೀ ವಾಚ್‌ಮ್ಯಾನ್ ಹತ್ರ ಇರುತ್ತೆ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-remember-06",
+      "lang": "kn",
+      "role": "household",
+      "text": "ದಯವಿಟ್ಟು ಗಮನಿಸಿ: ವಿದ್ಯುತ್ ಬಿಲ್ ಪ್ರತಿ ತಿಂಗಳು 15ರ ಒಳಗೆ ಕಟ್ಟಬೇಕು",
+      "intent": "remember",
+      "slots": { "note": "ವಿದ್ಯುತ್ ಬಿಲ್ ಪ್ರತಿ ತಿಂಗಳು 15ರ ಒಳಗೆ ಕಟ್ಟಬೇಕು" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-remember-07",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "ಮೂರನೇ ಫ್ಲೋರ್ ಮನೆಯವರು ಈರುಳ್ಳಿ ಬೆಳ್ಳುಳ್ಳಿ ತಿನ್ನಲ್ಲ ನೆನಪಿಡು",
+      "intent": "remember",
+      "slots": { "note": "ಮೂರನೇ ಫ್ಲೋರ್ ಮನೆಯವರು ಈರುಳ್ಳಿ ಬೆಳ್ಳುಳ್ಳಿ ತಿನ್ನಲ್ಲ" },
+      "source": "list"
+    },
+    {
+      "id": "kn-remember-08",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಪೇಂಟರ್‌ಗೆ ಅಡ್ವಾನ್ಸ್ ₹2000 ಕೊಟ್ಟಿದ್ದೀನಿ ಅಂತ ಬರ್ಕೊ",
+      "intent": "remember",
+      "slots": { "note": "ಪೇಂಟರ್‌ಗೆ ಅಡ್ವಾನ್ಸ್ ₹2000 ಕೊಟ್ಟಿದ್ದೀನಿ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-remember-09",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನೆನಪಿಟ್ಕೊ ನಾಳೆ ಬೆಳಿಗ್ಗೆ ಆರು ಗಂಟೆಗೆ ಇಂದಿರಾನಗರ ಮನೆಗೆ ಹೋಗ್ಬೇಕು",
+      "intent": "remember",
+      "slots": { "note": "ನಾಳೆ ಬೆಳಿಗ್ಗೆ ಆರು ಗಂಟೆಗೆ ಇಂದಿರಾನಗರ ಮನೆಗೆ ಹೋಗ್ಬೇಕು" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-remember-10",
+      "lang": "kn",
+      "role": "household",
+      "text": "ವಾಟರ್ ಫಿಲ್ಟರ್ ಸರ್ವಿಸ್ ಮುಂದಿನ ಸಲ ಮಾರ್ಚ್‌ನಲ್ಲಿ, ನೋಟ್ ಮಾಡ್ಕೊಳಿ",
+      "intent": "remember",
+      "slots": { "note": "ವಾಟರ್ ಫಿಲ್ಟರ್ ಸರ್ವಿಸ್ ಮುಂದಿನ ಸಲ ಮಾರ್ಚ್‌ನಲ್ಲಿ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-remember-11",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಲಕ್ಷ್ಮಿ", "ರಾಜು"],
+      "text": "ಲಕ್ಷ್ಮಿ ಅಕ್ಕನಿಗೆ ಐನೂರು ಸಾಲ ಕೊಟ್ಟಿದ್ದೀನಿ, ಮರೀಬೇಡ",
+      "intent": "remember",
+      "slots": { "note": "ಲಕ್ಷ್ಮಿ ಅಕ್ಕನಿಗೆ ಐನೂರು ಸಾಲ ಕೊಟ್ಟಿದ್ದೀನಿ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-remember-12",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಮೇಡ್ ಭಾನುವಾರ ರಜೆ ತಗೋತಾಳೆ ಅಂತ ನೆನಪಿಟ್ಟುಕೊಳ್ಳಿ",
+      "intent": "remember",
+      "slots": { "note": "ಮೇಡ್ ಭಾನುವಾರ ರಜೆ ತಗೋತಾಳೆ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-remember-13",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೊಸ ಮನೆ ಫ್ಲಾಟ್ ನಂಬರ್ ಬಿ 304 ಅಂತ ಬರೆದಿಡು",
+      "intent": "remember",
+      "slots": { "note": "ಹೊಸ ಮನೆ ಫ್ಲಾಟ್ ನಂಬರ್ ಬಿ 304" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-remember-14",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಎಸಿ ರಿಮೋಟ್ ಎಲ್ಲಿ ಅಂದ್ರೆ ಟಿವಿ ಕೆಳಗಿನ ಡ್ರಾಯರ್‌ನಲ್ಲಿ, ನೆನಪಿಡು",
+      "intent": "remember",
+      "slots": { "note": "ಎಸಿ ರಿಮೋಟ್ ಎಲ್ಲಿ ಅಂದ್ರೆ ಟಿವಿ ಕೆಳಗಿನ ಡ್ರಾಯರ್‌ನಲ್ಲಿ" },
+      "source": "list"
+    },
+    {
+      "id": "kn-remember-15",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["plumber"],
+      "text": "ಜಯನಗರ ಸೈಟ್‌ಗೆ ಅರ್ಧ ಇಂಚ್ ಪೈಪ್ ಹತ್ತು ತಗೊಂಡು ಹೋಗ್ಬೇಕು ಬರ್ಕೊ",
+      "intent": "remember",
+      "slots": { "note": "ಜಯನಗರ ಸೈಟ್‌ಗೆ ಅರ್ಧ ಇಂಚ್ ಪೈಪ್ ಹತ್ತು ತಗೊಂಡು ಹೋಗ್ಬೇಕು" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-remember-16",
+      "lang": "kn",
+      "role": "household",
+      "text": "ನೆನಪಿಡು: ಅಡುಗೆಯವರ ಸಂಬಳ ಏಪ್ರಿಲ್‌ನಿಂದ 14000",
+      "intent": "remember",
+      "slots": { "note": "ಅಡುಗೆಯವರ ಸಂಬಳ ಏಪ್ರಿಲ್‌ನಿಂದ 14000" },
+      "source": "list"
+    },
+    {
+      "id": "kn-remember-17",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಮೇಡಂ ಹೇಳಿದ್ರು ಮುಂದಿನ ವಾರ ಬರೋದು ಬೇಡ ಅಂತ, ಇದನ್ನ ನೋಟ್ ಮಾಡ್ಕೊ",
+      "intent": "remember",
+      "slots": { "note": "ಮೇಡಂ ಹೇಳಿದ್ರು ಮುಂದಿನ ವಾರ ಬರೋದು ಬೇಡ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-remember-18",
+      "lang": "kn",
+      "role": "household",
+      "text": "ನೆನಪಿಟ್ಕೊ ಮಗನ ಸ್ಕೂಲ್ ಫೀಸ್ ಇಪ್ಪತ್ತನೇ ತಾರೀಖು",
+      "intent": "remember",
+      "slots": { "note": "ಮಗನ ಸ್ಕೂಲ್ ಫೀಸ್ ಇಪ್ಪತ್ತನೇ ತಾರೀಖು" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-remember-19",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["driver"],
+      "text": "ಸಾರ್ ಕಾರ್ ಸರ್ವಿಸ್ 45000 ಕಿಲೋಮೀಟರ್‌ಗೆ ಮಾಡಿಸ್ಬೇಕು, ನೆನಪಿಡಿ",
+      "intent": "remember",
+      "slots": { "note": "ಸಾರ್ ಕಾರ್ ಸರ್ವಿಸ್ 45000 ಕಿಲೋಮೀಟರ್‌ಗೆ ಮಾಡಿಸ್ಬೇಕು" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-remember-20",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಎಲೆಕ್ಟ್ರಿಷಿಯನ್ ಸುರೇಶ್ ಒಳ್ಳೆ ಕೆಲಸ ಮಾಡ್ತಾನೆ ಅಂತ ಬರ್ಕೊಂಡಿರು",
+      "intent": "remember",
+      "slots": { "note": "ಎಲೆಕ್ಟ್ರಿಷಿಯನ್ ಸುರೇಶ್ ಒಳ್ಳೆ ಕೆಲಸ ಮಾಡ್ತಾನೆ" },
+      "source": "miss"
+    }
+  ]
+}

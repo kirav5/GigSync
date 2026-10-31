@@ -1,5 +1,5 @@
 import { WebPlugin } from "@capacitor/core";
-import { infoOf, type ModelSpec, specOf } from "./catalog.js";
+import { infoOf, MODELS, type ModelSpec, specOfId } from "./catalog.js";
 import {
   type GenerateOptions,
   type GenerateResult,
@@ -12,13 +12,13 @@ import {
 } from "./definitions.js";
 import { type Engine, WebLlmEngine } from "./engine.js";
 import { deviceFacts, keepStorage } from "./facts.js";
-import { judge } from "./gate.js";
+import { judge, recommend } from "./gate.js";
 import { downloadingStatus, ENGINE, progressStatus, readyStatus } from "./progress.js";
 import { forgetReady, isReady, markReady, readyIds } from "./ready.js";
 import { completionRequest } from "./request.js";
 
 /**
- * The web engine (ADR 0040, LLD §9): a small open model, Qwen2.5-Instruct from WebLLM's prebuilt builds, run on the
+ * The web engine (ADR 0040, LLD §9): a small open model, Qwen3.5 from WebLLM's prebuilt builds, run on the
  * phone's GPU through WebGPU in a Web Worker. Used by the web app and the app installed to the home screen; the
  * native apps have their own engines. Nothing a person types leaves the phone: the only network use is fetching the
  * model's files, once, after the owner agreed to it. No browser built-in model is used.
@@ -38,17 +38,28 @@ export class GigSyncLLMWeb extends WebPlugin implements GigSyncLLMPlugin {
     return this.engineFor;
   }
 
-  /** The model this device would run for `options`, or why it cannot run one; a downloaded one needs no gate. */
+  /** The size asked for; else the model on the phone or on its way to it, else the one this device suits best. */
+  private async specFor(options: ModelOptions | undefined): Promise<ModelSpec> {
+    if (options?.size) return MODELS[options.size];
+    const onPhone =
+      specOfId(this.download?.id) ??
+      readyIds()
+        .map(specOfId)
+        .find((spec) => spec !== undefined);
+    return onPhone ?? MODELS[recommend(await deviceFacts())];
+  }
+
+  /** The model this device would run for `spec`, or why it cannot run one; a downloaded one needs no gate. */
   private async pick(spec: ModelSpec): Promise<ModelInfo | ModelStatus> {
     const ready = Object.values(spec.ids).find(isReady);
-    if (ready) return { id: ready, name: spec.name, downloadMb: spec.downloadMb };
+    if (ready) return { id: ready, name: spec.name, size: spec.size, downloadMb: spec.downloadMb };
     const verdict = judge(await deviceFacts(), spec);
     if (!verdict.ok) return { available: false, engine: ENGINE, state: ModelState.unavailable, reason: verdict.reason };
     return infoOf(spec, verdict.variant);
   }
 
   async status(options?: ModelOptions): Promise<ModelStatus> {
-    const spec = specOf(options?.size);
+    const spec = await this.specFor(options);
     // Asked before the gate: the download itself fills the storage the gate measures.
     if (this.download && Object.values(spec.ids).includes(this.download.id)) return this.download.status;
     const picked = await this.pick(spec);
@@ -58,7 +69,7 @@ export class GigSyncLLMWeb extends WebPlugin implements GigSyncLLMPlugin {
   }
 
   async prepare(options?: ModelOptions): Promise<ModelStatus> {
-    const picked = await this.pick(specOf(options?.size));
+    const picked = await this.pick(await this.specFor(options));
     if (!("id" in picked) || isReady(picked.id)) return this.status(options);
     if (this.download?.id === picked.id) return this.download.done;
     const status = downloadingStatus(picked, 0);
@@ -119,7 +130,7 @@ export class GigSyncLLMWeb extends WebPlugin implements GigSyncLLMPlugin {
         await engine.load(id, () => {});
       }
       const started = performance.now();
-      const text = await engine.complete(completionRequest(options));
+      const text = await engine.complete(completionRequest(options, specOfId(id)?.thinks));
       return { available: true, text, engine: ENGINE, elapsedMs: Math.round(performance.now() - started) };
     } catch {
       return none;

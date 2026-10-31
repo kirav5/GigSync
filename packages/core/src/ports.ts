@@ -107,6 +107,8 @@ export interface GenerateOptions {
   maxTokens?: number;
   temperature?: number;
   json?: boolean;
+  /** A JSON Schema the reply must fit (router/reply-schema.ts); engines that can hold output to one do, others ignore it. */
+  schema?: Readonly<Record<string, unknown>>;
 }
 
 export interface Model {

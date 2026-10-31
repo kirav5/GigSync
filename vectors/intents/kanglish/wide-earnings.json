@@ -1,0 +1,165 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-earnings-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ee tingalu eshtu duddu bantu",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-earnings-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ivattu estu sampaadane aaytu",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-earnings-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "kaLeda vaara naanu eshtu dudide",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-earnings-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nange innu eshtu baakki barbeku",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-earnings-05",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ee tingalu total estu sigtu",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-earnings-06",
+      "lang": "kn",
+      "role": "worker",
+      "text": "madam innu eshtu kodbeku nange",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-earnings-07",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nanna passbook alli eshtu ide",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-earnings-08",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ee varsha ivattinavargu eshtu sampaadisidini",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-earnings-09",
+      "lang": "kn",
+      "role": "worker",
+      "text": "eshtu payment pending ide",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-earnings-10",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ninne kelsakke duddu bantha",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-earnings-11",
+      "lang": "kn",
+      "role": "worker",
+      "text": "Jayanagar mane inda eshtu bandide",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-earnings-12",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nan earnings torisi",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-earnings-13",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ee vaara total income estu",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-earnings-14",
+      "lang": "kn",
+      "role": "worker",
+      "text": "yaaru yaaru innu duddu kodilla",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-earnings-15",
+      "lang": "kn",
+      "role": "worker",
+      "text": "september alli eshtu dudidini",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-earnings-16",
+      "lang": "kn",
+      "role": "worker",
+      "text": "naanu eshtu earn maadide ee tingalu",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-earnings-17",
+      "lang": "kn",
+      "role": "worker",
+      "text": "kelsa maadidakke ella duddu bantha",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-earnings-18",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "ivattu mooru mane maadide eshtu aaytu",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-earnings-19",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nange baro sambla estu baaki ide",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-earnings-20",
+      "lang": "kn",
+      "role": "worker",
+      "text": "last month ginta ee month jaasti bantha",
+      "intent": "earnings",
+      "source": "miss"
+    }
+  ]
+}

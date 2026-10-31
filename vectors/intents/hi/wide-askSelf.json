@@ -1,0 +1,150 @@
+{
+  "cases": [
+    {
+      "id": "hi-askSelf-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मैंने जयनगर वाली मैडम के बारे में क्या लिखा था",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "hi-askSelf-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेरे नोट में गुप्ता जी का पता क्या है",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hi-askSelf-05",
+      "lang": "hi",
+      "role": "household",
+      "text": "कुक को पिछले महीने कितना दिया था, मैंने लिखा था ना",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hi-askSelf-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "हम कौन से दिन छुट्टी बोले थे",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hi-askSelf-07",
+      "lang": "hi",
+      "role": "worker",
+      "text": "पिछले हफ़्ते मैंने क्या क्या नोट किया था",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "hi-askSelf-08",
+      "lang": "hi",
+      "role": "household",
+      "text": "पानी वाले का नंबर मेरे नोट्स में है क्या",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hi-askSelf-09",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "कोरमंगला वाली मैडम ने कितने बजे बुलाया था हमने लिखा था",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hi-askSelf-10",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेरा याद वाला लिस्ट दिखाओ",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hi-askSelf-11",
+      "lang": "hi",
+      "role": "worker",
+      "text": "वो दाढ़ी वाले अंकल के बारे में क्या बोला था मैंने",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hi-askSelf-12",
+      "lang": "hi",
+      "role": "household",
+      "text": "मैंने बच्चों की स्कूल फीस के बारे में क्या नोट किया था",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "hi-askSelf-13",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मकान मालिक को कब पैसा देना है बोला था मैंने",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hi-askSelf-14",
+      "lang": "hi",
+      "role": "worker",
+      "text": "कल जो बोले थे वो याद है क्या तुमको",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hi-askSelf-15",
+      "lang": "hi",
+      "role": "household",
+      "text": "एसी वाले ने क्या बताया था, मैंने नोट किया था",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hi-askSelf-16",
+      "lang": "hi",
+      "role": "worker",
+      "text": "अम्मा की दवाई का नाम क्या लिखवाया था",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hi-askSelf-17",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["रवि", "पिंकी"],
+      "text": "पिंकी के बारे में मैंने क्या लिखा था",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "hi-askSelf-18",
+      "lang": "hi",
+      "role": "household",
+      "text": "पिछली बार पुताई में कितना खर्च हुआ था, मैंने लिखा था",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hi-askSelf-19",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मैंने कब बोला था कि रविवार को काम नहीं करेंगे",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hi-askSelf-20",
+      "lang": "hi",
+      "role": "worker",
+      "text": "नोट में देखो व्हाइटफील्ड वाली साइट का गेट नंबर क्या है",
+      "intent": "askSelf",
+      "source": "miss"
+    }
+  ]
+}

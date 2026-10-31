@@ -109,6 +109,46 @@ describe("modelRoute", () => {
     expect((await modelRoute("need help at home", household, oddShapes))?.intent).toBe(I.find);
   });
 
+  it("finds the contact the model spelt in another script", async () => {
+    const hindi = { ...worker, lang: Lang.enum.hi, contacts: ["रवि", "मीना"] };
+    expect(await modelRoute("रवि को मत बताना", hindi, reply({ intent: "setRule", contact: "Ravi" }))).toEqual({
+      intent: I.setRule,
+      slots: { contact: "रवि" },
+      via: RouteVia.model,
+    });
+  });
+
+  it("drops a contact the message does not name, though the owner has it", async () => {
+    const model = reply({ intent: "askContact", contact: "Meera" });
+    expect(await modelRoute("is my sister free today?", worker, model)).toBeUndefined();
+  });
+
+  it("shows examples only in the owner's language and its Latin-letter form", async () => {
+    const kannada = reply({ intent: "chat" });
+    await modelRoute("namaskara", { ...worker, lang: Lang.enum.kn }, kannada);
+    expect(kannada.prompts[0]).toContain("ನನಗೆ ಪ್ಲಂಬರ್ ಬೇಕು");
+    expect(kannada.prompts[0]).toContain("nanna area badlaayisi");
+    expect(kannada.prompts[0]).not.toContain("madad band karo");
+    const english = reply({ intent: "chat" });
+    await modelRoute("hello", worker, english);
+    expect(english.prompts[0]).toContain("need an electrician tomorrow");
+    expect(english.prompts[0]).not.toContain("ನನಗೆ ಪ್ಲಂಬರ್ ಬೇಕು");
+  });
+
+  it("asks for a reply held to this chat's intents and the owner's contacts", async () => {
+    const model = reply({ intent: "chat" });
+    await modelRoute("hello", worker, model);
+    const schema = model.options[0]?.schema as { properties: Record<string, { enum?: string[] }>; required: string[] };
+    expect(schema.required).toEqual(["intent"]);
+    expect(schema.properties.contact?.enum).toEqual(["Meera"]);
+    expect(schema.properties.intent?.enum).toContain(I.setRule);
+    const forHousehold = reply({ intent: "chat" });
+    await modelRoute("hello", household, forHousehold);
+    const householdSchema = forHousehold.options[0]?.schema as { properties: Record<string, { enum?: string[] }> };
+    expect(householdSchema.properties.intent?.enum).not.toContain(I.editCard);
+    expect(householdSchema.properties.contact).toBeUndefined();
+  });
+
   it("gives nothing when what the action needs fails: a contact the owner has, a note in their words, a trade", async () => {
     expect(await modelRoute("is Raju free?", worker, reply({ intent: "askContact", contact: "Raju" }))).toBeUndefined();
     expect(await modelRoute("is she free?", worker, reply({ intent: "askContact" }))).toBeUndefined();

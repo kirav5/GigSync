@@ -1,0 +1,148 @@
+{
+  "cases": [
+    {
+      "id": "en-guide-05",
+      "lang": "en",
+      "role": "worker",
+      "text": "where to open bank account without address proof",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "en-guide-06",
+      "lang": "en",
+      "role": "worker",
+      "text": "how much rent for a single room near the bus stand here",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "en-guide-07",
+      "lang": "en",
+      "role": "worker",
+      "text": "which bus goes to Majestic from here",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "en-guide-08",
+      "lang": "en",
+      "role": "worker",
+      "text": "how do I get aadhaar address changed to bangalore",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "en-guide-09",
+      "lang": "en",
+      "role": "worker",
+      "text": "is there any PG for ladies which is cheap",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "en-guide-10",
+      "lang": "en",
+      "role": "worker",
+      "text": "do I need rent agreement to get gas connection",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "en-guide-11",
+      "lang": "en",
+      "role": "worker",
+      "text": "where can i get cheap food, mess or something",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "en-guide-12",
+      "lang": "en",
+      "role": "worker",
+      "text": "how to get monthly pass for BMTC bus",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "en-guide-13",
+      "lang": "en",
+      "role": "worker",
+      "text": "Kindly advise which documents are required for police verification of tenants.",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "en-guide-14",
+      "lang": "en",
+      "role": "worker",
+      "text": "which hospital is free for poor people here",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "en-guide-15",
+      "lang": "en",
+      "role": "worker",
+      "text": "jio sim or airtel which is better here, where to buy",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "en-guide-16",
+      "lang": "en",
+      "role": "worker",
+      "text": "how to send money home safely",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "en-guide-17",
+      "lang": "en",
+      "role": "worker",
+      "text": "auto drivers charge too much, how to use metro",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "en-guide-18",
+      "lang": "en",
+      "role": "worker",
+      "text": "where is ration shop, my card is from UP will it work here",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "en-guide-19",
+      "lang": "en",
+      "role": "worker",
+      "text": "can i open account in post office with my village address",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "en-guide-20",
+      "lang": "en",
+      "role": "worker",
+      "text": "which area is cheap and safe to stay for families",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    }
+  ]
+}

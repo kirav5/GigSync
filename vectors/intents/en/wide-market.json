@@ -1,0 +1,173 @@
+{
+  "cases": [
+    {
+      "id": "en-market-13",
+      "lang": "en",
+      "role": "household",
+      "text": "what is the rate for maid in Indiranagar",
+      "intent": "market",
+      "slots": { "trade": "maid", "area": "indiranagar" },
+      "source": "list"
+    },
+    {
+      "id": "en-market-14",
+      "lang": "en",
+      "role": "household",
+      "text": "kindly tell me the standard charges for an electrician visit",
+      "intent": "market",
+      "slots": { "trade": "electrician" },
+      "source": "list"
+    },
+    {
+      "id": "en-market-15",
+      "lang": "en",
+      "role": "household",
+      "text": "carpenter is asking 2500 for fixing wardrobe door, is it ok or too much",
+      "intent": "market",
+      "slots": { "trade": "carpenter", "amount_paise": 250000 },
+      "source": "miss"
+    },
+    {
+      "id": "en-market-16",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "madam is giving 6000 for two houses cleaning, other maids getting more?",
+      "intent": "market",
+      "slots": { "trade": "maid", "amount_paise": 600000 },
+      "source": "miss"
+    },
+    {
+      "id": "en-market-17",
+      "lang": "en",
+      "role": "household",
+      "text": "driver salary in bangalore how much nowadays",
+      "intent": "market",
+      "slots": { "trade": "driver" },
+      "source": "list"
+    },
+    {
+      "id": "en-market-18",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "how much cooks are taking in koramangala for morning and evening both",
+      "intent": "market",
+      "slots": { "trade": "cook", "area": "koramangala" },
+      "source": "list"
+    },
+    {
+      "id": "en-market-19",
+      "lang": "en",
+      "role": "household",
+      "text": "plumber rate?",
+      "intent": "market",
+      "slots": { "trade": "plumber" },
+      "source": "list"
+    },
+    {
+      "id": "en-market-20",
+      "lang": "en",
+      "role": "household",
+      "text": "We have been offered a full-time cook at ₹18,000 per month. Could you advise whether this is reasonable for Whitefield?",
+      "intent": "market",
+      "slots": { "trade": "cook", "area": "whitefield", "amount_paise": 1800000 },
+      "source": "miss"
+    },
+    {
+      "id": "en-market-21",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "per sqft what painters charging in hsr side",
+      "intent": "market",
+      "slots": { "trade": "painter", "area": "hsr_layout" },
+      "source": "miss"
+    },
+    {
+      "id": "en-market-22",
+      "lang": "en",
+      "role": "household",
+      "text": "ac servicing charges how much generally for split ac",
+      "intent": "market",
+      "slots": { "trade": "ac_technician" },
+      "source": "list"
+    },
+    {
+      "id": "en-market-23",
+      "lang": "en",
+      "role": "household",
+      "text": "eight hundred for one fan fitting is that correct rate",
+      "intent": "market",
+      "slots": { "trade": "electrician", "amount_paise": 80000 },
+      "source": "miss"
+    },
+    {
+      "id": "en-market-24",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["driver"],
+      "text": "what other drivers are getting monthly in whitefield i think i am getting less",
+      "intent": "market",
+      "slots": { "trade": "driver", "area": "whitefield" },
+      "source": "miss"
+    },
+    {
+      "id": "en-market-25",
+      "lang": "en",
+      "role": "household",
+      "text": "my cook wants hike to 14000 from 12000, is that normal these days",
+      "intent": "market",
+      "slots": { "trade": "cook", "amount_paise": 1400000 },
+      "source": "miss"
+    },
+    {
+      "id": "en-market-26",
+      "lang": "en",
+      "role": "household",
+      "text": "how much should I pay the bai for jhadu pocha only",
+      "intent": "market",
+      "slots": { "trade": "maid" },
+      "source": "list"
+    },
+    {
+      "id": "en-market-27",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "what is going rate for full house wiring nowadays",
+      "intent": "market",
+      "slots": { "trade": "electrician" },
+      "source": "list"
+    },
+    {
+      "id": "en-market-28",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Ramesh", "Lata"],
+      "text": "is 500 rupees ok for carpenter to come and check",
+      "intent": "market",
+      "slots": { "trade": "carpenter", "amount_paise": 50000 },
+      "source": "miss"
+    },
+    {
+      "id": "en-market-29",
+      "lang": "en",
+      "role": "household",
+      "text": "Jayanagar side 2bhk painting total cost how much approx",
+      "intent": "market",
+      "slots": { "trade": "painter", "area": "jayanagar" },
+      "source": "list"
+    },
+    {
+      "id": "en-market-30",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["plumber"],
+      "text": "customer saying ₹300 is too much for tap washer change, what do others charge",
+      "intent": "market",
+      "slots": { "trade": "plumber", "amount_paise": 30000 },
+      "source": "miss"
+    }
+  ]
+}

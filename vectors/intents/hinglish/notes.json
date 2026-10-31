@@ -7,7 +7,7 @@
       "text": "kal subah plumber chahiye",
       "intent": "find",
       "slots": { "trade": "plumber" },
-      "source": "list"
+      "source": "miss"
     },
     {
       "id": "hinglish-find-03",
@@ -16,7 +16,7 @@
       "text": "mujhe HSR mein ek cook chahiye",
       "intent": "find",
       "slots": { "trade": "cook", "area": "hsr_layout" },
-      "source": "list"
+      "source": "miss"
     },
     {
       "id": "hinglish-find-04",
@@ -34,7 +34,7 @@
       "text": "kitchen ka nal tapak raha hai, koi aa sakta hai?",
       "intent": "find",
       "slots": { "trade": "plumber" },
-      "source": "list"
+      "source": "miss"
     },
     {
       "id": "hinglish-find-06",
@@ -43,7 +43,7 @@
       "text": "Diwali se pehle ghar ki putai karwani hai",
       "intent": "find",
       "slots": { "trade": "painter" },
-      "source": "list"
+      "source": "miss"
     },
     {
       "id": "hinglish-remember-01",
@@ -52,7 +52,7 @@
       "text": "yaad rakhna, gas wala Friday ko aayega",
       "intent": "remember",
       "slots": { "note": "gas wala Friday ko aayega" },
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "hinglish-remember-02",
@@ -86,7 +86,7 @@
       "role": "household",
       "text": "AC service last time kab hui thi?",
       "intent": "askSelf",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "hinglish-askContact-01",
@@ -142,7 +142,7 @@
       "role": "household",
       "text": "thank you, bahut help hua",
       "intent": "chat",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "hinglish-chat-07",
@@ -158,7 +158,7 @@
       "role": "household",
       "text": "electrician aaya tha, sab theek kar diya",
       "intent": "chat",
-      "source": "miss"
+      "source": "list"
     }
   ]
 }

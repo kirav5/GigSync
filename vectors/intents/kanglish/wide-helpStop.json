@@ -1,0 +1,164 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-helpStop-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "hosabrige sahaya maadodu nilsi",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "mentor aagi irodu saaku",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "inmele hosa jana ge help maadolla",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "mentor list inda nanna hesru tegi",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-05",
+      "lang": "kn",
+      "role": "worker",
+      "text": "help maado kelsa band maadi",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-06",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nange time illa hosabru jothe hogoke beda inmele",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-07",
+      "lang": "kn",
+      "role": "worker",
+      "text": "yaaru hosabru nanna kade kalsbedi",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-08",
+      "lang": "kn",
+      "role": "worker",
+      "text": "mentoring stop maadi please",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-09",
+      "lang": "kn",
+      "role": "worker",
+      "text": "hosa jana call maadtidaare saakaagide nilsi",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-10",
+      "lang": "kn",
+      "role": "worker",
+      "text": "inmunde newcomers beda",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-11",
+      "lang": "kn",
+      "role": "worker",
+      "text": "sahaya maadodu swalpa dina nilsi",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-12",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nanna number hosabru ge kodbedi inmele",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-13",
+      "lang": "kn",
+      "role": "worker",
+      "text": "mentor off maadi",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-14",
+      "lang": "kn",
+      "role": "worker",
+      "text": "eega kelsa jaasti ide hosabru ge help maadakkagalla",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-15",
+      "lang": "kn",
+      "role": "worker",
+      "text": "hosabrige guide maadodanna bidtini",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-16",
+      "lang": "kn",
+      "role": "worker",
+      "text": "help offer vaapas tagoli",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-17",
+      "lang": "kn",
+      "role": "worker",
+      "text": "naanu mentor aagi irolla tegedu haaki",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-18",
+      "lang": "kn",
+      "role": "worker",
+      "text": "hosa hudugaru nange call maadodu beda",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-19",
+      "lang": "kn",
+      "role": "worker",
+      "text": "newcomer help nilsbidi",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpStop-20",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ooru torso kelsa naan inmele maadalla",
+      "intent": "helpStop",
+      "source": "miss"
+    }
+  ]
+}

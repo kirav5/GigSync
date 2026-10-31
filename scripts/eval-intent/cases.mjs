@@ -6,9 +6,12 @@ import { core, FIELDS, protocol, z } from "./core.mjs";
 const VECTORS = new URL("../../vectors/intents/", import.meta.url);
 const JSON_FILE = /\.json$/;
 
-/** Each set of phrasings and the app language its owners chose; Hinglish is Hindi typed in Latin letters. */
+/**
+ * Each set of phrasings and the app language its owners chose; Hinglish is Hindi typed in Latin letters, Kanglish
+ * Kannada typed in Latin letters (the kn set also has a few from before Kanglish had its own set).
+ */
 const L = protocol.Lang.enum;
-export const SETS = { en: L.en, hi: L.hi, kn: L.kn, hinglish: L.hi };
+export const SETS = { en: L.en, hi: L.hi, kn: L.kn, hinglish: L.hi, kanglish: L.kn };
 
 /** Whether today's word lists get a case right ("list") or it was written to probe what they miss ("miss"). */
 const Source = { list: "list", miss: "miss" };
@@ -43,6 +46,24 @@ const Case = z.strictObject({
 const File = z.strictObject({ cases: z.array(Case).min(1) });
 
 export class DataError extends Error {}
+
+/**
+ * Two fixed halves of the eval set: `dev`, about a third, to look at while changing the prompt; `test`, the rest, to
+ * score the change on. A case's half comes from its id alone, so it never moves when cases are added.
+ */
+export const Split = { dev: "dev", test: "test" };
+const DEV_SHARE = 3;
+const FNV_OFFSET = 2166136261;
+const FNV_PRIME = 16777619;
+
+/** FNV-1a of the id, so the split is the same on every machine. */
+function idHash(id) {
+  let hash = FNV_OFFSET;
+  for (const char of id) hash = Math.imul(hash ^ char.codePointAt(0), FNV_PRIME) >>> 0;
+  return hash;
+}
+
+export const splitOf = (id) => (idHash(id) % DEV_SHARE === 0 ? Split.dev : Split.test);
 
 /** The context a router takes for one case: what the chat knows besides the words. */
 export const contextOf = (c) => ({

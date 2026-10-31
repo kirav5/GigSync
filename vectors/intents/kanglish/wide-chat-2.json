@@ -1,0 +1,129 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-chat-16",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "ee vaara mooru flat paint maadide",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-17",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ninu yaaru",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-18",
+      "lang": "kn",
+      "role": "household",
+      "text": "ok bye",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-19",
+      "lang": "kn",
+      "role": "worker",
+      "text": "traffic jaasti ivattu late aaytu",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-20",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Manju", "Lakshmi", "Shivu"],
+      "text": "Lakshmi akka ge maduve aaytu",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-chat-21",
+      "lang": "kn",
+      "role": "household",
+      "text": "nam maid tumba olle hudugi",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-22",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["driver"],
+      "text": "Ugadi habba ge ooru ge hogidde",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-23",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nanna akka Mysuru ge shift aadlu",
+      "inMove": true,
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-24",
+      "lang": "kn",
+      "role": "household",
+      "text": "carpenter ninne kelsa mugsida bill 3500 aaytu",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-25",
+      "lang": "kn",
+      "role": "worker",
+      "text": "haan",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-26",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "ivattu kelsa ide naanu hogtidini",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-27",
+      "lang": "kn",
+      "role": "worker",
+      "text": "hmm sari nodona",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-28",
+      "lang": "kn",
+      "role": "household",
+      "text": "ac technician bandu hoda eega cooling aagtide",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-29",
+      "lang": "kn",
+      "role": "worker",
+      "text": "match nodidra ninne RCB gellitu",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-chat-30",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nange ivattu kelsa illa mane alle iddini",
+      "intent": "chat",
+      "source": "list"
+    }
+  ]
+}

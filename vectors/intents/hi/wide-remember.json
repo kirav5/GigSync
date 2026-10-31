@@ -1,0 +1,160 @@
+{
+  "cases": [
+    {
+      "id": "hi-remember-04",
+      "lang": "hi",
+      "role": "household",
+      "text": "याद रख लो कुक को सोमवार को छुट्टी चाहिए",
+      "intent": "remember",
+      "slots": { "note": "कुक को सोमवार को छुट्टी चाहिए" },
+      "source": "list"
+    },
+    {
+      "id": "hi-remember-05",
+      "lang": "hi",
+      "role": "worker",
+      "text": "नोट करो जयनगर वाली आंटी 3000 देंगी पंद्रह तारीख को",
+      "intent": "remember",
+      "slots": { "note": "जयनगर वाली आंटी 3000 देंगी पंद्रह तारीख को" },
+      "source": "list"
+    },
+    {
+      "id": "hi-remember-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "लिखो कि व्हाइटफील्ड साइट का गेट नंबर 4 है",
+      "intent": "remember",
+      "slots": { "note": "व्हाइटफील्ड साइट का गेट नंबर 4 है" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-remember-07",
+      "lang": "hi",
+      "role": "worker",
+      "text": "भूलना नहीं कल अम्मा को पैसा भेजना है",
+      "intent": "remember",
+      "slots": { "note": "कल अम्मा को पैसा भेजना है" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-remember-08",
+      "lang": "hi",
+      "role": "household",
+      "text": "प्लंबर का नाम सलीम है ये लिख लो",
+      "intent": "remember",
+      "slots": { "note": "प्लंबर का नाम सलीम है" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-remember-09",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "मैडम ने बोला है शनिवार को मेहमान आएँगे बीस लोग का खाना याद रखना",
+      "intent": "remember",
+      "slots": { "note": "मैडम ने बोला है शनिवार को मेहमान आएँगे बीस लोग का खाना" },
+      "source": "list"
+    },
+    {
+      "id": "hi-remember-10",
+      "lang": "hi",
+      "role": "worker",
+      "text": "कल सुबह सात बजे कोरमंगला जाना है ना याद दिलाना",
+      "intent": "remember",
+      "slots": { "note": "कल सुबह सात बजे कोरमंगला जाना है" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-remember-11",
+      "lang": "hi",
+      "role": "household",
+      "text": "एसी सर्विस हुई आज, लिख लो",
+      "intent": "remember",
+      "slots": { "note": "एसी सर्विस हुई आज" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-remember-12",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मकान मालिक का किराया 4500 हो गया है ये नोट कर लो",
+      "intent": "remember",
+      "slots": { "note": "मकान मालिक का किराया 4500 हो गया है" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-remember-13",
+      "lang": "hi",
+      "role": "worker",
+      "text": "गुप्ता जी के घर में कुत्ता है ध्यान रखना",
+      "intent": "remember",
+      "slots": { "note": "गुप्ता जी के घर में कुत्ता है" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-remember-14",
+      "lang": "hi",
+      "role": "household",
+      "text": "कामवाली को इस महीने 500 एडवांस दिया, लिख लेना",
+      "intent": "remember",
+      "slots": { "note": "कामवाली को इस महीने 500 एडवांस दिया" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-remember-15",
+      "lang": "hi",
+      "role": "worker",
+      "text": "याद रखो हमारे ठेकेदार का नाम पांडे जी है",
+      "intent": "remember",
+      "slots": { "note": "हमारे ठेकेदार का नाम पांडे जी है" },
+      "source": "list"
+    },
+    {
+      "id": "hi-remember-16",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "इंदिरानगर वाले साहब को खाने में लहसुन प्याज़ नहीं चाहिए याद रखना",
+      "intent": "remember",
+      "slots": { "note": "इंदिरानगर वाले साहब को खाने में लहसुन प्याज़ नहीं चाहिए" },
+      "source": "list"
+    },
+    {
+      "id": "hi-remember-17",
+      "lang": "hi",
+      "role": "household",
+      "text": "ड्राइवर की छुट्टी 20 से 25 तारीख तक है नोट करो",
+      "intent": "remember",
+      "slots": { "note": "ड्राइवर की छुट्टी 20 से 25 तारीख तक है" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-remember-18",
+      "lang": "hi",
+      "role": "worker",
+      "text": "अगले महीने से रेट बढ़ाना है ये याद रखना",
+      "intent": "remember",
+      "slots": { "note": "अगले महीने से रेट बढ़ाना है" },
+      "source": "list"
+    },
+    {
+      "id": "hi-remember-19",
+      "lang": "hi",
+      "role": "worker",
+      "text": "राशन कार्ड वाला काम मंगलवार को करना है लिखो",
+      "intent": "remember",
+      "slots": { "note": "राशन कार्ड वाला काम मंगलवार को करना है" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-remember-20",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["लक्ष्मी", "प्रिया"],
+      "text": "बेटे का ट्यूशन वाला शुक्रवार नहीं आएगा, याद रखो",
+      "intent": "remember",
+      "slots": { "note": "बेटे का ट्यूशन वाला शुक्रवार नहीं आएगा" },
+      "source": "list"
+    }
+  ]
+}

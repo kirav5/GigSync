@@ -1,0 +1,149 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-market-16",
+      "lang": "kn",
+      "role": "household",
+      "text": "aaru saavira maid ge kammi aaytha",
+      "intent": "market",
+      "slots": { "trade": "maid", "amount_paise": 600000 },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-17",
+      "lang": "kn",
+      "role": "household",
+      "text": "koramangala cook rate",
+      "intent": "market",
+      "slots": { "trade": "cook", "area": "koramangala" },
+      "source": "list"
+    },
+    {
+      "id": "kanglish-market-18",
+      "lang": "kn",
+      "role": "household",
+      "text": "wardrobe maadoke carpenter estu kelbahudu",
+      "intent": "market",
+      "slots": { "trade": "carpenter" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-19",
+      "lang": "kn",
+      "role": "household",
+      "text": "ondu switch board badlaayisoke eshtu aagutte",
+      "intent": "market",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-20",
+      "lang": "kn",
+      "role": "household",
+      "text": "nam maid 7000 kelthaale idu normal aa",
+      "intent": "market",
+      "slots": { "trade": "maid", "amount_paise": 700000 },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-21",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "illi cook galige eshtu sigutte",
+      "intent": "market",
+      "slots": { "trade": "cook" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-22",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["plumber"],
+      "text": "Whitefield alli plumber galu ondu visit ge eshtu tagotaare",
+      "intent": "market",
+      "slots": { "trade": "plumber", "area": "whitefield" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-23",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "naanu 500 kelidre jaasti aagutta painter ge",
+      "intent": "market",
+      "slots": { "trade": "painter", "amount_paise": 50000 },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-24",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["driver"],
+      "text": "bere drivers estu charge maadtaare",
+      "intent": "market",
+      "slots": { "trade": "driver" },
+      "source": "list"
+    },
+    {
+      "id": "kanglish-market-25",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "maid kelsakke HSR alli rate estu nadithide",
+      "intent": "market",
+      "slots": { "trade": "maid", "area": "hsr_layout" },
+      "source": "list"
+    },
+    {
+      "id": "kanglish-market-26",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "electrician galu ondu ganTe ge eshtu tagotaare indiranagar alli",
+      "intent": "market",
+      "slots": { "trade": "electrician", "area": "indiranagar" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-27",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "hattu saavira cook ge sari rate aa",
+      "intent": "market",
+      "slots": { "trade": "cook", "amount_paise": 1000000 },
+      "source": "list"
+    },
+    {
+      "id": "kanglish-market-28",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["carpenter"],
+      "text": "carpenter kelsakke ee area alli estu kodtaare",
+      "intent": "market",
+      "slots": { "trade": "carpenter" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-29",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["ac_technician"],
+      "text": "ac repair ge bere avru eshtu kelthaare naanu kammi kelthidini anta anstide",
+      "intent": "market",
+      "slots": { "trade": "ac_technician" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-market-30",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Kavya", "Ramesh", "Geetha", "Suresh"],
+      "text": "Kavya maid ge estu kodtaale gottilla, illi normal rate estu",
+      "intent": "market",
+      "slots": { "trade": "maid" },
+      "source": "list"
+    }
+  ]
+}

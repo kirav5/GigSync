@@ -10,8 +10,8 @@ const PERCENT = 100;
 export const percentOf = (s: ModelStatus | undefined) => Math.round((s?.progress ?? 0) * PERCENT);
 
 /** The model's size in MB: the engine's word, else the catalog's for the chosen size. */
-export const sizeMb = (s: ModelStatus | undefined, size: ModelSize = ModelSize.small) =>
-  s?.model?.downloadMb ?? MODELS[size].downloadMb;
+export const sizeMb = (s: ModelStatus | undefined, size?: ModelSize) =>
+  s?.model?.downloadMb ?? MODELS[size ?? ModelSize.small].downloadMb;
 
 /** What a download costs on this connection: mobile data said plainly, Wi-Fi advised where the browser cannot tell. */
 export function networkNote(network: Network, mb: number, t: T): string | undefined {

@@ -1,0 +1,149 @@
+{
+  "cases": [
+    {
+      "id": "hi-guide-05",
+      "lang": "hi",
+      "role": "worker",
+      "text": "पीजी या रूम कितने में मिल जाता है हम जैसे लोग के लिए",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hi-guide-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "आधार कार्ड का पता बदलना हो तो कहाँ जाएँ",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hi-guide-07",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मजेस्टिक से कोरमंगला कौन सी बस जाती है",
+      "inMove": true,
+      "intent": "guide",
+      "slots": { "area": "koramangala" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-guide-08",
+      "lang": "hi",
+      "role": "worker",
+      "text": "हमारा राशन कार्ड यहाँ चलेगा कि नहीं",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hi-guide-09",
+      "lang": "hi",
+      "role": "worker",
+      "text": "बस पास कैसे बनता है",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hi-guide-10",
+      "lang": "hi",
+      "role": "worker",
+      "text": "यहाँ पुलिस वेरिफिकेशन करवाना पड़ता है क्या",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hi-guide-11",
+      "lang": "hi",
+      "role": "worker",
+      "text": "गाँव पैसे भेजने का सबसे आसान तरीका क्या है",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hi-guide-12",
+      "lang": "hi",
+      "role": "worker",
+      "text": "बीमार पड़ गए तो सरकारी अस्पताल किधर है",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hi-guide-13",
+      "lang": "hi",
+      "role": "worker",
+      "text": "कन्नड़ नहीं आती तो दिक्कत होगी क्या",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hi-guide-14",
+      "lang": "hi",
+      "role": "worker",
+      "text": "पहले हफ्ते खाना कहाँ सस्ता मिलेगा",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hi-guide-15",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मकान मालिक दो महीने का एडवांस माँग रहा है, ये नॉर्मल है क्या",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hi-guide-16",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेट्रो कार्ड कहाँ बनेगा",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hi-guide-17",
+      "lang": "hi",
+      "role": "worker",
+      "text": "यूपीआई चालू करने के लिए क्या क्या चाहिए",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hi-guide-18",
+      "lang": "hi",
+      "role": "worker",
+      "text": "ठेकेदार ने आधार कार्ड रख लिया है वापस नहीं दे रहा क्या करें",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "hi-guide-19",
+      "lang": "hi",
+      "role": "worker",
+      "text": "लेबर कार्ड बनवाना है कहाँ जाना होगा",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "hi-guide-20",
+      "lang": "hi",
+      "role": "worker",
+      "text": "रात को स्टेशन पर उतरेंगे तो कहाँ जाएँ",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    }
+  ]
+}

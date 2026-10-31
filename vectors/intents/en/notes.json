@@ -34,7 +34,7 @@
       "text": "the kitchen tap is leaking, can somebody come today?",
       "intent": "find",
       "slots": { "trade": "plumber" },
-      "source": "list"
+      "source": "miss"
     },
     {
       "id": "en-find-06",
@@ -43,7 +43,7 @@
       "text": "the fan and two lights stopped working in the bedroom",
       "intent": "find",
       "slots": { "trade": "electrician" },
-      "source": "list"
+      "source": "miss"
     },
     {
       "id": "en-find-07",
@@ -52,7 +52,7 @@
       "text": "want the living room painted before Diwali",
       "intent": "find",
       "slots": { "trade": "painter" },
-      "source": "list"
+      "source": "miss"
     },
     {
       "id": "en-remember-01",
@@ -61,7 +61,7 @@
       "text": "remember the gas cylinder comes on Friday",
       "intent": "remember",
       "slots": { "note": "the gas cylinder comes on Friday" },
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "en-remember-02",
@@ -87,7 +87,7 @@
       "role": "household",
       "text": "what did I note about the gas cylinder?",
       "intent": "askSelf",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "en-askSelf-02",
@@ -95,7 +95,7 @@
       "role": "household",
       "text": "when was the AC last serviced, did I write it down?",
       "intent": "askSelf",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "en-askSelf-03",
@@ -145,14 +145,21 @@
       "slots": { "contact": "Ravi" },
       "source": "miss"
     },
-    { "id": "en-chat-06", "lang": "en", "role": "worker", "text": "good morning", "intent": "chat", "source": "list" },
+    {
+      "id": "en-chat-06",
+      "lang": "en",
+      "role": "worker",
+      "text": "good morning",
+      "intent": "chat",
+      "source": "list"
+    },
     {
       "id": "en-chat-07",
       "lang": "en",
       "role": "household",
       "text": "thanks, that was helpful",
       "intent": "chat",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "en-chat-08",
@@ -160,7 +167,7 @@
       "role": "household",
       "text": "the electrician came and fixed everything, thank you",
       "intent": "chat",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "en-chat-09",

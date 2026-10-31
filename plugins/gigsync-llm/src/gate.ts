@@ -1,5 +1,5 @@
-import { type ModelSpec, SHADER_F16, Variant } from "./catalog.js";
-import { Unsupported } from "./definitions.js";
+import { BY_SIZE_DOWN, type ModelSpec, SHADER_F16, Variant } from "./catalog.js";
+import { ModelSize, Unsupported } from "./definitions.js";
 
 /**
  * Whether this device can run a model, from facts the browser gives (facts.ts gathers them). Pure, so each rule is
@@ -11,7 +11,7 @@ const MB = 1024 * 1024;
 const KB = 1024;
 /** WebLLM falls back to 256 MB buffers and refuses below that. */
 export const MIN_BUFFER_BYTES = 256 * MB;
-/** WebLLM's floor for one storage buffer binding; no Qwen2.5 build asks for more. */
+/** WebLLM's floor for one storage buffer binding; a model whose largest tensor is bigger needs that much instead. */
 export const MIN_STORAGE_BINDING_BYTES = 128 * MB;
 export const MIN_WORKGROUP_STORAGE_BYTES = 32 * KB;
 export const MIN_STORAGE_BUFFERS_PER_STAGE = 10;
@@ -44,11 +44,12 @@ export interface DeviceFacts {
 
 export type Verdict = { ok: true; variant: Variant } | { ok: false; reason: Unsupported };
 
-/** The GPU can hold WebLLM's buffers and bind enough of them at once. */
-function gpuFits(limits: GpuLimits): boolean {
+/** The GPU can hold WebLLM's buffers, bind the model's largest tensor, and bind enough buffers at once. */
+function gpuFits(limits: GpuLimits, spec: ModelSpec): boolean {
+  const binding = Math.max(MIN_STORAGE_BINDING_BYTES, spec.largestTensorBytes);
   return (
-    limits.maxBufferSize >= MIN_BUFFER_BYTES &&
-    limits.maxStorageBufferBindingSize >= MIN_STORAGE_BINDING_BYTES &&
+    limits.maxBufferSize >= Math.max(MIN_BUFFER_BYTES, binding) &&
+    limits.maxStorageBufferBindingSize >= binding &&
     limits.maxComputeWorkgroupStorageSize >= MIN_WORKGROUP_STORAGE_BYTES &&
     limits.maxStorageBuffersPerShaderStage >= MIN_STORAGE_BUFFERS_PER_STAGE
   );
@@ -61,7 +62,7 @@ function gpuFits(limits: GpuLimits): boolean {
 export function judge(facts: DeviceFacts, spec: ModelSpec): Verdict {
   if (!facts.browser) return { ok: false, reason: Unsupported.browser };
   if (!facts.gpu) return { ok: false, reason: Unsupported.noWebGpu };
-  if (!gpuFits(facts.gpu.limits)) return { ok: false, reason: Unsupported.gpuLimits };
+  if (!gpuFits(facts.gpu.limits, spec)) return { ok: false, reason: Unsupported.gpuLimits };
   if (facts.memoryGb !== undefined && facts.memoryGb < spec.minMemoryGb) {
     return { ok: false, reason: Unsupported.lowMemory };
   }
@@ -69,4 +70,16 @@ export function judge(facts: DeviceFacts, spec: ModelSpec): Verdict {
     return { ok: false, reason: Unsupported.lowStorage };
   }
   return { ok: true, variant: facts.gpu.features.has(SHADER_F16) ? Variant.f16 : Variant.f32 };
+}
+
+/**
+ * The model Auto picks for this device: the largest it passes the gate for with its memory confirmed. A browser that
+ * does not report memory (Safari, so every iPhone) gets the small one: iPhones from 4 to 8 GB look the same, and a
+ * model too big for the phone is lost to a crash rather than a clear "can't". Chrome rounds what it reports to a power
+ * of two and stops at 8, so a 6 GB phone says 4 and gets the small model too.
+ */
+export function recommend(facts: DeviceFacts): ModelSize {
+  const fits = (spec: ModelSpec) =>
+    facts.memoryGb !== undefined && facts.memoryGb >= spec.minMemoryGb && judge(facts, spec).ok;
+  return BY_SIZE_DOWN.find(fits)?.size ?? ModelSize.small;
 }

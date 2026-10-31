@@ -98,16 +98,13 @@ function fallbacks(results) {
   const fell = model.filter((m) => !m.intent);
   const reasons = [...groupBy(fell, (m) => m.fallback)].map(([reason, list]) => [reason, list.length]);
   const byModel = results.filter((r) => r[Router.combined].via === core.RouteVia.model);
-  // The combined run asks the model again; Ollama samples, so the same words can be named differently twice.
-  const drift = byModel.filter((r) => r[Router.model].intent && r[Router.combined].intent !== r[Router.model].intent);
   return [
     "## Model fallbacks",
     "",
     `The model router gave no route for ${pct(fell.length, model.length)} of cases. The reasons are inferred from the`,
     "model's raw reply (scripts/eval-intent/fallback.mjs), since core only logs that it rejected one. In the combined",
     `router the model's route was used for ${pct(byModel.length, results.length)} of cases; the word lists answered the`,
-    `rest. The combined run asks the model afresh: in ${pct(drift.length, byModel.length)} of the cases it answered`,
-    "there, it named a different intent than in the model-only run (the router asks for temperature 0, so this should stay near zero).",
+    "rest. The combined run reuses the model-only run's reply to the same prompt (the router asks at temperature 0).",
     "",
     ...(reasons.length > 0 ? table(["Reason", "Cases"], reasons) : []),
   ];
@@ -138,8 +135,8 @@ function latency(results, routers) {
     "## Latency",
     "",
     "Wall time per message on the machine that ran the eval, not a phone. The model router stops waiting at its time",
-    "limit; the raw call is how long Ollama took to answer anyway. The combined run sends a prompt Ollama has just",
-    "seen, so its model call is often quicker than the model-only run's.",
+    "limit; the raw call is how long the engine took to answer anyway. The combined run reuses the model-only run's",
+    "reply, so its times are the word lists' share only.",
     "",
     ...table(["Router", "p50", "p95", "max"], rows),
   ];
@@ -195,7 +192,7 @@ function modelSections(results) {
 export function report(results, meta) {
   const routers = meta.withModel ? ROUTERS : [Router.keywords];
   const mode = meta.withModel
-    ? `model \`${meta.model}\` via Ollama, time limit ${meta.timeoutMs} ms`
+    ? `model ${meta.engine}, time limit ${meta.timeoutMs} ms`
     : "word lists only (`--keywords-only`)";
   return [
     "# Chat intent eval",

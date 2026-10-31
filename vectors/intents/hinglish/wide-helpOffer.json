@@ -1,0 +1,149 @@
+{
+  "cases": [
+    {
+      "id": "hinglish-helpOffer-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "koi naya aaya ho bangalore toh mai help kar sakta hoon",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpOffer-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "naye bando ko rasta dikha dunga",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpOffer-05",
+      "lang": "hi",
+      "role": "worker",
+      "text": "jo log gaon se pehli baar aate hain unki madad karni hai mujhe",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpOffer-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mujhe mentor banna hai",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpOffer-07",
+      "lang": "hi",
+      "role": "worker",
+      "text": "naye logon ko kamra dhundne me help kar dungi",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-helpOffer-08",
+      "lang": "hi",
+      "role": "worker",
+      "text": "main 5 saal se yahan hoon newcomers ko guide kar sakta hoon",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-helpOffer-09",
+      "lang": "hi",
+      "role": "worker",
+      "text": "agar koi bihar se aaye toh mujhse milwa dena",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpOffer-10",
+      "lang": "hi",
+      "role": "worker",
+      "text": "helper banna chahti hoon naye logon ke liye",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-helpOffer-11",
+      "lang": "hi",
+      "role": "worker",
+      "text": "naye aane walon ko bus route samjha sakta hoon",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpOffer-12",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mera naam daal do madad karne walon me",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpOffer-13",
+      "lang": "hi",
+      "role": "worker",
+      "text": "weekend pe free rehta hoon naye logo ki help kar dunga",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-helpOffer-14",
+      "lang": "hi",
+      "role": "worker",
+      "text": "koi new ladki aaye kaam ke liye toh main saath rahungi pehle hafte",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpOffer-15",
+      "lang": "hi",
+      "role": "worker",
+      "text": "naye logon ko sim aur bank wala kaam karwa dunga",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpOffer-16",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["plumber"],
+      "text": "naye plumber ladkon ko area dikha dunga aur kaam sikha dunga",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpOffer-17",
+      "lang": "hi",
+      "role": "worker",
+      "text": "newcomer help wala option on karo",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-helpOffer-18",
+      "lang": "hi",
+      "role": "worker",
+      "text": "jaise mujhe kisi ne help ki thi waise main bhi naye logon ki karunga",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-helpOffer-19",
+      "lang": "hi",
+      "role": "worker",
+      "text": "kya main naye logon ki madad kar sakti hoon",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-helpOffer-20",
+      "lang": "hi",
+      "role": "worker",
+      "text": "hindi bolne wale naye logon ko main sambhal lunga",
+      "intent": "helpOffer",
+      "source": "miss"
+    }
+  ]
+}

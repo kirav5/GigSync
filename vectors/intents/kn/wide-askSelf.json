@@ -1,0 +1,152 @@
+{
+  "cases": [
+    {
+      "id": "kn-askSelf-03",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಮೇಡ್ ರಜೆ ಬಗ್ಗೆ ನಾನು ಏನು ಹೇಳಿದ್ದೆ?",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "kn-askSelf-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಕೋರಮಂಗಲ ಮೇಡಂ ಮನೆ ಕೀ ಎಲ್ಲಿರುತ್ತೆ ಅಂತ ಬರ್ಕೊಂಡಿದ್ದೆ?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kn-askSelf-05",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಪೇಂಟರ್‌ಗೆ ಎಷ್ಟು ಅಡ್ವಾನ್ಸ್ ಕೊಟ್ಟಿದ್ದೆ ಅಂತ ನೋಟ್ ಮಾಡಿದ್ನಲ್ಲ, ಎಷ್ಟು?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kn-askSelf-06",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "ಯಾವ ಮನೆಯವರು ಈರುಳ್ಳಿ ತಿನ್ನಲ್ಲ ಅಂತ ಹೇಳಿದ್ದೆ",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kn-askSelf-07",
+      "lang": "kn",
+      "role": "household",
+      "text": "ನನ್ನ ಟಿಪ್ಪಣಿಗಳಲ್ಲಿ ವಿದ್ಯುತ್ ಬಿಲ್ ದಿನಾಂಕ ಏನೆಂದು ಬರೆದಿದ್ದೇನೆ?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kn-askSelf-08",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಾಳೆ ಎಲ್ಲಿಗೆ ಹೋಗ್ಬೇಕು ಅಂತ ಹೇಳಿದ್ದೆ ನೆನಪಿದೆಯಾ",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kn-askSelf-09",
+      "lang": "kn",
+      "role": "household",
+      "text": "ನನ್ನ ನೋಟ್ಸ್ ಎಲ್ಲಾ ತೋರಿಸು",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kn-askSelf-10",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಲಕ್ಷ್ಮಿ", "ರಾಜು"],
+      "text": "ಲಕ್ಷ್ಮಿ ಅಕ್ಕನಿಗೆ ಎಷ್ಟು ಸಾಲ ಕೊಟ್ಟಿದ್ದೆ ಅಂತ ಬರ್ಕೊಂಡಿದ್ದೆ",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "kn-askSelf-11",
+      "lang": "kn",
+      "role": "household",
+      "text": "ವಾಟರ್ ಫಿಲ್ಟರ್ ಸರ್ವಿಸ್ ಯಾವಾಗ ಅಂತ ನೋಟ್ ಮಾಡಿದ್ದೆ",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "kn-askSelf-12",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಹೋದ ಸಲ ಪ್ಲಂಬರ್ ಏನು ರಿಪೇರಿ ಮಾಡಿದ್ದ ಅಂತ ನಾನು ಬರೆದಿದ್ನಾ",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kn-askSelf-13",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["plumber"],
+      "text": "ಜಯನಗರ ಸೈಟ್‌ಗೆ ಏನೇನು ಸಾಮಾನು ಬೇಕು ಅಂತ ಹೇಳಿದ್ದೆ",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kn-askSelf-14",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಮಗನ ಫೀಸ್ ಡೇಟ್ ಏನು ಅಂತ ಸೇವ್ ಮಾಡಿದ್ದೆ",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kn-askSelf-15",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೋದ ವಾರ ನಾನು ಏನೇನು ನೋಟ್ ಮಾಡಿದ್ದೆ",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kn-askSelf-16",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಯಾರ ಹತ್ರ ದುಡ್ಡು ಬರ್ಬೇಕು ಅಂತ ಬರ್ಕೊಂಡಿದ್ದೆ",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kn-askSelf-17",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಎಲೆಕ್ಟ್ರಿಷಿಯನ್ ಬಗ್ಗೆ ಏನಾದ್ರೂ ಬರ್ಕೊಂಡಿದ್ದೀನಾ",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kn-askSelf-18",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಅಡುಗೆಯವರ ಸಂಬಳ ಎಷ್ಟು ಅಂತ ನಾನು ನೋಟ್ ಮಾಡಿದ್ದೆ",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kn-askSelf-19",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["driver"],
+      "text": "ಕಾರ್ ಸರ್ವಿಸ್ ಎಷ್ಟು ಕಿಲೋಮೀಟರ್‌ಗೆ ಅಂತ ಹೇಳಿದ್ದೆ ನಾನು",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kn-askSelf-20",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಗ್ಯಾಸ್ ಸಿಲಿಂಡರ್ ಕೊನೆಯ ಸಲ ಯಾವಾಗ ಬುಕ್ ಮಾಡಿದ್ದೆ",
+      "intent": "askSelf",
+      "source": "list"
+    }
+  ]
+}

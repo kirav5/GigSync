@@ -25,7 +25,7 @@
       "text": "ಅಡುಗೆಮನೆ ನಲ್ಲಿ ಸೋರ್ತಿದೆ, ಯಾರಾದ್ರೂ ಬರ್ತಾರಾ?",
       "intent": "find",
       "slots": { "trade": "plumber" },
-      "source": "list"
+      "source": "miss"
     },
     {
       "id": "kn-find-05",
@@ -34,7 +34,7 @@
       "text": "naale electrician beku, Jayanagar ge",
       "intent": "find",
       "slots": { "trade": "electrician", "area": "jayanagar" },
-      "source": "list"
+      "source": "miss"
     },
     {
       "id": "kn-remember-01",
@@ -43,7 +43,7 @@
       "text": "ನೆನಪಿಡು, ಶುಕ್ರವಾರ ಗ್ಯಾಸ್ ಬರುತ್ತೆ",
       "intent": "remember",
       "slots": { "note": "ಶುಕ್ರವಾರ ಗ್ಯಾಸ್ ಬರುತ್ತೆ" },
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "kn-remember-02",
@@ -52,7 +52,7 @@
       "text": "ಹಾಲಿನವನಿಗೆ 5ನೇ ತಾರೀಖು ದುಡ್ಡು ಕೊಡಬೇಕು, ನೆನಪಿಡು",
       "intent": "remember",
       "slots": { "note": "ಹಾಲಿನವನಿಗೆ 5ನೇ ತಾರೀಖು ದುಡ್ಡು ಕೊಡಬೇಕು" },
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "kn-remember-03",
@@ -69,7 +69,7 @@
       "role": "household",
       "text": "ಗ್ಯಾಸ್ ಬಗ್ಗೆ ನಾನು ಏನು ಬರೆದಿದ್ದೆ?",
       "intent": "askSelf",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "kn-askSelf-02",
@@ -77,7 +77,7 @@
       "role": "household",
       "text": "ಎಸಿ ಸರ್ವಿಸ್ ಕೊನೆ ಸಲ ಯಾವಾಗ ಆಗಿತ್ತು?",
       "intent": "askSelf",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "kn-askContact-01",
@@ -119,8 +119,22 @@
       "slots": { "contact": "Ravi" },
       "source": "miss"
     },
-    { "id": "kn-chat-05", "lang": "kn", "role": "worker", "text": "ನಮಸ್ಕಾರ", "intent": "chat", "source": "list" },
-    { "id": "kn-chat-06", "lang": "kn", "role": "household", "text": "ಧನ್ಯವಾದಗಳು", "intent": "chat", "source": "miss" },
+    {
+      "id": "kn-chat-05",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಮಸ್ಕಾರ",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-06",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಧನ್ಯವಾದಗಳು",
+      "intent": "chat",
+      "source": "list"
+    },
     {
       "id": "kn-chat-07",
       "lang": "kn",
@@ -135,7 +149,7 @@
       "role": "household",
       "text": "ಎಲೆಕ್ಟ್ರಿಷಿಯನ್ ಬಂದು ಎಲ್ಲಾ ಸರಿ ಮಾಡಿದ",
       "intent": "chat",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "kn-chat-09",
@@ -143,7 +157,7 @@
       "role": "household",
       "text": "namskara, hegiddira?",
       "intent": "chat",
-      "source": "miss"
+      "source": "list"
     }
   ]
 }

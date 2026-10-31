@@ -1,0 +1,160 @@
+{
+  "cases": [
+    {
+      "id": "en-remember-04",
+      "lang": "en",
+      "role": "worker",
+      "text": "note down that HSR madam pays on 7th of every month",
+      "intent": "remember",
+      "slots": { "note": "HSR madam pays on 7th of every month" },
+      "source": "list"
+    },
+    {
+      "id": "en-remember-05",
+      "lang": "en",
+      "role": "household",
+      "text": "remember plumber Ganesh number is with watchman",
+      "intent": "remember",
+      "slots": { "note": "plumber Ganesh number is with watchman" },
+      "source": "list"
+    },
+    {
+      "id": "en-remember-06",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "keep in mind 3rd floor aunty wants no onion garlic in food",
+      "intent": "remember",
+      "slots": { "note": "3rd floor aunty wants no onion garlic in food" },
+      "source": "miss"
+    },
+    {
+      "id": "en-remember-07",
+      "lang": "en",
+      "role": "household",
+      "text": "save this: maid will take leave from 10th to 15th for village festival",
+      "intent": "remember",
+      "slots": { "note": "maid will take leave from 10th to 15th for village festival" },
+      "source": "list"
+    },
+    {
+      "id": "en-remember-08",
+      "lang": "en",
+      "role": "worker",
+      "text": "write it down sunday i am going to church so no work",
+      "intent": "remember",
+      "slots": { "note": "sunday i am going to church so no work" },
+      "source": "miss"
+    },
+    {
+      "id": "en-remember-09",
+      "lang": "en",
+      "role": "household",
+      "text": "Please make a note that the AC filter was cleaned on 28 October.",
+      "intent": "remember",
+      "slots": { "note": "the AC filter was cleaned on 28 October" },
+      "source": "miss"
+    },
+    {
+      "id": "en-remember-10",
+      "lang": "en",
+      "role": "worker",
+      "text": "rimember gate code for prestige apartment is 4521",
+      "intent": "remember",
+      "slots": { "note": "gate code for prestige apartment is 4521" },
+      "source": "miss"
+    },
+    {
+      "id": "en-remember-11",
+      "lang": "en",
+      "role": "worker",
+      "text": "the Whitefield family owes me 1500 from last month, note it",
+      "intent": "remember",
+      "slots": { "note": "the Whitefield family owes me 1500 from last month" },
+      "source": "miss"
+    },
+    {
+      "id": "en-remember-12",
+      "lang": "en",
+      "role": "household",
+      "text": "dont forget electrician said he will come back on thursday for the switch board",
+      "intent": "remember",
+      "slots": { "note": "electrician said he will come back on thursday for the switch board" },
+      "source": "miss"
+    },
+    {
+      "id": "en-remember-13",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "note: Jayanagar sir wants chapati soft, less oil",
+      "intent": "remember",
+      "slots": { "note": "Jayanagar sir wants chapati soft, less oil" },
+      "source": "list"
+    },
+    {
+      "id": "en-remember-14",
+      "lang": "en",
+      "role": "household",
+      "text": "jot down that the carpenter quoted 6000 for the shoe rack",
+      "intent": "remember",
+      "slots": { "note": "the carpenter quoted 6000 for the shoe rack" },
+      "source": "miss"
+    },
+    {
+      "id": "en-remember-15",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Lakshmi", "Ravi"],
+      "text": "remember to ask Lakshmi akka about the new house in BTM",
+      "intent": "remember",
+      "slots": { "note": "ask Lakshmi akka about the new house in BTM" },
+      "source": "list"
+    },
+    {
+      "id": "en-remember-16",
+      "lang": "en",
+      "role": "household",
+      "text": "keep this for later water tank cleaning done on 2nd november next due in feb",
+      "intent": "remember",
+      "slots": { "note": "water tank cleaning done on 2nd november next due in feb" },
+      "source": "miss"
+    },
+    {
+      "id": "en-remember-17",
+      "lang": "en",
+      "role": "worker",
+      "text": "can you remember that i have doctor appointment on friday morning",
+      "intent": "remember",
+      "slots": { "note": "i have doctor appointment on friday morning" },
+      "source": "miss"
+    },
+    {
+      "id": "en-remember-18",
+      "lang": "en",
+      "role": "household",
+      "text": "will you remember our cook's day off is wednesday?",
+      "intent": "remember",
+      "slots": { "note": "our cook's day off is wednesday" },
+      "source": "miss"
+    },
+    {
+      "id": "en-remember-19",
+      "lang": "en",
+      "role": "worker",
+      "text": "add to my notes koramangala 5th block house key is under the mat",
+      "intent": "remember",
+      "slots": { "note": "koramangala 5th block house key is under the mat" },
+      "source": "miss"
+    },
+    {
+      "id": "en-remember-20",
+      "lang": "en",
+      "role": "household",
+      "text": "remember this, driver's licence expires in january",
+      "intent": "remember",
+      "slots": { "note": "driver's licence expires in january" },
+      "source": "list"
+    }
+  ]
+}

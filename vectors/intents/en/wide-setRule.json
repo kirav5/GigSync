@@ -1,0 +1,184 @@
+{
+  "cases": [
+    {
+      "id": "en-setRule-03",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Ravi", "Anil"],
+      "text": "allow Anil to see my schedule",
+      "intent": "setRule",
+      "slots": { "contact": "Anil" },
+      "source": "list"
+    },
+    {
+      "id": "en-setRule-04",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Manjula", "Prakash"],
+      "text": "Manjula should not see my address",
+      "intent": "setRule",
+      "slots": { "contact": "Manjula" },
+      "source": "miss"
+    },
+    {
+      "id": "en-setRule-05",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Suresh", "Lakshmi"],
+      "text": "stop Suresh from asking where i am",
+      "intent": "setRule",
+      "slots": { "contact": "Suresh" },
+      "source": "list"
+    },
+    {
+      "id": "en-setRule-06",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Rekha", "Prakash"],
+      "text": "Please permit Rekha to view my availability for the coming week.",
+      "intent": "setRule",
+      "slots": { "contact": "Rekha" },
+      "source": "miss"
+    },
+    {
+      "id": "en-setRule-07",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Geetha", "Imran"],
+      "text": "geetha akka can know my location, its ok",
+      "intent": "setRule",
+      "slots": { "contact": "Geetha" },
+      "source": "miss"
+    },
+    {
+      "id": "en-setRule-08",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Salma", "Kiran"],
+      "text": "dont let kiran see my phone number",
+      "intent": "setRule",
+      "slots": { "contact": "Kiran" },
+      "source": "list"
+    },
+    {
+      "id": "en-setRule-09",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Ramesh", "Pooja"],
+      "text": "block ramesh from seeing my rates",
+      "intent": "setRule",
+      "slots": { "contact": "Ramesh" },
+      "source": "miss"
+    },
+    {
+      "id": "en-setRule-10",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Venkatesh", "Lata"],
+      "text": "Venkatesh can ask my free timings, give him access",
+      "intent": "setRule",
+      "slots": { "contact": "Venkatesh" },
+      "source": "miss"
+    },
+    {
+      "id": "en-setRule-11",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Shiva", "Meena", "Divya"],
+      "text": "only Divya should see my location nobody else",
+      "intent": "setRule",
+      "slots": { "contact": "Divya" },
+      "source": "miss"
+    },
+    {
+      "id": "en-setRule-12",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Mohan", "Deepa"],
+      "text": "remove mohan permission to see when i am home",
+      "intent": "setRule",
+      "slots": { "contact": "Mohan" },
+      "source": "miss"
+    },
+    {
+      "id": "en-setRule-13",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Basavaraj", "Asha"],
+      "text": "asha can see my earnings, she is my sister",
+      "intent": "setRule",
+      "slots": { "contact": "Asha" },
+      "source": "miss"
+    },
+    {
+      "id": "en-setRule-14",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Gopal", "Rani"],
+      "text": "Gopal should not know when we are out of town",
+      "intent": "setRule",
+      "slots": { "contact": "Gopal" },
+      "source": "miss"
+    },
+    {
+      "id": "en-setRule-15",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Nagesh", "Fatima"],
+      "text": "fatima can ask me about my work timings anytime",
+      "intent": "setRule",
+      "slots": { "contact": "Fatima" },
+      "source": "miss"
+    },
+    {
+      "id": "en-setRule-16",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Anitha", "Raju"],
+      "text": "raju is not allowed to ask about my family",
+      "intent": "setRule",
+      "slots": { "contact": "Raju" },
+      "source": "miss"
+    },
+    {
+      "id": "en-setRule-17",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Arjun", "Pooja"],
+      "text": "arjun can track me during job hours, allow it",
+      "intent": "setRule",
+      "slots": { "contact": "Arjun" },
+      "source": "miss"
+    },
+    {
+      "id": "en-setRule-18",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Kiran", "Salma"],
+      "text": "hide my flat number from Salma",
+      "intent": "setRule",
+      "slots": { "contact": "Salma" },
+      "source": "miss"
+    },
+    {
+      "id": "en-setRule-19",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Imran", "Ravi"],
+      "text": "ravi can not see my calendar from now",
+      "intent": "setRule",
+      "slots": { "contact": "Ravi" },
+      "source": "miss"
+    },
+    {
+      "id": "en-setRule-20",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Deepa", "Mohan"],
+      "text": "Deepa may see the kids pickup time, allow",
+      "intent": "setRule",
+      "slots": { "contact": "Deepa" },
+      "source": "miss"
+    }
+  ]
+}

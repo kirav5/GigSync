@@ -1,8 +1,8 @@
 import type { PluginListenerHandle } from "@capacitor/core";
 
 /**
- * Which model the web engine runs (LLD §9.1): `small` is the founders' default, Qwen2.5-0.5B-Instruct; `large`,
- * Qwen2.5-1.5B-Instruct, only when the owner chooses it in Settings on a phone that can hold it.
+ * Which model the web engine runs (LLD §9.1): `small`, Qwen3.5-0.8B, for any phone that can run one; `large`,
+ * Qwen3.5-2B, for a phone that says it has 8 GB and whose GPU can bind its embeddings. Left out, the engine picks.
  */
 export const ModelSize = { small: "small", large: "large" } as const;
 export type ModelSize = (typeof ModelSize)[keyof typeof ModelSize];
@@ -33,6 +33,7 @@ export type Unsupported = (typeof Unsupported)[keyof typeof Unsupported];
 
 /** Which model, and from where; every call takes them, so the plugin keeps no settings of its own. */
 export interface ModelOptions {
+  /** Left out: the model already on the phone, else the largest this device says it can hold (gate.ts `recommend`). */
   size?: ModelSize;
   /** Where the model files are served from instead of WebLLM's default (Hugging Face); LLD §9.1 has the layout. */
   baseUrl?: string;
@@ -45,6 +46,8 @@ export interface GenerateOptions extends ModelOptions {
   temperature?: number;
   /** Ask for one JSON object (the router's reply); the engine constrains its output to JSON. */
   json?: boolean;
+  /** With `json`, the JSON Schema the object must fit; WebLLM's grammar then holds the output to it. */
+  schema?: Readonly<Record<string, unknown>>;
 }
 
 export interface GenerateResult {
@@ -59,10 +62,11 @@ export interface GenerateResult {
 
 /** The model an engine runs or would download. */
 export interface ModelInfo {
-  /** The engine's own id, e.g. WebLLM's "Qwen2.5-0.5B-Instruct-q4f16_1-MLC". */
+  /** The engine's own id, e.g. WebLLM's "Qwen3.5-0.8B-q4f16_1-MLC". */
   id: string;
-  /** As people read it: "Qwen2.5-0.5B-Instruct". */
+  /** As people read it: "Qwen3.5-0.8B". */
   name: string;
+  size: ModelSize;
   /** What the download costs in data, rounded up. */
   downloadMb: number;
 }

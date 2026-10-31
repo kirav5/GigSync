@@ -1,0 +1,160 @@
+{
+  "cases": [
+    {
+      "id": "hinglish-remember-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "yaad rakh lena Priya madam ke ghar ki chabi watchman ke paas hai",
+      "intent": "remember",
+      "slots": { "note": "Priya madam ke ghar ki chabi watchman ke paas hai" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-remember-05",
+      "lang": "hi",
+      "role": "household",
+      "text": "note karo maid ko 3 tarikh ko 6000 dene hain",
+      "intent": "remember",
+      "slots": { "note": "maid ko 3 tarikh ko 6000 dene hain" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-remember-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "likh lo jayanagar wale sir ka floor 4th hai lift nahi h",
+      "intent": "remember",
+      "slots": { "note": "jayanagar wale sir ka floor 4th hai lift nahi h" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-remember-07",
+      "lang": "hi",
+      "role": "household",
+      "text": "yaad rakhna AC service march me hui thi",
+      "intent": "remember",
+      "slots": { "note": "AC service march me hui thi" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-remember-08",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "save kar lo sharma ji ke ghar me pyaaz lehsun nahi banana",
+      "intent": "remember",
+      "slots": { "note": "sharma ji ke ghar me pyaaz lehsun nahi banana" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-remember-09",
+      "lang": "hi",
+      "role": "household",
+      "text": "plumber ka number 98450 12345 hai yaad rakhna",
+      "intent": "remember",
+      "slots": { "note": "plumber ka number 98450 12345 hai" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-remember-10",
+      "lang": "hi",
+      "role": "worker",
+      "text": "ek baat note kar lo budhwar ko meri chutti rehti hai",
+      "intent": "remember",
+      "slots": { "note": "budhwar ko meri chutti rehti hai" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-remember-11",
+      "lang": "hi",
+      "role": "household",
+      "text": "yaad rakhna ki gas cylinder 15 tarikh ko book kiya",
+      "intent": "remember",
+      "slots": { "note": "gas cylinder 15 tarikh ko book kiya" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-remember-12",
+      "lang": "hi",
+      "role": "worker",
+      "text": "Koramangala wali didi har mahine 1 tarikh ko paisa deti hai yaad rakhna",
+      "intent": "remember",
+      "slots": { "note": "Koramangala wali didi har mahine 1 tarikh ko paisa deti hai" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-remember-13",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mujhe yaad dilana kal subah 6 baje nikalna hai",
+      "intent": "remember",
+      "slots": { "note": "kal subah 6 baje nikalna hai" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-remember-14",
+      "lang": "hi",
+      "role": "household",
+      "text": "note: maid ne 500 advance liya hai",
+      "intent": "remember",
+      "slots": { "note": "maid ne 500 advance liya hai" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-remember-15",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "yaad rakh whitefield site pe 3 switch board baaki hai",
+      "intent": "remember",
+      "slots": { "note": "whitefield site pe 3 switch board baaki hai" },
+      "source": "list"
+    },
+    {
+      "id": "hinglish-remember-16",
+      "lang": "hi",
+      "role": "household",
+      "text": "bachon ki tuition fees 10 tarikh tak deni hai likh ke rakh",
+      "intent": "remember",
+      "slots": { "note": "bachon ki tuition fees 10 tarikh tak deni hai" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-remember-17",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Anil", "Kavita"],
+      "text": "ye yaad rakhna ki Anil bhaiya ne 2000 udhaar liya hai",
+      "intent": "remember",
+      "slots": { "note": "Anil bhaiya ne 2000 udhaar liya hai" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-remember-18",
+      "lang": "hi",
+      "role": "worker",
+      "text": "kya tum yaad rakh sakte ho ki mera aadhar ki copy bag me hai",
+      "intent": "remember",
+      "slots": { "note": "mera aadhar ki copy bag me hai" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-remember-19",
+      "lang": "hi",
+      "role": "household",
+      "text": "dhyan rakhna cook ko mirchi kam daalne bola hai",
+      "intent": "remember",
+      "slots": { "note": "cook ko mirchi kam daalne bola hai" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-remember-20",
+      "lang": "hi",
+      "role": "worker",
+      "text": "note kar lo naye ghar ka kiraya 7000 hai",
+      "intent": "remember",
+      "slots": { "note": "naye ghar ka kiraya 7000 hai" },
+      "source": "list"
+    }
+  ]
+}
