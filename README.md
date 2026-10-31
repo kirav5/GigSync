@@ -1,23 +1,28 @@
 # GigSync
 
-GigSync gives a gig worker their own agent on their own phone. The agent agrees each job with the consumer's agent,
+GigSync gives a gig worker their own agent on their own phone, for their whole working life. The agent finds work
+in any mode (one-off, part-time, full-time placement, platform shifts), agrees each job with the consumer's agent,
 holds back their number and address until both sides sign, and keeps a signed record of every job and payment
-that belongs to them. The worker chooses what a union, a wage helpline or a welfare board sees. It works with no model
-at all; a small offline model, on the device, only helps with wording. One codebase runs on Android, iPhone and
-Mac, and the web.
+that belongs to them. When the worker moves to a new city it lands them there: a vouched partner bed, a circle of
+workers from their region run by their union, e-Shram and state-board registration, and the documents they need.
+The worker chooses what a union, a wage helpline, a welfare board or a partner sees. It works with no model at
+all; a small offline model, on the device, only helps with wording. One codebase runs on Android, iPhone and Mac,
+and the web.
 
-Status: **G0, design.** Start with the [HLD](docs/gigsync/HLD.md) and [LLD](docs/gigsync/LLD.md), then
-[ADR 0009](docs/adr/0009-one-offline-model-plugin-not-tilekit.md) (the offline model) and
-[ADR 0010](docs/adr/0010-no-cloud-model-in-gigsync.md) (no cloud model). GigSync is a working name.
+Status: **G0, design; G1 in review.** Start with [VISION.md](docs/gigsync/VISION.md), then the
+[HLD](docs/gigsync/HLD.md) and [LLD](docs/gigsync/LLD.md), then [ROADMAP.md](docs/gigsync/ROADMAP.md) (merge
+order, phases, risks). The decisions are in [docs/adr](docs/adr); start with
+[ADR 0014](https://github.com/kirav5/GigSync/pull/8) (agent-to-agent jobs, in PR #8) and ADRs 0016–0020 (landing,
+circles, work modes, registration, no ratings). The market research behind the vision is in
+`reports/India gig worker benefits and GigSync fit.md`. GigSync is a working name.
 
-GigSync is derived from [collabai.network](https://github.com/kirav5/collabai.network) (git remote `upstream`),
-renamed throughout (`@gigsync/*`, `gigsync-*` Workers, app id `app.gigsync`). It reuses Collab's agent core,
-protocol, mailbox, policy engine and offline model plugin; the code below is still Collab's M0 foundation, and
-the GigSync features in the HLD/LLD are planned. The pilot runs on `gigsync.network`: the app on
-`gigsync.network` and `www.`, the API on `api.gigsync.network`.
+On `main` the code is the M0 foundation (agent core, protocol, mailbox, policy engine and offline model plugin) with
+the agent-to-agent job flow ([#11](https://github.com/kirav5/GigSync/pull/11)) on the Neon directory
+([#7](https://github.com/kirav5/GigSync/pull/7)). The pilot runs on `gigsync.network`: the app on `gigsync.network` and
+`www.`, the API on `api.gigsync.network`.
 
-The skeleton builds, tests and deploys end to end. See also [docs/design.md](docs/design.md) (Collab's design) and
-the decisions in [docs/adr](docs/adr).
+The skeleton builds, tests and deploys end to end. Nothing in GigSync calls a cloud model: the only models are
+small, open ones that run on the phone, and the app works with none installed.
 
 ## Layout
 
@@ -137,14 +142,15 @@ ollama serve
 In another terminal:
 
 ```bash
-ollama pull gemma3:1b
+ollama pull qwen2.5:1.5b
 ```
 
 ```bash
-echo VITE_OLLAMA_MODEL=gemma3:1b > apps/mobile/.env.development.local
+echo VITE_OLLAMA_MODEL=qwen2.5:1.5b > apps/mobile/.env.development.local
 ```
 
-Restart `pnpm dev:app`; the header shows `ollama gemma3:1b`.
+Restart `pnpm dev:app`; the header shows `ollama qwen2.5:1.5b`. Any small open model Ollama can pull works; the
+release builds never include Ollama or any model that is not on the device.
 
 ## Logs
 
@@ -216,6 +222,6 @@ Secrets to add in the repository settings when ready: `CLOUDFLARE_API_TOKEN`, `C
 - Sessions: opaque tokens in D1; signed tokens later.
 - Envelope signatures are not yet verified by the API (M2), and sealing is a placeholder until libsignal is wired in.
 - The LLM plugin returns "no model" on every platform; the agent runs in lite mode (keyword router, note search).
-- Public records go to the user's Bluesky repository (ADR 0005); every user connects a Bluesky account at onboarding (ADR 0006), arriving with M3.
+- Public records on Bluesky (ADR 0005) are optional, from Settings; the board in PR #8 is the discovery path (ADR 0018).
 
 No license yet.

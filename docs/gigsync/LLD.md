@@ -1,140 +1,205 @@
 # GigSync — Low-Level Design (LLD)
 
-> Status: **draft v0.2, 25 Oct 2026.** Read [HLD.md](HLD.md) first. The codebase is renamed from Collab to
-> GigSync (`@gigsync/*`); §14 lists what changed. "Exists" marks code already in this repo (inherited from
-> collabai.network); everything else is planned.
+> Status: **v1.0, 28 Oct 2026.** Read [VISION.md](VISION.md) and [HLD.md](HLD.md) first. States: **built**
+> (merged on `main` or in [#7](https://github.com/kirav5/GigSync/pull/7), [#8](https://github.com/kirav5/GigSync/pull/8),
+> [#5](https://github.com/kirav5/GigSync/pull/5)), **extended** (built, with additions here) and **planned**.
+> Code follows `.claude/skills/code-quality` (files under 300 lines, schemas only in `packages/protocol`, named
+> values, bound SQL, numbered migrations, `pii()` logging).
 
 ## 1. Repository layout
 
 ```text
 GigSync/
-├─ apps/
-│  └─ mobile/              @gigsync/mobile     Capacitor app: Android, iPhone/Mac, web;         exists
-│                                              worker, consumer and union modes
+├─ apps/mobile/            @gigsync/mobile     Capacitor app: Android, iPhone/Mac, web; worker, consumer, union   built, extended
 ├─ packages/
-│  ├─ protocol/            @gigsync/protocol   zod schemas, canonical JSON, test vectors         exists, extended
-│  ├─ core/                @gigsync/core       agent: router, experts, job machine, policy,      exists, extended
-│  │                                          sanitizer, ledger, mail, export
-│  └─ crypto/              @gigsync/crypto     seal/open, sign/verify, terms hash, blind keys    planned
+│  ├─ protocol/            @gigsync/protocol   zod schemas, canonical JSON, test vectors                          built, extended
+│  ├─ crypto/              @gigsync/crypto     seal/open, sign/verify, terms hash; blind, backup, content keys    built, extended
+│  └─ core/                @gigsync/core       discovery, jobs, policy + edge check, ledger, schedule, exports,   built, extended
+│                                              landing, registration, circles, safety, notices, mail
 ├─ plugins/
-│  ├─ gigsync-llm/         @gigsync/plugin-llm offline model: LiteRT-LM (Android), Apple     exists (stubs)
-│  │                                          Foundation Models (iPhone/Mac), web engine
-│  ├─ gigsync-speech/      IndicConformer ASR + IndicTrans2 MT via ONNX Runtime / LiteRT         planned
-│  └─ gigsync-store/       SQLCipher + Keystore/Keychain; encrypted IndexedDB on web              planned
+│  ├─ gigsync-llm/         offline model: LiteRT-LM, Apple Foundation Models, in-browser engine (WebGPU)         built (stubs)
+│  ├─ gigsync-speech/      Indic ASR + translation via ONNX Runtime                                              planned (G3)
+│  ├─ gigsync-store/       SQLCipher + Keystore/Keychain; encrypted IndexedDB on web                             planned (G1b)
+│  └─ gigsync-upi/         UPI result + SMS consent (ADR 0012)                                                   planned
 ├─ workers/
-│  ├─ api/                 Hono API: auth, directory, mailbox front door                          exists
-│  ├─ mailbox/             Mailbox Durable Object                                                 exists
-│  ├─ notifier/            Queue consumer → FCM                                                    planned
-│  ├─ board/               Job board (public profiles, open jobs)                                 planned (from workers/index)
-│  └─ ondc-relay/          ONDC BAP/BPP bridge                                                     spike
-├─ android-responder/      Kotlin background responder (FCM-woken)                                planned
-├─ infra/postgres/        Directory migrations (Neon Postgres, ADR 0013)                          exists
-└─ docs/{gigsync,adr}/     HLD, LLD, ADRs
+│  ├─ api/                 Hono: auth, directory, board, postings, mail, unions, partners, circles, signers, notices  built, extended
+│  ├─ mailbox/             Mailbox Durable Object: envelopes, seen, holds                                         built, extended
+│  ├─ notifier/            Queue consumer → FCM                                                                   planned (G4)
+│  ├─ wa-gateway/          WhatsApp templates + menu bot, SMS fallback, one-time links (ADR 0021)                  planned (G2)
+│  ├─ content/             signed city packs on R2                                                               planned (G3)
+│  └─ index/               Jetstream ingester (inherited)                                                        retired (ADR 0018)
+├─ android-responder/      Kotlin background responder (FCM-woken); safety timers                                planned (G4)
+├─ infra/postgres/         directory, board, unions, partners, circles, signers migrations (Neon, ADR 0013)      built, extended
+├─ tests/e2e, tests/ui     two-phone journeys against the API; Playwright screens                                built (PR #8)
+└─ docs/{gigsync,adr}/     VISION, HLD, LLD, ROADMAP, REVENUE, ADRs
 ```
 
-Dependency rule: `protocol` ← `crypto` ← `core` ← (`mobile`, workers). `core` imports nothing from
-Capacitor, the browser or Workers; platforms implement its ports.
+Dependency rule: `protocol` ← `crypto` ← `core` ← (`mobile`, workers). `core` imports nothing from Capacitor,
+the browser or Workers; platforms implement its ports.
 
 ## 2. Protocol (`packages/protocol`)
 
-All schemas are zod; every wire object is signed over `canonicalJson()` (exists in `envelope.ts`).
+All schemas are zod; every wire object is signed over `canonicalJson()`. Enumerations are zod enums and are
+referred to by name in code (`Topic.enum.contact`).
 
-### 2.1 IDs (`ids.ts`, extended)
+### 2.1 IDs (`ids.ts`)
 
-`<prefix>_<ULID>`. Existing: `usr`, `dev`, `msg`, `eng`, `chn`, `grt`. New:
+`<prefix>_<ULID>`. Built: `usr`, `dev`, `msg`, `eng`, `chn`, `grt`, `off`, `pay`, `ses`. Added:
 
-| Prefix | Type              | Meaning                                  |
-| ------ | ----------------- | ---------------------------------------- |
-| `job`  | `JobId`           | A job (replaces `eng` for GigSync flows) |
-| `agr`  | `AgreementId`     | One signed version of terms              |
-| `rcp`  | `ReceiptId`       | A visit or payment receipt               |
-| `evp`  | `EvidencePackId`  | An evidence pack                         |
-| `flg`  | `FlagId`          | A union "do not accept" flag             |
-| `wrk`  | `WorkerProfileId` | Local profile in shared-phone mode       |
+| Prefix | Type              | Meaning                                                                                      |
+| ------ | ----------------- | -------------------------------------------------------------------------------------------- |
+| `agr`  | `AgreementId`     | One signed version of terms                                                                  |
+| `rcp`  | `ReceiptId`       | Any receipt (visit, stage, payment, shift, mentor, partner, registration, sos, verification) |
+| `evp`  | `EvidencePackId`  | An evidence pack                                                                             |
+| `flg`  | `FlagId`          | A union "do not accept" flag                                                                 |
+| `wrk`  | `WorkerProfileId` | Local profile in shared-phone mode                                                           |
+| `lnd`  | `LandingId`       | One move                                                                                     |
+| `ptn`  | `PartnerId`       | A partner in the registry                                                                    |
+| `hnd`  | `HandoverId`      | One consented handover                                                                       |
+| `cir`  | `CircleId`        | A union circle                                                                               |
+| `pst`  | `PostId`          | A circle post, landing request or board posting                                              |
+| `reg`  | `RegistrationId`  | A registry id the worker obtained                                                            |
+| `ntc`  | `NoticeId`        | A WhatsApp or SMS notice                                                                     |
+| `tok`  | `TokenId`         | A one-time signer token (stored hashed)                                                      |
 
-### 2.2 Envelope (`envelope.ts`, exists; kinds extended)
+### 2.2 Envelope (`envelope.ts`, built; kinds extended)
 
 Built as in [ADR 0014](../adr/0014-agent-to-agent-jobs.md): the kinds are `quote`/`counter`/`agree`/`contact_release` rather
 than the `job_*` names below, and the envelope carries `epk` and the per-device `keys` map.
 
 ```ts
 EnvelopeHeader = { v: 1, id: MsgId, from: { user: UserId, device: DeviceId }, to: { user: UserId },
-  engagement: JobId | EngagementId, seq: number, kind: EnvelopeKind, sent_at: ISO, expires_at: ISO, hop: 0..3 }
-Envelope = { header: EnvelopeHeader, ciphertext: base64url, keys: { [device: DeviceId]: base64url }, sig: base64url }
+  engagement: EngagementId, seq: number, kind: EnvelopeKind, sent_at: ISO, expires_at: ISO, hop: 0..3 }
+Envelope = { header, ciphertext: base64url, epk: base64url, keys: { [device: DeviceId]: base64url }, sig: base64url }
 ```
 
-`EnvelopeKind` = existing `request | clarify | response | quote | agree | update | delivery | review | cancel |
-receipt | key_change` **plus** `job_request | job_offer | job_counter | contact_release | contact_revoke |
-evidence_pack | flag_publish | flag_withdraw`.
+Built kinds (ADR 0014): `request | clarify | response | quote | counter | agree | contact_release | update |
+delivery | cancel | receipt | key_change | payment_request | payment_record`. Removed: `review` (ADR 0020).
+Added, with TTLs:
 
-TTL: `job_request` 24 h, `job_offer`/`job_counter` 24 h, `agree` 7 d, `receipt` 7 d, `evidence_pack` 7 d.
+| Kind                                                                 | Direction                   | Body             | TTL  |
+| -------------------------------------------------------------------- | --------------------------- | ---------------- | ---- |
+| `contact_revoke`                                                     | either → other              | `{ terms_hash }` | 7 d  |
+| `worked_together`                                                    | either → other, countersign | §2.4             | 7 d  |
+| `stage_done` / `stage_accepted` / `stage_disputed`                   | worker ↔ consumer           | §2.3a            | 7 d  |
+| `evidence_pack`                                                      | worker → receiver           | §2.6             | 7 d  |
+| `flag_publish` / `flag_withdraw`                                     | union → members             | §2.7             | 30 d |
+| `circle_post` / `landing_request` / `mentor_offer` / `mentor_accept` | circle members              | §2.12            | 7 d  |
+| `handover` / `partner_receipt`                                       | worker ↔ partner            | §2.11            | 7 d  |
+| `safety_note` / `sos`                                                | worker → chosen contacts    | §2.15            | 1 d  |
+| `interest`                                                           | worker → poster (postings)  | §2.8             | 7 d  |
 
-### 2.3 Job terms and agreement (`job.ts`, new)
+The engagement id is the conversation key for circles (one per circle thread), handovers (one per handover),
+mentorships (one per pair) and safety notes (one per job), so the mailbox, `seq` gap holding and TTL purge are
+unchanged.
+
+### 2.3 Job bodies and terms (`job.ts`, built; extended by ADR 0018 and 0022)
+
+Built: `Trade`, `Place`, `JobRequest`, `Clarify`, `Answers`, `Offer`, `JobTerms`, `Agree`, `ContactCard`,
+`ContactRelease`, `Cancel`, `Note`, `BODY`, `MAX_ROUNDS = 5`, `MAX_QUESTIONS = 5`. Extended:
 
 ```ts
-Category = z.enum([
-  "domestic",
-  "cooking",
-  "cleaning",
-  "childcare",
-  "eldercare",
-  "beauty",
-  "home_repair",
-  "delivery",
-  "ride",
-  "construction",
-  "piecework",
-]);
-Money = z.object({ paise: z.number().int().nonnegative() }); // integers only, never floats
-Schedule = z.object({
-  days: z.array(z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"])).min(1),
-  start_hour: z.number().int().min(0).max(23),
-  end_hour: z.number().int().min(1).max(24),
-  weekly_off: z.array(DayOfWeek).default([]),
-});
+Trade = z.enum(["electrician","plumber","maid","carpenter","ac_technician","painter","cook","driver",
+  "cleaner","childcare","eldercare","beautician","delivery","rider","construction","piecework"]);
+WorkMode = z.enum(["one_off","part_time","full_time","platform_shift"]);
+Day = z.enum(["mon","tue","wed","thu","fri","sat","sun"]);
+Schedule = z.object({ days: z.array(Day).min(1), start_hour: z.number().int().min(0).max(23),
+  end_hour: z.number().int().min(1).max(24), weekly_off: z.array(Day).default([]), break_minutes: z.number().int().min(0).default(0) });
 Rate = z.discriminatedUnion("unit", [
-  z.object({ unit: z.literal("hour"), amount: Money }),
-  z.object({ unit: z.literal("visit"), amount: Money }),
-  z.object({ unit: z.literal("month"), amount: Money, paid_leave_days: z.number().int().min(0) }),
-  z.object({ unit: z.literal("piece"), amount: Money, piece: z.string().max(40) }),
+  z.object({ unit: z.literal("visit"), amount_paise: Paise }),
+  z.object({ unit: z.literal("hour"),  amount_paise: Paise }),
+  z.object({ unit: z.literal("month"), amount_paise: Paise, paid_leave_days: z.number().int().min(0).max(31) }),
+  z.object({ unit: z.literal("piece"), amount_paise: Paise, piece: z.string().max(40) }),
 ]);
+/** The time the agreement occupies; the slot key for holds is HMAC(worker key, canonical Slot). */
+Slot = z.object({ start: ISO, end: ISO, recurring: Schedule.optional() });
+JobRequest += { mode: WorkMode.default("one_off"), tier_required: z.number().int().min(0).max(3).default(0) };
+Offer += { slot_range: Slot, schedule_of_payment: z.array(Stage).optional() };
+// Superset of the Karnataka draft Domestic Workers Bill model agreement plus the terms instant-help workers dispute.
 JobTerms = z.object({
-  category: Category,
-  area: Area /* geohash g5 until agreed */,
-  schedule: Schedule,
-  rate: Rate,
-  start_date: ISODate,
-  end_date: ISODate.optional(),
-  notice_days: z.number().int().min(0).default(7),
-  payment_mode: z.enum(["cash", "upi", "bank"]),
-  payment_day: z.number().int().min(1).max(31).optional(),
-  extras: z.array(z.string().max(80)).max(10).default([]), // free text, sanitized
+  engagement, offer_id, worker, consumer, trade, scope, slot: z.string().max(100), price_paise,   // built
+  slot_range: Slot,
+  mode: WorkMode.default("one_off"),
+  schedule: Schedule.optional(),                     // required for part_time and full_time
+  rate: Rate.optional(),                             // defaults to { unit: "visit", amount_paise: price_paise }
+  duties: z.array(z.string().max(80)).max(10).default([]),
+  start_date: ISODate.optional(), end_date: ISODate.optional(),
+  notice_days: z.number().int().min(0).max(90).default(7),
+  leave_days_per_month: z.number().int().min(0).max(31).optional(),
+  absence_fine_paise: z.literal(0).default(0),       // fines are not a term GigSync carries
+  waiting_paid: z.boolean().default(true),
+  facilities: z.array(z.enum(["toilet","kitchen","drinking_water","rest"])).default([]),
+  refusal_right: z.literal(true).default(true),
+  payment_mode: z.enum(["upi","cash","bank"]).default("upi"), payment_day: z.number().int().min(1).max(31).optional(),
+  schedule_of_payment: z.array(Stage).min(1).max(12), // §2.3a; default: one handover stage of 100%
+  worker_tier: z.number().int().min(0).max(3), consumer_tier: z.number().int().min(0).max(3), // as shown when signed
 });
-Agreement = z.object({
-  id: AgreementId,
-  job: JobId,
-  terms: JobTerms,
-  terms_hash: Hex32, // sha256(canonicalJson(terms))
-  worker: UserId,
-  consumer: UserId,
-  supersedes: AgreementId.optional(),
-  sigs: z.object({ worker: Sig, consumer: Sig }), // each over terms_hash||job||id
-  agreed_at: ISO,
-});
+TermsHash = sha256 hex of canonicalJson(JobTerms)    // built
+ContactCard += { aadhaar_last4: z.string().regex(/^\d{4}$/).optional() };
 ```
 
-### 2.4 Receipts (`receipt.ts`, new)
+### 2.3a Payment schedule (`schedule.ts`, planned, ADR 0022)
 
 ```ts
+StageTrigger = z.enum(["advance", "day_end", "checkpoint", "handover", "timer"]);
+StageEvidence = z.enum(["none", "photo", "materials_receipt", "walkthrough", "checkout"]);
+Stage = z.object({
+  key: z.string().regex(/^[a-z][a-z0-9_]{0,31}$/),
+  label: z.string().max(60),
+  trigger: StageTrigger,
+  share_bps: z.number().int().min(1).max(10000).optional(),
+  amount_paise: Paise.optional(), // exactly one
+  evidence: StageEvidence.default("none"),
+  accept_within_hours: z.number().int().min(1).max(168).default(24),
+  day: z.number().int().min(1).optional(),
+});
+// Invariants (vectors/schedule.json): shares sum to 10000 or amounts to the price; ≤ 1 advance, ≤ 3500 bps unless the
+// worker's rule allows more; day_end stages need a Schedule; keys unique.
+StageDone = { stage: key, at: ISO, photo: Sha256.optional(), note: z.string().max(280).optional() };
+StageAccepted = { stage: key, at: ISO, by: z.enum(["consumer", "timer"]) };
+StageDisputed = {
+  stage: key,
+  at: ISO,
+  reason: z.enum(["not_done", "not_as_agreed", "damage", "other"]),
+  note: z.string().max(500),
+};
+```
+
+### 2.4 Receipts (`receipt.ts`, planned)
+
+```ts
+ReceiptType = z.enum([
+  "check_in",
+  "check_out",
+  "payment",
+  "leave",
+  "absence",
+  "deduction",
+  "platform_shift",
+  "worked_together",
+  "mentor",
+  "partner",
+  "registration",
+  "stage_done",
+  "stage_accepted",
+  "stage_disputed",
+  "materials",
+  "sos",
+  "safety_note",
+  "verification",
+]);
 Receipt = z.object({
   id: ReceiptId,
-  job: JobId,
-  agreement: AgreementId,
-  type: z.enum(["check_in", "check_out", "payment", "leave", "absence", "deduction"]),
+  engagement: EngagementId.optional(),
+  agreement: AgreementId.optional(),
+  type: ReceiptType,
   at: ISO,
-  amount: Money.optional(),
-  note: z.string().max(280).optional(), // sanitized before signing
-  prev: Hex32, // hash of previous ledger entry
+  amount_paise: Paise.optional(),
+  hours: z.number().min(0).max(24).optional(),
+  platform: z.string().max(40).optional(),
+  attachment: Sha256.optional(),
+  note: z.string().max(280).optional(),
+  prev: Hex32,
   issuer: UserId,
   sig: Sig,
   countersig: Sig.optional(),
@@ -142,169 +207,260 @@ Receipt = z.object({
 });
 ```
 
-### 2.4a Payments (`payment.ts`, exists)
+`platform_shift`, `registration`, `verification`, `sos` and most `partner` receipts are unilateral by nature and
+export with `unilateral: true`.
 
-A job is an engagement (`eng_`); the consumer is `requester`, the worker `provider`. Payments hang off it.
+### 2.4a Payments (`payment.ts`, built; extended)
+
+Unchanged: `Vpa`, `Paise` (≤ ₹1,00,000 per request), `PaymentMethod`, `PaymentStatus`
+(`requested → paid → confirmed | disputed`), `PaymentRequest`, `PaymentRecord`, `Payment.evidence[]` (ADR 0012).
+Extended: `PaymentRequest.stage` (the stage key, also in the UPI `tn` and `tr`); a stage over ₹1 lakh becomes
+several requests with `part: n/m`. Only the payer records `paid`; only the payee confirms or disputes (built).
+
+### 2.5 Grants (`grant.ts`, built; topics extended)
+
+`Topic` gains `contact`, `rate`, `ledger`, `safety`, `circle`, `handover`, `sos`.
 
 ```ts
-Vpa = z.string().regex(/^[A-Za-z0-9._-]{2,256}@[A-Za-z][A-Za-z0-9]{1,63}$/); // UPI ID, e.g. name@bank
-Paise = z.number().int().positive().max(UPI_MAX_PAISE); // ₹1,00,000 per UPI payment
-PaymentMethod = z.enum(["upi", "cash"]);
-PaymentStatus = z.enum(["requested", "paid", "confirmed", "disputed"]);
-PaymentRequest = z.object({
-  id: PaymentId /* pay_ */,
-  engagement: EngagementId,
-  payee: UserId,
-  payer: UserId,
-  amount_paise: Paise,
-  note: z.string().max(50),
-  payee_vpa: Vpa,
-  payee_name: z.string().max(40),
-  requested_at: ISO,
-});
-Payment = z.object({
-  id: PaymentId,
-  engagement: EngagementId,
-  payee: UserId,
-  payer: UserId,
-  amount_paise: Paise,
-  method: PaymentMethod,
-  status: PaymentStatus,
-  utr: Utr.optional() /* 12-digit UPI ref */,
-  note,
-  requested_at: ISO.optional(),
-  paid_at: ISO.optional(),
-  confirmed_at: ISO.optional(),
-});
+ContactGrant  = Grant.extend({ topic: "contact", fields: ["name"|"phone"|"address"|"aadhaar_last4"][], engagement,
+  opens_on: "agreement", closes_on: "job_end"|"date", closes_at? });                       // hard cap 90 d
+CircleGrant   = ContactGrant.extend({ topic: "circle", closes_on: "date" });               // 30 d, renewable
+HandoverGrant = Grant.extend({ topic: "handover", partner: PartnerId, fields: HandoverField[], closes_at });   // ≤ 30 d
+SosGrant      = Grant.extend({ topic: "sos", contacts: z.array(UserId | Phone).max(5), fields: ["address","household_name"],
+  trigger: z.enum(["missed_twice","manual","duress"]) });                                  // set by the worker in advance
 ```
 
-Envelope kinds `payment_request` (worker → consumer) and `payment_record` (consumer → worker: "paid", UTR) are
-sealed like every other envelope. They do not move the engagement's status. The worker's own `Payment` record
-never stores their UPI ID; it lives once in their settings on the phone.
-
-### 2.5 Grants (`grant.ts`, exists; topics extended)
-
-`Topic` gains `contact`, `rate`, `ledger`, `safety`. `Precision` unchanged (city → exact). New `ContactGrant`:
+### 2.6 Evidence packs and exports (`evidence.ts`, planned)
 
 ```ts
-ContactGrant = Grant.extend({
-  topic: z.literal("contact"),
-  fields: z.array(z.enum(["name", "phone", "address", "aadhaar_last4"])).min(1),
-  job: JobId,
-  opens_on: z.literal("agreement"),
-  closes_on: z.enum(["job_end", "date"]),
-  closes_at: ISO.optional(),
-});
+Scope = z.enum(["full","wage_claim","welfare","ipgrs","lender","flag_only"]);
+EvidencePack = { id, v: 1, worker, receiver: UserId | "file", scope, created_at, period: { from, to },
+  agreements: Agreement[], receipts: Receipt[],
+  summary: { days_worked, earned_paise, paid_paise, owed_paise, countersigned_share: 0..1 },
+  registrations: Registration[], intake: { name, address, mobile, description }.optional(), notes: { at, text }[], sig };
 ```
 
-### 2.6 Evidence packs and exports (`evidence.ts`, new)
+| Field         | full |          wage_claim           |           welfare            |       ipgrs        |               lender                | flag_only |
+| ------------- | :--: | :---------------------------: | :--------------------------: | :----------------: | :---------------------------------: | :-------: |
+| agreements    |  ✓   |               ✓               |              —               |         ✓          |                  —                  |     —     |
+| receipts      |  ✓   | payment, check_in/out, stages | check_in/out, platform_shift | all for the period |                  —                  |     —     |
+| summary       |  ✓   |               ✓               |         days, earned         |         ✓          | monthly totals, countersigned share |     —     |
+| registrations |  —   |               —               |              ✓               |         ✓          |                  —                  |     —     |
+| intake        |  —   |               —               |              —               |         ✓          |                  —                  |     —     |
+| notes         |  ✓   |               —               |              —               |     ✓ (chosen)     |                  —                  |     —     |
+| consumer id   |  ✓   |               ✓               |              —               |         ✓          |                  —                  | blind key |
+
+### 2.7 Union flags (`flag.ts`, planned)
 
 ```ts
-Scope = z.enum(["full", "wage_claim", "welfare", "flag_only"]);
-EvidencePack = z.object({
-  id: EvidencePackId,
-  v: z.literal(1),
-  worker: UserId,
-  receiver: UserId | z.literal("file"),
-  scope: Scope,
-  created_at: ISO,
-  period: z.object({ from: ISODate, to: ISODate }),
-  agreements: z.array(Agreement),
-  receipts: z.array(Receipt),
-  summary: z.object({ days_worked: z.number().int(), earned: Money, paid: Money, owed: Money }),
-  notes: z.array(z.object({ at: ISO, text: z.string().max(2000) })).default([]), // full scope only
-  sig: Sig,
-});
-```
-
-Scope projection (enforced in `core/export/project.ts`, test vectors in `vectors/export.json`):
-
-| Field       | full |      wage_claim       |   welfare    | flag_only |
-| ----------- | :--: | :-------------------: | :----------: | :-------: |
-| agreements  |  ✓   |           ✓           |      —       |     —     |
-| receipts    |  ✓   | payment, check_in/out | check_in/out |     —     |
-| summary     |  ✓   |           ✓           | days, earned |     —     |
-| notes       |  ✓   |           —           |      —       |     —     |
-| consumer id |  ✓   |           ✓           |      —       | blind key |
-
-### 2.7 Union flags (`flag.ts`, new)
-
-```ts
-Flag = z.object({
+Flag = {
   id: FlagId,
   union: UserId,
-  subject: BlindKey /* HMAC(union_key, consumer_user_id) */,
+  subject: BlindKey /* HMAC(union_key, user_id) */,
   reason_code: z.enum(["harassment", "non_payment", "unsafe", "other"]),
   issued_by: UserId,
-  issued_at: ISO,
-  expires_at: ISO,
-  sig: Sig /* issuer */,
-  union_sig: Sig /* union countersign */,
-});
+  issued_at,
+  expires_at,
+  sig,
+  union_sig,
+};
 ```
 
-Only `reason_code`, never their story, travels. The union key is shared with members' phones when they join.
+### 2.8 Board and postings (`board.ts`, built; extended)
 
-### 2.8 Public records (`records.ts`, exists; NSIDs renamed)
+Built: `BoardProfile` (display name, trades, ~1 km area, `area_name`, `rate_paise`, languages, about),
+`BoardQuery` (trade, lat, lon, radius ≤ 50 km, max rate, limit ≤ 50), `BoardWorker`, `BoardResult`. Extended:
 
-`app.gigsync.worker.profile` `{ name, categories: Category[], languages, area{g4,g5}, hours, about }`,
-`app.gigsync.job.open` `{ category, title, text, rate?, area, expiresAt }`, `app.gigsync.review` (only for a
-both-signed completed job). No phone, address or exact location is ever a public field.
+```ts
+Availability = { modes: WorkMode[] (≥1), days: Day[], from_date: ISODate.optional(), hours: HourWindow[] };
+BoardProfile += { availability: Availability, tier: 0..3 /* server-stored number only */,
+  countersigned_jobs: int /* server-counted from worked_together receipts both sides reported */ };
+BoardQuery   += { mode: WorkMode.optional(), tier_min: 0..3 default 0, available_on: ISODate.optional() };
+Posting = { id: PostId, by: UserId /* union or vouched partner */, kind: "placement"|"training"|"shift", trade, mode,
+  area: Place, area_name, rate: Rate.optional(), text ≤ 500, starts: ISODate, expires_at, sig };
+Interest = { posting: PostId, note ≤ 300 };   // worker → poster; then the normal request flow with the poster as requester
+DirectLink = { card: UserId, token: Base64 };  // a worker's QR / link; opening it starts a request to that worker
+```
 
-### 2.9 Test vectors
+Sort order is fixed in code: distance, then `available_on` match, then `from_date`. There is no score column.
 
-`vectors/policy.json` (exists) gains contact-grant and flag cases; new `vectors/terms_hash.json`,
-`vectors/export.json`, `vectors/sanitizer.json`. TS (vitest) and Kotlin (JUnit) both run them in CI.
+### 2.9 Public records (`records.ts`, optional, ADR 0018)
+
+`app.gigsync.worker.profile` and `app.gigsync.listing` for workers who connect Bluesky from Settings;
+`app.gigsync.review` removed. Nothing on the board depends on these.
+
+### 2.10 Landing (`landing.ts`, planned, ADR 0016)
+
+```ts
+LandingStep = z.enum(["planning","travelling","arrived","housed","documented","registered","working","settled"]);
+ChecklistItem = { key ≤ 40, label_key, done: boolean, done_by: "worker"|"ledger"?, done_at?, receipt?: ReceiptId };
+Landing = { id: LandingId, from_city, to_city, to_state, intended_area: Place?, arrival_week: ISOWeek, trade, mode,
+  step: LandingStep, checklist: ChecklistItem[], cash_plan?: CashPlan, created_at, updated_at };
+CashPlan = { kit_paise, deposit_paise, vehicle_per_day_paise, days_to_first_payout, bed_paise_per_month, total_needed_paise };
+```
+
+### 2.11 Partners (`partner.ts`, planned, ADR 0016)
+
+```ts
+PartnerKind = z.enum(["housing","skilling","lender","helpline","ngo","placement"]);
+Partner = { id: PartnerId, user?: UserId, name, kind, cities: CityCode[], offers: Offering[], contact_public: { phone?, url?, address? },
+  public_key?: Base64, vouches: Vouch[] (≥1 unexpired to be served) };
+Offering = { key, label, price_paise?, price_unit?: "month"|"day"|"once", rules ≤ 500, area?: Place, area_name? };
+Vouch = { union: UserId, at, until, sig };
+Handover = { id: HandoverId, partner, offering: key, fields: Record<HandoverField, string>,
+  record_summary?: { days_worked_90d, countersigned_share }, at, sig };
+PartnerReceipt = { handover, outcome: "booked"|"offered"|"declined"|"waitlist", reference ≤ 80?, amount_paise?, from?: ISODate, text ≤ 300, sig };
+```
+
+### 2.12 Circles (`circle.ts`, planned, ADR 0017)
+
+```ts
+Circle = { id: CircleId, union: UserId, steward: UserId, home_region: RegionCode|"any", city: CityCode|"any", trade: Trade|"any",
+  languages: Lang[], open: boolean, created_at };
+JoinRequest = { circle, trade, home_region, languages };
+RosterEntry = { member_blind: BlindKey, devices: { [DeviceId]: { enc: Base64 } }, mentor: boolean, joined_at };
+Roster = { circle, version: int, entries: RosterEntry[] };
+CirclePost = { id: PostId, circle, roster_version, text ≤ 500, at };          // edge-checked: no identifiers
+LandingRequest = { id: PostId, circle, trade, home_region, languages, arrival_week, intended_area: Place /* ~1 km */ };
+MentorOffer  = { request: PostId, text ≤ 300 };
+MentorAccept = { request: PostId, terms_hash: TermsHash /* sha256 of { request, mentor, newcomer, until } */ };
+```
+
+### 2.13 Registration (`registration.ts`, planned, ADR 0019)
+
+```ts
+Registry = z.enum(["eshram","ka_board","ts_board","rj_board","tn_board","jh_board","bh_board","other"]);
+Registration = { id: RegistrationId, registry, number ≤ 40, state?: StateCode, registered_at: ISODate, expires_at?: ISODate, proof?: Sha256 };
+EligibilityRule = { registry, days_one: 90, days_across: 120, fy_start_month: 4 };
+```
+
+### 2.14 City content packs (`content.ts`, planned, ADR 0016)
+
+```ts
+CityPack = { city, state, version: int, published_at, languages: Lang[], reviewed_by: UserId /* union */,
+  rest_points: Spot[], helplines: Helpline[], union_offices: Spot[], registries: RegistryInfo[],
+  document_rules: DocumentRule[] /* key, what to carry, the rule to quote, form url */,
+  going_rates: GoingRate[] /* trade, mode, p25/p50/p75 paise, n; from aggregate countersigned receipts */,
+  costs: { kit_paise?, deposit_paise?, vehicle_per_day_paise?, bed_paise_per_month? },
+  default_schedules: { trade, mode, stages: Stage[] }[], eligibility: EligibilityRule[], sig /* GigSync content key */ };
+```
+
+### 2.15 Safety (`safety.ts`, planned)
+
+```ts
+SafetyNote = { engagement, until: ISO, household_name ≤ 60 };                 // sealed to chosen contacts at check-in
+Sos = { engagement, trigger: "missed_twice"|"manual"|"duress", at: ISO, address ≤ 300, household_name ≤ 60 };  // under the SosGrant
+CheckInRule = { enabled_by_default: boolean, grace_minutes: 15, midpoint_for_jobs_over_hours: 4, duress_answer_set: boolean };
+```
+
+### 2.16 Identity tiers (`identity.ts`, planned)
+
+```ts
+Tier = z.number().int().min(0).max(3);   // 0 phone · 1 union attestation · 2 Aadhaar offline e-KYC on the phone · 3 registry confirmed by a board
+Verification = { tier: Tier, by: UserId | "uidai_offline" | "board", at: ISO, proof?: Sha256 /* on the phone only */, sig };
+TierAttestation = { subject: UserId, tier: Tier, by: UserId, at, until, sig };   // the only thing the cloud stores, as (tier, by, at)
+```
+
+### 2.17 Notices (`notice.ts`, planned, ADR 0021)
+
+```ts
+TemplateId = z.enum(["job_terms_ready","stage_to_accept","payment_due","open_gigsync","sos_contact"]);
+NoticeRequest = { template: TemplateId, to_phone_hmac, vars: z.array(z.string().max(60)).max(4), link_token?: TokenId, channel_pref: "whatsapp"|"sms" };
+SignerRegistration = { token: Base64, device: { signing_key, encryption_key }, lang: Lang };
+```
+
+### 2.18 Test vectors
+
+`vectors/policy.json` (built) gains contact, circle, handover, sos and tier cases; `vectors/terms_hash.json`
+(built); `vectors/export.json`, `vectors/edge_check.json`, `vectors/eligibility.json`, `vectors/landing.json`,
+`vectors/schedule.json`, `vectors/negotiate_rates.json`, `vectors/holds.json` (slot overlap cases). TS (vitest)
+and Kotlin (JUnit) both run them in CI.
 
 ## 3. Agent core (`packages/core`)
 
-### 3.1 Ports (`ports.ts`, exists; extended)
+### 3.1 Ports (`ports.ts`, built; extended)
 
 ```ts
-interface Storage { get/put/list/delete(collection, key, value) }          // exists; SQLCipher on phone
-interface Keys    { deviceId(); sign(bytes); publicKeys(); open(env); seal(body, recipients) }
-interface Model   { status(): ModelStatus; generate(req): Promise<string> } // exists; NoModel default
-interface Speech  { transcribe(audio, lang): Promise<Transcript>; translate(text, from, to) }   // new
-interface Clock   { now(): Date }                                            // exists
-interface Push    { token(): Promise<string | null> }                        // new
+interface Storage  { get/put/list/delete(collection, key, value) }             // built; SQLCipher via gigsync-store
+interface Keys     { deviceId(); sign(bytes); publicKeys(); open(env); seal(body, recipients) }   // built
+interface Model    { status(): ModelStatus; generate(req): Promise<string> }   // built; NoModel default
+interface Speech   { transcribe(audio, lang); translate(text, from, to) }      // planned
+interface Clock    { now(): Date }                                             // built
+interface Push     { token(): Promise<string | null> }                         // planned
+interface Links    { open(url): Promise<void> }                                // planned: registry deep links, UPI
+interface Files    { keep(bytes, mime): Promise<Sha256>; read(hash) }          // planned: card photos, statements
+interface Content  { pack(city): Promise<CityPack | null> }                    // planned
+interface Holds    { acquire(slotKey, engagement, ttl): Promise<"granted"|"held">; release(slotKey) }  // planned: Mailbox DO
+interface Notifier { send(req: NoticeRequest): Promise<NoticeId> }             // planned: API → gateway
+interface Sms      { sendLocal(phone, text): Promise<void> }                   // planned: SOS from the phone itself
 ```
 
-New storage collections: `jobs`, `agreements`, `receipts`, `ledger_head`, `rules`, `grants`, `shared_context`,
-`audit`, `flags`, `evidence_out`, `profiles` (shared-phone mode).
+Storage collections: built `engagements`, `jobs`, `payments`, `settings`; added `agreements`, `receipts`,
+`ledger_head`, `rules`, `grants`, `contacts` (separate store, purged on grant close), `audit`, `flags`,
+`evidence_out`, `landings`, `registrations`, `circles`, `handovers`, `packs`, `verifications`, `safety`,
+`profiles` (shared-phone mode).
 
-### 3.2 Job state machine (`job/machine.ts`, from `engagement/machine.ts`)
+### 3.2 Engagement and job state machine (`engagement/machine.ts` + `job/*`, built; extended)
 
-Built in `packages/core/src/job/` ([ADR 0014](../adr/0014-agent-to-agent-jobs.md)): `negotiating` and `confirming`
-statuses, two `agree` signatures on one terms hash, contact cards only after both.
+```mermaid
+stateDiagram-v2
+  [*] --> draft
+  draft --> sent: request
+  sent --> clarifying: clarify
+  clarifying --> sent: response
+  sent --> negotiating: quote
+  negotiating --> negotiating: quote / counter
+  negotiating --> confirming: agree (first signature)
+  confirming --> agreed: agree (second signature, same terms_hash)
+  confirming --> negotiating: quote / counter (different hash)
+  agreed --> in_progress: update / check_in
+  in_progress --> in_progress: stage_done / stage_accepted / payment
+  in_progress --> delivered: delivery
+  delivered --> closed: worked_together (both) or receipt timeout
+  delivered --> revision: clarify
+  revision --> delivered: delivery
+  sent --> declined: cancel
+  negotiating --> cancelled: cancel (no_deal, taken, declined_by_owner)
+  confirming --> cancelled: cancel
+  agreed --> cancelled: cancel
+  in_progress --> cancelled: cancel
+  sent --> expired: TTL
+  negotiating --> expired: TTL
+  confirming --> expired: agree TTL
+```
 
-| From \ event | job_request | job_offer / counter   | agree (both)      | check_in | check_out / payment | dispute  | cancel    | expire  |
-| ------------ | ----------- | --------------------- | ----------------- | -------- | ------------------- | -------- | --------- | ------- |
-| (none)       | requested   | —                     | —                 | —        | —                   | —        | —         | —       |
-| requested    | —           | negotiating           | —                 | —        | —                   | —        | cancelled | expired |
-| negotiating  | —           | negotiating           | agreed            | —        | —                   | —        | cancelled | expired |
-| agreed       | —           | negotiating (new agr) | —                 | active   | —                   | disputed | cancelled | —       |
-| active       | —           | negotiating (new agr) | —                 | active   | active              | disputed | ended     | —       |
-| disputed     | —           | —                     | agreed (resolved) | —        | disputed            | —        | ended     | —       |
+Side effects: entering `agreed` writes an `Agreement` ledger entry, opens the `ContactGrant`, cancels the
+consumer's other requests in the group and the worker's overlapping negotiations as `taken`; entering `closed` or
+`cancelled` closes the grant, purges `contacts` for that engagement, sends `contact_revoke` and releases the slot
+hold. `disputed` is a flag on a stage or payment, not a job status; a disputed stage pauses later stages.
 
-Side effects: entering `agreed` opens the `ContactGrant` and writes an `Agreement` ledger entry; entering
-`ended` or `cancelled` closes contact grants and purges `shared_context` for that job. Invalid transitions throw
-`TransitionError` (exists).
+**Deal serialisation (`job/deal.ts`, built; extended):** the consumer side keeps at most one outstanding signature
+per need; the worker side acquires `Holds.acquire(HMAC(workerKey, Slot), engagement, AGREE_TTL)` before signing
+and refuses to sign if held; a single-device worker offline may sign without the DO (`rules.single_device`).
 
-### 3.3 Policy checker (`policy/engine.ts`, exists; rules extended)
+Negotiation (`job/negotiate.ts`, built) runs on `rate.amount_paise` for every unit and on the advance share and
+payment gap of the schedule; the concession curve is unchanged; `vectors/negotiate_rates.json`.
 
-`decide(request, grants, rules, now) → Decision` stays pure and synchronous. GigSync rules (owner-set):
+### 3.3 Policy checker (`policy/engine.ts`, built; rules extended)
+
+`decide(request, grants, rules, ledger, now) → Decision`, pure and synchronous.
 
 ```ts
-WorkerRules = { min_rate: { hour?: Money, visit?: Money, month?: Money }, areas: Geohash5[],
-  hours: HourWindow[], categories: Category[], max_jobs_per_day: number,
-  auto_reply: "never" | "counter_below_min" | "accept_if_all_match",
-  flagged: "warn" | "decline" }
+WorkerRules = { min_rate: { visit?, hour?, month?, piece? }, areas: Geohash5[], hours: HourWindow[],
+  trades: Trade[], modes: WorkMode[], max_jobs_per_day: number, tier_required: 0..3,
+  first_visit: { daytime_only: boolean, mentor_named: boolean }, single_device: boolean,
+  auto_reply: "never" | "counter_below_min" | "accept_if_all_match", flagged: "warn" | "decline",
+  card: { phone: true, address: boolean, aadhaar_last4: "never" | "tier2_only" },
+  schedule: { min_advance_bps, max_gap_days, buys_materials, accept_timer }, circles: { accept_mentor_requests },
+  handover_defaults: HandoverField[], safety: CheckInRule, sos: SosGrant.optional() }
+ConsumerRules = { budget_paise (private), radius_km, tier_required: 0..3, availability: HourWindow[] }
 ```
 
-Evaluation order (first deny wins; most restrictive mode wins): `expired` → `flagged` (if `decline`) →
-`outside_area` → `outside_hours` → `category` → `below_min_rate` (→ auto-counter if allowed) → `capacity` →
-allow with mode `ask` (default) or `auto` (only under `accept_if_all_match`). `DenyReason` gains `flagged`,
-`outside_area`, `below_min_rate`, `capacity`, `category`.
+Evaluation order (first deny wins): `expired` → `flagged` (if `decline`) → `outside_area` → `outside_hours` →
+`trade` → `mode` → `tier` → `capacity` (slot overlap with agreed work, or the DO reports held) → `below_min_rate`
+(→ auto-counter if allowed) → allow with mode `ask` or `auto`. Contact fields: denied unless an `Agreement` with
+both signatures exists for that engagement and the grant has not closed; `aadhaar_last4` additionally needs
+`consumer_tier ≥ 2`. SOS fields: allowed only under the worker's `SosGrant` and its trigger.
 
 ### 3.4 Identifier detectors and the edge check (`pii/`, [ADR 0015](../adr/0015-raw-pii-on-device-check-at-the-edge.md))
 
@@ -323,236 +479,574 @@ allow with mode `ask` (default) or `auto` (only under `accept_if_all_match`). `D
 
 Three uses, one detector:
 
-| Function                                  | Where it runs                                    | Does                                                                |
-| ----------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------- |
-| `tagPrivate(text)`                        | the worker's own input, before storing           | stores the raw value; tags each identifier's kind, high sensitivity |
-| `toPlaceholders(text) → { text, map }`    | other agents' text, and drafts addressed to them | `PHONE_1`, `AADHAAR_1` …; the map never leaves the phone            |
-| `edgeCheck(body, grants) → ok or blocked` | every outgoing envelope, export and log line     | lets a value out only if an active grant allows its field           |
+| Function                                  | Where it runs                                                                        | Does                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| `tagPrivate(text)`                        | the worker's own input, before storing                                               | stores the raw value; tags each identifier's kind, high sensitivity |
+| `toPlaceholders(text) → { text, map }`    | other agents' text, and drafts addressed to them                                     | `PHONE_1`, `AADHAAR_1` …; the map never leaves the phone            |
+| `edgeCheck(body, grants) → ok or blocked` | every outgoing envelope, export, circle post, handover, notice variable and log line | lets a value out only if an active grant allows its field           |
 
 `restore(text, map, allowed)` puts real values back only for kinds the edge check allowed. Logs print identifiers
-only through `pii()`, and only when `ENVIRONMENT=local`.
+only through `pii()`, and only when `ENVIRONMENT=local`. Vectors: `vectors/edge_check.json`.
 
-### 3.5 Message pipeline (`pipeline/`, new)
+### 3.5 Message pipeline (`pipeline/`, planned)
 
 ```text
 Worker's own context (nothing leaves):
-  voice/tap → Speech.transcribe (optional) → tagPrivate → store raw → intent → answer (Model may read raw values)
-
-Talking to another agent:
+  voice/tap → Speech.transcribe → tagPrivate → store raw → intent → answer (Model may read raw values)
+Talking to another agent, a circle, a partner or a notice:
   incoming → verify → toPlaceholders → intent (keyword router → Model if unsure) → decide()
     → draft (template | Model, placeholders only) → confirm card → restore(allowed) → edgeCheck → sign → seal → outbox
 ```
 
-If `Model.status()` is `none` or RAM is below the threshold, intent and draft fall back to the keyword router and
-templates (`templates/{hi,te,en}.json`).
+Lite mode: keyword router and `templates/{kn,hi,te,en}.json`.
 
-### 3.6 Ledger (`ledger/`, new)
+### 3.6 Ledger (`ledger/`, planned)
 
-Append-only, hash-chained per worker: `entry_hash = sha256(prev || canonicalJson(entry))`. `ledger_head` keeps
-the last hash. `verifyChain(entries)` is run on export and on restore. Entries: `Agreement`, `Receipt`, `Note`,
-`GrantEvent`, `Disclosure`. Countersign timeout: 48 h → marked `unilateral`.
+Append-only, hash-chained per worker: `entry_hash = sha256(prev || canonicalJson(entry))`; `ledger_head` keeps the
+last hash; `verifyChain` on export and restore. Entries: `Agreement`, `Receipt` (all types), `Note`,
+`GrantEvent`, `Disclosure`, `Handover`. Countersign timeout 48 h → `unilateral`.
 
-### 3.7 Disclosure audit (`audit/`, new)
+**Eligibility (`ledger/eligibility.ts`):** `daysWith(counterparty, fy)`, `daysAcross(fy)`, `test(rule, fy) →
+{ met, days_one_max, days_across, short_by }`; counterparty is the platform for `platform_shift` and "households"
+for direct work.
 
-Every outgoing fact writes `{ at, to, job?, fields[], rule_id | "manual", envelope_id }`. The "What my agent
-shared" screen reads it; revoking a rule writes `GrantEvent{revoked}` and sends `contact_revoke` where relevant.
+### 3.7 Disclosure audit (`audit/`), 3.8 Export (`export/`), 3.9 Payments (`payments/`, built)
 
-### 3.8 Export (`export/`, new)
+As in v0.3: every outgoing fact is logged; `buildPack(scope, period, receiver)` projects, edge-checks, signs and
+seals or writes a file in the receiver's format; `buildUpiUri`, `canRequestPayment`, `PaymentBook`
+(request / markPaid / confirm / dispute), auto-detect parsers (ADR 0012).
 
-`buildPack(scope, period, receiver)` → project (§2.6) → sanitize notes → sign → seal for receiver or write a
-`.gigsync.json` file plus a printable PDF summary (rendered on the phone). Exports are logged as disclosures.
+### 3.9a Payment schedule (`payments/schedule.ts`, planned, ADR 0022)
 
-### 3.8a Payments (`payments/`, exists)
+`validate(terms)`, `nextDue(terms, receipts, now)`, `onStageDone`, `onStageAccepted` (consumer or timer),
+`onStageDisputed` (freezes later stages), `requestFor(stage) → PaymentRequest[]` (split over the UPI limit),
+`defaultFor(pack, trade, mode)`. Pure; `vectors/schedule.json`.
 
-| Function                                             | Does                                                                     |
-| ---------------------------------------------------- | ------------------------------------------------------------------------ |
-| `buildUpiUri({ vpa, name, amountPaise, note, ref })` | `upi://pay?pa=…&pn=…&am=450.00&cu=INR&tn=…&tr=…`, validated; the QR text |
-| `canRequestPayment(engagement)`                      | provider side and status `agreed`, `in_progress`, `delivered`, `closed`  |
-| `PaymentBook.request / markPaid / confirm / dispute` | pure transitions saved under `Collection.payments`, keyed by payment id  |
-| `PaymentBook.forEngagement(id)` / `summary(id)`      | the job's payments; requested, paid, confirmed and outstanding totals    |
+### 3.10 Discovery (`discovery/`, planned around the built board client)
 
-Transitions: `requested → paid` (either side records it; UTR optional), `requested | paid → confirmed` (worker
-only), `requested | paid → disputed` (worker only). Anything else throws `PaymentError`. QR images are drawn by the
-app (`apps/mobile/src/payments/`), never by core.
+`search(query, consumerRules) → BoardWorker[]` (client-side filter on tier and availability; the budget never
+goes to the server), `fanOut(need, workers ≤ 3) → request envelopes under one group`, `fromPosting(posting) →
+interest + request`, `fromDirectLink(link) → request`. Worker side: `postingsFor(rules, postings)` filters by the
+worker's rules; `cardFromRules(rules, ledger) → BoardProfile` (availability derived from agreed work).
 
-### 3.8b Payment auto-detect (planned, [ADR 0012](../adr/0012-payment-auto-detect.md))
+### 3.11 Landing (`landing/`), 3.12 Circles (`circles/`), 3.13 Registration (`registration/`)
 
-Android only, free, and nothing leaves either phone. Signals become `evidence` on the `Payment`; the worker still
-confirms (or a standing rule they switch on confirms on an exact UPI-reference match).
+As in v0.3: pure state machine and checklist; fan-out ≤ 50 devices or desk relay; `fieldsFor`, `record`,
+`remindersFor`. Circles add `roster_version` to every post so a post sealed against an old roster is re-sealed by
+the desk rather than silently missing new members.
 
-| Piece                                  | Where                          | Does                                                                                |
-| -------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------- |
-| `parseUpiResponse(text)`               | `core/payments/upiResponse.ts` | NPCI `response` string → `{ status, utr?, txnRef?, txnId? }`, keys case-insensitive |
-| `parseCreditSms(text, at)`             | `core/payments/creditSms.ts`   | amount, UPI ref, credit vs debit; rules only, no model; raw text dropped            |
-| `matchCredit(credit, payments)`        | `core/payments/match.ts`       | exact amount, after request, within 24 h, unique; strong if UTRs agree              |
-| `GigSyncUpi.pay({ uri })`              | `plugins/gigsync-upi` (Kotlin) | customer side: opens the UPI app, returns its `response` (iOS/web: unsupported)     |
-| `GigSyncUpi.watchCredits({ minutes })` | `plugins/gigsync-upi` (Kotlin) | worker side: SMS User Consent API, per-message consent, no SMS permission           |
-| Settings › Payments                    | `apps/mobile`                  | off by default; consent recorded; optional auto-confirm on strong match             |
+### 3.14 Safety (`safety/`, planned)
 
-`Payment.evidence[]` sources: `customer_upi_app` (status, UTR), `bank_sms` (amount, UTR, optional sender),
-`worker` (confirmed / disputed, and which rule). Vectors: `vectors/upi_response.json`, `vectors/credit_sms.json`.
+`onCheckIn(engagement, rules) → SafetyNote envelopes + timers`, `onCheckAnswer(answer)` (normal or duress),
+`escalate(trigger) → Sos envelopes + Sms.sendLocal to the chosen contacts, in order`, `sosReceipt`. Timers run in
+the app and, when it is closed, in the background responder; a missed timer on a dead phone is reported by the
+chosen contact, not by GigSync.
 
-### 3.9 Mail (`mail/`, exists)
+### 3.15 Notices (`notices/`, planned, ADR 0021)
 
-Outbox: durable queue, exponential backoff capped at 10 min (exists). Inbox: outcomes `new | duplicate | expired
-| held` with per-engagement `seq` gap holding (exists). Signature verification moves into `crypto` (TODO M2 in
-upstream).
+`noticeFor(event) → NoticeRequest`; variables are first names, dates and amounts; the edge check runs on every
+variable with no grant; the worker's setting chooses WhatsApp, SMS or neither.
 
-## 4. Crypto (`packages/crypto`, exists: seal/open, sign/verify, termsHash; ADR 0014)
+### 3.16 Mail (`mail/`, built)
 
-| Function                       | Algorithm                                                                                |
-| ------------------------------ | ---------------------------------------------------------------------------------------- |
-| `seal(body, recipientDevices)` | XChaCha20-Poly1305, random 32-byte CEK; CEK wrapped per device with X25519 + HKDF-SHA256 |
-| `open(envelope, myDevice)`     | reverse; rejects if `sig` fails before decrypting                                        |
-| `sign(bytes)` / `verify`       | Ed25519 (`@noble/ed25519`, exists in app)                                                |
-| `termsHash(terms)`             | SHA-256 over `canonicalJson`                                                             |
-| `blindKey(unionKey, userId)`   | HMAC-SHA256, truncated to 16 bytes, base32                                               |
-| `backupKey(recoveryCode)`      | Argon2id (m=64 MB, t=3) → XChaCha20 key                                                  |
+Outbox with exponential backoff capped at 10 min; inbox outcomes `new | duplicate | expired | held` with
+per-engagement `seq` gap holding; the transport seals, signs, verifies and opens in order.
 
-On Android the private keys live in the Keystore; the TS side calls them through `plugins/gigsync-store`.
-libsignal is a later upgrade for forward secrecy (upstream ADR note).
+## 4. Crypto (`packages/crypto`, built; extended)
 
-## 5. App (`apps/mobile`: Android, iPhone/Mac, web)
+| Function                     | Algorithm                                                                                   | State   |
+| ---------------------------- | ------------------------------------------------------------------------------------------- | ------- |
+| `seal` / `open`              | XChaCha20-Poly1305, fresh content key, X25519 + HKDF per device; sig checked before decrypt | built   |
+| `sign` / `verify`            | Ed25519                                                                                     | built   |
+| `termsHash`                  | SHA-256 over `canonicalJson`                                                                | built   |
+| `blindKey(unionKey, userId)` | HMAC-SHA256 → 16 bytes, base32                                                              | planned |
+| `slotKey(workerKey, slot)`   | HMAC-SHA256 over canonical `Slot`                                                           | planned |
+| `backupKey(recoveryCode)`    | Argon2id (m=64 MB, t=3) → XChaCha20 key                                                     | planned |
+| `contentVerify(pack)`        | Ed25519 against the content key pinned in the app release                                   | planned |
+| `tokenHash(token)`           | SHA-256; the cloud stores only the hash                                                     | planned |
 
-Screens (React, voice-first, large tap targets, icon + audio label for each action):
+Keys move from Preferences into the Android Keystore through `plugins/gigsync-store` in G1b.
 
-| Screen                  | Purpose                                                        |
-| ----------------------- | -------------------------------------------------------------- |
-| Onboarding              | Language, OTP, PIN, recovery code; worker, consumer or union   |
-| Today                   | Jobs today; check-in/out buttons; payment due                  |
-| Requests                | Incoming job requests with policy verdict and flag colour      |
-| Confirm card            | "Send this?" with exact fields going out; send / edit / cancel |
-| My rules                | Min rate, areas, hours, auto-reply, flag handling              |
-| My record               | Ledger by month; days worked, earned, paid, owed               |
-| Get paid                | Pick the job and amount; show QR / open UPI app; mark received |
-| Share / complain        | Pick receiver + scope → preview → send pack or save file       |
-| What my agent shared    | Disclosure audit; revoke                                       |
-| Profiles (shared phone) | Switch worker; each has own PIN and SQLCipher DB               |
+## 5. App (`apps/mobile`)
 
-**Union mode** (same app, usually the web build): inbox of evidence packs sent to the union, timeline and
-summary view rendered without any model, grievance draft from templates (and the offline model where the device
-has one), member list, and flag issuance. Placeholders are restored only in the final exported letter.
+Built in PR #8: Sign in, Find, My jobs, Requests, My card, Job thread, Job actions, Today, Jobs, Pay, Record,
+Settings (with the model chooser from PR #5, minus its Chrome engine), Agent.
 
-**Web build:** the same React app served by the `gigsync-app` static Worker. Keys are WebCrypto non-extractable
-keys; the store is IndexedDB encrypted with a key wrapped by the PIN (Argon2id, WASM). The web build has no
-background responder and warns that clearing site data deletes the local ledger unless a backup exists.
+| Screen                   | Purpose                                                                                                    | State    |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------- | -------- |
+| Onboarding               | Language (kn/hi/te/en), OTP, PIN, recovery code; worker, consumer or union; no Bluesky step                | extended |
+| Find / My card           | Board search by trade, distance, mode, availability, tier; postings; the worker's QR / direct link         | extended |
+| Requests / Job thread    | Requests with policy verdict, flag colour and tier; negotiation; confirm card with the schedule as a list  | extended |
+| My rules                 | Rates by unit, areas, hours, modes, tier required, first-visit rules, card fields, schedule limits, safety | planned  |
+| Today / Jobs             | Jobs today; check-in/out; next stage and its evidence; "Log a platform day"; safety status                 | extended |
+| My record                | Ledger by month; days, earned, paid, owed; eligibility; registrations; verifications                       | extended |
+| Get paid                 | QR / UPI app per stage; "stage done" with a photo; mark received; auto-detect consent                      | extended |
+| Share / complain         | Receiver + scope → preview in the receiver's format → send or save                                         | planned  |
+| What my agent shared     | Disclosure audit; revoke                                                                                   | planned  |
+| Verify me                | Tier 1 (union), Tier 2 (Aadhaar offline XML/QR verified on the phone), Tier 3 (board)                      | planned  |
+| Safety                   | Chosen contacts, SOS grant, duress answer, check-in defaults; SOS button                                   | planned  |
+| Moving / Stay / Register | Landing journey, vouched beds and handover, registry deep links and card photo                             | planned  |
+| Circle                   | Join; posts; landing request; mentor offers; accept                                                        | planned  |
+| Web signer (household)   | Terms in their language, counter or sign with a browser key, contact after signing, stages, UPI, PDF       | planned  |
+| Profiles (shared phone)  | Switch worker; each has own PIN and SQLCipher DB                                                           | planned  |
 
-**Shared-phone mode:** one SQLCipher file per `wrk_` profile, each key wrapped by that worker's PIN (Argon2id)
-and the Keystore. Notifications show only "GigSync: 1 new request" with no name, and open the profile picker.
+**Union mode** (web build): packs inbox, timeline and summary without a model, grievance drafts, members, flags,
+circles (open, approve, mentors, counts, close), partner vouches, pack review, tier 1 attestations.
 
-## 6. Background responder (`android-responder/`, Kotlin)
+## 6. Background responder (`android-responder/`, Kotlin, planned G4)
 
-Woken by FCM data message `{ t: "wake" }` (no content). Opens the active profile's DB read-only with a
-Keystore-held key, fetches the inbox, verifies, runs the Kotlin port of `decide()` and replies **only** when the
-decision is `auto` (e.g. counter below minimum, or decline outside area). Anything else becomes a local
-notification. CI fails if Kotlin and TS disagree on any vector.
+Woken by FCM `{ t: "wake" }`; opens the active profile's DB read-only; runs the Kotlin port of `decide()`; replies
+only when the decision is `auto`; runs safety check-in timers while the app is closed; CI fails if Kotlin and TS
+disagree on any vector.
 
-## 7. Cloud (Cloudflare)
+## 7. Cloud
 
-### 7.1 API Worker (`workers/api`, exists; routes extended)
+### 7.1 API Worker (`workers/api`, built; routes extended)
 
-| Method | Path                     | Auth           | Purpose                                         | Status           |
-| ------ | ------------------------ | -------------- | ----------------------------------------------- | ---------------- |
-| GET    | `/health`                | —              | Liveness                                        | exists           |
-| POST   | `/v1/auth/otp/request`   | —              | Send OTP; IP and per-number rate limits         | exists           |
-| POST   | `/v1/auth/otp/verify`    | —              | Verify, register device keys, return session    | exists           |
-| GET    | `/v1/directory/:user`    | Bearer         | Active devices and public keys                  | exists           |
-| POST   | `/v1/mailbox/:user`      | Bearer         | Deliver envelope (verify `from` = session, sig) | exists, sig TODO |
-| GET    | `/v1/inbox`              | Bearer         | Fetch for this device                           | exists           |
-| POST   | `/v1/inbox/ack`          | Bearer         | `{ids[]}` → delete                              | exists           |
-| POST   | `/v1/devices/push`       | Bearer         | Set/rotate FCM token                            | new              |
-| POST   | `/v1/devices/:id/revoke` | Bearer         | Revoke a device, emit `key_change`              | new              |
-| POST   | `/v1/unions/:id/join`    | Bearer         | Join request (union approves in union mode)     | new              |
-| GET    | `/v1/unions/:id/flags`   | Bearer, member | Signed flag list since cursor                   | new              |
-| DELETE | `/v1/account`            | Bearer         | DPDP erasure: directory, sessions, mailbox      | new              |
+| Method   | Path                                                                                              | Auth                              | Purpose                                                                 | State    |
+| -------- | ------------------------------------------------------------------------------------------------- | --------------------------------- | ----------------------------------------------------------------------- | -------- |
+| GET      | `/health`                                                                                         | —                                 | Liveness                                                                | built    |
+| POST     | `/v1/auth/otp/request` / `verify`                                                                 | —                                 | OTP; register device keys; session                                      | built    |
+| GET      | `/v1/directory/:user`                                                                             | Bearer                            | Active devices and public keys                                          | built    |
+| PUT      | `/v1/board/profile`                                                                               | Bearer                            | Public card (+ availability, modes, tier number)                        | extended |
+| GET      | `/v1/board/workers`                                                                               | Bearer                            | Search: trade, lat, lon, radius, max rate, mode, tier_min, available_on | extended |
+| GET/POST | `/v1/board/postings`                                                                              | Bearer / union or vouched partner | Postings by trade, area, mode                                           | planned  |
+| GET      | `/v1/board/link/:token`                                                                           | Bearer                            | Resolve a worker's direct link to a card                                | planned  |
+| POST     | `/v1/mailbox/:user`                                                                               | Bearer                            | Deliver envelope (signature checked against the sender device)          | built    |
+| GET      | `/v1/inbox`, POST `/v1/inbox/ack`                                                                 | Bearer                            | Fetch and delete                                                        | built    |
+| POST     | `/v1/holds` / DELETE `/v1/holds/:slot`                                                            | Bearer                            | Acquire or release a slot hold in the caller's own Mailbox DO           | planned  |
+| POST     | `/v1/devices/push`, `/v1/devices/:id/revoke`                                                      | Bearer                            | FCM token; revoke a device, emit `key_change`                           | planned  |
+| POST     | `/v1/unions/:id/join`; GET `/v1/unions/:id/flags`                                                 | Bearer / member                   | Join; signed flag list since cursor                                     | planned  |
+| POST     | `/v1/unions/:id/attest`                                                                           | Bearer, organiser                 | Tier 1 attestation for a member (stores tier, by, at)                   | planned  |
+| GET      | `/v1/partners?city&kind&near`                                                                     | Bearer                            | Vouched partners and offerings; never returns workers                   | planned  |
+| POST/PUT | `/v1/partners`                                                                                    | Bearer, union                     | Create or vouch a partner (signed)                                      | planned  |
+| POST     | `/v1/circles`; `/v1/circles/:id/join`; GET `/v1/circles/:id/roster`; POST `/v1/circles/:id/relay` | Bearer (union / member / desk)    | Circles                                                                 | planned  |
+| POST     | `/v1/signers`                                                                                     | one-time token                    | Register a household's browser key for one engagement                   | planned  |
+| GET      | `/s/:token`                                                                                       | one-time token                    | The web signer page (static Worker)                                     | planned  |
+| POST     | `/v1/notices`                                                                                     | Bearer                            | Send a template by WhatsApp or SMS                                      | planned  |
+| POST     | `/v1/wa/webhook`                                                                                  | Meta signature                    | Inbound menu replies and delivery status                                | planned  |
+| GET      | `/v1/content/:city`                                                                               | —                                 | Latest signed city pack (Content Worker)                                | planned  |
+| DELETE   | `/v1/account`                                                                                     | Bearer                            | DPDP erasure                                                            | planned  |
 
-Errors: `{ error: { code, message, request_id } }`, codes `bad_request | unauthorized | forbidden | not_found |
-rate_limited | conflict | internal`. Every response carries `x-request-id` (exists).
+Handlers parse with `safeParse`, call one function, map the result; SQL lives only in `db/*`; errors are
+`{ error }` with the right status; every response carries `x-request-id`.
 
-### 7.2 Directory additions (`infra/postgres/directory/0002_gigsync.sql`)
+### 7.2 Database design (Neon Postgres, `infra/postgres/directory/`, ADR 0013)
 
-The directory is Neon Postgres (ADR 0013): write these with `TIMESTAMPTZ` columns, like `0001_init.sql`.
+Built: `0001_init.sql` (users, phone bindings as HMAC, devices, sessions, OTP attempts), `0002_board.sql`
+(worker profiles, trades, languages; areas rounded to 0.01°). Planned: `0003_gigsync.sql` and later numbered
+files. Third normal form; `TIMESTAMPTZ`; `CHECK` on enumerations that would corrupt behaviour; every child table
+indexes its foreign key; no phone number, address, terms, receipt or post body in any table.
 
-```sql
--- No worker/consumer column: a person is a worker or a consumer per engagement, as in Collab.
-CREATE TABLE unions (union_id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(user_id),
-  name TEXT NOT NULL, created_at INTEGER NOT NULL);
-CREATE TABLE union_members (union_id TEXT NOT NULL REFERENCES unions(union_id), user_id TEXT NOT NULL,
-  role TEXT NOT NULL CHECK (role IN ('member','organiser')), joined_at INTEGER NOT NULL, left_at INTEGER,
-  PRIMARY KEY (union_id, user_id));
-CREATE TABLE union_flags (flag_id TEXT PRIMARY KEY, union_id TEXT NOT NULL REFERENCES unions(union_id),
-  body TEXT NOT NULL /* signed Flag JSON, blind subject only */, issued_at INTEGER NOT NULL,
-  expires_at INTEGER NOT NULL, withdrawn_at INTEGER);
-CREATE INDEX union_flags_by_union ON union_flags(union_id, issued_at);
+```mermaid
+erDiagram
+  users ||--o{ phone_bindings : has
+  users ||--o{ devices : owns
+  devices ||--o{ sessions : opens
+  users ||--o| worker_profiles : publishes
+  worker_profiles ||--o{ worker_trades : offers
+  worker_profiles ||--o{ worker_languages : speaks
+  worker_profiles ||--o{ worker_availability : available
+  users ||--o{ postings : posts
+  users ||--o{ tier_attestations : attested
+  unions ||--o{ union_members : has
+  users ||--o{ union_members : joins
+  unions ||--o{ union_flags : issues
+  unions ||--o{ circles : runs
+  circles ||--o{ circle_members : has
+  partners ||--o{ partner_cities : serves
+  partners ||--o{ partner_offerings : offers
+  partners ||--o{ partner_vouches : vouched_by
+  unions ||--o{ partner_vouches : vouches
+  users ||--o{ web_signers : browser_device
+  users ||--o{ signer_tokens : issued
+  users ||--o{ notices : sent
+  users ||--o{ consents : gave
+  users ||--o{ otp_attempts : tried
+
+  users {
+    text user_id PK
+    text status
+    timestamptz created_at
+  }
+  phone_bindings {
+    text phone_hmac PK
+    text user_id FK
+    timestamptz bound_at
+  }
+  devices {
+    text device_id PK
+    text user_id FK
+    text signing_key
+    text encryption_key
+    text kind "phone|web_signer"
+    timestamptz created_at
+    timestamptz revoked_at
+  }
+  sessions {
+    text session_id PK
+    text device_id FK
+    text token_hash
+    timestamptz expires_at
+  }
+  worker_profiles {
+    text user_id PK
+    text display_name
+    numeric lat
+    numeric lon
+    text area_name
+    int rate_paise
+    text about
+    int tier
+    int countersigned_jobs
+    timestamptz updated_at
+  }
+  worker_trades {
+    text user_id FK
+    text trade
+  }
+  worker_languages {
+    text user_id FK
+    text lang
+  }
+  worker_availability {
+    text user_id FK
+    text mode
+    text day
+    int start_hour
+    int end_hour
+    date from_date
+  }
+  postings {
+    text post_id PK
+    text by_user FK
+    text kind
+    text trade
+    text mode
+    numeric lat
+    numeric lon
+    text area_name
+    jsonb body
+    date starts
+    timestamptz expires_at
+  }
+  tier_attestations {
+    text user_id FK
+    int tier
+    text by
+    timestamptz at
+    timestamptz until
+    text sig
+  }
+  unions {
+    text union_id PK
+    text user_id FK
+    text name
+    timestamptz created_at
+  }
+  union_members {
+    text union_id FK
+    text user_id FK
+    text role "member|organiser|steward"
+    timestamptz joined_at
+    timestamptz left_at
+  }
+  union_flags {
+    text flag_id PK
+    text union_id FK
+    jsonb body "signed Flag, blind subject"
+    timestamptz issued_at
+    timestamptz expires_at
+    timestamptz withdrawn_at
+  }
+  circles {
+    text circle_id PK
+    text union_id FK
+    text steward_user FK
+    text home_region
+    text city
+    text trade
+    bool open
+    int roster_version
+    timestamptz created_at
+  }
+  circle_members {
+    text circle_id FK
+    text member_blind
+    text user_id FK "key lookup only"
+    bool mentor
+    timestamptz joined_at
+    timestamptz left_at
+  }
+  partners {
+    text partner_id PK
+    text user_id FK
+    text name
+    text kind
+    jsonb contact_public
+    text public_key
+    timestamptz created_at
+  }
+  partner_cities {
+    text partner_id FK
+    text city
+  }
+  partner_offerings {
+    text partner_id FK
+    text key
+    text label
+    int price_paise
+    text price_unit
+    text rules
+    numeric lat
+    numeric lon
+    text area_name
+  }
+  partner_vouches {
+    text partner_id FK
+    text union_id FK
+    timestamptz until
+    text sig
+  }
+  web_signers {
+    text device_id PK
+    text engagement_id
+    text phone_hmac
+    timestamptz created_at
+    timestamptz expires_at
+  }
+  signer_tokens {
+    text token_hash PK
+    text engagement_id
+    text phone_hmac
+    text issued_by FK
+    timestamptz used_at
+    timestamptz expires_at
+  }
+  notices {
+    text notice_id PK
+    text user_id FK
+    text channel "whatsapp|sms"
+    text template
+    text status
+    int cost_paise
+    timestamptz sent_at
+    timestamptz delivered_at
+  }
+  consents {
+    text user_id FK
+    text kind
+    timestamptz given_at
+    timestamptz withdrawn_at
+  }
+  otp_attempts {
+    text phone_hmac
+    text ip_hash
+    timestamptz at
+    bool ok
+  }
 ```
 
-### 7.3 Mailbox DO (`workers/mailbox`, exists)
+Keys and indexes that serve the hot paths:
 
-SQLite `envelopes(msg_id, device_id, body, expires_at)`, `seen(msg_id, at)`; RPC `deliver` (idempotent, TTL ≤ 7
-d), `fetchFor(device)`, `ack`, `pending`; `alarm()` purges expired. **New:** after `deliver`, if the device has
-no open WebSocket, enqueue `{user, device}` to `NOTIFY_QUEUE`.
+| Query                                 | Index                                                                                                 |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Board search by trade near a point    | `worker_trades (trade, user_id)`; `worker_profiles (lat, lon)`; `worker_availability (user_id, mode)` |
+| Postings by trade and area, unexpired | `postings (trade, lat, lon, expires_at)`                                                              |
+| Flags since cursor for a union        | `union_flags (union_id, issued_at)`                                                                   |
+| Partners by city and kind             | `partner_cities (city, partner_id)`; `partners (kind)`; `partner_vouches (partner_id, until)`         |
+| Roster for sealing                    | `circle_members (circle_id, left_at)`                                                                 |
+| Single-use token                      | `signer_tokens` primary key; `UPDATE … WHERE used_at IS NULL RETURNING`                               |
+| Active devices of a user              | `devices (user_id, revoked_at)` (built)                                                               |
 
-### 7.4 Notifier (`workers/notifier`, new)
+Writes that must succeed together run in one transaction (sign-up, roster change with version bump, posting
+create). Lists are paged by primary key with `LIMIT`; `= ANY($1)` replaces loops of lookups.
 
-Queue consumer; batches by device, de-duplicates within 30 s, sends FCM HTTP v1 data message `{t:"wake"}` with
-`priority: high`. Token errors mark the device's push token stale in D1.
+### 7.3 Mailbox DO (`workers/mailbox`, built; holds planned)
 
-### 7.5 Job board (`workers/board`, from `workers/index`)
-
-Postgres + PostGIS through Hyperdrive. Ingests `app.gigsync.*` records from Jetstream (the index's existing
-`IndexHub` DO) and serves:
-
-`GET /v1/board/workers?category&near=g5&lang` · `GET /v1/board/jobs?category&near=g5` ·
-`POST /v1/board/jobs` (consumer-signed). Tables: `worker_profiles(did, categories[], languages[], g5, geom,
-updated_at)`, `open_jobs(id, did, category, rate_paise, g5, geom, expires_at)`; GiST index on `geom`.
-
-### 7.6 ONDC relay (`workers/ondc-relay`, spike)
-
-Acts as a BPP on ONDC mobility/logistics; maps `on_search`/`on_select`/`on_confirm` to `job_request`/
-`job_offer`/`agree` envelopes for opted-in workers. A phone cannot be an ONDC participant; the relay holds no
-private data beyond the in-flight order id.
-
-## 8. Offline model (`plugins/gigsync-llm`, exists)
-
-The model GigSync uses is the on-device plugin inherited from collabai.network, renamed. No Tiles/Tilekit
-(ADR 0009) and no cloud model (ADR 0010).
-
-### 8.1 Plugin API (`src/definitions.ts`, exists)
-
-```ts
-interface GigSyncLLMPlugin {
-  status(): Promise<ModelStatus>; // { available, engine, freeMemoryMb? }
-  generate(options: GenerateOptions): Promise<GenerateResult>; // { prompt, maxTokens? } → { available, text, engine }
-}
-export const GigSyncLLM = registerPlugin<GigSyncLLMPlugin>("GigSyncLLM", { web: () => new GigSyncLLMWeb() });
+```mermaid
+erDiagram
+  envelopes {
+    text msg_id PK
+    text device_id
+    text body
+    int expires_at
+  }
+  seen {
+    text msg_id PK
+    int at
+  }
+  holds {
+    text slot_key PK
+    text engagement_id
+    int expires_at
+  }
 ```
 
-### 8.2 Engines
+RPC: `deliver` (idempotent via `seen`, TTL ≤ 7 d), `fetchFor(device)`, `ack`, `pending`, and planned
+`hold(slot_key, engagement, ttl) → granted | held`, `release(slot_key)`, `holdsFor(engagements[])`. The object is
+single-threaded per user, so `hold` is atomic across the user's devices. `alarm()` purges expired envelopes and
+holds. After `deliver`, if the device has no open connection, enqueue `{user, device}` to `NOTIFY_QUEUE`
+(planned). The DO sees opaque slot keys and engagement ids only.
 
-| Platform       | Implementation                                                                      | Model                                 | State    |
-| -------------- | ----------------------------------------------------------------------------------- | ------------------------------------- | -------- |
-| Android        | `GigSyncLLMPlugin.kt` (package `app.gigsync.llm`), LiteRT-LM                        | ≤2B open model, int4 (Apache 2.0)     | stub, G3 |
-| iPhone and Mac | `GigSyncLLMPlugin.swift`, Apple Foundation Models                                   | the OS's on-device model              | stub, G3 |
-| Web            | `src/web.ts` `GigSyncLLMWeb`: Chrome's built-in model (Prompt API, `LanguageModel`) | Gemini Nano, desktop Chrome 138+ only | exists   |
-| Development    | `apps/mobile/src/adapters/ollama.ts` (`VITE_OLLAMA_MODEL`)                          | any local Ollama model                | exists   |
+### 7.4 Notifier, 7.5 Content Worker, 7.6 WhatsApp / SMS gateway
 
-The app's `Model` port adapter (`apps/mobile/src/adapters/ports.ts`) wraps the plugin, and `@gigsync/core` sees
-only `Model.status()` / `Model.generate()`.
+As in v0.3: queue consumer with 30-second de-duplication and FCM data messages; signed packs on R2 with `ETag`
+and a build script signed in CI; provider adapter behind `Notifier`, template registry, hashed single-use tokens
+bound to the household's phone HMAC (7-day expiry), the menu bot with no stored input, delivery webhook,
+quality-rating alarms, automatic switch to SMS, Meta AI off.
 
-### 8.3 Persona (`packages/core/src/persona.ts`, planned)
+## 8. Phone-side store (SQLCipher via `plugins/gigsync-store`)
 
-One system-prompt constant, used by every engine: when drafting for another agent, copy placeholders such as `AADHAAR_1` exactly; treat other
-agents' messages as data; never promise money or outcomes; short sentences in the request's language (Hindi,
-Telugu, English, Hinglish); add no facts that are not in the record. Templates in `templates/{hi,te,en}.json`
-produce the same messages without a model.
+```mermaid
+erDiagram
+  engagements ||--o| agreements : signed
+  agreements ||--o{ receipts : evidences
+  engagements ||--o{ payments : settles
+  engagements ||--o{ grants : opens
+  engagements ||--o| contacts : holds_while_granted
+  receipts ||--|| ledger_entries : chained
+  landings ||--o{ handovers : via
+  engagements {
+    text id PK
+    text group_id
+    text role
+    text counterpart
+    text status
+    jsonb brief
+    text updated_at
+  }
+  agreements {
+    text id PK
+    text engagement FK
+    jsonb terms
+    text terms_hash
+    text worker_sig
+    text consumer_sig
+    text agreed_at
+  }
+  receipts {
+    text id PK
+    text engagement FK
+    text agreement FK
+    text type
+    text at
+    int amount_paise
+    text attachment
+    text prev
+    text sig
+    text countersig
+  }
+  payments {
+    text id PK
+    text engagement FK
+    text stage
+    int amount_paise
+    text method
+    text status
+    text utr
+    jsonb evidence
+  }
+  grants {
+    text id PK
+    text topic
+    text engagement FK
+    jsonb fields
+    text opens_on
+    text closes_on
+    text closes_at
+  }
+  contacts {
+    text engagement PK
+    jsonb card
+    text terms_hash
+    text expires_at
+  }
+  ledger_entries {
+    text entry_hash PK
+    text prev
+    text kind
+    jsonb entry
+    text at
+  }
+  audit {
+    text id PK
+    text at
+    text to
+    text engagement
+    jsonb fields
+    text rule_id
+    text envelope_id
+  }
+  rules {
+    text key PK
+    jsonb value
+  }
+  flags {
+    text subject_blind PK
+    text union
+    text reason
+    text expires_at
+  }
+  landings {
+    text id PK
+    text to_city
+    text step
+    jsonb checklist
+    jsonb cash_plan
+  }
+  handovers {
+    text id PK
+    text partner
+    jsonb fields
+    text at
+    jsonb receipt
+  }
+  registrations {
+    text id PK
+    text registry
+    text number
+    text registered_at
+    text proof
+  }
+  verifications {
+    text id PK
+    int tier
+    text by
+    text at
+    text proof
+  }
+  circles {
+    text id PK
+    int roster_version
+    jsonb roster
+  }
+  safety {
+    text engagement PK
+    jsonb contacts
+    text until
+    text state
+  }
+  packs {
+    text city PK
+    int version
+    jsonb pack
+  }
+```
 
-### 8.4 When the model is used
+One SQLCipher file per worker profile in shared-phone mode, each key wrapped by that worker's PIN (Argon2id) and
+the Keystore. `contacts` is a separate table purged on grant close so a stolen phone's ledger reveals no door.
 
-Only at two pipeline steps (§3.5): **intent**, when the keyword router is unsure, and **phrasing** of free text.
-`decide()`, the edge check, the ledger and exports never call it. Load rule: load only if `status().available` and
-`freeMemoryMb ≥ 1500`; otherwise lite mode. Downloads only on Wi-Fi, resumable and SHA-256 verified.
+## 9. Offline model and speech
 
-### 8.4a Choosing the model (Settings › On-device model)
+Plugin `status()` / `generate()`; LiteRT-LM (Android, stub), Apple Foundation Models (stub), an in-browser engine
+on WebGPU running the same open model family as Android (web, planned G3; lite mode until then), Ollama (dev builds
+only); `ChosenModel` in Settings (PR #5). Every model is open-weights and runs on the device; nothing from Google,
+OpenAI or any hosted API is used, including a browser's built-in model. The model is used only for
+intent and phrasing; load only when `freeMemoryMb ≥ 1500`. Speech: IndicConformer ONNX or Sarvam Edge, device
+test on a 4 GB phone first; pilot languages Kannada, Hindi, Telugu, English/Hinglish.
+
+### 9.1 Choosing the model (Settings › On-device model)
 
 The app hands core one `Model`: `ChosenModel` (`apps/mobile/src/adapters/model.ts`), which routes each call to the
 engine chosen in Settings and kept on the device:
@@ -564,80 +1058,61 @@ engine chosen in Settings and kept on the device:
 | Lite mode    | no model; rules and templates                                                 |
 | Ollama (dev) | development builds only; Settings lists the models `ollama serve` has pulled  |
 
-On the web the device's model is Chrome's built-in Gemini Nano. Chrome offers it to web pages on desktop only
-(Windows 10/11, macOS 13+, Linux, Chromebook Plus; about 22 GB free and a 4 GB GPU or 16 GB RAM), in English,
-Japanese, Spanish, German and French. Chrome on Android and every iPhone browser have no such model, so phones use
-the native engines above or lite mode. The model downloads once per Chrome profile and only after a tap on
-Settings › Download Chrome's model (`GigSyncLLM.prepare()`); Auto uses it as soon as Chrome reports it available.
+On the web the device's model is the in-browser engine on WebGPU running the same open model family as Android
+(planned G3). Until it ships, the web build reports no device model, so Auto and On-device fall back to lite mode.
 
 Settings shows what the device reports (engine, ready or not, free memory) and which engine is answering now; the
 agent screen shows the same line. No choice ever reaches a cloud model (ADR 0010).
 
-### 8.5 Eval harness (`scripts/eval-model.mjs`, G3)
-
-Runs `vectors/prompts/*.json` (sanitized intents and drafts in three languages) through the dev Ollama adapter
-and on test devices, scoring placeholder preservation (must be 100%), intent accuracy and template-fallback rate.
-
-## 9. Speech and translation (`plugins/gigsync-speech`, planned)
-
-| Part        | Model                      | Runtime                        | Size           | Fallback           |
-| ----------- | -------------------------- | ------------------------------ | -------------- | ------------------ |
-| ASR         | AI4Bharat IndicConformer   | ONNX Runtime (native), ORT Web | ~130 MB/lang   | Tap UI             |
-| Translation | IndicTrans2 distilled 200M | ONNX Runtime (native), ORT Web | ~400 MB (int8) | Same-language only |
-| Intent      | Keyword router (exists)    | none                           | —              | —                  |
-
 ## 10. Observability
 
-One logger (`log.ts`, exists): `pii()` wrapper for any value that might identify a person; `LOG_PII` honoured only
-when `ENVIRONMENT=local`. Phone logs stay on the phone (ring buffer, 1 MB); a user-initiated "send logs" passes
-through the sanitizer first. Workers emit structured JSON with `request_id`; metrics: envelopes delivered,
-time-to-ack, push failures, OTP failures, per-route p95. No analytics without the `analytics` consent.
+One logger: `pii()` for any identifying value; `LOG_PII` only when `ENVIRONMENT=local`; phone logs stay on the
+phone (1 MB ring); "send logs" passes the edge check. Workers emit structured JSON with `request_id`; metrics:
+envelopes delivered, time-to-ack, hold conflicts, push and notice failures, OTP failures, per-route p95, partner
+queries by city and kind, circle fan-out sizes. No analytics without the `analytics` consent.
 
 ## 11. Testing
 
-| Layer            | Tool                              | What                                                                    |
-| ---------------- | --------------------------------- | ----------------------------------------------------------------------- |
-| Protocol         | vitest                            | schemas round-trip; `terms_hash`, export, sanitizer vectors             |
-| Core             | vitest                            | job machine table, `decide()` vectors, ledger chain, pipeline fallbacks |
-| Kotlin responder | JUnit                             | same `policy.json` vectors                                              |
-| Workers          | vitest + Miniflare                | routes, auth, mailbox idempotency, notifier dedupe                      |
-| Model plugin     | vitest + device runs              | lite-mode fallback, placeholder preservation, memory gate               |
-| Data-flow        | integration                       | no plaintext PII reaches any Worker (grep captured bodies)              |
-| Device           | Firebase Test Lab, ₹10–15k phones | cold start, RAM, model latency, battery                                 |
+| Layer            | Tool                              | What                                                                                                                                                                                                                                                                           |
+| ---------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Protocol         | vitest                            | round-trips; terms-hash, export, edge-check, eligibility, landing, schedule, holds vectors                                                                                                                                                                                     |
+| Core             | vitest                            | state machine table; `decide()` vectors; negotiation on every unit and on schedules; ledger chain; landing; fan-out limits; **concurrency**: two consumers one slot, two devices one slot, crossed agrees, duplicate and out-of-order envelopes (in-memory phones + a fake DO) |
+| Kotlin responder | JUnit                             | the same `policy.json` and safety-timer vectors                                                                                                                                                                                                                                |
+| Workers          | vitest + local Postgres 18        | routes, auth, board, signature refusals (built); postings, unions, partners, circles, signer tokens (single use under concurrent requests), holds (atomic in the DO)                                                                                                           |
+| End to end       | `tests/e2e` against API + Neon    | discovery, journeys, security (built); three consumers one worker; web signer; handover; circle post                                                                                                                                                                           |
+| UI               | Playwright, two profiles          | search → signed deal → contacts → stage → UPI → worked together                                                                                                                                                                                                                |
+| Data-flow        | integration                       | no plaintext identifier reaches any Worker, notice, partner envelope or circle post                                                                                                                                                                                            |
+| Device           | Firebase Test Lab, ₹10–15k phones | cold start, RAM, pack load offline, model and ASR latency, battery, check-in timers while closed                                                                                                                                                                               |
 
 ## 12. CI/CD
 
-Existing workflows kept: `ci.yml` (lint, build, typecheck, test), `deploy-workers.yml` (main only; skips without
-Cloudflare secrets), `mobile-builds.yml`, `release-android.yml`, `release-ios.yml`. Add: Kotlin vector job and a
-web build check. Branch → PR → green → squash merge; DCO sign-off (see `.claude/skills/git-workflow`).
+`ci.yml` (lint, build, typecheck, test with a Postgres 18 service), `deploy-workers.yml` (migrate Neon, deploy),
+`mobile-builds.yml`, release workflows. Add: Kotlin vector job, web build check, content-pack signing. Branch →
+PR → green → squash merge; DCO sign-off; `pnpm lint` before every commit.
 
 ## 13. Error handling and limits
 
-| Limit               | Value                                           |
-| ------------------- | ----------------------------------------------- |
-| Envelope body       | 64 KB (evidence packs: 1 MB, chunked)           |
-| Mailbox per device  | 500 pending; oldest `job_request` dropped first |
-| OTP                 | 10 / 60 s per IP; 5 failures / hour per number  |
-| Chain depth         | `MAX_HOP_DEPTH = 3` (exists)                    |
-| Countersign timeout | 48 h → `unilateral`                             |
-| Contact grant max   | job end or 90 days, whichever first             |
+| Limit                | Value                                                                                           |
+| -------------------- | ----------------------------------------------------------------------------------------------- |
+| Envelope body        | 64 KB (evidence packs 1 MB, chunked)                                                            |
+| Mailbox per device   | 500 pending; oldest `request` dropped first                                                     |
+| OTP                  | 10 / 60 s per IP; 5 failures / hour per number                                                  |
+| Negotiation          | `MAX_ROUNDS` 5 per side, `MAX_QUESTIONS` 5 (built); fan-out 3 workers per need                  |
+| Agree TTL / hold TTL | 7 days                                                                                          |
+| Clock tolerance      | ± 5 minutes on `expires_at`                                                                     |
+| Countersign timeout  | 48 h → `unilateral`                                                                             |
+| Contact grant        | job end or 90 days; circle 30 days renewable; handover 30 days                                  |
+| Payment stages       | ≤ 12 per agreement; advance ≤ 35% unless the worker's rule allows more; ₹1 lakh per UPI request |
+| Circle fan-out       | 50 devices from a phone; beyond that, desk relay; 20 posts per member per day                   |
+| City pack            | 2 MB; 1 version cached per city                                                                 |
+| Partner query        | 50 results, radius ≤ 25 km                                                                      |
+| Notices              | ≤ 10 per job per side; one-time link 7 days, single use                                         |
+| Safety               | ≤ 5 chosen contacts; grace 15 min; one mid-point check for jobs over 4 h                        |
 
-## 14. Rename from Collab (done in G0)
+## 14. Naming and first deploy
 
-| Collab (collabai.network)                             | GigSync                                                                  |
-| ----------------------------------------------------- | ------------------------------------------------------------------------ |
-| root `collabai.network`, scope `@collab/*`            | root `gigsync`, scope `@gigsync/*`                                       |
-| Workers `collab-api`, `collab-index`, `collab-app`    | `gigsync-api`, `gigsync-index` (→ `gigsync-board`), `gigsync-app`        |
-| D1 `collab-directory`, `collab-index`                 | Neon directory (ADR 0013) via Hyperdrive, D1 `gigsync-index`             |
-| domains `collabai.network`, `api.`, `www.`            | `gigsync.network`, `api.`, `www.`                                        |
-| NSIDs `network.collabai.*`                            | `app.gigsync.*`                                                          |
-| app id `network.collabai.app`, name "Collab"          | `app.gigsync`, "GigSync" (Android, iOS, Capacitor)                       |
-| `plugins/collab-llm`, `CollabLLM*`, `CollabPluginLlm` | `plugins/gigsync-llm`, `GigSyncLLM*`, `GigsyncPluginLlm`                 |
-| workers.dev subdomain `collab-index-worker`           | not used: the app calls `api.gigsync.network` (`API_BASE` repo variable) |
-
-Kept on purpose: `workers/index` still reads the Swift Collab app's Nostr wire format (`collab` tag,
-`collab-` category prefix, `dev.collab.*` collections) because its signed test fixtures must keep verifying; the
-job board replaces it. ADRs 0001–0008 keep their Collab wording where they describe decisions made for Collab.
-
-Before the first deploy: `wrangler hyperdrive create gigsync-directory` (ADR 0013) and `wrangler d1 create
-gigsync-index`, paste the ids, choose the domain, then uncomment the routes.
+Scope `@gigsync/*`, Workers `gigsync-*`, app id `app.gigsync`, NSIDs `app.gigsync.*`, `plugins/gigsync-llm`.
+`workers/index` is retired; the board lives in the API on Neon (PR #8). Domains: the app on `gigsync.network`
+and `www.gigsync.network`, the API on `api.gigsync.network` (the `API_BASE` repo variable); no workers.dev URL is
+used. Before a new Worker's first deploy: Hyperdrive binding (ADR 0013), routes, content signing key, WhatsApp
+provider and DLT header.
