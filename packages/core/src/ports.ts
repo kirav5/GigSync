@@ -112,6 +112,15 @@ export interface Model {
   generate(prompt: string, options?: GenerateOptions): Promise<string | null>;
 }
 
+/**
+ * A sentence as a point in meaning space (ADR 0042): a small embedding model on the phone turns text into a unit
+ * vector, and core compares vectors to tell which labelled saying a message is closest to. Returns null when the
+ * device has no such model ready; the word lists then answer, as they always did.
+ */
+export interface Embedder {
+  embed(text: string): Promise<readonly number[] | null>;
+}
+
 export interface Clock {
   now(): Date;
 }
@@ -129,6 +138,8 @@ export interface Ports {
   keys: Keys;
   model: Model;
   clock: Clock;
+  /** Absent on a device with no embedding model; every reader then uses the word lists alone. */
+  embedder?: Embedder;
 }
 
 /** In-memory implementations for tests and the web preview. */
@@ -160,6 +171,12 @@ export class MemoryStorage implements Storage {
 
 export class NoModel implements Model {
   async generate() {
+    return null;
+  }
+}
+
+export class NoEmbedder implements Embedder {
+  async embed() {
     return null;
   }
 }

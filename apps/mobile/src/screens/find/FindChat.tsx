@@ -12,10 +12,12 @@ import {
   parseNeed,
   readScope,
   startNeed,
+  tradeByMeaning,
   understandNeed,
 } from "@gigsync/core";
 import { useEffect, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
+import { meaningFor } from "../../adapters/meaning.js";
 import { chosenModel, ModelChoice } from "../../adapters/model.js";
 import { stopSpeaking } from "../../adapters/speech.js";
 import { needConfig } from "../../card/choices.js";
@@ -171,7 +173,14 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     if (!first) return answerNeed(chat, text, aloud);
     const { areas, today } = state.config;
     const hint = await understandNeed(ports.model, text, { areas, lang });
-    const trade = parseNeed(text, { areas, today }).trade ?? hint.trade ?? state.draft.trade;
+    // The word lists first, then a language model's reading, then the trade the sentence most sounds like (ADR 0042).
+    const meaning = meaningFor(ports);
+    const heard =
+      parseNeed(text, { areas, today }).trade ??
+      hint.trade ??
+      (meaning && (await tradeByMeaning(meaning.trades, text)));
+    if (heard) hint.trade = heard;
+    const trade = heard ?? state.draft.trade;
     // Outside the trades, the phone's model may name the work, and the need goes on to its questions and estimate.
     const jobType = !trade && state.draft.modelAsk ? await modelJobType(ports.model, text, lang) : undefined;
     if (jobType) {

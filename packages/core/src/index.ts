@@ -80,6 +80,7 @@ export {
   pricePrompt,
 } from "./interview/price-model.js";
 export { readScope, SCOPE_READ, type ScopeChip, ScopeKey, scopeFromWords } from "./interview/scope-read.js";
+export { TRADE_MIN_SIMILARITY, tradeByMeaning, tradeIndex } from "./interview/trade-meaning.js";
 export * from "./job/activity.js";
 export * from "./job/advice.js";
 export * from "./job/aftercare.js";
@@ -137,6 +138,8 @@ export * from "./router/intent.js";
 export * from "./router/keyword.js";
 export * from "./router/keyword-route.js";
 export * from "./router/market.js";
+export * from "./router/meaning.js";
+export * from "./router/meaning-route.js";
 export * from "./router/model-route.js";
 export * from "./router/moving.js";
 export * from "./router/newcomers.js";

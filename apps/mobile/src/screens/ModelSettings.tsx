@@ -1,6 +1,7 @@
 import type { MessageKey, Ports } from "@gigsync/core";
 import { ModelDownload } from "@gigsync/plugin-llm";
 import { useEffect, useState } from "react";
+import { EMBEDDING_PACK_MB, PackState, useUnderstanding } from "../adapters/embedder.js";
 import {
   deviceUsable,
   ENGINE_NONE,
@@ -13,6 +14,37 @@ import {
 import { listOllamaModels } from "../adapters/ollama.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
+
+/** The understanding pack (ADR 0042): its state on this device, and the one tap that fetches it. */
+function UnderstandingPack() {
+  const { t } = useI18n();
+  const pack = useUnderstanding();
+  const model = useChosenModel();
+  const lite = model.current.choice === ModelChoice.lite;
+  const line =
+    pack.state === PackState.ready
+      ? t("pack.ready")
+      : pack.state === PackState.downloading
+        ? t("pack.downloading", { percent: pack.percent })
+        : pack.state === PackState.failed
+          ? t("pack.failed")
+          : undefined;
+  return (
+    <div className={C.stack}>
+      <span className={C.label}>{t("pack.title")}</span>
+      <span className={C.faint}>{t("pack.about", { mb: EMBEDDING_PACK_MB })}</span>
+      {line && <span className={C.muted}>{line}</span>}
+      {lite && pack.state === PackState.ready && <span className={C.muted}>{t("pack.lite")}</span>}
+      {(pack.state === PackState.downloadable || pack.state === PackState.failed) && (
+        <div>
+          <button type={C.button} className={C.secondary} onClick={() => void pack.prepare()}>
+            {t("pack.get", { mb: EMBEDDING_PACK_MB })}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const CHOICES: readonly { choice: ModelChoice; label: MessageKey; about: MessageKey }[] = [
   { choice: ModelChoice.auto, label: "model.auto", about: "model.auto_about" },
@@ -123,6 +155,7 @@ export function ModelSettings({ ports }: { ports: Ports }) {
       {choice === ModelChoice.auto && !deviceUsable(status) && status && (
         <span className={C.faint}>{t("model.still_works")}</span>
       )}
+      <UnderstandingPack />
     </div>
   );
 }

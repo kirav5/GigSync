@@ -1,8 +1,9 @@
 import { Preferences } from "@capacitor/preferences";
-import type { Keys, Model, Ports, Storage } from "@gigsync/core";
+import type { Embedder, Keys, Model, Ports, Storage } from "@gigsync/core";
 import { SecretKeys, SystemClock, traced } from "@gigsync/core";
 import { type DeviceSecrets, newDeviceSecrets, type Sealed } from "@gigsync/crypto";
 import type { DeviceId } from "@gigsync/protocol";
+import { understanding } from "./embedder.js";
 import { chosenModel } from "./model.js";
 
 /**
@@ -81,11 +82,17 @@ function createModel(): Model {
   return { generate: traced("model.generate", chosenModel.generate.bind(chosenModel)) };
 }
 
+function createEmbedder(): Embedder {
+  // The understanding pack (adapters/embedder.ts): null until the owner has fetched it, and in lite mode.
+  return { embed: traced("embedder.embed", understanding.embed.bind(understanding)) };
+}
+
 export function createPorts(): Ports {
   return {
     storage: new PreferencesStorage(),
     keys: new SoftwareKeys(),
     model: createModel(),
     clock: new SystemClock(),
+    embedder: createEmbedder(),
   };
 }
