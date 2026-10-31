@@ -1,13 +1,13 @@
 import { City, Trade } from "@gigsync/protocol";
 import { PILOT_AREAS } from "../estimate/areas.js";
 import { FIELDS } from "../interview/card.js";
+import { EXAMPLES, SCRIPTS_FOR } from "./examples.js";
 import { allowedIntents, ChatIntent, ChatRole, type IntentContext } from "./intent.js";
-import { EXAMPLES, SCRIPTS_FOR } from "./prompt-examples.js";
 
 /**
  * The one prompt the phone's model reads to name a message's intent (ADR 0040 §2): the intents this chat can have,
  * each with a short definition, the rules for the pairs models confuse, examples in the owner's own language and its
- * Latin-letter form (prompt-examples.ts), who is asking, and the values slots may take. Short and JSON-only, so a small
+ * Latin-letter form (examples.ts), who is asking, and the values slots may take. Short and JSON-only, so a small
  * on-device model can follow it; core checks whatever comes back (docs/gigsync/model-comparison.md measured it).
  */
 

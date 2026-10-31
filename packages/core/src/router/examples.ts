@@ -4,11 +4,13 @@ import type { Field } from "../interview/lexicon.js";
 import { ChatIntent } from "./intent.js";
 
 /**
- * The routing prompt's examples, in the five ways owners write. The prompt shows only those of the owner's language
- * and its Latin-letter form (a Kannada owner sees Kannada and Kanglish), which keeps it short and its examples close to
- * the message. One per script for the plain intents; more, in contrasting pairs, where models confuse intents: a trade
- * word in a request, a note and a question about notes, not only in a price question; "don't tell" as well as "let".
- * None is an eval case (vectors/intents): the eval must test what the model was not shown.
+ * Labelled sayings per chat intent, in the five ways owners write: what the model router shows as examples (ADR 0040)
+ * and what the meaning router matches against (ADR 0042). One list, so the two readers never disagree about what an
+ * intent sounds like. The prompt shows only those of the owner's language and its Latin-letter form (a Kannada owner
+ * sees Kannada and Kanglish), which keeps it short; the meaning router uses them all. One per script for the plain
+ * intents; more, in contrasting pairs, where models confuse intents: a trade word in a request, a note and a question
+ * about notes, not only in a price question; "don't tell" as well as "let". None is an eval case (vectors/intents):
+ * the eval must test what the readers were not shown.
  */
 
 const I = ChatIntent;

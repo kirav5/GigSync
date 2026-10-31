@@ -3,6 +3,7 @@ import type { Lang } from "@gigsync/protocol";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type Account, deviceFor, loadAccount, raiseDeviceProtocol, signOut } from "./adapters/account.js";
 import { keepBackInApp, onBackButton } from "./adapters/back.js";
+import { understanding } from "./adapters/embedder.js";
 import { loadLang, saveLang, suggestedLang } from "./adapters/lang.js";
 import { chosenModel } from "./adapters/model.js";
 import { createPorts } from "./adapters/ports.js";
@@ -56,6 +57,8 @@ export function App() {
 
   useEffect(() => {
     void chosenModel.load(ports.storage);
+    // The understanding pack loads from the cache only when the owner fetched it before (ADR 0042).
+    void understanding.load(ports.storage);
   }, [ports]);
 
   // Talk's and Find's chats are the owner's: read once they are signed in, from their records on this phone.

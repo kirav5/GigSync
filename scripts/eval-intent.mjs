@@ -1,7 +1,8 @@
 // The chat intent eval (ADR 0040 §6): every phrasing in vectors/intents through the word lists, the phone's model
 // (Ollama in development) and the chain the app runs, with a generated report in docs/gigsync/intent-eval.md.
 // Run with `pnpm eval:intent` (builds core first). Options:
-//   --keywords-only   skip the model, for CI without Ollama
+//   --keywords-only   skip the language model, for CI without Ollama
+//   --no-meaning      skip the embedding model (ADR 0042), for a run without its download
 //   --limit N         only the first N cases (after --lang)
 //   --lang SET        only one set: en, hi, kn, hinglish or kanglish
 //   --split HALF      only `dev` (a third, for changing the prompt) or `test` (the rest, for scoring it)
@@ -11,17 +12,18 @@
 //                     in Chromium on this computer's GPU (webllm.mjs)
 //   --out FILE        write the report there instead of docs/gigsync/intent-eval.md, even for a partial run
 //   --json FILE       also write every case's result, for comparing models (docs/gigsync/model-comparison.md)
-// A run with --limit, --lang, --split or --timeout prints its numbers and leaves the report alone. Exits non-zero only when a data file
-// is broken or Ollama is not there for a model run, never on a low score.
+// A run with --limit, --lang, --split or --timeout prints its numbers and leaves the report alone. Exits non-zero only
+// when a data file is broken or Ollama is not there for a model run, never on a low score.
 import { execFileSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { DataError, loadCases, SETS, Split, splitOf } from "./eval-intent/cases.mjs";
 import { core } from "./eval-intent/core.mjs";
+import { EMBEDDING_MODEL, loadMeaning } from "./eval-intent/embedder.mjs";
 import { askOllama, OLLAMA_MODEL, OLLAMA_URL, ollamaReady, remembering } from "./eval-intent/ollama.mjs";
 import { report } from "./eval-intent/report.mjs";
-import { Router, runAll } from "./eval-intent/run.mjs";
+import { routersOf, runAll } from "./eval-intent/run.mjs";
 import { accuracy, groupBy, percent } from "./eval-intent/score.mjs";
 import { openWebLlm } from "./eval-intent/webllm.mjs";
 
@@ -37,6 +39,7 @@ const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const { values: args } = parseArgs({
   options: {
     "keywords-only": { type: "boolean", default: false },
+    "no-meaning": { type: "boolean", default: false },
     limit: { type: "string" },
     lang: { type: "string" },
     split: { type: "string" },
@@ -90,10 +93,15 @@ if (withModel && !webllm && !(await ollamaReady()))
   fail(`Ollama at ${OLLAMA_URL} has no ${OLLAMA_MODEL}; start it and pull the model, or pass --keywords-only`);
 const engine = webllm ? `\`${webllm.name}\` in WebLLM on this computer's GPU` : `\`${OLLAMA_MODEL}\` via Ollama`;
 
+const meaning = args["no-meaning"] ? undefined : await loadMeaning();
+if (!args["no-meaning"] && !meaning)
+  fail("@huggingface/transformers is not installed; run pnpm install, or pass --no-meaning");
+
 const timeoutMs = args.timeout === undefined ? core.MODEL_ROUTE_TIMEOUT_MS : Number.parseInt(args.timeout, DECIMAL);
 if (!(timeoutMs > 0)) fail("--timeout must be a positive number of milliseconds");
 const results = await runAll(cases, {
   withModel,
+  meaning,
   timeoutMs,
   onProgress: (done, total) => process.stderr.isTTY && process.stderr.write(`\r${done}/${total}`),
   ask: remembering(webllm?.ask ?? askOllama),
@@ -101,7 +109,7 @@ const results = await runAll(cases, {
 await webllm?.close();
 if (process.stderr.isTTY) process.stderr.write("\n");
 
-const routers = withModel ? Object.values(Router) : [Router.keywords];
+const routers = routersOf({ withModel, meaning });
 summary(results, routers);
 
 if (args.json) {
@@ -112,7 +120,8 @@ const partial = [args.limit, args.lang, args.split, args.timeout].some((arg) => 
 if (!partial || args.out) {
   const date = new Date().toISOString().slice(0, ISO_DAY);
   const out = args.out ?? REPORT_PATH;
-  writeFileSync(args.out ?? REPORT, `${report(results, { withModel, engine, timeoutMs, date })}\n`);
+  const meta = { withModel, routers, engine, embedding: meaning ? EMBEDDING_MODEL : undefined, timeoutMs, date };
+  writeFileSync(args.out ?? REPORT, `${report(results, meta)}\n`);
   // Biome formats only files inside the repo; a report written elsewhere stays as written.
   if (!args.out) execFileSync("pnpm", ["exec", "biome", "format", "--write", out], { cwd: ROOT, stdio: "ignore" });
   console.log(`wrote ${out}`);

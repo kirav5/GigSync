@@ -9,7 +9,15 @@ import { firstObject, within } from "../interview/need-model.js";
 import { asciiDigits, numbersIn } from "../job/details.js";
 import { log } from "../log.js";
 import type { Model } from "../ports.js";
-import { ChatIntent, type ChatRoute, type ChatSlots, type IntentContext, intentAllowed, RouteVia } from "./intent.js";
+import {
+  ChatIntent,
+  type ChatRoute,
+  type ChatSlots,
+  type IntentContext,
+  intentAllowed,
+  RouteVia,
+  routeComplete,
+} from "./intent.js";
 import { routePrompt } from "./model-prompt.js";
 import { replySchema } from "./reply-schema.js";
 
@@ -131,27 +139,13 @@ function checkSlots(reply: Reply, text: string, ctx: IntentContext): ChatSlots {
   };
 }
 
-/** The slot an intent cannot act without: a contact to ask or set a rule for, a note to keep. */
-const NEEDS: Partial<Record<ChatIntent, keyof ChatSlots>> = {
-  [ChatIntent.askContact]: "contact",
-  [ChatIntent.setRule]: "contact",
-  [ChatIntent.remember]: "note",
-};
-
-/** The route has what its action needs; a market question needs a trade, the worker's own when none was named. */
-function complete(intent: ChatIntent, slots: ChatSlots, ctx: IntentContext): boolean {
-  const needed = NEEDS[intent];
-  if (needed && slots[needed] === undefined) return false;
-  return intent !== ChatIntent.market || slots.trade !== undefined || (ctx.trades?.length ?? 0) > 0;
-}
-
 /** The route a reply names, when its intent is this chat's and its action has what it needs, with the slots that check. */
 function checkedRoute(reply: string, text: string, ctx: IntentContext): ChatRoute | undefined {
   const parsed = parseReply(reply);
   const intent = parsed && oneOf(parsed.intent, INTENTS);
   if (!parsed || !intent || !intentAllowed(intent, ctx)) return undefined;
   const slots = checkSlots(parsed, text, ctx);
-  return complete(intent, slots, ctx) ? { intent, slots, via: RouteVia.model } : undefined;
+  return routeComplete(intent, slots, ctx) ? { intent, slots, via: RouteVia.model } : undefined;
 }
 
 /** The intent the phone's model names, checked by core; undefined when there is none to trust. */
