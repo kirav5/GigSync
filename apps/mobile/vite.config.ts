@@ -10,6 +10,18 @@ const PUBLIC = fileURLToPath(new URL("./public/", import.meta.url));
 const INDEX = "index.html";
 const ASSETS = "assets/";
 const SOURCE_MAP = ".map";
+const SITES = "website/sites/";
+const HTML = ".html";
+
+/** Every page under website/sites/, keyed by its file name, so the switcher's iframes have something to load. */
+function websiteSites(): Record<string, string> {
+  const dir = fileURLToPath(new URL(`./${SITES}`, import.meta.url));
+  return Object.fromEntries(
+    readdirSync(dir)
+      .filter((name) => name.endsWith(HTML))
+      .map((name) => [`site-${name.slice(0, -HTML.length)}`, `${SITES}${name}`]),
+  );
+}
 
 /**
  * Writes sw.js into the build with the app shell it precaches: ./, index.html, the manifest and icons (everything in
@@ -49,8 +61,9 @@ export default defineConfig({
     outDir: "dist",
     target: "es2022",
     sourcemap: true,
-    // Two pages: the app (index.html, what Capacitor loads) and the website (home.html).
-    rollupOptions: { input: { app: INDEX, home: "home.html" } },
+    // The app (index.html, what Capacitor loads), the worker-facing site (home.html), and the "what we are building"
+    // switcher (website.html, served at /website) with the whole sites it switches between under website/sites/.
+    rollupOptions: { input: { app: INDEX, home: "home.html", website: "website.html", ...websiteSites() } },
   },
   server: { port: 5173, host: true },
 });

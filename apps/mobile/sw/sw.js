@@ -17,8 +17,11 @@ const NAVIGATE = "navigate";
 
 const scoped = (path) => new URL(path, self.registration.scope);
 const INDEX = scoped("index.html").href;
-/** The website is its own page, not the app: it is never answered with the app shell. */
-const WEBSITE = scoped("home.html").pathname;
+/** The websites are their own pages, not the app: they are never answered with the app shell. The host serves each
+ * page with and without its .html, so both spellings are listed; everything under website/ is the switcher's sites. */
+const WEBSITES = new Set(["home.html", "home", "website.html", "website"].map((page) => scoped(page).pathname));
+const WEBSITE_DIR = scoped("website/").pathname;
+const isWebsite = (pathname) => WEBSITES.has(pathname) || pathname.startsWith(WEBSITE_DIR);
 const ASSETS = scoped("assets/").pathname;
 
 self.addEventListener("install", (event) => {
@@ -49,7 +52,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (request.mode === NAVIGATE) {
-    if (url.pathname !== WEBSITE) event.respondWith(navigate(request));
+    if (!isWebsite(url.pathname)) event.respondWith(navigate(request));
     return;
   }
   if (url.pathname.startsWith(ASSETS)) event.respondWith(cacheFirst(request));

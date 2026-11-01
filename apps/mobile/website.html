@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>GigSync — website candidates</title>
+<meta name="description" content="Eight complete versions of the GigSync site, each in its own look. Switch between them with the bar at the bottom." />
+<meta name="theme-color" content="#0a0a0a" />
+<link rel="icon" type="image/svg+xml" href="./icon.svg" />
+<style>
+/* A switcher: the chosen site fills the screen in an iframe, so each keeps its own styles and scripts untouched. */
+:root { --bg: #0a0a0a; --fg: #f4f4f4; --muted: #8a8a8a; --line: #262626; --accent: #ff3ea5; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
+iframe { flex: 1; min-height: 0; width: 100%; border: 0; background: #fff; }
+.bar { flex: none; display: flex; align-items: center; gap: 8px; padding: 8px max(12px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); border-top: 1px solid var(--line); background: var(--bg); }
+.bar .t { font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.sites { flex: 1; display: flex; gap: 6px; overflow-x: auto; min-width: 0; scrollbar-width: none; }
+.sites::-webkit-scrollbar { display: none; }
+.sites button { flex: none; font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .05em; text-transform: uppercase; border: 1px solid var(--line); background: transparent; color: var(--muted); padding: 9px 12px; border-radius: 3px; cursor: pointer; white-space: nowrap; display: flex; gap: 8px; align-items: center; }
+.sites button i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; background: var(--swatch); border: 1px solid rgba(255,255,255,.15); }
+.sites button:hover { color: var(--fg); }
+.sites button.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.open { font: 600 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .05em; text-transform: uppercase; color: var(--fg); text-decoration: none; border: 1px solid var(--line); padding: 9px 12px; border-radius: 3px; white-space: nowrap; }
+@media (max-width: 700px) { .bar .t, .open { display: none; } }
+</style>
+</head>
+<body>
+
+<iframe id="site" title="GigSync site" src="./website/sites/demo.html"></iframe>
+
+<footer class="bar">
+  <span class="t">GigSync · site candidates</span>
+  <nav class="sites" id="sites" aria-label="Sites">
+    <button type="button" data-site="demo" style="--swatch:#0a0a0a">Live demo</button>
+    <button type="button" data-site="story" style="--swatch:#ff3ea5">Story scroll</button>
+    <button type="button" data-site="docs" style="--swatch:#f7f7f4">Documentation</button>
+    <button type="button" data-site="two-phones" style="--swatch:#121212">Two phones</button>
+    <button type="button" data-site="passbook" style="--swatch:#1d4ed8">Passbook</button>
+    <button type="button" data-site="poster" style="--swatch:#ffd400">Poster</button>
+    <button type="button" data-site="notebook" style="--swatch:#4a4ec4">Lab notebook</button>
+    <button type="button" data-site="samples" style="--swatch:#b5472b">Interactive samples</button>
+  </nav>
+  <a class="open" id="openSite" href="./website/sites/demo.html" target="_blank" rel="noopener">Open alone ↗</a>
+</footer>
+
+<script>
+  const frame = document.getElementById("site");
+  const open = document.getElementById("openSite");
+  const buttons = [...document.querySelectorAll("#sites button")];
+  const names = buttons.map((b) => b.dataset.site);
+  const show = (name) => {
+    const site = names.includes(name) ? name : names[0];
+    const src = `./website/sites/${site}.html`;
+    if (!frame.getAttribute("src").endsWith(`/${site}.html`)) frame.setAttribute("src", src);
+    open.href = src;
+    for (const b of buttons) b.classList.toggle("on", b.dataset.site === site);
+    try {
+      history.replaceState(null, "", `#${site}`);
+    } catch {}
+  };
+  for (const b of buttons) b.addEventListener("click", () => show(b.dataset.site));
+  window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+  show(location.hash.slice(1));
+</script>
+</body>
+</html>
