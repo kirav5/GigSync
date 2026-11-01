@@ -38,14 +38,15 @@ describe("a worker's record, computed from stored jobs", () => {
     expect((await cardOf(viewer, w.session.user)).record).toEqual({ jobs: 2, rated: 0 });
   });
 
-  it("shows the average only once three jobs were rated, to one decimal", async () => {
+  it("shows the average from the first rating, to one decimal", async () => {
     const w = await listedWorker("+919888330004", "Nanjamma");
     const viewer = await signIn("+919888330005");
     const homes = await Promise.all(["+919888330006", "+919888330007", "+919888330008"].map(consented));
     const [first, second, third] = homes as [Person, Person, Person];
     await rate(first, await doneJob(w, first), 5);
+    expect((await cardOf(viewer, w.session.user)).record).toEqual({ jobs: 1, rated: 1, average: 5 });
     await rate(second, await doneJob(w, second), 4);
-    expect((await cardOf(viewer, w.session.user)).record).toEqual({ jobs: 2, rated: 2 });
+    expect((await cardOf(viewer, w.session.user)).record).toEqual({ jobs: 2, rated: 2, average: 4.5 });
     await rate(third, await doneJob(w, third), 4);
     expect((await cardOf(viewer, w.session.user)).record).toEqual({ jobs: 3, rated: 3, average: 4.3 });
   });

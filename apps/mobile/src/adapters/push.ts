@@ -1,13 +1,14 @@
 import { Capacitor } from "@capacitor/core";
 import { log } from "@gigsync/core";
-import type { Lang, Session } from "@gigsync/protocol";
+import { type Lang, PushSubscribe, type Session } from "@gigsync/protocol";
 import { apiClient } from "./account.js";
 import { isIos, standalone } from "./install.js";
 
 /**
- * Job alerts by Web Push (workers/api/src/push/webpush.ts): with the owner's yes, this device subscribes with the API's
- * public key and tells the API where its browser takes pushes. The pushes are empty; the service worker (sw/sw.js)
- * shows a plain "your job has an update" in the owner's language and the app opens its own messages.
+ * Notifications by Web Push (workers/api/src/push/webpush.ts, ADR 0043, 0044): with the owner's yes, this device
+ * subscribes with the API's public key and gives the API its push address and keys. A push says, encrypted to this
+ * device, what kind of message came and from whom; the service worker (sw/sw.js) names the sender from the names this
+ * app gives it and words the notification in the owner's language.
  */
 
 /** Where alerts stand on this device, as Settings says it. */
@@ -27,8 +28,13 @@ export type AlertState = (typeof AlertState)[keyof typeof AlertState];
 
 const GRANTED: NotificationPermission = "granted";
 const DENIED: NotificationPermission = "denied";
+const ASKED: NotificationPermission = "default";
 /** The message the service worker keeps the owner's language from, for the alert's words. */
 export const SW_LANG = "gigsync-lang";
+/** The message that gives the service worker the names of the people this owner has jobs with, by user id. */
+export const SW_NAMES = "gigsync-names";
+/** Set once this phone offered notifications on its own, so it never asks again unprompted. */
+const OFFERED_KEY = "gigsync-notifications-offered";
 
 const supported = () =>
   !Capacitor.isNativePlatform() &&
@@ -70,8 +76,40 @@ export async function turnOnAlerts(session: Session): Promise<AlertState> {
     userVisibleOnly: true,
     applicationServerKey: keyBytes(key),
   });
-  await api.subscribePush(subscription.endpoint);
+  await api.subscribePush(addressOf(subscription));
   return AlertState.on;
+}
+
+/** The subscription as the API keeps it: the address and the keys to encrypt to. */
+function addressOf(subscription: PushSubscription): PushSubscribe {
+  return PushSubscribe.parse(subscription.toJSON());
+}
+
+/** The signed-in owner's session, for an offer made from a tap anywhere in the app (set by useAlerts). */
+let offerSession: Session | undefined;
+export const setOfferSession = (session: Session | undefined) => {
+  offerSession = session;
+};
+
+/**
+ * Notifications are on unless the owner says no: the browser lets a page ask only from a tap, so the first time the
+ * owner does something that starts a job's news (asks workers, publishes a card, signs, sends an update) the browser
+ * asks once. Never again on its own after that, whatever the answer; Settings can still turn them on.
+ */
+export async function offerAlerts(): Promise<void> {
+  if (!supported() || !offerSession || Notification.permission !== ASKED) return;
+  if (!navigator.userActivation?.isActive) return;
+  try {
+    if (localStorage.getItem(OFFERED_KEY)) return;
+    localStorage.setItem(OFFERED_KEY, "1");
+  } catch {
+    return;
+  }
+  try {
+    await turnOnAlerts(offerSession);
+  } catch (err) {
+    log.warn("notifications not offered", { error: err instanceof Error ? err.name : typeof err });
+  }
 }
 
 /** Turns alerts off here: the browser forgets the subscription, and the API the address. */
@@ -81,16 +119,21 @@ export async function turnOffAlerts(session: Session): Promise<AlertState> {
   return AlertState.off;
 }
 
+/** Tells the service worker who the people this owner has jobs with are, so a notification can name its sender. */
+export function tellNames(names: Readonly<Record<string, string>>): void {
+  if (supported()) navigator.serviceWorker.controller?.postMessage({ type: SW_NAMES, names });
+}
+
 /**
- * On each open with alerts on: tells the API this device's address again (a push service may have changed it, and an
- * address it called gone was dropped), and tells the service worker the owner's language for the alert's words.
+ * On each open with notifications on: tells the API this device's address and keys again (a push service may have
+ * changed them, and an address it called gone was dropped), and the service worker the owner's language.
  */
 export async function refreshAlerts(session: Session, lang: Lang): Promise<void> {
   if (!supported()) return;
   navigator.serviceWorker.controller?.postMessage({ type: SW_LANG, lang });
   try {
     const subscription = Notification.permission === GRANTED ? await current() : null;
-    if (subscription) await apiClient(session).subscribePush(subscription.endpoint);
+    if (subscription) await apiClient(session).subscribePush(addressOf(subscription));
   } catch (err) {
     log.warn("alerts not refreshed", { error: err instanceof Error ? err.name : typeof err });
   }

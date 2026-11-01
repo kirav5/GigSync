@@ -11,6 +11,7 @@ import {
 import type { Payment } from "@gigsync/protocol";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { nameOf } from "./adapters/account.js";
+import { offerAlerts } from "./adapters/push.js";
 import { syncPaused } from "./move/pause.js";
 
 /** How often the phone checks its mailbox while the app is open. Push wake-ups replace this later (FCM). */
@@ -64,6 +65,8 @@ export function useGig(ports: Ports, device: GigDevice | undefined) {
   /** Runs `work` (an owner action, or nothing), then syncs and refreshes, after whatever is already running. */
   const run = useCallback(
     (work?: () => Promise<unknown>) => {
+      // An owner's own action (a tap) is when the browser may ask about notifications, once.
+      if (work) void offerAlerts();
       const next = queue.current.then(async () => {
         if (!device || current.current !== device) return;
         let acted = false;

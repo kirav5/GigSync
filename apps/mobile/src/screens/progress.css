@@ -1,8 +1,6 @@
-/* A signed job's progress line (JobProgress.tsx): one column per step, a dot on a rail, the step's name and time. */
+/* A signed job's progress (JobProgress.tsx), top to bottom: a dot on a rail, the step's name and its time. */
 .job-progress {
   display: grid;
-  grid-template-columns: repeat(var(--steps, 5), minmax(0, 1fr));
-  gap: 0;
   margin: 4px 0 0;
   padding: 0;
   list-style: none;
@@ -10,21 +8,19 @@
 .job-progress li {
   position: relative;
   display: grid;
-  justify-items: center;
-  align-content: start;
-  gap: 4px;
-  min-width: 0;
-  padding-top: 2px;
-  text-align: center;
+  grid-template-columns: 14px max-content 1fr;
+  align-items: center;
+  column-gap: 12px;
+  min-height: 34px;
 }
-/* The rail from this step's dot to the next one's. */
+/* The rail from this step's dot down to the next one's. */
 .job-progress li:not(:last-child)::after {
   content: "";
   position: absolute;
-  top: 8px;
-  left: calc(50% + 9px);
-  right: calc(-50% + 9px);
-  height: 2px;
+  left: 6px;
+  top: calc(50% + 9px);
+  height: calc(100% - 18px);
+  width: 2px;
   background: var(--hairline);
 }
 .job-progress li[data-state="done"]:not(:last-child)::after {
@@ -51,9 +47,8 @@
   background: var(--danger);
 }
 .job-progress .name {
-  font-size: 12px;
-  line-height: 1.2;
-  overflow-wrap: anywhere;
+  font-size: 15px;
+  line-height: 1.25;
 }
 .job-progress [data-state="next"] .name {
   color: var(--text3);
@@ -66,7 +61,30 @@
 }
 .job-progress time {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text3);
   font-variant-numeric: tabular-nums;
+}
+/* Folded steps: a small hollow dot and a tap target that opens them. */
+.job-progress .fold .dot {
+  width: 8px;
+  height: 8px;
+  margin-left: 3px;
+}
+.job-progress .fold button {
+  grid-column: 2 / -1;
+  justify-self: start;
+  min-height: 34px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text2);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.job-progress .fold.less button {
+  grid-column: 1 / -1;
 }

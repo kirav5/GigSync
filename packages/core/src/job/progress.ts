@@ -1,6 +1,6 @@
 import { EngagementStatus, type Payment, PaymentStatus, UpdateCode } from "@gigsync/protocol";
 import { bothSigned } from "../payments/passbook.js";
-import { reachedAt } from "./history.js";
+import { type KeptNote, reachedAt } from "./history.js";
 import type { JobRecord } from "./store.js";
 
 /**
@@ -33,6 +33,12 @@ const PAID: ReadonlySet<string> = new Set([PaymentStatus.enum.paid, PaymentStatu
 const SET_OFF: ReadonlySet<EngagementStatus> = new Set([S.in_progress, S.delivered, S.revision, S.closed]);
 /** Statuses that mean the work is done, or gone further. */
 const DONE: ReadonlySet<EngagementStatus> = new Set([S.delivered, S.revision, S.closed]);
+
+/** Update codes the progress line draws as steps of their own. */
+const STEP_CODES: ReadonlySet<UpdateCode> = new Set([U.on_my_way, U.started, U.done]);
+
+/** A note worth listing under the line: free text, or a code the line does not already show (running late). */
+export const noteShown = (n: KeptNote): boolean => n.code === undefined || !STEP_CODES.has(n.code);
 
 const noteAt = (r: JobRecord, code: UpdateCode) => r.notes?.find((n) => n.code === code)?.at;
 const at = (value: string | undefined) => (value ? { at: value } : {});

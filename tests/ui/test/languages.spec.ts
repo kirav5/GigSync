@@ -1,7 +1,19 @@
 import { type ApiClient, plural, priceText, questionText, t } from "@gigsync/core";
 import { Lang, QuestionKey, Trade } from "@gigsync/protocol";
 import { type Browser, type BrowserContext, expect, test } from "@playwright/test";
-import { listWorker, newPhone, open, openCard, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
+import {
+  listWorker,
+  newPhone,
+  open,
+  openCard,
+  progressStep,
+  Role,
+  RUN,
+  reveal,
+  shoot,
+  signIn,
+  textOf,
+} from "./helpers.js";
 import { dealPaise, fillAsk, type Phone, publishCard, sendNote, signBoth, unlistCards } from "./journey.js";
 import { planBandHigh } from "./market-seed.js";
 import { pairKey, type TranslationTable, useTableTranslator } from "./translator.js";
@@ -177,12 +189,13 @@ test("Hindi cook, Kannada household: every screen in its own language, free text
   expect(await dealPaise(asha)).toBe(price);
   await shoot("signed-contacts", shots, folder);
 
-  // A coded note reads natively; her own words are translated; a translation that changed ₹200 is withheld.
+  // A coded update shows on his progress line; her own words are translated; a translation that changed ₹200 is withheld.
   await asha.page.getByRole("button", { name: t(hi, "update.on_my_way") }).click();
   await sendNote(asha, HI_NOTE_GATE);
   await sendNote(asha, HI_NOTE_GAS);
   const notes = ravi.page.getByRole("list", { name: t(kn, "a11y.notes") });
-  await expect(notes).toContainText(t(kn, "update.on_my_way"));
+  // On the way is a step on his progress line, with its time, not a note.
+  await expect(progressStep(ravi.page, kn, "progress.on_my_way")).toHaveAttribute("aria-current", "step");
   await expect(notes).toContainText("10 ನಿಮಿಷದಲ್ಲಿ ಗೇಟ್ ತಲುಪುತ್ತೇನೆ");
   // The withheld one shows his phone's reason beside her own Hindi, never the changed number.
   const gas = notes.getByRole("listitem").filter({ hasText: HI_NOTE_GAS });
@@ -264,7 +277,7 @@ test("Hindi maid, English household: rooms priced from the band, words translate
   await sunita.page.getByRole("button", { name: t(hi, "update.on_my_way") }).click();
   await sendNote(sunita, HI_NOTE_LATE);
   const notes = meera.page.getByRole("list", { name: t(en, "a11y.notes") });
-  await expect(notes).toContainText(t(en, "update.on_my_way"));
+  await expect(progressStep(meera.page, en, "progress.on_my_way")).toHaveAttribute("aria-current", "step");
   await expect(notes).toContainText("I will come 15 minutes late tomorrow");
   await shoot("notes-translated", shots, folder);
 

@@ -1,4 +1,4 @@
-import type { DeviceId, DeviceRegistration, UserId } from "@gigsync/protocol";
+import { type DeviceId, type DeviceRegistration, PushSubscribe, type UserId } from "@gigsync/protocol";
 import type { Db } from "./client.js";
 
 /** A device's public keys as the directory lists them. Never the push token: that stays server-side. */
@@ -50,27 +50,44 @@ export async function insertDevice(
   );
 }
 
-/** Where the caller's own active device takes pushes, or none (null). False when the device is unknown or revoked. */
-export async function setPushEndpoint(
+/**
+ * Where the caller's own active device takes pushes, or none (null). With its keys the subscription is kept whole, as
+ * JSON, in `push_token` (it is the device's push address, keys included); an older app's bare address as it came.
+ * False when the device is unknown or revoked.
+ */
+export async function setPushAddress(
   db: Db,
   device: DeviceId,
   user: UserId,
-  endpoint: string | null,
+  address: PushSubscribe | null,
 ): Promise<boolean> {
+  const token = address && (address.keys ? JSON.stringify(address) : address.endpoint);
   const { rowCount } = await db.query(
     "UPDATE devices SET push_token = $3 WHERE device_id = $1 AND user_id = $2 AND revoked_at IS NULL",
-    [device, user, endpoint],
+    [device, user, token],
   );
   return (rowCount ?? 0) > 0;
 }
 
-/** The push addresses of a user's active devices that gave one: where a job message's wake-up goes. */
-export async function pushEndpoints(db: Db, user: UserId): Promise<string[]> {
+/** A stored `push_token` read back: a whole subscription, or a bare address; anything else is not a push address. */
+function addressOf(token: string): PushSubscribe | undefined {
+  let value: unknown = { endpoint: token };
+  try {
+    if (token.startsWith("{")) value = JSON.parse(token);
+  } catch {
+    return undefined;
+  }
+  const parsed = PushSubscribe.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
+}
+
+/** The push addresses of a user's active devices that gave one: where a job message's notification goes. */
+export async function pushAddresses(db: Db, user: UserId): Promise<PushSubscribe[]> {
   const { rows } = await db.query<{ push_token: string }>(
     "SELECT push_token FROM devices WHERE user_id = $1 AND revoked_at IS NULL AND push_token IS NOT NULL",
     [user],
   );
-  return rows.map((r) => r.push_token);
+  return rows.map((r) => addressOf(r.push_token)).filter((a) => a !== undefined);
 }
 
 /** Records that the caller's own device now speaks `protocol`; never lowers it. False when the device is unknown or revoked. */
