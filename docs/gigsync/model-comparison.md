@@ -2,7 +2,8 @@
 
 Status: decided 2026-11-01, except the order of the readers. Measured on a MacBook Air M2 with 8 GB. Every number here can
 be rebuilt with `pnpm eval:intent` (scripts/eval-intent.mjs) and `node scripts/eval-intent/compare.mjs`; the full
-generated tables are in [model-comparison-tables.md](model-comparison-tables.md). ADR 0040 and LLD §9.1 carry the
+generated tables are in [model-comparison-tables.md](model-comparison-tables.md), and every case with each reader's
+answer, filterable by language, intent and outcome, is in [router-eval.html](router-eval.html) (open it in a browser). ADR 0040 and LLD §9.1 carry the
 decision into the design.
 
 ## Summary
@@ -106,7 +107,8 @@ How the new cases were made, and what that means:
 ## Results
 
 All on the 978 test cases. The full tables, by intent, with slots and paired tests, are in
-[model-comparison-tables.md](model-comparison-tables.md).
+[model-comparison-tables.md](model-comparison-tables.md); each case, with what every reader named, in
+[router-eval.html](router-eval.html).
 
 ### Each model alone, by language
 
