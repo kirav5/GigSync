@@ -3,6 +3,7 @@
 Date: 2026-10-31. Status: accepted. Amends [ADR 0040](0040-on-phone-model-router.md) (the phone's language model
 reads chat intent first) and [ADR 0041](0041-prices-from-drivers.md) §2 (how a need's trade is read); keeps
 [ADR 0010](0010-no-cloud-model-in-gigsync.md) (nothing an owner types leaves the phone for a model).
+Amended 2026-11-01: 301 more sayings, and the reader order measured ([Amendment](#amendment-2026-11-01-more-sayings-and-the-order-measured)).
 
 ## Context
 
@@ -98,3 +99,22 @@ phones people hold, over mobile data.
   test device is G1b work with the speech plugin's.
 - A fine-tuned classifier head on the same embeddings would gain more at the cost of a training step; nearest
   neighbour needs none and is already ahead of both readers it joins.
+
+## Amendment 2026-11-01: more sayings, and the order measured
+
+Measured on the 1,452-case eval's 978 held-out test cases ([model-comparison.md](../gigsync/model-comparison.md)).
+1. **301 more sayings** (`router/sayings-hinglish.ts`, `sayings-kanglish.ts`, `sayings-edges.ts`): Hinglish and
+   Kanglish, which had two or three per intent and none, and the weakest intents in English, Hindi and Kannada, in
+   pairs across the edges the index crossed (find taken for market, helpOffer for moving). None overlaps an eval case
+   (word overlap under 0.6), checked by script. The examples the language model sees are tagged by script and shared.
+2. **The order stays: meaning, then language model, then lists.** With Qwen3.5-2B (ADR 0040) as the language model,
+   model first scores 69.8% and meaning first 67.3%; meaning first runs the model on only the 15% of messages it
+   cannot place, which is what makes the 2B usable on a phone at all.
+
+Consequences:
+- The embedding router alone: 51% to 60%; then the lists, the reader on every phone without the 2B: 55% to 62%.
+  Kanglish 35% to 57%, Hinglish 46% to 55%, English 71% to 77%, Hindi 59% to 63%; Kannada 63% to 58%, outnumbered by
+  the new Latin-letter sayings: Kannada-script sayings are next.
+- The similarity floor (0.8) almost never decides: e5's similarities sit between about 0.8 and 0.95. Routes are dropped
+  for a missing slot instead. Neighbour counts from 1 to 7 score within a point; a softmax head on the same embeddings
+  did not beat nearest neighbour (54% against 63% with the same training sayings).

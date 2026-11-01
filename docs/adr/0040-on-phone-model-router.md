@@ -3,6 +3,8 @@
 Date: 2026-10-31. Status: accepted. Amends [LLD §3.5 and §8.4](../gigsync/LLD.md) (intent only "when the keyword
 router is unsure"); keeps [ADR 0010](0010-no-cloud-model-in-gigsync.md) (no cloud model reads what owners type).
 Amended 2026-10-31: the web engine is WebLLM running Qwen2.5-0.5B-Instruct ([Amendment](#amendment-2026-10-31-the-web-engine-is-webllm)).
+Amended 2026-11-01 (round 2): a shorter prompt, 4.0 s per message
+([Amendment](#amendment-2026-11-01-round-2-a-shorter-prompt)).
 Amended 2026-11-01: Qwen3.5-2B on the phones that can carry it, and a router that reads every language
 ([Amendment](#amendment-2026-11-01-qwen35-2b-and-a-router-for-every-language)).
 
@@ -112,3 +114,22 @@ Consequences:
   the 5 s limit; phones are slower. Real-phone timing, and a shorter prompt, come before the pilot.
 - With ADR 0042's embedding router answering first, the 2B's chain scores 63%; with the language model first, 71%
   (WebLLM). The order is an open decision recorded in model-comparison.md.
+
+## Amendment 2026-11-01, round 2: a shorter prompt
+
+The prompt now shows examples only in the script the message is written in (a Kannada-script message sees Kannada
+examples; a Kannada owner typing in Latin letters sees Kanglish), and says what each slot holds without listing the
+values the reply's schema already enforces. A second askContact and askSelf example per script makes up for the
+examples no longer shown. 740 to 870 tokens instead of 890 to 1,300.
+
+Consequences, on the 978 test cases with the phone's own build (WebLLM, M2):
+- 5.4 s to 4.0 s per message (median), and messages over the 5 s limit from 58% to 3%.
+- 71.2% to 69.4% of intents right: 62 cases only the old prompt got right, 45 only the new (p = 0.12). Kanglish lost
+  most (54% to 47%), the place for the next examples.
+- Shorter intent meanings (−9 points on dev) and examples written without JSON (−4) were tried and left out.
+- With ADR 0042's grown sayings the reader order matters little: embedding router first 67.3%, model first 69.8%, and
+  the first is faster. ADR 0042's order stays.
+- Read in careful English translations, the 2B names 91% of the non-English test messages right against 72% in their
+  own words (Kanglish 50% to 93%): it knows the intents and reads romanized Kannada badly. That is a ceiling no phone
+  translator reaches; transliteration into the native script is the cheap step to measure next
+  ([model-comparison.md](../gigsync/model-comparison.md#translating-to-english-first-the-ceiling)).

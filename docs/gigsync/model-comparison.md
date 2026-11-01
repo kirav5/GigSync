@@ -18,16 +18,24 @@ router (ADR 0042) and the word lists.** On the 978 held-out test cases:
 | Qwen3.5-0.8B, phone build (WebLLM)                  | 31%          | 440 MB   |
 | Embedding router (ADR 0042)                         | 51%          | 129 MB   |
 | Embedding router, then word lists                   | 55%          | 129 MB   |
+| Embedding router, more sayings (round 2)            | 60%          | 129 MB   |
+| Embedding router, more sayings, then word lists     | **62%**      | 129 MB   |
 | **Qwen3.5-2B, phone build (WebLLM), new router**    | **71%**      | 1,050 MB |
+| Qwen3.5-2B, phone build, shorter prompt (round 2)   | 69%          | 1,050 MB |
 | Qwen3.5-2B, Ollama 4-bit, new router                | 77%          | (dev)    |
 - The router changes (reply schema, contacts across scripts, a per-language prompt) took Qwen3.5-2B from 68% to 77%
   on cases the prompt was never tuned on (p < 0.001), Hindi 70% to 88%, Kannada 65% to 76%.
 - Qwen3.5-0.8B adds nothing: the embedding router then the lists score 54.8% with it and 54.8% without it. It answers
   "chat" to most messages, with or without the reply schema. So the small tier is gone.
-- **Speed is the open risk**: the 2B takes 5.4 s per message in WebLLM on an M2, and 58% of messages pass the 5 s
-  limit; phones are slower. A shorter prompt and real-phone timing come before the pilot.
-- **One decision is open**: with the 2B, putting the language model before the embedding router scores 71% (77% on
-  Ollama); the order ADR 0042 merged scores 63% (65%). See [The order of the readers](#the-order-of-the-readers).
+- **Speed is the open risk**: round 2's shorter prompt took the 2B from 5.4 s to 4.0 s per message in WebLLM on an
+  M2 (messages over the 5 s limit from 58% to 3%), at a cost within noise (71% to 69%). Phones are slower than an M2:
+  real-phone timing comes before the pilot.
+- **The reader order is settled**: with round 2's sayings the embedding router first scores 67%, the model first 70%,
+  and the first is far faster, so ADR 0042's order stays. See [Round 2](#round-2-a-faster-prompt-and-more-sayings).
+- **Translating to English first has a large ceiling but no translator yet that reaches it**: read in careful English
+  translations, the 2B names 91% of the non-English test messages right (72% in their own words), Kanglish 50% to 93%.
+  A phone translator would score well below that; transliterating Kanglish into Kannada script is the cheap thing to
+  try first. See [the ceiling](#translating-to-english-first-the-ceiling).
 
 ## The question
 
@@ -159,22 +167,94 @@ on fewer of them than the 2B would be:
 | Model, then embedding router, then word lists | 71.3%              | 77.4%              | 31.3%                |
 | Embedding router, then word lists (no model)  | 54.8%              | 54.8%              | 54.8%                |
 
-The trade: model first runs the language model on every message, 5.4 s each on an M2 today, instead of on the fifth
-the embedding router is unsure of. Not decided here; it is the owners' call between accuracy and waiting.
+The trade: model first runs the language model on every message, 5.4 s each on an M2 then, instead of on the fifth
+the embedding router is unsure of. Round 2 (below) closed most of the gap, and the order stays as ADR 0042 has it.
+
+## Round 2: a faster prompt and more sayings
+
+Two changes, tuned on dev and scored once on the 978 test cases.
+
+**A shorter prompt for the 2B** (ADR 0040, amendment round 2). Examples only in the script the message is written in,
+and the slots said without the value lists the reply's schema already enforces: 740 to 870 tokens instead of 890 to
+1,300. On dev, two further cuts cost too much and were dropped: shorter intent meanings (79% to 70%) and examples
+written without JSON (−4 points).
+
+| Qwen3.5-2B, phone build (WebLLM, M2) | Before | Round 2 |
+| ------------------------------------ | ------ | ------- |
+| Intent right                         | 71.2%  | 69.4%   |
+| Median per message                   | 5.4 s  | 4.0 s   |
+| 95th percentile                      | 6.3 s  | 4.8 s   |
+| Over the 5 s limit                   | 58%    | 2.9%    |
+
+62 cases only the old prompt got right and 45 only the new one (p = 0.12): within noise. Kanglish lost most (54% to
+47%). On Ollama's build: 77.0% to 75.6%.
+
+**301 more sayings for the embedding router** (ADR 0042, amendment): Hinglish and Kanglish, which it had almost none
+of, and its weakest intents in English, Hindi and Kannada, none overlapping an eval case.
+
+| Embedding router, then word lists | Before | Round 2 |
+| --------------------------------- | ------ | ------- |
+| All                               | 55%    | 62%     |
+| English                           | 71%    | 77%     |
+| Hindi                             | 59%    | 63%     |
+| Hinglish                          | 46%    | 55%     |
+| Kannada                           | 63%    | 58%     |
+| Kanglish                          | 35%    | 57%     |
+
+Kannada fell: the new sayings are mostly Latin-letter, and Kannada-script messages now land near sayings for intents
+whose slots they lack. Kannada-script sayings are next. Alone, the embedding router went from 51% to 60%; its
+neighbour count and similarity floor were swept on dev and barely matter, and a trained softmax head did not beat
+nearest neighbour.
+
+**The reader order, again**, with both changes (phone build): embedding router first 67.3%, model first 69.8%. The
+model now runs on the 15% of messages the embedding router cannot place, so this order also keeps the 2B fast enough
+to use. It stays.
+
+### Translating to English first: the ceiling
+
+How much would the readers gain if every message were translated into English before they read it? Each of the 780
+non-English test messages was translated into English by a careful translator (Claude agents, one per language) told
+to keep meaning, tense, negation and vagueness, and **not shown the message's id or label**: a first run whose ids
+carried the intent name was redone blind (it scored the same, 91%). The readers then read the translations; English
+messages are unchanged.
+
+| Language        | 2B, own words | 2B, in English | Embedding + lists, own words | Embedding + lists, in English |
+| --------------- | ------------- | -------------- | ---------------------------- | ----------------------------- |
+| English         | 89%           | 89%            | 77%                          | 77%                           |
+| Hindi           | 83%           | 88%            | 62%                          | 59%                           |
+| Hinglish        | 82%           | 94%            | 55%                          | 78%                           |
+| Kannada         | 73%           | 90%            | 58%                          | 62%                           |
+| Kanglish        | 50%           | 93%            | 57%                          | 77%                           |
+| All non-English | 72%           | 91%            | 58%                          | 69%                           |
+
+(Ollama's 4-bit build, round 2's prompt and sayings.) What it says, and what it does not:
+- **It is a ceiling, not a plan.** The translations are clean standard English, cleaner than the English test set
+  itself (which keeps typos and voice-typing), which is why translated Hinglish and Kanglish beat English. No
+  translator a phone can run (IndicTrans2, Chrome's Translator, ML Kit) would match it, and Hinglish and Kanglish,
+  where the gain is largest, are exactly what those translators read worst: they expect Devanagari and Kannada script.
+- **The 2B understands the intents; it reads Kanglish badly.** 50% in Kanglish, 73% in Kannada script, 93% in English
+  for the same messages. The cheapest experiment is transliteration alone: Kanglish into Kannada script, Hinglish into
+  Devanagari, no translation model, measured on dev.
+- **The embedding router gains less** (58% to 69%), and Hindi gets slightly worse in English: its Hindi sayings match
+  Hindi better than English sayings match the translation.
+- A translator would also be a second model on the phone (IndicTrans2 distilled is 200 to 300 MB) and a second step
+  before every message; for the embedding router that costs little time, for the 2B it adds to the wait.
 
 ## Speed on the phone's engine
 
 WebLLM on the M2's GPU, the routing prompt of 935 to 1,330 tokens (the intents, the rules, the examples and the slot
 values), every one of the 978 test messages, after loading:
 
-| Model        | Median per message | 95th percentile | Over the 5 s limit | Reads the prompt at | Writes at    |
-| ------------ | ------------------ | --------------- | ------------------ | ------------------- | ------------ |
-| Qwen3.5-0.8B | 3.4 s              | 4.2 s           | under 5%           | ~430 tokens/s       | ~25 tokens/s |
-| Qwen3.5-2B   | 5.4 s              | 6.3 s           | 58%                | ~260 tokens/s       | ~16 tokens/s |
+| Model                        | Median per message | 95th percentile | Over the 5 s limit | Reads the prompt at | Writes at    |
+| ---------------------------- | ------------------ | --------------- | ------------------ | ------------------- | ------------ |
+| Qwen3.5-0.8B                 | 3.4 s              | 4.2 s           | under 5%           | ~430 tokens/s       | ~25 tokens/s |
+| Qwen3.5-2B                   | 5.4 s              | 6.3 s           | 58%                | ~260 tokens/s       | ~16 tokens/s |
+| Qwen3.5-2B, round 2's prompt | 4.0 s              | 4.8 s           | 2.9%               | ~260 tokens/s       | ~16 tokens/s |
 
 Reading the prompt is most of the time. A phone's GPU is slower than an M2's (we expect two to four times, not yet
-measured), so with today's prompt the 2B misses the limit on every phone we know of and the speed guard turns it off.
-**The prompt's length, not the model, decides whether the 2B is used at all.**
+measured), so with the first prompt the 2B would miss the limit on every phone we know of. Round 2's prompt gives it room on an
+M2; whether that is enough on an 8 GB phone is the measurement still missing. **The prompt's length, not the model,
+decides whether the 2B is used at all.**
 
 ## What Qwen3.5-2B needs from a phone
 
@@ -199,15 +279,16 @@ in a load the phone cannot hold is worse than the embedding router. Speed is the
    only where the gate above passes. Qwen2.5 and the Qwen3.5-0.8B tier are removed; Settings has no size choice.
 2. **The router keeps its changes:** the reply schema, contacts across scripts and spellings, and the per-language
    prompt with its rules (ADR 0040, amendment of 2026-11-01).
-3. **Development uses the same model:** `qwen3.5:2b-q4_K_M` in Ollama (README); every other model was deleted from
+3. **The reader order stays as ADR 0042 has it** (embedding router, then the 2B, then the word lists), now that the
+   two orders score within 3 points (round 2).
+4. **Development uses the same model:** `qwen3.5:2b-q4_K_M` in Ollama (README); every other model was deleted from
    the eval machine.
 
 ## What comes next
 
-- **A shorter prompt, then timing on real phones.** The 2B must answer in under 5 s on an 8 GB Android phone, or it
-  helps no one. Candidates: fewer examples per intent now that the schema holds the format, and the intents' meanings
-  in fewer words; each change re-measured on dev, then test.
-- **Decide the order of the readers** (above).
+- **Timing on a real 8 GB Android phone.** Round 2 brought the 2B to 4.0 s on an M2; a phone GPU is slower. If it
+  still misses, the next prompt cuts come from the examples, re-measured on dev, then test.
+- **Kannada-script sayings** for the embedding router, which lost Kannada in round 2.
 - **Native-speaker review of the labels**, Hindi and Kannada first, and of the doubtful cases the writers flagged.
 - **`setRule`, `remember` and Kanglish** are the weakest; more contrasting examples, measured on dev.
 - **Gemma 4 E2B** (Apache-2.0, in WebLLM) deserves one round if the 2B cannot be made fast enough.
