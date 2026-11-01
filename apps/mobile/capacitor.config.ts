@@ -17,9 +17,16 @@ const config: CapacitorConfig = {
   ios: { contentInset: "never" },
   server: { androidScheme: "https", ...(devServer ? { url: devServer, cleartext: true } : {}) },
   plugins: {
+    // Android edge to edge: "native" pads the web view or passes real values to env(safe-area-inset-*), which is all
+    // the CSS reads. The default ("css") also injects --safe-area-inset-* variables nothing uses, and its first
+    // injection runs before the page has a document, so every launch logged an error. index.html sets
+    // viewport-fit=cover; telling SystemBars up front saves a layout jump while it reads the page.
+    SystemBars: { insetsHandling: "native", initialViewportFitValueHint: "cover" },
     // The keyboard shrinks the web view instead of scrolling the page under it, so the top bar stays put and the
-    // focused field stays above the keys. resizeOnFullScreen: Android's edge-to-edge apps need it to resize at all.
-    Keyboard: { resize: KeyboardResize.Native, resizeOnFullScreen: true },
+    // focused field stays above the keys (iOS). On Android, SystemBars above already pads the web view by the
+    // keyboard's height; Keyboard's resizeOnFullScreen workaround would resize it a second time, which SystemBars
+    // warns against, and the sign-in screen with the keyboard up is pixel-identical without it.
+    Keyboard: { resize: KeyboardResize.Native },
   },
 };
 
