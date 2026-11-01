@@ -1,0 +1,153 @@
+{
+  "cases": [
+    {
+      "id": "kn-moving-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಮುಂದಿನ ವಾರ ಬೆಂಗಳೂರಿಗೆ ಬರ್ತಿದ್ದೀನಿ ಕೆಲಸಕ್ಕೆ",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-moving-05",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಾನು ಊರು ಬಿಟ್ಟು ಸಿಟಿಗೆ ಹೋಗ್ಬೇಕು ಅಂತಿದ್ದೀನಿ ಕೆಲಸಕ್ಕಾಗಿ",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "kn-moving-06",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಮೈಸೂರಿಂದ ಬೆಂಗಳೂರಿಗೆ ಶಿಫ್ಟ್ ಆಗ್ತಿದ್ದೀನಿ",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "list"
+    },
+    {
+      "id": "kn-moving-07",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಉದ್ಯೋಗಕ್ಕಾಗಿ ನಾನು ಮುಂದಿನ ತಿಂಗಳು ಬೆಂಗಳೂರಿಗೆ ಸ್ಥಳಾಂತರಗೊಳ್ಳುತ್ತಿದ್ದೇನೆ",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-moving-08",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹುಬ್ಬಳ್ಳಿಯಲ್ಲಿ ಕೆಲಸ ಇಲ್ಲ, ಬೆಂಗಳೂರಿಗೆ ಹೋಗೋಣ ಅಂತ ಇದೀನಿ",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-moving-09",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "ಚೆನ್ನೈಗೆ ಕೆಲಸಕ್ಕೆ ಹೋಗ್ತಿದ್ದೀನಿ",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "kn-moving-10",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೈದರಾಬಾದ್‌ನಲ್ಲಿ ಹೊಸ ಕೆಲಸ ಸಿಕ್ಕಿದೆ, ಅಲ್ಲಿಗೆ ಶಿಫ್ಟ್ ಆಗ್ತೀನಿ",
+      "intent": "moving",
+      "source": "list"
+    },
+    {
+      "id": "kn-moving-11",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಯುಗಾದಿ ಆದ್ಮೇಲೆ ಫ್ಯಾಮಿಲಿ ಜೊತೆ ಬೆಂಗಳೂರಿಗೆ ಬಂದು ಕೆಲಸ ಮಾಡ್ತೀನಿ",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-moving-12",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಾನು ಬೇರೆ ಊರಿಗೆ ಹೋಗ್ತಿದ್ದೀನಿ ಕೆಲಸಕ್ಕೆ",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "kn-moving-13",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಬೆಂಗಳೂರಿಗೆ ಹತ್ತನೇ ತಾರೀಖು ಟ್ರೈನ್ ಬುಕ್ ಆಗಿದೆ",
+      "inMove": true,
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-moving-14",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ರಾಯಚೂರಿಂದ ಬೆಂಗಳೂರಿಗೆ ಕೂಲಿ ಕೆಲಸಕ್ಕೆ ಬರ್ತಿದೀವಿ ನಾನು ನನ್ನ ಗಂಡ",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-moving-15",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಪುಣೆಗೆ ಹೋಗ್ಬೇಕು ಕೆಲಸಕ್ಕೆ, ಅಲ್ಲಿ ಯಾರೂ ಗೊತ್ತಿಲ್ಲ",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "kn-moving-16",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಊರಲ್ಲಿ ಮಳೆ ಇಲ್ಲ ಬೆಳೆ ಇಲ್ಲ, ಸಿಟಿಗೆ ಹೋಗಿ ದುಡೀಬೇಕು",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "kn-moving-17",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಾನು ಬೆಂಗಳೂರು ಬಿಟ್ಟು ಮಂಗಳೂರಿಗೆ ಹೋಗ್ತಿದ್ದೀನಿ ಕೆಲಸಕ್ಕೆ",
+      "intent": "moving",
+      "source": "list"
+    },
+    {
+      "id": "kn-moving-18",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["driver"],
+      "text": "ಬೆಂಗಳೂರಲ್ಲಿ ಡ್ರೈವರ್ ಕೆಲಸ ಸಿಕ್ತು, ಮುಂದಿನ ಸೋಮವಾರ ಹೊರಡ್ತೀನಿ",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-moving-19",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಾನು ಮುಂದಿನ ಭಾನುವಾರ ಹೊರಡ್ತಿದ್ದೀನಿ",
+      "inMove": true,
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "kn-moving-20",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಬೆಂಗಳೂರಿಗೆ ಬರೋ ಪ್ಲಾನ್ ಇದೆ ಕೆಲಸ ಹುಡುಕೋಕೆ",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    }
+  ]
+}

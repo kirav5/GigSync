@@ -1,0 +1,150 @@
+{
+  "cases": [
+    {
+      "id": "kn-helpStop-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಇನ್ಮೇಲೆ ಹೊಸಬರಿಗೆ ಸಹಾಯ ಮಾಡಲ್ಲ",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಮೆಂಟರ್ ಆಗಿರೋದು ಸಾಕು",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-05",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೊಸಬರ ಕಾಲ್ ಬರೋದು ನಿಲ್ಲಿಸಿ",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-06",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೊಸಬರಿಗೆ ಮಾರ್ಗದರ್ಶನ ನೀಡುವ ಸೇವೆಯಿಂದ ನನ್ನನ್ನು ತೆಗೆದುಹಾಕಿ",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-07",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಈಗ ಕೆಲಸ ಜಾಸ್ತಿ ಇದೆ ಹೊಸಬರಿಗೆ ಹೆಲ್ಪ್ ಮಾಡೋಕೆ ಆಗಲ್ಲ ಬಿಟ್ಬಿಡಿ",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-08",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನನ್ನ ಹೆಸರು ಮೆಂಟರ್ ಲಿಸ್ಟ್‌ನಿಂದ ತೆಗೀರಿ",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-09",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೊಸಬರು ನನಗೆ ಮೆಸೇಜ್ ಮಾಡೋದು ಬೇಡ",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-10",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಸ್ವಲ್ಪ ದಿನ ಹೊಸಬರಿಗೆ ಸಹಾಯ ಮಾಡೋದು ಸ್ಟಾಪ್ ಮಾಡಿ",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-11",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "ಊರಿಗೆ ಹೋಗ್ತಿದ್ದೀನಿ ಒಂದು ತಿಂಗಳು, ಅಲ್ಲಿವರೆಗೂ ಹೊಸಬರಿಗೆ ಸಹಾಯ ಬೇಡ",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-12",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೊಸಬರಿಗೆ ಊರು ತೋರಿಸೋದು ಇನ್ನು ನನ್ನಿಂದ ಆಗಲ್ಲ",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-13",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಈ ಸಹಾಯ ಮಾಡೋ ಕೆಲಸದಿಂದ ನನ್ನನ್ನ ಬಿಡಿಸಿ",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-14",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೊಸಬರಿಗೆ ನನ್ನ ನಂಬರ್ ಕೊಡ್ಬೇಡಿ ಇನ್ಮೇಲೆ",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-15",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಮೆಂಟರ್ ಆಫ್ ಮಾಡಿ",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-16",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ತುಂಬಾ ಜನ ರಾತ್ರಿ ಎಲ್ಲಾ ಕಾಲ್ ಮಾಡ್ತಾರೆ, ಹೊಸಬರ ಸಹಾಯ ನಿಲ್ಲಿಸಿಬಿಡಿ",
+      "intent": "helpStop",
+      "source": "list"
+    },
+    {
+      "id": "kn-helpStop-17",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಾನು ಇನ್ನು ಮುಂದೆ ಹೊಸಬರಿಗೆ ಯಾರಿಗೂ ಗೈಡ್ ಮಾಡಲ್ಲ",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-18",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ರಾಜು", "ಸುರೇಶ್"],
+      "text": "ಹೊಸಬರು ಯಾರೂ ನನ್ನನ್ನ ಸಂಪರ್ಕಿಸೋದು ಬೇಡ",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-19",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೊಸಬರಿಗೆ ಸಹಾಯ ಮಾಡ್ತೀನಿ ಅಂತ ಹೇಳಿದ್ದೆ, ಅದನ್ನ ಕ್ಯಾನ್ಸಲ್ ಮಾಡಿ",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "kn-helpStop-20",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಬೇರೆ ಊರಿಂದ ಹೊಸದಾಗಿ ಬಂದವರನ್ನ ನನಗೆ ಕಳಿಸ್ಬೇಡಿ",
+      "intent": "helpStop",
+      "source": "miss"
+    }
+  ]
+}

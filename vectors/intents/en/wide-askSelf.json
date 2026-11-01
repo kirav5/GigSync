@@ -1,0 +1,142 @@
+{
+  "cases": [
+    {
+      "id": "en-askSelf-04",
+      "lang": "en",
+      "role": "worker",
+      "text": "what did i note about the Whitefield family payment?",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "en-askSelf-05",
+      "lang": "en",
+      "role": "household",
+      "text": "when is the maid going on leave, i told you na",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "en-askSelf-06",
+      "lang": "en",
+      "role": "worker",
+      "text": "gate code of prestige apartment what i saved?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "en-askSelf-07",
+      "lang": "en",
+      "role": "household",
+      "text": "did I write down how much the carpenter quoted?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "en-askSelf-08",
+      "lang": "en",
+      "role": "worker",
+      "text": "which day i said no work, sunday or saturday?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "en-askSelf-09",
+      "lang": "en",
+      "role": "household",
+      "text": "kindly show my notes",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "en-askSelf-10",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "what all i told you about jayanagar sir food",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "en-askSelf-11",
+      "lang": "en",
+      "role": "household",
+      "text": "Could you remind me what I recorded regarding the water tank cleaning?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "en-askSelf-12",
+      "lang": "en",
+      "role": "worker",
+      "text": "how much the Whitefield family owe me, i noted it somewhere",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "en-askSelf-13",
+      "lang": "en",
+      "role": "household",
+      "text": "where did i say plumber ganesh number is",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "en-askSelf-14",
+      "lang": "en",
+      "role": "worker",
+      "text": "read my notes from last week",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "en-askSelf-15",
+      "lang": "en",
+      "role": "household",
+      "text": "when did i say the AC filter was cleaned",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "en-askSelf-16",
+      "lang": "en",
+      "role": "worker",
+      "text": "did i tell you anything about the 3rd floor aunty?",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "en-askSelf-17",
+      "lang": "en",
+      "role": "household",
+      "text": "what i noted about the drivers licence",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "en-askSelf-18",
+      "lang": "en",
+      "role": "worker",
+      "text": "i saved something about doctor appointment which day was it",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "en-askSelf-19",
+      "lang": "en",
+      "role": "household",
+      "text": "list all the things i asked you to remember",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "en-askSelf-20",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Lakshmi", "Ravi"],
+      "text": "about Lakshmi akka house, what i wrote earlier?",
+      "intent": "askSelf",
+      "source": "list"
+    }
+  ]
+}

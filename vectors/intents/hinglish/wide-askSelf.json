@@ -1,0 +1,151 @@
+{
+  "cases": [
+    {
+      "id": "hinglish-askSelf-03",
+      "lang": "hi",
+      "role": "household",
+      "text": "maine maid ke paise ke baare me kya note kiya tha",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askSelf-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "Priya madam ki chabi kahan hai maine kya bola tha",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askSelf-05",
+      "lang": "hi",
+      "role": "household",
+      "text": "gas kab book kiya tha maine",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-askSelf-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "meri chutti konse din hai maine likha tha na",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askSelf-07",
+      "lang": "hi",
+      "role": "household",
+      "text": "plumber ka number kya save kiya tha",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askSelf-08",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "sharma ji ke ghar kya nahi banana tha?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askSelf-09",
+      "lang": "hi",
+      "role": "household",
+      "text": "kya maine likha tha ki AC service kab hui",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-askSelf-10",
+      "lang": "hi",
+      "role": "worker",
+      "text": "pichli baar kiraye ke baare me kya bola tha maine",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askSelf-11",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mere notes dikhao",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askSelf-12",
+      "lang": "hi",
+      "role": "household",
+      "text": "tuition fees ki last date maine kya likhi thi",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askSelf-13",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Anil", "Kavita"],
+      "text": "maine likha tha na Anil ne kitna udhaar liya, kitna tha",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-askSelf-14",
+      "lang": "hi",
+      "role": "household",
+      "text": "maid ne kitna advance liya tha maine note kiya tha",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askSelf-15",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "whitefield site pe kitna kaam baaki tha yaad hai?",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askSelf-16",
+      "lang": "hi",
+      "role": "worker",
+      "text": "maine kal kya kya bola tha tumhe",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askSelf-17",
+      "lang": "hi",
+      "role": "household",
+      "text": "cook ko kya instructions di thi maine check karo",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askSelf-18",
+      "lang": "hi",
+      "role": "worker",
+      "text": "aadhar copy kahan rakhi thi maine bataya tha",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askSelf-19",
+      "lang": "hi",
+      "role": "household",
+      "text": "mere saare reminders batao",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-askSelf-20",
+      "lang": "hi",
+      "role": "worker",
+      "text": "koi note hai kya jayanagar wale sir ke baare me",
+      "intent": "askSelf",
+      "source": "miss"
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "cases": [
+    {
+      "id": "kn-earnings-05",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಇವತ್ತು ಎಷ್ಟು ದುಡ್ಡು ಆಯ್ತು",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "kn-earnings-06",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಈ ತಿಂಗಳು ನನಗೆ ಒಟ್ಟು ಎಷ್ಟು ಬಂದಿದೆ?",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kn-earnings-07",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಇನ್ನೂ ಎಷ್ಟು ಬಾಕಿ ಬರ್ಬೇಕು ನನಗೆ",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kn-earnings-08",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "ಜಯನಗರ ಮೇಡಂ ಇನ್ನೂ ಎಷ್ಟು ಕೊಡೋದು ಬಾಕಿ ಇದೆ",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kn-earnings-09",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಕಳೆದ ತಿಂಗಳ ನನ್ನ ಒಟ್ಟು ಆದಾಯ ಎಷ್ಟು?",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kn-earnings-10",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೋದ ತಿಂಗಳು ಎಷ್ಟು ಸಂಪಾದನೆ ಮಾಡಿದೆ ಹೇಳು",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "kn-earnings-11",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "ಈ ವಾರ ಪೇಂಟಿಂಗ್ ಕೆಲಸದಿಂದ ಎಷ್ಟು ಬಂತು",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kn-earnings-12",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "ನನಗೆ ತಿಂಗಳಿಗೆ ಸರಾಸರಿ ಎಷ್ಟು ಸಿಗ್ತಿದೆ",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kn-earnings-13",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಪಾಸ್‌ಬುಕ್‌ನಲ್ಲಿ ಎಷ್ಟು ಇದೆ ನೋಡಿ ಹೇಳಿ",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kn-earnings-14",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಎಲ್ಲಾ ಕಸ್ಟಮರ್ ದುಡ್ಡು ಕೊಟ್ಟಿದ್ದಾರಾ",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kn-earnings-15",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಈ ವರ್ಷ ಇಲ್ಲಿವರೆಗೂ ಎಷ್ಟು ದುಡಿದಿದ್ದೀನಿ",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kn-earnings-16",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಿನ್ನೆ ಕೆಲಸದ ದುಡ್ಡು ಬಂತಾ",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kn-earnings-17",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಸಾವಿರ ರೂಪಾಯಿ ಬಾಕಿ ಇತ್ತಲ್ಲ, ಅದು ಬಂತಾ",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kn-earnings-18",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ದೀಪಾವಳಿ ಬೋನಸ್ ಸೇರಿ ಈ ತಿಂಗಳು ಎಷ್ಟಾಯ್ತು",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kn-earnings-19",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೋದ ವಾರಕ್ಕಿಂತ ಈ ವಾರ ಜಾಸ್ತಿ ದುಡಿದ್ನಾ",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "kn-earnings-20",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಶಾಂತಮ್ಮ", "ಅನಿಲ್"],
+      "text": "ನನ್ನ ಸಂಪಾದನೆ ಲೆಕ್ಕ ತೋರಿಸಿ",
+      "intent": "earnings",
+      "source": "list"
+    }
+  ]
+}

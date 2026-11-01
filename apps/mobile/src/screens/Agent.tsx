@@ -43,6 +43,7 @@ import { errorKey } from "../ui/errorKey.js";
 import { money } from "../ui/places.js";
 import type { GigView } from "../useGig.js";
 import { Interview } from "./Interview.js";
+import { ModelNotice } from "./model/ModelNotice.js";
 import { type Suggestion, Suggestions } from "./talk/TalkStart.js";
 import "./talk.css";
 
@@ -204,6 +205,7 @@ export function AgentScreen(props: TalkProps) {
           {t("agent.headline")} <span className={C.soft}>{t("agent.soft")}</span>
         </h1>
       </div>
+      <ModelNotice />
       {turns.length > 0 && <Interview ports={ports} account={account} onSaved={onSaved} moves={moves} />}
       {paused && (
         <div className={C.row}>

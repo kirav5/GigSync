@@ -1,6 +1,6 @@
 import type { worker as en } from "../en/worker.js";
 
-/** Kannada: the worker's own record: Today, jobs in person, getting paid, the record, Settings, the model. */
+/** Kannada: the worker's own record: Today, jobs in person, getting paid, the record, Settings. */
 export const worker: Readonly<Record<keyof typeof en, string>> = {
   "stat.waiting": "ಬಾಕಿ",
   "getpaid.cash": "ನಗದು ಬಂತು",
@@ -24,37 +24,6 @@ export const worker: Readonly<Record<keyof typeof en, string>> = {
   "look.auto": "ತಾನಾಗಿಯೇ",
   "look.light": "ಲೈಟ್",
   "look.dark": "ಡಾರ್ಕ್",
-  "model.title": "ಫೋನ್‌ನಲ್ಲೇ ಇರುವ ಮಾಡೆಲ್",
-  "model.check": "ಮತ್ತೆ ಪರಿಶೀಲಿಸಿ",
-  "model.checking": "ಈ ಫೋನನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ…",
-  "model.none": "ಈ ಫೋನ್‌ನಲ್ಲಿ ಇನ್ನೂ ಮಾಡೆಲ್ ಇಲ್ಲ. ಡೆಸ್ಕ್‌ಟಾಪ್ ಕ್ರೋಮ್ ಒದಗಿಸಬಹುದು; ಫೋನ್ ಬ್ರೌಸರ್‌ಗಳು ಒದಗಿಸುವುದಿಲ್ಲ.",
-  "model.ready": "ಸಿದ್ಧ",
-  "model.not_ready": "ಸಿದ್ಧವಾಗಿಲ್ಲ",
-  "model.free_mb": "{mb} ಎಂಬಿ ಖಾಲಿ",
-  "model.auto": "ತಾನಾಗಿಯೇ",
-  "model.auto_about": "ಮಾಡೆಲ್ ಸಿದ್ಧವಾಗಿದ್ದು {mb} ಎಂಬಿ ಖಾಲಿ ಇದ್ದರೆ ಫೋನಿನ ಮಾಡೆಲ್; ಇಲ್ಲದಿದ್ದರೆ ಲೈಟ್ ಮೋಡ್.",
-  "model.device": "ಫೋನ್‌ನಲ್ಲಿ",
-  "model.device_about": "ಯಾವಾಗಲೂ ಫೋನಿನ ಸ್ವಂತ ಮಾಡೆಲ್. ಉತ್ತರಿಸಲಾಗದಿದ್ದರೆ ಮಾತ್ರ ಲೈಟ್ ಮೋಡ್.",
-  "model.lite": "ಲೈಟ್ ಮೋಡ್",
-  "model.lite_about": "ಯಾವುದೇ ಮಾಡೆಲ್ ಇಲ್ಲ. ನಿಯಮಗಳು ಮತ್ತು ಸಿದ್ಧ ಪಠ್ಯಗಳು ಎಲ್ಲವನ್ನೂ ಮಾಡುತ್ತವೆ: ಒಪ್ಪಂದ, ದಾಖಲೆ, ಪಾವತಿ.",
-  "model.ollama": "Ollama (ಡೆವ್)",
-  "model.ollama_about": "ಡೆವಲಪ್‌ಮೆಂಟ್ ಬಿಲ್ಡ್‌ಗಳಲ್ಲಿ ಮಾತ್ರ: ಈ ಕಂಪ್ಯೂಟರ್‌ನಲ್ಲಿ `ollama serve` ಮೂಲಕ ಮಾಡೆಲ್.",
-  "model.chrome_download_about":
-    "ಕ್ರೋಮ್ ತನ್ನ ಮಾಡೆಲನ್ನು ಈ ಕಂಪ್ಯೂಟರ್‌ಗೆ ಒಮ್ಮೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಬಹುದು (ಹಲವು ಜಿಬಿ; ಸುಮಾರು 22 ಜಿಬಿ ಖಾಲಿ ಬೇಕು). ಇದು ಈ ಕಂಪ್ಯೂಟರ್‌ನಲ್ಲಿ ಮಾತ್ರ, ಕ್ಲೌಡ್‌ನಲ್ಲಿ ಎಂದೂ ಅಲ್ಲ.",
-  "model.chrome_download": "ಕ್ರೋಮ್ ಮಾಡೆಲ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
-  "model.chrome_downloading": 'ಕ್ರೋಮ್ ಮಾಡೆಲ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡುತ್ತಿದೆ. ಕೆಲವು ನಿಮಿಷಗಳ ನಂತರ "ಮತ್ತೆ ಪರಿಶೀಲಿಸಿ" ಒತ್ತಿ.',
-  "model.ollama_model": "Ollama ಮಾಡೆಲ್",
-  "model.ollama_choose": "Ollama ನಲ್ಲಿರುವ ಮಾಡೆಲ್ ಆಯ್ಕೆಮಾಡಿ",
-  "model.ollama_name": "Ollama ಮಾಡೆಲ್ಯ ಹೆಸರು",
-  "model.ollama_off": "Ollama ಚಾಲನೆಯಲ್ಲಿಲ್ಲ: `ollama serve` ಆರಂಭಿಸಿ, ಅಥವಾ ಹೆಸರು ಬರೆಯಿರಿ",
-  "model.ollama_looking": "Ollama ಹುಡುಕಲಾಗುತ್ತಿದೆ…",
-  "model.use": "ಈ ಮಾಡೆಲ್ ಬಳಸಿ",
-  "model.now": "ಈಗ ಉತ್ತರಿಸುತ್ತಿರುವುದು: {model}",
-  "model.still_works": "ಲೈಟ್ ಮೋಡ್‌ನಲ್ಲೂ ಎಲ್ಲವೂ ಕೆಲಸ ಮಾಡುತ್ತದೆ; ಮಾಡೆಲ್ ಪದಗಳಿಗೆ ಮಾತ್ರ ಸಹಾಯ ಮಾಡುತ್ತದೆ.",
-  "model.lite_label": "ಲೈಟ್ ಮೋಡ್ (ಮಾಡೆಲ್ ಇಲ್ಲ)",
-  "model.ollama_label": "Ollama: {name} (ಡೆವ್)",
-  "model.not_ready_lite": "{device} · ಸಿದ್ಧವಿಲ್ಲ, ಆದ್ದರಿಂದ ಲೈಟ್ ಮೋಡ್",
-  "model.on_device_label": "ಫೋನ್‌ನಲ್ಲಿ: {engine}",
   "pack.title": "ಅರ್ಥಮಾಡಿಕೊಳ್ಳುವ ಪ್ಯಾಕ್",
   "pack.about":
     "ಒಂದು ಸಣ್ಣ ಮಾಡೆಲ್ ({mb} ಎಂಬಿ, ಒಮ್ಮೆ ಡೌನ್‌ಲೋಡ್) ಇಂಗ್ಲಿಷ್, ಹಿಂದಿ ಮತ್ತು ಕನ್ನಡದಲ್ಲಿ ನಿಮ್ಮ ಮಾತನ್ನು ಈ ಫೋನ್‌ನಲ್ಲೇ ಅರ್ಥಮಾಡಿಕೊಳ್ಳುತ್ತದೆ. ನೀವು ಬರೆದದ್ದು ಫೋನಿನಿಂದ ಹೊರಗೆ ಹೋಗುವುದಿಲ್ಲ, ಮತ್ತು ಇದಿಲ್ಲದೆಯೂ ಎಲ್ಲವೂ ಕೆಲಸ ಮಾಡುತ್ತದೆ.",
@@ -66,5 +35,4 @@ export const worker: Readonly<Record<keyof typeof en, string>> = {
   "settings.err_vpa": "ಇದು ಯುಪಿಐ ಐಡಿಯಂತೆ ಕಾಣುತ್ತಿಲ್ಲ (name@bank).",
   "settings.err_name": "ಗ್ರಾಹಕರು ಪಾವತಿಸುವಾಗ ಕಾಣುವ ಹೆಸರನ್ನು ಬರೆಯಿರಿ.",
   "settings.err_name_long": "ಹೆಸರನ್ನು {max} ಅಕ್ಷರಗಳೊಳಗೆ ಇಡಿ.",
-  "model.auto_label": "ತಾನಾಗಿಯೇ · {model}",
 };

@@ -6,10 +6,7 @@
       "role": "household",
       "text": "what do cooks charge in Jayanagar?",
       "intent": "market",
-      "slots": {
-        "trade": "cook",
-        "area": "jayanagar"
-      },
+      "slots": { "trade": "cook", "area": "jayanagar" },
       "source": "list"
     },
     {
@@ -18,9 +15,7 @@
       "role": "household",
       "text": "how much does a plumber take for fixing a tap?",
       "intent": "market",
-      "slots": {
-        "trade": "plumber"
-      },
+      "slots": { "trade": "plumber" },
       "source": "list"
     },
     {
@@ -29,10 +24,7 @@
       "role": "household",
       "text": "is ₹8,000 fair for a cook?",
       "intent": "market",
-      "slots": {
-        "trade": "cook",
-        "amount_paise": 800000
-      },
+      "slots": { "trade": "cook", "amount_paise": 800000 },
       "source": "miss"
     },
     {
@@ -41,9 +33,7 @@
       "role": "household",
       "text": "how much do painters take for a 2BHK",
       "intent": "market",
-      "slots": {
-        "trade": "painter"
-      },
+      "slots": { "trade": "painter" },
       "source": "list"
     },
     {
@@ -52,10 +42,7 @@
       "role": "household",
       "text": "what's the going rate for a full-time maid in Koramangala?",
       "intent": "market",
-      "slots": {
-        "trade": "maid",
-        "area": "koramangala"
-      },
+      "slots": { "trade": "maid", "area": "koramangala" },
       "source": "list"
     },
     {
@@ -64,10 +51,7 @@
       "role": "household",
       "text": "what are electricians asking these days in HSR?",
       "intent": "market",
-      "slots": {
-        "trade": "electrician",
-        "area": "hsr_layout"
-      },
+      "slots": { "trade": "electrician", "area": "hsr_layout" },
       "source": "miss"
     },
     {
@@ -77,10 +61,7 @@
       "trades": ["cook"],
       "text": "what is the rate in Whitefield?",
       "intent": "market",
-      "slots": {
-        "trade": "cook",
-        "area": "whitefield"
-      },
+      "slots": { "trade": "cook", "area": "whitefield" },
       "source": "list"
     },
     {
@@ -90,9 +71,7 @@
       "trades": ["driver"],
       "text": "am I asking too little compared to other drivers?",
       "intent": "market",
-      "slots": {
-        "trade": "driver"
-      },
+      "slots": { "trade": "driver" },
       "source": "miss"
     },
     {
@@ -101,10 +80,7 @@
       "role": "household",
       "text": "someone quoted 15000 for painting two rooms, is that too much?",
       "intent": "market",
-      "slots": {
-        "trade": "painter",
-        "amount_paise": 1500000
-      },
+      "slots": { "trade": "painter", "amount_paise": 1500000 },
       "source": "miss"
     },
     {
@@ -113,10 +89,7 @@
       "role": "household",
       "text": "how much for an AC service in Indiranagar?",
       "intent": "market",
-      "slots": {
-        "trade": "ac_technician",
-        "area": "indiranagar"
-      },
+      "slots": { "trade": "ac_technician", "area": "indiranagar" },
       "source": "list"
     },
     {
@@ -134,9 +107,7 @@
       "role": "household",
       "text": "need a cook, pay 12000",
       "intent": "find",
-      "slots": {
-        "trade": "cook"
-      },
+      "slots": { "trade": "cook" },
       "source": "list"
     },
     {
@@ -145,7 +116,7 @@
       "role": "household",
       "text": "the price of tomatoes has doubled",
       "intent": "chat",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "en-chat-05",
@@ -153,7 +124,7 @@
       "role": "household",
       "text": "my driver asked for a raise and I said yes",
       "intent": "chat",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "en-find-08",
@@ -161,9 +132,7 @@
       "role": "household",
       "text": "I want my 4BHK villa painted, outside too",
       "intent": "find",
-      "slots": {
-        "trade": "painter"
-      },
+      "slots": { "trade": "painter" },
       "source": "miss"
     },
     {
@@ -172,9 +141,7 @@
       "role": "household",
       "text": "how much to paint a 3000 sq ft independent house inside and outside?",
       "intent": "market",
-      "slots": {
-        "trade": "painter"
-      },
+      "slots": { "trade": "painter" },
       "source": "list"
     },
     {

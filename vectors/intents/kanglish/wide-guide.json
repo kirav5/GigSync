@@ -1,0 +1,184 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-guide-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "illi kammi baadige room elli sigutte",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-guide-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "sim card togolloke enu documents beku",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-guide-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "bank account open maadoke aadhar saaka",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-guide-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "majestic inda whitefield ge yaav bus",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-guide-05",
+      "lang": "kn",
+      "role": "worker",
+      "text": "PG elli sigutte hudugirige",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-guide-06",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ration card illi badlaayisbahuda",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-guide-07",
+      "lang": "kn",
+      "role": "worker",
+      "text": "metro card hege tagolodu",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-guide-08",
+      "lang": "kn",
+      "role": "worker",
+      "text": "modlu raatri elli irodu",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-guide-09",
+      "lang": "kn",
+      "role": "worker",
+      "text": "address proof illa sim sigutta",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-guide-10",
+      "lang": "kn",
+      "role": "worker",
+      "text": "room ge advance eshtu kodbeku illi",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-guide-11",
+      "lang": "kn",
+      "role": "worker",
+      "text": "hospital ge hogbeku andre hattira yaavdide",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-guide-12",
+      "lang": "kn",
+      "role": "worker",
+      "text": "BMTC pass estu aagutte",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-guide-13",
+      "lang": "kn",
+      "role": "worker",
+      "text": "illi bank alli account maadoke yaaru sahaya maadtaare",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-guide-14",
+      "lang": "kn",
+      "role": "worker",
+      "text": "mane owner agreement kelthidaare adu beka",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-guide-15",
+      "lang": "kn",
+      "role": "worker",
+      "text": "kammi rate alli oota elli sigutte",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-guide-16",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nanna aadhar alli ooru address ide adu nadiyutta",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-guide-17",
+      "lang": "kn",
+      "role": "worker",
+      "text": "railway station inda auto ge estu kodbeku",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-guide-18",
+      "lang": "kn",
+      "role": "worker",
+      "text": "hosa ooralli police verification maadisbeka",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-guide-19",
+      "lang": "kn",
+      "role": "worker",
+      "text": "UPI shuru maadoke enu beku",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-guide-20",
+      "lang": "kn",
+      "role": "worker",
+      "text": "makkalanna school ge serisoke enu documents beku illi",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    }
+  ]
+}

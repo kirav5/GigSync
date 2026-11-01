@@ -1,0 +1,136 @@
+{
+  "cases": [
+    {
+      "id": "hi-earnings-05",
+      "lang": "hi",
+      "role": "worker",
+      "text": "आज कितना कमाया",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "hi-earnings-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "इस महीने टोटल कितना आया हमको",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hi-earnings-07",
+      "lang": "hi",
+      "role": "worker",
+      "text": "पिछले महीने कितना पैसा मिला था",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "hi-earnings-08",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "मैडम लोग से कितना बाकी है अभी",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hi-earnings-09",
+      "lang": "hi",
+      "role": "worker",
+      "text": "किसका पैसा अभी तक नहीं आया",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hi-earnings-10",
+      "lang": "hi",
+      "role": "worker",
+      "text": "अक्टूबर में कुल कमाई कितनी हुई",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "hi-earnings-11",
+      "lang": "hi",
+      "role": "worker",
+      "text": "हमरा पासबुक दिखाओ",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hi-earnings-12",
+      "lang": "hi",
+      "role": "worker",
+      "text": "इस हफ्ते का हिसाब किताब बताओ भैया",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hi-earnings-13",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["plumber"],
+      "text": "पिछले पंद्रह दिन में कितने रुपये बने",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hi-earnings-14",
+      "lang": "hi",
+      "role": "worker",
+      "text": "दिवाली बोनस मिला कि नहीं हमको",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hi-earnings-15",
+      "lang": "hi",
+      "role": "worker",
+      "text": "कितना उधार बाकी है लोगों पे मेरा",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hi-earnings-16",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "मैं महीने में कितना कमा लेती हूँ औसत",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hi-earnings-17",
+      "lang": "hi",
+      "role": "worker",
+      "text": "शर्मा जी वाले 2000 आ गए क्या",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hi-earnings-18",
+      "lang": "hi",
+      "role": "worker",
+      "text": "साल भर में कितना कमाया हमने",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "hi-earnings-19",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "कल वाले काम का पैसा जुड़ा कि नहीं",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hi-earnings-20",
+      "lang": "hi",
+      "role": "worker",
+      "text": "बताओ ना इस बार सैलरी कितनी आई",
+      "intent": "earnings",
+      "source": "miss"
+    }
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-moving-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "mundina tingalu kelsakke Bengaluru ge bartidini",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "naanu Mysuru ge hogtidini kelsa sigtu",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "Bangalore ge shift aagtidini kelsa hudukoke",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ooru bittu Bengaluru ge barbeku antha ide",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-05",
+      "lang": "kn",
+      "role": "worker",
+      "text": "naanu Chennai ge hogtini next week",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-06",
+      "lang": "kn",
+      "role": "worker",
+      "text": "Hubli inda Bengaluru ge bartini kelsakke",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-07",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nange Hyderabad alli kelsa sigtu alli hogtini",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-08",
+      "lang": "kn",
+      "role": "worker",
+      "text": "bere ooru ge hogtidini",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-09",
+      "lang": "kn",
+      "role": "worker",
+      "text": "Bengaluru ge barodu final aaytu ticket aagide",
+      "inMove": true,
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-10",
+      "lang": "kn",
+      "role": "worker",
+      "text": "Diwali aadmele Bangalore ge bandu kelsa maadtini",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-11",
+      "lang": "kn",
+      "role": "worker",
+      "text": "naanu Pune ge shift aagtidini",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-12",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nanna maneyavru illi, naanu kelsakke city ge hogtidini",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-13",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ee ooralli kelsa illa Bengaluru ge hogbeku",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-14",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nanna husband jothe naanu Mangaluru ge hogtidini alli kelsa ide",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-15",
+      "lang": "kn",
+      "role": "worker",
+      "text": "Bengaluru ge bandre kelsa siguta naanu bartidini",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-16",
+      "lang": "kn",
+      "role": "worker",
+      "text": "naale ratri bus alli Bangalore ge hortidini",
+      "inMove": true,
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-17",
+      "lang": "kn",
+      "role": "worker",
+      "text": "naanu Mumbai ge kelsakke hogtini mundina tingalu",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-18",
+      "lang": "kn",
+      "role": "worker",
+      "text": "Kolar inda bengaluru ge daily barodu kasta alli room maadkondu irtini",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-19",
+      "lang": "kn",
+      "role": "worker",
+      "text": "hosa ooru ge hogtidini kelsa ge",
+      "intent": "moving",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-moving-20",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["driver"],
+      "text": "maali kelsa bittu Bengaluru ge bartidini driver aagoke",
+      "intent": "moving",
+      "slots": { "city": "bengaluru" },
+      "source": "miss"
+    }
+  ]
+}

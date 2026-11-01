@@ -30,8 +30,8 @@ async function timed(work) {
   return { value, ms: performance.now() - started };
 }
 
-async function runModel(c, ctx, timeoutMs) {
-  const model = new RecordingModel();
+async function runModel(c, ctx, timeoutMs, ask) {
+  const model = new RecordingModel(ask);
   const { value, ms } = await timed(() => core.modelRoute(c.text, ctx, model, { timeoutMs }));
   await model.settled();
   const result = scored(c, value, ms);
@@ -47,8 +47,8 @@ async function runMeaning(c, ctx, meaning) {
 }
 
 /** The chain the app runs: the embedding index when there is one, the language model when asked for, the lists. */
-async function runCombined(c, ctx, timeoutMs, withModel, meaning) {
-  const model = withModel ? new RecordingModel() : new core.NoModel();
+async function runCombined(c, ctx, timeoutMs, withModel, meaning, ask) {
+  const model = withModel ? new RecordingModel(ask) : new core.NoModel();
   const opts = { timeoutMs, ...(meaning ? { meaning: meaning.intents } : {}) };
   const { value, ms } = await timed(() => core.routeChat(c.text, ctx, model, opts));
   if (withModel) await model.settled();
@@ -66,16 +66,19 @@ export function routersOf({ withModel, meaning }) {
   );
 }
 
-/** Every case through each router; without `withModel` and `meaning` only the word lists run. */
-export async function runAll(cases, { withModel, meaning, timeoutMs, onProgress }) {
+/**
+ * Every case through each router; without `withModel` and `meaning` only the word lists run. `ask` picks the
+ * language model's engine (Ollama unless given).
+ */
+export async function runAll(cases, { withModel, meaning, timeoutMs, onProgress, ask }) {
   const results = [];
   for (const [i, c] of cases.entries()) {
     const ctx = contextOf(c);
     const keywords = await timed(async () => core.keywordRoute(c.text, ctx));
     const result = { case: c, [Router.keywords]: scored(c, keywords.value, keywords.ms) };
     if (meaning) result[Router.meaning] = await runMeaning(c, ctx, meaning);
-    if (withModel) result[Router.model] = await runModel(c, ctx, timeoutMs);
-    if (withModel || meaning) result[Router.combined] = await runCombined(c, ctx, timeoutMs, withModel, meaning);
+    if (withModel) result[Router.model] = await runModel(c, ctx, timeoutMs, ask);
+    if (withModel || meaning) result[Router.combined] = await runCombined(c, ctx, timeoutMs, withModel, meaning, ask);
     results.push(result);
     onProgress?.(i + 1, cases.length);
   }

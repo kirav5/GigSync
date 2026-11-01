@@ -3,6 +3,7 @@ import type { Account } from "../adapters/account.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { FindChat } from "./find/FindChat.js";
+import { ModelNotice } from "./model/ModelNotice.js";
 import "./talk.css";
 
 interface Props {
@@ -26,6 +27,7 @@ export function Find({ ports, account, device, onAsked }: Props) {
           {t("find.headline")} <span className={C.soft}>{t("find.soft")}</span>
         </h1>
       </div>
+      <ModelNotice />
       <FindChat ports={ports} account={account} device={device} onAsked={onAsked} />
     </>
   );

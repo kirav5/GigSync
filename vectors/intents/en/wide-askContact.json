@@ -1,0 +1,184 @@
+{
+  "cases": [
+    {
+      "id": "en-askContact-03",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Suresh", "Lakshmi", "Ravi"],
+      "text": "ask Suresh if he is coming for the HSR job tomorrow",
+      "intent": "askContact",
+      "slots": { "contact": "Suresh" },
+      "source": "list"
+    },
+    {
+      "id": "en-askContact-04",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Manjula", "Prakash"],
+      "text": "is Manjula coming today or not",
+      "intent": "askContact",
+      "slots": { "contact": "Manjula" },
+      "source": "list"
+    },
+    {
+      "id": "en-askContact-05",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Ravi", "Anil"],
+      "text": "Anil reached site?",
+      "intent": "askContact",
+      "slots": { "contact": "Anil" },
+      "source": "miss"
+    },
+    {
+      "id": "en-askContact-06",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Prakash", "Rekha"],
+      "text": "Kindly check with Prakash whether he can come on Monday at 10 am.",
+      "intent": "askContact",
+      "slots": { "contact": "Prakash" },
+      "source": "miss"
+    },
+    {
+      "id": "en-askContact-07",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Lakshmi", "Geetha"],
+      "text": "geetha akka free on sunday for function cooking?",
+      "intent": "askContact",
+      "slots": { "contact": "Geetha" },
+      "source": "list"
+    },
+    {
+      "id": "en-askContact-08",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Venkatesh", "Salma"],
+      "text": "where is Venkatesh, he said he will come by 9",
+      "intent": "askContact",
+      "slots": { "contact": "Venkatesh" },
+      "source": "list"
+    },
+    {
+      "id": "en-askContact-09",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Imran", "Ravi", "Divya"],
+      "text": "imran how many more days for the painting work",
+      "intent": "askContact",
+      "slots": { "contact": "Imran" },
+      "source": "miss"
+    },
+    {
+      "id": "en-askContact-10",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Salma", "Kiran"],
+      "text": "ask salma did she take the spare key",
+      "intent": "askContact",
+      "slots": { "contact": "Salma" },
+      "source": "list"
+    },
+    {
+      "id": "en-askContact-11",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Ramesh", "Sunita"],
+      "text": "Ramesh bhai has the drill machine?",
+      "intent": "askContact",
+      "slots": { "contact": "Ramesh" },
+      "source": "miss"
+    },
+    {
+      "id": "en-askContact-12",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Kiran", "Anitha"],
+      "text": "when is Kiran planning to come for the AC service",
+      "intent": "askContact",
+      "slots": { "contact": "Kiran" },
+      "source": "list"
+    },
+    {
+      "id": "en-askContact-13",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Meena", "Shiva"],
+      "text": "tell Shiva i am stuck in traffic and ask if he can wait",
+      "intent": "askContact",
+      "slots": { "contact": "Shiva" },
+      "source": "list"
+    },
+    {
+      "id": "en-askContact-14",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Anitha", "Raju"],
+      "text": "does Anitha know any good tailor nearby",
+      "intent": "askContact",
+      "slots": { "contact": "Anitha" },
+      "source": "miss"
+    },
+    {
+      "id": "en-askContact-15",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Pooja", "Arjun"],
+      "text": "has pooja got her salary from the madam",
+      "intent": "askContact",
+      "slots": { "contact": "Pooja" },
+      "source": "miss"
+    },
+    {
+      "id": "en-askContact-16",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Mohan", "Deepa"],
+      "text": "Mohan will be available for airport drop at 5 am?",
+      "intent": "askContact",
+      "slots": { "contact": "Mohan" },
+      "source": "miss"
+    },
+    {
+      "id": "en-askContact-17",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Basavaraj", "Fatima"],
+      "text": "ask basavaraj what rate he is charging for tiles work",
+      "intent": "askContact",
+      "slots": { "contact": "Basavaraj" },
+      "source": "list"
+    },
+    {
+      "id": "en-askContact-18",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Lata", "Suresh"],
+      "text": "lata didi reached home safely?",
+      "intent": "askContact",
+      "slots": { "contact": "Lata" },
+      "source": "miss"
+    },
+    {
+      "id": "en-askContact-19",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Nagesh", "Asha"],
+      "text": "asha is it ok if i come late tomorrow",
+      "intent": "askContact",
+      "slots": { "contact": "Asha" },
+      "source": "list"
+    },
+    {
+      "id": "en-askContact-20",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Gopal", "Rani"],
+      "text": "Gopal, can you bring the ladder when you come",
+      "intent": "askContact",
+      "slots": { "contact": "Gopal" },
+      "source": "miss"
+    }
+  ]
+}

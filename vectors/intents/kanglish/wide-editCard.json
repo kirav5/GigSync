@@ -1,0 +1,188 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-edit-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nanna rate badlaayisbeku",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "rate swalpa kammi maadi 500 ige",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "card alli area change madbeku",
+      "intent": "editCard",
+      "slots": { "field": "area" },
+      "source": "list"
+    },
+    {
+      "id": "kanglish-edit-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "naanu ivaga Koramangala alli kelsa maadtini card alli adanne haaki",
+      "intent": "editCard",
+      "slots": { "field": "area", "area": "koramangala" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-05",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["driver"],
+      "text": "nan kelsa cook antha haaki driver alla",
+      "intent": "editCard",
+      "slots": { "field": "trade", "trade": "cook" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-06",
+      "lang": "kn",
+      "role": "worker",
+      "text": "painting kooda maadtini adu card ge serisi",
+      "intent": "editCard",
+      "slots": { "field": "trade", "trade": "painter" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-07",
+      "lang": "kn",
+      "role": "worker",
+      "text": "minimum charge 300 irli",
+      "intent": "editCard",
+      "slots": { "field": "min" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-08",
+      "lang": "kn",
+      "role": "worker",
+      "text": "kammi andru 400 ilde barolla antha card alli haaki",
+      "intent": "editCard",
+      "slots": { "field": "min" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-09",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nange tamil kooda barutte add maadi",
+      "intent": "editCard",
+      "slots": { "field": "languages" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-10",
+      "lang": "kn",
+      "role": "worker",
+      "text": "bhaashe list inda hindi tegdu haaki",
+      "intent": "editCard",
+      "slots": { "field": "languages" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-11",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nanna bagge alli 10 varsha experience ide antha bareyiri",
+      "intent": "editCard",
+      "slots": { "field": "about" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-12",
+      "lang": "kn",
+      "role": "worker",
+      "text": "about alli naanu time ge bartini antha haaki",
+      "intent": "editCard",
+      "slots": { "field": "about" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-13",
+      "lang": "kn",
+      "role": "worker",
+      "text": "deal galanna nanna agent ne sign maadli auto on maadi",
+      "intent": "editCard",
+      "slots": { "field": "auto" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-14",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nanna kelade yaav deal u sign maadbedi",
+      "intent": "editCard",
+      "slots": { "field": "auto" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-15",
+      "lang": "kn",
+      "role": "worker",
+      "text": "card alli rate tappagide sari maadi",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-16",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Pavithra", "Naveen"],
+      "text": "estu rate haakidini adanna 800 maadi",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-17",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["electrician", "plumber"],
+      "text": "electrician kelsa bidtini card inda tegdu haaki",
+      "intent": "editCard",
+      "slots": { "field": "trade", "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-18",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nanna area beda jayanagar haaki",
+      "intent": "editCard",
+      "slots": { "field": "area", "area": "jayanagar" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-19",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "ivattinda daily 700 tagotini card update maadi",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-edit-20",
+      "lang": "kn",
+      "role": "worker",
+      "text": "naanu indiranagar kade mane shift maadidini card alli area sari maadi",
+      "intent": "editCard",
+      "slots": { "field": "area", "area": "indiranagar" },
+      "source": "miss"
+    }
+  ]
+}

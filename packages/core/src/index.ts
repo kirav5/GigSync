@@ -1,6 +1,7 @@
 export * from "./agent.js";
 export * from "./chat/index.js";
 export * from "./contacts/index.js";
+export * from "./device-model/index.js";
 export * from "./engagement/machine.js";
 export * from "./estimate/area-names.js";
 export * from "./estimate/areas.js";
@@ -147,5 +148,6 @@ export * from "./router/meaning-route.js";
 export * from "./router/model-route.js";
 export * from "./router/moving.js";
 export * from "./router/newcomers.js";
+export * from "./router/reply-schema.js";
 export * from "./router/route-chat.js";
 export * from "./transfer/index.js";

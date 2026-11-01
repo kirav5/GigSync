@@ -1,0 +1,190 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-remember-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nenapidu madam 5ne taareeku sambla kodtaare",
+      "intent": "remember",
+      "slots": { "note": "madam 5ne taareeku sambla kodtaare" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-remember-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "bardko shukravaara rajaa",
+      "intent": "remember",
+      "slots": { "note": "shukravaara rajaa" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-remember-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "naale 8 ganTege Jayanagar mane ge hogbeku nenpu maadu",
+      "intent": "remember",
+      "slots": { "note": "naale 8 ganTege Jayanagar mane ge hogbeku" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-remember-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "note maadko 3ne floor avru 2000 baaki kodbeku",
+      "intent": "remember",
+      "slots": { "note": "3ne floor avru 2000 baaki kodbeku" },
+      "source": "list"
+    },
+    {
+      "id": "kanglish-remember-05",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Kavya", "Ramesh", "Geetha", "Suresh"],
+      "text": "Ramesh sir mane gate code 4512",
+      "intent": "remember",
+      "slots": { "note": "Ramesh sir mane gate code 4512" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-remember-06",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nenapidu bhaanuvaara church ge hogbeku kelsa illa",
+      "intent": "remember",
+      "slots": { "note": "bhaanuvaara church ge hogbeku kelsa illa" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-remember-07",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "bardittko paint 4 dabba ulidide",
+      "intent": "remember",
+      "slots": { "note": "paint 4 dabba ulidide" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-remember-08",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "madam ge eerulli beda antha nenapidu",
+      "intent": "remember",
+      "slots": { "note": "madam ge eerulli beda" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-remember-09",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["plumber"],
+      "text": "save maadu pipe size 1 inch",
+      "intent": "remember",
+      "slots": { "note": "pipe size 1 inch" },
+      "source": "list"
+    },
+    {
+      "id": "kanglish-remember-10",
+      "lang": "kn",
+      "role": "worker",
+      "text": "Koramangala uncle mane naayi kachutte jopaana idu nenpu",
+      "intent": "remember",
+      "slots": { "note": "Koramangala uncle mane naayi kachutte jopaana" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-remember-11",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nenapitko gas booking 20ne taareeku",
+      "intent": "remember",
+      "slots": { "note": "gas booking 20ne taareeku" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-remember-12",
+      "lang": "kn",
+      "role": "household",
+      "text": "nenapidu maid mangalvaara barolla",
+      "intent": "remember",
+      "slots": { "note": "maid mangalvaara barolla" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-remember-13",
+      "lang": "kn",
+      "role": "household",
+      "text": "bardko plumber ge ₹600 kotte",
+      "intent": "remember",
+      "slots": { "note": "plumber ge ₹600 kotte" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-remember-14",
+      "lang": "kn",
+      "role": "household",
+      "text": "nenpu maadu tingala kone alli cook ge sambla",
+      "intent": "remember",
+      "slots": { "note": "tingala kone alli cook ge sambla" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-remember-15",
+      "lang": "kn",
+      "role": "household",
+      "text": "note: ac service march alli aaytu",
+      "intent": "remember",
+      "slots": { "note": "ac service march alli aaytu" },
+      "source": "list"
+    },
+    {
+      "id": "kanglish-remember-16",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Kavya", "Ramesh", "Geetha", "Suresh"],
+      "text": "nenapidu Suresh driver 7 ganTege bartaane",
+      "intent": "remember",
+      "slots": { "note": "Suresh driver 7 ganTege bartaane" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-remember-17",
+      "lang": "kn",
+      "role": "household",
+      "text": "bardittko maid ge 2 dina rajaa kotte",
+      "intent": "remember",
+      "slots": { "note": "maid ge 2 dina rajaa kotte" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-remember-18",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "idanna bardko ondu mane ge 3 ganTe aagutte",
+      "intent": "remember",
+      "slots": { "note": "ondu mane ge 3 ganTe aagutte" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-remember-19",
+      "lang": "kn",
+      "role": "household",
+      "text": "nenpu irli carpenter key tagondu hogidaane",
+      "intent": "remember",
+      "slots": { "note": "carpenter key tagondu hogidaane" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-remember-20",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nenapidu naale madam mane ge bega hogbeku avr makkalige exam",
+      "intent": "remember",
+      "slots": { "note": "naale madam mane ge bega hogbeku avr makkalige exam" },
+      "source": "miss"
+    }
+  ]
+}

@@ -150,7 +150,7 @@
       "role": "worker",
       "text": "मेरा भाई बेंगलुरु जा रहा है",
       "intent": "chat",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "hi-chat-03",

@@ -66,8 +66,12 @@ describe("meaningRoute", () => {
 
   it("reads the trade from the words even when the lists heard another intent", async () => {
     // The lists hear "chat" in this one; the saying is a market example, and the words carry the trade.
-    const route = await meaningRoute("is ₹8,000 fair for a cook?", household, index);
-    expect(route).toEqual({ intent: I.market, slots: { trade: Trade.enum.cook }, via: RouteVia.meaning });
+    const route = await meaningRoute("HSR alli driver ge tingalige eshtu kodtaare", household, index);
+    expect(route).toEqual({
+      intent: I.market,
+      slots: { trade: Trade.enum.driver, area: "hsr_layout" },
+      via: RouteVia.meaning,
+    });
   });
 
   it("keeps the lists' slots whole when they heard the same intent", async () => {

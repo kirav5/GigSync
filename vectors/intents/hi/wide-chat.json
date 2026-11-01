@@ -1,0 +1,178 @@
+{
+  "cases": [
+    {
+      "id": "hi-chat-10",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["प्रिया", "राहुल"],
+      "text": "मेरी बहन पुणे जा रही है शादी के बाद",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-11",
+      "lang": "hi",
+      "role": "household",
+      "text": "कल पेंटर को 4000 दे दिए",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-12",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["plumber"],
+      "text": "आज तीन घर में नल ठीक किया",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-13",
+      "lang": "hi",
+      "role": "worker",
+      "text": "जय श्री राम भैया",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-14",
+      "lang": "hi",
+      "role": "household",
+      "text": "बहुत बढ़िया काम किया उसने, शुक्रिया",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-15",
+      "lang": "hi",
+      "role": "worker",
+      "text": "आज बहुत बारिश हो रही है बस नहीं मिला",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-16",
+      "lang": "hi",
+      "role": "worker",
+      "text": "भैया हमारा गाँव मधुबनी है",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-17",
+      "lang": "hi",
+      "role": "worker",
+      "text": "हमारा चचेरा भाई भी अगले हफ़्ते बेंगलुरु आ रहा है",
+      "inMove": true,
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-18",
+      "lang": "hi",
+      "role": "worker",
+      "text": "छठ पूजा में घर जाना है टिकट नहीं मिल रहा",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-19",
+      "lang": "hi",
+      "role": "household",
+      "text": "कुक बहुत अच्छा खाना बनाती है हम खुश हैं",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-20",
+      "lang": "hi",
+      "role": "worker",
+      "text": "ठीक है",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-21",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "मैडम ने आज मेरे बनाए पराठे की तारीफ़ की",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-22",
+      "lang": "hi",
+      "role": "worker",
+      "text": "सुबह से कुछ खाया नहीं",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-23",
+      "lang": "hi",
+      "role": "household",
+      "text": "बिजली वाले ने 800 लिए और पंखा ठीक कर दिया",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-24",
+      "lang": "hi",
+      "role": "worker",
+      "text": "तुम कौन हो",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-25",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेरा भाई ड्राइवरी करता है पंद्रह हज़ार कमाता है",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-26",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["सोनू", "दीपक"],
+      "text": "मेरा दोस्त हैदराबाद शिफ्ट हो गया",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-27",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "पिछले हफ़्ते व्हाइटफील्ड में दो फ्लैट का पेंट पूरा किया",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-28",
+      "lang": "hi",
+      "role": "household",
+      "text": "प्लंबर आया था, नल ठीक हो गया, अब पानी नहीं टपकता",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-29",
+      "lang": "hi",
+      "role": "worker",
+      "text": "कल से नया काम शुरू है मैडम के घर में बहुत खुश हैं",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hi-chat-30",
+      "lang": "hi",
+      "role": "worker",
+      "text": "गुड नाइट",
+      "intent": "chat",
+      "source": "list"
+    }
+  ]
+}

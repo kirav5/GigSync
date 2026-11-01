@@ -1,0 +1,144 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-find-16",
+      "lang": "kn",
+      "role": "household",
+      "text": "Whitefield ge ondu painter kalsi please",
+      "intent": "find",
+      "slots": { "trade": "painter", "area": "whitefield" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-17",
+      "lang": "kn",
+      "role": "household",
+      "text": "geyser on aagta illa",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-18",
+      "lang": "kn",
+      "role": "household",
+      "text": "amma ge oota maadoke ondu hengsu beku tingalu poora",
+      "intent": "find",
+      "slots": { "trade": "cook" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-19",
+      "lang": "kn",
+      "role": "household",
+      "text": "ac inda neeru soritide",
+      "intent": "find",
+      "slots": { "trade": "ac_technician" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-20",
+      "lang": "kn",
+      "role": "household",
+      "text": "naale munche yaaradru bandu mane clean maadbeku",
+      "intent": "find",
+      "slots": { "trade": "maid" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-21",
+      "lang": "kn",
+      "role": "household",
+      "text": "Indiranagar alli driver beku shanivaara bhaanuvaara",
+      "intent": "find",
+      "slots": { "trade": "driver", "area": "indiranagar" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-22",
+      "lang": "kn",
+      "role": "household",
+      "text": "fan tirugta illa current ide",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-23",
+      "lang": "kn",
+      "role": "household",
+      "text": "kelsadavaLu bittu hodlu bere yaaradru beku",
+      "intent": "find",
+      "slots": { "trade": "maid" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-24",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Kavya", "Ramesh", "Geetha", "Suresh"],
+      "text": "Geetha heliddu plumber beku antha, avlu mane ge kalsi",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-25",
+      "lang": "kn",
+      "role": "household",
+      "text": "manchada kaalu muridide sari maadoru beku",
+      "intent": "find",
+      "slots": { "trade": "carpenter" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-26",
+      "lang": "kn",
+      "role": "household",
+      "text": "office ge hogoke driver beku tingalige",
+      "intent": "find",
+      "slots": { "trade": "driver" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-27",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "nange ondu helper beku naale paint kelsakke",
+      "intent": "find",
+      "slots": { "trade": "painter" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-28",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "nanna mane alli current hogide electrician yaaradru idaara",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-29",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "site alli wiring ge innobba electrician beku",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-30",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "naanu kelsa maado mane ge carpenter beku antha madam kelidru yaaradru kalsi",
+      "intent": "find",
+      "slots": { "trade": "carpenter" },
+      "source": "miss"
+    }
+  ]
+}

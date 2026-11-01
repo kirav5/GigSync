@@ -1,0 +1,139 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-find-01",
+      "lang": "kn",
+      "role": "household",
+      "text": "nange plumber beku",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-02",
+      "lang": "kn",
+      "role": "household",
+      "text": "naale ondu electrician beeku",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-03",
+      "lang": "kn",
+      "role": "household",
+      "text": "adige maadoke yaaradru sigtaara",
+      "intent": "find",
+      "slots": { "trade": "cook" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-04",
+      "lang": "kn",
+      "role": "household",
+      "text": "Koramangala ge maid beku daily baroru",
+      "intent": "find",
+      "slots": { "trade": "maid", "area": "koramangala" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-05",
+      "lang": "kn",
+      "role": "household",
+      "text": "mane paint maadsbeku yaaradru kalsi",
+      "intent": "find",
+      "slots": { "trade": "painter" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-06",
+      "lang": "kn",
+      "role": "household",
+      "text": "ac cooling aagta illa yaaradru bandu nodbeku",
+      "intent": "find",
+      "slots": { "trade": "ac_technician" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-07",
+      "lang": "kn",
+      "role": "household",
+      "text": "bathroom tap nillta illa neeru hogtane ide",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-08",
+      "lang": "kn",
+      "role": "household",
+      "text": "baagilu sari muchkolta illa",
+      "intent": "find",
+      "slots": { "trade": "carpenter" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-09",
+      "lang": "kn",
+      "role": "household",
+      "text": "ivattu sanje driver beku airport ge",
+      "intent": "find",
+      "slots": { "trade": "driver" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-10",
+      "lang": "kn",
+      "role": "household",
+      "text": "light hogtide mane alli ond room alli maatra",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-11",
+      "lang": "kn",
+      "role": "household",
+      "text": "HSR alli cook beku veg maadoru",
+      "intent": "find",
+      "slots": { "trade": "cook", "area": "hsr_layout" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-12",
+      "lang": "kn",
+      "role": "household",
+      "text": "paatre toleyoke yaaradru beku",
+      "intent": "find",
+      "slots": { "trade": "maid" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-13",
+      "lang": "kn",
+      "role": "household",
+      "text": "kitchen sink block aagide",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-14",
+      "lang": "kn",
+      "role": "household",
+      "text": "cupboard maadoke carpenter beku Jayanagar alli",
+      "intent": "find",
+      "slots": { "trade": "carpenter", "area": "jayanagar" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-find-15",
+      "lang": "kn",
+      "role": "household",
+      "text": "plumber?",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    }
+  ]
+}

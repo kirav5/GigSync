@@ -1,0 +1,148 @@
+{
+  "cases": [
+    {
+      "id": "en-helpStop-03",
+      "lang": "en",
+      "role": "worker",
+      "text": "i dont want to help new people anymore",
+      "intent": "helpStop",
+      "source": "list"
+    },
+    {
+      "id": "en-helpStop-04",
+      "lang": "en",
+      "role": "worker",
+      "text": "remove me from helping newcomers",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpStop-05",
+      "lang": "en",
+      "role": "worker",
+      "text": "no more mentoring for me, too many calls",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpStop-06",
+      "lang": "en",
+      "role": "worker",
+      "text": "please stop sending new people to me",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpStop-07",
+      "lang": "en",
+      "role": "worker",
+      "text": "I would like to withdraw from the newcomer help programme",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpStop-08",
+      "lang": "en",
+      "role": "worker",
+      "text": "i am going to village for 2 months, stop the helping part",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpStop-09",
+      "lang": "en",
+      "role": "worker",
+      "text": "pause my newcomer help for now",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpStop-10",
+      "lang": "en",
+      "role": "worker",
+      "text": "too many people calling at night, i cant guide anymore",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpStop-11",
+      "lang": "en",
+      "role": "worker",
+      "text": "take my name off the helper list",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpStop-12",
+      "lang": "en",
+      "role": "worker",
+      "text": "i quit mentoring",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpStop-13",
+      "lang": "en",
+      "role": "worker",
+      "text": "dont show me as mentor",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpStop-14",
+      "lang": "en",
+      "role": "worker",
+      "text": "stop the newcomer thing, my husband is not liking it",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpStop-15",
+      "lang": "en",
+      "role": "worker",
+      "text": "i want to stop guiding new workers",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpStop-16",
+      "lang": "en",
+      "role": "worker",
+      "text": "no time for newcomers now, kindly remove",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpStop-17",
+      "lang": "en",
+      "role": "worker",
+      "text": "unsubscribe me from helping new people",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpStop-18",
+      "lang": "en",
+      "role": "worker",
+      "text": "the new boys are not listening, i am done helping them",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpStop-19",
+      "lang": "en",
+      "role": "worker",
+      "text": "stop mentor",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "en-helpStop-20",
+      "lang": "en",
+      "role": "worker",
+      "text": "Please deactivate my mentor status with immediate effect.",
+      "intent": "helpStop",
+      "source": "miss"
+    }
+  ]
+}

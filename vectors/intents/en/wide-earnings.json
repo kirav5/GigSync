@@ -1,0 +1,137 @@
+{
+  "cases": [
+    {
+      "id": "en-earnings-05",
+      "lang": "en",
+      "role": "worker",
+      "text": "how much i got this month",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "en-earnings-06",
+      "lang": "en",
+      "role": "worker",
+      "text": "total earning till now?",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "en-earnings-07",
+      "lang": "en",
+      "role": "worker",
+      "text": "how much money is pending from customers",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "en-earnings-08",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "koramangala family paid me or not this month",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "en-earnings-09",
+      "lang": "en",
+      "role": "worker",
+      "text": "what is my salary for october",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "en-earnings-10",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["painter", "carpenter"],
+      "text": "how much did i earn from painting jobs last month",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "en-earnings-11",
+      "lang": "en",
+      "role": "worker",
+      "text": "Kindly tell me my total income for the last three months",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "en-earnings-12",
+      "lang": "en",
+      "role": "worker",
+      "text": "who all still have to pay me",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "en-earnings-13",
+      "lang": "en",
+      "role": "worker",
+      "text": "today how much i made",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "en-earnings-14",
+      "lang": "en",
+      "role": "worker",
+      "text": "my earnings this week vs last week",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "en-earnings-15",
+      "lang": "en",
+      "role": "worker",
+      "text": "money came for yesterday job or not",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "en-earnings-16",
+      "lang": "en",
+      "role": "worker",
+      "text": "how much is my balance amount to receive",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "en-earnings-17",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["driver"],
+      "text": "am i earning more than last month",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "en-earnings-18",
+      "lang": "en",
+      "role": "worker",
+      "text": "show my passbook",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "en-earnings-19",
+      "lang": "en",
+      "role": "worker",
+      "text": "what is my average monthly earning this year",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "en-earnings-20",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Lakshmi", "Ravi"],
+      "text": "fifteen thousand came or still pending from whitefield madam",
+      "intent": "earnings",
+      "slots": { "amount_paise": 1500000 },
+      "source": "miss"
+    }
+  ]
+}

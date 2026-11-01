@@ -1,0 +1,206 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-askContact-01",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Manju", "Lakshmi", "Shivu"],
+      "text": "Manju naale free idaana",
+      "intent": "askContact",
+      "slots": { "contact": "Manju" },
+      "source": "list"
+    },
+    {
+      "id": "kanglish-askContact-02",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Manju", "Lakshmi", "Shivu"],
+      "text": "Lakshmi elli idaale",
+      "intent": "askContact",
+      "slots": { "contact": "Lakshmi" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-03",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Manju", "Lakshmi", "Shivu"],
+      "text": "Shivu ge kelsa sigtha keli",
+      "intent": "askContact",
+      "slots": { "contact": "Shivu" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-04",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Kavya", "Ramesh", "Geetha", "Suresh"],
+      "text": "Kavya shanivaara bartaala",
+      "intent": "askContact",
+      "slots": { "contact": "Kavya" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-05",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Kavya", "Ramesh", "Geetha", "Suresh"],
+      "trades": ["carpenter"],
+      "text": "Ramesh hattira drill ide na keli",
+      "intent": "askContact",
+      "slots": { "contact": "Ramesh" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-06",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Kavya", "Ramesh", "Geetha", "Suresh"],
+      "text": "Geetha ivattu kelsakke hogidaala",
+      "intent": "askContact",
+      "slots": { "contact": "Geetha" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-07",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Kavya", "Ramesh", "Geetha", "Suresh"],
+      "text": "Suresh nange duddu yaavaga kodtaane keli",
+      "intent": "askContact",
+      "slots": { "contact": "Suresh" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-08",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Pavithra", "Naveen"],
+      "text": "Pavithra mane talupidla",
+      "intent": "askContact",
+      "slots": { "contact": "Pavithra" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-09",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Pavithra", "Naveen"],
+      "text": "Naveen ge Whitefield site address gotta",
+      "intent": "askContact",
+      "slots": { "contact": "Naveen" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-10",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Shobha", "Raghu", "Anitha", "Prakash", "Divya"],
+      "text": "Shobha naale baroke aagutta",
+      "intent": "askContact",
+      "slots": { "contact": "Shobha" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-11",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Shobha", "Raghu", "Anitha", "Prakash", "Divya"],
+      "text": "Raghu yaavaga bartaane",
+      "intent": "askContact",
+      "slots": { "contact": "Raghu" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-12",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Shobha", "Raghu", "Anitha", "Prakash", "Divya"],
+      "text": "Anitha ge keli avlu cook number kodtaala",
+      "intent": "askContact",
+      "slots": { "contact": "Anitha" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-13",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Shobha", "Raghu", "Anitha", "Prakash", "Divya"],
+      "text": "Prakash innu airport ge hogilva",
+      "intent": "askContact",
+      "slots": { "contact": "Prakash" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-14",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Shobha", "Raghu", "Anitha", "Prakash", "Divya"],
+      "text": "Divya ivattu maid bandlu antha heltaala keli",
+      "intent": "askContact",
+      "slots": { "contact": "Divya" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-15",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Manju", "Lakshmi", "Shivu"],
+      "text": "Manju sanje phone maadtini antha heli",
+      "intent": "askContact",
+      "slots": { "contact": "Manju" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-16",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Manju", "Lakshmi", "Shivu"],
+      "text": "Lakshmi ge aaraamagidya keli",
+      "intent": "askContact",
+      "slots": { "contact": "Lakshmi" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-17",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Shobha", "Raghu", "Anitha", "Prakash", "Divya"],
+      "text": "Raghu plumber kelsa mugsida",
+      "intent": "askContact",
+      "slots": { "contact": "Raghu" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-18",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Kavya", "Ramesh", "Geetha", "Suresh"],
+      "text": "Kavya madam mane key yaar hattira ide antha keli",
+      "intent": "askContact",
+      "slots": { "contact": "Kavya" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-19",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Pavithra", "Naveen"],
+      "trades": ["electrician"],
+      "text": "Naveen naale nan jothe site ge bartana",
+      "intent": "askContact",
+      "slots": { "contact": "Naveen" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askContact-20",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Shobha", "Raghu", "Anitha", "Prakash", "Divya"],
+      "text": "Shobha avra maid ge eshtu kodtaare antha keli",
+      "intent": "askContact",
+      "slots": { "contact": "Shobha" },
+      "source": "miss"
+    }
+  ]
+}

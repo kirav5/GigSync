@@ -1,0 +1,137 @@
+{
+  "cases": [
+    {
+      "id": "en-edit-07",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "kindly increase my rate to 15000 per month",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "en-edit-08",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "i shifted near btm, put my area as HSR layout",
+      "intent": "editCard",
+      "slots": { "field": "area" },
+      "source": "miss"
+    },
+    {
+      "id": "en-edit-09",
+      "lang": "en",
+      "role": "worker",
+      "text": "add telugu also in my languages",
+      "intent": "editCard",
+      "slots": { "field": "languages" },
+      "source": "miss"
+    },
+    {
+      "id": "en-edit-10",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["plumber"],
+      "text": "minimum charge make it 300 rupees",
+      "intent": "editCard",
+      "slots": { "field": "min" },
+      "source": "miss"
+    },
+    {
+      "id": "en-edit-11",
+      "lang": "en",
+      "role": "worker",
+      "text": "i also do carpentry now, add that to my work",
+      "intent": "editCard",
+      "slots": { "field": "trade" },
+      "source": "miss"
+    },
+    {
+      "id": "en-edit-12",
+      "lang": "en",
+      "role": "worker",
+      "text": "change my about, write i have 10 years experience in cooking",
+      "intent": "editCard",
+      "slots": { "field": "about" },
+      "source": "list"
+    },
+    {
+      "id": "en-edit-13",
+      "lang": "en",
+      "role": "worker",
+      "text": "let my agent accept jobs on its own, no need to ask me every time",
+      "intent": "editCard",
+      "slots": { "field": "auto" },
+      "source": "miss"
+    },
+    {
+      "id": "en-edit-14",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["driver"],
+      "text": "my per day charge is old, update it",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "en-edit-15",
+      "lang": "en",
+      "role": "worker",
+      "text": "remove whitefield from my areas, too far",
+      "intent": "editCard",
+      "slots": { "field": "area" },
+      "source": "miss"
+    },
+    {
+      "id": "en-edit-16",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "lowest price for one visit should be 250",
+      "intent": "editCard",
+      "slots": { "field": "min" },
+      "source": "miss"
+    },
+    {
+      "id": "en-edit-17",
+      "lang": "en",
+      "role": "worker",
+      "text": "update my card, i know kannada now little bit",
+      "intent": "editCard",
+      "slots": { "field": "languages" },
+      "source": "miss"
+    },
+    {
+      "id": "en-edit-18",
+      "lang": "en",
+      "role": "worker",
+      "text": "in my profile description put that i am good with kids",
+      "intent": "editCard",
+      "slots": { "field": "about" },
+      "source": "miss"
+    },
+    {
+      "id": "en-edit-19",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "painters are getting more from this month so change my rate also",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "list"
+    },
+    {
+      "id": "en-edit-20",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["maid", "cook"],
+      "text": "i want to stop maid work, put only cook",
+      "intent": "editCard",
+      "slots": { "field": "trade" },
+      "source": "miss"
+    }
+  ]
+}

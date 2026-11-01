@@ -1,0 +1,148 @@
+{
+  "cases": [
+    {
+      "id": "kn-guide-05",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಇಲ್ಲಿ ಕಡಿಮೆ ಬಾಡಿಗೆಗೆ ರೂಮ್ ಎಲ್ಲಿ ಸಿಗುತ್ತೆ",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kn-guide-06",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಆಧಾರ್ ಅಡ್ರೆಸ್ ಚೇಂಜ್ ಮಾಡೋದು ಹೇಗೆ",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kn-guide-07",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಬಿಎಂಟಿಸಿ ಬಸ್ ಪಾಸ್ ಎಲ್ಲಿ ಮಾಡಿಸ್ಬೇಕು",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kn-guide-08",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ರೇಷನ್ ಕಾರ್ಡ್ ಇಲ್ಲಿ ಸಿಗುತ್ತಾ",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kn-guide-09",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಗರದಲ್ಲಿ ಪಿಜಿ ಅಥವಾ ಹಾಸ್ಟೆಲ್ ವ್ಯವಸ್ಥೆ ಬಗ್ಗೆ ಮಾಹಿತಿ ನೀಡಿ",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kn-guide-10",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಮೆಟ್ರೋ ಕಾರ್ಡ್ ಹೇಗೆ ತಗೊಳೋದು ಎಷ್ಟು ದುಡ್ಡು ಹಾಕ್ಬೇಕು",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kn-guide-11",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ರೂಮ್‌ಗೆ ಹತ್ತು ತಿಂಗಳ ಅಡ್ವಾನ್ಸ್ ಕೇಳ್ತಿದ್ದಾರೆ ಇದು ಸರೀನಾ",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kn-guide-12",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಜೀರೋ ಬ್ಯಾಲೆನ್ಸ್ ಅಕೌಂಟ್ ಯಾವ ಬ್ಯಾಂಕ್‌ನಲ್ಲಿ ಓಪನ್ ಮಾಡಬಹುದು",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kn-guide-13",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹೊಸ ಸಿಮ್‌ಗೆ ಏನೇನು ಡಾಕ್ಯುಮೆಂಟ್ ಬೇಕು",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    },
+    {
+      "id": "kn-guide-14",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಸರ್ಕಾರಿ ಆಸ್ಪತ್ರೆ ಹತ್ರ ಎಲ್ಲಿದೆ",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kn-guide-15",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಊರಿಗೆ ದುಡ್ಡು ಕಳಿಸೋದು ಹೇಗೆ ಇಲ್ಲಿಂದ",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kn-guide-16",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಮಕ್ಕಳನ್ನ ಇಲ್ಲಿ ಸರ್ಕಾರಿ ಶಾಲೆಗೆ ಸೇರಿಸೋಕೆ ಏನು ಬೇಕು",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kn-guide-17",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಮೆಜೆಸ್ಟಿಕ್‌ನಿಂದ ವೈಟ್‌ಫೀಲ್ಡ್‌ಗೆ ಹೇಗೆ ಹೋಗೋದು",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kn-guide-18",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಓನರ್ ರೆಂಟ್ ಅಗ್ರಿಮೆಂಟ್ ಕೊಡ್ತಿಲ್ಲ ಏನು ಮಾಡೋದು",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kn-guide-19",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಗ್ಯಾಸ್ ಕನೆಕ್ಷನ್ ಹೊಸದಾಗಿ ಹೇಗೆ ತಗೋಬೇಕು",
+      "inMove": true,
+      "intent": "guide",
+      "source": "miss"
+    },
+    {
+      "id": "kn-guide-20",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಇಲ್ಲಿ ಪೊಲೀಸ್ ವೆರಿಫಿಕೇಶನ್ ಮಾಡಿಸ್ಬೇಕಂತೆ, ಎಲ್ಲಿ ಮಾಡಿಸೋದು",
+      "inMove": true,
+      "intent": "guide",
+      "source": "list"
+    }
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "cases": [
+    {
+      "id": "kn-askContact-03",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["ಲಕ್ಷ್ಮಿ", "ಸುಮಾ"],
+      "text": "ಲಕ್ಷ್ಮಿ ಇವತ್ತು ಕೆಲಸಕ್ಕೆ ಬರ್ತಾಳಾ?",
+      "intent": "askContact",
+      "slots": { "contact": "ಲಕ್ಷ್ಮಿ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-04",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ರವಿ", "ಮಂಜು", "ಗೀತಾ"],
+      "text": "ಮಂಜು ಈಗ ಎಲ್ಲಿದ್ದಾನೆ ಕೇಳಿ",
+      "intent": "askContact",
+      "slots": { "contact": "ಮಂಜು" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-05",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["ನಾಗರಾಜ್", "ಪ್ರಿಯಾ"],
+      "text": "ನಾಗರಾಜ್ ಅವರಿಗೆ ಶನಿವಾರ ಬರೋಕೆ ಆಗುತ್ತಾ ಅಂತ ಕೇಳಿ",
+      "intent": "askContact",
+      "slots": { "contact": "ನಾಗರಾಜ್" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-06",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಸುರೇಶ್", "ಅನಿಲ್"],
+      "text": "ಸುರೇಶ್ ಹತ್ರ ಡ್ರಿಲ್ ಮೆಷಿನ್ ಇದೆಯಾ",
+      "intent": "askContact",
+      "slots": { "contact": "ಸುರೇಶ್" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-07",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["ಶಾಂತಮ್ಮ", "ಕಾವ್ಯ"],
+      "text": "ಶಾಂತಮ್ಮನವರು ನಾಳೆ ಬೆಳಿಗ್ಗೆ ಬೇಗ ಬರಬಹುದೇ ಎಂದು ವಿಚಾರಿಸಿ",
+      "intent": "askContact",
+      "slots": { "contact": "ಶಾಂತಮ್ಮ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-08",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ರವಿ", "ಮೀನಾ"],
+      "text": "ರವಿಗೆ ಕೇಳು ನಾಳೆ ಜಯನಗರ ಕೆಲಸಕ್ಕೆ ಬರ್ತಾನಾ ಅಂತ",
+      "intent": "askContact",
+      "slots": { "contact": "ರವಿ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-09",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Priya", "Anil"],
+      "text": "Priya ಮನೆ ಅಡ್ರೆಸ್ ಏನು",
+      "intent": "askContact",
+      "slots": { "contact": "Priya" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-10",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಗೀತಾ", "ಲಕ್ಷ್ಮಿ"],
+      "text": "ಗೀತಾ ಅಕ್ಕ ಆರಾಮಾಗಿದ್ದಾರಾ ಈಗ",
+      "intent": "askContact",
+      "slots": { "contact": "ಗೀತಾ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-11",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["ರಾಜು", "ಸುಮಾ"],
+      "text": "ರಾಜು ಡ್ರೈವರ್ ಎಷ್ಟು ಹೊತ್ತಿಗೆ ಬರ್ತಾನೆ",
+      "intent": "askContact",
+      "slots": { "contact": "ರಾಜು" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-12",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["ಕಾವ್ಯ", "ನಾಗರಾಜ್"],
+      "text": "ಕಾವ್ಯಗೆ ಕೇಳಿ ಅವರ ಮೇಡ್ ನಂಬರ್ ಕೊಡ್ತಾರಾ",
+      "intent": "askContact",
+      "slots": { "contact": "ಕಾವ್ಯ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-13",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಅನಿಲ್", "ಸುರೇಶ್", "ಮಂಜು"],
+      "text": "ಅನಿಲ್ ಹತ್ರ ಏನಾದ್ರೂ ಕೆಲಸ ಇದೆಯಾ ಕೇಳಿ ನೋಡಿ",
+      "intent": "askContact",
+      "slots": { "contact": "ಅನಿಲ್" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-14",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["ಮೀನಾ", "ರವಿ"],
+      "text": "ಮೀನಾ ಊರಿಂದ ವಾಪಸ್ ಬಂದ್ಲಾ?",
+      "intent": "askContact",
+      "slots": { "contact": "ಮೀನಾ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-15",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಪ್ರಿಯಾ", "ಗೀತಾ"],
+      "text": "ಪ್ರಿಯಾ ಮೇಡಂ ಈ ತಿಂಗಳ ಸಂಬಳ ಯಾವಾಗ ಕೊಡ್ತಾರೆ ಅಂತ ಕೇಳಿ",
+      "intent": "askContact",
+      "slots": { "contact": "ಪ್ರಿಯಾ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-16",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["ಸುಮಾ", "ಲಕ್ಷ್ಮಿ"],
+      "text": "ಸುಮಾ ಫೋನ್ ಎತ್ತುತ್ತಿಲ್ಲ, ಅವಳು ಹುಷಾರಾಗಿದ್ದಾಳಾ",
+      "intent": "askContact",
+      "slots": { "contact": "ಸುಮಾ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-17",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ರವಿ", "ಮಂಜು"],
+      "text": "ಮಂಜು ಹತ್ರ ಏಣಿ ಇದ್ರೆ ನಾಳೆ ತಗೊಂಡು ಬರೋಕೆ ಹೇಳು",
+      "intent": "askContact",
+      "slots": { "contact": "ಮಂಜು" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-18",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["ನಾಗರಾಜ್", "ಶಾಂತಮ್ಮ"],
+      "text": "ನಾಗರಾಜ್ ಪ್ಲಂಬರ್ ನಿನ್ನೆ ಬಾಕಿ ಇದ್ದ ಕೆಲಸ ಇವತ್ತು ಮುಗಿಸ್ತಾರಾ",
+      "intent": "askContact",
+      "slots": { "contact": "ನಾಗರಾಜ್" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-19",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಲಕ್ಷ್ಮಿ", "ಕಾವ್ಯ"],
+      "text": "ಲಕ್ಷ್ಮಿಗೆ ಮೆಸೇಜ್ ಮಾಡಿ ಕೇಳು ಬಸ್ ಸಿಕ್ತಾ ಅಂತ",
+      "intent": "askContact",
+      "slots": { "contact": "ಲಕ್ಷ್ಮಿ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-askContact-20",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["ಅನಿಲ್", "ಪ್ರಿಯಾ"],
+      "text": "ಅನಿಲ್ ಅವರು ಈ ವಾರಾಂತ್ಯದಲ್ಲಿ ಲಭ್ಯವಿದ್ದಾರೆಯೇ?",
+      "intent": "askContact",
+      "slots": { "contact": "ಅನಿಲ್" },
+      "source": "miss"
+    }
+  ]
+}

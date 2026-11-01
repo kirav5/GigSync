@@ -1,0 +1,188 @@
+{
+  "cases": [
+    {
+      "id": "hinglish-chat-09",
+      "lang": "hi",
+      "role": "household",
+      "text": "maine painter ko kal 4000 de diye",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-10",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "aaj teen ghar mein khana banaya thak gayi",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-11",
+      "lang": "hi",
+      "role": "worker",
+      "text": "meri behen pune shift ho rahi hai",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-12",
+      "lang": "hi",
+      "role": "household",
+      "text": "good morning",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-13",
+      "lang": "hi",
+      "role": "household",
+      "text": "plumber aaya tha nal theek ho gaya thnx",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-14",
+      "lang": "hi",
+      "role": "worker",
+      "text": "kal barish bohot thi bus nahi mili",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-15",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "madam ne aaj chutti di hai",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-16",
+      "lang": "hi",
+      "role": "household",
+      "text": "electrician ne bahut acha kaam kiya",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-17",
+      "lang": "hi",
+      "role": "worker",
+      "text": "ok bhai",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-18",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "aaj whitefield me do ghar ki wiring khatam ki",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-19",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mera dost bhi mere saath bangalore aa raha hai",
+      "inMove": true,
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-20",
+      "lang": "hi",
+      "role": "household",
+      "text": "tum kaun ho",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-21",
+      "lang": "hi",
+      "role": "worker",
+      "text": "kuch gaana sunao na",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-22",
+      "lang": "hi",
+      "role": "household",
+      "text": "cook ne aaj bina bataye chutti maar li",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-23",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["driver"],
+      "text": "petrol phir mehenga ho gaya yaar",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-24",
+      "lang": "hi",
+      "role": "household",
+      "text": "theek hai samajh gaya",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-25",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mera beta aaj school me first aaya",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-26",
+      "lang": "hi",
+      "role": "household",
+      "text": "maid ko is mahine 6000 de diya bonus ke saath",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-27",
+      "lang": "hi",
+      "role": "worker",
+      "contacts": ["Sunita", "Ramesh"],
+      "text": "Sunita didi aaj mandir me mili thi",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-chat-28",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["plumber"],
+      "text": "pichle hafte 5 bathroom fitting kiye the",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-29",
+      "lang": "hi",
+      "role": "worker",
+      "text": "papa gaon wapas ja rahe hain",
+      "inMove": true,
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-chat-30",
+      "lang": "hi",
+      "role": "household",
+      "text": "bhai tumhara app acha hai",
+      "intent": "chat",
+      "source": "list"
+    }
+  ]
+}

@@ -2,6 +2,8 @@ import { DEFAULT_MAX_TOKENS, type GenerateOptions, HttpMethod, log, type Model }
 
 /** Where `ollama serve` listens by default. */
 const OLLAMA_URL = "http://localhost:11434";
+/** Ollama's `format` for any JSON object. */
+const JSON_FORMAT = "json";
 const GENERATE_PATH = "/api/generate";
 const TAGS_PATH = "/api/tags";
 
@@ -23,6 +25,10 @@ export class OllamaModel implements Model {
           model: this.name,
           prompt,
           stream: false,
+          // No hidden reasoning first (Qwen3.5 and Qwen3 think by default); models that cannot think ignore it.
+          think: false,
+          // Ollama holds the output to a JSON Schema, or to any JSON, as the phone's engine does.
+          ...(options?.json ? { format: options.schema ?? JSON_FORMAT } : {}),
           options: {
             num_predict: options?.maxTokens ?? DEFAULT_MAX_TOKENS,
             ...(options?.temperature === undefined ? {} : { temperature: options.temperature }),

@@ -1,0 +1,193 @@
+{
+  "cases": [
+    {
+      "id": "en-find-10",
+      "lang": "en",
+      "role": "household",
+      "text": "plumber required urgently in Koramangala",
+      "intent": "find",
+      "slots": { "trade": "plumber", "area": "koramangala" },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-11",
+      "lang": "en",
+      "role": "household",
+      "text": "kindly arrange one maid for daily cleaning",
+      "intent": "find",
+      "slots": { "trade": "maid" },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-12",
+      "lang": "en",
+      "role": "household",
+      "text": "do the needful and send electrician by evening, MCB keeps tripping",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-13",
+      "lang": "en",
+      "role": "household",
+      "text": "the bathroom tap wont stop dripping since 2 days",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-14",
+      "lang": "en",
+      "role": "household",
+      "text": "need driver for 3 days to take us to mysore and back",
+      "intent": "find",
+      "slots": { "trade": "driver" },
+      "source": "list"
+    },
+    {
+      "id": "en-find-15",
+      "lang": "en",
+      "role": "household",
+      "text": "we require a cook who can make south indian food for 4 members",
+      "intent": "find",
+      "slots": { "trade": "cook" },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-16",
+      "lang": "en",
+      "role": "household",
+      "text": "AC not cooling at all please send someone",
+      "intent": "find",
+      "slots": { "trade": "ac_technician" },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-17",
+      "lang": "en",
+      "role": "household",
+      "text": "door hinge broken, cupboard also not closing properly",
+      "intent": "find",
+      "slots": { "trade": "carpenter" },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-18",
+      "lang": "en",
+      "role": "household",
+      "text": "looking for painter in whitefield next week for one bedroom",
+      "intent": "find",
+      "slots": { "trade": "painter", "area": "whitefield" },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-19",
+      "lang": "en",
+      "role": "household",
+      "text": "electrician needed tmrw morning indiranagar",
+      "intent": "find",
+      "slots": { "trade": "electrician", "area": "indiranagar" },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-20",
+      "lang": "en",
+      "role": "household",
+      "contacts": ["Rekha", "Prakash"],
+      "text": "amma is old, need some lady to cook and clean in the mornings",
+      "intent": "find",
+      "source": "list"
+    },
+    {
+      "id": "en-find-21",
+      "lang": "en",
+      "role": "household",
+      "text": "Good evening. Our previous cook has left; we would be grateful if you could suggest a replacement at the earliest.",
+      "intent": "find",
+      "slots": { "trade": "cook" },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-22",
+      "lang": "en",
+      "role": "household",
+      "text": "water is coming from below the kitchen sink and floor is all wet",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-23",
+      "lang": "en",
+      "role": "household",
+      "text": "can someone come today and fix the geyser switch it is giving shock",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-24",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "i need electrician for my room, light not working from yesterday",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "list"
+    },
+    {
+      "id": "en-find-25",
+      "lang": "en",
+      "role": "household",
+      "text": "my budget is 10000, want a maid in HSR who can stay full day",
+      "intent": "find",
+      "slots": { "trade": "maid", "area": "hsr_layout", "amount_paise": 1000000 },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-26",
+      "lang": "en",
+      "role": "household",
+      "text": "any carpenter available this saturday for bed assembly",
+      "intent": "find",
+      "slots": { "trade": "carpenter" },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-27",
+      "lang": "en",
+      "role": "household",
+      "text": "the walls have become very dull and patchy after the rains, want to get it redone",
+      "intent": "find",
+      "slots": { "trade": "painter" },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-28",
+      "lang": "en",
+      "role": "household",
+      "text": "pls send ac guy remote showing error and water dripping from indoor unit",
+      "intent": "find",
+      "slots": { "trade": "ac_technician" },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-29",
+      "lang": "en",
+      "role": "household",
+      "text": "need somebody to drop kids to school daily from jayanagar",
+      "intent": "find",
+      "slots": { "trade": "driver", "area": "jayanagar" },
+      "source": "miss"
+    },
+    {
+      "id": "en-find-30",
+      "lang": "en",
+      "role": "household",
+      "text": "fridge water is leaking near the socket plumber or electrician whoever someone come",
+      "intent": "find",
+      "source": "miss"
+    }
+  ]
+}

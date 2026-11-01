@@ -1,0 +1,135 @@
+{
+  "cases": [
+    {
+      "id": "hinglish-earnings-05",
+      "lang": "hi",
+      "role": "worker",
+      "text": "aaj kitna kamaya maine",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-earnings-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "is mahine ka total kitna hua",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-earnings-07",
+      "lang": "hi",
+      "role": "worker",
+      "text": "kitne paise baaki hai abhi lene",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-earnings-08",
+      "lang": "hi",
+      "role": "worker",
+      "text": "pichle mahine kitni kamai hui thi",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-earnings-09",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "sharma ji ne paise diye ki nahi abhi tak",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-earnings-10",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mera passbook dikhao",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-earnings-11",
+      "lang": "hi",
+      "role": "worker",
+      "text": "is saal ab tak kitna kamaya",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-earnings-12",
+      "lang": "hi",
+      "role": "worker",
+      "text": "kal ka payment aaya kya",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-earnings-13",
+      "lang": "hi",
+      "role": "worker",
+      "text": "kitna mila is hafte bata",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-earnings-14",
+      "lang": "hi",
+      "role": "worker",
+      "text": "kitne logon ka paisa pending hai mera",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-earnings-15",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "october me kitne ka kaam kiya maine total",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-earnings-16",
+      "lang": "hi",
+      "role": "worker",
+      "text": "aath din ka hisaab kitna banta hai mera",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-earnings-17",
+      "lang": "hi",
+      "role": "worker",
+      "text": "kul kamai batao",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-earnings-18",
+      "lang": "hi",
+      "role": "worker",
+      "text": "maine kitna kamaya ab tak gigsync se",
+      "intent": "earnings",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-earnings-19",
+      "lang": "hi",
+      "role": "worker",
+      "text": "paise kitne aaye account me is week",
+      "intent": "earnings",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-earnings-20",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "mujhe kitna lena baaki h madam se",
+      "intent": "earnings",
+      "source": "miss"
+    }
+  ]
+}

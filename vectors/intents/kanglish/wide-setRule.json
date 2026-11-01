@@ -1,0 +1,204 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-setRule-01",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Manju", "Lakshmi", "Shivu"],
+      "text": "Manju ge naanu elli idini antha nodoke bidi",
+      "intent": "setRule",
+      "slots": { "contact": "Manju" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-02",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Manju", "Lakshmi", "Shivu"],
+      "text": "Lakshmi ge nanna location torsbedi",
+      "intent": "setRule",
+      "slots": { "contact": "Lakshmi" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-03",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Manju", "Lakshmi", "Shivu"],
+      "text": "Shivu nanna rate nodbahudu",
+      "intent": "setRule",
+      "slots": { "contact": "Shivu" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-04",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Kavya", "Ramesh", "Geetha", "Suresh"],
+      "text": "Kavya nanna notes nodbaardu",
+      "intent": "setRule",
+      "slots": { "contact": "Kavya" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-05",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Kavya", "Ramesh", "Geetha", "Suresh"],
+      "text": "Ramesh nanna hattira enu kelidru uttara kodbedi",
+      "intent": "setRule",
+      "slots": { "contact": "Ramesh" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-06",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Kavya", "Ramesh", "Geetha", "Suresh"],
+      "text": "Geetha ge nanna kelsa schedule nodoke permission kodi",
+      "intent": "setRule",
+      "slots": { "contact": "Geetha" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-07",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Kavya", "Ramesh", "Geetha", "Suresh"],
+      "text": "Suresh ge nanna earnings gottaagbaardu",
+      "intent": "setRule",
+      "slots": { "contact": "Suresh" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-08",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Pavithra", "Naveen"],
+      "text": "Pavithra nanna free time kelbahudu",
+      "intent": "setRule",
+      "slots": { "contact": "Pavithra" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-09",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Pavithra", "Naveen"],
+      "text": "Naveen ge inmele enu torsbedi",
+      "intent": "setRule",
+      "slots": { "contact": "Naveen" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-10",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Shobha", "Raghu", "Anitha", "Prakash", "Divya"],
+      "text": "Shobha ge maid details nodoke bidi",
+      "intent": "setRule",
+      "slots": { "contact": "Shobha" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-11",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Shobha", "Raghu", "Anitha", "Prakash", "Divya"],
+      "text": "Raghu nanna address nodbaardu",
+      "intent": "setRule",
+      "slots": { "contact": "Raghu" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-12",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Shobha", "Raghu", "Anitha", "Prakash", "Divya"],
+      "text": "Anitha nam mane cook bagge kelidre heli",
+      "intent": "setRule",
+      "slots": { "contact": "Anitha" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-13",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Shobha", "Raghu", "Anitha", "Prakash", "Divya"],
+      "text": "Prakash ge nanna location share maadi yaavaglu",
+      "intent": "setRule",
+      "slots": { "contact": "Prakash" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-14",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Shobha", "Raghu", "Anitha", "Prakash", "Divya"],
+      "text": "Divya ge nanna phone number kodbedi",
+      "intent": "setRule",
+      "slots": { "contact": "Divya" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-15",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Manju", "Lakshmi", "Shivu"],
+      "text": "Manju ge location share nilsi",
+      "intent": "setRule",
+      "slots": { "contact": "Manju" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-16",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Manju", "Lakshmi", "Shivu"],
+      "text": "Lakshmi nanna kelsa yaavdu antha kelbahudu adakke OK",
+      "intent": "setRule",
+      "slots": { "contact": "Lakshmi" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-17",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Kavya", "Ramesh", "Geetha", "Suresh"],
+      "text": "Kavya ge naanu elli iddini antha gottaagli",
+      "intent": "setRule",
+      "slots": { "contact": "Kavya" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-18",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Shobha", "Raghu", "Anitha", "Prakash", "Divya"],
+      "text": "Raghu ge inmele maid timing torsbedi",
+      "intent": "setRule",
+      "slots": { "contact": "Raghu" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-19",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Pavithra", "Naveen"],
+      "text": "Naveen nanna notes odbahudu",
+      "intent": "setRule",
+      "slots": { "contact": "Naveen" },
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-setRule-20",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Shobha", "Raghu", "Anitha", "Prakash", "Divya"],
+      "text": "Divya nanna driver bagge kelidre helbahudu",
+      "intent": "setRule",
+      "slots": { "contact": "Divya" },
+      "source": "miss"
+    }
+  ]
+}

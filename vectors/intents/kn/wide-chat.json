@@ -1,0 +1,186 @@
+{
+  "cases": [
+    {
+      "id": "kn-chat-10",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "ಇವತ್ತು ಎರಡು ರೂಮ್ ಪೇಂಟ್ ಮುಗಿಸಿದೆ",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-11",
+      "lang": "kn",
+      "role": "household",
+      "text": "ನಿನ್ನೆ ಪೇಂಟರ್‌ಗೆ ನಾಲ್ಕು ಸಾವಿರ ಕೊಟ್ಟೆ",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-12",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನನ್ನ ತಂಗಿ ಮೈಸೂರಿಗೆ ಕೆಲಸಕ್ಕೆ ಹೋಗ್ತಿದ್ದಾಳೆ",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-13",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಪ್ಲಂಬರ್ ಬಂದು ನಲ್ಲಿ ಸರಿ ಮಾಡಿ ಹೋದ, ಈಗ ಸೋರ್ತಿಲ್ಲ",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-14",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಶುಭೋದಯ",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-15",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಸರಿ ಓಕೆ",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-16",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಥ್ಯಾಂಕ್ಸ್ ತುಂಬಾ ಹೆಲ್ಪ್ ಆಯ್ತು",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-17",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "ನಾಳೆ ಹಬ್ಬ ಅಂತ ಮೇಡಂ ರಜೆ ಕೊಟ್ಟಿದ್ದಾರೆ",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-18",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಟ್ರಾಫಿಕ್‌ನಲ್ಲಿ ಒಂದು ಗಂಟೆ ಸಿಕ್ಕಾಕೊಂಡೆ",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-19",
+      "lang": "kn",
+      "role": "household",
+      "text": "ನೀನು ಯಾರು? ನಿನಗೆ ಏನೇನು ಮಾಡೋಕೆ ಬರುತ್ತೆ",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-20",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "ಮೇಡಂ ಈ ತಿಂಗಳು ಸಂಬಳ ಜಾಸ್ತಿ ಮಾಡಿದ್ರು ಖುಷಿ ಆಯ್ತು",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-21",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಅಡುಗೆಯವರು ಮಾಡಿದ ಬಿಸಿಬೇಳೆಬಾತ್ ತುಂಬಾ ಚೆನ್ನಾಗಿತ್ತು",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-22",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನನ್ನ ಫ್ರೆಂಡ್ ಕೂಡ ಮುಂದಿನ ವಾರ ಬೆಂಗಳೂರಿಗೆ ಬರ್ತಿದ್ದಾನೆ",
+      "inMove": true,
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-23",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "ಇವತ್ತು ಮೂರು ಮನೆಯಲ್ಲಿ ವೈರಿಂಗ್ ಕೆಲಸ ಮಾಡಿದೆ ಕೈ ನೋವು",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-24",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಎಲೆಕ್ಟ್ರಿಷಿಯನ್ ಹೇಳಿದ ಟೈಮ್‌ಗೆ ಬರಲೇ ಇಲ್ಲ, ತುಂಬಾ ಬೇಜಾರಾಯ್ತು",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-25",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಆರ್‌ಸಿಬಿ ಮ್ಯಾಚ್ ನೋಡಿದ್ರಾ ನಿನ್ನೆ",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-26",
+      "lang": "kn",
+      "role": "household",
+      "text": "ನಮ್ಮ ಡ್ರೈವರ್ ಮುಂದಿನ ತಿಂಗಳಿಂದ ಊರಿಗೆ ಹೋಗ್ತಿದ್ದಾನಂತೆ",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-27",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ರವಿ", "ಲಕ್ಷ್ಮಿ"],
+      "text": "ರವಿ ಜೊತೆ ಇವತ್ತು ಕೋರಮಂಗಲದಲ್ಲಿ ಕೆಲಸ ಮಾಡಿದೆ",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "kn-chat-28",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಮಳೆ ಬಂದು ಬಸ್ ಸಿಗ್ಲಿಲ್ಲ ಲೇಟ್ ಆಯ್ತು",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-29",
+      "lang": "kn",
+      "role": "household",
+      "text": "ನಿಮ್ಮ ಸೇವೆಗೆ ಹೃತ್ಪೂರ್ವಕ ಧನ್ಯವಾದಗಳು",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-30",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಹೊಸ ಮೇಡ್ ಇವತ್ತಿಂದ ಕೆಲಸಕ್ಕೆ ಸೇರಿಕೊಂಡಳು",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "kn-chat-31",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಹಲೋ ಕೇಳಿಸ್ತಿದೆಯಾ",
+      "intent": "chat",
+      "source": "list"
+    }
+  ]
+}

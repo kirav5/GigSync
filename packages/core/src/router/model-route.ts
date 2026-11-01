@@ -1,5 +1,6 @@
 import { City, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
 import { z } from "zod";
+import { matchContact, namedIn } from "../contacts/names.js";
 import { PILOT_AREA_CHOICES } from "../estimate/area-names.js";
 import { areaSlug } from "../estimate/areas.js";
 import { FIELDS } from "../interview/card.js";
@@ -18,6 +19,7 @@ import {
   routeComplete,
 } from "./intent.js";
 import { routePrompt } from "./model-prompt.js";
+import { replySchema } from "./reply-schema.js";
 
 /**
  * The phone's own model names a message's intent (ADR 0040): it never acts, it only names. Its reply is JSON checked
@@ -121,7 +123,9 @@ function checkSlots(reply: Reply, text: string, ctx: IntentContext): ChatSlots {
   const area = checkArea(reply.area, text);
   const city = oneOf(reply.city, City.options);
   const amount_paise = checkAmount(reply.amount, text);
-  const contact = oneOf(reply.contact, ctx.contacts);
+  // A contact the message itself names: an engine held to the owner's list could otherwise pick one at random.
+  const named = matchContact(reply.contact, ctx.contacts);
+  const contact = named && namedIn(text, named) ? named : undefined;
   const field = oneOf<Field>(reply.field, FIELDS);
   const note = checkNote(reply.note, text);
   return {
@@ -153,7 +157,12 @@ export async function modelRoute(
 ): Promise<ChatRoute | undefined> {
   if (!text.trim()) return undefined;
   try {
-    const answer = model.generate(routePrompt(text, ctx), { maxTokens: MAX_TOKENS, temperature: ROUTING_TEMPERATURE });
+    const answer = model.generate(routePrompt(text, ctx), {
+      maxTokens: MAX_TOKENS,
+      temperature: ROUTING_TEMPERATURE,
+      json: true,
+      schema: replySchema(ctx),
+    });
     const reply = await within(answer, opts?.timeoutMs ?? MODEL_ROUTE_TIMEOUT_MS);
     const route = reply ? checkedRoute(reply, text, ctx) : undefined;
     if (reply && !route) log.debug("chat: model route rejected", { chars: reply.length });

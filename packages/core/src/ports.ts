@@ -99,12 +99,16 @@ export interface Keys {
 export const DEFAULT_MAX_TOKENS = 256;
 
 /**
- * How a model should answer: at most `maxTokens`, and how freely (`temperature` 0: the same answer to the same prompt,
- * which routing needs). An engine that cannot honour an option ignores it.
+ * How a model should answer: at most `maxTokens`, how freely (`temperature` 0: the same answer to the same prompt,
+ * which routing needs), and whether as one JSON object (`json`, the router's reply; an engine that can constrains its
+ * output to JSON). An engine that cannot honour an option ignores it.
  */
 export interface GenerateOptions {
   maxTokens?: number;
   temperature?: number;
+  json?: boolean;
+  /** A JSON Schema the reply must fit (router/reply-schema.ts); engines that can hold output to one do, others ignore it. */
+  schema?: Readonly<Record<string, unknown>>;
 }
 
 export interface Model {

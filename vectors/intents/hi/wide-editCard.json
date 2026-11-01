@@ -1,0 +1,141 @@
+{
+  "cases": [
+    {
+      "id": "hi-edit-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "हमारा रेट आठ सौ रुपया कर दो",
+      "intent": "editCard",
+      "slots": { "field": "rate", "amount_paise": 80000 },
+      "source": "miss"
+    },
+    {
+      "id": "hi-edit-07",
+      "lang": "hi",
+      "role": "worker",
+      "text": "एरिया में व्हाइटफील्ड भी जोड़ दो",
+      "intent": "editCard",
+      "slots": { "field": "area", "area": "whitefield" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-edit-08",
+      "lang": "hi",
+      "role": "worker",
+      "text": "कार्ड पर कन्नड़ भी डाल दो, थोड़ा बोल लेती हूँ",
+      "intent": "editCard",
+      "slots": { "field": "languages" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-edit-09",
+      "lang": "hi",
+      "role": "worker",
+      "text": "500 से नीचे काम नहीं लूँगा, ये मिनिमम सेट करो",
+      "intent": "editCard",
+      "slots": { "field": "min", "amount_paise": 50000 },
+      "source": "miss"
+    },
+    {
+      "id": "hi-edit-10",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेरे बारे में लिखो कि दस साल का अनुभव है",
+      "intent": "editCard",
+      "slots": { "field": "about" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-edit-11",
+      "lang": "hi",
+      "role": "worker",
+      "text": "अब हम कुक का काम भी करते हैं कार्ड में जोड़ो",
+      "intent": "editCard",
+      "slots": { "field": "trade", "trade": "cook" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-edit-12",
+      "lang": "hi",
+      "role": "worker",
+      "text": "जयनगर हटा दो एरिया से",
+      "intent": "editCard",
+      "slots": { "field": "area", "area": "jayanagar" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-edit-13",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेरी प्रोफाइल में रेट गलत है ठीक करो",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-edit-14",
+      "lang": "hi",
+      "role": "worker",
+      "text": "भाषा में बंगाली लिखो",
+      "intent": "editCard",
+      "slots": { "field": "languages" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-edit-15",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मिनिमम रेट थोड़ा कम करना है",
+      "intent": "editCard",
+      "slots": { "field": "min" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-edit-16",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "पेंटिंग के साथ साथ बढ़ई का काम भी लिखो",
+      "intent": "editCard",
+      "slots": { "field": "trade", "trade": "carpenter" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-edit-17",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "कार्ड में लिखो कि रात को काम नहीं करती",
+      "intent": "editCard",
+      "slots": { "field": "about" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-edit-18",
+      "lang": "hi",
+      "role": "worker",
+      "text": "हमको एचएसआर में भी काम चाहिए, एरिया अपडेट करो",
+      "intent": "editCard",
+      "slots": { "field": "area", "area": "hsr_layout" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-edit-19",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["carpenter"],
+      "text": "दिन का रेट बारह सौ कर दो",
+      "intent": "editCard",
+      "slots": { "field": "rate", "amount_paise": 120000 },
+      "source": "miss"
+    },
+    {
+      "id": "hi-edit-20",
+      "lang": "hi",
+      "role": "worker",
+      "text": "अपना कार्ड बदलना है",
+      "intent": "editCard",
+      "source": "miss"
+    }
+  ]
+}

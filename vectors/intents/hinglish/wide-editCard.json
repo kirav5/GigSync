@@ -1,0 +1,142 @@
+{
+  "cases": [
+    {
+      "id": "hinglish-edit-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "rate 700 karna hai ghante ka",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-edit-07",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mera area whitefield kar do",
+      "intent": "editCard",
+      "slots": { "field": "area" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-edit-08",
+      "lang": "hi",
+      "role": "worker",
+      "text": "ab main HSR mein bhi kaam karti hoon card me daal do",
+      "intent": "editCard",
+      "slots": { "field": "area" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-edit-09",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "card pe likho ki main north indian aur south indian dono banati hoon",
+      "intent": "editCard",
+      "slots": { "field": "about" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-edit-10",
+      "lang": "hi",
+      "role": "worker",
+      "text": "minimum charge 300 rakho",
+      "intent": "editCard",
+      "slots": { "field": "min" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-edit-11",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mujhe telugu bhi aati hai add kar do",
+      "intent": "editCard",
+      "slots": { "field": "languages" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-edit-12",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "ab maid ka kaam chhod diya cook ka kaam karti hoon card update karo",
+      "intent": "editCard",
+      "slots": { "field": "trade" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-edit-13",
+      "lang": "hi",
+      "role": "worker",
+      "text": "500 se kam wala kaam mat lena mere liye",
+      "intent": "editCard",
+      "slots": { "field": "min" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-edit-14",
+      "lang": "hi",
+      "role": "worker",
+      "text": "agent ko khud se deal pakki karne do",
+      "intent": "editCard",
+      "slots": { "field": "auto" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-edit-15",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mere baare me jo likha hai woh badalna hai",
+      "intent": "editCard",
+      "slots": { "field": "about" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-edit-16",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "rate kam kar do thoda kaam nahi mil raha",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-edit-17",
+      "lang": "hi",
+      "role": "worker",
+      "text": "koramangala hata do mere area se",
+      "intent": "editCard",
+      "slots": { "field": "area" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-edit-18",
+      "lang": "hi",
+      "role": "worker",
+      "text": "carpenter ka kaam bhi add karo mere card pe",
+      "intent": "editCard",
+      "slots": { "field": "trade" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-edit-19",
+      "lang": "hi",
+      "role": "worker",
+      "text": "hindi hata do bas kannada aur english rakho",
+      "intent": "editCard",
+      "slots": { "field": "languages" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-edit-20",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mera din ka rate aath sau rupay kar do",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    }
+  ]
+}

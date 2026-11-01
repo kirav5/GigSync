@@ -1,0 +1,168 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-askSelf-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "Jayanagar madam bagge naanu enu bardidde",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "gate code enu antha helidde",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "yaar yaaru baaki kodbeku antha bardidde",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "rajaa yaav dina antha save maadidde",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-05",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["plumber"],
+      "text": "naanu pipe size eshtu antha bardidde",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-06",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nanna notes alli enide",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-07",
+      "lang": "kn",
+      "role": "worker",
+      "text": "kaLeda vaara enu nenpu maadu antha helidde",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-08",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "madam ge enu ishta illa antha bardidde",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-09",
+      "lang": "kn",
+      "role": "worker",
+      "text": "Koramangala uncle mane bagge enu note ide",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-10",
+      "lang": "kn",
+      "role": "worker",
+      "text": "gas booking date enu antha heliddeeni",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-11",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "paint eshtu dabba ulidide antha bardidda",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-12",
+      "lang": "kn",
+      "role": "household",
+      "text": "maid yaav dina barolla antha bardidde",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-13",
+      "lang": "kn",
+      "role": "household",
+      "text": "plumber ge eshtu kotte antha note maadidde na",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-14",
+      "lang": "kn",
+      "role": "household",
+      "text": "ac service yaavaga aaytu antha bardidde",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-15",
+      "lang": "kn",
+      "role": "household",
+      "text": "driver yaav time ge bartaane antha helidde",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-16",
+      "lang": "kn",
+      "role": "household",
+      "text": "naanu bardidda notes torisu",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-17",
+      "lang": "kn",
+      "role": "household",
+      "text": "carpenter bagge enaadru bardidena",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-18",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["Kavya", "Ramesh", "Geetha", "Suresh"],
+      "text": "Ramesh sir bagge naan enu helidde",
+      "intent": "askSelf",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-askSelf-19",
+      "lang": "kn",
+      "role": "household",
+      "text": "cook ge sambla yaavaga kodbeku antha bardidde",
+      "intent": "askSelf",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-askSelf-20",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ninne naanu enu save maadide",
+      "intent": "askSelf",
+      "source": "miss"
+    }
+  ]
+}

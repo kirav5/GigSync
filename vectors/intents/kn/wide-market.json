@@ -1,0 +1,218 @@
+{
+  "cases": [
+    {
+      "id": "kn-market-09",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಕೋರಮಂಗಲದಲ್ಲಿ ಕುಕ್‌ಗೆ ತಿಂಗಳಿಗೆ ಎಷ್ಟು ಕೊಡ್ತಾರೆ",
+      "intent": "market",
+      "slots": { "trade": "cook", "area": "koramangala" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-10",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಮನೆ ಕೆಲಸದವಳಿಗೆ ಆರು ಸಾವಿರ ಕೊಡ್ತಿದ್ದೀವಿ ಜಾಸ್ತಿ ಆಯ್ತಾ",
+      "intent": "market",
+      "slots": { "trade": "maid", "amount_paise": 600000 },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-11",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಪ್ಲಂಬರ್ ಒಂದು ನಲ್ಲಿ ಬದಲಾಯಿಸೋಕೆ ₹500 ಕೇಳ್ತಿದ್ದಾನೆ, ಸರಿನಾ?",
+      "intent": "market",
+      "slots": { "trade": "plumber", "amount_paise": 50000 },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-12",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "ವೈಟ್‌ಫೀಲ್ಡ್ ಕಡೆ ಪೇಂಟರ್‌ಗಳಿಗೆ ದಿನಕ್ಕೆ ಎಷ್ಟು ಕೂಲಿ ಸಿಗುತ್ತೆ",
+      "intent": "market",
+      "slots": { "trade": "painter", "area": "whitefield" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-13",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಕಾರ್ಪೆಂಟರ್ ರೇಟ್ ಎಷ್ಟು ನಡೀತಿದೆ ಈಗ",
+      "intent": "market",
+      "slots": { "trade": "carpenter" },
+      "source": "list"
+    },
+    {
+      "id": "kn-market-14",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಇಂದಿರಾನಗರ ಪ್ರದೇಶದಲ್ಲಿ ಚಾಲಕರಿಗೆ ಮಾಸಿಕ ವೇತನ ಎಷ್ಟು ನೀಡಲಾಗುತ್ತದೆ?",
+      "intent": "market",
+      "slots": { "trade": "driver", "area": "indiranagar" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-15",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "ನಾನು ಹತ್ತು ಸಾವಿರ ಕೇಳಿದ್ರೆ ಜಾಸ್ತಿ ಆಗುತ್ತಾ ಜಯನಗರದಲ್ಲಿ",
+      "intent": "market",
+      "slots": { "area": "jayanagar", "amount_paise": 1000000 },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-16",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಎಸಿ ಗ್ಯಾಸ್ ತುಂಬಿಸೋಕೆ ಎರಡು ಸಾವಿರದ ಐನೂರು ಹೇಳ್ತಿದ್ದಾರೆ ಇದು ನಾರ್ಮಲ್ಲಾ",
+      "intent": "market",
+      "slots": { "trade": "ac_technician", "amount_paise": 250000 },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-17",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಮೇಡ್ ರೇಟ್?",
+      "intent": "market",
+      "slots": { "trade": "maid" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-18",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಎಚ್‌ಎಸ್‌ಆರ್ ಲೇಔಟ್‌ನಲ್ಲಿ ಎಲೆಕ್ಟ್ರಿಷಿಯನ್ ವಿಸಿಟ್ ಚಾರ್ಜ್ ಎಷ್ಟು",
+      "intent": "market",
+      "slots": { "trade": "electrician", "area": "hsr_layout" },
+      "source": "list"
+    },
+    {
+      "id": "kn-market-19",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಪಕ್ಕದ ಮನೆಯವರು ಅಡುಗೆಯವರಿಗೆ 15000 ಕೊಡ್ತಾರಂತೆ, ನಾವು ತುಂಬಾ ಕಡಿಮೆ ಕೊಡ್ತಿದ್ದೀವಾ",
+      "intent": "market",
+      "slots": { "trade": "cook", "amount_paise": 1500000 },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-20",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "ಬೇರೆ ಮನೆಗಳಲ್ಲಿ ಪಾತ್ರೆ ತೊಳೆಯೋಕೆ ಎಷ್ಟು ಕೊಡ್ತಾರೆ ಗೊತ್ತಾ",
+      "intent": "market",
+      "slots": { "trade": "maid" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-21",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಒಂದು ವಾರ್ಡ್‌ರೋಬ್ ಮಾಡಿಸೋಕೆ ಬಡಗಿ ಎಷ್ಟು ತಗೋತಾನೆ",
+      "intent": "market",
+      "slots": { "trade": "carpenter" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-22",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಸಂಪೂರ್ಣ ಮನೆಗೆ ಬಣ್ಣ ಹಚ್ಚಲು ಅಂದಾಜು ಖರ್ಚು ಎಷ್ಟಾಗಬಹುದು?",
+      "intent": "market",
+      "slots": { "trade": "painter" },
+      "source": "list"
+    },
+    {
+      "id": "kn-market-23",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಡ್ರೈವರ್ಗೆ ಹದಿನೆಂಟು ಸಾವಿರ ಸಂಬಳ ಸರಿ ಇದೆಯಾ ಇಲ್ಲ ಜಾಸ್ತಿನಾ",
+      "intent": "market",
+      "slots": { "trade": "driver", "amount_paise": 1800000 },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-24",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "ಕೋರಮಂಗಲದಲ್ಲಿ ಫ್ಯಾನ್ ಫಿಟ್ ಮಾಡೋಕೆ ಬೇರೆಯವರು ಎಷ್ಟು ತಗೋತಾರೆ",
+      "intent": "market",
+      "slots": { "trade": "electrician", "area": "koramangala" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-25",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಪ್ಲಂಬರ್ ಕರೆಸೋ ಮುಂಚೆ ಎಷ್ಟು ಆಗುತ್ತೆ ಅಂತ ಗೊತ್ತಾಗಬೇಕು",
+      "intent": "market",
+      "slots": { "trade": "plumber" },
+      "source": "list"
+    },
+    {
+      "id": "kn-market-26",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಕ್ಲೀನಿಂಗ್ ಕೆಲಸಕ್ಕೆ ಗಂಟೆಗೆ 300 ಕೊಟ್ಟರೆ ಓಕೆನಾ",
+      "intent": "market",
+      "slots": { "trade": "maid", "amount_paise": 30000 },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-27",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಜಯನಗರದಲ್ಲಿ ಬೆಳಿಗ್ಗೆ ಸಂಜೆ ಅಡುಗೆ ಮಾಡೋರಿಗೆ ಎಷ್ಟು ಸ್ಯಾಲರಿ",
+      "intent": "market",
+      "slots": { "trade": "cook", "area": "jayanagar" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-28",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["driver"],
+      "text": "ಓಲಾ ಉಬರ್ ಬಿಟ್ಟು ಪರ್ಸನಲ್ ಡ್ರೈವರ್ ಆದ್ರೆ ತಿಂಗಳಿಗೆ ಎಷ್ಟು ಸಿಗುತ್ತೆ ಬೆಂಗಳೂರಲ್ಲಿ",
+      "intent": "market",
+      "slots": { "trade": "driver" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-29",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಎಸಿ ಸರ್ವಿಸ್ ₹ 1200 ಅಂದ್ರು, ಇದು ಮೋಸನಾ",
+      "intent": "market",
+      "slots": { "trade": "ac_technician", "amount_paise": 120000 },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-30",
+      "lang": "kn",
+      "role": "household",
+      "text": "ವೈಟ್‌ಫೀಲ್ಡ್‌ನಲ್ಲಿ ಮನೆಗೆಲಸಕ್ಕೆ ಸಾಮಾನ್ಯವಾಗಿ ಎಷ್ಟು ಕೊಡ್ತಾರೆ ಹೇಳಿ",
+      "intent": "market",
+      "slots": { "trade": "maid", "area": "whitefield" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-market-31",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "ಬೆಂಗಳೂರಲ್ಲಿ ಮನೆಕೆಲಸಕ್ಕೆ ತಿಂಗಳಿಗೆ ಎಷ್ಟು ಕೊಡ್ತಾರೆ",
+      "inMove": true,
+      "intent": "market",
+      "slots": { "trade": "maid" },
+      "source": "miss"
+    }
+  ]
+}

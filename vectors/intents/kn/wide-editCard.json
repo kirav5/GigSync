@@ -1,0 +1,144 @@
+{
+  "cases": [
+    {
+      "id": "kn-edit-06",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನನ್ನ ಏರಿಯಾಗೆ ವೈಟ್‌ಫೀಲ್ಡ್ ಕೂಡ ಸೇರಿಸಿ",
+      "intent": "editCard",
+      "slots": { "field": "area" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-edit-07",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಗಂಟೆಗೆ ಐನೂರು ರೂಪಾಯಿ ಅಂತ ಹಾಕಿ ನನ್ನ ರೇಟ್",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-edit-08",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಾನು ಹಿಂದಿ ಕೂಡ ಮಾತಾಡ್ತೀನಿ ಅಂತ ಸೇರಿಸಿ",
+      "intent": "editCard",
+      "slots": { "field": "languages" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-edit-09",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "800 ಕ್ಕಿಂತ ಕಡಿಮೆಗೆ ಕೆಲಸ ಒಪ್ಪಿಕೊಳ್ಳಬೇಡಿ ಅಂತ ಬದಲಾಯಿಸಿ",
+      "intent": "editCard",
+      "slots": { "field": "min" },
+      "source": "list"
+    },
+    {
+      "id": "kn-edit-10",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನನ್ನ ಬಗ್ಗೆ ಇರೋದನ್ನ ಬದಲಾಯಿಸ್ಬೇಕು, ಹತ್ತು ವರ್ಷ ಅನುಭವ ಅಂತ ಬರೀರಿ",
+      "intent": "editCard",
+      "slots": { "field": "about" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-edit-11",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಇನ್ಮೇಲೆ ಕೋರಮಂಗಲ ಕಡೆ ಹೋಗಲ್ಲ, ಅದನ್ನ ತೆಗೆದುಹಾಕಿ",
+      "intent": "editCard",
+      "slots": { "field": "area" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-edit-12",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "ಅಡುಗೆ ಜೊತೆಗೆ ಮನೆ ಕ್ಲೀನಿಂಗ್ ಕೆಲಸನೂ ಮಾಡ್ತೀನಿ ಅಂತ ಕಾರ್ಡ್‌ನಲ್ಲಿ ಹಾಕಿ",
+      "intent": "editCard",
+      "slots": { "field": "trade" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-edit-13",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನನ್ನ ಕಾರ್ಡ್‌ನಲ್ಲಿ ರೇಟ್ ತುಂಬಾ ಕಡಿಮೆ ಇದೆ ಸ್ವಲ್ಪ ಏರಿಸಿ",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-edit-14",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನನ್ನ ಪರವಾಗಿ ಏಜೆಂಟ್ ತಾನೇ ಕೆಲಸ ಒಪ್ಪಿಕೊಳ್ಳೋದು ಬೇಡ, ನನ್ನನ್ನ ಕೇಳಿ ಮಾಡಲಿ",
+      "intent": "editCard",
+      "slots": { "field": "auto" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-edit-15",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನನ್ನ ಪ್ರೊಫೈಲ್‌ನಲ್ಲಿ ಭಾಷೆಗಳ ಪಟ್ಟಿಗೆ ತಮಿಳು ಸೇರಿಸಿ",
+      "intent": "editCard",
+      "slots": { "field": "languages" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-edit-16",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ರೇಟ್ ಬದಲಾಯಿಸ್ಬೇಕು ದಿನಕ್ಕೆ ಎಂಟು ನೂರು",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-edit-17",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "ಎಚ್‌ಎಸ್‌ಆರ್ ಲೇಔಟ್‌ನಲ್ಲೂ ಕೆಲಸ ಮಾಡ್ತೀನಿ ಅಂತ ಹಾಕಿ",
+      "intent": "editCard",
+      "slots": { "field": "area" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-edit-18",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "ಬೇರೆಯವರು ಎಂಟು ನೂರು ತಗೋತಾರೆ, ನನ್ನ ರೇಟ್ನೂ ಅಷ್ಟೇ ಮಾಡಿ",
+      "intent": "editCard",
+      "slots": { "field": "rate" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-edit-19",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["plumber"],
+      "text": "ಸಣ್ಣ ಕೆಲಸ ಆದ್ರೂ ಕಮ್ಮಿ ಅಂದ್ರೆ 200 ತಗೊಳ್ತೀನಿ, ಅದನ್ನ ಮಿನಿಮಮ್ ಅಂತ ಇಡಿ",
+      "intent": "editCard",
+      "slots": { "field": "min" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-edit-20",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಏಜೆಂಟ್ ನನ್ನ ಬದಲು ಡೀಲ್ ಫೈನಲ್ ಮಾಡ್ಲಿ, ಪ್ರತಿ ಸಲ ನನ್ನನ್ನ ಕೇಳೋದು ಬೇಡ",
+      "intent": "editCard",
+      "slots": { "field": "auto" },
+      "source": "miss"
+    }
+  ]
+}

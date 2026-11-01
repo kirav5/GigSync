@@ -43,17 +43,18 @@ const fetchesOf = async (page: Page, mode: string) => (await fakeFetches(page)).
 const question = (page: Page) => page.getByText(textOf(hi, "iv.ask.trade"));
 
 /**
- * Talk, the voice section of Settings, and no download link for voice on either. The understanding pack (ADR 0042) has
- * its own download in Settings, offered on a tap; that is not voice.
+ * Talk, the voice section of Settings, and no download link for voice on either. Settings' model section has its own
+ * downloads (the understanding pack, ADR 0042, and the on-device model), offered on a tap; those are not voice.
  */
 async function noDownloadLink(page: Page) {
   await expect(page.getByRole("button", { name: DOWNLOAD })).toHaveCount(0);
   await expect(page.getByText(DOWNLOAD)).toHaveCount(0);
   await open(page, "nav.settings", hi);
   await expect(page.getByRole("region", { name: t(hi, "speech.title") })).toHaveCount(0);
-  const pack = page.getByRole("region", { name: t(hi, "pack.title") });
-  const outsidePack = async () => (await page.getByText(DOWNLOAD).count()) - (await pack.getByText(DOWNLOAD).count());
-  await expect.poll(outsidePack).toBe(0);
+  const models = page.getByRole("region", { name: t(hi, "model.title") });
+  const outsideModels = async () =>
+    (await page.getByText(DOWNLOAD).count()) - (await models.getByText(DOWNLOAD).count());
+  await expect.poll(outsideModels).toBe(0);
   await open(page, "nav.talk", hi);
 }
 

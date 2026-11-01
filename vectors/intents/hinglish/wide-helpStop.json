@@ -1,0 +1,148 @@
+{
+  "cases": [
+    {
+      "id": "hinglish-helpStop-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "ab naye logon ki help nahi kar paunga",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mentor wala kaam band kar do",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-05",
+      "lang": "hi",
+      "role": "worker",
+      "text": "newcomer help off karo",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mujhe ab koi naya banda mat bhejo madad ke liye",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-07",
+      "lang": "hi",
+      "role": "worker",
+      "text": "helper list se mera naam hata do",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-08",
+      "lang": "hi",
+      "role": "worker",
+      "text": "bahut log call karte hai ab madad nahi karni",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-09",
+      "lang": "hi",
+      "role": "worker",
+      "text": "gaon ja rahi hoon kuch mahine naye logon ki help band",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-10",
+      "lang": "hi",
+      "role": "worker",
+      "text": "ab time nahi milta guide karna chhod dunga",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-11",
+      "lang": "hi",
+      "role": "worker",
+      "text": "newcomers ko help karna band karna hai",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-12",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mujhe mentor nahi rehna",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-13",
+      "lang": "hi",
+      "role": "worker",
+      "text": "naye log ab mujhse contact na kare",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-14",
+      "lang": "hi",
+      "role": "worker",
+      "text": "madad wala option hata do plz",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-15",
+      "lang": "hi",
+      "role": "worker",
+      "text": "bas ab bahut ho gaya naye logon ko sambhalna",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-16",
+      "lang": "hi",
+      "role": "worker",
+      "text": "kisi naye aane wale ko ab mera number mat dena madad band",
+      "intent": "helpStop",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-helpStop-17",
+      "lang": "hi",
+      "role": "worker",
+      "text": "pause kar do newcomer help kuch din ke liye",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-18",
+      "lang": "hi",
+      "role": "worker",
+      "text": "help karna band karni hai bhai",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-19",
+      "lang": "hi",
+      "role": "worker",
+      "text": "main ab naye logon me kisi ki madad nahi karunga",
+      "intent": "helpStop",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-helpStop-20",
+      "lang": "hi",
+      "role": "worker",
+      "text": "mentor se hatna hai",
+      "intent": "helpStop",
+      "source": "miss"
+    }
+  ]
+}

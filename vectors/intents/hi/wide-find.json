@@ -1,0 +1,211 @@
+{
+  "cases": [
+    {
+      "id": "hi-find-08",
+      "lang": "hi",
+      "role": "household",
+      "text": "कल शाम को इलेक्ट्रीशियन भेज दो",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-09",
+      "lang": "hi",
+      "role": "household",
+      "text": "बाथरूम में पानी भर जाता है निकलता नहीं",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-10",
+      "lang": "hi",
+      "role": "household",
+      "text": "एसी ठंडा नहीं कर रहा कोई देख ले",
+      "intent": "find",
+      "slots": { "trade": "ac_technician" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-11",
+      "lang": "hi",
+      "role": "household",
+      "text": "कोरमंगला में रोज़ सुबह झाड़ू पोछा के लिए कोई चाहिए",
+      "intent": "find",
+      "slots": { "trade": "maid", "area": "koramangala" },
+      "source": "list"
+    },
+    {
+      "id": "hi-find-12",
+      "lang": "hi",
+      "role": "household",
+      "text": "घर का दरवाज़ा ठीक से बंद नहीं होता, कोई ठीक कर दे",
+      "intent": "find",
+      "slots": { "trade": "carpenter" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-13",
+      "lang": "hi",
+      "role": "household",
+      "text": "हमको एक ड्राइवर चाहिए महीने के लिए",
+      "intent": "find",
+      "slots": { "trade": "driver" },
+      "source": "list"
+    },
+    {
+      "id": "hi-find-14",
+      "lang": "hi",
+      "role": "household",
+      "text": "इंदिरानगर में पेंटर मिलेगा क्या इस हफ़्ते",
+      "intent": "find",
+      "slots": { "trade": "painter", "area": "indiranagar" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-15",
+      "lang": "hi",
+      "role": "household",
+      "text": "पंखा चल नहीं रहा, कोई आ जाए तो अच्छा",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-16",
+      "lang": "hi",
+      "role": "household",
+      "text": "रात का खाना बनाने के लिए दीदी चाहिए जयनगर में",
+      "intent": "find",
+      "slots": { "trade": "cook", "area": "jayanagar" },
+      "source": "list"
+    },
+    {
+      "id": "hi-find-17",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "मुझे एक हेल्पर चाहिए कल के काम के लिए",
+      "intent": "find",
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-18",
+      "lang": "hi",
+      "role": "household",
+      "text": "किचन का सिंक जाम है",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-19",
+      "lang": "hi",
+      "role": "household",
+      "text": "प्लंबर?",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-20",
+      "lang": "hi",
+      "role": "household",
+      "text": "बेडरूम में अलमारी बनवानी है",
+      "intent": "find",
+      "slots": { "trade": "carpenter" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-21",
+      "lang": "hi",
+      "role": "household",
+      "text": "बिजली का मीटर बार बार ट्रिप हो रहा है कोई भेजो",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-22",
+      "lang": "hi",
+      "role": "household",
+      "text": "मम्मी पापा के लिए खाना बनाने वाला चाहिए सस्ता सा",
+      "intent": "find",
+      "slots": { "trade": "cook" },
+      "source": "list"
+    },
+    {
+      "id": "hi-find-23",
+      "lang": "hi",
+      "role": "household",
+      "text": "व्हाइटफील्ड में नया एसी लगवाना है",
+      "intent": "find",
+      "slots": { "trade": "ac_technician", "area": "whitefield" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-24",
+      "lang": "hi",
+      "role": "household",
+      "text": "दो दिन के लिए गाड़ी चलाने वाला चाहिए गोवा ट्रिप पे",
+      "intent": "find",
+      "slots": { "trade": "driver" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-25",
+      "lang": "hi",
+      "role": "household",
+      "text": "दिवाली से पहले घर की सफाई के लिए कोई मिलेगा क्या",
+      "intent": "find",
+      "slots": { "trade": "maid" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-26",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "हमको भी एक प्लंबर चाहिए अपने कमरे का नल खराब है",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "list"
+    },
+    {
+      "id": "hi-find-27",
+      "lang": "hi",
+      "role": "household",
+      "text": "दीवार पे सीलन है, ठीक करवाना है",
+      "intent": "find",
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-28",
+      "lang": "hi",
+      "role": "household",
+      "text": "हमको कल 8 बजे तक एक बढ़ई भेज दो एचएसआर में",
+      "intent": "find",
+      "slots": { "trade": "carpenter", "area": "hsr_layout" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-29",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["सीमा", "विकास"],
+      "text": "कोई अच्छी कामवाली बताओ ना ₹5000 तक",
+      "intent": "find",
+      "slots": { "trade": "maid" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-find-30",
+      "lang": "hi",
+      "role": "household",
+      "text": "गार्डन के लिए माली चाहिए",
+      "intent": "find",
+      "source": "miss"
+    }
+  ]
+}

@@ -1,0 +1,198 @@
+{
+  "cases": [
+    {
+      "id": "hi-market-10",
+      "lang": "hi",
+      "role": "household",
+      "text": "व्हाइटफील्ड में झाड़ू पोछा का महीने का कितना देते हैं लोग",
+      "intent": "market",
+      "slots": { "trade": "maid", "area": "whitefield" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-11",
+      "lang": "hi",
+      "role": "household",
+      "text": "बढ़ई अलमारी बनाने का कितना लेता है",
+      "intent": "market",
+      "slots": { "trade": "carpenter" },
+      "source": "list"
+    },
+    {
+      "id": "hi-market-12",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "हमको 9000 मिल रहा है दो टाइम खाना बनाने का, ये ठीक है या कम है",
+      "intent": "market",
+      "slots": { "trade": "cook", "amount_paise": 900000 },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-13",
+      "lang": "hi",
+      "role": "household",
+      "text": "₹600 में पंखा लगाना ठीक रेट है?",
+      "intent": "market",
+      "slots": { "trade": "electrician", "amount_paise": 60000 },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-14",
+      "lang": "hi",
+      "role": "household",
+      "text": "ड्राइवर को महीने का पंद्रह हज़ार ज़्यादा है क्या",
+      "intent": "market",
+      "slots": { "trade": "driver", "amount_paise": 1500000 },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-15",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["plumber"],
+      "text": "कोरमंगला में प्लंबर लोग एक विज़िट का कितना ले रहे हैं",
+      "intent": "market",
+      "slots": { "trade": "plumber", "area": "koramangala" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-16",
+      "lang": "hi",
+      "role": "household",
+      "text": "एसी गैस भरवाने का कितना लगता है",
+      "intent": "market",
+      "slots": { "trade": "ac_technician" },
+      "source": "list"
+    },
+    {
+      "id": "hi-market-17",
+      "lang": "hi",
+      "role": "household",
+      "text": "इंदिरानगर में कुक की सैलरी कितनी होती है",
+      "intent": "market",
+      "slots": { "trade": "cook", "area": "indiranagar" },
+      "source": "list"
+    },
+    {
+      "id": "hi-market-18",
+      "lang": "hi",
+      "role": "household",
+      "text": "पेंटर बोल रहा है 18 रुपये स्क्वायर फीट, सही है?",
+      "intent": "market",
+      "slots": { "trade": "painter", "amount_paise": 1800 },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-19",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["electrician"],
+      "text": "वायरिंग का काम मैं कितने में करूँ बाकी लोग कितना लेते हैं",
+      "intent": "market",
+      "slots": { "trade": "electrician" },
+      "source": "list"
+    },
+    {
+      "id": "hi-market-20",
+      "lang": "hi",
+      "role": "household",
+      "text": "बाथरूम की टंकी ठीक करवाने का कितना होगा",
+      "intent": "market",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-21",
+      "lang": "hi",
+      "role": "worker",
+      "text": "एचएसआर में कारपेंटर का दिन का कितना है",
+      "intent": "market",
+      "slots": { "trade": "carpenter", "area": "hsr_layout" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-22",
+      "lang": "hi",
+      "role": "household",
+      "text": "बच्चा संभालने वाली कितना लेती है",
+      "intent": "market",
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-23",
+      "lang": "hi",
+      "role": "household",
+      "text": "कामवाली बोल रही है छह हज़ार, ज़्यादा तो नहीं",
+      "intent": "market",
+      "slots": { "trade": "maid", "amount_paise": 600000 },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-24",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["maid"],
+      "text": "जयनगर में बर्तन धोने का कितना मिलता है",
+      "intent": "market",
+      "slots": { "trade": "maid", "area": "jayanagar" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-25",
+      "lang": "hi",
+      "role": "household",
+      "text": "दो कमरे का पेंट कितने का पड़ेगा भैया",
+      "intent": "market",
+      "slots": { "trade": "painter" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-26",
+      "lang": "hi",
+      "role": "household",
+      "text": "ड्राइवर रोज़ के हिसाब से कितना लेते हैं",
+      "intent": "market",
+      "slots": { "trade": "driver" },
+      "source": "list"
+    },
+    {
+      "id": "hi-market-27",
+      "lang": "hi",
+      "role": "household",
+      "text": "एसी सर्विस का 1500 बोल रहा है ठीक है",
+      "intent": "market",
+      "slots": { "trade": "ac_technician", "amount_paise": 150000 },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-28",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "बेंगलुरु में कुक के काम में कितना कमा सकते हैं",
+      "intent": "market",
+      "slots": { "trade": "cook" },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-29",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["सुरेश", "कमला"],
+      "text": "नल बदलने का 300 रुपया ठीक है क्या",
+      "intent": "market",
+      "slots": { "trade": "plumber", "amount_paise": 30000 },
+      "source": "miss"
+    },
+    {
+      "id": "hi-market-30",
+      "lang": "hi",
+      "role": "household",
+      "text": "कोरमंगला में फुल टाइम मेड रखने का कितना खर्चा आता है",
+      "intent": "market",
+      "slots": { "trade": "maid", "area": "koramangala" },
+      "source": "list"
+    }
+  ]
+}

@@ -1,0 +1,166 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-helpOffer-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "hosa jana bandre naanu sahaya maadtini",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "Bengaluru ge hosdaagi baroru ge help maadoke ready idini",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "yaraadru hosabru bandidre nan number kodi",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "naanu mentor aagtini",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-05",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ooru gottillada hudugarige bus route torustini",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-06",
+      "lang": "kn",
+      "role": "worker",
+      "text": "hosa maid galige elli kelsa sigutte antha heli kodtini",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-07",
+      "lang": "kn",
+      "role": "worker",
+      "text": "nange 8 varsha aaytu illi, hosabrige guide maadbahudu",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-08",
+      "lang": "kn",
+      "role": "worker",
+      "text": "new jana ge room hudukoke sahaya maadteeni",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-09",
+      "lang": "kn",
+      "role": "worker",
+      "text": "mentor list ge nanna hesru haaki",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-10",
+      "lang": "kn",
+      "role": "worker",
+      "text": "hosdaagi bandoru yaaradru idre nange connect maadi",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-11",
+      "lang": "kn",
+      "role": "worker",
+      "text": "bhaanuvaara free iddini hosabru jothe hogi area torustini",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-12",
+      "lang": "kn",
+      "role": "worker",
+      "text": "naanu bandaga yaaru sahaya maadlilla, ivaga bere avrige maadbeku",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-13",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["plumber"],
+      "text": "hosa plumber galige kelsa kalisteeni",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-14",
+      "lang": "kn",
+      "role": "worker",
+      "text": "help maadoke naanu ready namdu hesru register maadi",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-15",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ooralli inda bandoru ge first week nan jothe irli",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-16",
+      "lang": "kn",
+      "role": "worker",
+      "text": "hosabru ge sim bank yella torisi kodtini",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-17",
+      "lang": "kn",
+      "role": "worker",
+      "text": "mentor aagbeku andre en maadbeku naan aagtini",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-18",
+      "lang": "kn",
+      "role": "worker",
+      "text": "yaaradru hosa hudugi bandidre nanna kade kalsi",
+      "intent": "helpOffer",
+      "source": "miss"
+    },
+    {
+      "id": "kanglish-helpOffer-19",
+      "lang": "kn",
+      "role": "worker",
+      "text": "newcomers ge help maadtini Whitefield kade",
+      "intent": "helpOffer",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-helpOffer-20",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "hosa cook galige market elli antha torustini",
+      "intent": "helpOffer",
+      "source": "miss"
+    }
+  ]
+}

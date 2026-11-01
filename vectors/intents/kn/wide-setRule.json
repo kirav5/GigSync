@@ -1,0 +1,184 @@
+{
+  "cases": [
+    {
+      "id": "kn-setRule-03",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ರವಿ", "ಮೀನಾ"],
+      "text": "ರವಿಗೆ ನನ್ನ ರೇಟ್ ತೋರಿಸಬೇಡಿ",
+      "intent": "setRule",
+      "slots": { "contact": "ರವಿ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-04",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["ಲಕ್ಷ್ಮಿ", "ಸುಮಾ"],
+      "text": "ಲಕ್ಷ್ಮಿಗೆ ನನ್ನ ಮನೆ ಅಡ್ರೆಸ್ ನೋಡೋಕೆ ಬಿಡಿ",
+      "intent": "setRule",
+      "slots": { "contact": "ಲಕ್ಷ್ಮಿ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-05",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಮಂಜು", "ಗೀತಾ"],
+      "text": "ಮಂಜು ನನ್ನ ಹತ್ರ ಏನು ಬೇಕಾದ್ರೂ ಕೇಳಬಹುದು",
+      "intent": "setRule",
+      "slots": { "contact": "ಮಂಜು" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-06",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["ನಾಗರಾಜ್", "ಪ್ರಿಯಾ"],
+      "text": "ನಾಗರಾಜ್ ಅವರಿಗೆ ನನ್ನ ಸ್ಥಳದ ಮಾಹಿತಿ ನೋಡಲು ಅನುಮತಿ ನೀಡಿ",
+      "intent": "setRule",
+      "slots": { "contact": "ನಾಗರಾಜ್" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-07",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಸುರೇಶ್", "ಅನಿಲ್"],
+      "text": "ಸುರೇಶ್ ನನ್ನ ಸಂಪಾದನೆ ಬಗ್ಗೆ ಕೇಳಿದ್ರೆ ಹೇಳಬೇಡಿ",
+      "intent": "setRule",
+      "slots": { "contact": "ಸುರೇಶ್" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-08",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಗೀತಾ", "ಲಕ್ಷ್ಮಿ"],
+      "text": "ಗೀತಾ ಅಕ್ಕನಿಗೆ ನಾನು ಎಲ್ಲಿದ್ದೀನಿ ಅಂತ ಯಾವಾಗ್ಲೂ ಗೊತ್ತಾಗ್ಲಿ",
+      "intent": "setRule",
+      "slots": { "contact": "ಗೀತಾ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-09",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["ರಾಜು", "ಕಾವ್ಯ"],
+      "text": "ರಾಜು ಇನ್ಮೇಲೆ ನನ್ನ ಲೊಕೇಶನ್ ನೋಡೋದು ಬೇಡ",
+      "intent": "setRule",
+      "slots": { "contact": "ರಾಜು" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-10",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಅನಿಲ್", "ರವಿ"],
+      "text": "ಅನಿಲ್ ನನ್ನ ಕೆಲಸದ ಟೈಮ್ ನೋಡಬಹುದು, ಬೇರೆ ಏನೂ ಬೇಡ",
+      "intent": "setRule",
+      "slots": { "contact": "ಅನಿಲ್" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-11",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["ಸುಮಾ", "ಮೀನಾ"],
+      "text": "ಸುಮಾಗೆ ನನ್ನ ಫೋನ್ ನಂಬರ್ ಕಾಣಿಸಬಾರದು",
+      "intent": "setRule",
+      "slots": { "contact": "ಸುಮಾ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-12",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಕಾವ್ಯ", "ಪ್ರಿಯಾ", "ಮಂಜು"],
+      "text": "ಕಾವ್ಯ ಮೇಡಂಗೆ ನನ್ನ ಫ್ರೀ ಟೈಮ್ ಕಾಣಿಸ್ಲಿ",
+      "intent": "setRule",
+      "slots": { "contact": "ಕಾವ್ಯ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-13",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["Ravi", "Meena"],
+      "text": "Meena ನನಗೆ ಏನೂ ಕೇಳೋಕೆ ಆಗದ ಹಾಗೆ ಮಾಡಿ",
+      "intent": "setRule",
+      "slots": { "contact": "Meena" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-14",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಶಾಂತಮ್ಮ", "ಗೀತಾ"],
+      "text": "ಶಾಂತಮ್ಮನಿಗೆ ನಾನು ಯಾವ ಮನೆಗಳಲ್ಲಿ ಕೆಲಸ ಮಾಡ್ತೀನಿ ಅಂತ ಗೊತ್ತಾಗೋದು ಬೇಡ",
+      "intent": "setRule",
+      "slots": { "contact": "ಶಾಂತಮ್ಮ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-15",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ರವಿ", "ಮಂಜು"],
+      "text": "ರವಿ ನನ್ನ ರೇಟ್ ಕೇಳಿದ್ರೆ ಹೇಳಿ, ಪರವಾಗಿಲ್ಲ",
+      "intent": "setRule",
+      "slots": { "contact": "ರವಿ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-16",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["ಪ್ರಿಯಾ", "ಲಕ್ಷ್ಮಿ"],
+      "text": "ಪ್ರಿಯಾಗೆ ನನ್ನ ಕ್ಯಾಲೆಂಡರ್ ನೋಡೋಕೆ ಪರ್ಮಿಷನ್ ಕೊಡಿ",
+      "intent": "setRule",
+      "slots": { "contact": "ಪ್ರಿಯಾ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-17",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಲಕ್ಷ್ಮಿ", "ಸುರೇಶ್"],
+      "text": "ಲಕ್ಷ್ಮಿಗೆ ಕೊಟ್ಟಿದ್ದ ಲೊಕೇಶನ್ ಪರ್ಮಿಷನ್ ತೆಗೆದುಹಾಕಿ",
+      "intent": "setRule",
+      "slots": { "contact": "ಲಕ್ಷ್ಮಿ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-18",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["ನಾಗರಾಜ್", "ಸುಮಾ"],
+      "text": "ನಾಗರಾಜ್ ಪ್ಲಂಬರ್ ನನ್ನ ಮನೆ ಲೊಕೇಶನ್ ನೋಡ್ಲಿ, ನಾಳೆ ಬರ್ತಾರೆ",
+      "intent": "setRule",
+      "slots": { "contact": "ನಾಗರಾಜ್" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-19",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಮೀನಾ", "ರವಿ", "ಗೀತಾ"],
+      "text": "ಮೀನಾ ನನ್ನ ನೋಟ್ಸ್ ನೋಡಬಾರದು",
+      "intent": "setRule",
+      "slots": { "contact": "ಮೀನಾ" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-setRule-20",
+      "lang": "kn",
+      "role": "worker",
+      "contacts": ["ಮಂಜು", "ಅನಿಲ್"],
+      "text": "ಮಂಜುಗೆ ನಾನು ಯಾವ ಮನೆಗೆ ಕೆಲಸಕ್ಕೆ ಹೋಗ್ತೀನಿ ಅಂತ ಹೇಳ್ಬೇಡಿ",
+      "intent": "setRule",
+      "slots": { "contact": "ಮಂಜು" },
+      "source": "miss"
+    }
+  ]
+}

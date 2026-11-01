@@ -1,0 +1,177 @@
+{
+  "cases": [
+    {
+      "id": "en-chat-10",
+      "lang": "en",
+      "role": "household",
+      "text": "gave the carpenter 3500 cash last night, he finished the work",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-chat-11",
+      "lang": "en",
+      "role": "worker",
+      "text": "my cousin is shifting to Chennai next month",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-chat-12",
+      "lang": "en",
+      "role": "worker",
+      "text": "my roommate also moving with me from Patna",
+      "inMove": true,
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "en-chat-13",
+      "lang": "en",
+      "role": "household",
+      "text": "plumber came, fixed the leak, all good now",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-chat-14",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "today made biryani for 20 people at the function very tiring",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-chat-15",
+      "lang": "en",
+      "role": "household",
+      "text": "thank you so much, very helpful",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-chat-16",
+      "lang": "en",
+      "role": "worker",
+      "text": "namaskara",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-chat-17",
+      "lang": "en",
+      "role": "worker",
+      "text": "traffic at silk board was too much today, reached late to madam house",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-chat-18",
+      "lang": "en",
+      "role": "household",
+      "text": "my maid did not come today again without telling",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-chat-19",
+      "lang": "en",
+      "role": "worker",
+      "text": "I earned good money as a driver in Dubai before",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "en-chat-20",
+      "lang": "en",
+      "role": "household",
+      "text": "electricians in this city are very costly yaar",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "en-chat-21",
+      "lang": "en",
+      "role": "worker",
+      "text": "ok",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-chat-22",
+      "lang": "en",
+      "role": "household",
+      "text": "the painting work finished on sunday, colour came out nice",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-chat-23",
+      "lang": "en",
+      "role": "worker",
+      "contacts": ["Suresh", "Lakshmi"],
+      "text": "my friend Suresh got job in Whitefield as security",
+      "intent": "chat",
+      "source": "miss"
+    },
+    {
+      "id": "en-chat-24",
+      "lang": "en",
+      "role": "worker",
+      "text": "reached Bangalore station just now very crowded",
+      "inMove": true,
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-chat-25",
+      "lang": "en",
+      "role": "household",
+      "text": "who made this app",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-chat-26",
+      "lang": "en",
+      "role": "worker",
+      "text": "sorry sent wrong message",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-chat-27",
+      "lang": "en",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "completed the Koramangala villa job today, owner gave sweets also",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-chat-28",
+      "lang": "en",
+      "role": "household",
+      "text": "the cook put too much salt in sambar today",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-chat-29",
+      "lang": "en",
+      "role": "worker",
+      "text": "how are you",
+      "intent": "chat",
+      "source": "list"
+    },
+    {
+      "id": "en-chat-30",
+      "lang": "en",
+      "role": "household",
+      "text": "power cut since morning in our layout, very irritating",
+      "intent": "chat",
+      "source": "list"
+    }
+  ]
+}

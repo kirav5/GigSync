@@ -25,7 +25,7 @@
       "text": "रसोई का नल टपक रहा है, कोई आ सकता है?",
       "intent": "find",
       "slots": { "trade": "plumber" },
-      "source": "list"
+      "source": "miss"
     },
     {
       "id": "hi-find-05",
@@ -34,7 +34,7 @@
       "text": "दिवाली से पहले घर की पुताई करवानी है",
       "intent": "find",
       "slots": { "trade": "painter" },
-      "source": "list"
+      "source": "miss"
     },
     {
       "id": "hi-remember-01",
@@ -43,7 +43,7 @@
       "text": "याद रखना, गैस वाला शुक्रवार को आएगा",
       "intent": "remember",
       "slots": { "note": "गैस वाला शुक्रवार को आएगा" },
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "hi-remember-02",
@@ -52,7 +52,7 @@
       "text": "दूधवाले को 5 तारीख को पैसे देने हैं, याद रखना",
       "intent": "remember",
       "slots": { "note": "दूधवाले को 5 तारीख को पैसे देने हैं" },
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "hi-remember-03",
@@ -69,7 +69,7 @@
       "role": "household",
       "text": "मैंने गैस के बारे में क्या लिखा था?",
       "intent": "askSelf",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "hi-askSelf-02",
@@ -119,14 +119,21 @@
       "slots": { "contact": "रवि" },
       "source": "miss"
     },
-    { "id": "hi-chat-06", "lang": "hi", "role": "worker", "text": "नमस्ते", "intent": "chat", "source": "list" },
+    {
+      "id": "hi-chat-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "नमस्ते",
+      "intent": "chat",
+      "source": "list"
+    },
     {
       "id": "hi-chat-07",
       "lang": "hi",
       "role": "household",
       "text": "धन्यवाद, बहुत अच्छा लगा",
       "intent": "chat",
-      "source": "miss"
+      "source": "list"
     },
     {
       "id": "hi-chat-08",
@@ -142,7 +149,7 @@
       "role": "household",
       "text": "बिजली वाला आया था, सब ठीक कर गया",
       "intent": "chat",
-      "source": "miss"
+      "source": "list"
     }
   ]
 }

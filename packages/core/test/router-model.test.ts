@@ -35,6 +35,7 @@ describe("modelRoute", () => {
     });
     expect(model.prompts[0]).toContain(JSON.stringify(FAIR));
     expect(model.options[0]?.temperature).toBe(0);
+    expect(model.options[0]?.json).toBe(true);
   });
 
   it("reads JSON wrapped in prose or fences, slots nested or not, and digits in any script", async () => {
@@ -106,6 +107,50 @@ describe("modelRoute", () => {
     expect((await modelRoute("change it", worker, reply({ intent: "editCard", field: "price" })))?.slots).toEqual({});
     const oddShapes = reply({ intent: "find", trade: 7, contact: "x".repeat(500), area: ["hsr"] });
     expect((await modelRoute("need help at home", household, oddShapes))?.intent).toBe(I.find);
+  });
+
+  it("finds the contact the model spelt in another script", async () => {
+    const hindi = { ...worker, lang: Lang.enum.hi, contacts: ["रवि", "मीना"] };
+    expect(await modelRoute("रवि को मत बताना", hindi, reply({ intent: "setRule", contact: "Ravi" }))).toEqual({
+      intent: I.setRule,
+      slots: { contact: "रवि" },
+      via: RouteVia.model,
+    });
+  });
+
+  it("drops a contact the message does not name, though the owner has it", async () => {
+    const model = reply({ intent: "askContact", contact: "Meera" });
+    expect(await modelRoute("is my sister free today?", worker, model)).toBeUndefined();
+  });
+
+  it("shows examples only in the script the message is written in", async () => {
+    const kannada = { ...worker, lang: Lang.enum.kn };
+    const script = reply({ intent: "chat" });
+    await modelRoute("ನಮಸ್ಕಾರ", kannada, script);
+    expect(script.prompts[0]).toContain("ನನಗೆ ಪ್ಲಂಬರ್ ಬೇಕು");
+    expect(script.prompts[0]).not.toContain("nanna area badlaayisi");
+    const latin = reply({ intent: "chat" });
+    await modelRoute("namaskara", kannada, latin);
+    expect(latin.prompts[0]).toContain("nanna area badlaayisi");
+    expect(latin.prompts[0]).not.toContain("ನನಗೆ ಪ್ಲಂಬರ್ ಬೇಕು");
+    const english = reply({ intent: "chat" });
+    await modelRoute("hello", worker, english);
+    expect(english.prompts[0]).toContain("need an electrician tomorrow");
+    expect(english.prompts[0]).not.toContain("madad band karo");
+  });
+
+  it("asks for a reply held to this chat's intents and the owner's contacts", async () => {
+    const model = reply({ intent: "chat" });
+    await modelRoute("hello", worker, model);
+    const schema = model.options[0]?.schema as { properties: Record<string, { enum?: string[] }>; required: string[] };
+    expect(schema.required).toEqual(["intent"]);
+    expect(schema.properties.contact?.enum).toEqual(["Meera"]);
+    expect(schema.properties.intent?.enum).toContain(I.setRule);
+    const forHousehold = reply({ intent: "chat" });
+    await modelRoute("hello", household, forHousehold);
+    const householdSchema = forHousehold.options[0]?.schema as { properties: Record<string, { enum?: string[] }> };
+    expect(householdSchema.properties.intent?.enum).not.toContain(I.editCard);
+    expect(householdSchema.properties.contact).toBeUndefined();
   });
 
   it("gives nothing when what the action needs fails: a contact the owner has, a note in their words, a trade", async () => {

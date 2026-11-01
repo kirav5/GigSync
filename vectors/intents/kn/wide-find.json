@@ -1,0 +1,214 @@
+{
+  "cases": [
+    {
+      "id": "kn-find-08",
+      "lang": "kn",
+      "role": "household",
+      "text": "ನಾಳೆ ಒಬ್ಬ ಎಲೆಕ್ಟ್ರಿಷನ್ ಕಳಿಸಿ",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-09",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಇಂದಿರಾನಗರಕ್ಕೆ ಒಬ್ಬರು ಮನೆಗೆಲಸದವರು ಬೇಕಾಗಿದೆ",
+      "intent": "find",
+      "slots": { "trade": "maid", "area": "indiranagar" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-10",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಫ್ಯಾನ್ ತಿರುಗ್ತಾನೇ ಇಲ್ಲ, ಸ್ವಿಚ್ ಹಾಕಿದ್ರೆ ಕಿಡಿ ಬರುತ್ತೆ",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-11",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಎಸಿ ತಣ್ಣಗೆ ಆಗ್ತಿಲ್ಲ ಯಾರನ್ನಾದ್ರೂ ಕಳಿಸ್ತೀರಾ",
+      "intent": "find",
+      "slots": { "trade": "ac_technician" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-12",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಬಾತ್ರೂಮ್ ಪೈಪ್ ಒಡೆದುಹೋಗಿದೆ ಬೇಗ ಯಾರಾದ್ರೂ ಬರ್ಬೇಕು",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-13",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಅಡುಗೆಗೆ ಒಬ್ಬರು ಬೇಕು, ವೆಜ್ ಮಾತ್ರ, ಜಯನಗರ",
+      "intent": "find",
+      "slots": { "trade": "cook", "area": "jayanagar" },
+      "source": "list"
+    },
+    {
+      "id": "kn-find-14",
+      "lang": "kn",
+      "role": "household",
+      "text": "ನಮ್ಮ ಮನೆಗೆ ಒಬ್ಬ ಅನುಭವಿ ಚಾಲಕರ ಅವಶ್ಯಕತೆ ಇದೆ",
+      "intent": "find",
+      "slots": { "trade": "driver" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-15",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಬಾಗಿಲು ಸರಿಯಾಗಿ ಮುಚ್ಚಿಕೊಳ್ತಿಲ್ಲ, ಕಾರ್ಪೆಂಟರ್ ಸಿಗ್ತಾರಾ",
+      "intent": "find",
+      "slots": { "trade": "carpenter" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-16",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಪ್ಲಂಬರ್?",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-17",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಕೋರಮಂಗಲದಲ್ಲಿ ಪಾರ್ಟ್ ಟೈಮ್ ಕುಕ್ ಸಿಗ್ತಾರಾ ಹೇಳಿ",
+      "intent": "find",
+      "slots": { "trade": "cook", "area": "koramangala" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-18",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಹತ್ತು ಸಾವಿರದೊಳಗೆ ಒಬ್ಬ ಮೇಡ್ ಬೇಕು ವೈಟ್‌ಫೀಲ್ಡ್‌ಗೆ",
+      "intent": "find",
+      "slots": { "trade": "maid", "area": "whitefield" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-19",
+      "lang": "kn",
+      "role": "household",
+      "text": "ದೀಪಾವಳಿಗೆ ಮುಂಚೆ ಹಾಲ್ ಮತ್ತು ಬೆಡ್‌ರೂಮ್ ಪೇಂಟ್ ಮಾಡ್ಕೊಡೋರು ಬೇಕು",
+      "intent": "find",
+      "slots": { "trade": "painter" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-20",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಕಿಚನ್ ಸಿಂಕ್ ಬ್ಲಾಕ್ ಆಗಿದೆ ನೀರು ಹೋಗ್ತಿಲ್ಲ",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-21",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಅಮ್ಮನನ್ನು ಆಸ್ಪತ್ರೆಗೆ ಕರ್ಕೊಂಡು ಹೋಗೋಕೆ ನಾಳೆ ಒಂದು ದಿನಕ್ಕೆ ಡ್ರೈವರ್ ಬೇಕು",
+      "intent": "find",
+      "slots": { "trade": "driver" },
+      "source": "list"
+    },
+    {
+      "id": "kn-find-22",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "ನನ್ನ ಜೊತೆ ಕೆಲಸಕ್ಕೆ ಒಬ್ಬ ಹೆಲ್ಪರ್ ಪೇಂಟರ್ ಬೇಕು ನಾಳೆ",
+      "intent": "find",
+      "slots": { "trade": "painter" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-23",
+      "lang": "kn",
+      "role": "worker",
+      "trades": ["cook"],
+      "text": "ನನ್ನ ರೂಮ್‌ನಲ್ಲಿ ಲೈಟ್ ಹೋಗಿದೆ, ಎಲೆಕ್ಟ್ರಿಷಿಯನ್ ಯಾರಾದ್ರೂ ಸಿಗ್ತಾರಾ",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-24",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಮನೆ ಕ್ಲೀನ್ ಮಾಡೋಕೆ ವಾರಕ್ಕೆ ಎರಡು ಸಲ ಬರೋರು ಬೇಕು ಎಚ್‌ಎಸ್‌ಆರ್ ಲೇಔಟ್ ಸೆಕ್ಟರ್ ಟು",
+      "intent": "find",
+      "slots": { "trade": "maid", "area": "hsr_layout" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-25",
+      "lang": "kn",
+      "role": "household",
+      "text": "ದಯವಿಟ್ಟು ವಾಷಿಂಗ್ ಮೆಷಿನ್ ಸಂಪರ್ಕಕ್ಕೆ ಒಬ್ಬ ಪ್ಲಂಬರ್ ಅನ್ನು ವ್ಯವಸ್ಥೆ ಮಾಡಿ",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-26",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಮಲ್ಲೇಶ್ವರಂನಲ್ಲಿ ಎಸಿ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡೋಕೆ ಯಾರಾದ್ರೂ ಇದ್ದಾರಾ",
+      "intent": "find",
+      "slots": { "trade": "ac_technician" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-27",
+      "lang": "kn",
+      "role": "household",
+      "contacts": ["ಸುಮಾ", "ರವಿ"],
+      "text": "ಸುಮಾ ರಜೆ ಹೋಗಿದ್ದಾಳೆ, ಹದಿನೈದು ದಿನಕ್ಕೆ ಬೇರೆ ಅಡುಗೆಯವರು ಬೇಕು",
+      "intent": "find",
+      "slots": { "trade": "cook" },
+      "source": "list"
+    },
+    {
+      "id": "kn-find-28",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಮಂಚ ಮುರಿದುಹೋಗಿದೆ ರಿಪೇರಿ ಮಾಡೋರು ಸಿಕ್ತಾರಾ",
+      "intent": "find",
+      "slots": { "trade": "carpenter" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-29",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಹೊಸ ಫ್ಲ್ಯಾಟ್‌ಗೆ ಶಿಫ್ಟ್ ಆಗಿದ್ದೀವಿ ಎಲ್ಲಾ ಲೈಟ್ ಫಿಟ್ಟಿಂಗ್ ಮಾಡ್ಬೇಕು ಇಂದಿರಾನಗರ",
+      "intent": "find",
+      "slots": { "trade": "electrician", "area": "indiranagar" },
+      "source": "miss"
+    },
+    {
+      "id": "kn-find-30",
+      "lang": "kn",
+      "role": "household",
+      "text": "ಯಾರಾದ್ರೂ ಒಳ್ಳೆ ಕೆಲಸದವಳು ಇದ್ರೆ ಹೇಳಿ",
+      "intent": "find",
+      "slots": { "trade": "maid" },
+      "source": "miss"
+    }
+  ]
+}

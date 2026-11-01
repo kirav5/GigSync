@@ -1,0 +1,202 @@
+{
+  "cases": [
+    {
+      "id": "hinglish-find-09",
+      "lang": "hi",
+      "role": "household",
+      "text": "plumber chaiye abhi",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-10",
+      "lang": "hi",
+      "role": "household",
+      "text": "koi electrician bhejo plz light chali gayi aadhe ghar ki",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-11",
+      "lang": "hi",
+      "role": "household",
+      "text": "bathroom ka nal band hi nahi ho raha pura pani beh raha",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-12",
+      "lang": "hi",
+      "role": "household",
+      "text": "kal plumber bhejo subah 9 baje tak",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-13",
+      "lang": "hi",
+      "role": "household",
+      "text": "jayanagar me roz aane wali maid chahie",
+      "intent": "find",
+      "slots": { "trade": "maid", "area": "jayanagar" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-14",
+      "lang": "hi",
+      "role": "household",
+      "text": "AC thanda nahi kar raha koi dekh lega kya",
+      "intent": "find",
+      "slots": { "trade": "ac_technician" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-15",
+      "lang": "hi",
+      "role": "household",
+      "text": "naye ghar me almirah aur bed jodne wala koi milega",
+      "intent": "find",
+      "slots": { "trade": "carpenter" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-16",
+      "lang": "hi",
+      "role": "household",
+      "text": "driver chahiye 2 din ke liye airport aana jaana hai",
+      "intent": "find",
+      "slots": { "trade": "driver" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-17",
+      "lang": "hi",
+      "role": "household",
+      "text": "mummy ke liye khana banane wali dhundh do koramangala me",
+      "intent": "find",
+      "slots": { "trade": "cook", "area": "koramangala" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-18",
+      "lang": "hi",
+      "role": "household",
+      "text": "darwaze ka lock toot gaya koi carpenter aa sakta hai aaj",
+      "intent": "find",
+      "slots": { "trade": "carpenter" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-19",
+      "lang": "hi",
+      "role": "household",
+      "text": "bhai urgent koi bhi electrician MCB baar baar trip ho rahi hai",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-20",
+      "lang": "hi",
+      "role": "household",
+      "text": "deewar pe seelan aa gayi hai paint dobara karwana padega",
+      "intent": "find",
+      "slots": { "trade": "painter" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-21",
+      "lang": "hi",
+      "role": "household",
+      "text": "electrician?",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-22",
+      "lang": "hi",
+      "role": "household",
+      "text": "ek part time maid dekh do whitefield side budget 5000 tak",
+      "intent": "find",
+      "slots": { "trade": "maid", "area": "whitefield" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-23",
+      "lang": "hi",
+      "role": "household",
+      "contacts": ["Asha", "Mohan"],
+      "text": "kitchen ka sink jam ho gaya h paani nai ja raha",
+      "intent": "find",
+      "slots": { "trade": "plumber" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-24",
+      "lang": "hi",
+      "role": "household",
+      "text": "geyser se current maar raha hai koi bhejo jaldi",
+      "intent": "find",
+      "slots": { "trade": "electrician" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-25",
+      "lang": "hi",
+      "role": "household",
+      "text": "sunday ko party hai 20 log, ek din ke liye cook mil jayega kya",
+      "intent": "find",
+      "slots": { "trade": "cook" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-26",
+      "lang": "hi",
+      "role": "household",
+      "text": "indiranagar flat ki deep cleaning ke liye kisi ko bhejo",
+      "intent": "find",
+      "slots": { "area": "indiranagar" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-27",
+      "lang": "hi",
+      "role": "worker",
+      "trades": ["painter"],
+      "text": "mujhe ek helper chahiye kal ke kaam ke liye deewar ghisai karni hai",
+      "intent": "find",
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-28",
+      "lang": "hi",
+      "role": "household",
+      "text": "ac ki service karwani hai do AC hain",
+      "intent": "find",
+      "slots": { "trade": "ac_technician" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-29",
+      "lang": "hi",
+      "role": "household",
+      "text": "hsr me koi acha driver bata do monthly ke liye",
+      "intent": "find",
+      "slots": { "trade": "driver", "area": "hsr_layout" },
+      "source": "miss"
+    },
+    {
+      "id": "hinglish-find-30",
+      "lang": "hi",
+      "role": "household",
+      "text": "khidki ka sheesha toot gaya aur pankha bhi nahi chal raha",
+      "intent": "find",
+      "source": "miss"
+    }
+  ]
+}
