@@ -22,7 +22,7 @@ function UnderstandingPack() {
           ? t("pack.failed")
           : undefined;
   return (
-    <div className={C.stack}>
+    <section className={C.stack} aria-label={t("pack.title")}>
       <span className={C.label}>{t("pack.title")}</span>
       <span className={C.faint}>{t("pack.about", { mb: EMBEDDING_PACK_MB })}</span>
       {line && <span className={C.muted}>{line}</span>}
@@ -34,7 +34,7 @@ function UnderstandingPack() {
           </button>
         </div>
       )}
-    </div>
+    </section>
   );
 }
 

@@ -97,13 +97,44 @@ pnpm dev:app
 ```
 
 Phones: `pnpm build && pnpm --filter @gigsync/mobile exec cap sync`, then `cap run android` or `cap run ios`
-(Android Studio or Xcode must be installed).
+(Android Studio or Xcode must be installed). Android without Android Studio is under [Android](#android) below.
 
 Try the local API:
 
 ```bash
 curl -s -X POST localhost:8787/v1/auth/otp/verify -H 'content-type: application/json' -d '{"phone":"+919800000001","code":"000000","device":{"signing_key":"a","encryption_key":"b","protocol":1}}'
 ```
+
+### Android
+
+The debug APK builds from the command line. It needs a JDK 21 (the plugins compile for Java 21, as CI does) and
+the Android SDK with platform 36. Point Gradle at both explicitly; a version-only selector can pick another vendor's
+JDK. Behind a proxy that intercepts TLS, import its root certificate into that JDK's trust store first
+(`keytool -importcert -cacerts`), or the SDK and Gradle downloads fail with PKIX errors.
+
+```bash
+export JAVA_HOME=<path-to-your-jdk-21>/Contents/Home ANDROID_HOME=<path-to-android-sdk>
+```
+
+```bash
+sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+```
+
+`apps/mobile/android/local.properties` (git-ignored) holds `sdk.dir=<path-to-android-sdk>`. Then:
+
+```bash
+pnpm build && pnpm --filter @gigsync/mobile exec cap sync android
+```
+
+```bash
+cd apps/mobile/android && ./gradlew assembleDebug
+```
+
+The APK lands in `app/build/outputs/apk/debug/`; install it with `adb install -r`. To sign in on an emulator, run
+the UI tests' servers, `pnpm --filter @gigsync/worker-api dev:e2e` (port 8788, its own throwaway database) and
+`pnpm --filter @gigsync/mobile dev:e2e` (port 5174), forward them with `adb reverse tcp:5174 tcp:5174` and `adb reverse tcp:8788 tcp:8788`, and sync with
+`CAP_SERVER_URL=http://localhost:5174` before building. The code is `000000`. Never try sign-in against the pilot
+API from a debug build: it sends a real SMS and creates a real account.
 
 ### Two people, end to end
 

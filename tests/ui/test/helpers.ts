@@ -2,7 +2,7 @@ import { mkdirSync } from "node:fs";
 import { ApiClient, Header, type MessageKey, type Params, type PluralKey, SecretKeys, t } from "@gigsync/core";
 import { newDeviceSecrets } from "@gigsync/crypto";
 import { DEFAULT_LANG, type Lang, type Place, type Trade } from "@gigsync/protocol";
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
 import { open } from "./menu.js";
 
 /** Job cards on Activity and Records, wherever a job is filed now (jobs.ts). */
@@ -234,3 +234,7 @@ export async function listWorker(
   });
   return api;
 }
+
+/** A job card's status tag (its words in the owner's language): the progress line's steps share some of its words. */
+export const statusTag = (scope: Locator | Page, lang: Lang, key: MessageKey) =>
+  scope.locator(".tag").filter({ hasText: new RegExp(`^${t(lang, key)}$`) });

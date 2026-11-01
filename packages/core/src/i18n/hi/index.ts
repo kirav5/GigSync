@@ -21,6 +21,7 @@ import { need } from "./need.js";
 import { net } from "./net.js";
 import { page } from "./page.js";
 import { phone } from "./phone.js";
+import { progress } from "./progress.js";
 import { qr } from "./qr.js";
 import { record } from "./record.js";
 import { records } from "./records.js";
@@ -48,6 +49,7 @@ export const hi: Strings = {
   ...record,
   ...records,
   ...talk,
+  ...progress,
   ...need,
   ...memory,
   ...ask,

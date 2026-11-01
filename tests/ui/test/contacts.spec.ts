@@ -1,7 +1,7 @@
 import { type MessageKey, type Params, plural, questionText, t } from "@gigsync/core";
 import { Lang, PROBLEM_HOLD_DAYS } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { newPhone, open, Role, RUN, reveal, shoot, signIn } from "./helpers.js";
+import { newPhone, open, Role, RUN, reveal, shoot, signIn, statusTag } from "./helpers.js";
 import { fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -66,7 +66,7 @@ const jobWith = (page: Page, name: string) => page.getByRole("article", { name: 
 async function doneAndCash(workerPage: Page, household: string) {
   const job = jobWith(workerPage, household);
   await job.getByRole("button", { name: say("job.mark_done") }).click();
-  await expect(job.getByText(say("status.delivered"), { exact: true })).toBeVisible();
+  await expect(statusTag(job, en, "status.delivered")).toBeVisible();
   await job.getByRole("button", { name: say("getpaid.cash") }).click();
   await job.getByRole("button", { name: say("flag.yes"), exact: true }).click();
 }

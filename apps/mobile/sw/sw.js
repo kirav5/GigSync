@@ -1,4 +1,4 @@
-// The web app's service worker: the app shell for offline starts, and nothing else. The plugin in vite.config.ts
+// The web app's service worker: the app shell for offline starts, and job alerts (empty Web Pushes, see below). The plugin in vite.config.ts
 // copies this file into the build and fills in the two placeholders below: the cache's name (a hash of the built file
 // names) and the list to precache. Release web builds only (adapters/install.ts registers it); the native apps load
 // from their bundle.
@@ -79,3 +79,56 @@ async function cacheFirst(request) {
   }
   return response;
 }
+
+// ── Job alerts ────────────────────────────────────────────────────────────────────────────────────────────────────
+// The API sends an empty push when job news lands in this owner's mailbox (workers/api/src/push/webpush.ts): the push
+// says nothing about the job, so the alert can only say there is news. The app, once open, reads its own sealed
+// messages. The words follow the owner's language, which the app tells this worker on each open (adapters/push.ts).
+
+const PREFS = "gigsync-prefs";
+const LANG_KEY = scoped("__lang").href;
+const SW_LANG = "gigsync-lang";
+const ALERT_TAG = "gigsync-job";
+const ICON = scoped("icons/icon-192.png").href;
+const DEFAULT_LANG = "en";
+const ALERT = {
+  en: "Your job has an update. Open GigSync to see it.",
+  hi: "आपके काम में कुछ नया है। देखने के लिए GigSync खोलें।",
+  kn: "ನಿಮ್ಮ ಕೆಲಸದಲ್ಲಿ ಹೊಸ ಸುದ್ದಿ ಇದೆ. ನೋಡಲು GigSync ತೆರೆಯಿರಿ.",
+};
+const TITLE = "GigSync";
+const VISIBLE = "visible";
+const WINDOW = "window";
+
+self.addEventListener("message", (event) => {
+  const { type, lang } = event.data ?? {};
+  if (type !== SW_LANG || !(lang in ALERT)) return;
+  event.waitUntil(caches.open(PREFS).then((cache) => cache.put(LANG_KEY, new Response(lang))));
+});
+
+self.addEventListener("push", (event) => event.waitUntil(alertOwner()));
+
+/** A plain alert, unless the app is on screen: then it shows the news itself within seconds. */
+async function alertOwner() {
+  const windows = await self.clients.matchAll({ type: WINDOW, includeUncontrolled: true });
+  if (windows.some((w) => w.visibilityState === VISIBLE)) return;
+  const kept = await (await caches.open(PREFS)).match(LANG_KEY);
+  const lang = kept ? await kept.text() : DEFAULT_LANG;
+  await self.registration.showNotification(TITLE, {
+    body: ALERT[lang] ?? ALERT[DEFAULT_LANG],
+    tag: ALERT_TAG,
+    renotify: true,
+    icon: ICON,
+  });
+}
+
+// Tapping the alert brings the app forward, or opens it.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: WINDOW, includeUncontrolled: true }).then((windows) => {
+      const open = windows[0];
+      return open ? open.focus() : self.clients.openWindow(scoped("./").href);
+    }),
+  );
+});

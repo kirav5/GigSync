@@ -63,6 +63,7 @@ export {
   draftDetails,
   MAX_ASK,
   type NeedParts,
+  NUMBER_ONLY,
   needToSend,
   needWords,
   OPENING_SHARE,
@@ -94,7 +95,9 @@ export * from "./job/device.js";
 export * from "./job/explain.js";
 export * from "./job/explain-model.js";
 export * from "./job/groups.js";
+export * from "./job/history.js";
 export * from "./job/negotiate.js";
+export * from "./job/progress.js";
 export * from "./job/settle.js";
 export * from "./job/store.js";
 export * from "./job/strategy.js";
