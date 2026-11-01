@@ -20,6 +20,7 @@ import {
   shoot,
   showTab,
   signIn,
+  statusTag,
 } from "./helpers.js";
 import { fillAsk, publishCard, unlistCards } from "./journey.js";
 import { downloadRecord } from "./records.js";
@@ -140,7 +141,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await expect(question).toBeVisible();
   // Waiting on her, his job is under In talks.
   await showTab(anil, "activity.tab_talks");
-  await expect(anil.getByText(say("status.clarifying"), { exact: true })).toBeVisible();
+  await expect(statusTag(anil, en, "status.clarifying")).toBeVisible();
   await shoot("worker-asks", phones);
   await question.getByLabel("What exactly isn't working?").fill("It hums but does not spin");
   await question.getByRole("button", { name: say("job.send_answers") }).click();
@@ -162,7 +163,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   const second = first === anil ? priya : anil;
   await expect(signOn(second)).toBeVisible();
   // Signed and waiting on the other side, the job has no decision left, so it moves to In talks.
-  await reveal(first, first.getByText(say("status.confirming"), { exact: true }));
+  await reveal(first, statusTag(first, en, "status.confirming"));
   await shoot("one-signed", phones);
   await signOn(second).click();
 
@@ -242,13 +243,13 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await review.getByRole("button", { name: say("job.send_review") }).click();
   await openRecordRow(anil, priyaName);
   await expect(job.getByLabel(say("a11y.review"))).toContainText("★★★★★ Quick and tidy");
-  await expect(job.getByText(say("status.closed"), { exact: true })).toBeVisible();
+  await expect(statusTag(job, en, "status.closed")).toBeVisible();
   await expect(async () => {
     // Her review reaches her own Records once the job closes there.
     await open(priya, "nav.activity");
     await openRecordRow(priya, anilName);
   }).toPass();
-  await expect(priya.getByText(say("status.closed"), { exact: true })).toBeVisible();
+  await expect(statusTag(priya, en, "status.closed")).toBeVisible();
   await expect(priya.getByLabel(say("a11y.payment"))).toContainText(say("pay.thread.confirmed"));
   await shoot("paid-rated-closed", phones);
 

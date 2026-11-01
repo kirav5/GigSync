@@ -140,6 +140,7 @@ export function ScreenView({ screen, d, m }: { screen: Screen; d: ScreenData; m:
       return (
         <SettingsPage
           ports={ports}
+          session={account.session}
           isWorker={isWorker}
           onInstall={() => m.go(Screen.install)}
           onMoveOut={() => m.go(Screen.moveOut)}

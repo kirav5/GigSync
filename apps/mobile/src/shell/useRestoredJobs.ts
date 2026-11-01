@@ -13,6 +13,9 @@ export function useRestoredJobs(device: GigDevice, account: Account, refresh: ()
   const owner = account.session.user;
   // biome-ignore lint/correctness/useExhaustiveDependencies: `owner` only exists to run this once per signed-in owner.
   useEffect(() => {
+    // Signing out keeps an owner's jobs on the phone; asking the browser to keep the app's storage stops it clearing
+    // them for space or after days unused, which would leave only the restored copies (no messages, no contacts).
+    void navigator.storage?.persist?.().catch(() => undefined);
     const { device: now } = latest.current;
     restoreFromRecord(recordsClient(account.session), now.store, owner)
       .then((added) => added > 0 && latest.current.refresh())

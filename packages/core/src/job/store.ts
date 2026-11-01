@@ -8,7 +8,6 @@ import type {
   JobRequest,
   JobReview,
   JobTerms,
-  Note,
   Offer,
   Place,
   Question,
@@ -22,6 +21,7 @@ import type { ProblemRecord } from "../contacts/rules.js";
 import { Collection, type Storage } from "../ports.js";
 import type { RestoredFacts } from "../records/restore.js";
 import type { Advice } from "./advice.js";
+import type { KeptNote, StatusStamp } from "./history.js";
 import type { Mandate } from "./negotiate.js";
 import type { Strategy, Tactic } from "./strategy.js";
 import type { TermsTrack } from "./terms-flow.js";
@@ -59,10 +59,13 @@ export interface JobRecord {
   cancel?: Cancel;
   review?: JobReview;
   /**
-   * Notes from the other side as received, each with its language so the screen can translate it: the worker's (on my
-   * way, done), and on a signed job either side asking whether this owner knows someone in a city.
+   * Notes as sent or received, each with its language so the screen can translate it: the worker's (on my way, done),
+   * and on a signed job either side asking whether this owner knows someone in a city. Newer ones carry when, and
+   * whether this phone sent them.
    */
-  notes?: Note[];
+  notes?: KeptNote[];
+  /** Each status the job reached and when this phone saw it, for the progress line; jobs from before have none. */
+  history?: StatusStamp[];
   /**
    * The questions the worker's agent asked about this request, as sent: standard keys, or a model's words with their
    * kind. Both phones keep them for the job's story. Records saved before round 3 hold bare keys.

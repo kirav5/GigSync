@@ -68,10 +68,11 @@ const isPromptEvent = (e: Event): e is BeforeInstallPromptEvent =>
   "prompt" in e && typeof e.prompt === "function" && "userChoice" in e;
 
 /** Opened from the home screen: Chrome and Android report a display mode, iOS Safari its own flag. */
-const standalone = () => matchMedia(STANDALONE).matches || Reflect.get(navigator, "standalone") === true;
+export const standalone = () => matchMedia(STANDALONE).matches || Reflect.get(navigator, "standalone") === true;
 
 /** iPadOS asks for desktop pages and says "Macintosh"; only its touch screen gives it away. */
-const isIos = () => IOS.test(navigator.userAgent) || (MAC.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+export const isIos = () =>
+  IOS.test(navigator.userAgent) || (MAC.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 
 /** Which steps to show for this device and browser. */
 export function installDevice(): InstallDevice {

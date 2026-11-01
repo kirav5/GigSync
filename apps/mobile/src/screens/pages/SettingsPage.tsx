@@ -1,4 +1,5 @@
 import type { MessageKey, Ports } from "@gigsync/core";
+import type { Session } from "@gigsync/protocol";
 import { useState } from "react";
 import { installOffered, useInstallState } from "../../adapters/install.js";
 import { useI18n } from "../../i18n.js";
@@ -6,6 +7,7 @@ import { C } from "../../ui/cls.js";
 import { Icon } from "../../ui/Icon.js";
 import { Look, savedLook, saveLook } from "../../ui/look.js";
 import "../../ui/install.css";
+import { AlertsSettings } from "../AlertsSettings.js";
 import { ModelSettings } from "../ModelSettings.js";
 import { MoveRows, SettingsRow } from "../move/MoveRows.js";
 import { SpeechSettings } from "../SpeechSettings.js";
@@ -48,6 +50,8 @@ function LookPicker() {
 
 interface Props {
   ports: Ports;
+  /** The signed-in device's session: job alerts tell the API where this device takes pushes. */
+  session: Session;
   isWorker: boolean;
   /** Opens the Install screen. */
   onInstall: () => void;
@@ -80,15 +84,16 @@ function InstallRow({ onOpen }: { onOpen: () => void }) {
 }
 
 /**
- * Settings, as collab's: the look, voice actions (workers), the model on this phone, how the agent bargains, a row
+ * Settings, as collab's: the look, job alerts, voice actions (workers), the model on this phone, how the agent bargains, a row
  * to the Install screen, the two ways of moving between phones, and the Terms and Privacy Notice. Each saves as it
  * changes, on this phone.
  */
-export function SettingsPage({ ports, isWorker, onInstall, onMoveOut, onMoveIn, onTerms }: Props) {
+export function SettingsPage({ ports, session, isWorker, onInstall, onMoveOut, onMoveIn, onTerms }: Props) {
   const { t } = useI18n();
   return (
     <PageFrame title={t("page.settings_title")} subtitle={t("page.settings_soft")}>
       <LookPicker />
+      <AlertsSettings session={session} />
       {isWorker && <SpeechSettings />}
       <ModelSettings ports={ports} />
       <TacticSetting ports={ports} />

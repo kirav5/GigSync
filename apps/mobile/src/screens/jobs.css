@@ -98,3 +98,11 @@
 .terms > li[data-changed] {
   font-weight: 600;
 }
+
+/* When a note was sent or arrived. */
+.note time {
+  margin-left: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+}

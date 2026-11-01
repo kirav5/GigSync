@@ -5,6 +5,7 @@ export * from "./delete.js";
 export { fingerprint, type RecordReport, ReportKind, recordsDue } from "./due.js";
 export * from "./export.js";
 export { jobWork, outcomeOf, paymentOf, submissionOf } from "./facts.js";
+export * from "./follow.js";
 export * from "./own-card.js";
 export { GONE_COUNTERPART, type RestoredFacts, restoredJob, restoredPayments, restoreFromRecord } from "./restore.js";
 export * from "./runner.js";

@@ -79,12 +79,17 @@ export function draftDetails(d: NeedDraft): Record<string, string> {
   return { ...drivers, ...scopeDetails(d), ...(first && d.detail ? { [first]: d.detail } : {}) };
 }
 
+/** An answer that is only a number in any script ("4", "४", "೪"): a count, which says nothing as the job's words. */
+export const NUMBER_ONLY = /^\p{Nd}+$/u;
+
 /**
  * The words the workers read: the owner's own, else their answer about the problem, else the trade's name in their
- * language (a need tapped together from chips has no other words).
+ * language (a need tapped together from chips has no other words). A count ("how many people? 4") is not words: shown
+ * alone on the card it read as a bare "4".
  */
 export function needWords(d: NeedDraft, own: Lang): string {
   const first = firstQuestion(d.trade);
-  const detail = first && !YES_NO_QUESTIONS.has(first) ? d.detail : undefined;
+  const answer = first && !YES_NO_QUESTIONS.has(first) ? d.detail?.trim() : undefined;
+  const detail = answer && !NUMBER_ONLY.test(answer) ? answer : undefined;
   return d.need?.trim() || detail || (d.trade ? t(own, `trade.${d.trade}`) : "");
 }

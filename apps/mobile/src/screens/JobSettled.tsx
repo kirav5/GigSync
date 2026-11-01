@@ -15,7 +15,7 @@ export function RestoredLine({ job }: { job: JobRecord }) {
     <fieldset aria-label={t("a11y.deal")}>
       {t("contacts.restored_price", { price: money(job.restored.price_paise) })}
       <TermsList terms={job.request.terms} />
-      <span className={C.faint}>{t("contacts.restored")}</span>
+      <p className={C.faint}>{t("contacts.restored")}</p>
     </fieldset>
   );
 }

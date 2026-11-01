@@ -1,0 +1,72 @@
+/* A signed job's progress line (JobProgress.tsx): one column per step, a dot on a rail, the step's name and time. */
+.job-progress {
+  display: grid;
+  grid-template-columns: repeat(var(--steps, 5), minmax(0, 1fr));
+  gap: 0;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.job-progress li {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+  padding-top: 2px;
+  text-align: center;
+}
+/* The rail from this step's dot to the next one's. */
+.job-progress li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: calc(50% + 9px);
+  right: calc(-50% + 9px);
+  height: 2px;
+  background: var(--hairline);
+}
+.job-progress li[data-state="done"]:not(:last-child)::after {
+  background: var(--fresh);
+}
+.job-progress .dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--hairline);
+  background: var(--surface);
+}
+.job-progress [data-state="done"] .dot {
+  border-color: var(--fresh);
+  background: var(--fresh);
+}
+.job-progress [data-state="now"] .dot {
+  border-color: var(--fresh);
+  background: var(--fresh);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--fresh) 22%, transparent);
+}
+.job-progress [data-state="stopped"] .dot {
+  border-color: var(--danger);
+  background: var(--danger);
+}
+.job-progress .name {
+  font-size: 12px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.job-progress [data-state="next"] .name {
+  color: var(--text3);
+}
+.job-progress [data-state="now"] .name {
+  font-weight: 600;
+}
+.job-progress [data-state="stopped"] .name {
+  color: var(--danger);
+}
+.job-progress time {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  font-variant-numeric: tabular-nums;
+}

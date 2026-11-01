@@ -105,7 +105,10 @@ test("a Hindi household finds an electrician by tapping the choices", async ({ b
   await expect(log).toContainText(t(hi, "question.problem"));
   await tap(page, t(hi, "iv.skip"));
   await tap(page, t(hi, "area.koramangala"));
-  await expect(log).toContainText(t(hi, "driver.ask.problem"));
+  // The skipped clarifying question settles what the job is (ADR 0042 §7), so the price questions go straight on to
+  // how many fittings, worded for an electrician.
+  await expect(log).toContainText(t(hi, "driver.ask.points.electrician"));
+  await expect(log).not.toContainText(t(hi, "driver.ask.problem"));
   await tap(page, t(hi, "driver.dont_know"));
   await tap(page, t(hi, "when.tomorrow"));
   // The budget is the one answer typed: it is a number, and private.

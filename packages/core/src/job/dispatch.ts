@@ -32,6 +32,7 @@ import * as after from "./aftercare.js";
 import * as consumer from "./consumer.js";
 import type { JobContext } from "./context.js";
 import * as deal from "./deal.js";
+import { stamped, withNote } from "./history.js";
 import type { JobRecord, Need } from "./store.js";
 import * as worker from "./worker.js";
 
@@ -111,7 +112,8 @@ export async function dispatch(
   let moved = r;
   if (!SIDE_CHANNEL_KINDS.has(e.kind)) {
     try {
-      moved = { ...r, engagement: apply(r.engagement, e.kind, ctx.clock.now()) };
+      const now = ctx.clock.now();
+      moved = stamped({ ...r, engagement: apply(r.engagement, e.kind, now) }, now.toISOString());
     } catch (err) {
       if (!(err instanceof TransitionError)) throw err;
       log.warn("envelope out of turn", { messageId: e.id, kind: e.kind, status: r.engagement.status });
@@ -167,7 +169,7 @@ async function react(
       return;
     case K.update:
     case K.delivery:
-      await ctx.store.saveJob({ ...r, notes: [...(r.notes ?? []), body as Note] });
+      await ctx.store.saveJob(withNote(r, body as Note, ctx.clock.now().toISOString()));
       return;
     default:
       return;

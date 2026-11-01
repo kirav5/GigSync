@@ -20,6 +20,12 @@ export interface Env {
   PHONE_HMAC_KEY?: string;
   /** Secret: the key admin-only routes (setting a mentor's vouched badge) expect. Unset means nobody is admin. */
   ADMIN_KEY?: string;
+  /** Public: the VAPID key phones subscribe to pushes with (base64url P-256 point). Unset means push is off. */
+  VAPID_PUBLIC_KEY?: string;
+  /** Secret: its private half (base64url). `node scripts/vapid-keys.mjs` makes both; `wrangler secret put`. */
+  VAPID_PRIVATE_KEY?: string;
+  /** Public: who push services may contact about these pushes, `mailto:` or an `https:` page. */
+  VAPID_SUBJECT?: string;
 }
 
 /** A secret the Worker cannot work without. Fails the request (500) rather than fall back to a guessable value. */

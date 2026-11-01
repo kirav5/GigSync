@@ -4,8 +4,9 @@ import { Envelope, MessageId, QR_KINDS, signingBytes, UserId } from "@gigsync/pr
 import { Hono } from "hono";
 import { z } from "zod";
 import { ApiError, type AppEnv, USER_PARAM, Var } from "../context.js";
-import { activeDeviceIds, deviceSigningKey } from "../db/devices.js";
+import { activeDeviceIds, deviceSigningKey, pushEndpoints } from "../db/devices.js";
 import { offerTaken } from "../db/qr-offers.js";
+import { vapidOf, WAKE_KINDS, wakeAll } from "../push/webpush.js";
 import { OFFER_SEND_MS } from "../qr/rules.js";
 import { noteDeliveredAgree } from "../records/one-sided.js";
 
@@ -55,7 +56,13 @@ mail.post(`/mailbox/:${USER_PARAM}`, async (c) => {
     stored: out.stored,
     devices: out.devices,
   });
-  // TODO(M2): if no device has an open socket, enqueue an FCM wake-up on the Queue.
+  // News a person wants even with the app closed wakes their phones with an empty push (push/webpush.ts). The
+  // addresses are read now, while the request's database connection is open; the pushes go after the answer.
+  const vapid = vapidOf(c.env);
+  if (vapid && out.stored && WAKE_KINDS.has(e.kind)) {
+    const endpoints = await pushEndpoints(db, to.data);
+    if (endpoints.length > 0) c.executionCtx.waitUntil(wakeAll(endpoints, vapid, new Date(), c.get(Var.requestId)));
+  }
   return c.json(out, out.stored ? 201 : 200);
 });
 

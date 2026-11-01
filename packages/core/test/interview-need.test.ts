@@ -92,6 +92,12 @@ describe("the need interview", () => {
     expect(hearNeed(s, "नौ हज़ार", true).notes[0]?.silent).toBeUndefined();
   });
 
+  it("never sends a bare count as the job's words: a cook asked for by name for 4 people reads as Cook", () => {
+    expect(needWords({ trade: T.cook, detail: "4" }, "en")).toBe("Cook");
+    expect(needWords({ trade: T.cook, detail: "४" }, "hi")).toBe("कुक");
+    expect(needWords({ trade: T.plumber, detail: "kitchen tap leaking" }, "en")).toBe("kitchen tap leaking");
+  });
+
   it("runs on taps alone", () => {
     let s = tap(startNeed(config("hi")), [T.electrician, "skip", "koramangala", DriverPick.dontKnow, "tomorrow"]);
     expect(s.slot).toBe(NeedSlot.budget);

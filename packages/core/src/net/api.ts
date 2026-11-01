@@ -19,6 +19,7 @@ import {
   MyMentorListing,
   MyQr,
   type MyQrRequest,
+  PushKey,
   type QrCode,
   QrPerson,
   Session,
@@ -51,6 +52,10 @@ export const ApiPath = {
   content: "/v1/content/",
   /** This device now speaks a newer protocol: `PUT /v1/devices/me/protocol`. */
   deviceProtocol: "/v1/devices/me/protocol",
+  /** Where this device's browser takes pushes: `PUT` keeps it, `DELETE` turns alerts off. */
+  devicePush: "/v1/devices/me/push",
+  /** The API's public VAPID key to subscribe with: `GET /v1/devices/push-key`. */
+  pushKey: "/v1/devices/push-key",
   /** The usual range for a job (ADR 0030): `POST /v1/estimates`. */
   estimates: "/v1/estimates",
   /** One agreed price shared anonymously: `POST /v1/estimates/prices`. */
@@ -197,6 +202,20 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
   /** Tells the directory this device speaks `protocol` now, after an app update. */
   raiseProtocol(protocol: number): Promise<unknown> {
     return this.call(HttpMethod.put, ApiPath.deviceProtocol, { protocol });
+  }
+
+  /** The key to subscribe to pushes with, or undefined while push is not set up on the API. */
+  async pushKey(): Promise<string | undefined> {
+    return PushKey.parse(await this.call(HttpMethod.get, ApiPath.pushKey)).public_key;
+  }
+
+  /** Tells the API where this device's browser takes pushes; only a real push service's address is kept. */
+  async subscribePush(endpoint: string): Promise<void> {
+    await this.call(HttpMethod.put, ApiPath.devicePush, { endpoint });
+  }
+
+  async unsubscribePush(): Promise<void> {
+    await this.call(HttpMethod.delete, ApiPath.devicePush);
   }
 
   /** The usual range for a job, or why there is none ("no estimate" is an answer, not an error). */
