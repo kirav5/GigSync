@@ -1,14 +1,12 @@
-import { City, Trade } from "@gigsync/protocol";
-import { PILOT_AREAS } from "../estimate/areas.js";
-import { FIELDS } from "../interview/card.js";
-import { EXAMPLES, SCRIPTS_FOR } from "./examples.js";
+import type { Lang } from "@gigsync/protocol";
+import { EXAMPLES, type Example, Script } from "./examples.js";
 import { allowedIntents, ChatIntent, ChatRole, type IntentContext } from "./intent.js";
 
 /**
  * The one prompt the phone's model reads to name a message's intent (ADR 0040 §2): the intents this chat can have,
- * each with a short definition, the rules for the pairs models confuse, examples in the owner's own language and its
- * Latin-letter form (examples.ts), who is asking, and the values slots may take. Short and JSON-only, so a small
- * on-device model can follow it; core checks whatever comes back (docs/gigsync/model-comparison.md measured it).
+ * each with a short definition, the rules for the pairs models confuse, what each slot holds, and examples in the
+ * script the message is written in (examples.ts). Short, because reading it is most of a phone's wait; the reply's
+ * schema holds slot values, and core checks whatever comes back (docs/gigsync/model-comparison.md measured it).
  */
 
 const I = ChatIntent;
@@ -45,7 +43,6 @@ const PROMPT_ORDER: readonly ChatIntent[] = Object.values(ChatIntent).flatMap((i
   intent === ChatIntent.setRule ? [] : intent === ChatIntent.askContact ? [ChatIntent.setRule, intent] : [intent],
 );
 
-const or = (values: readonly string[]) => values.map((v) => JSON.stringify(v)).join(" | ");
 const NONE = "none";
 const LIST_GAP = ", ";
 
@@ -62,23 +59,38 @@ function whoLines(ctx: IntentContext): string[] {
   ];
 }
 
-/** The slots and the values each may take; only what the message itself says. */
+/** The slots and what each holds; the reply's schema already holds each to the values core accepts. */
 const SLOT_LINES = [
   "Add a slot only when the message says it:",
-  ` trade: ${or(Trade.options)}`,
-  ` area: ${or(PILOT_AREAS.map((a) => a.key))}`,
-  ` city: ${or(City.options)}`,
+  " trade, area, city: the kind of work, the area, the city it names",
   " amount: rupees written in the message, as a number",
   " contact: one of their contacts, as written above",
-  ` field: ${or(FIELDS)}`,
+  " field: what to change on their card",
   " note: the words to keep, copied from the message",
 ];
+
+const DEVANAGARI = /\p{Script=Devanagari}/u;
+const KANNADA = /\p{Script=Kannada}/u;
+/** In Latin letters, the owner's language is written the Latin way: Hinglish, Kanglish, or English. */
+const LATIN_FOR: Readonly<Record<Lang, Script>> = { en: Script.en, hi: Script.hinglish, kn: Script.kanglish };
+
+/** The examples to show: those in the script the message itself is written in, which keeps the prompt short. */
+function scriptOf(text: string, lang: Lang): Script {
+  if (DEVANAGARI.test(text)) return Script.hi;
+  if (KANNADA.test(text)) return Script.kn;
+  return LATIN_FOR[lang];
+}
+
+/** One example as the prompt shows it: the words, the intent and any slots, without JSON's quotes and braces. */
+function exampleLine({ said, reply }: Example): string {
+  return `${JSON.stringify(said)} -> ${JSON.stringify(reply)}`;
+}
 
 /** The prompt for one message, with only the intents this chat can have. */
 export function routePrompt(text: string, ctx: IntentContext): string {
   const allowed = allowedIntents(ctx);
   const intents = PROMPT_ORDER.filter((intent) => allowed.includes(intent));
-  const scripts = SCRIPTS_FOR[ctx.lang];
+  const script = scriptOf(text, ctx.lang);
   return [
     "Sort one chat message from a GigSync user in India into one intent. Reply with one JSON object and nothing else.",
     ...whoLines(ctx),
@@ -87,11 +99,7 @@ export function routePrompt(text: string, ctx: IntentContext): string {
     ...RULES,
     ...SLOT_LINES,
     "Examples:",
-    ...intents.flatMap((intent) =>
-      EXAMPLES[intent]
-        .filter((e) => scripts.includes(e.script))
-        .map(({ said, reply }) => `${JSON.stringify(said)} -> ${JSON.stringify(reply)}`),
-    ),
+    ...intents.flatMap((intent) => EXAMPLES[intent].filter((e) => e.script === script).map(exampleLine)),
     `Message: ${JSON.stringify(text)}`,
   ].join("\n");
 }

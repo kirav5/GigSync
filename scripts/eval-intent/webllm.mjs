@@ -11,7 +11,7 @@ const ROOT = new URL("../../", import.meta.url);
 const testsRequire = createRequire(new URL("tests/ui/package.json", ROOT));
 const webllmRequire = createRequire(new URL("plugins/gigsync-llm/package.json", ROOT));
 const { completionRequest } = await import(new URL("plugins/gigsync-llm/dist/request.js", ROOT).href);
-const { specOfId } = await import(new URL("plugins/gigsync-llm/dist/catalog.js", ROOT).href);
+const { MODEL } = await import(new URL("plugins/gigsync-llm/dist/catalog.js", ROOT).href);
 
 const LIBRARY = webllmRequire.resolve("@mlc-ai/web-llm");
 const LIBRARY_PATH = "/web-llm.js";
@@ -32,8 +32,8 @@ const LOAD_LIMIT_MS = 1_800_000;
 
 /** A browser with `id` loaded, and the eval's `ask` for it; `close()` when done. */
 export async function openWebLlm(id) {
-  const spec = specOfId(id);
-  if (!spec) throw new Error(`${id} is not in the plugin's catalog`);
+  if (!Object.values(MODEL.ids).includes(id)) throw new Error(`${id} is not in the plugin's catalog`);
+  const spec = MODEL;
   const server = createServer((req, res) => {
     const library = req.url === LIBRARY_PATH;
     res.setHeader("content-type", library ? JS : HTML);

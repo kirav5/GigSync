@@ -1,4 +1,4 @@
-import { City, Lang, Trade } from "@gigsync/protocol";
+import { City, Trade } from "@gigsync/protocol";
 import type { PilotArea } from "../estimate/areas.js";
 import type { Field } from "../interview/lexicon.js";
 import { ChatIntent } from "./intent.js";
@@ -6,8 +6,9 @@ import { ChatIntent } from "./intent.js";
 /**
  * Labelled sayings per chat intent, in the five ways owners write: what the model router shows as examples (ADR 0040)
  * and what the meaning router matches against (ADR 0042). One list, so the two readers never disagree about what an
- * intent sounds like. The prompt shows only those of the owner's language and its Latin-letter form (a Kannada owner
- * sees Kannada and Kanglish), which keeps it short; the meaning router uses them all. One per script for the plain
+ * intent sounds like. The prompt shows only those in the script the message is written in (a Kannada-script message
+ * sees Kannada, a Kannada owner typing in Latin letters sees Kanglish), which keeps it short; the meaning router uses
+ * them all. One per script for the plain
  * intents; more, in contrasting pairs, where models confuse intents: a trade word in a request, a note and a question
  * about notes, not only in a price question; "don't tell" as well as "let". None is an eval case (vectors/intents):
  * the eval must test what the readers were not shown.
@@ -28,13 +29,6 @@ const MANJU = "Manju";
 export const Script = { en: "en", hi: "hi", hinglish: "hinglish", kn: "kn", kanglish: "kanglish" } as const;
 export type Script = (typeof Script)[keyof typeof Script];
 const S = Script;
-
-/** Which scripts the prompt shows an owner, by the language they chose in the app. */
-export const SCRIPTS_FOR: Readonly<Record<Lang, readonly Script[]>> = {
-  [Lang.enum.en]: [S.en],
-  [Lang.enum.hi]: [S.hi, S.hinglish],
-  [Lang.enum.kn]: [S.kn, S.kanglish],
-};
 
 /** The slots as the reply spells them: the amount in rupees, as people say it. */
 export interface ReplySlots {
@@ -132,6 +126,8 @@ export const EXAMPLES: Readonly<Record<ChatIntent, readonly Example[]>> = {
     ex(S.kanglish, "electrician bagge naanu enu bardidde", I.askSelf),
     ex(S.kn, "ಡ್ರೈವರ್ ಸಂಬಳದ ಬಗ್ಗೆ ಏನು ನೋಟ್ ಮಾಡಿದ್ದೆ", I.askSelf),
     ex(S.hi, "प्लंबर के बारे में मैंने क्या बताया था", I.askSelf),
+    ex(S.hinglish, "Sharma ji ke ghar ka gate code kya likha tha maine", I.askSelf),
+    ex(S.kanglish, "cook ge yaav dina rajaa antha naanu bardidde", I.askSelf),
   ],
   [I.askContact]: [
     ex(S.en, "is Meera free on Friday?", I.askContact, { contact: MEERA }),
@@ -139,6 +135,11 @@ export const EXAMPLES: Readonly<Record<ChatIntent, readonly Example[]>> = {
     ex(S.hinglish, "Raju se pucho kal aayega kya", I.askContact, { contact: RAJU }),
     ex(S.kn, "ಮಂಜು ನಾಳೆ ಬರ್ತಾರಾ ಕೇಳಿ", I.askContact, { contact: MANJU }),
     ex(S.kanglish, "Manju ge keli naale free na", I.askContact, { contact: MANJU }),
+    ex(S.en, "ask Raju if he can come at nine tomorrow", I.askContact, { contact: RAJU }),
+    ex(S.hi, "सुनील से पूछो आज शाम को आएगा क्या", I.askContact, { contact: SUNIL }),
+    ex(S.hinglish, "Sunil abhi kidhar hai pata karo", I.askContact, { contact: SUNIL }),
+    ex(S.kn, "ರವಿ ಎಲ್ಲಿದ್ದಾರೆ ಅಂತ ಕೇಳಿ", I.askContact, { contact: RAVI }),
+    ex(S.kanglish, "Raju elli iddaare keli nodi", I.askContact, { contact: RAJU }),
   ],
   [I.setRule]: [
     ex(S.en, "let Meera see where I am", I.setRule, { contact: MEERA }),

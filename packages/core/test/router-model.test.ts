@@ -123,16 +123,20 @@ describe("modelRoute", () => {
     expect(await modelRoute("is my sister free today?", worker, model)).toBeUndefined();
   });
 
-  it("shows examples only in the owner's language and its Latin-letter form", async () => {
-    const kannada = reply({ intent: "chat" });
-    await modelRoute("namaskara", { ...worker, lang: Lang.enum.kn }, kannada);
-    expect(kannada.prompts[0]).toContain("ನನಗೆ ಪ್ಲಂಬರ್ ಬೇಕು");
-    expect(kannada.prompts[0]).toContain("nanna area badlaayisi");
-    expect(kannada.prompts[0]).not.toContain("madad band karo");
+  it("shows examples only in the script the message is written in", async () => {
+    const kannada = { ...worker, lang: Lang.enum.kn };
+    const script = reply({ intent: "chat" });
+    await modelRoute("ನಮಸ್ಕಾರ", kannada, script);
+    expect(script.prompts[0]).toContain("ನನಗೆ ಪ್ಲಂಬರ್ ಬೇಕು");
+    expect(script.prompts[0]).not.toContain("nanna area badlaayisi");
+    const latin = reply({ intent: "chat" });
+    await modelRoute("namaskara", kannada, latin);
+    expect(latin.prompts[0]).toContain("nanna area badlaayisi");
+    expect(latin.prompts[0]).not.toContain("ನನಗೆ ಪ್ಲಂಬರ್ ಬೇಕು");
     const english = reply({ intent: "chat" });
     await modelRoute("hello", worker, english);
     expect(english.prompts[0]).toContain("need an electrician tomorrow");
-    expect(english.prompts[0]).not.toContain("ನನಗೆ ಪ್ಲಂಬರ್ ಬೇಕು");
+    expect(english.prompts[0]).not.toContain("madad band karo");
   });
 
   it("asks for a reply held to this chat's intents and the owner's contacts", async () => {

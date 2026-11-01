@@ -7,6 +7,9 @@ import { ChatIntent, type ChatRoute, type IntentContext, intentAllowed, RouteVia
 import { keywordRoute } from "./keyword-route.js";
 import { type Labelled, MeaningIndex } from "./meaning.js";
 import { MORE_SAYINGS } from "./sayings.js";
+import { EDGE_SAYINGS } from "./sayings-edges.js";
+import { HINGLISH_SAYINGS } from "./sayings-hinglish.js";
+import { KANGLISH_SAYINGS } from "./sayings-kanglish.js";
 
 /**
  * The phone's embedding model names a message's intent by its nearest labelled saying (ADR 0042). Like the model
@@ -21,10 +24,13 @@ import { MORE_SAYINGS } from "./sayings.js";
  */
 export const MIN_SIMILARITY = 0.8;
 
+/** The index's own sayings beyond the prompt's examples: the first set, Hinglish, Kanglish, and the confused edges. */
+const OWN_SAYINGS = [MORE_SAYINGS, HINGLISH_SAYINGS, KANGLISH_SAYINGS, EDGE_SAYINGS];
+
 /** Every labelled saying: the prompt's examples and the index's own, flattened, in the intents' order. */
 export const INTENT_SAYINGS: readonly Labelled<ChatIntent>[] = Object.values(ChatIntent).flatMap((intent) => [
   ...EXAMPLES[intent].map(({ said }) => ({ said, label: intent })),
-  ...MORE_SAYINGS[intent].map((said) => ({ said, label: intent })),
+  ...OWN_SAYINGS.flatMap((sayings) => (sayings[intent] ?? []).map((said) => ({ said, label: intent }))),
 ]);
 
 /** The index over the intent sayings for one embedder; the app keeps one for its life. */
