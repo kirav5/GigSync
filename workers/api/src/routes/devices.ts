@@ -1,14 +1,49 @@
 import { log } from "@gigsync/core/log";
-import { DeviceId, DeviceProtocol } from "@gigsync/protocol";
+import { DeviceId, DeviceProtocol, type PushKey, PushSubscribe } from "@gigsync/protocol";
 import { Hono } from "hono";
 import { ApiError, type AppEnv, DEVICE_PARAM, Var } from "../context.js";
 import { transaction } from "../db/client.js";
-import { raiseProtocol, revokeDevice } from "../db/devices.js";
+import { raiseProtocol, revokeDevice, setPushEndpoint } from "../db/devices.js";
+import { vapidOf } from "../push/webpush.js";
 
 /** The caller's own devices, behind the session middleware. */
 export const devices = new Hono<AppEnv>();
 
-const Path = { protocol: "/me/protocol", device: `/:${DEVICE_PARAM}` } as const;
+const Path = {
+  protocol: "/me/protocol",
+  push: "/me/push",
+  pushKey: "/push-key",
+  device: `/:${DEVICE_PARAM}`,
+} as const;
+
+/**
+ * The public VAPID key the browser subscribes with; none until both halves are set (a subscription the API could not
+ * push to would only promise alerts that never come), and the app then says alerts are not switched on yet.
+ */
+devices.get(Path.pushKey, (c) => {
+  const vapid = vapidOf(c.env);
+  const key: PushKey = vapid ? { public_key: vapid.publicKey } : {};
+  return c.json(key);
+});
+
+/**
+ * Where this device's browser takes pushes: one of the big push services only (PushSubscribe). The app sends it each
+ * time it opens with alerts on, so an address the service changed is replaced; DELETE turns alerts off.
+ */
+devices.put(Path.push, async (c) => {
+  const body = PushSubscribe.safeParse(await c.req.json().catch(() => undefined));
+  if (!body.success) return c.json({ error: ApiError.badRequest }, 400);
+  const found = await setPushEndpoint(c.get(Var.db), c.get(Var.device), c.get(Var.user), body.data.endpoint);
+  if (!found) return c.json({ error: ApiError.notFound }, 404);
+  log.info("push subscribed", { requestId: c.get(Var.requestId) });
+  return c.body(null, 204);
+});
+
+devices.delete(Path.push, async (c) => {
+  await setPushEndpoint(c.get(Var.db), c.get(Var.device), c.get(Var.user), null);
+  log.info("push unsubscribed", { requestId: c.get(Var.requestId) });
+  return c.body(null, 204);
+});
 
 /**
  * A device registers its protocol only at sign-in, so a phone updated since would stay on the old number and never

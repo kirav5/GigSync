@@ -1,6 +1,6 @@
 import type { progress as en } from "../en/progress.js";
 
-/** Kannada: a signed job's progress line, and the actions on a job restored from the record. */
+/** Kannada: a signed job's progress line, the actions on a job restored from the record, and job alerts. */
 export const progress: Readonly<Record<keyof typeof en, string>> = {
   "progress.title": "ಕೆಲಸದ ಪ್ರಗತಿ",
   "progress.agreed": "ಒಪ್ಪಿಗೆ",
@@ -17,4 +17,15 @@ export const progress: Readonly<Record<keyof typeof en, string>> = {
   "restored.cancel_sure": "ಈ ಕೆಲಸವನ್ನು ನಿಮ್ಮಿಬ್ಬರಿಗೂ ರದ್ದುಮಾಡಬೇಕೇ?",
   "restored.cancel_yes": "ಹೌದು, ರದ್ದುಮಾಡಿ",
   "restored.keep": "ಇರಲಿ",
+  "alerts.title": "ಕೆಲಸದ ಸೂಚನೆಗಳು",
+  "alerts.about":
+    "ಕೆಲಸ ಮುಂದುವರಿದಾಗ ಈ ಫೋನ್‌ಗೆ ಸೂಚನೆ: ಹೊಸ ರಿಕ್ವೆಸ್ಟ್, ಸಹಿ ಮಾಡಬೇಕಾದ ಒಪ್ಪಂದ, ಕೆಲಸಗಾರ ದಾರಿಯಲ್ಲಿ, ಮುಗಿದಿದೆ, ಹಣ ಪಾವತಿ ಅಥವಾ ರದ್ದು. ಹೇಳಿದ ಮಾತು ಎಂದಿಗೂ ಕಾಣಿಸುವುದಿಲ್ಲ.",
+  "alerts.on": "ಆನ್: ಸೂಚನೆಗಳು ಈ ಫೋನ್‌ಗೆ ಬರುತ್ತವೆ.",
+  "alerts.turn_on": "ಸೂಚನೆಗಳನ್ನು ಆನ್ ಮಾಡಿ",
+  "alerts.turn_off": "ಆಫ್ ಮಾಡಿ",
+  "alerts.blocked": "ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ GigSync ಸೂಚನೆಗಳು ತಡೆಹಿಡಿಯಲಾಗಿದೆ. ಈ ಸೈಟ್‌ನ ಬ್ರೌಸರ್ ಸೆಟ್ಟಿಂಗ್‌ನಲ್ಲಿ ಅನುಮತಿಸಿ, ನಂತರ ಇಲ್ಲಿಗೆ ಬನ್ನಿ.",
+  "alerts.install":
+    "iPhone ನಲ್ಲಿ ಸೂಚನೆಗಳು ಹೋಮ್ ಸ್ಕ್ರೀನ್‌ನ GigSync ಆ್ಯಪ್‌ನಲ್ಲಿ ಬರುತ್ತವೆ. Share ಇಂದ ಸೇರಿಸಿ, ಅಲ್ಲಿಂದ ತೆರೆಯಿರಿ, ನಂತರ ಸೂಚನೆಗಳನ್ನು ಆನ್ ಮಾಡಿ.",
+  "alerts.unsupported": "ಈ ಬ್ರೌಸರ್ GigSync ಸೂಚನೆಗಳನ್ನು ತೋರಿಸಲಾಗದು.",
+  "alerts.unavailable": "GigSync ನಲ್ಲಿ ಸೂಚನೆಗಳು ಇನ್ನೂ ಶುರುವಾಗಿಲ್ಲ. ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
 };

@@ -8,3 +8,8 @@ LOG_LEVEL=debug
 LOG_PII=true
 # Admin-only routes (a mentor's vouched badge). Local value only; the deployed Worker uses `wrangler secret put ADMIN_KEY`.
 ADMIN_KEY=dev-only-admin-key
+# Job alerts by Web Push (push/webpush.ts): `node scripts/vapid-keys.mjs` prints a pair. Unset means no alerts.
+# Deployed: VAPID_PUBLIC_KEY and VAPID_SUBJECT as [vars] in wrangler.toml, the private key by `wrangler secret put`.
+# VAPID_PUBLIC_KEY=
+# VAPID_PRIVATE_KEY=
+# VAPID_SUBJECT=mailto:ops@gigsync.network

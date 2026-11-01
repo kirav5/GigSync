@@ -50,6 +50,29 @@ export async function insertDevice(
   );
 }
 
+/** Where the caller's own active device takes pushes, or none (null). False when the device is unknown or revoked. */
+export async function setPushEndpoint(
+  db: Db,
+  device: DeviceId,
+  user: UserId,
+  endpoint: string | null,
+): Promise<boolean> {
+  const { rowCount } = await db.query(
+    "UPDATE devices SET push_token = $3 WHERE device_id = $1 AND user_id = $2 AND revoked_at IS NULL",
+    [device, user, endpoint],
+  );
+  return (rowCount ?? 0) > 0;
+}
+
+/** The push addresses of a user's active devices that gave one: where a job message's wake-up goes. */
+export async function pushEndpoints(db: Db, user: UserId): Promise<string[]> {
+  const { rows } = await db.query<{ push_token: string }>(
+    "SELECT push_token FROM devices WHERE user_id = $1 AND revoked_at IS NULL AND push_token IS NOT NULL",
+    [user],
+  );
+  return rows.map((r) => r.push_token);
+}
+
 /** Records that the caller's own device now speaks `protocol`; never lowers it. False when the device is unknown or revoked. */
 export async function raiseProtocol(db: Db, device: DeviceId, user: UserId, protocol: number): Promise<boolean> {
   const { rowCount } = await db.query(
