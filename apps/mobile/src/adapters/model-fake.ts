@@ -1,4 +1,4 @@
-import { MODELS, type ModelOptions, ModelSize, ModelState, type ModelStatus, Unsupported } from "@gigsync/plugin-llm";
+import { MODEL, type ModelOptions, ModelState, type ModelStatus, Unsupported } from "@gigsync/plugin-llm";
 import type { ModelEngine } from "./model-engine.js";
 
 /**
@@ -64,10 +64,7 @@ function logFetch(id: string): void {
   }
 }
 
-const infoFor = (o: ModelOptions) => {
-  const spec = MODELS[o.size ?? ModelSize.small];
-  return { id: spec.ids.f16, name: spec.name, size: spec.size, downloadMb: spec.downloadMb };
-};
+const infoFor = (_o: ModelOptions) => ({ id: MODEL.ids.f16, name: MODEL.name, downloadMb: MODEL.downloadMb });
 /** Steps of an earlier download that arrived before the page went away. */
 const stepsSoFar = () => Number(read(PROGRESS_KEY) ?? 0) || 0;
 const wait = (ms: number) => new Promise((done) => setTimeout(done, ms));

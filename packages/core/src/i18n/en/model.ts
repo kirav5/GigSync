@@ -45,15 +45,13 @@ export const model = {
   "model.line": "{name} · about {mb} MB · {state}",
   "model.download": "Download (about {mb} MB)",
   "model.remove": "Remove from this phone",
-  "model.size": "Which model",
-  "model.size_option": "{name} · {mb} MB",
-  "model.size_auto": "Best for this phone",
   "model.slow": "Too slow on this phone; using lite mode.",
   "model.try_again": "Try again",
-  "model.use_smaller": "Download the smaller {name} instead (about {mb} MB)",
   "model.why.no_webgpu": "This browser can't run a model on this phone (no WebGPU). Lite mode does every job.",
   "model.why.gpu_limits": "This phone's graphics chip is too small for the model. Lite mode does every job.",
   "model.why.low_memory": "This phone has too little memory for the model. Lite mode does every job.",
+  "model.why.unknown_memory":
+    "This browser doesn't say how much memory this phone has, so the model isn't offered. The understanding pack does the job instead.",
   "model.why.low_storage": "Not enough free storage for the model. Free some space, then tap Check again.",
   "model.why.browser": "This browser can't keep the model. Use an up-to-date Chrome or Safari.",
 } as const;

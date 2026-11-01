@@ -144,15 +144,16 @@ ollama serve
 In another terminal:
 
 ```bash
-ollama pull qwen2.5:1.5b
+ollama pull qwen3.5:2b-q4_K_M
 ```
 
 ```bash
-echo VITE_OLLAMA_MODEL=qwen2.5:1.5b > apps/mobile/.env.development.local
+echo VITE_OLLAMA_MODEL=qwen3.5:2b-q4_K_M > apps/mobile/.env.development.local
 ```
 
-Restart `pnpm dev:app`; the header shows `ollama qwen2.5:1.5b`. Any small open model Ollama can pull works; the
-release builds never include Ollama or any model that is not on the device.
+Restart `pnpm dev:app`; the header shows `ollama qwen3.5:2b-q4_K_M`, the 4-bit build of the phone's larger model
+(docs/gigsync/model-comparison.md). Any small open model Ollama can pull works; the release builds never include
+Ollama or any model that is not on the device.
 
 ## Logs
 

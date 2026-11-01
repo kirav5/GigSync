@@ -1,18 +1,12 @@
-import type { MessageKey, Ports } from "@gigsync/core";
-import { MODELS, ModelSize, ModelState, type ModelStatus } from "@gigsync/plugin-llm";
-import { ENGINE_NONE, engineName, type ModelSettings, useChosenModel } from "../../adapters/model.js";
+import type { MessageKey } from "@gigsync/core";
+import { ModelState, type ModelStatus } from "@gigsync/plugin-llm";
+import { ENGINE_NONE, engineName, useChosenModel } from "../../adapters/model.js";
 import { currentNetwork } from "../../adapters/model-device.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { DownloadLine, networkNote, percentOf, sizeMb } from "./modelText.js";
 import "./model.css";
 
-/** The size chips: left out is "best for this phone", the engine's own pick. */
-const SIZES: readonly (ModelSize | undefined)[] = [undefined, ModelSize.small, ModelSize.large];
-const AUTO_KEY = "auto";
-
-const withSize = ({ size: _, ...rest }: ModelSettings, size: ModelSize | undefined): ModelSettings =>
-  size ? { ...rest, size } : rest;
 const STATE_KEYS: Partial<Record<ModelState, MessageKey>> = {
   [ModelState.available]: "model.state_ready",
   [ModelState.downloadable]: "model.state_downloadable",
@@ -35,20 +29,16 @@ function stateLine(status: ModelStatus | undefined, t: ReturnType<typeof useI18n
 
 /**
  * Settings › On-device model, the model itself: name, size and state, its download with progress (the owner's tap is
- * the consent), Remove, a choice of size on a phone that can hold the 2B (the phone's best by default), and the speed
- * guard's verdict with "Try again", or the smaller model when the 2B was the slow one.
+ * the consent), Remove, and the speed guard's verdict with "Try again".
  */
-export function OnDeviceModel({ ports }: { ports: Ports }) {
+export function OnDeviceModel() {
   const { t } = useI18n();
   const model = useChosenModel();
-  const { device, current } = model;
+  const { device } = model;
   const status = device.status;
-  const mb = sizeMb(status, current.size);
+  const mb = sizeMb(status);
   const note = networkNote(currentNetwork(), mb, t);
   const downloadable = status?.state === ModelState.downloadable;
-  const showSizes = (device.largeFits || current.size !== undefined) && !device.downloading;
-  const slowLarge = device.tooSlow && status?.model?.size === ModelSize.large;
-  const small = MODELS[ModelSize.small];
 
   return (
     <div className={C.stack}>
@@ -59,26 +49,6 @@ export function OnDeviceModel({ ports }: { ports: Ports }) {
         </button>
       </div>
       {device.downloading && <DownloadLine status={status} t={t} />}
-      {showSizes && (
-        <fieldset className={C.stack} aria-label={t("model.size")}>
-          <span className={C.faint}>{t("model.size")}</span>
-          <div className={C.row}>
-            {SIZES.map((size) => (
-              <button
-                key={size ?? AUTO_KEY}
-                type={C.button}
-                aria-pressed={current.size === size}
-                className={current.size === size ? C.chipOn : C.chip}
-                onClick={() => void model.save(ports.storage, withSize(current, size))}
-              >
-                {size
-                  ? t("model.size_option", { name: MODELS[size].name, mb: MODELS[size].downloadMb })
-                  : t("model.size_auto")}
-              </button>
-            ))}
-          </div>
-        </fieldset>
-      )}
       {downloadable && (
         <div className={C.stack}>
           {device.record.wanted && <span className={C.muted}>{t("model.paused")}</span>}
@@ -102,13 +72,6 @@ export function OnDeviceModel({ ports }: { ports: Ports }) {
           <span className={C.muted}>{t("model.slow")}</span>
           <button type={C.button} className={`${C.linkBtn} end`} onClick={() => void device.retrySpeed()}>
             {t("model.try_again")}
-          </button>
-        </div>
-      )}
-      {slowLarge && (
-        <div>
-          <button type={C.button} className={C.secondary} onClick={() => void model.switchToSmaller(ports.storage)}>
-            {t("model.use_smaller", { name: small.name, mb: small.downloadMb })}
           </button>
         </div>
       )}

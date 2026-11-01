@@ -13,7 +13,7 @@ import "./model.css";
  */
 export function ModelNotice() {
   const { t } = useI18n();
-  const { device, current } = useChosenModel();
+  const { device } = useChosenModel();
   const notice = device.notice();
   // The ready line is said once: marked as said when it shows, and kept on screen until the owner leaves the chat.
   const [readyShown, setReadyShown] = useState(false);
@@ -32,7 +32,7 @@ export function ModelNotice() {
   }
   if (notice === Notice.downloading) return <DownloadLine status={device.status} t={t} />;
   if (notice !== Notice.offer && notice !== Notice.paused) return null;
-  const mb = sizeMb(device.status, current.size);
+  const mb = sizeMb(device.status);
   const note = networkNote(currentNetwork(), mb, t);
   const offer = notice === Notice.offer;
   return (

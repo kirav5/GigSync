@@ -6,7 +6,7 @@ import {
   type Params,
   type Storage,
 } from "@gigsync/core";
-import { ModelSize, type ModelStatus } from "@gigsync/plugin-llm";
+import type { ModelStatus } from "@gigsync/plugin-llm";
 import { useSyncExternalStore } from "react";
 import { OnDevice } from "./model-device.js";
 import { ENGINE_NONE } from "./model-engine.js";
@@ -31,8 +31,6 @@ export interface ModelSettings {
   choice: ModelChoice;
   /** Only for Ollama: the name of a model pulled on this computer. */
   ollamaModel: string;
-  /** Which on-device model, when the owner chose one; left out, the engine picks the one this phone suits best. */
-  size?: ModelSize;
 }
 
 /** Ollama is offered only in development builds; release builds never call this computer's localhost. */
@@ -72,27 +70,15 @@ export class ChosenModel implements Model {
   async load(storage: Storage): Promise<void> {
     const saved = await storage.get<Partial<ModelSettings>>(Collection.settings, SETTINGS_KEY);
     if (saved) this.settings = { ...DEFAULTS, ...saved };
-    await this.device.load(storage, this.settings.size);
+    await this.device.load(storage);
   }
 
   refresh = () => this.device.refresh();
 
   async save(storage: Storage, next: ModelSettings): Promise<void> {
-    this.settings = {
-      choice: next.choice,
-      ollamaModel: next.ollamaModel.trim(),
-      ...(next.size ? { size: next.size } : {}),
-    };
+    this.settings = { choice: next.choice, ollamaModel: next.ollamaModel.trim() };
     await storage.put(Collection.settings, SETTINGS_KEY, this.settings);
     this.notify();
-    await this.device.setSize(next.size);
-  }
-
-  /** The speed guard gave up on the 2B here: the owner's tap downloads the 0.8B in its place, timed afresh. */
-  async switchToSmaller(storage: Storage): Promise<void> {
-    await this.save(storage, { ...this.settings, size: ModelSize.small });
-    await this.device.retrySpeed();
-    await this.device.download();
   }
 
   async generate(prompt: string, options?: GenerateOptions): Promise<string | null> {

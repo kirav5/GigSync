@@ -25,8 +25,8 @@ type Mode = (typeof Mode)[keyof typeof Mode];
 const HALF_DOWN = "5";
 /** Long enough for a download that would start by itself to have started. */
 const SETTLE_MS = 1500;
-/** The 0.8B's download, as the catalog in plugins/gigsync-llm/src/catalog.ts gives it. */
-const SMALL_MB = 440;
+/** The model's download, as the catalog in plugins/gigsync-llm/src/catalog.ts gives it. */
+const MODEL_MB = 1050;
 const SLOW_ANSWERS = 3;
 /** A share of the download between 30% and 70%. */
 const PART_WAY = /[3-6]0%/;
@@ -63,24 +63,24 @@ async function worker(page: Page, name: string) {
 test("a capable phone is offered the model once, and Later puts it away", async ({ page }) => {
   await phone(page, Mode.capable);
   await worker(page, "Leela");
-  await expect(offer(page)).toContainText(t(en, "model.offer", { mb: SMALL_MB }));
+  await expect(offer(page)).toContainText(t(en, "model.offer", { mb: MODEL_MB }));
   await expect(offer(page)).toContainText(t(en, "model.private"));
   await shoot("offer", { worker: page }, FOLDER);
 
   await offer(page)
     .getByRole("button", { name: t(en, "model.offer_later"), exact: true })
     .click();
-  await expect(page.getByText(t(en, "model.offer", { mb: SMALL_MB }))).toHaveCount(0);
+  await expect(page.getByText(t(en, "model.offer", { mb: MODEL_MB }))).toHaveCount(0);
   await page.reload();
   await expect(page.getByText(textOf(en, "iv.ask.trade"))).toBeVisible();
-  await expect(page.getByText(t(en, "model.offer", { mb: SMALL_MB }))).toHaveCount(0);
+  await expect(page.getByText(t(en, "model.offer", { mb: MODEL_MB }))).toHaveCount(0);
   expect(await fetches(page)).toEqual([]);
 
   // Settings still has it, a tap away.
   await open(page, "nav.settings");
   await expect(settingsCard(page)).toContainText(t(en, "model.state_downloadable"));
   await expect(
-    settingsCard(page).getByRole("button", { name: t(en, "model.download", { mb: SMALL_MB }) }),
+    settingsCard(page).getByRole("button", { name: t(en, "model.download", { mb: MODEL_MB }) }),
   ).toBeVisible();
 });
 
@@ -108,7 +108,7 @@ test("Download shows progress in the chat, says once that it is ready, and Setti
   await open(page, "nav.settings");
   const card = settingsCard(page);
   await expect(card).toContainText(t(en, "model.state_ready"));
-  await expect(card).toContainText("Qwen3.5-0.8B");
+  await expect(card).toContainText("Qwen3.5-2B");
   await shoot("settings-ready", { worker: page }, FOLDER);
   await card.getByRole("button", { name: t(en, "model.remove"), exact: true }).click();
   await expect(card).toContainText(t(en, "model.state_downloadable"));
@@ -120,7 +120,7 @@ test("on mobile data the offer says so, and a stopped download never carries on 
   await connection(page, "cellular");
   await phone(page, Mode.capable);
   await worker(page, "Tara");
-  await expect(offer(page)).toContainText(t(en, "model.mobile_data", { mb: SMALL_MB }));
+  await expect(offer(page)).toContainText(t(en, "model.mobile_data", { mb: MODEL_MB }));
   await shoot("offer-mobile-data", { worker: page }, FOLDER);
 
   // A download agreed to earlier stopped half-way; the app opens again on mobile data.
@@ -134,7 +134,7 @@ test("on mobile data the offer says so, and a stopped download never carries on 
   );
   await page.reload();
   await expect(offer(page)).toContainText(t(en, "model.paused"));
-  await expect(offer(page)).toContainText(t(en, "model.mobile_data", { mb: SMALL_MB }));
+  await expect(offer(page)).toContainText(t(en, "model.mobile_data", { mb: MODEL_MB }));
   await page.waitForTimeout(SETTLE_MS);
   expect(await fetches(page)).toEqual([]);
   await shoot("paused-mobile-data", { worker: page }, FOLDER);
@@ -160,10 +160,10 @@ test("a phone that cannot run the model is never offered it, and Settings says w
   await phone(page, Mode.incapable);
   await worker(page, "Usha");
   await page.waitForTimeout(SETTLE_MS);
-  await expect(page.getByText(t(en, "model.offer", { mb: SMALL_MB }))).toHaveCount(0);
+  await expect(page.getByText(t(en, "model.offer", { mb: MODEL_MB }))).toHaveCount(0);
   await open(page, "nav.settings");
   await expect(settingsCard(page)).toContainText(t(en, "model.why.no_webgpu"));
-  await expect(settingsCard(page).getByRole("button", { name: t(en, "model.download", { mb: SMALL_MB }) })).toHaveCount(
+  await expect(settingsCard(page).getByRole("button", { name: t(en, "model.download", { mb: MODEL_MB }) })).toHaveCount(
     0,
   );
   await shoot("settings-incapable", { worker: page }, FOLDER);
@@ -171,7 +171,7 @@ test("a phone that cannot run the model is never offered it, and Settings says w
 
 test("too slow on this phone, Auto stops using the model until Try again", async ({ page }) => {
   const done = JSON.stringify({ offer: "download", readySaid: true, speed: { times: [], verdict: "measuring" } });
-  await phone(page, Mode.slow, { [READY_KEY]: "Qwen3.5-0.8B-q4f16_1-MLC", [RECORD_KEY]: done });
+  await phone(page, Mode.slow, { [READY_KEY]: "Qwen3.5-2B-q4f16_1-MLC", [RECORD_KEY]: done });
   await worker(page, "Bhavya");
   await page.getByRole("button", { name: t(en, "iv.later"), exact: true }).click();
   const box = page.getByRole("form", { name: t(en, "nav.talk") });

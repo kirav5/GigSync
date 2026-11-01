@@ -47,13 +47,7 @@ const acc = (rows, router) => rows.filter((r) => r[router]?.ok).length / Math.ma
 const ofSet = (run, set) => run.results.filter((r) => r.set === set);
 
 function headline() {
-  const head = [
-    "Run",
-    "Model alone (95% CI)",
-    "With word lists",
-    "Word lists only",
-    ...SETS.map((s) => `${s} (model)`),
-  ];
+  const head = ["Run", "Model alone (95% CI)", "Chain as run", "Word lists only", ...SETS.map((s) => `${s} (model)`)];
   return table(
     head,
     runs.map((run) => {
@@ -169,7 +163,7 @@ console.log(
     "### Intent accuracy, model alone",
     "",
     ...headline(),
-    "### With the word lists behind the model (what the app runs), by set",
+    "### The chain as the run ran it, by set (word lists after the model; runs with the embedding router put it first)",
     "",
     ...bySetCombined(),
     "### Recall by intent, model alone",

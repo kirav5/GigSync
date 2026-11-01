@@ -13,7 +13,7 @@ import {
   type Storage,
   tooSlow,
 } from "@gigsync/core";
-import { type ModelOptions, ModelSize, ModelState, type ModelStatus } from "@gigsync/plugin-llm";
+import { type ModelOptions, ModelState, type ModelStatus } from "@gigsync/plugin-llm";
 import { type ModelEngine, modelEngine, NO_MODEL } from "./model-engine.js";
 
 /**
@@ -43,12 +43,6 @@ const RECORD_KEY = "model_device";
 /** Below this much free memory (where the OS says), Auto stays in lite mode instead of loading a model (LLD §8.4). */
 const MIN_FREE_MB = 1500;
 
-/** `options` asking for `size`, or for whatever suits the phone when it is left out. */
-function sized(options: ModelOptions, size: ModelSize | undefined): ModelOptions {
-  const { size: _, ...rest } = options;
-  return size ? { ...rest, size } : rest;
-}
-
 /** The browser's word on the connection; Safari gives none. */
 export const currentNetwork = (): Network => networkOf((navigator as { connection?: ConnectionFacts }).connection);
 
@@ -67,8 +61,6 @@ async function quietly<T>(work: (e: ModelEngine) => Promise<T>, fallback: T): Pr
 
 export class OnDevice {
   status: ModelStatus | undefined;
-  /** Whether this phone could also run the 2B model, which Settings offers a choice of sizes only then. */
-  largeFits = false;
   record: DeviceModelRecord = { speed: freshSpeed() };
   private storage: Storage | undefined;
   private options: ModelOptions;
@@ -84,31 +76,18 @@ export class OnDevice {
     return this.status?.state === ModelState.downloading;
   }
 
-  async load(storage: Storage, size: ModelSize | undefined): Promise<void> {
+  async load(storage: Storage): Promise<void> {
     this.storage = storage;
     const saved = await storage.get<DeviceModelRecord>(Collection.settings, RECORD_KEY);
     if (saved) this.record = { ...saved, speed: saved.speed ?? freshSpeed() };
-    this.options = sized(this.options, size);
     await this.refresh();
     // A download the owner agreed to that stopped part-way carries on by itself only on Wi-Fi.
     if (this.notice() === Notice.paused && mayResumeAlone(currentNetwork())) void this.download();
   }
 
-  async setSize(size: ModelSize | undefined): Promise<void> {
-    if (this.options.size === size) return;
-    this.options = sized(this.options, size);
-    await this.refresh();
-  }
-
   async refresh(): Promise<void> {
     if (this.downloading) return;
-    const large = sized(this.options, ModelSize.large);
-    const [now, big] = await Promise.all([
-      quietly((e) => e.status(this.options), NO_MODEL),
-      quietly((e) => e.status(large), NO_MODEL),
-    ]);
-    this.status = now;
-    this.largeFits = big.state !== undefined && big.state !== ModelState.unavailable;
+    this.status = await quietly((e) => e.status(this.options), NO_MODEL);
     this.changed();
   }
 

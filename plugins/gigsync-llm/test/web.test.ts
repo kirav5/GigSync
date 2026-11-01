@@ -1,7 +1,7 @@
 import type { ChatCompletionRequestNonStreaming } from "@mlc-ai/web-llm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { MODELS, SHADER_F16 } from "../src/catalog.js";
-import { ModelSize, ModelState, type ModelStatus, PROGRESS_EVENT, Unsupported } from "../src/definitions.js";
+import { MODEL, SHADER_F16 } from "../src/catalog.js";
+import { ModelState, type ModelStatus, PROGRESS_EVENT, Unsupported } from "../src/definitions.js";
 import type { Engine } from "../src/engine.js";
 import { MIN_BUFFER_BYTES, MIN_STORAGE_BINDING_BYTES } from "../src/gate.js";
 import type { LoadReport } from "../src/progress.js";
@@ -9,22 +9,18 @@ import type { GigSyncLLMWeb } from "../src/web.js";
 
 /** The web engine end to end, with WebLLM replaced by a fake and the browser's APIs stubbed. */
 
-const ID = MODELS[ModelSize.small].ids.f16;
-const LARGE_ID = MODELS[ModelSize.large].ids.f16;
+const ID = MODEL.ids.f16;
 const ADAPTER = {
   limits: {
-    maxBufferSize: MIN_BUFFER_BYTES,
-    maxStorageBufferBindingSize: MIN_STORAGE_BINDING_BYTES,
+    // Room for the 2B's 242 MiB embeddings, past WebLLM's own floors.
+    maxBufferSize: 2 * MIN_BUFFER_BYTES,
+    maxStorageBufferBindingSize: 4 * MIN_STORAGE_BINDING_BYTES,
     maxComputeWorkgroupStorageSize: 32 * 1024,
     maxStorageBuffersPerShaderStage: 10,
   },
   features: new Set([SHADER_F16]),
 };
 const GB = 1024 ** 3;
-const BIG_ADAPTER = {
-  ...ADAPTER,
-  limits: { ...ADAPTER.limits, maxBufferSize: GB, maxStorageBufferBindingSize: GB },
-};
 
 class FakeEngine implements Engine {
   loaded: string | undefined;
@@ -76,7 +72,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 /** A fresh plugin in a fresh module graph, since facts.ts asks for the adapter once per page. */
-async function plugin(adapter: object | null = ADAPTER, memoryGb = 4): Promise<GigSyncLLMWeb> {
+async function plugin(adapter: object | null = ADAPTER, memoryGb = 8): Promise<GigSyncLLMWeb> {
   vi.resetModules();
   browser(adapter, memoryGb);
   const { GigSyncLLMWeb: Web } = await import("../src/web.js");
@@ -149,15 +145,7 @@ describe("the web engine", () => {
     expect(engine.inCache.size).toBe(0);
   });
 
-  it("picks the 2B for an 8 GB phone whose GPU binds its embeddings, unless asked for a size", async () => {
-    const w = await plugin(BIG_ADAPTER, 8);
-    expect(await w.status()).toMatchObject({ model: { id: LARGE_ID, size: ModelSize.large } });
-    expect(await w.status({ size: ModelSize.small })).toMatchObject({ model: { id: ID } });
-  });
-
-  it("keeps the model already on the phone rather than offering a bigger one", async () => {
-    const w = await plugin(BIG_ADAPTER, 8);
-    await w.prepare({ size: ModelSize.small });
-    expect(await w.status()).toMatchObject({ available: true, model: { id: ID, size: ModelSize.small } });
+  it("offers nothing on a phone that reports too little memory, or none (iPhone)", async () => {
+    expect(await (await plugin(ADAPTER, 4)).status()).toMatchObject({ reason: Unsupported.lowMemory });
   });
 });

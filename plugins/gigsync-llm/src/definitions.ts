@@ -1,12 +1,5 @@
 import type { PluginListenerHandle } from "@capacitor/core";
 
-/**
- * Which model the web engine runs (LLD §9.1): `small`, Qwen3.5-0.8B, for any phone that can run one; `large`,
- * Qwen3.5-2B, for a phone that says it has 8 GB and whose GPU can bind its embeddings. Left out, the engine picks.
- */
-export const ModelSize = { small: "small", large: "large" } as const;
-export type ModelSize = (typeof ModelSize)[keyof typeof ModelSize];
-
 /** Where the device's model stands. Engines that only say `available` (the native stubs) leave it out. */
 export const ModelState = {
   available: "available",
@@ -24,6 +17,8 @@ export const Unsupported = {
   gpuLimits: "gpu_limits",
   /** The browser reports less memory than the model needs. */
   lowMemory: "low_memory",
+  /** The browser does not say how much memory there is (Safari, so every iPhone); a model too big would only crash. */
+  unknownMemory: "unknown_memory",
   /** Too little room in the browser's storage for the model and a margin. */
   lowStorage: "low_storage",
   /** No Web Workers or Cache API (an old browser, or a page not served over HTTPS). */
@@ -33,8 +28,6 @@ export type Unsupported = (typeof Unsupported)[keyof typeof Unsupported];
 
 /** Which model, and from where; every call takes them, so the plugin keeps no settings of its own. */
 export interface ModelOptions {
-  /** Left out: the model already on the phone, else the largest this device says it can hold (gate.ts `recommend`). */
-  size?: ModelSize;
   /** Where the model files are served from instead of WebLLM's default (Hugging Face); LLD §9.1 has the layout. */
   baseUrl?: string;
 }
@@ -62,11 +55,10 @@ export interface GenerateResult {
 
 /** The model an engine runs or would download. */
 export interface ModelInfo {
-  /** The engine's own id, e.g. WebLLM's "Qwen3.5-0.8B-q4f16_1-MLC". */
+  /** The engine's own id, e.g. WebLLM's "Qwen3.5-2B-q4f16_1-MLC". */
   id: string;
-  /** As people read it: "Qwen3.5-0.8B". */
+  /** As people read it: "Qwen3.5-2B". */
   name: string;
-  size: ModelSize;
   /** What the download costs in data, rounded up. */
   downloadMb: number;
 }

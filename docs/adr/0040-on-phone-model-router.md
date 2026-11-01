@@ -3,6 +3,8 @@
 Date: 2026-10-31. Status: accepted. Amends [LLD §3.5 and §8.4](../gigsync/LLD.md) (intent only "when the keyword
 router is unsure"); keeps [ADR 0010](0010-no-cloud-model-in-gigsync.md) (no cloud model reads what owners type).
 Amended 2026-10-31: the web engine is WebLLM running Qwen2.5-0.5B-Instruct ([Amendment](#amendment-2026-10-31-the-web-engine-is-webllm)).
+Amended 2026-11-01: Qwen3.5-2B on the phones that can carry it, and a router that reads every language
+([Amendment](#amendment-2026-11-01-qwen35-2b-and-a-router-for-every-language)).
 
 ## Context
 
@@ -82,3 +84,31 @@ Consequences:
 - The first eval showed Kannada worse with qwen2.5:1.5b (49%) than with the lists (61%); Qwen2.5-0.5B is untested on
   Indic text, and likely weaker. It must be measured on real phones before the pilot.
 - WebLLM 0.2.86 fails JSON mode without a schema; the engine passes `{"type":"object"}` and core checks the fields.
+
+## Amendment 2026-11-01: Qwen3.5-2B, and a router for every language
+
+Measured on a 1,452-case eval (five ways of writing, a fixed dev/test split) in
+[model-comparison.md](../gigsync/model-comparison.md); the numbers below are the 978 held-out test cases.
+1. **Model.** Qwen3.5-2B (Apache-2.0, about 1 GB) replaces Qwen2.5, and is the only model. Qwen2.5-0.5B, the default
+   until now, named 26% of intents right, below the word lists' 30%; Qwen3.5-0.8B named 31% and added nothing to
+   ADR 0042's embedding router, which every phone can carry. The 2B is offered only where Chrome reports 8 GB and the
+   GPU binds one 242 MiB buffer (its embeddings; WebGPU promises 128 MiB); not on iPhones, where Safari reports no
+   memory. Every request turns Qwen3.5's hidden "thinking" off, or it never answers within the router's 120 tokens.
+2. **The reply is held to a JSON Schema** (router/reply-schema.ts): the intents this chat allows, the real trades and
+   areas, the owner's own contacts. WebLLM's grammar and Ollama's `format` enforce it, so no intent, trade or contact
+   can be invented and the JSON cannot break; core still checks every value.
+3. **Contacts match across scripts and spellings** (contacts/names.ts): "Ravi" finds "रवि", "Meena" finds "ಮೀನಾ",
+   "Asha" finds "Asha didi"; a near spelling only when one contact fits. The contact must also be named in the message,
+   so a model held to the list cannot pick one at random.
+4. **The prompt shows examples only in the owner's language and its Latin-letter form** (router/examples.ts, shared with
+   ADR 0042's index): English; Hindi with Hinglish; Kannada with Kanglish. More examples where models confuse intents,
+   in contrasting pairs, five short rules for those pairs, and setRule listed just before askContact. No example is an
+   eval case (the highest word overlap with one is 0.67).
+
+Consequences:
+- Qwen3.5-2B alone: 68% to 77% on the test cases on Ollama (Hindi 70% to 88%, Kannada 65% to 76%, Kanglish 41% to
+  52%, setRule 16% to 51%); the phone's own WebLLM build scores 71%. The prompt is no longer than before (3,400 to 4,300 characters, against 2,850 to 4,350).
+- Speed is now the limit, not accuracy: in WebLLM on an M2 the 2B takes 5.4 s per message, and 58% of messages pass
+  the 5 s limit; phones are slower. Real-phone timing, and a shorter prompt, come before the pilot.
+- With ADR 0042's embedding router answering first, the 2B's chain scores 63%; with the language model first, 71%
+  (WebLLM). The order is an open decision recorded in model-comparison.md.

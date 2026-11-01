@@ -10,6 +10,7 @@
 //                     computer than on its target device without counting its slowness as wrong answers
 //   --webllm ID       the phone's own engine instead of Ollama: WebLLM running ID (a build in the plugin's catalog)
 //                     in Chromium on this computer's GPU (webllm.mjs)
+//   --no-schema       ask for any JSON instead of the router's schema, to measure what the schema itself changes
 //   --out FILE        write the report there instead of docs/gigsync/intent-eval.md, even for a partial run
 //   --json FILE       also write every case's result, for comparing models (docs/gigsync/model-comparison.md)
 // A run with --limit, --lang, --split or --timeout prints its numbers and leaves the report alone. Exits non-zero only
@@ -45,6 +46,7 @@ const { values: args } = parseArgs({
     split: { type: "string" },
     timeout: { type: "string" },
     webllm: { type: "string" },
+    "no-schema": { type: "boolean", default: false },
     out: { type: "string" },
     json: { type: "string" },
   },
@@ -84,6 +86,10 @@ function summary(results, routers) {
   }
 }
 
+/** `ask` with the router's schema left out when --no-schema asks for that: any JSON object instead. */
+const withoutSchema = (ask) =>
+  args["no-schema"] ? (prompt, { schema: _, ...options } = {}, call) => ask(prompt, options, call) : ask;
+
 // Core logs every routed message at info; the eval's own output is the report.
 core.configureLog({ LOG_LEVEL: process.env.LOG_LEVEL ?? core.LogLevel.warn });
 const cases = selected();
@@ -104,7 +110,7 @@ const results = await runAll(cases, {
   meaning,
   timeoutMs,
   onProgress: (done, total) => process.stderr.isTTY && process.stderr.write(`\r${done}/${total}`),
-  ask: remembering(webllm?.ask ?? askOllama),
+  ask: remembering(withoutSchema(webllm?.ask ?? askOllama)),
 });
 await webllm?.close();
 if (process.stderr.isTTY) process.stderr.write("\n");
@@ -116,7 +122,7 @@ if (args.json) {
   const rows = results.map(({ case: c, ...routers }) => ({ id: c.id, set: c.set, intent: c.intent, ...routers }));
   writeFileSync(args.json, `${JSON.stringify({ engine, timeoutMs, results: rows })}\n`);
 }
-const partial = [args.limit, args.lang, args.split, args.timeout].some((arg) => arg !== undefined);
+const partial = [args.limit, args.lang, args.split, args.timeout].some((arg) => arg !== undefined) || args["no-schema"];
 if (!partial || args.out) {
   const date = new Date().toISOString().slice(0, ISO_DAY);
   const out = args.out ?? REPORT_PATH;

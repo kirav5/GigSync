@@ -1,5 +1,5 @@
-import { BY_SIZE_DOWN, type ModelSpec, SHADER_F16, Variant } from "./catalog.js";
-import { ModelSize, Unsupported } from "./definitions.js";
+import { type ModelSpec, SHADER_F16, Variant } from "./catalog.js";
+import { Unsupported } from "./definitions.js";
 
 /**
  * Whether this device can run a model, from facts the browser gives (facts.ts gathers them). Pure, so each rule is
@@ -56,30 +56,18 @@ function gpuFits(limits: GpuLimits, spec: ModelSpec): boolean {
 }
 
 /**
- * Can this device run `spec`, and which build? Unknown memory or storage counts as enough: an iPhone never says how
- * much memory it has, and a load that fails there falls back to lite mode like any other failure.
+ * Can this device run `spec`, and which build? Memory must be reported: Safari never says, and iPhones from 4 to 8 GB
+ * look the same, so a 1 GB download could end in a load the phone cannot hold. Those phones keep the embedding router
+ * (ADR 0042). Storage the browser cannot measure counts as enough.
  */
 export function judge(facts: DeviceFacts, spec: ModelSpec): Verdict {
   if (!facts.browser) return { ok: false, reason: Unsupported.browser };
   if (!facts.gpu) return { ok: false, reason: Unsupported.noWebGpu };
   if (!gpuFits(facts.gpu.limits, spec)) return { ok: false, reason: Unsupported.gpuLimits };
-  if (facts.memoryGb !== undefined && facts.memoryGb < spec.minMemoryGb) {
-    return { ok: false, reason: Unsupported.lowMemory };
-  }
+  if (facts.memoryGb === undefined) return { ok: false, reason: Unsupported.unknownMemory };
+  if (facts.memoryGb < spec.minMemoryGb) return { ok: false, reason: Unsupported.lowMemory };
   if (facts.freeStorageMb !== undefined && facts.freeStorageMb < spec.downloadMb + STORAGE_MARGIN_MB) {
     return { ok: false, reason: Unsupported.lowStorage };
   }
   return { ok: true, variant: facts.gpu.features.has(SHADER_F16) ? Variant.f16 : Variant.f32 };
-}
-
-/**
- * The model Auto picks for this device: the largest it passes the gate for with its memory confirmed. A browser that
- * does not report memory (Safari, so every iPhone) gets the small one: iPhones from 4 to 8 GB look the same, and a
- * model too big for the phone is lost to a crash rather than a clear "can't". Chrome rounds what it reports to a power
- * of two and stops at 8, so a 6 GB phone says 4 and gets the small model too.
- */
-export function recommend(facts: DeviceFacts): ModelSize {
-  const fits = (spec: ModelSpec) =>
-    facts.memoryGb !== undefined && facts.memoryGb >= spec.minMemoryGb && judge(facts, spec).ok;
-  return BY_SIZE_DOWN.find(fits)?.size ?? ModelSize.small;
 }

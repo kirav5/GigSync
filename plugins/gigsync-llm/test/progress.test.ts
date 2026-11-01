@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { infoOf, MODELS, Variant } from "../src/catalog.js";
-import { ModelSize, ModelState } from "../src/definitions.js";
+import { infoOf, MODEL, Variant } from "../src/catalog.js";
+import { ModelState } from "../src/definitions.js";
 import { ENGINE, progressStatus } from "../src/progress.js";
 
 /** WebLLM's load reports, word for word as 0.2.86 writes them, as the app's status. */
 
-const model = infoOf(MODELS[ModelSize.small], Variant.f16);
+const model = infoOf(MODEL, Variant.f16);
 const report = (progress: number, text: string) => progressStatus({ progress, text }, model);
 
 describe("status from WebLLM's progress", () => {

@@ -70,7 +70,7 @@ export function ModelSettings({ ports }: { ports: Ports }) {
   return (
     <section className={C.card} aria-label={t("model.title")}>
       <span className={C.label}>{t("model.title")}</span>
-      <OnDeviceModel ports={ports} />
+      <OnDeviceModel />
       <div className={C.row}>
         {CHOICES.map((c) => (
           <button

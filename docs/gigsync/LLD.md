@@ -1073,26 +1073,30 @@ same again for the worker) is imported only on the first download or answer, and
 files out of its precache: the app's first load does not grow (app chunk 1,176 kB before, 1,189 kB after, for the new
 screens and strings). Models, from WebLLM's `prebuiltAppConfig`:
 
-| Size             | Model                 | WebLLM id (`shader-f16` GPU / other)                                      | Download |
-| ---------------- | --------------------- | ------------------------------------------------------------------------- | -------- |
-| small, default   | Qwen2.5-0.5B-Instruct | `Qwen2.5-0.5B-Instruct-q4f16_1-MLC` / `Qwen2.5-0.5B-Instruct-q4f32_1-MLC` | ~300 MB  |
-| large, by choice | Qwen2.5-1.5B-Instruct | `Qwen2.5-1.5B-Instruct-q4f16_1-MLC` / `Qwen2.5-1.5B-Instruct-q4f32_1-MLC` | ~900 MB  |
+| Model      | WebLLM id (`shader-f16` GPU / other)                | Download  |
+| ---------- | --------------------------------------------------- | --------- |
+| Qwen3.5-2B | `Qwen3.5-2B-q4f16_1-MLC` / `Qwen3.5-2B-q4f32_1-MLC` | ~1,050 MB |
 
-`generate()` sends one user turn with `max_tokens` and `temperature`, and `response_format: json_object` (with the
-schema `{"type":"object"}`, which WebLLM 0.2.86 requires) when core asks for `json` (the router does). It returns the
+One model, offered only where the gate passes; every other phone reads intents with the embedding router (ADR 0042)
+and the word lists. Why Qwen3.5-2B, and why no smaller tier: [model-comparison.md](model-comparison.md).
+
+`generate()` sends one user turn with `max_tokens` and `temperature`, and `response_format: json_object` with the
+caller's JSON Schema (the router's, `router/reply-schema.ts`) or `{"type":"object"}` (WebLLM 0.2.86 requires one) when
+core asks for `json`. Qwen3.5 is told `enable_thinking: false`, or it reasons before answering and runs out of tokens. It returns the
 answer's time (`elapsedMs`), not counting loading the model into GPU memory.
 
 **The gate** (`gate.ts`, pure and tested; `facts.ts` reads the browser): a Worker and the Cache API; a WebGPU
 adapter; adapter limits at least WebLLM's own (`maxBufferSize` 256 MB, `maxStorageBufferBindingSize` 128 MB,
-`maxComputeWorkgroupStorageSize` 32 KB, `maxStorageBuffersPerShaderStage` 10); `navigator.deviceMemory` ≥ 4 (≥ 8
-for the 1.5B) where reported (iPhones do not report it: allowed, and a failed load falls back to lite mode); free
+`maxComputeWorkgroupStorageSize` 32 KB, `maxStorageBuffersPerShaderStage` 10); `navigator.deviceMemory` of 8, and reported
+(Safari, so every iPhone, does not report it: no model there, since a 4 GB and an 8 GB iPhone look the same); free
 quota (`navigator.storage.estimate`) for the model plus 200 MB. Each failure is a reason Settings shows
-(`no_webgpu`, `gpu_limits`, `low_memory`, `low_storage`, `browser`). Before downloading, the app asks
-`navigator.storage.persist()`. The 1.5B option shows only when the gate passes for it.
+(`no_webgpu`, `gpu_limits`, `low_memory`, `unknown_memory`, `low_storage`, `browser`). Before downloading, the app asks
+`navigator.storage.persist()`. The 2B also needs a GPU that binds one 242 MiB buffer (its embeddings,
+`largestTensorBytes` in `catalog.ts`; WebGPU promises 128 MiB).
 
 **The download:**
 - After sign-in, on a capable phone with no model, the chat shows one quiet card until the owner answers: "Help your
-  agent understand you better: download about 300 MB to this phone. [Download] [Later]". Later puts it away; Settings
+  agent understand you better: download about 1,050 MB to this phone. [Download] [Later]". Later puts it away; Settings
   keeps the button.
 - Wi-Fi rule (`core/device-model/network.ts`): where `navigator.connection` reports `cellular` (or the data saver),
   the card says it uses mobile data and a stopped download never resumes by itself; where the browser says nothing
@@ -1101,12 +1105,12 @@ quota (`navigator.storage.estimate`) for the model plus 200 MB. Each failure is 
 - Progress: a slim line in the chat and a bar in Settings, from WebLLM's `initProgressCallback` (`progress.ts`:
   "Fetching param cache" is the download, "Loading model from cache" counts as downloaded, "Finish loading" is ready).
 - Resume: WebLLM keeps each fetched shard in the Cache API (`webllm/model`) and skips shards already there, so a
-  second `prepare()` continues; the 0.5B has 8 shards of about 35 MB. Lite mode works throughout.
+  second `prepare()` continues; the 2B has 31 shards. Lite mode works throughout.
 - Ready: one line in the chat, "Your agent now runs on this phone, even offline", then nothing more.
 - Which models finished is kept in localStorage (`gigsync-webllm-ready`), so `status()` never loads WebLLM. Before
   loading a model the engine checks the cache still has it (`hasModelInCache`); one the browser evicted is offered
-  again, never fetched silently. Remove (`deleteModelAllInfoInCache`) deletes it; downloading one size deletes the
-  other.
+  again, never fetched silently. Remove (`deleteModelAllInfoInCache`) deletes it; downloading the model deletes any
+  older build (Qwen2.5 from before 2026-11-01).
 
 **The speed guard** (`core/device-model/speed.ts`): routing answers (asked as JSON) are timed. When 3 of the first 5
 on a phone take longer than `MODEL_ROUTE_TIMEOUT_MS`, Auto stops using the model there; Settings says "Too slow on

@@ -1,5 +1,5 @@
 import { WebPlugin } from "@capacitor/core";
-import { infoOf, MODELS, type ModelSpec, specOfId } from "./catalog.js";
+import { infoOf, MODEL, type ModelSpec } from "./catalog.js";
 import {
   type GenerateOptions,
   type GenerateResult,
@@ -12,7 +12,7 @@ import {
 } from "./definitions.js";
 import { type Engine, WebLlmEngine } from "./engine.js";
 import { deviceFacts, keepStorage } from "./facts.js";
-import { judge, recommend } from "./gate.js";
+import { judge } from "./gate.js";
 import { downloadingStatus, ENGINE, progressStatus, readyStatus } from "./progress.js";
 import { forgetReady, isReady, markReady, readyIds } from "./ready.js";
 import { completionRequest } from "./request.js";
@@ -38,38 +38,26 @@ export class GigSyncLLMWeb extends WebPlugin implements GigSyncLLMPlugin {
     return this.engineFor;
   }
 
-  /** The size asked for; else the model on the phone or on its way to it, else the one this device suits best. */
-  private async specFor(options: ModelOptions | undefined): Promise<ModelSpec> {
-    if (options?.size) return MODELS[options.size];
-    const onPhone =
-      specOfId(this.download?.id) ??
-      readyIds()
-        .map(specOfId)
-        .find((spec) => spec !== undefined);
-    return onPhone ?? MODELS[recommend(await deviceFacts())];
-  }
-
   /** The model this device would run for `spec`, or why it cannot run one; a downloaded one needs no gate. */
   private async pick(spec: ModelSpec): Promise<ModelInfo | ModelStatus> {
     const ready = Object.values(spec.ids).find(isReady);
-    if (ready) return { id: ready, name: spec.name, size: spec.size, downloadMb: spec.downloadMb };
+    if (ready) return { id: ready, name: spec.name, downloadMb: spec.downloadMb };
     const verdict = judge(await deviceFacts(), spec);
     if (!verdict.ok) return { available: false, engine: ENGINE, state: ModelState.unavailable, reason: verdict.reason };
     return infoOf(spec, verdict.variant);
   }
 
-  async status(options?: ModelOptions): Promise<ModelStatus> {
-    const spec = await this.specFor(options);
+  async status(_options?: ModelOptions): Promise<ModelStatus> {
     // Asked before the gate: the download itself fills the storage the gate measures.
-    if (this.download && Object.values(spec.ids).includes(this.download.id)) return this.download.status;
-    const picked = await this.pick(spec);
+    if (this.download) return this.download.status;
+    const picked = await this.pick(MODEL);
     if (!("id" in picked)) return picked;
     if (isReady(picked.id)) return readyStatus(picked);
     return { available: false, engine: ENGINE, state: ModelState.downloadable, model: picked };
   }
 
   async prepare(options?: ModelOptions): Promise<ModelStatus> {
-    const picked = await this.pick(await this.specFor(options));
+    const picked = await this.pick(MODEL);
     if (!("id" in picked) || isReady(picked.id)) return this.status(options);
     if (this.download?.id === picked.id) return this.download.done;
     const status = downloadingStatus(picked, 0);
@@ -89,7 +77,7 @@ export class GigSyncLLMWeb extends WebPlugin implements GigSyncLLMPlugin {
         this.notifyListeners(PROGRESS_EVENT, status);
       });
       markReady(model.id);
-      // One model on the phone at a time: a size chosen before is deleted once this one is in.
+      // One model on the phone at a time: any other build (one from before Qwen3.5) is deleted once this one is in.
       await Promise.all(
         readyIds()
           .filter((id) => id !== model.id)
@@ -130,7 +118,7 @@ export class GigSyncLLMWeb extends WebPlugin implements GigSyncLLMPlugin {
         await engine.load(id, () => {});
       }
       const started = performance.now();
-      const text = await engine.complete(completionRequest(options, specOfId(id)?.thinks));
+      const text = await engine.complete(completionRequest(options, MODEL.thinks));
       return { available: true, text, engine: ENGINE, elapsedMs: Math.round(performance.now() - started) };
     } catch {
       return none;

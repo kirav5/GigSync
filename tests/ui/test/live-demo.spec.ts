@@ -7,7 +7,7 @@ import { publishCard, signBoth, unlistCards } from "./journey.js";
  * A live demo to watch, not a check: two Chrome windows side by side, a household (English) on the left and an
  * electrician (Hindi) on the right, each with Ollama as its model. The household finds him by chat, their agents
  * negotiate, both sign, and both windows stay open for 15 minutes to look around. Needs the API and the dev server
- * running and Ollama serving qwen2.5:1.5b (`ollama serve`, `ollama pull qwen2.5:1.5b`). Run on request only:
+ * running and Ollama serving qwen3.5:2b-q4_K_M (`ollama serve`, `ollama pull qwen3.5:2b-q4_K_M`). Run on request only:
  *   LIVE=1 pnpm exec playwright test live-demo --project=chromium --headed
  */
 test.skip(!process.env.LIVE, "a demo to watch; run with LIVE=1 and --headed");
@@ -15,7 +15,7 @@ test.skip(({ browserName }) => browserName !== "chromium", "it places the window
 test.use({ launchOptions: { slowMo: 350 } });
 test.afterEach(unlistCards);
 
-const MODEL = JSON.stringify({ choice: "ollama", ollamaModel: "qwen2.5:1.5b" });
+const MODEL = JSON.stringify({ choice: "ollama", ollamaModel: "qwen3.5:2b-q4_K_M" });
 const pause = (page: Page, ms = 2500) => page.waitForTimeout(ms);
 
 async function place(page: Page, left: number) {

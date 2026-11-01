@@ -4,7 +4,7 @@
 import { core } from "./core.mjs";
 
 export const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://localhost:11434";
-export const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? "qwen2.5:1.5b";
+export const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? "qwen3.5:2b-q4_K_M";
 const GENERATE_PATH = "/api/generate";
 /** Ollama's `format` for any JSON object. */
 const JSON_FORMAT = "json";
