@@ -2,7 +2,7 @@ import type { talk as en } from "../en/talk.js";
 
 /** Kannada: the story of a job as the two agents told it. */
 export const talk: Readonly<Record<keyof typeof en, string>> = {
-  "talk.title": "ಏಜೆಂಟ್‌ಗಳ ಮಾತುಕತೆ",
+  "talk.title": "ಏಜೆಂಟ್ ಮಾತುಕತೆ",
   "talk.request_mine": "ನಿಮ್ಮ ಏಜೆಂಟ್ ನಿಮ್ಮ ರಿಕ್ವೆಸ್ಟ್ ಅನ್ನು {name} ಅವರಿಗೆ ಕಳುಹಿಸಿತು.",
   "talk.request_theirs": "{name} ಅವರ ಏಜೆಂಟ್ ನಿಮ್ಮ ಏಜೆಂಟ್‌ಗೆ ರಿಕ್ವೆಸ್ಟ್ ಕಳುಹಿಸಿತು.",
   "talk.asked_mine": "ನಿಮ್ಮ ಏಜೆಂಟ್ ಕೇಳಿತು:",

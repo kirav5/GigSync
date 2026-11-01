@@ -3,6 +3,7 @@ import {
   type EngagementStatus,
   type ExportedJob,
   JobRecordStatus,
+  type JobStatusChange,
   type Payment,
   PaymentStatus,
   type Place,
@@ -10,6 +11,7 @@ import {
   EngagementStatus as Status,
   type UserId,
 } from "@gigsync/protocol";
+import type { StatusStamp } from "../job/history.js";
 import type { JobRecord, JobStore } from "../job/store.js";
 import { WhenDetail } from "../job/when.js";
 import { log } from "../log.js";
@@ -31,6 +33,8 @@ export interface RestoredFacts {
   work: ExportedJob["work"];
   /** The job's payments as this owner's own, rebuilt from the record: they are never in the payment book. */
   payments: Payment[];
+  /** How this phone ended the job from its restored card, which the record then owes (follow.ts). */
+  ended?: JobStatusChange["status"];
 }
 
 /** Who the other side was once they deleted their records: the record keeps the job without them. */
@@ -68,6 +72,15 @@ function paymentsOf(job: ExportedJob, me: UserId, them: UserId): Payment[] {
   });
 }
 
+/** When the record says the job was agreed, and finished or cancelled: the restored job's progress line. */
+function historyOf(job: ExportedJob): StatusStamp[] {
+  return [
+    { status: Status.enum.agreed, at: job.agreed_at },
+    ...(job.done_at ? [{ status: Status.enum.closed, at: job.done_at }] : []),
+    ...(job.cancelled_at ? [{ status: Status.enum.cancelled, at: job.cancelled_at }] : []),
+  ];
+}
+
 /** One job from the record as this phone keeps jobs: no words, no offers, no signatures, no contact. */
 export function restoredJob(job: ExportedJob, me: UserId): JobRecord {
   const them = job.counterpart ?? GONE_COUNTERPART;
@@ -95,6 +108,7 @@ export function restoredJob(job: ExportedJob, me: UserId): JobRecord {
     offers: [],
     offers_made: 0,
     asked: false,
+    history: historyOf(job),
     ...(job.stars ? { review: { stars: job.stars, text: "" } } : {}),
     restored: {
       attested: job.attested,

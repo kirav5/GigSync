@@ -24,6 +24,7 @@ import { PaymentBook } from "../payments/book.js";
 import type { Clock, Keys, Model, Random, Storage } from "../ports.js";
 import { WorkOffers } from "../qr/offers.js";
 import type { QrApi } from "../qr/types.js";
+import { endRestored, type RestoredEnd } from "../records/follow.js";
 import { RecordsRunner } from "../records/runner.js";
 import type { RecordsApi } from "../records/types.js";
 import * as after from "./aftercare.js";
@@ -33,6 +34,7 @@ import * as deal from "./deal.js";
 import { dispatch, needOf } from "./dispatch.js";
 import { offerFacts } from "./explain.js";
 import { type Explanation, explainOffer } from "./explain-model.js";
+import { stamped } from "./history.js";
 import type { Mandate } from "./negotiate.js";
 import { type JobRecord, JobStore, type Need, type OwnerTask, TaskKind } from "./store.js";
 import * as worker from "./worker.js";
@@ -225,6 +227,13 @@ export class GigDevice {
     return deal.decline(this.ctx, await this.job(id));
   }
 
+  /** Ends a job restored from the record from its own card; the record carries it to the other side (follow.ts). */
+  async endRestored(id: EngagementId, end: RestoredEnd): Promise<JobRecord> {
+    const r = await endRestored(this.store, await this.job(id), end, this.o.clock.now());
+    this.records?.soon();
+    return r;
+  }
+
   async cancelJob(id: EngagementId, note?: string): Promise<JobRecord> {
     return deal.cancel(this.ctx, await this.job(id), { reason: CancelReason.enum.other, ...(note ? { note } : {}) });
   }
@@ -274,9 +283,10 @@ export class GigDevice {
 
   /** Applies the move first (so an impossible one throws before anything is queued), then seals and queues it. */
   private async send(r: JobRecord, kind: EnvelopeKind, body: unknown): Promise<JobRecord> {
-    const engagement = SIDE_CHANNEL_KINDS.has(kind) ? r.engagement : apply(r.engagement, kind, this.o.clock.now());
+    const now = this.o.clock.now();
+    const engagement = SIDE_CHANNEL_KINDS.has(kind) ? r.engagement : apply(r.engagement, kind, now);
     await this.transport.send(r.engagement.counterpart, r.engagement.id, kind, body);
-    const next = { ...r, engagement };
+    const next = stamped({ ...r, engagement }, now.toISOString());
     await this.store.saveJob(next);
     return next;
   }

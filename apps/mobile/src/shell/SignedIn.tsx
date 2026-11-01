@@ -20,6 +20,7 @@ import { backFrom, homeOf } from "./nav.js";
 import { ScreenView } from "./ScreenView.js";
 import { Shell } from "./Shell.js";
 import { useConsentOnOpen } from "./useConsentOnOpen.js";
+import { useRecordFollow } from "./useRecordFollow.js";
 import { useRestoredJobs } from "./useRestoredJobs.js";
 
 interface Props {
@@ -73,6 +74,8 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
   const consent = useConsentOnOpen(ports, account);
   // A phone with no jobs for this owner refills them from their record on GigSync.
   useRestoredJobs(device, account, () => void run(async () => undefined));
+  // A job the other side ended through the record (their phone rebuilt it) moves on here too.
+  useRecordFollow(device, account, () => void run(async () => undefined));
   // A new phone (ADR 0037): an owner with nothing here yet and another active phone is asked once whether they are
   // moving from it, and a worker's card comes back from the board.
   // Only from the chat it opened on: a screen the owner moved to meanwhile stays.

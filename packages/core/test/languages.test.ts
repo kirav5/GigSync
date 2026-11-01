@@ -43,7 +43,13 @@ describe("two phones, two languages, one job", () => {
     await asha.device.update(id, "निकल गई हूँ");
     await settle([ravi.device, asha.device]);
     // Ravi's phone has the note as Asha said it, marked Hindi, so it can translate it under the original.
-    expect((await ravi.device.job(id)).notes).toEqual([{ text: "निकल गई हूँ", lang: Lang.enum.hi }]);
+    expect((await ravi.device.job(id)).notes).toEqual([
+      { text: "निकल गई हूँ", lang: Lang.enum.hi, at: expect.any(String) },
+    ]);
+    // Asha's phone keeps her own note too, marked as hers, so her card says what she told Ravi.
+    expect((await asha.device.job(id)).notes).toEqual([
+      { text: "निकल गई हूँ", lang: Lang.enum.hi, at: expect.any(String), mine: true },
+    ]);
     expect(JSON.stringify(relay.stored)).not.toContain("निकल"); // the relay only ever held ciphertext
   });
 });

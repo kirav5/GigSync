@@ -1,4 +1,14 @@
-import { bothSigned, dayOf, EVERY_DAY, FINISHED_WORK, type JobRecord, WhenDetail } from "@gigsync/core";
+import {
+  bothSigned,
+  dayOf,
+  EVERY_DAY,
+  FINISHED_WORK,
+  type JobRecord,
+  NUMBER_ONLY,
+  t as say,
+  timeText,
+  WhenDetail,
+} from "@gigsync/core";
 import { EngagementStatus, type JobRequest, type Lang, QuestionKey, Role } from "@gigsync/protocol";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
@@ -8,10 +18,12 @@ import { AgentTalk } from "./AgentTalk.js";
 import { DetailValue } from "./DetailValue.js";
 import { type JobActionProps, JobActions } from "./JobActions.js";
 import { PlanCard } from "./JobDecide.js";
+import { JobProgress } from "./JobProgress.js";
 import { RemovedLine, RestoredLine } from "./JobSettled.js";
 import { dayDate } from "./jobGroups.js";
 import { IntroActions } from "./mentor/IntroActions.js";
 import { ProblemCard } from "./ProblemCard.js";
+import { RestoredActions } from "./RestoredActions.js";
 import { TermsList } from "./terms/TermsList.js";
 import "./jobs.css";
 
@@ -38,8 +50,6 @@ const TAG: Readonly<Record<EngagementStatus, string>> = {
   [S.expired]: DANGER,
   [S.cancelled]: DANGER,
 };
-
-/** A value that is only a number, in any script people type on Indian phones ("3", "३", "೩"). */
 
 /** The When details have their own line; the generic list leaves them out. */
 const WHEN_KEYS: ReadonlySet<string> = new Set(Object.values(WhenDetail));
@@ -68,6 +78,10 @@ export function JobThread(props: JobActionProps) {
   // A name kept after the card was removed still counts: an introduction needs no phone number.
   const knownName = job.contact?.name ?? job.their_name;
   const known = knownName && bothSigned(job) && FINISHED_WORK.has(e.status) ? knownName : undefined;
+  // The request's words, unless they only repeat the trade or are a bare count (older requests used the first answer).
+  const need = job.request.need.trim();
+  const tradeName = say(job.request.lang, `trade.${job.request.trade}`);
+  const needShown = need && need !== tradeName && !NUMBER_ONLY.test(need) ? need : "";
 
   return (
     <article className={C.card} aria-label={t("a11y.job_with", { name: them })} data-status={e.status} lang={lang}>
@@ -81,7 +95,8 @@ export function JobThread(props: JobActionProps) {
         </div>
         <span className={`${TAG[e.status]} end`}>{t(`status.${e.status}`)}</span>
       </div>
-      <Said text={job.request.need} from={theirs} />
+      <JobProgress job={job} payments={payments} />
+      {needShown && <Said text={needShown} from={theirs} />}
       {terms && (
         <fieldset aria-label={t("a11y.deal")}>
           {t("job.signed", { price: money(terms.price_paise) })} ·{" "}
@@ -97,8 +112,12 @@ export function JobThread(props: JobActionProps) {
       <When request={job.request} from={theirs} />
       <RestoredLine job={job} />
 
-      {/* Nothing is sent on a restored job: its messages never reached the server, so the thread cannot go on. */}
-      {!job.restored && <JobActions {...props} them={them} />}
+      {/* A restored job's messages never reached the server, so its thread cannot go on: it ends through the record. */}
+      {job.restored ? (
+        <RestoredActions job={job} device={device} run={run} them={them} />
+      ) : (
+        <JobActions {...props} them={them} />
+      )}
 
       {job.contact && (
         <fieldset className="contact" aria-label={t("a11y.contact")}>
@@ -124,7 +143,8 @@ export function JobThread(props: JobActionProps) {
           {notes.map((n, i) => (
             // Notes have no id; the list only grows, so the position is stable.
             // biome-ignore lint/suspicious/noArrayIndexKey: append-only list
-            <li key={i}>
+            <li key={i} className="note">
+              {n.mine && <span className={C.faint}>{t("progress.you")}: </span>}
               {n.code ? (
                 <b>{t(`update.${n.code}`)}</b>
               ) : (
@@ -132,6 +152,7 @@ export function JobThread(props: JobActionProps) {
                   <Said text={n.text} from={n.lang} />
                 </b>
               )}
+              {n.at && <time dateTime={n.at}>{timeText(lang, new Date(n.at))}</time>}
             </li>
           ))}
         </ul>

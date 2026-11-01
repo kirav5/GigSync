@@ -18,6 +18,7 @@ import { loadPayee, PayeeMissingError } from "../payments/payee.js";
 import { buildUpiUri } from "../payments/upi.js";
 import { Collection } from "../ports.js";
 import type { JobContext } from "./context.js";
+import { withNote } from "./history.js";
 import { type JobRecord, TaskKind } from "./store.js";
 
 const K = EnvelopeKind.enum;
@@ -34,14 +35,23 @@ function noteOf(ctx: JobContext, say: Say): Note {
   return { text: t(ctx.lang, `update.${say.code}`), lang: ctx.lang, code: say.code };
 }
 
+/** Sends a note and keeps it on this phone too, stamped, so the worker sees what they said and when. */
+async function sendNote(ctx: JobContext, r: JobRecord, kind: EnvelopeKind, say: Say): Promise<JobRecord> {
+  const note = noteOf(ctx, say);
+  const sent = await ctx.send(r, kind, note);
+  const kept = withNote(sent, note, ctx.clock.now().toISOString(), true);
+  await ctx.store.saveJob(kept);
+  return kept;
+}
+
 /** Worker: on my way, or any progress note. */
 export function sendUpdate(ctx: JobContext, r: JobRecord, say: Say): Promise<JobRecord> {
-  return ctx.send(r, K.update, noteOf(ctx, say));
+  return sendNote(ctx, r, K.update, say);
 }
 
 /** Worker: the work is done. */
 export function sendDelivery(ctx: JobContext, r: JobRecord, say: Say): Promise<JobRecord> {
-  return ctx.send(r, K.delivery, noteOf(ctx, say));
+  return sendNote(ctx, r, K.delivery, say);
 }
 
 /** The worker's saved UPI ID and name, read at the moment it is needed; none saved stops the step before it starts. */

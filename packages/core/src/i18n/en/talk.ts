@@ -1,6 +1,6 @@
 /** The story of a job as the two agents told it, shown inside the job in the reader's language. */
 export const talk = {
-  "talk.title": "What the agents said",
+  "talk.title": "Agent's Conversation",
   "talk.request_mine": "Your agent sent your request to {name}.",
   "talk.request_theirs": "{name}'s agent sent a request to your agent.",
   "talk.asked_mine": "Your agent asked:",
