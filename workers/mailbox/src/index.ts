@@ -1,7 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
 import { HttpMethod } from "@gigsync/core/http";
 import { configureLog, log, pii } from "@gigsync/core/log";
-import { DEFAULT_TTL_SECONDS, type DeviceId, Envelope, type MessageId } from "@gigsync/protocol";
+import { DEFAULT_TTL_SECONDS, type DeviceId, type EngagementId, Envelope, type MessageId } from "@gigsync/protocol";
 
 export interface Env {
   MAILBOX: DurableObjectNamespace<Mailbox>;
@@ -47,6 +47,11 @@ export class Mailbox extends DurableObject<Env> {
       CREATE INDEX IF NOT EXISTS envelopes_device ON envelopes (device_id, msg_id);
       CREATE INDEX IF NOT EXISTS envelopes_expiry ON envelopes (expires_at);
       CREATE TABLE IF NOT EXISTS seen (msg_id TEXT PRIMARY KEY, at INTEGER NOT NULL);
+      CREATE TABLE IF NOT EXISTS claims (
+        engagement TEXT PRIMARY KEY,
+        device_id TEXT NOT NULL,
+        expires_at INTEGER NOT NULL
+      );
     `);
   }
 
@@ -110,6 +115,28 @@ export class Mailbox extends DurableObject<Env> {
     return n;
   }
 
+  /**
+   * Which of this user's devices runs the agent for one engagement (ADR 0045): the first device to claim it, kept for
+   * as long as a job's envelopes live. The object handles one call at a time, so two devices claiming at once cannot
+   * both win.
+   */
+  async claim(engagement: EngagementId, device: DeviceId): Promise<DeviceId> {
+    const now = Math.floor(Date.now() / 1000);
+    this.sql.exec("DELETE FROM claims WHERE engagement = ? AND expires_at <= ?", engagement, now);
+    this.sql.exec(
+      "INSERT OR IGNORE INTO claims (engagement, device_id, expires_at) VALUES (?, ?, ?)",
+      engagement,
+      device,
+      now + DEFAULT_TTL_SECONDS.job,
+    );
+    const owner = this.sql
+      .exec<{ device_id: DeviceId }>("SELECT device_id FROM claims WHERE engagement = ?", engagement)
+      .one().device_id;
+    await this.scheduleExpiry();
+    log.debug("mailbox: claim", { engagement, device, owner });
+    return owner;
+  }
+
   async pending(): Promise<number> {
     return Number(this.sql.exec("SELECT COUNT(*) AS n FROM envelopes").one().n);
   }
@@ -121,11 +148,16 @@ export class Mailbox extends DurableObject<Env> {
     if (expired > 0) log.info("mailbox: expired envelopes", { count: expired });
     // Remember ids for seven days after expiry so a late retry cannot resurrect a message.
     this.sql.exec("DELETE FROM seen WHERE at <= ?", now - DEFAULT_TTL_SECONDS.job);
+    this.sql.exec("DELETE FROM claims WHERE expires_at <= ?", now);
     await this.scheduleExpiry();
   }
 
   private async scheduleExpiry() {
-    const next = this.sql.exec<{ t: number | null }>("SELECT MIN(expires_at) AS t FROM envelopes").one().t;
+    const next = this.sql
+      .exec<{ t: number | null }>(
+        "SELECT MIN(t) AS t FROM (SELECT MIN(expires_at) AS t FROM envelopes UNION ALL SELECT MIN(expires_at) FROM claims)",
+      )
+      .one().t;
     if (next === null) return;
     const current = await this.ctx.storage.getAlarm();
     if (current === null || current > next * 1000) await this.ctx.storage.setAlarm(next * 1000);

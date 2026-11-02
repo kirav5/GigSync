@@ -1,6 +1,6 @@
 import { log } from "@gigsync/core/log";
 import { verify } from "@gigsync/crypto";
-import { Envelope, MessageId, QR_KINDS, signingBytes, UserId } from "@gigsync/protocol";
+import { ClaimRequest, Envelope, MessageId, QR_KINDS, signingBytes, UserId } from "@gigsync/protocol";
 import { Hono } from "hono";
 import { z } from "zod";
 import { ApiError, type AppEnv, USER_PARAM, Var } from "../context.js";
@@ -83,4 +83,20 @@ mail.post("/inbox/ack", async (c) => {
   const acked = await box.ack(c.get(Var.device), body.data.ids);
   log.info("inbox acked", { requestId: c.get(Var.requestId), device: c.get(Var.device), acked });
   return c.json({ acked });
+});
+
+// ── One agent per job (ADR 0045): the first of my devices to claim an engagement answers it ──────────────────────
+mail.post("/inbox/claims", async (c) => {
+  const body = ClaimRequest.safeParse(await c.req.json().catch(() => null));
+  if (!body.success) return c.json({ error: ApiError.badRequest }, 400);
+  const { engagement } = body.data;
+  const box = c.env.MAILBOX.get(c.env.MAILBOX.idFromName(c.get(Var.user)));
+  const owner = await box.claim(engagement, c.get(Var.device));
+  log.info("engagement claimed", {
+    requestId: c.get(Var.requestId),
+    engagement,
+    device: c.get(Var.device),
+    won: owner === c.get(Var.device),
+  });
+  return c.json({ engagement, owner });
 });
