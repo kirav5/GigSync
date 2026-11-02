@@ -13,3 +13,6 @@ ADMIN_KEY=dev-only-admin-key
 # VAPID_PUBLIC_KEY=
 # VAPID_PRIVATE_KEY=
 # VAPID_SUBJECT=mailto:ops@gigsync.network
+# Geocoding for the address form (ADR 0045): an Ola Maps key. Unset means the geo routes answer 503 and the app
+# offers typing the address instead. Deployed: `wrangler secret put OLA_MAPS_API_KEY`.
+# OLA_MAPS_API_KEY=

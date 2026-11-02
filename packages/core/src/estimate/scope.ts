@@ -1,6 +1,7 @@
 import {
   AcProblem,
   type AreaKey,
+  Arrangement,
   CarpenterProblem,
   type City,
   DEFAULT_SCOPE,
@@ -10,6 +11,7 @@ import {
   type Estimate,
   EstimateBasisKind,
   EstimateRequest,
+  hasArrangements,
   hoursBand,
   MaidFrequency,
   mealsBucket,
@@ -107,13 +109,21 @@ export function estimateRequest(
 ): EstimateRequest | undefined {
   // The job's details are its drivers when none are passed: otherwise every driver would count as unknown.
   const known = tradeDrivers(trade, drivers ?? detailsToDrivers(trade, details));
+  const arrangement = arrangementIn(trade, details);
   return EstimateRequest.safeParse({
     city,
     ...(area ? { area } : {}),
     trade,
     scope: tradeScope(trade, details),
     ...(known && Object.keys(known).length > 0 ? { drivers: known } : {}),
+    ...(arrangement ? { arrangement } : {}),
   }).data;
+}
+
+/** The arrangement a job's details name (ADR 0046), for a trade priced by arrangement; undefined otherwise. */
+export function arrangementIn(trade: Trade, details: Details): Arrangement | undefined {
+  if (!hasArrangements(trade)) return undefined;
+  return Arrangement.safeParse(details[Q.arrangement]).data;
 }
 
 /** Two requests ask for the same estimate. */

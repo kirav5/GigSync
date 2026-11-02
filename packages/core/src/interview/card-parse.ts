@@ -1,8 +1,9 @@
-import { Lang, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
+import { DEFAULT_ARRANGEMENT, Lang, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
 import type { MessageKey } from "../i18n/t.js";
 import { asciiDigits } from "../job/details.js";
 import { parseAmount } from "./amount.js";
 import { advance, askable, edit, FIELDS, type InterviewState, Pick, retry, Slot } from "./card.js";
+import { chooseArrangements, hearArrangements, hearMoreRate, mainOf } from "./card-arrangements.js";
 import { cardEstimate, suggestedAmount } from "./card-estimate.js";
 import { areaIn, editIntent, type Field, fieldIn, isNone, isSkip, languagesIn, tradesIn, yesNo } from "./lexicon.js";
 
@@ -62,7 +63,10 @@ function onArea(s: InterviewState, area: string | undefined): InterviewState {
  * or a wide one when there is neither.
  */
 function plausible(s: InterviewState, paise: number): boolean {
-  const band = cardEstimate(s)?.estimate ?? s.config.rates.bands.find((b) => b.trade === s.draft.trades?.[0]);
+  // The city band is monthly: a rate for an hour, a visit or a week is checked against its estimate alone.
+  const monthly = (mainOf(s.draft) ?? DEFAULT_ARRANGEMENT) === DEFAULT_ARRANGEMENT;
+  const cityBand = monthly ? s.config.rates.bands.find((b) => b.trade === s.draft.trades?.[0]) : undefined;
+  const band = cardEstimate(s)?.estimate ?? cityBand;
   const low = band ? band.low_paise / BAND_SPREAD : NO_BAND_LOW;
   const high = band ? band.high_paise * BAND_SPREAD : NO_BAND_HIGH;
   return paise >= low && paise <= high;
@@ -169,6 +173,10 @@ export function hear(state: InterviewState, text: string, aloud = false): Interv
   switch (state.slot) {
     case Slot.trade:
       return onTrades(state, tradesIn(text));
+    case Slot.arrangements:
+      return hearArrangements(state, text);
+    case Slot.more_rates:
+      return hearMoreRate(state, text);
     case Slot.area:
       return onArea(state, areaIn(text, state.config.areas));
     case Slot.rate:
@@ -202,6 +210,8 @@ export function choose(state: InterviewState, value: string): InterviewState {
       const trade = Trade.options.find((tr) => tr === value);
       return trade ? onTrades(state, [trade]) : state;
     }
+    case Slot.arrangements:
+      return chooseArrangements(state, value);
     case Slot.area:
       return state.config.areas.some((a) => a.key === value) ? onArea(state, value) : state;
     case Slot.rate:

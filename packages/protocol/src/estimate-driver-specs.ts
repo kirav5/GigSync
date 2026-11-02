@@ -72,6 +72,8 @@ const chosen = (role: DriverRole, values: readonly string[], dflt: string, unkno
 });
 
 const L = DriverLimit;
+/** The days a week a maid's weekly rate is for: the rate card's weekly figure is three visits a week. */
+export const MAID_WEEK_DAYS = 3;
 
 /**
  * Repairs: the problem is unknown across all its kinds; points default to one and, unknown, to one to three (assumed:
@@ -112,6 +114,8 @@ export const DRIVER_SPECS: Readonly<Record<Trade, Readonly<Partial<Record<Driver
       MaidFrequency.enum.daily,
     ]),
     tasks: chosen(A, MaidTasks.options, MaidTasks.enum.sweep_mop_dishes),
+    // Weekly work only (ADR 0046). ASSUMED: three days a week is the usual part-week arrangement, two to four unknown.
+    days_week: counted(Q, U.day, L.days_week, MAID_WEEK_DAYS, [2, 4]),
   },
   [T.driver]: {
     hours: counted(Q, U.hour, L.hours, 8, [6, 10]),

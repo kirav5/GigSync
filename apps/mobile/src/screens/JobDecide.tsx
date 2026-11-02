@@ -82,7 +82,8 @@ export function SignCard({
   onSign,
   onDecline,
 }: {
-  price: number;
+  /** The price as shown, with its unit when the job has one ("₹180 an hour"). */
+  price: string;
   terms?: Terms | undefined;
   asked?: Terms | undefined;
   say: string;
@@ -90,7 +91,7 @@ export function SignCard({
   onDecline: () => void;
 }) {
   const { lang, t } = useI18n();
-  const deal = { price: money(price) };
+  const deal = { price };
   return (
     <fieldset className={C.stack} aria-label={t("a11y.sign")}>
       <div className={C.row}>

@@ -1,4 +1,4 @@
-import { AnswerFromMemory, DetailFlag, type Lang, Trade } from "@gigsync/protocol";
+import { AnswerFromMemory, Arrangement, DetailFlag, type Lang, Trade } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import {
   CITY_RATES,
@@ -43,7 +43,9 @@ describe("Ask me first: the Find chat offers what the agent remembers", () => {
     expect(choiceValues(s)).toEqual([MemoryPick.use, MemoryPick.own]);
     const taken = chooseNeed(s, MemoryPick.use);
     expect(taken.draft.detail).toBe("3 rooms, sweeping");
-    expect(taken.slot).toBe(NeedSlot.area);
+    // How long the work is for comes before the area, and memory has nothing for it (ADR 0046).
+    expect(taken.slot).toBe(NeedSlot.arrangement);
+    expect(chooseNeed(taken, Arrangement.enum.monthly).slot).toBe(NeedSlot.area);
   });
 
   it("Change asks the question as usual, and memory stays out of it", () => {
@@ -86,19 +88,25 @@ describe("Answer for me: the agent fills in what it remembers, and says so", () 
   const remembered = { mode: auto, area: fresh("hsr_layout"), facts: { rooms: fresh("3") } };
 
   it("fills the first question and the area, says each, and offers to change them", () => {
-    const s = chooseNeed(start(remembered), T.maid);
-    expect(s.draft.detail).toBe("3");
+    const atArrangement = chooseNeed(start(remembered), T.maid);
+    expect(atArrangement.draft.detail).toBe("3");
+    expect(atArrangement.slot).toBe(NeedSlot.arrangement);
+    expect(lines(atArrangement)[0]).toEqual({
+      key: "memory.filled_detail",
+      params: { value: "3" },
+      names: { detail: ["detail.rooms"] },
+    });
+    expect(needPrompt(atArrangement).choices?.[0]).toEqual({
+      value: MemoryPick.redoDetail,
+      key: "memory.change_detail",
+      params: { detail: "rooms" },
+    });
+    const s = chooseNeed(atArrangement, Arrangement.enum.monthly);
     expect(s.draft.area).toBe("hsr_layout");
     // A maid comes every day; what moves her price most (ADR 0041) is asked next, then the budget.
     expect(s.slot).toBe(NeedSlot.driver);
-    expect(lines(s).slice(0, 2)).toEqual([
-      { key: "memory.filled_detail", params: { value: "3" }, names: { detail: ["detail.rooms"] } },
-      { key: "memory.filled_area", names: { area: ["area.hsr_layout"] } },
-    ]);
-    expect(needPrompt(s).choices?.slice(0, 2)).toEqual([
-      { value: MemoryPick.redoDetail, key: "memory.change_detail", params: { detail: "rooms" } },
-      { value: MemoryPick.redoArea, key: "memory.change_area" },
-    ]);
+    expect(lines(s)[0]).toEqual({ key: "memory.filled_area", names: { area: ["area.hsr_layout"] } });
+    expect(needPrompt(s).choices?.[0]).toEqual({ value: MemoryPick.redoArea, key: "memory.change_area" });
   });
 
   it("Change reopens that question, and the next answer goes on to what was missing", () => {
@@ -107,7 +115,7 @@ describe("Answer for me: the agent fills in what it remembers, and says so", () 
     expect(lines(s)).toEqual([{ key: "question.rooms" }]);
     const answered = hearNeed(s, "2 rooms");
     expect(answered.draft.detail).toBe("2 rooms");
-    expect(answered.slot).toBe(NeedSlot.driver);
+    expect(answered.slot).toBe(NeedSlot.arrangement);
     expect(needPrompt(answered).choices?.some((c) => c.value.startsWith("memory"))).toBe(false);
   });
 
@@ -135,7 +143,9 @@ describe("the Find chat without memory, and the budget", () => {
   it("never offers or fills a budget", () => {
     for (const mode of [ask, auto]) {
       let s = chooseNeed(start({ mode, area: fresh("hsr_layout"), facts: { rooms: fresh("3") } }), T.maid);
-      if (mode === ask) s = chooseNeed(chooseNeed(s, MemoryPick.use), MemoryPick.use);
+      if (mode === ask) s = chooseNeed(s, MemoryPick.use);
+      s = chooseNeed(s, Arrangement.enum.monthly);
+      if (mode === ask) s = chooseNeed(s, MemoryPick.use);
       s = chooseNeed(s, DriverPick.dontKnow);
       expect(s.slot).toBe(NeedSlot.budget);
       expect(s.draft.budget_paise).toBeUndefined();

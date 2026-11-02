@@ -6,7 +6,7 @@ import { EngagementId, prefixedId, UserId } from "./ids.js";
 import { DEFAULT_LANG, Lang, QuestionKey } from "./lang.js";
 import { Introduce, LandingRequest, MentorAccept, MentorOffer } from "./mentor-envelopes.js";
 import { Paise, PaymentRecord, PaymentRequest } from "./payment.js";
-import { Place } from "./place.js";
+import { LOCALITY_MAX, Place } from "./place.js";
 import { JobProblem } from "./problem.js";
 import { WorkOffer } from "./qr.js";
 import { Terms, termsFit } from "./terms.js";
@@ -38,6 +38,8 @@ export const JobRequest = z.object({
   need: z.string().min(1).max(1000),
   when: z.string().min(1).max(SLOT_MAX),
   area: Place,
+  /** ADR 0045: the locality the area is in, as the household's phone named it ("Banashankari"); never the address. */
+  locality: z.string().min(1).max(LOCALITY_MAX).optional(),
   /** Answers the consumer gave up front, so the worker's agent need not ask. */
   details: z.record(DetailKey, shortText).default({}),
   /** The language `need` and any free-text detail are written in, so the worker's phone can translate on receipt. */

@@ -1,5 +1,6 @@
 import { areaBand, DriverName, type DriverValues, JobQuantities, quantitiesFit, type Trade } from "@gigsync/protocol";
 import { detailsToDrivers } from "../estimate/driver-details.js";
+import { arrangementIn } from "../estimate/scope.js";
 
 /**
  * A signed job's quantities for its record (ADR 0041 §4): the price drivers both phones hold alike in the request's
@@ -15,7 +16,12 @@ export function jobQuantities(trade: Trade, details: Readonly<Record<string, str
   const drivers: DriverValues = detailsToDrivers(trade, details);
   const { area_sqft, ...rest } = drivers;
   const kept = Object.fromEntries(Object.entries(rest).filter(([name]) => !IN_SCOPE.includes(name as DriverName)));
-  const raw = typeof area_sqft === "number" ? { ...kept, area_band: areaBand(area_sqft) } : kept;
+  const arrangement = arrangementIn(trade, details);
+  const raw = {
+    ...kept,
+    ...(typeof area_sqft === "number" ? { area_band: areaBand(area_sqft) } : {}),
+    ...(arrangement ? { arrangement } : {}),
+  };
   if (Object.keys(raw).length === 0) return undefined;
   const parsed = JobQuantities.safeParse(raw);
   return parsed.success && quantitiesFit(trade, parsed.data) ? parsed.data : undefined;

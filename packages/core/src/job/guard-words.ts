@@ -168,6 +168,7 @@ export const TOPIC: Readonly<Record<QuestionKey, readonly RegExp[]>> = {
   tasks: [latin(["tasks?", "dishes", "sweep", "mop", "laundry"]), indic(["बर्तन", "झाड़ू", "ಪಾತ್ರೆ"])],
   vehicle: [latin(["car", "vehicle", "suv", "sedan", "hatchback"]), indic(["गाड़ी", "ಕಾರು"])],
   points: [latin(["points?", "how many switch", "how many taps?"]), indic(["पॉइंट", "ಪಾಯಿಂಟ್"])],
+  arrangement: [latin(["by the hour", "hourly", "monthly", "per month", "one[- ]off"]), indic(["महीने", "ತಿಂಗಳ"])],
 };
 
 /** The standard detail a question's words are about, if any. */

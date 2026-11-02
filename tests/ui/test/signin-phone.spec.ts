@@ -11,7 +11,6 @@ test("sign-in takes a 10-digit number as typed, and says so plainly when a numbe
   const form = page.getByRole("form", { name: t(hi, "signin.label") });
   // The other fields are filled, so only the number can be wrong.
   await form.getByLabel(t(hi, "signin.name")).fill(`Phone ${RUN}`);
-  await form.getByLabel(t(hi, "signin.address")).fill("Indiranagar");
   await form.getByLabel(t(hi, "signin.phone")).fill("12345");
   await page.getByRole("button", { name: t(hi, "signin.send_code"), exact: true }).click();
   await expect(page.getByText(t(hi, "signin.err_phone"))).toBeVisible();
@@ -23,7 +22,6 @@ test("sign-in takes a 10-digit number as typed, and says so plainly when a numbe
     role: Role.consumer,
     name: `Phone ${RUN}`,
     phone: typed,
-    address: "Indiranagar",
     lang: hi,
   });
   await expect(shell(page, hi)).toBeVisible();

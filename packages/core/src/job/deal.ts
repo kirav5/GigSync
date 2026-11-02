@@ -18,7 +18,7 @@ import { isArrangement } from "../contacts/rules.js";
 import { log } from "../log.js";
 import { remember } from "../memory/remember.js";
 import type { JobContext } from "./context.js";
-import { type JobRecord, TaskKind } from "./store.js";
+import { type JobRecord, type Need, TaskKind } from "./store.js";
 import { mustReview, termsField } from "./terms-flow.js";
 
 const K = EnvelopeKind.enum;
@@ -132,8 +132,8 @@ export async function onAgree(ctx: JobContext, r: JobRecord, theirs: Agree, from
  * The card this side releases. The worker goes to the requester's place, so a provider never sends an address, even
  * one an older build saved on a worker's card as their own work site.
  */
-function releasedCard(ctx: JobContext, r: JobRecord): ContactCard {
-  if (r.engagement.role === R.requester) return ctx.contact;
+function releasedCard(ctx: JobContext, r: JobRecord, need: Need | undefined): ContactCard {
+  if (r.engagement.role === R.requester) return need?.site ? { ...ctx.contact, address: need.site } : ctx.contact;
   const { address: _site, ...card } = ctx.contact;
   return card;
 }
@@ -141,7 +141,9 @@ function releasedCard(ctx: JobContext, r: JobRecord): ContactCard {
 /** Both signed: send this owner's card, and (consumer) release every other request in the group. */
 async function onAgreed(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
   const hash = r.mine?.terms_hash as string;
-  const contact = releasedCard(ctx, r);
+  // The address of the saved place this need is for (ADR 0045), else the one given at sign-in by an older build.
+  const need = r.engagement.role === R.requester ? await ctx.store.need(r.engagement.group) : undefined;
+  const contact = releasedCard(ctx, r, need);
   const out = await ctx.send(r, K.contact_release, { terms_hash: hash, contact } satisfies ContactRelease);
   if (r.engagement.role === R.requester) {
     for (const other of await ctx.store.group(r.engagement.group)) {
@@ -150,7 +152,7 @@ async function onAgreed(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
     }
   }
   log.info("job agreed", { engagement: r.engagement.id, price: r.mine?.terms.price_paise });
-  await remember(ctx, out, await ctx.store.need(out.engagement.group));
+  await remember(ctx, out, need ?? (await ctx.store.need(out.engagement.group)));
   return out;
 }
 

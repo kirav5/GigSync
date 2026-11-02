@@ -1,4 +1,5 @@
-import { type Choice, NeedPick, NeedSlot, type NeedState } from "@gigsync/core";
+import { ADD_ADDRESS, type Choice, NeedPick, NeedSlot, type NeedState } from "@gigsync/core";
+import type { Arrangement } from "@gigsync/protocol";
 import { type FormEvent, useState } from "react";
 import { pickNeedDate, tapNeed, togglePick } from "../../find/needStore.js";
 import { NeedSpeaker, type NeedTurn } from "../../find/needTurns.js";
@@ -32,9 +33,24 @@ function DatePick({ chat, today }: { chat: string; today: string }) {
 }
 
 /** The tap answers under the newest question. */
-function Choices({ chat, choices, today }: { chat: string; choices: readonly Choice[]; today: string }) {
+function Choices({
+  chat,
+  choices,
+  today,
+  onAddAddress,
+}: {
+  chat: string;
+  choices: readonly Choice[];
+  today: string;
+  onAddAddress: () => void;
+}) {
   const { t } = useI18n();
   const [picking, setPicking] = useState(false);
+  const tap = (c: Choice) => {
+    if (c.value === NeedPick.date) return setPicking(true);
+    if (c.value === ADD_ADDRESS) return onAddAddress();
+    tapNeed(chat, c.value, t(c.key, c.params));
+  };
   return (
     <>
       <div className={`${C.row} iv-choices`}>
@@ -43,7 +59,7 @@ function Choices({ chat, choices, today }: { chat: string; choices: readonly Cho
             key={c.value}
             type={C.button}
             className={c.value === NeedPick.date && picking ? C.chipOn : C.chip}
-            onClick={() => (c.value === NeedPick.date ? setPicking(true) : tapNeed(chat, c.value, t(c.key, c.params)))}
+            onClick={() => tap(c)}
           >
             {t(c.key, c.params)}
           </button>
@@ -61,12 +77,15 @@ function Found({
   active,
   busy,
   onAsk,
+  arrangement,
 }: {
   chat: string;
   turn: FoundTurn;
   active: boolean;
   busy: boolean;
   onAsk: (turn: FoundTurn) => void;
+  /** The arrangement asked for: each worker's rate for it is shown (ADR 0046). */
+  arrangement: Arrangement | undefined;
 }) {
   const { t, plural } = useI18n();
   return (
@@ -76,6 +95,7 @@ function Found({
           key={w.user}
           worker={w}
           picked={turn.picked.includes(w.user)}
+          arrangement={arrangement}
           disabled={!active}
           onToggle={() => togglePick(chat, turn.id, w.user)}
         />
@@ -104,6 +124,7 @@ export function NeedTurns({
   turns,
   busy,
   onAsk,
+  onAddAddress,
 }: {
   /** The chat these turns are in, which every answer here names. */
   chat: string;
@@ -111,6 +132,8 @@ export function NeedTurns({
   turns: readonly NeedTurn[];
   busy: boolean;
   onAsk: (turn: FoundTurn) => void;
+  /** "Add an address" at the "where" question: the app opens the address form (ADR 0045). */
+  onAddAddress: () => void;
 }) {
   const newest = (who: NeedTurn["who"]) => [...turns].reverse().find((turn) => turn.who === who)?.id;
   const lastQuestion = newest(NeedSpeaker.app);
@@ -120,12 +143,22 @@ export function NeedTurns({
     if (turn.who === NeedSpeaker.owner) return <Own key={turn.id} text={turn.text} />;
     if (turn.who === NeedSpeaker.found) {
       const active = state?.slot === NeedSlot.found && turn.id === lastFound;
-      return <Found key={turn.id} chat={chat} turn={turn} active={active} busy={busy} onAsk={onAsk} />;
+      return (
+        <Found
+          key={turn.id}
+          chat={chat}
+          turn={turn}
+          active={active}
+          busy={busy}
+          onAsk={onAsk}
+          arrangement={state?.draft.arrangement}
+        />
+      );
     }
     return (
       <Ask key={turn.id} lines={turn.lines}>
         {asking && turn.id === lastQuestion && turn.choices.length > 0 && (
-          <Choices chat={chat} choices={turn.choices} today={state.config.today} />
+          <Choices chat={chat} choices={turn.choices} today={state.config.today} onAddAddress={onAddAddress} />
         )}
       </Ask>
     );

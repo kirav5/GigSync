@@ -1,5 +1,6 @@
 import {
   areaSlug,
+  askingArrangement,
   type Card,
   CardKind,
   type Choice,
@@ -11,6 +12,7 @@ import {
   type Ports,
   Slot,
 } from "@gigsync/core";
+import { QuestionKey } from "@gigsync/protocol";
 import { useEffect } from "react";
 import type { Account } from "../adapters/account.js";
 import { stopSpeaking } from "../adapters/speech.js";
@@ -129,9 +131,12 @@ export function Interview({
   // (ADR 0030, ADR 0039). Asked once, when both are known, never once per answer (ADR 0041).
   const trade = state?.draft.trades?.[0];
   const area = state?.draft.area;
+  // ADR 0046: the arrangement whose rate is asked now, so the estimate is in its unit.
+  const arrangement = state ? askingArrangement(state) : undefined;
   const session = account.session;
   useEffect(() => {
-    const request = trade && area ? estimateRequest(PILOT_CITY, trade, {}, areaSlug(area)) : undefined;
+    const details = arrangement ? { [QuestionKey.enum.arrangement]: arrangement } : {};
+    const request = trade && area ? estimateRequest(PILOT_CITY, trade, details, areaSlug(area)) : undefined;
     if (!request) return;
     // Only the newest request's answer counts: the city's range must not land after the area's.
     let live = true;
@@ -141,7 +146,7 @@ export function Interview({
     return () => {
       live = false;
     };
-  }, [trade, area, session]);
+  }, [trade, area, arrangement, session]);
 
   // Leaving Talk (another screen, Back) ends a question the owner asked to hear again.
   useEffect(

@@ -18,6 +18,8 @@ export interface QuantityColumns {
   qty_hours: number | null;
   qty_vehicle: string | null;
   qty_points: number | null;
+  /** ADR 0046 (migration 0012): how long the job was for; NULL was monthly. */
+  qty_arrangement: string | null;
 }
 
 export function quantityColumns(q: JobQuantities | undefined): QuantityColumns {
@@ -34,6 +36,7 @@ export function quantityColumns(q: JobQuantities | undefined): QuantityColumns {
     qty_hours: q?.hours ?? null,
     qty_vehicle: q?.vehicle ?? null,
     qty_points: q?.points ?? null,
+    qty_arrangement: q?.arrangement ?? null,
   };
 }
 
@@ -43,7 +46,7 @@ export async function setQuantities(db: Db, engagement: EngagementId, q: JobQuan
   await db.query(
     `UPDATE job_records SET qty_area_band = $2, qty_rooms = $3, qty_surface = $4, qty_floors = $5,
        qty_house_type = $6, qty_finish = $7, qty_people = $8, qty_days_week = $9, qty_tasks = $10, qty_hours = $11,
-       qty_vehicle = $12, qty_points = $13
+       qty_vehicle = $12, qty_points = $13, qty_arrangement = $14
      WHERE engagement_id = $1`,
     [
       engagement,
@@ -59,6 +62,7 @@ export async function setQuantities(db: Db, engagement: EngagementId, q: JobQuan
       c.qty_hours,
       c.qty_vehicle,
       c.qty_points,
+      c.qty_arrangement,
     ],
   );
 }

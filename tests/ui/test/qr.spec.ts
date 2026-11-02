@@ -128,7 +128,8 @@ test("a household opens a worker's QR link before signing in, and asks him", asy
   await priya.goto(`${APP}/?to=${code}`);
   await expect(priya).not.toHaveURL(/to=/);
   await chooseLanguage(priya, en);
-  await completeSignIn(priya, { role: Role.consumer, name: priyaName, phone: newPhone(), address: ADDRESS });
+  // No address here: saving one goes through Settings and would leave the link's screen (ADR 0045).
+  await completeSignIn(priya, { role: Role.consumer, name: priyaName, phone: newPhone() });
   await expect(ask(priya, anilName)).toBeVisible();
   await expect(priya.getByText(ABOUT)).toBeVisible();
   await shoot("worker-qr", { worker: anil, household: priya }, FOLDER);

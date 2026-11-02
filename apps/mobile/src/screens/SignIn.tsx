@@ -10,7 +10,7 @@ import { phoneE164 } from "../ui/phone.js";
 import { TermsPage } from "./pages/TermsPage.js";
 
 /** The form's field names. */
-const F = { name: "name", phone: "phone", address: "address", code: "code" } as const;
+const F = { name: "name", phone: "phone", code: "code" } as const;
 /** Ties the dock's button, outside the form, to it. */
 const FORM_ID = "signin";
 /** The code the development API accepts, shown only in dev builds. */
@@ -54,8 +54,8 @@ export function SignIn({
         setSent(true);
         return;
       }
-      const address = String(v.get(F.address) ?? "").trim();
-      const contact = { name: String(v.get(F.name) ?? "").trim(), phone, ...(address ? { address } : {}) };
+      // No address here (ADR 0045): a household saves addresses in Find or Settings, and picks one per request.
+      const contact = { name: String(v.get(F.name) ?? "").trim(), phone };
       const account = await signIn(ports, { phone, code: String(v.get(F.code) ?? "").trim(), role, contact });
       await agreeAtSignIn(ports, account);
       onSignedIn(account);
@@ -106,12 +106,6 @@ export function SignIn({
           <span className={C.muted}>{t("signin.phone")}</span>
           <input className={C.field} name={F.phone} required placeholder="98000 00000" type="tel" autoComplete="tel" />
         </label>
-        {role === AccountRole.consumer && (
-          <label className={C.fieldLabel}>
-            <span className={C.muted}>{t("signin.address")}</span>
-            <input className={C.field} name={F.address} autoComplete="street-address" />
-          </label>
-        )}
         {sent && (
           <label className={C.fieldLabel}>
             <span className={C.muted}>

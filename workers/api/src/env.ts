@@ -24,6 +24,10 @@ export interface Env {
   VAPID_PUBLIC_KEY?: string;
   /** Secret: its private half (base64url). `node scripts/vapid-keys.mjs` makes both; `wrangler secret put`. */
   VAPID_PRIVATE_KEY?: string;
+  /** Caps geocoding lookups per user (ADR 0045), so one account cannot spend the provider's allowance. */
+  GEO_RATE_LIMIT: RateLimit;
+  /** Secret: the Ola Maps key the geocoding routes call with (ADR 0045). Unset means they answer 503. */
+  OLA_MAPS_API_KEY?: string;
   /** Public: who push services may contact about these pushes, `mailto:` or an `https:` page. */
   VAPID_SUBJECT?: string;
 }

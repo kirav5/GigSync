@@ -41,7 +41,13 @@ async function signedJob(workerPage: Page, householdPage: Page, tag: string) {
     about: "Doors and cupboards",
   });
   await open(workerPage, "nav.activity");
-  await signIn(householdPage, { role: Role.consumer, name: names.household, phone: newPhone(), address });
+  await signIn(householdPage, {
+    role: Role.consumer,
+    name: names.household,
+    phone: newPhone(),
+    address,
+    area: "Jayanagar",
+  });
   await fillAsk(household, {
     trade: "carpenter",
     area: "Jayanagar",

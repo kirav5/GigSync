@@ -66,7 +66,7 @@ test("live demo", async ({ browser }) => {
   await expect(log).toContainText(t("en", "need.start"));
   await pause(home);
   await say(home, "Bedroom fan is not working, need an electrician tomorrow morning, up to 750");
-  await expect(log).toContainText(t("en", "need.ask.area"), { timeout: 30_000 });
+  await expect(log).toContainText(t("en", "need.ask.address"), { timeout: 30_000 });
   await pause(home);
   await say(home, "HSR Layout");
   await pause(home, 3500);

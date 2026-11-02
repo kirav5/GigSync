@@ -1,8 +1,9 @@
-import type { Lang, QuestionKey, RateCard, Trade } from "@gigsync/protocol";
+import type { Arrangement, Lang, QuestionKey, RateCard, Trade } from "@gigsync/protocol";
 import type { MessageKey } from "../i18n/t.js";
 import { ASK_FIRST_DETAILS } from "../job/details.js";
 import type { TermPrefs } from "../job/terms.js";
 import { QUESTIONS } from "../job/worker.js";
+import { arranged, missingRate } from "./card-arrangements.js";
 import type { FoundEstimate } from "./estimate-lines.js";
 import type { Field } from "./lexicon.js";
 
@@ -14,8 +15,16 @@ import type { Field } from "./lexicon.js";
 /** What the interview has gathered so far; every field is optional until the owner confirms. */
 export interface CardDraft {
   trades?: Trade[];
-  /** An area key, e.g. "koramangala". */
+  /** An area key: a pilot area's ("koramangala"), or a locality's slug when the worker used their location. */
   area?: string;
+  /** ADR 0045: the worker's own area when it is not a pilot area: its name and coarse point. */
+  place?: { name: string; lat: number; lon: number };
+  /** ADR 0046: for a maid or driver, the arrangements they take; the usual rate is for the main one. */
+  arrangements?: Arrangement[];
+  /** ADR 0046: the usual rate for each other arrangement picked. */
+  other_rates?: Partial<Record<Arrangement, number>>;
+  /** ADR 0045: how far from their area they go, in km; the card form sets it, the interview keeps it. */
+  radius_km?: number;
   rate_paise?: number;
   limit_paise?: number;
   languages?: Lang[];
@@ -43,9 +52,13 @@ export interface InterviewConfig {
 /** Where the interview is: the field being asked, then confirm, then done. */
 export const Slot = {
   trade: "trade",
+  /** Which arrangements a maid or driver takes (ADR 0046). */
+  arrangements: "arrangements",
   area: "area",
   rate: "rate",
   min: "min",
+  /** The usual rate for each other arrangement picked. */
+  more_rates: "more_rates",
   languages: "languages",
   about: "about",
   ask_first: "ask_first",
@@ -130,9 +143,11 @@ export const FIELDS: readonly Field[] = [
 ];
 const ORDER: readonly Slot[] = [
   Slot.trade,
+  Slot.arrangements,
   Slot.area,
   Slot.rate,
   Slot.min,
+  Slot.more_rates,
   Slot.languages,
   Slot.about,
   Slot.ask_first,
@@ -149,13 +164,16 @@ const complete = (d: CardDraft): boolean =>
   d.area !== undefined &&
   d.rate_paise !== undefined &&
   d.limit_paise !== undefined &&
-  d.limit_paise <= d.rate_paise;
+  d.limit_paise <= d.rate_paise &&
+  missingRate(d) === undefined;
 
 function firstMissing(d: CardDraft): Slot {
   if (!d.trades?.length) return Slot.trade;
+  if (arranged(d) && d.arrangements === undefined) return Slot.arrangements;
   if (d.area === undefined) return Slot.area;
   if (d.rate_paise === undefined) return Slot.rate;
-  return complete(d) ? Slot.confirm : Slot.min;
+  if (d.limit_paise === undefined || d.limit_paise > d.rate_paise) return Slot.min;
+  return complete(d) ? Slot.confirm : Slot.more_rates;
 }
 
 /** A new interview, at the first field, or pre-filled from the card the owner already has. */
@@ -181,12 +199,20 @@ export const retry = (s: InterviewState, note: Line): InterviewState => ({ ...s,
 
 function nextSlot(s: InterviewState, draft: CardDraft): Slot {
   const asks = askable(draft.trades ?? []).length > 0;
-  // A new trade may bring its own ask-first question; a new rate may sit below the old minimum.
+  // A new trade may bring its own arrangements and ask-first question; new arrangements a rate in another unit; a new
+  // rate may sit below the old minimum. Each other arrangement's rate is asked until none is missing.
+  if (s.editing && s.slot === Slot.trade && arranged(draft)) return Slot.arrangements;
   if (s.editing && s.slot === Slot.trade && asks) return Slot.ask_first;
+  if (s.editing && s.slot === Slot.arrangements) return Slot.rate;
   if (s.editing && s.slot === Slot.rate && !complete(draft)) return Slot.min;
+  if (s.slot === Slot.more_rates && missingRate(draft)) return Slot.more_rates;
   if (s.editing) return complete(draft) ? Slot.confirm : firstMissing(draft);
+  const skipped = (slot: Slot | undefined) =>
+    (slot === Slot.ask_first && !asks) ||
+    (slot === Slot.arrangements && !arranged(draft)) ||
+    (slot === Slot.more_rates && !missingRate(draft));
   let i = ORDER.indexOf(s.slot) + 1;
-  if (ORDER[i] === Slot.ask_first && !asks) i++;
+  while (skipped(ORDER[i])) i++;
   return ORDER[i] ?? Slot.confirm;
 }
 

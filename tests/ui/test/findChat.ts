@@ -23,6 +23,8 @@ export interface NeedAnswers {
   trade?: string;
   /** A pilot area by its English name ("HSR Layout"). */
   area: string;
+  /** How long the work is for, for maid and driver work (ADR 0046); monthly when not given. */
+  arrangement?: "hourly" | "visit" | "weekly" | "monthly";
   /** The household's own words: the first thing said. */
   need: string;
   when: WhenChip;
@@ -95,12 +97,16 @@ async function answer(phone: Phone, ask: NeedAnswers): Promise<boolean> {
     "memory.use",
     "terms.scope_ok",
     ...(ask.trade ? [`trade.${ask.trade}` as MessageKey] : []),
+    `need.arr.${ask.arrangement ?? "monthly"}` as MessageKey,
     areaKey(ask.area),
     // A price question (ADR 0041): the journeys leave it to the estimate to assume.
     "driver.dont_know",
     "iv.skip",
     "flag.no",
   ] as const satisfies readonly MessageKey[];
+  // A saved address in the area answers "where" (ADR 0045), so the worker gets it once both sign.
+  const home = t(lang, "addr.chip", { label: t(lang, "addr.label.home"), area: ask.area });
+  if ((await says(page, lang, "need.ask.address")) && (await tapIf(chip(page, home)))) return false;
   for (const key of taps) if (await tapIf(chip(page, t(lang, key)))) return false;
   throw new Error(`Find's chat asked something the test cannot answer: ${await newest(page).textContent()}`);
 }

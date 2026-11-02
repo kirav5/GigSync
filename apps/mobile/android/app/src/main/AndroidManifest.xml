@@ -46,4 +46,7 @@
          install GigSync. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- Only when the owner taps Use my current location (ADR 0045), after GigSync says why. Coarse only: the app
+         needs the area, about a kilometre, never the building. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 </manifest>

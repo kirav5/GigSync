@@ -14,7 +14,7 @@ import { EngagementStatus, isModelQuestion, type Lang, type Question, Role } fro
 import type { ReactNode } from "react";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
-import { money } from "../ui/places.js";
+import { jobPrice, money } from "../ui/places.js";
 import { Said } from "../ui/Said.js";
 import { DetailValue } from "./DetailValue.js";
 import { Explain } from "./terms/Explain.js";
@@ -104,7 +104,7 @@ export function AgentTalk({
           </>
         );
       case TalkKind.offer: {
-        const price = money(s.price_paise);
+        const price = jobPrice(lang, job.request, s.price_paise);
         const said = mine(s.by) ? t("talk.offer_mine", { price }) : t("talk.offer_theirs", { name: them, price });
         const range = job.estimate && { low: money(job.estimate.low_paise), high: money(job.estimate.high_paise) };
         const terms = termsLines(lang, s.terms).join(LIST);
@@ -124,7 +124,7 @@ export function AgentTalk({
       }
       case TalkKind.agreed: {
         const terms = termsLines(lang, s.terms).join(LIST);
-        const agreed = t("talk.agreed", { price: money(s.price_paise) });
+        const agreed = t("talk.agreed", { price: jobPrice(lang, job.request, s.price_paise) });
         return terms ? `${agreed} ${t("terms.proposed", { terms })}` : agreed;
       }
       case TalkKind.signed:

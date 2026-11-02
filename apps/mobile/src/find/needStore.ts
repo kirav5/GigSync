@@ -1,4 +1,5 @@
 import {
+  type AddressChoice,
   chooseNeed,
   chooseNeedDate,
   type FoundEstimate,
@@ -93,6 +94,11 @@ export function relanguageNeed(chat: string, config: NeedConfig): void {
   changeChat(chat, (c) =>
     c.need && c.need.config.own !== config.own ? { ...c, need: needWithConfig(c.need, config) } : c,
   );
+}
+
+/** The household saved a new address part-way (ADR 0045): the "where" question offers it from now on. */
+export function addressesNeed(chat: string, addresses: readonly AddressChoice[]): void {
+  changeChat(chat, (c) => (c.need ? { ...c, need: needWithConfig(c.need, { ...c.need.config, addresses }) } : c));
 }
 
 /** The budget question, with nothing said after it, shown again in place with the estimate that arrived. */

@@ -40,8 +40,10 @@ describe("the worker's agent plans from the estimate for the job's scope", () =>
     const [job] = await household.device.request(paintNeed(1_700_000), [worker.user]);
     await talk();
     const mine = await worker.device.job(job?.engagement.id as EngagementId);
+    // The request's coarse point is within a pilot area (ADR 0045): its jobs answer first.
     expect(api.asked).toContainEqual({
       city: City.enum.bengaluru,
+      area: "indiranagar",
       trade: T.painter,
       scope: { rooms: "bhk2", labour_only: "yes" },
       drivers: { rooms: 2, paint_by: "household" },

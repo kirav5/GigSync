@@ -14,7 +14,7 @@ import { useI18n } from "../i18n.js";
 import { qrDataUrl } from "../payments/qr.js";
 import { WorkerPay } from "../payments/WorkerPay.js";
 import { C } from "../ui/cls.js";
-import { money } from "../ui/places.js";
+import { jobPrice, money } from "../ui/places.js";
 import type { GigView } from "../useGig.js";
 import { AnswerForm } from "./AnswerForm.js";
 import { ApproveCard, type ApproveDetail, SignCard } from "./JobDecide.js";
@@ -76,11 +76,11 @@ export function JobActions({ job, view, device, run, onAddPayee, them }: JobActi
       )}
       {terms && (
         <SignCard
-          price={terms.price_paise}
+          price={jobPrice(lang, job.request, terms.price_paise)}
           terms={terms.terms}
           asked={isWorker ? undefined : job.request.terms}
           say={[
-            t("home.say_sign", { name: them, price: money(terms.price_paise) }),
+            t("home.say_sign", { name: them, price: jobPrice(lang, job.request, terms.price_paise) }),
             ...termsLines(lang, terms.terms),
           ].join(SAY_PAUSE)}
           onSign={() => void run(() => device.confirmDeal(id))}
