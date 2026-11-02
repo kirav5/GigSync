@@ -9,8 +9,9 @@ import type { ModelEngine } from "./model-engine.js";
  *   "incapable": this phone has no WebGPU, so nothing is offered
  *   "slow":      capable, and every answer takes longer than the router waits, for the speed guard
  * A finished download is kept in localStorage["gigsync-fake-model-ready"]; each download started is logged to
- * localStorage["gigsync-fake-model-fetches"]. Answers are empty, so the word lists still route. model-engine.ts loads
- * this module only under import.meta.env.DEV, so release builds never contain it.
+ * localStorage["gigsync-fake-model-fetches"]. Routing answers (JSON) are empty, so the word lists still route; any
+ * other answer is FREE_ANSWER, as WebLLM gives Qwen3.5's. model-engine.ts loads this module only under
+ * import.meta.env.DEV, so release builds never contain it.
  */
 const MODE_KEY = "gigsync-fake-model";
 const READY_KEY = "gigsync-fake-model-ready";
@@ -26,6 +27,8 @@ const STEP_MS = 250;
 /** Past MODEL_ROUTE_TIMEOUT_MS, as the "slow" phone reports its answers. */
 const SLOW_ANSWER_MS = 6000;
 const QUICK_ANSWER_MS = 300;
+/** A free answer as WebLLM 0.2.86 returns one with thinking off: its empty thinking block first, then Markdown. */
+const FREE_ANSWER = "<think>\n\n</think>\n\n**Hey** there! How can I help you?";
 
 function read(key: string): string | null {
   try {
@@ -112,9 +115,9 @@ export function fakeModel(): ModelEngine | undefined {
       });
       return fetching;
     },
-    async generate() {
+    async generate(o) {
       const elapsedMs = mode === FakeMode.slow ? SLOW_ANSWER_MS : QUICK_ANSWER_MS;
-      return { available: read(READY_KEY) !== null, text: "", engine: ENGINE, elapsedMs };
+      return { available: read(READY_KEY) !== null, text: o.json ? "" : FREE_ANSWER, engine: ENGINE, elapsedMs };
     },
     async remove(o) {
       write(READY_KEY, null);
