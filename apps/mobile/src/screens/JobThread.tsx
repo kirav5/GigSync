@@ -114,12 +114,15 @@ export function JobThread(props: JobActionProps) {
       <When request={job.request} from={theirs} />
       <RestoredLine job={job} />
 
+      {/* Another of this owner's phones claimed the request and negotiates it there (ADR 0045): nothing to do here. */}
+      {job.elsewhere && <p className={C.faint}>{t("job.elsewhere")}</p>}
       {/* A restored job's messages never reached the server, so its thread cannot go on: it ends through the record. */}
-      {job.restored ? (
-        <RestoredActions job={job} device={device} run={run} them={them} />
-      ) : (
-        <JobActions {...props} them={them} />
-      )}
+      {!job.elsewhere &&
+        (job.restored ? (
+          <RestoredActions job={job} device={device} run={run} them={them} />
+        ) : (
+          <JobActions {...props} them={them} />
+        ))}
 
       {job.contact && (
         <fieldset className="contact" aria-label={t("a11y.contact")}>

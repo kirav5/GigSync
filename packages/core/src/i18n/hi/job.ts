@@ -53,6 +53,7 @@ export const job: Readonly<Record<keyof typeof en, string>> = {
   "job.signed": "दस्तख़त: {price}",
   "job.both_signed": "दोनों ने दस्तख़त किए",
   "job.their_signature": "उनके दस्तख़त का इंतज़ार",
+  "job.elsewhere": "आपका दूसरा फ़ोन इस काम का जवाब दे रहा है। आगे देखने के लिए वहीं GigSync खोलें।",
   "job.contact": "संपर्क, दोनों के दस्तख़त के बाद ही",
   "job.asks": "कामगार का सवाल: {question}",
   "job.send_answers": "जवाब भेजें",

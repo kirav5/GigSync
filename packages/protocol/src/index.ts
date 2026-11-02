@@ -1,5 +1,6 @@
 export * from "./auth.js";
 export * from "./board.js";
+export * from "./claim.js";
 export * from "./colleague.js";
 export * from "./content.js";
 export * from "./engagement.js";

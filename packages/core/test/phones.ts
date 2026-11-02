@@ -37,6 +37,8 @@ import { nextPhoneRandom } from "./random.js";
 export class MemoryRelay {
   private readonly devices = new Map<UserId, DeviceKeys[]>();
   private readonly boxes = new Map<DeviceId, Envelope[]>();
+  /** Which device holds each engagement, per owner, as each user's mailbox keeps it (ADR 0045). */
+  private readonly claims = new Map<string, DeviceId>();
   /** Every envelope the relay accepted, as the server would store it. */
   readonly stored: Envelope[] = [];
 
@@ -66,6 +68,12 @@ export class MemoryRelay {
           (this.boxes.get(me.device) ?? []).filter((e) => !ids.includes(e.id)),
         );
         return { acked: ids.length };
+      },
+      claim: async (engagement) => {
+        const key = `${me.user}/${engagement}`;
+        const owner = this.claims.get(key) ?? me.device;
+        this.claims.set(key, owner);
+        return owner;
       },
     };
   }
@@ -102,11 +110,13 @@ export async function phone(
     qrApi?: QrApi;
     /** The server's job record routes, faked in memory (records-fakes.ts). */
     records?: RecordsApi;
+    /** Signs this phone in as an owner who already has one, a second device of the same person. */
+    user?: UserId;
   } = {},
 ): Promise<Phone> {
-  const { payee, protocol, ...options } = opts;
+  const { payee, protocol, user, ...options } = opts;
   const keys = new SecretKeys(newDeviceSecrets());
-  const me = { user: `usr_${ulid()}` as UserId, device: `dev_${ulid()}` as DeviceId };
+  const me = { user: user ?? (`usr_${ulid()}` as UserId), device: `dev_${ulid()}` as DeviceId };
   relay.register(me.user, me.device, await keys.publicKeys(), protocol);
   const storage = new MemoryStorage();
   if (payee) await savePayee(storage, payee);

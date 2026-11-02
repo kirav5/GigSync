@@ -28,6 +28,7 @@ import { endRestored, type RestoredEnd } from "../records/follow.js";
 import { RecordsRunner } from "../records/runner.js";
 import type { RecordsApi } from "../records/types.js";
 import * as after from "./aftercare.js";
+import { claimFor } from "./claim.js";
 import * as consumer from "./consumer.js";
 import type { JobContext } from "./context.js";
 import * as deal from "./deal.js";
@@ -108,6 +109,7 @@ export class GigDevice {
       ...(o.estimates ? { estimates: o.estimates } : {}),
       speaks: (user, protocol) => everyDeviceSpeaks(o.relay, user, protocol),
       send: (r, kind, body) => this.send(r, kind, body),
+      claim: (engagement) => claimFor(o.relay, engagement, o.me.device),
       signingKeyOf: (user, device) => this.transport.signingKeyOf(user, device),
     };
     this.mentors = new Mentors({ ctx: this.ctx, transport: this.transport, relay: o.relay }, o.mentorApi);

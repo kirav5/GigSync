@@ -1,4 +1,4 @@
-import type { ContactCard, DeviceId, EnvelopeKind, Lang, UserId } from "@gigsync/protocol";
+import type { ContactCard, DeviceId, EngagementId, EnvelopeKind, Lang, UserId } from "@gigsync/protocol";
 import type { EstimateOptions } from "../estimate/lookup.js";
 import type { PaymentBook } from "../payments/book.js";
 import type { Clock, Keys, Model, Random, Storage } from "../ports.js";
@@ -28,6 +28,8 @@ export interface JobContext {
   speaks(user: UserId, protocol: number): Promise<boolean>;
   /** Queues an envelope to the other party, applies it to the engagement (unless side-channel) and saves. */
   send(r: JobRecord, kind: EnvelopeKind, body: unknown): Promise<JobRecord>;
+  /** Which of this owner's devices runs the agent for a new request: the first to claim it (ADR 0045). */
+  claim(engagement: EngagementId): Promise<DeviceId>;
   /** The signing key the directory lists for a device, for checking signatures inside bodies. */
   signingKeyOf(user: UserId, device: DeviceId): Promise<string | undefined>;
 }

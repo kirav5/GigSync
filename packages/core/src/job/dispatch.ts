@@ -29,6 +29,7 @@ import type { Received } from "../mail/transport.js";
 import type { Mentors } from "../mentor/mentors.js";
 import type { WorkOffers } from "../qr/offers.js";
 import * as after from "./aftercare.js";
+import { mirror } from "./claim.js";
 import * as consumer from "./consumer.js";
 import type { JobContext } from "./context.js";
 import * as deal from "./deal.js";
@@ -109,6 +110,7 @@ export async function dispatch(
     log.warn("envelope not for any job here", { messageId: e.id, kind: e.kind });
     return;
   }
+  if (r.elsewhere) return mirror(ctx, r, e.kind, body);
   let moved = r;
   if (!SIDE_CHANNEL_KINDS.has(e.kind)) {
     try {
@@ -119,6 +121,13 @@ export async function dispatch(
       log.warn("envelope out of turn", { messageId: e.id, kind: e.kind, status: r.engagement.status });
       return;
     }
+  }
+  // A request reaches every device of a worker; only the one that claims it first lets its agent answer (ADR 0045).
+  const owner = existing ? ctx.me.device : await ctx.claim(e.engagement);
+  if (owner !== ctx.me.device) {
+    log.info("request answered on another device", { messageId: e.id, engagement: e.engagement });
+    await ctx.store.saveJob({ ...moved, elsewhere: owner });
+    return;
   }
   await ctx.store.saveJob(moved);
   if (e.kind === K.problem) return side.contacts.receive(moved, body as JobProblem);

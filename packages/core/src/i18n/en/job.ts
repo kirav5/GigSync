@@ -51,6 +51,7 @@ export const job = {
   "job.signed": "Signed: {price}",
   "job.both_signed": "both signed",
   "job.their_signature": "waiting for their signature",
+  "job.elsewhere": "Your other phone is answering this request. Open GigSync there to follow it.",
   "job.contact": "Contact, released after both signed",
   "job.asks": "The worker asks: {question}",
   "job.send_answers": "Send answers",
