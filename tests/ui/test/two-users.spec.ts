@@ -253,16 +253,19 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await expect(priya.getByLabel(say("a11y.payment"))).toContainText(say("pay.thread.confirmed"));
   await shoot("paid-rated-closed", phones);
 
-  // ── The job reached GigSync from both phones (ADR 0038): his card and the card Priya scans show the same record ──
+  // ── The job reached GigSync from both phones (ADR 0038): his card and the card Priya scans show the same record,
+  // her five stars included (shown from the first rating, ADR 0036) ──
   const qr = nextQrCode(anil);
   await open(anil, "nav.card");
   const mine = anil.getByRole("region", { name: say("page.card_seen") });
-  await expect(mine.getByRole("definition")).toHaveText(["1", say("record.card_no_stars")]);
+  await expect(mine.getByRole("definition")).toHaveText(["1", say("record.card_stars", { stars: "5" })]);
   const code = await qr;
   await expect(async () => {
     await priya.goto(`${APP}/?to=${code}`);
     const seen = priya.getByRole("region", { name: "Anil" });
-    await expect(seen.getByRole("definition")).toHaveText(["1", say("record.card_no_stars")], { timeout: 5000 });
+    await expect(seen.getByRole("definition")).toHaveText(["1", say("record.card_stars", { stars: "5" })], {
+      timeout: 5000,
+    });
   }).toPass();
   await shoot("record-on-card", phones);
 
