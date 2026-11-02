@@ -24,6 +24,12 @@ export interface Received {
 }
 
 const MS_PER_SECOND = 1000;
+/**
+ * How long a user's device list is trusted for sealing. A person who signs in again, or on another phone, has a new
+ * device; a list kept for as long as the app ran sealed every later message to the old one only, and the new phone
+ * dropped it unread (a household's second request to the same worker never reached him).
+ */
+const DEVICE_LIST_MS = 60 * MS_PER_SECOND;
 /** 4xx answers other than these mean the envelope itself is wrong; retrying cannot help, so it is dropped. */
 const RETRYABLE = new Set([408, 425, 429]);
 const isPermanent = (err: unknown) =>
@@ -37,7 +43,7 @@ const isPermanent = (err: unknown) =>
 export class MailTransport {
   private readonly outbox: Outbox;
   private readonly inbox: Inbox;
-  private readonly devices = new Map<UserId, DeviceKeys[]>();
+  private readonly devices = new Map<UserId, { list: DeviceKeys[]; at: number }>();
 
   constructor(
     private readonly relay: Relay,
@@ -130,10 +136,11 @@ export class MailTransport {
   }
 
   private async devicesOf(user: UserId, refresh = false): Promise<DeviceKeys[]> {
+    const now = this.clock.now().getTime();
     const cached = this.devices.get(user);
-    if (cached && !refresh) return cached;
+    if (cached && !refresh && now - cached.at < DEVICE_LIST_MS) return cached.list;
     const entry = await this.relay.directory(user);
-    this.devices.set(user, entry.devices);
+    this.devices.set(user, { list: entry.devices, at: now });
     return entry.devices;
   }
 }

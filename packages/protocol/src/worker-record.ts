@@ -10,8 +10,8 @@ import { z } from "zod";
 /** Stars a household gives in a review, lowest and highest. */
 export const MIN_STARS = 1;
 export const MAX_STARS = 5;
-/** The average shows only once at least this many households rated the worker. */
-export const MIN_RATED = 3;
+/** The average shows once at least this many households rated the worker: from the first, so a rating is seen to land. */
+export const MIN_RATED = 1;
 /** Averages are shown to one decimal: tenths of a star. */
 export const AVERAGE_SCALE = 10;
 /** No honest count comes near this; it bounds the schema. */

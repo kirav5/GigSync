@@ -20,6 +20,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
 import { meaningFor } from "../../adapters/meaning.js";
 import { chosenModel, ModelChoice } from "../../adapters/model.js";
+import { offerAlerts } from "../../adapters/push.js";
 import { stopSpeaking } from "../../adapters/speech.js";
 import { needConfig } from "../../card/choices.js";
 import { answerMarket, routedMarket } from "../../estimate/market.js";
@@ -98,9 +99,10 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       relanguageNeed(open, withMemory(needConfig(lang, state.config.today), state.config.remembered));
   }, [state, open, lang]);
 
+  // Only a new turn scrolls the chat down: ticking a worker rewrites its turn, and must leave the list where it is.
   useEffect(() => {
     if (turns.length > 0) end.current?.scrollIntoView({ block: "end" });
-  }, [turns]);
+  }, [turns.length]);
 
   // Leaving Find ends a question the owner asked to hear again.
   useEffect(
@@ -201,6 +203,8 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   }
 
   async function ask(turn: FoundTurn) {
+    // Asking workers is when this household starts to have news to hear about: the browser may ask, once.
+    void offerAlerts();
     const need = state && needOf(state, i18n, ports.clock.now());
     if (busy || !need) return;
     const chat = open;

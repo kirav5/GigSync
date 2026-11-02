@@ -1,5 +1,5 @@
-// The web app's service worker: the app shell for offline starts, and job alerts (empty Web Pushes, see below). The plugin in vite.config.ts
-// copies this file into the build and fills in the two placeholders below: the cache's name (a hash of the built file
+// The web app's service worker: the app shell for offline starts, and notifications (Web Push, see below). The plugin
+// in vite.config.ts copies this file into the build and fills in the two placeholders below: the cache's name (a hash of the built file
 // names) and the list to precache. Release web builds only (adapters/install.ts registers it); the native apps load
 // from their bundle.
 //
@@ -80,43 +80,121 @@ async function cacheFirst(request) {
   return response;
 }
 
-// ── Job alerts ────────────────────────────────────────────────────────────────────────────────────────────────────
-// The API sends an empty push when job news lands in this owner's mailbox (workers/api/src/push/webpush.ts): the push
-// says nothing about the job, so the alert can only say there is news. The app, once open, reads its own sealed
-// messages. The words follow the owner's language, which the app tells this worker on each open (adapters/push.ts).
-
+// ── Notifications ─────────────────────────────────────────────────────────────────────────────────────────────────
+// When job news lands in this owner's mailbox the API sends a push saying what kind of message came and from whom,
+// encrypted to this phone (workers/api/src/push/webpush.ts, ADR 0044); the browser decrypts it before it gets here.
+// The sender's name comes from the names the app gives this worker (adapters/push.ts), never from the server, and the
+// words follow the owner's language. A push from before ADR 0044 is empty: then only "something new".
 const PREFS = "gigsync-prefs";
 const LANG_KEY = scoped("__lang").href;
+const NAMES_KEY = scoped("__names").href;
 const SW_LANG = "gigsync-lang";
+const SW_NAMES = "gigsync-names";
 const ALERT_TAG = "gigsync-job";
 const ICON = scoped("icons/icon-192.png").href;
 const DEFAULT_LANG = "en";
-const ALERT = {
-  en: "Your job has an update. Open GigSync to see it.",
-  hi: "आपके काम में कुछ नया है। देखने के लिए GigSync खोलें।",
-  kn: "ನಿಮ್ಮ ಕೆಲಸದಲ್ಲಿ ಹೊಸ ಸುದ್ದಿ ಇದೆ. ನೋಡಲು GigSync ತೆರೆಯಿರಿ.",
-};
 const TITLE = "GigSync";
 const VISIBLE = "visible";
 const WINDOW = "window";
+/** What a notification says for each kind of message, by language; `other` when the kind is not known here. */
+const SAYS = {
+  en: {
+    request: "New work request",
+    clarify: "Has a question for you",
+    agree: "Signed the deal",
+    contact_release: "Shared contact details",
+    update: "Sent an update on the job",
+    delivery: "Marked the work done",
+    review: "Rated the work",
+    cancel: "Cancelled the job",
+    payment_request: "Asked for payment",
+    payment_record: "Recorded a payment",
+    problem: "Reported a problem",
+    work_offer: "Offered you work",
+    referral: "Offered you work",
+    note: "Sent you a note",
+    other: "Something new on your job. Open GigSync to see it.",
+  },
+  hi: {
+    request: "काम का नया अनुरोध",
+    clarify: "आपसे एक सवाल पूछा है",
+    agree: "सौदे पर साइन किया",
+    contact_release: "संपर्क जानकारी भेजी",
+    update: "काम की नई जानकारी भेजी",
+    delivery: "काम पूरा होने की बात कही",
+    review: "काम को रेटिंग दी",
+    cancel: "काम रद्द किया",
+    payment_request: "भुगतान माँगा",
+    payment_record: "भुगतान दर्ज किया",
+    problem: "एक समस्या बताई",
+    work_offer: "आपको काम ऑफ़र किया",
+    referral: "आपको काम ऑफ़र किया",
+    note: "आपको संदेश भेजा",
+    other: "आपके काम में कुछ नया है। देखने के लिए GigSync खोलें।",
+  },
+  kn: {
+    request: "ಹೊಸ ಕೆಲಸದ ವಿನಂತಿ",
+    clarify: "ನಿಮಗೊಂದು ಪ್ರಶ್ನೆ ಕೇಳಿದ್ದಾರೆ",
+    agree: "ಒಪ್ಪಂದಕ್ಕೆ ಸಹಿ ಮಾಡಿದ್ದಾರೆ",
+    contact_release: "ಸಂಪರ್ಕ ವಿವರ ಕಳುಹಿಸಿದ್ದಾರೆ",
+    update: "ಕೆಲಸದ ಹೊಸ ಮಾಹಿತಿ ಕಳುಹಿಸಿದ್ದಾರೆ",
+    delivery: "ಕೆಲಸ ಮುಗಿದಿದೆ ಎಂದಿದ್ದಾರೆ",
+    review: "ಕೆಲಸಕ್ಕೆ ರೇಟಿಂಗ್ ನೀಡಿದ್ದಾರೆ",
+    cancel: "ಕೆಲಸ ರದ್ದುಮಾಡಿದ್ದಾರೆ",
+    payment_request: "ಹಣ ಕೇಳಿದ್ದಾರೆ",
+    payment_record: "ಪಾವತಿ ದಾಖಲಿಸಿದ್ದಾರೆ",
+    problem: "ಒಂದು ಸಮಸ್ಯೆ ತಿಳಿಸಿದ್ದಾರೆ",
+    work_offer: "ನಿಮಗೆ ಕೆಲಸ ನೀಡಿದ್ದಾರೆ",
+    referral: "ನಿಮಗೆ ಕೆಲಸ ನೀಡಿದ್ದಾರೆ",
+    note: "ನಿಮಗೆ ಸಂದೇಶ ಕಳುಹಿಸಿದ್ದಾರೆ",
+    other: "ನಿಮ್ಮ ಕೆಲಸದಲ್ಲಿ ಹೊಸ ಸುದ್ದಿ ಇದೆ. ನೋಡಲು GigSync ತೆರೆಯಿರಿ.",
+  },
+};
+/** Mentor and colleague messages read alike: a note. */
+const NOTE_KINDS = new Set(["landing_request", "mentor_offer", "colleague_note"]);
+
+const keep = (key, value) => caches.open(PREFS).then((cache) => cache.put(key, new Response(JSON.stringify(value))));
+async function kept(key, fallback) {
+  try {
+    const found = await (await caches.open(PREFS)).match(key);
+    return found ? await found.json() : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 self.addEventListener("message", (event) => {
-  const { type, lang } = event.data ?? {};
-  if (type !== SW_LANG || !(lang in ALERT)) return;
-  event.waitUntil(caches.open(PREFS).then((cache) => cache.put(LANG_KEY, new Response(lang))));
+  const { type, lang, names } = event.data ?? {};
+  if (type === SW_LANG && lang in SAYS) event.waitUntil(keep(LANG_KEY, lang));
+  if (type === SW_NAMES && names && typeof names === "object") event.waitUntil(keep(NAMES_KEY, names));
 });
 
-self.addEventListener("push", (event) => event.waitUntil(alertOwner()));
+self.addEventListener("push", (event) => event.waitUntil(alertOwner(newsOf(event))));
 
-/** A plain alert, unless the app is on screen: then it shows the news itself within seconds. */
-async function alertOwner() {
+/** The news a push carries, or nothing (an empty push, or one this worker cannot read). */
+function newsOf(event) {
+  try {
+    const news = event.data?.json();
+    return news && typeof news.kind === "string" && typeof news.from === "string" ? news : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Who sent it and what came, in the owner's language; unless the app is on screen, which shows it itself. */
+async function alertOwner(news) {
   const windows = await self.clients.matchAll({ type: WINDOW, includeUncontrolled: true });
   if (windows.some((w) => w.visibilityState === VISIBLE)) return;
-  const kept = await (await caches.open(PREFS)).match(LANG_KEY);
-  const lang = kept ? await kept.text() : DEFAULT_LANG;
-  await self.registration.showNotification(TITLE, {
-    body: ALERT[lang] ?? ALERT[DEFAULT_LANG],
-    tag: ALERT_TAG,
+  const lang = await kept(LANG_KEY, DEFAULT_LANG);
+  const says = SAYS[lang] ?? SAYS[DEFAULT_LANG];
+  const names = news ? await kept(NAMES_KEY, {}) : {};
+  const name = news ? names[news.from] : undefined;
+  const kind = news && NOTE_KINDS.has(news.kind) ? "note" : news?.kind;
+  const body = (kind && says[kind]) || says.other;
+  await self.registration.showNotification(typeof name === "string" && name ? name : TITLE, {
+    body,
+    // One notification per person, replaced by their next news; the rest share one.
+    tag: news ? `${ALERT_TAG}-${news.from}` : ALERT_TAG,
     renotify: true,
     icon: ICON,
   });

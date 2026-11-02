@@ -78,8 +78,8 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
   useRestoredJobs(device, account, () => void run(async () => undefined));
   // A job the other side ended through the record (their phone rebuilt it) moves on here too.
   useRecordFollow(device, account, () => void run(async () => undefined));
-  // With job alerts on, this device's push address and language are told again on each open.
-  useAlerts(account.session, lang);
+  // Notifications: the push address and language told again on each open, and who the jobs are with.
+  useAlerts(account.session, lang, view.jobs, view.names);
   // A new phone (ADR 0037): an owner with nothing here yet and another active phone is asked once whether they are
   // moving from it, and a worker's card comes back from the board.
   // Only from the chat it opened on: a screen the owner moved to meanwhile stays.

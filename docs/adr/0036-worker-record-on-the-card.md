@@ -23,7 +23,8 @@ tampered app.
    publishes them with its board card. The server counts, per worker, from envelope headers it already sees and never
    their content: engagements for which both sides delivered a signature, distinct reviewers who delivered a review on
    such an engagement (one per household per engagement), and households with two or more such engagements. To count a job only once both sides signed, and households that came back, it keeps one row per signature (signer, counterpart, engagement id) and one per counted review (subject, reviewer, engagement id): user and engagement ids only, never content, stars, prices or dates. That is a lasting record of who worked with whom, which the server did not keep before (it saw those ids only while delivering); the founders accepted it for this purpose on 2026-10-30. It serves each published number capped at its count. The average cannot be checked (stars are
-   sealed); it is shown with how many rated, and only when at least `MIN_RATED` (3) households rated.
+   sealed); it is shown with how many rated, from the first rating (`MIN_RATED`, 1; it was 3 until 2026-11-02, when a worker who was rated saw "Not yet rated"
+   and took the rating as lost).
 3. **All or nothing.** The worker may hide the record from their card entirely (a switch in Privacy), never single
    ratings: the average is over every rating they received.
 4. **Never a ranking.** Find, the board search and the agents never sort, filter or price by these numbers.

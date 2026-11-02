@@ -1,6 +1,6 @@
 import type { progress as en } from "../en/progress.js";
 
-/** Kannada: a signed job's progress line, the actions on a job restored from the record, and job alerts. */
+/** Kannada: a signed job's progress line, the actions on a job restored from the record, and notifications. */
 export const progress: Readonly<Record<keyof typeof en, string>> = {
   "progress.title": "ಕೆಲಸದ ಪ್ರಗತಿ",
   "progress.agreed": "ಒಪ್ಪಿಗೆ",
@@ -11,15 +11,18 @@ export const progress: Readonly<Record<keyof typeof en, string>> = {
   "progress.closed": "ಮುಕ್ತಾಯ",
   "progress.cancelled": "ರದ್ದು",
   "progress.you": "ನೀವು",
+  "progress.more.one": "ಇನ್ನೂ {count} ಹಂತ",
+  "progress.more.other": "ಇನ್ನೂ {count} ಹಂತಗಳು",
+  "progress.less": "ಕಡಿಮೆ ತೋರಿಸಿ",
   "restored.work_done": "ಕೆಲಸ ಮುಗಿದಿದೆ",
   "restored.cancel": "ಈ ಕೆಲಸ ರದ್ದುಮಾಡಿ",
   "restored.why": "ಈ ಕೆಲಸ ನಿಮ್ಮ GigSync ದಾಖಲೆಯಿಂದ ಮರಳಿ ಬಂದಿದೆ, ಹಾಗಾಗಿ ಬದಲಾವಣೆ ದಾಖಲೆಯ ಮೂಲಕ ಒಂದು ನಿಮಿಷದಲ್ಲಿ {name} ಅವರಿಗೆ ತಲುಪುತ್ತದೆ.",
   "restored.cancel_sure": "ಈ ಕೆಲಸವನ್ನು ನಿಮ್ಮಿಬ್ಬರಿಗೂ ರದ್ದುಮಾಡಬೇಕೇ?",
   "restored.cancel_yes": "ಹೌದು, ರದ್ದುಮಾಡಿ",
   "restored.keep": "ಇರಲಿ",
-  "alerts.title": "ಕೆಲಸದ ಸೂಚನೆಗಳು",
+  "alerts.title": "ಸೂಚನೆಗಳು",
   "alerts.about":
-    "ಕೆಲಸ ಮುಂದುವರಿದಾಗ ಈ ಫೋನ್‌ಗೆ ಸೂಚನೆ: ಹೊಸ ರಿಕ್ವೆಸ್ಟ್, ಸಹಿ ಮಾಡಬೇಕಾದ ಒಪ್ಪಂದ, ಕೆಲಸಗಾರ ದಾರಿಯಲ್ಲಿ, ಮುಗಿದಿದೆ, ಹಣ ಪಾವತಿ ಅಥವಾ ರದ್ದು. ಹೇಳಿದ ಮಾತು ಎಂದಿಗೂ ಕಾಣಿಸುವುದಿಲ್ಲ.",
+    "ಕೆಲಸ ಮುಂದುವರಿದಾಗ ಈ ಫೋನ್‌ಗೆ ಸೂಚನೆ, ಯಾರಿಂದ ಮತ್ತು ಏನಾಯಿತು ಎಂದು: ಹೊಸ ವಿನಂತಿ, ಒಪ್ಪಂದಕ್ಕೆ ಸಹಿ, ದಾರಿಯಲ್ಲಿ, ಮುಗಿದಿದೆ, ಹಣ ಪಾವತಿ ಅಥವಾ ರದ್ದು. ಹೇಳಿದ ಮಾತು ಎಂದಿಗೂ ಕಾಣಿಸುವುದಿಲ್ಲ, ಮತ್ತು ದಾರಿಯಲ್ಲಿ Google ಅಥವಾ Apple ಇದನ್ನು ಓದಲಾರವು.",
   "alerts.on": "ಆನ್: ಸೂಚನೆಗಳು ಈ ಫೋನ್‌ಗೆ ಬರುತ್ತವೆ.",
   "alerts.turn_on": "ಸೂಚನೆಗಳನ್ನು ಆನ್ ಮಾಡಿ",
   "alerts.turn_off": "ಆಫ್ ಮಾಡಿ",

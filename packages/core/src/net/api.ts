@@ -20,6 +20,7 @@ import {
   MyQr,
   type MyQrRequest,
   PushKey,
+  type PushSubscribe,
   type QrCode,
   QrPerson,
   Session,
@@ -209,9 +210,12 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
     return PushKey.parse(await this.call(HttpMethod.get, ApiPath.pushKey)).public_key;
   }
 
-  /** Tells the API where this device's browser takes pushes; only a real push service's address is kept. */
-  async subscribePush(endpoint: string): Promise<void> {
-    await this.call(HttpMethod.put, ApiPath.devicePush, { endpoint });
+  /**
+   * Tells the API where this device's browser takes pushes and the keys to encrypt them to; only a real push service's
+   * address is kept.
+   */
+  async subscribePush(subscription: PushSubscribe): Promise<void> {
+    await this.call(HttpMethod.put, ApiPath.devicePush, subscription);
   }
 
   async unsubscribePush(): Promise<void> {

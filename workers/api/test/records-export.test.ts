@@ -86,7 +86,7 @@ describe("deleting my records", () => {
     expect(kept.map((j) => j.counterpart)).toEqual([null, null]);
     expect(kept[0]?.stars).toBe(4);
     // Still two jobs done, and the rating stays with them.
-    expect((await cardOf(w, w.session.user)).record).toEqual({ jobs: 2, rated: 1 });
+    expect((await cardOf(w, w.session.user)).record).toEqual({ jobs: 2, rated: 1, average: 4 });
     expect((await asWorker(home, w, paintJob(newEngagement(), newHash()))).status).toBe(403);
     expect((await call(home, HttpMethod.get, "/consent")).status).toBe(404);
   });

@@ -13,6 +13,7 @@ import {
 } from "@gigsync/core";
 import { useEffect } from "react";
 import type { Account } from "../adapters/account.js";
+import { offerAlerts } from "../adapters/push.js";
 import { stopSpeaking } from "../adapters/speech.js";
 import {
   claimPublish,
@@ -156,6 +157,9 @@ export function Interview({
     const claim = claimPublish();
     if (claim === undefined) return;
     const draft = draftOf(state);
+    // Requests start to come once the card is listed: the browser may ask about notifications, if the last answer was
+    // a tap a moment ago (it asks only then).
+    void offerAlerts();
     publishCard(ports, account, draft, lang)
       .then((saved) => {
         const area = AREAS.find((a) => a.key === draft.area);
