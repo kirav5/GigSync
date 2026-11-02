@@ -1,4 +1,4 @@
-import { isTrade, type Lang, type QuestionKey, Role, SKIPPED, type Trade } from "@gigsync/protocol";
+import { isTrade, type Lang, type QuestionKey, Role, SKIPPED } from "@gigsync/protocol";
 import type { JobRecord, Need } from "../job/store.js";
 import { log } from "../log.js";
 import { load, save } from "./store.js";
