@@ -1,6 +1,7 @@
 import { type MessageKey, t } from "@gigsync/core";
 import type { Lang } from "@gigsync/protocol";
 import { expect, type Locator, type Page } from "@playwright/test";
+import { fillAddressForm } from "./address.js";
 
 /**
  * Driving Find's chat the way a household answers it: the need in their own words, then whatever the agent still
@@ -108,6 +109,11 @@ async function answer(phone: Phone, ask: NeedAnswers): Promise<boolean> {
   const home = t(lang, "addr.chip", { label: t(lang, "addr.label.home"), area: ask.area });
   if ((await says(page, lang, "need.ask.address")) && (await tapIf(chip(page, home)))) return false;
   for (const key of taps) if (await tapIf(chip(page, t(lang, key)))) return false;
+  // No saved address in the area: one is added from the chat, as a household must before workers are asked.
+  if (await tapIf(chip(page, t(lang, "addr.add")))) {
+    await fillAddressForm(page, lang, { house: "House 12, 3rd Cross", area: ask.area });
+    return false;
+  }
   throw new Error(`Find's chat asked something the test cannot answer: ${await newest(page).textContent()}`);
 }
 

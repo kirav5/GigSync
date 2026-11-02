@@ -73,7 +73,13 @@ test("a rebuilt job can still be finished, both phones agree on its progress, an
     { page: worker, lang: en },
     { trade: "Electrician", area: "indiranagar", rate: "700", min: "550", about: "Fans and switchboards" },
   );
-  await signIn(household, { role: Role.consumer, name: householdName, phone: newPhone(), address: `Flat 4 (${RUN})` });
+  await signIn(household, {
+    role: Role.consumer,
+    name: householdName,
+    phone: newPhone(),
+    address: `Flat 4 (${RUN})`,
+    area: "Indiranagar",
+  });
   await open(worker, "nav.activity");
   await ask(household, "Fan not working");
   await signBoth({ worker: { page: worker, lang: en }, household: { page: household, lang: en } }, FOLDER);

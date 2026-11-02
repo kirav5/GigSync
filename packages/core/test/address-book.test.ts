@@ -2,16 +2,19 @@ import { MAX_ADDRESSES, type SavedAddress } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import {
   addressChoice,
+  addressFor,
   addressLine,
   areaKeyOf,
   listAddresses,
   localitySlug,
+  NeedSlot,
   pilotAreaOf,
   removeAddress,
   requestPoint,
   saveAddress,
   TooManyAddressesError,
 } from "../src/index.js";
+import { firstMissing } from "../src/interview/need.js";
 import { MemoryStorage } from "../src/ports.js";
 
 /** ADR 0045: saved addresses on the phone, and what leaves it. */
@@ -79,5 +82,25 @@ describe("what the worker gets, and what leaves the phone before that", () => {
   it("finds the pilot area a coarse point is in, as requests now carry one", () => {
     expect(areaKeyOf({ lat: 12.97, lon: 77.64 })).toBe("indiranagar");
     expect(areaKeyOf({ lat: 12.93, lon: 77.55 })).toBeUndefined();
+  });
+});
+
+describe("the address a need without one picked goes to", () => {
+  it("is the saved one in the need's locality, else the only one, else the newest; none when nothing is saved", () => {
+    const office = home(2, { label: "work", area: "Koramangala" });
+    const flat = home(3, { area: "HSR Layout" });
+    expect(addressFor([home(1), office, flat], "koramangala")?.id).toBe(office.id);
+    expect(addressFor([home(1)], "Whitefield")?.id).toBe(home(1).id);
+    expect(addressFor([home(1), office, flat], undefined)?.id).toBe(flat.id);
+    expect(addressFor([], "Koramangala")).toBeUndefined();
+  });
+});
+
+describe("a household's need", () => {
+  it("is not whole with an area alone: Find asks which address", () => {
+    const draft = { seen: {}, trade: "electrician", detail: "fan", area: "hsr_layout", day: "2026-11-03" } as never;
+    expect(firstMissing(draft)).not.toBe(NeedSlot.area);
+    expect(firstMissing(draft, true)).toBe(NeedSlot.area);
+    expect(firstMissing({ ...(draft as object), address: id(1) } as never, true)).not.toBe(NeedSlot.area);
   });
 });

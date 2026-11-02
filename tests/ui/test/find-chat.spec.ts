@@ -97,7 +97,14 @@ test("a Hindi household finds an electrician by tapping the choices", async ({ b
   );
   const context = await browser.newContext();
   const page = await context.newPage();
-  await signIn(page, { role: Role.consumer, name: `Kavita ${RUN}`, phone: newPhone(), address: "कोरमंगला", lang: hi });
+  await signIn(page, {
+    role: Role.consumer,
+    name: `Kavita ${RUN}`,
+    phone: newPhone(),
+    address: "कोरमंगला",
+    area: "Koramangala",
+    lang: hi,
+  });
 
   const log = page.getByRole("log");
   await expect(log).toContainText(t(hi, "need.start"));

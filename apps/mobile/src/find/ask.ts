@@ -110,9 +110,10 @@ export function whereOf(
   d: NeedState["draft"],
   saved: readonly SavedAddress[],
 ): Pick<NeedParts, "area" | "locality" | "site"> | undefined {
-  // The one picked; else, for an area said in words, the household's only saved address in it.
+  // The one picked; else, for an area said in words, the household's only saved address in it; else their only one.
   const inArea = saved.filter((a) => areaKeyOfAddress(a) === d.area);
-  const address = d.address ? saved.find((a) => a.id === d.address) : inArea.length === 1 ? inArea[0] : undefined;
+  const only = inArea.length === 1 ? inArea[0] : saved.length === 1 && !d.area ? saved[0] : undefined;
+  const address = d.address ? saved.find((a) => a.id === d.address) : only;
   const point = address && requestPoint(address);
   if (address && point) return { area: point, locality: address.area, site: addressLine(address) };
   const pilot = AREAS.find((a) => a.key === d.area);

@@ -142,7 +142,13 @@ test("a household opens a worker's QR link before signing in, and asks him", asy
 test("a worker opens a household's QR link and offers; the household asks him from My jobs", async ({ browser }) => {
   const [anil, priya] = await pages(browser);
   await anilWithCard(anil);
-  await signIn(priya, { role: Role.consumer, name: priyaName, phone: newPhone(), address: ADDRESS });
+  await signIn(priya, {
+    role: Role.consumer,
+    name: priyaName,
+    phone: newPhone(),
+    address: ADDRESS,
+    area: "Indiranagar",
+  });
   const code = await openMyQr(priya, priyaName);
 
   const first = priyaFirst;
