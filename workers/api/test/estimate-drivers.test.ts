@@ -163,6 +163,8 @@ describe("migration 0011", () => {
     expect(rows.map((r) => r.column_name).sort()).toEqual(
       [
         "area_band",
+        // Migration 0012 (ADR 0046).
+        "arrangement",
         "days_week",
         "finish",
         "floors",

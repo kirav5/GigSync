@@ -1,4 +1,6 @@
+import { address } from "./address.js";
 import { agent } from "./agent.js";
+import { arrangement } from "./arrangement.js";
 import { ask } from "./ask.js";
 import { bargain } from "./bargain.js";
 import { chats } from "./chats.js";
@@ -61,6 +63,8 @@ export const en = {
   ...mentor,
   ...estimate,
   ...drivers,
+  ...arrangement,
+  ...address,
   ...bargain,
   ...terms,
   ...explain,

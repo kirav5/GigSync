@@ -36,6 +36,8 @@ export const ApiError = {
   envelopeMismatch: "envelope does not match route",
   expired: "expired",
   forbidden: "forbidden",
+  geocodingFailed: "geocoding failed",
+  geocodingOff: "geocoding not set up",
   internal: "internal error",
   notFound: "not found",
   offerNotTaken: "offer not taken",

@@ -1,4 +1,4 @@
-import type { Estimate, Lang, Place, Trade } from "@gigsync/protocol";
+import { type Estimate, type Lang, type Place, QuestionKey, type Trade } from "@gigsync/protocol";
 import { driversToDetails } from "../estimate/driver-details.js";
 import { t } from "../i18n/t.js";
 import { YES_NO_QUESTIONS } from "../job/details.js";
@@ -33,8 +33,12 @@ export interface NeedParts {
   /** Answers given up front, by question key. */
   details?: Readonly<Record<string, string>>;
   budget_paise: number;
-  /** The area's centre: the only point ever shared. */
+  /** The area's point; only its coarse rounding is ever sent (ADR 0045). */
   area: Place;
+  /** The locality's name, shown to workers before signing. */
+  locality?: string | undefined;
+  /** The saved address as one line, for the worker once both have signed. */
+  site?: string | undefined;
   /** The estimate for the whole job the owner saw beside the budget, if any; it stays on this phone. */
   estimate?: Estimate | undefined;
   /** The terms the owner asked for and what they are flexible about (`needTerms`); their agent negotiates them. */
@@ -48,6 +52,8 @@ export function needToSend(p: NeedParts): NewNeed {
     need: p.need,
     when: p.time ? `${p.label} ${p.time}` : p.label,
     area: { lat: p.area.lat, lon: p.area.lon },
+    ...(p.locality ? { locality: p.locality } : {}),
+    ...(p.site ? { site: p.site } : {}),
     details: {
       ...p.details,
       [WhenDetail.day]: p.day,
@@ -76,7 +82,8 @@ export function resolveDay(day: string, now: Date, offsetMinutes: number): strin
 export function draftDetails(d: NeedDraft): Record<string, string> {
   const first = firstQuestion(d.trade);
   const drivers = d.trade && d.drivers ? driversToDetails(d.trade, d.drivers) : {};
-  return { ...drivers, ...scopeDetails(d), ...(first && d.detail ? { [first]: d.detail } : {}) };
+  const arrangement = d.arrangement ? { [QuestionKey.enum.arrangement]: d.arrangement } : {};
+  return { ...drivers, ...scopeDetails(d), ...(first && d.detail ? { [first]: d.detail } : {}), ...arrangement };
 }
 
 /** An answer that is only a number in any script ("4", "४", "೪"): a count, which says nothing as the job's words. */

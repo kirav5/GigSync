@@ -1,8 +1,11 @@
 import {
+  addressLine,
+  areaKeyOfAddress,
   DayWord,
   draftDetails,
   EVERY_DAY,
   type GigDevice,
+  type NeedParts,
   type NeedState,
   type NeedTo,
   type NewNeed,
@@ -13,9 +16,19 @@ import {
   needWords,
   type Ports,
   perJob,
+  requestPoint,
   resolveDay,
 } from "@gigsync/core";
-import type { BoardProfile, BoardWorker, Place, Trade, UserId } from "@gigsync/protocol";
+import {
+  type Arrangement,
+  type BoardProfile,
+  type BoardWorker,
+  coarsePoint,
+  type Place,
+  type SavedAddress,
+  type Trade,
+  type UserId,
+} from "@gigsync/protocol";
 import { type Account, apiClient, rememberName } from "../adapters/account.js";
 import type { I18n } from "../i18n.js";
 import { dayDate } from "../screens/jobGroups.js";
@@ -48,8 +61,11 @@ export async function searchBoard(
   trade: Trade,
   at: Place,
   radius_km: number,
+  arrangement?: Arrangement,
 ): Promise<BoardWorker[]> {
-  const board = await apiClient(account.session).searchWorkers({ trade, lat: at.lat, lon: at.lon, radius_km });
+  const near = coarsePoint(at);
+  const query = { trade, lat: near.lat, lon: near.lon, radius_km, ...(arrangement ? { arrangement } : {}) };
+  const board = await apiClient(account.session).searchWorkers(query);
   return board.filter((w) => w.user !== account.session.user);
 }
 
@@ -64,10 +80,15 @@ export const dayLabel = ({ t, date }: Pick<I18n, "t" | "date">, day: string): st
  * The request a finished need sends, its day resolved on the phone's calendar `now`; undefined while something it
  * needs is missing. The estimate the household saw beside the budget goes with it, for notes on far-off offers.
  */
-export function needOf(state: NeedState, i18n: Pick<I18n, "t" | "date">, now: Date): NewNeed | undefined {
+export function needOf(
+  state: NeedState,
+  i18n: Pick<I18n, "t" | "date">,
+  now: Date,
+  saved: readonly SavedAddress[] = [],
+): NewNeed | undefined {
   const d = state.draft;
-  const area = AREAS.find((a) => a.key === d.area);
-  if (!d.trade || !area || d.budget_paise === undefined) return undefined;
+  const at = whereOf(d, saved);
+  if (!d.trade || !at || d.budget_paise === undefined) return undefined;
   const day = resolveDay(d.day ?? DayWord.today, now, -now.getTimezoneOffset());
   const found = needEstimate(state);
   return needToSend({
@@ -78,10 +99,26 @@ export function needOf(state: NeedState, i18n: Pick<I18n, "t" | "date">, now: Da
     time: d.time,
     details: draftDetails(d),
     budget_paise: d.budget_paise,
-    area,
+    ...at,
     estimate: found && perJob(found.estimate, needDetails(d)),
     terms: needTerms(d, d.trade, day),
   });
+}
+
+/** Where a need is: its saved address (coarse point, locality, the line for after signing), else its pilot area. */
+export function whereOf(
+  d: NeedState["draft"],
+  saved: readonly SavedAddress[],
+): Pick<NeedParts, "area" | "locality" | "site"> | undefined {
+  // The one picked; else, for an area said in words, the household's only saved address in it.
+  const inArea = saved.filter((a) => areaKeyOfAddress(a) === d.area);
+  const address = d.address ? saved.find((a) => a.id === d.address) : inArea.length === 1 ? inArea[0] : undefined;
+  const point = address && requestPoint(address);
+  if (address && point) return { area: point, locality: address.area, site: addressLine(address) };
+  const pilot = AREAS.find((a) => a.key === d.area);
+  // A saved address with no point and no pilot area near it: searched from its area's name when GigSync has one.
+  if (address && pilot) return { area: pilot, locality: address.area, site: addressLine(address) };
+  return pilot && { area: pilot };
 }
 
 /** Sends one need to the workers asked, keeping their names on this phone for My jobs. */

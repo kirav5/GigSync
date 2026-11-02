@@ -20,12 +20,27 @@ const SLUG_SEPARATOR = "-";
 /** An area's key as the slug the server keeps: "hsr_layout" → "hsr-layout". */
 export const areaSlug = (key: string): AreaKey => key.replace(KEY_SEPARATOR, SLUG_SEPARATOR);
 
+/** A point this close to a pilot area's centre is in that area (ADR 0045): its estimates, its name in each language. */
+export const PILOT_AREA_KM = 3;
+const KM_PER_DEGREE = 111;
+const RADIANS = Math.PI / 180;
+
+/** Kilometres between two points, flat-earth: exact enough across a city. */
+const kmBetween = (a: Place, b: Place): number =>
+  Math.hypot(a.lat - b.lat, (a.lon - b.lon) * Math.cos(a.lat * RADIANS)) * KM_PER_DEGREE;
+
 /**
- * The pilot area a point is the centre of, as its slug ("hsr-layout"); undefined for any other point. Only area
- * centres are ever shared, so a job's point is one of them or none.
+ * The pilot area a point is in: the nearest centre within `PILOT_AREA_KM`. A request's point is rounded to about a
+ * kilometre before it leaves the phone (ADR 0045), and older requests carried a centre exactly; both land here.
  */
+export function nearestPilotArea(place: Place): PilotArea | undefined {
+  const nearest = [...PILOT_AREAS].sort((x, y) => kmBetween(place, x) - kmBetween(place, y))[0];
+  return nearest && kmBetween(place, nearest) <= PILOT_AREA_KM ? nearest : undefined;
+}
+
+/** The pilot area a point is in, as its slug ("hsr-layout"); undefined for a point in none. */
 export function areaKeyOf(place: Place): AreaKey | undefined {
-  const area = PILOT_AREAS.find((a) => a.lat === place.lat && a.lon === place.lon);
+  const area = nearestPilotArea(place);
   return area && areaSlug(area.key);
 }
 

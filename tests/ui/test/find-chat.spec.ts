@@ -63,8 +63,8 @@ test("a household says what they need in one sentence and is asked only for the 
   await expect(log).toContainText(t(en, "need.start"));
   await say(page, en, "Bedroom fan not working, need an electrician tomorrow morning, up to 700");
 
-  // Only the area is missing: no question about the problem, the day or the budget.
-  await expect(log).toContainText(t(en, "need.ask.area"));
+  // Only where is missing: no question about the problem, the day or the budget. She has a saved address (ADR 0045).
+  await expect(log).toContainText(t(en, "need.ask.address"));
   for (const asked of ["question.problem", "need.ask.when", "need.ask.budget"] as const)
     await expect(log).not.toContainText(t(en, asked));
   await say(page, en, "HSR");

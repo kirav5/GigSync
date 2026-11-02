@@ -14,7 +14,7 @@ import { Trade } from "./trade.js";
  * What a price is per (ADR 0041 §3): a square foot, a month, one visit, a day, an hour or the whole job. Per-unit rates
  * are kept in these units; an estimate is given in them too (`RateUnit` is the same enum, its older name).
  */
-export const PriceUnit = z.enum(["job", "sqft", "day", "month", "visit", "hour"]);
+export const PriceUnit = z.enum(["job", "sqft", "day", "month", "visit", "hour", "week"]);
 export type PriceUnit = z.infer<typeof PriceUnit>;
 
 /** Which walls are painted. */
@@ -110,6 +110,8 @@ export const MaidDrivers = z.strictObject({
   rooms: count(L.rooms),
   frequency: MaidFrequency.optional(),
   tasks: MaidTasks.optional(),
+  /** Only for work some days a week (ADR 0046); a monthly maid's visits are `frequency`. */
+  days_week: count(L.days_week),
 });
 export type MaidDrivers = z.infer<typeof MaidDrivers>;
 

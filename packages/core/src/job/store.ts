@@ -119,6 +119,10 @@ export interface Need {
   need: string;
   when: string;
   area: Place;
+  /** ADR 0045: the locality the worker's phone shows before signing ("Banashankari"); never the address. */
+  locality?: string;
+  /** ADR 0045: the saved address this need is for, as one line: released to the worker only once both have signed. */
+  site?: string;
   /** Answers given up front or later; used to answer the worker's questions. */
   details: Record<string, string>;
   budget: Mandate;

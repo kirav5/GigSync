@@ -1,4 +1,12 @@
-import { type Estimate, type EstimateRequest, type Lang, RateUnit, Trade } from "@gigsync/protocol";
+import {
+  Arrangement,
+  DEFAULT_ARRANGEMENT,
+  type Estimate,
+  type EstimateRequest,
+  type Lang,
+  RateUnit,
+  Trade,
+} from "@gigsync/protocol";
 import { areaOfSlug } from "../estimate/areas.js";
 import { priceText } from "../i18n/reasons.js";
 import { type MessageKey, pluralKey, t } from "../i18n/t.js";
@@ -25,6 +33,7 @@ const RANGE: Readonly<Record<RateUnit, MessageKey>> = {
   [RateUnit.enum.day]: "estimate.range_day",
   [RateUnit.enum.hour]: "estimate.range_hour",
   [RateUnit.enum.sqft]: "estimate.range_sqft",
+  [RateUnit.enum.week]: "estimate.range_week",
 };
 const OTHER_PROBLEM = "other";
 const T = Trade.enum;
@@ -32,6 +41,11 @@ const T = Trade.enum;
 /** The scope's buckets in the reader's words: "2 BHK, labour only", "3–4 people, 2 meals a day". */
 function scopeParts(own: Lang, request: EstimateRequest): string[] {
   const keys: MessageKey[] = [];
+  // ADR 0046: by the hour, a maid's flat does not move the price and a driver's day is not the job; a visit or a
+  // week is still for the flat's rooms. "Every day" and "hours a day" are monthly scope.
+  const other = request.arrangement !== undefined && request.arrangement !== DEFAULT_ARRANGEMENT;
+  if (other && (request.trade === T.driver || request.arrangement === Arrangement.enum.hourly)) return [];
+  if (other && request.trade === T.maid) return [t(own, `estimate.rooms.${request.scope.rooms}`)];
   switch (request.trade) {
     case T.painter:
       if (request.scope.rooms) keys.push(`estimate.rooms.${request.scope.rooms}`);

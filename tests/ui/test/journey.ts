@@ -31,7 +31,11 @@ export async function publishCard(
   const form = page.getByRole("form", { name: t(lang, "a11y.my_card") });
   await form.getByRole("button", { name: card.trade, exact: true }).click();
   await form.getByLabel(t(lang, "card.where")).selectOption({ label: t(lang, `area.${card.area}`) });
-  await form.getByLabel(t(lang, "card.rate")).fill(card.rate);
+  // A maid's or driver's usual rate is for the main arrangement, monthly unless they pick others (ADR 0046).
+  await form
+    .getByLabel(t(lang, "card.rate"))
+    .or(form.getByLabel(t(lang, "card.rate.monthly")))
+    .fill(card.rate);
   await form.getByLabel(t(lang, "card.min")).fill(card.min);
   await form.getByLabel(t(lang, "card.about")).fill(card.about);
   if (card.askFirst) await form.getByLabel(t(lang, "card.ask_first", { item: t(lang, "detail.pets") })).check();

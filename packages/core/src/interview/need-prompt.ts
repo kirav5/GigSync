@@ -1,9 +1,9 @@
-import { Trade } from "@gigsync/protocol";
+import { DEFAULT_ARRANGEMENT, Trade } from "@gigsync/protocol";
 import { type MessageKey, t } from "../i18n/t.js";
 import { YES_NO_QUESTIONS } from "../job/details.js";
 import { EVERY_DAY, isMonthly } from "../job/when.js";
 import { Pick as CardPick, type Choice, type Line, type Prompt } from "./card.js";
-import { areaChoices, areaHints, isMessageKey, YES_NO } from "./choices.js";
+import { YES_NO } from "./choices.js";
 import { jobTypeLines } from "./estimate-drivers.js";
 import {
   DayWord,
@@ -16,6 +16,8 @@ import {
   recalled,
   SEARCH_RADII_KM,
 } from "./need.js";
+import { areaParts, wherePrompt } from "./need-address.js";
+import { arrangedTrade, arrangementLines, arrangementPrompt, budgetUnitLines } from "./need-arrangement.js";
 import { driverQuestion } from "./need-drivers.js";
 import { budgetEstimate } from "./need-estimate.js";
 import { NeedPick } from "./need-hear.js";
@@ -33,6 +35,7 @@ import { scopeQuestion } from "./need-scope.js";
 const FIELD_LABEL: Readonly<Record<NeedField, MessageKey>> = {
   trade: "need.field_trade",
   detail: "need.field_detail",
+  arrangement: "need.field_arrangement",
   area: "find.area",
   when: "find.when",
   budget: "need.field_budget",
@@ -60,7 +63,9 @@ function dayParts(day: string): Pick<Line, "names" | "dates"> {
 function bandLine(s: NeedState): Line[] {
   const trade = s.draft.trade;
   const band = s.config.rates.bands.find((b) => b.trade === trade);
-  if (!band || !trade) return [];
+  // The city pack's bands are for monthly work: none beside a budget for an hour, a visit or a week.
+  const monthly = s.draft.arrangement === undefined || s.draft.arrangement === DEFAULT_ARRANGEMENT;
+  if (!band || !trade || !monthly) return [];
   const key = isMonthly(trade) ? "need.band_month" : "need.band_visit";
   return [{ key, params: { city: s.config.rates.city }, prices: { low: band.low_paise, high: band.high_paise } }];
 }
@@ -68,7 +73,7 @@ function bandLine(s: NeedState): Line[] {
 /** The need read back before any search: what, where, when, the words workers read, the detail, and the budget. */
 function summary(s: NeedState): Line[] {
   const d = s.draft;
-  const area = `area.${d.area ?? ""}`;
+  const area = areaParts(d);
   const first = firstQuestion(d.trade);
   const words = needWords(d, s.config.own);
   const detail: Line[] =
@@ -88,9 +93,11 @@ function summary(s: NeedState): Line[] {
   return [
     {
       key: "need.summary",
-      names: { trade: d.trade ? [`trade.${d.trade}`] : [], area: isMessageKey(area) ? [area] : [], ...when.names },
+      names: { trade: d.trade ? [`trade.${d.trade}`] : [], ...area.names, ...when.names },
+      ...(area.params ? { params: area.params } : {}),
       ...(when.dates ? { dates: when.dates } : {}),
     },
+    ...arrangementLines(d),
     ...(d.time ? [{ key: "need.summary_time", params: { time: d.time } } as const] : []),
     { key: "need.summary_words", params: { words } },
     ...detail,
@@ -110,7 +117,11 @@ const startLine = (s: NeedState): Line =>
 
 function confirmPrompt(s: NeedState): Prompt {
   if (!s.changing) return { lines: [...summary(s), confirmLine(s)], choices: YES_NO, hints: yesNoHints(s) };
-  const fields = NEED_FIELDS.filter((f) => f !== NeedSlot.detail || firstQuestion(s.draft.trade) !== undefined);
+  const fields = NEED_FIELDS.filter(
+    (f) =>
+      (f !== NeedSlot.detail || firstQuestion(s.draft.trade) !== undefined) &&
+      (f !== NeedSlot.arrangement || arrangedTrade(s.draft.trade)),
+  );
   return {
     lines: [{ key: "need.what_change" }],
     choices: fields.map((f) => ({ value: f, key: FIELD_LABEL[f] })),
@@ -168,12 +179,10 @@ function question(s: NeedState): Prompt {
       return detailPrompt(s);
     case NeedSlot.driver:
       return driverQuestion(s);
+    case NeedSlot.arrangement:
+      return arrangementPrompt(s);
     case NeedSlot.area:
-      return {
-        lines: [{ key: "need.ask.area" }],
-        choices: areaChoices(s.config.areas),
-        hints: areaHints(s.config.areas, own),
-      };
+      return wherePrompt(s);
     case NeedSlot.when:
       return {
         lines: [{ key: "need.ask.when" }],
@@ -184,7 +193,8 @@ function question(s: NeedState): Prompt {
       // The estimate, when there is one for this job, in place of the city band; the budget itself stays secret.
       const estimate = budgetEstimate(s);
       const shown = estimate ?? { lines: bandLine(s) };
-      return { ...shown, lines: [{ key: "need.ask.budget" }, ...shown.lines], numeric: true, hints: [], secret: true };
+      const lines = [{ key: "need.ask.budget" } as const, ...budgetUnitLines(s.draft), ...shown.lines];
+      return { ...shown, lines, numeric: true, hints: [], secret: true };
     }
     case NeedSlot.confirm:
       return confirmPrompt(s);
@@ -192,8 +202,7 @@ function question(s: NeedState): Prompt {
       return { lines: jobTypeLines(s.draft.jobType ?? ""), hints: [] };
     case NeedSlot.done: {
       if (s.to) return { lines: [{ key: "need.asking_to", params: { name: s.to.name } }], hints: [] };
-      const area = `area.${s.draft.area ?? ""}`;
-      return { lines: [{ key: "need.searching", names: { area: isMessageKey(area) ? [area] : [] } }], hints: [] };
+      return { lines: [{ key: "need.searching", ...areaParts(s.draft) }], hints: [] };
     }
     case NeedSlot.nobody: {
       const wider = SEARCH_RADII_KM.filter((km) => km > s.radius_km);

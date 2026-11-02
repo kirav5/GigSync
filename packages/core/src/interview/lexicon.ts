@@ -92,7 +92,7 @@ const LANG_WORDS: Readonly<Record<Lang, readonly string[]>> = {
 };
 
 /** A field of the card an owner can ask to change, by voice or a chip. */
-export type Field = Exclude<Slot, "ask_first" | "confirm" | "done">;
+export type Field = Exclude<Slot, "ask_first" | "confirm" | "done" | "arrangements" | "more_rates">;
 
 /** Words naming each field, most specific first ("minimum rate" is the minimum, not the rate). */
 const FIELD_WORDS: Readonly<Record<Field, readonly string[]>> = {

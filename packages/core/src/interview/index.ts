@@ -1,7 +1,8 @@
-import { Lang, Trade } from "@gigsync/protocol";
+import { DEFAULT_ARRANGEMENT, Lang, Trade } from "@gigsync/protocol";
 import { type MessageKey, t } from "../i18n/t.js";
 import { isMonthly } from "../job/when.js";
 import { askable, FIELDS, type InterviewState, type Line, Pick, type Prompt, Slot } from "./card.js";
+import { arrangementsPrompt, mainOf, moreRatePrompt, RATE_QUESTION, ratesSummary } from "./card-arrangements.js";
 import { estimatePrompt } from "./card-estimate.js";
 import { minAloud } from "./card-parse.js";
 import { rateLines } from "./card-rates.js";
@@ -30,6 +31,7 @@ export {
   start,
   withConfig,
 } from "./card.js";
+export { arrangementRates, askingArrangement, mainOf, pickedOf } from "./card-arrangements.js";
 export { cardEstimate, withEstimate } from "./card-estimate.js";
 export { aboutIsPrivate, choose, hear } from "./card-parse.js";
 export { legalLines, legalMonthly, rateHint, rateNote } from "./card-rates.js";
@@ -68,6 +70,7 @@ function summary(state: InterviewState): Line[] {
       names: { trades, ...area.names },
       prices: { rate: draft.rate_paise ?? 0 },
     },
+    ...ratesSummary(draft),
     ...about,
     { key: draft.auto ? "iv.summary_auto_on" : "iv.summary_auto_off" },
     { key: "iv.summary_min", prices: { min: draft.limit_paise ?? 0 }, silent: true },
@@ -110,13 +113,24 @@ function question(state: InterviewState): Prompt {
         };
       }
       const first = draft.trades?.[0];
+      const main = mainOf(draft);
       const monthly = first !== undefined && isMonthly(first);
-      const ask = min ? "iv.ask.min" : monthly ? "iv.ask.rate_month" : "iv.ask.rate_visit";
+      const plain = monthly ? "iv.ask.rate_month" : "iv.ask.rate_visit";
+      const ask = min ? "iv.ask.min" : main ? RATE_QUESTION[main] : plain;
+      // The city band is for monthly work: a rate in another unit gets only its estimate.
+      const band = main === undefined || main === DEFAULT_ARRANGEMENT ? rateLines(config.rates, first, min) : [];
       // The usual pay is public, so it is read aloud with the question; the worker's own amounts never are.
       const estimate = estimatePrompt(state, min);
       if (estimate)
         return { ...estimate, lines: [{ key: ask }, ...estimate.lines], numeric: true, hints: [], ...secret };
-      return { lines: [{ key: ask }, ...rateLines(config.rates, first, min)], numeric: true, hints: [], ...secret };
+      return { lines: [{ key: ask }, ...band], numeric: true, hints: [], ...secret };
+    }
+    case Slot.arrangements:
+      return arrangementsPrompt(state);
+    case Slot.more_rates: {
+      const estimate = estimatePrompt(state, false);
+      const asked = moreRatePrompt(state);
+      return estimate ? { ...asked, ...estimate, lines: [...asked.lines, ...estimate.lines], hints: [] } : asked;
     }
     case Slot.languages:
       return {

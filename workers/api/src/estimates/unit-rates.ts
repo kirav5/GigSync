@@ -1,5 +1,14 @@
 import { type PaiseRange, typicalFactor } from "@gigsync/core";
-import { AreaBand, type AreaKey, DetailFlag, type DriverValues, driversFromScope, type Trade } from "@gigsync/protocol";
+import {
+  AreaBand,
+  type AreaKey,
+  type Arrangement,
+  DEFAULT_ARRANGEMENT,
+  DetailFlag,
+  type DriverValues,
+  driversFromScope,
+  type Trade,
+} from "@gigsync/protocol";
 import type { UnitRow } from "../db/unit-records.js";
 import { K_MIN, MARKET_MONTHS, Percentile } from "./constants.js";
 
@@ -125,9 +134,10 @@ export function unitRate(
   rows: readonly UnitRow[],
   area: AreaKey | undefined,
   now: Date,
+  arrangement: Arrangement = DEFAULT_ARRANGEMENT,
 ): UnitRate | undefined {
   const weighted: Weighted[] = rows.map((row) => ({
-    value: row.price_paise / typicalFactor(trade, rowDrivers(trade, row)),
+    value: row.price_paise / typicalFactor(trade, rowDrivers(trade, row), arrangement),
     weight: 0.5 ** ((now.getTime() - row.agreed_at.getTime()) / DAY_MS / RECENCY_HALF_LIFE_DAYS),
     row,
   }));

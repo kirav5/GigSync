@@ -2,6 +2,7 @@ import {
   type Answers,
   CancelReason,
   type Clarify,
+  DEFAULT_ARRANGEMENT,
   EnvelopeKind,
   type Estimate,
   type Offer,
@@ -14,11 +15,13 @@ import {
   type Trade,
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
+import { localitySlug } from "../address/book.js";
 import { areaKeyOf } from "../estimate/areas.js";
 import { estimateBand } from "../estimate/band.js";
 import { lookupEstimate } from "../estimate/lookup.js";
 import { basisCount, estimateRequest, perJob } from "../estimate/scope.js";
 import { pastPrices, proposeMandate } from "./advice.js";
+import { type ArrangementMandate, arrangementMandate, askedArrangement, rateFor } from "./arrangement-rules.js";
 import { questionsFor } from "./ask.js";
 import type { JobContext } from "./context.js";
 import { accept, cancel, termsFor } from "./deal.js";
@@ -53,6 +56,8 @@ export interface WorkerRules {
   ask_me?: QuestionKey[];
   /** Where they work from and how far they go. Requests from further away are declined. */
   base: Place;
+  /** ADR 0045: the base's name when it is not a pilot area ("Banashankari"), as the card shows it. */
+  base_name?: string;
   radius_km: number;
   /** When they take work, who buys materials, a day's hours: what their agent agrees besides the price. */
   terms?: TermPrefs;
@@ -61,6 +66,8 @@ export interface WorkerRules {
    * lowest price yet: the agent shows them every request before quoting, from the usual rate.
    */
   floor_missing?: boolean;
+  /** ADR 0046: the arrangements a maid or driver takes, each with its own plan; absent means monthly only. */
+  arrangements?: ArrangementMandate[];
 }
 
 const EARTH_RADIUS_KM = 6371;
@@ -75,7 +82,8 @@ export function distanceKm(a: Place, b: Place): number {
 /** A new request: decline what this worker does not do, ask what is missing, otherwise quote. */
 export async function onRequest(ctx: JobContext, rules: WorkerRules, r: JobRecord): Promise<JobRecord> {
   const req = r.request;
-  if (!rules.trades.includes(req.trade) || distanceKm(rules.base, req.area) > rules.radius_km)
+  const takes = arrangementMandate(rules, req) !== undefined;
+  if (!rules.trades.includes(req.trade) || distanceKm(rules.base, req.area) > rules.radius_km || !takes)
     return cancel(ctx, r, { reason: CancelReason.enum.no_match });
   // The household's terms answer the details they decide (who buys the paint): its agent need not ask them.
   const told = withTermDetails(r, req.terms);
@@ -113,8 +121,10 @@ export async function refuse(ctx: JobContext, r: JobRecord): Promise<JobRecord> 
 
 /** The estimate for this job's scope, for the whole job; undefined when there is none or it cannot be had. */
 async function jobEstimate(ctx: JobContext, r: JobRecord): Promise<Estimate | undefined> {
-  const { trade, details, area } = r.request;
-  const request = ctx.estimates && estimateRequest(ctx.estimates.city, trade, details, areaKeyOf(area));
+  const { trade, details, area, locality } = r.request;
+  // A pilot area by its point, else the locality the household's phone named (ADR 0045).
+  const key = areaKeyOf(area) ?? (locality ? localitySlug(locality) : undefined);
+  const request = ctx.estimates && estimateRequest(ctx.estimates.city, trade, details, key);
   if (!ctx.estimates || !request) return undefined;
   const found = await lookupEstimate(ctx.estimates.api, request);
   return found && perJob(found, details);
@@ -137,17 +147,20 @@ async function planFor(ctx: JobContext, rules: WorkerRules, r: JobRecord): Promi
   if (r.mandate) return r;
   const strategy = await strategyFor(ctx, r);
   const drawn = { ...r, ...(strategy ? { strategy } : {}) };
-  const cityBand = rules.rates?.bands.find((b) => b.trade === r.request.trade);
+  // The city pack's band is monthly: for work by the hour, the visit or the week only the estimate in its unit counts.
+  const rate = rateFor(rules, r.request);
+  const monthly = askedArrangement(r.request) === DEFAULT_ARRANGEMENT;
+  const cityBand = monthly ? rules.rates?.bands.find((b) => b.trade === r.request.trade) : undefined;
   const estimate = await jobEstimate(ctx, r);
   const band = estimate ? estimateBand(estimate, r.request.trade, cityBand) : cityBand;
-  if (!band) return { ...drawn, mandate: rules.rate };
+  if (!band) return { ...drawn, mandate: rate };
   const history = pastPrices(await ctx.store.jobs(), r.request.trade);
   const legal = estimate?.basis.legal_minimum_paise;
   const advice = proposeMandate({
     band,
     details: r.request.details,
     history,
-    floor_paise: rules.rate.limit_paise,
+    floor_paise: rate.limit_paise,
     ...(estimate ? { ...basisCount(estimate), typical_paise: estimate.typical_paise } : {}),
     ...(legal ? { legal_paise: legal } : {}),
     ...(strategy ? { opening_at: strategy.opening } : {}),
@@ -174,7 +187,7 @@ async function quoteNext(ctx: JobContext, rules: WorkerRules, r: JobRecord): Pro
     await ctx.store.saveJob(planned);
     return planned;
   }
-  const plan = planned.mandate ?? rules.rate;
+  const plan = planned.mandate ?? rateFor(rules, planned.request);
   return quote(ctx, planned, priceAt(R.provider, plan, planned.offers_made + 1, planned.strategy));
 }
 
@@ -188,7 +201,7 @@ export async function onCounter(ctx: JobContext, rules: WorkerRules, r: JobRecor
   );
   if (termed.stuck) return cancel(ctx, termed.r, { reason: CancelReason.enum.no_deal });
   const withOffer = await planFor(ctx, rules, termed.r);
-  const plan = withOffer.mandate ?? rules.rate;
+  const plan = withOffer.mandate ?? rateFor(rules, withOffer.request);
   const priced = respond(R.provider, plan, r.offers_made, offer.price_paise, withOffer.strategy);
   const move = withTerms(priced, termed.agreed, offer.price_paise, r.offers_made);
   if (move.kind === MoveKind.accept) return accept(ctx, withOffer, termsFor(ctx, withOffer, offer));

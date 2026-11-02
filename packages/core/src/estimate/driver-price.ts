@@ -1,13 +1,16 @@
 import {
+  Arrangement,
+  DEFAULT_ARRANGEMENT,
   DriverName,
   type DriverValues,
   driverSpec,
   type HouseType,
+  MAID_WEEK_DAYS,
   type MaidFrequency,
   type MaidTasks,
   type MaterialsBy,
+  pricedDrivers,
   type Surface,
-  TRADE_DRIVERS,
   Trade,
   type Vehicle,
 } from "@gigsync/protocol";
@@ -68,8 +71,31 @@ function painterFactor(f: Filled): number {
   );
 }
 
-/** The job's factor against the trade's base job, every driver filled. */
-export function jobFactor(trade: Trade, f: Filled): number {
+const AR = Arrangement.enum;
+
+/** A maid's rooms and tasks against the base 2BHK, sweeping, mopping and dishes. */
+const maidWork = (f: Filled): number =>
+  MAID_TASKS_FACTOR[str<MaidTasks>(f, D.tasks)] * atLeast(1 + MAID_PER_ROOM * (num(f, D.rooms) - MAID_BASE_ROOMS));
+
+/**
+ * Work not by the month (ADR 0046), against its own rate card entry: an hour of a maid's time is one unit whatever
+ * the home; a visit is its rooms and tasks; a week its days too. A driver's hour is the car only; a trip its hours.
+ */
+function otherFactor(trade: Trade, f: Filled, arrangement: Arrangement): number | undefined {
+  if (trade === T.maid && arrangement === AR.hourly) return 1;
+  if (trade === T.maid && arrangement === AR.visit) return maidWork(f);
+  if (trade === T.maid && arrangement === AR.weekly) return (num(f, D.days_week) / MAID_WEEK_DAYS) * maidWork(f);
+  const car = VEHICLE_FACTOR[str<Vehicle>(f, D.vehicle)];
+  if (trade === T.driver && arrangement === AR.hourly) return car;
+  if (trade === T.driver && arrangement === AR.visit) return num(f, D.hours) * car;
+  return undefined;
+}
+
+/** The job's factor against the trade's base job in its arrangement, every driver filled. */
+export function jobFactor(trade: Trade, f: Filled, arrangement: Arrangement = DEFAULT_ARRANGEMENT): number {
+  const other = otherFactor(trade, f, arrangement);
+  if (other !== undefined) return other;
+  // Monthly work, and a driver's week, which is priced per hour a day as the month is.
   const week = num(f, D.days_week) / BASE_DAYS_WEEK;
   switch (trade) {
     case T.painter:
@@ -77,11 +103,7 @@ export function jobFactor(trade: Trade, f: Filled): number {
     case T.cook:
       return num(f, D.meals) * week * atLeast(1 + COOK_PER_PERSON * (num(f, D.people) - COOK_BASE_PEOPLE));
     case T.maid:
-      return (
-        MAID_FREQUENCY_FACTOR[str<MaidFrequency>(f, D.frequency)] *
-        MAID_TASKS_FACTOR[str<MaidTasks>(f, D.tasks)] *
-        atLeast(1 + MAID_PER_ROOM * (num(f, D.rooms) - MAID_BASE_ROOMS))
-      );
+      return MAID_FREQUENCY_FACTOR[str<MaidFrequency>(f, D.frequency)] * maidWork(f);
     case T.driver:
       return num(f, D.hours) * week * VEHICLE_FACTOR[str<Vehicle>(f, D.vehicle)];
     default:
@@ -106,11 +128,15 @@ function assumedValues(trade: Trade, name: DriverName): (string | number)[] {
  * The unknown axes and the typical filling. A painter's unknown area comes from bedrooms and house type, within
  * `AREA_FROM_ROOMS_SPREAD`; once the area is known, bedrooms no longer matter.
  */
-function axesOf(trade: Trade, known: DriverValues): { axes: Axis[]; typical: Record<string, string | number> } {
+function axesOf(
+  trade: Trade,
+  known: DriverValues,
+  arrangement: Arrangement,
+): { axes: Axis[]; typical: Record<string, string | number> } {
   const typical: Record<string, string | number> = {};
   const axes: Axis[] = [];
   const areaKnown = trade === T.painter && known.area_sqft !== undefined;
-  for (const name of TRADE_DRIVERS[trade]) {
+  for (const name of pricedDrivers(trade, arrangement)) {
     const value = known[name];
     if (value !== undefined) {
       typical[name] = value;
@@ -139,13 +165,18 @@ function areaAxis(known: DriverValues, typical: Record<string, string | number>)
 }
 
 /** Min and max of the factor over every combination of the axes' values, the rest typical. */
-function extremes(trade: Trade, axes: readonly Axis[], typical: Filled): { min: number; max: number } {
+function extremes(
+  trade: Trade,
+  axes: readonly Axis[],
+  typical: Filled,
+  arrangement: Arrangement,
+): { min: number; max: number } {
   let min = Number.POSITIVE_INFINITY;
   let max = 0;
   const walk = (at: number, filled: Filled) => {
     const axis = axes[at];
     if (!axis) {
-      const factor = jobFactor(trade, filled);
+      const factor = jobFactor(trade, filled, arrangement);
       min = Math.min(min, factor);
       max = Math.max(max, factor);
       return;
@@ -180,19 +211,23 @@ const UNKNOWN_SHARE = 0.5;
  * independent unknowns rarely all sit at the same end, so stacking every extreme (the product of the worst cases)
  * would give ranges too wide to help anyone. `UNKNOWN_SHARE` of that span is shown.
  */
-export function driverSpread(trade: Trade, known: DriverValues): DriverSpread {
-  const { axes, typical } = axesOf(trade, known);
-  const mid = jobFactor(trade, typical);
+export function driverSpread(
+  trade: Trade,
+  known: DriverValues,
+  arrangement: Arrangement = DEFAULT_ARRANGEMENT,
+): DriverSpread {
+  const { axes, typical } = axesOf(trade, known, arrangement);
+  const mid = jobFactor(trade, typical, arrangement);
   const widths: Partial<Record<DriverName, number>> = {};
   let down = 0;
   let up = 0;
   for (const axis of axes) {
-    const one = extremes(trade, [axis], typical);
+    const one = extremes(trade, [axis], typical, arrangement);
     widths[axis.name] = one.max / one.min;
     down += Math.log(mid / Math.min(one.min, mid)) ** 2;
     up += Math.log(Math.max(one.max, mid) / mid) ** 2;
   }
-  const order = TRADE_DRIVERS[trade];
+  const order = pricedDrivers(trade, arrangement);
   const assumed = axes
     .map((a) => a.name)
     .filter((name) => (widths[name] ?? 1) > NO_WIDTH)
@@ -202,12 +237,19 @@ export function driverSpread(trade: Trade, known: DriverValues): DriverSpread {
 }
 
 /** The factor with every unknown driver at its default: how a job record's price is turned into a per-unit rate. */
-export const typicalFactor = (trade: Trade, known: DriverValues): number =>
-  jobFactor(trade, axesOf(trade, known).typical);
+export const typicalFactor = (
+  trade: Trade,
+  known: DriverValues,
+  arrangement: Arrangement = DEFAULT_ARRANGEMENT,
+): number => jobFactor(trade, axesOf(trade, known, arrangement).typical, arrangement);
 
 /** The unknown drivers worth asking, widest first, leaving out any the owner already said they do not know. */
-export const rankUnknown = (trade: Trade, known: DriverValues, notKnown: readonly DriverName[] = []): DriverName[] =>
-  driverSpread(trade, known).assumed.filter((name) => !notKnown.includes(name));
+export const rankUnknown = (
+  trade: Trade,
+  known: DriverValues,
+  notKnown: readonly DriverName[] = [],
+  arrangement: Arrangement = DEFAULT_ARRANGEMENT,
+): DriverName[] => driverSpread(trade, known, arrangement).assumed.filter((name) => !notKnown.includes(name));
 
 /** A per-unit range as the job's range: low × least factor, typical × typical, high × most, in order. */
 export function jobRange(rate: PaiseRange, spread: Pick<DriverSpread, "min" | "typical" | "max">): PaiseRange {

@@ -1,5 +1,6 @@
 import { suggestForWorker, type WorkerSuggestion } from "../estimate/suggest.js";
 import type { InterviewState, Prompt } from "./card.js";
+import { askingArrangement } from "./card-arrangements.js";
 import { estimateLegalLines, estimateLines, type FoundEstimate, suggestion } from "./estimate-lines.js";
 
 /**
@@ -17,7 +18,8 @@ export const withEstimate = (state: InterviewState, found: FoundEstimate | undef
 /** The estimate, only while it is for the worker's first trade: a trade changed since has none until it arrives. */
 export function cardEstimate(state: InterviewState): FoundEstimate | undefined {
   const found = state.estimate;
-  return found && found.request.trade === state.draft.trades?.[0] ? found : undefined;
+  const sameWork = found?.request.arrangement === askingArrangement(state);
+  return found && found.request.trade === state.draft.trades?.[0] && sameWork ? found : undefined;
 }
 
 /** What the estimate suggests the worker opens at and takes at least, when it fits. */

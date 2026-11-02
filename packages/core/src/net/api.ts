@@ -7,6 +7,7 @@ import {
   CityGuide,
   Claim,
   type ClaimRequest,
+  coarsePoint,
   type DeviceId,
   type DeviceRegistration,
   DirectoryEntry,
@@ -14,6 +15,8 @@ import {
   Envelope,
   type EstimateRequest,
   EstimateResponse,
+  type GeoPlace,
+  GeoResult,
   type MatchRequestInput,
   MatchResponse,
   type MentorListingInput,
@@ -23,6 +26,7 @@ import {
   MyMentorListing,
   MyQr,
   type MyQrRequest,
+  type Place,
   PushKey,
   type PushSubscribe,
   type QrCode,
@@ -65,6 +69,9 @@ export const ApiPath = {
   pushKey: "/v1/devices/push-key",
   /** The usual range for a job (ADR 0030): `POST /v1/estimates`. */
   estimates: "/v1/estimates",
+  /** ADR 0045: a coarse point, or typed words, to places (locality, city, PIN). */
+  geoReverse: "/v1/geo/reverse",
+  geoSearch: "/v1/geo/search",
   /** One agreed price shared anonymously: `POST /v1/estimates/prices`. */
   /** The caller's personal QR (ADR 0034): `PUT` gets or makes it, `/replace` makes a new one. */
   qrMe: "/v1/qr/me",
@@ -237,6 +244,19 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
   /** The usual range for a job, or why there is none ("no estimate" is an answer, not an error). */
   async estimate(request: EstimateRequest): Promise<EstimateResponse> {
     return EstimateResponse.parse(await this.call(HttpMethod.post, ApiPath.estimates, request));
+  }
+
+  /** The places at a point, which is rounded to the coarse grid here, before it leaves the phone (ADR 0045). */
+  async reverseGeocode(point: Place): Promise<GeoPlace[]> {
+    const p = coarsePoint(point);
+    const params = new URLSearchParams({ lat: String(p.lat), lon: String(p.lon) });
+    return GeoResult.parse(await this.call(HttpMethod.get, `${ApiPath.geoReverse}?${params}`)).places;
+  }
+
+  /** Places matching what the owner typed. */
+  async searchPlaces(q: string): Promise<GeoPlace[]> {
+    const params = new URLSearchParams({ q });
+    return GeoResult.parse(await this.call(HttpMethod.get, `${ApiPath.geoSearch}?${params}`)).places;
   }
 
   /** A city's guide, checked against its schema before the landing journey keeps it. */

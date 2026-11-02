@@ -1,5 +1,5 @@
 import { areaSlug, CITY_RATES, estimateRequest, rateHint, rateNote, suggestForWorker } from "@gigsync/core";
-import type { Session, Trade } from "@gigsync/protocol";
+import { type Arrangement, DEFAULT_ARRANGEMENT, QuestionKey, type Session, type Trade } from "@gigsync/protocol";
 import { useEstimate } from "../../estimate/useEstimate.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
@@ -21,6 +21,9 @@ export function CardRates({
   session,
   onRate,
   onMin,
+  arrangement,
+  others = [],
+  onOther,
 }: {
   trades: readonly Trade[];
   /** The card's area key ("jayanagar"), when it has one. */
@@ -28,15 +31,22 @@ export function CardRates({
   session: Session;
   onRate: (paise: number) => void;
   onMin: (paise: number) => void;
+  /** ADR 0046: the arrangement the usual rate is for, and the others picked, each with its own estimate. */
+  arrangement?: Arrangement | undefined;
+  others?: readonly Arrangement[];
+  onOther?: (arrangement: Arrangement, paise: number) => void;
 }) {
   const i18n = useI18n();
   const { t } = i18n;
   const first = trades[0];
-  const found = useEstimate(session, first && estimateRequest(PILOT_CITY, first, {}, area && areaSlug(area)));
+  const details = arrangement ? { [QuestionKey.enum.arrangement]: arrangement } : {};
+  const found = useEstimate(session, first && estimateRequest(PILOT_CITY, first, details, area && areaSlug(area)));
   const estimated = found && found.request.trade === first ? found : undefined;
   const suggested =
     estimated && suggestForWorker({ estimate: estimated.estimate, trade: estimated.request.trade, city: PILOT_CITY });
-  const banded = trades.filter((tr) => tr !== estimated?.request.trade);
+  // The city band is monthly: not under a rate for an hour, a visit or a week.
+  const monthly = arrangement === undefined || arrangement === DEFAULT_ARRANGEMENT;
+  const banded = trades.filter((tr) => tr !== estimated?.request.trade && (monthly || tr !== first));
   return (
     <>
       {estimated && suggested && (
@@ -48,6 +58,17 @@ export function CardRates({
           ]}
         />
       )}
+      {first &&
+        others.map((a) => (
+          <OtherEstimate
+            key={a}
+            trade={first}
+            arrangement={a}
+            area={area}
+            session={session}
+            onUse={(paise) => onOther?.(a, paise)}
+          />
+        ))}
       {banded.flatMap((tr) =>
         rateHint(CITY_RATES, tr).map((line) => (
           <span key={`${tr}.${line.key}`} className={C.faint}>
@@ -65,4 +86,25 @@ export function CardRates({
       ))}
     </>
   );
+}
+
+/** The estimate for one more arrangement the worker picked, in its unit, and the rate it suggests for its field. */
+function OtherEstimate({
+  trade,
+  arrangement,
+  area,
+  session,
+  onUse,
+}: {
+  trade: Trade;
+  arrangement: Arrangement;
+  area: string | undefined;
+  session: Session;
+  onUse: (paise: number) => void;
+}) {
+  const details = { [QuestionKey.enum.arrangement]: arrangement };
+  const found = useEstimate(session, estimateRequest(PILOT_CITY, trade, details, area && areaSlug(area)));
+  if (!found || found.request.arrangement !== arrangement) return null;
+  const suggested = suggestForWorker({ estimate: found.estimate, trade, city: PILOT_CITY });
+  return <EstimateBox found={found} suggested={[{ field: arrangement, paise: suggested.opening_paise, onUse }]} />;
 }

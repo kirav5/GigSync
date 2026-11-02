@@ -22,6 +22,7 @@ export default defineConfig({
           DEV_OTP: "000000",
           PHONE_HMAC_KEY: "test-only-key",
           ADMIN_KEY: "test-only-admin-key",
+          OLA_MAPS_API_KEY: "test-only-ola-key",
           ENVIRONMENT: "local",
         },
       },

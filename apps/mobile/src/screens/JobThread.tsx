@@ -13,7 +13,7 @@ import {
 import { EngagementStatus, type JobRequest, type Lang, QuestionKey, Role } from "@gigsync/protocol";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
-import { money } from "../ui/places.js";
+import { jobPrice, money } from "../ui/places.js";
 import { Said } from "../ui/Said.js";
 import { AgentTalk } from "./AgentTalk.js";
 import { DetailValue } from "./DetailValue.js";
@@ -101,7 +101,7 @@ export function JobThread(props: JobActionProps) {
       {needShown && <Said text={needShown} from={theirs} />}
       {terms && (
         <fieldset aria-label={t("a11y.deal")}>
-          {t("job.signed", { price: money(terms.price_paise) })} ·{" "}
+          {t("job.signed", { price: jobPrice(lang, job.request, terms.price_paise) })} ·{" "}
           {slot && (
             <>
               <Said text={slot} from={theirs} /> ·{" "}

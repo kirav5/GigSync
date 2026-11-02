@@ -115,7 +115,13 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await expect(shell(anil)).toBeVisible();
 
   // ── Priya signs in and finds electricians near Indiranagar; she asks only Anil, for today ──────────────────────
-  await signIn(priya, { role: Role.consumer, name: priyaName, phone: newPhone(), address: ADDRESS });
+  await signIn(priya, {
+    role: Role.consumer,
+    name: priyaName,
+    phone: newPhone(),
+    address: ADDRESS,
+    area: "Indiranagar",
+  });
   // She does not say what is wrong (only the kind of worker, and she skips the chat's question about it), and keeps
   // ₹650 as her private limit.
   await fillAsk(

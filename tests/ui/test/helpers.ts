@@ -1,8 +1,9 @@
 import { mkdirSync } from "node:fs";
 import { ApiClient, Header, type MessageKey, type Params, type PluralKey, SecretKeys, t } from "@gigsync/core";
 import { newDeviceSecrets } from "@gigsync/crypto";
-import { DEFAULT_LANG, type Lang, type Place, type Trade } from "@gigsync/protocol";
+import { type BoardProfile, DEFAULT_LANG, type Lang, type Place, type Trade } from "@gigsync/protocol";
 import { expect, type Locator, type Page, test } from "@playwright/test";
+import { areaIn, saveAddress } from "./address.js";
 import { open } from "./menu.js";
 
 /** Job cards on Activity and Records, wherever a job is filed now (jobs.ts). */
@@ -73,7 +74,10 @@ interface Person {
   role: Role;
   name: string;
   phone: string;
+  /** Saved as the household's address after sign-in (ADR 0045), in `area` or the pilot area it names. */
   address?: string;
+  /** The pilot area the saved address is in, by its English name, when the address does not name one. */
+  area?: string;
   lang?: Lang;
   /** The number is signed in on another device too: what to do with the move prompt. */
   elsewhere?: MovePrompt;
@@ -95,7 +99,6 @@ export async function completeSignIn(page: Page, who: Person) {
   await form.getByRole("radio", { name: t(lang, `signin.${who.role}`) }).click();
   await form.getByLabel(t(lang, "signin.name")).fill(who.name);
   await form.getByLabel(t(lang, "signin.phone")).fill(who.phone);
-  if (who.address) await form.getByLabel(t(lang, "signin.address")).fill(who.address);
   await page.getByRole("button", { name: t(lang, "signin.send_code"), exact: true }).click();
   await form.getByLabel(new RegExp(`^${escapeRe(t(lang, "signin.code"))}`)).fill(DEV_OTP);
   const submit = page.getByRole("button", { name: t(lang, "signin.submit"), exact: true });
@@ -110,10 +113,14 @@ export async function completeSignIn(page: Page, who: Person) {
     await submit.click();
   }
   await expect(page.getByRole("banner")).toBeVisible();
-  if (!who.elsewhere) return;
-  const notNow = page.getByRole("button", { name: t(lang, "phone.in_not_now"), exact: true });
-  await expect(notNow).toBeVisible();
-  if (who.elsewhere === MovePrompt.notNow) await notNow.click();
+  if (who.elsewhere) {
+    const notNow = page.getByRole("button", { name: t(lang, "phone.in_not_now"), exact: true });
+    await expect(notNow).toBeVisible();
+    if (who.elsewhere === MovePrompt.notNow) await notNow.click();
+    else return;
+  }
+  // No address at sign-in any more (ADR 0045): a household saves one, as it would from Settings.
+  if (who.address) await saveAddress(page, lang, { house: who.address, area: who.area ?? areaIn(who.address) });
 }
 
 /** Saves the worker's UPI ID in About me, the only place it is asked for; the name is left as the form fills it. */
@@ -216,6 +223,7 @@ export async function listWorker(
   area: Place,
   ratePaise: number,
   where: { area_name: string; languages: string[] } = { area_name: "Indiranagar", languages: ["kn", "en"] },
+  arrangements?: BoardProfile["arrangements"],
 ): Promise<ApiClient> {
   const keys = new SecretKeys(newDeviceSecrets());
   const ip = `10.77.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}`;
@@ -231,6 +239,7 @@ export async function listWorker(
     rate_paise: ratePaise,
     ...where,
     about: "Listed by the UI test",
+    ...(arrangements ? { arrangements } : {}),
   });
   return api;
 }

@@ -30,6 +30,12 @@ name = "OTP_RATE_LIMIT"
 namespace_id = "1001"
 simple = { limit = 10, period = 60 }
 
+# Geocoding lookups per user (ADR 0045): a person filling in an address needs a handful, not hundreds.
+[[ratelimits]]
+name = "GEO_RATE_LIMIT"
+namespace_id = "1002"
+simple = { limit = 30, period = 60 }
+
 # One deployment for the pilot. Split into staging and production when there is a team.
 [vars]
 ENVIRONMENT = "pilot"

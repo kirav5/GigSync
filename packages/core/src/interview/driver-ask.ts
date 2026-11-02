@@ -34,7 +34,7 @@ export function driverToAsk(d: NeedDraft): DriverName | undefined {
   const trade: Trade | undefined = d.trade;
   const asked = d.askedDrivers ?? 0;
   if (!trade || d.priceDone || asked >= MAX_PRICE_QUESTIONS) return undefined;
-  const spread = driverSpread(trade, draftDrivers(d));
+  const spread = driverSpread(trade, draftDrivers(d), d.arrangement);
   const next = spread.assumed.find((name) => !(d.notKnown ?? []).includes(name));
   const width = next ? (spread.widths[next] ?? 1) : 1;
   const enough = asked < USUAL_QUESTIONS ? WORTH_ASKING : WORTH_MORE;
@@ -43,7 +43,7 @@ export function driverToAsk(d: NeedDraft): DriverName | undefined {
 
 /** The trade's most price-moving unknown driver now: the one code guarantees is asked. */
 export const topDriver = (d: NeedDraft): DriverName | undefined =>
-  d.trade ? rankUnknown(d.trade, draftDrivers(d), d.notKnown ?? [])[0] : undefined;
+  d.trade ? rankUnknown(d.trade, draftDrivers(d), d.notKnown ?? [], d.arrangement)[0] : undefined;
 
 /** The question waiting for an answer: the model's, or in lite mode the fixed driver's. */
 export function currentQuestion(d: NeedDraft): PriceQuestion | undefined {

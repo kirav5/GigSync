@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { AreaKey } from "./area-key.js";
+import { Arrangement, hasArrangements } from "./arrangement.js";
 import { City } from "./content.js";
 import {
   AcDrivers,
@@ -57,6 +58,8 @@ const scoped = <K extends Trade, S extends z.ZodType<TradeScope[K]>, D extends z
     trade: z.literal(trade),
     scope,
     drivers: drivers.optional(),
+    /** ADR 0046: for maid and driver work, how long it is for; the range is then in that arrangement's unit. */
+    arrangement: Arrangement.optional(),
   });
 
 /**
@@ -65,16 +68,18 @@ const scoped = <K extends Trade, S extends z.ZodType<TradeScope[K]>, D extends z
  * ones left out); an older phone sends the scope alone, which the server reads as drivers. Either way the range is
  * computed from per-unit rates, with a confidence label.
  */
-export const EstimateRequest = z.discriminatedUnion("trade", [
-  scoped(T.electrician, ElectricianScope, ElectricianDrivers),
-  scoped(T.plumber, PlumberScope, PlumberDrivers),
-  scoped(T.maid, MaidScope, MaidDrivers),
-  scoped(T.carpenter, CarpenterScope, CarpenterDrivers),
-  scoped(T.ac_technician, AcScope, AcDrivers),
-  scoped(T.painter, PainterScope, PainterDrivers),
-  scoped(T.cook, CookScope, CookDrivers),
-  scoped(T.driver, DriverScope, ChauffeurDrivers),
-]);
+export const EstimateRequest = z
+  .discriminatedUnion("trade", [
+    scoped(T.electrician, ElectricianScope, ElectricianDrivers),
+    scoped(T.plumber, PlumberScope, PlumberDrivers),
+    scoped(T.maid, MaidScope, MaidDrivers),
+    scoped(T.carpenter, CarpenterScope, CarpenterDrivers),
+    scoped(T.ac_technician, AcScope, AcDrivers),
+    scoped(T.painter, PainterScope, PainterDrivers),
+    scoped(T.cook, CookScope, CookDrivers),
+    scoped(T.driver, DriverScope, ChauffeurDrivers),
+  ])
+  .refine((r) => r.arrangement === undefined || hasArrangements(r.trade), "no arrangements for this trade");
 export type EstimateRequest = z.infer<typeof EstimateRequest>;
 
 /**

@@ -1,23 +1,12 @@
-import {
-  AnswerFromMemory,
-  type DriverName,
-  type DriverValues,
-  type EstimateFact,
-  type Lang,
-  type QuestionKey,
-  type RateCard,
-  type Trade,
-  type UserId,
-} from "@gigsync/protocol";
+import { AnswerFromMemory, type QuestionKey, type Trade } from "@gigsync/protocol";
 import { EVERY_DAY, isMonthly } from "../job/when.js";
 import { QUESTIONS } from "../job/worker.js";
-import type { Known } from "../memory/known.js";
-import type { AreaChoice, Line } from "./card.js";
+import type { Line } from "./card.js";
 import { priceOpen } from "./driver-ask.js";
 import type { FoundEstimate } from "./estimate-lines.js";
+import { arrangedTrade, needsArrangement } from "./need-arrangement.js";
 import type { Recalled } from "./need-memory.js";
-import type { PriceQA, PriceQuestion } from "./price-model.js";
-import type { ScopeChip } from "./scope-read.js";
+import type { NeedConfig, NeedDraft, NeedTo } from "./need-types.js";
 
 /**
  * The need interview's shape and how it moves: a household (or a worker hiring a helper) says what they need, in one
@@ -29,83 +18,7 @@ import type { ScopeChip } from "./scope-read.js";
 export const DayWord = { today: "today", tomorrow: "tomorrow" } as const;
 export type DayWord = (typeof DayWord)[keyof typeof DayWord];
 
-/** What the interview has gathered so far. */
-export interface NeedDraft {
-  trade?: Trade | undefined;
-  /** The owner's own words about the need, as they said them: what the worker reads. */
-  need?: string | undefined;
-  /** The answer to the trade's first question (`QUESTIONS[trade][0]`); null when the owner skipped it. */
-  detail?: string | null | undefined;
-  /** Details the owner's words already gave, by question, kept until the trade that asks them is known. */
-  seen: Partial<Record<QuestionKey, string>>;
-  /** An area key, e.g. "hsr_layout". */
-  area?: string | undefined;
-  /** A `DayWord`, `EVERY_DAY`, or a day as "YYYY-MM-DD". */
-  day?: string | undefined;
-  /** The time as the owner said it ("10 am", "सुबह"), for people only. */
-  time?: string | undefined;
-  /** The most they will pay. Never leaves the phone; the agent negotiates up to it. */
-  budget_paise?: number | undefined;
-  /** Scope read from the owner's description: chips to confirm before the estimate is asked (`need-scope.ts`). */
-  scope?: { chips: readonly ScopeChip[]; confirmed: boolean } | undefined;
-  /** Price drivers (ADR 0041) read from the owner's words or answered; the details give the rest (`draftDrivers`). */
-  drivers?: DriverValues | undefined;
-  /** Drivers the owner said they do not know: assumed by the estimate, never asked again. */
-  notKnown?: readonly DriverName[] | undefined;
-  /** Price questions asked so far, at most `MAX_PRICE_QUESTIONS`. */
-  askedDrivers?: number | undefined;
-  /** The price questions are over: the owner did not know or skipped one, the model was done, or none is worth it. */
-  priceDone?: boolean | undefined;
-  /** With a usable phone model: its questions (`price-model.ts`); absent in lite mode or once the model failed. */
-  modelAsk?: ModelAsk | undefined;
-  /** Facts the phone's model wrote from the answers, scrubbed; kept on the phone for the owner's agent, never sent. */
-  facts?: readonly EstimateFact[] | undefined;
-  /** A need outside GigSync's trades, as a short label the phone's model gave ("wedding photographer"). */
-  jobType?: string | undefined;
-}
-
-/** The model's side of the price questions: the question waiting, what was asked and said, what it covered. */
-export interface ModelAsk {
-  current?: PriceQuestion | undefined;
-  said: readonly PriceQA[];
-  /** Drivers the model's questions filled: the safeguard adds the top driver only when it is not among them. */
-  covered: readonly DriverName[];
-  /** The job's most price-moving unknown driver when the model began: the one question code guarantees. */
-  top?: DriverName | undefined;
-}
-
-export interface NeedConfig {
-  /** The owner's language: the one questions are read in, and the hints the recognizer gets. */
-  own: Lang;
-  areas: readonly AreaChoice[];
-  /** The city's going rates, shown as a hint beside the budget question. */
-  rates: RateCard;
-  /** The phone's calendar day when the interview started, "YYYY-MM-DD", for dates said without a year. */
-  today: string;
-  /** The phone has a usable model (ADR 0040): it decides the price questions; lite mode asks the fixed ones. */
-  modelQuestions?: boolean;
-  /** What the owner's agent remembers from past jobs, and whether to ask before using it; never the budget. */
-  remembered?: NeedMemory;
-}
-
-/** The household's remembered area (a key of `areas`) and stable facts by question, and the owner's setting. */
-export interface NeedMemory {
-  mode: AnswerFromMemory;
-  area?: Known;
-  facts: Partial<Record<QuestionKey, Known>>;
-}
-
-/**
- * The one worker a need is addressed to, when the household chose them before asking (their QR, their offer to work):
- * the interview asks only what that worker needs to hear, never searches, and sends to them alone (ADR 0035).
- */
-export interface NeedTo {
-  user: UserId;
-  /** Their name on their card, as the questions say it. */
-  name: string;
-  /** The trades on their card: the need is for one of them, asked only when there are several. */
-  trades: readonly Trade[];
-}
+export type { ModelAsk, NeedConfig, NeedDraft, NeedMemory, NeedTo } from "./need-types.js";
 
 /** Where the interview is: a field being asked, the readback, the search, or what it found. */
 export const NeedSlot = {
@@ -113,6 +26,8 @@ export const NeedSlot = {
   /** The scope read from the owner's words, as chips to confirm. */
   scope: "scope",
   detail: "detail",
+  /** How long the work is for, for maid and driver work (ADR 0046). */
+  arrangement: "arrangement",
   /** A price driver that moves the range most (ADR 0041), asked before the estimate. */
   driver: "driver",
   area: "area",
@@ -131,10 +46,11 @@ export const NeedSlot = {
 export type NeedSlot = (typeof NeedSlot)[keyof typeof NeedSlot];
 
 /** A field the owner can change from the readback. */
-export type NeedField = Extract<NeedSlot, "trade" | "detail" | "area" | "when" | "budget">;
+export type NeedField = Extract<NeedSlot, "trade" | "detail" | "arrangement" | "area" | "when" | "budget">;
 export const NEED_FIELDS: readonly NeedField[] = [
   NeedSlot.trade,
   NeedSlot.detail,
+  NeedSlot.arrangement,
   NeedSlot.area,
   NeedSlot.when,
   NeedSlot.budget,
@@ -175,6 +91,7 @@ export function firstMissing(d: NeedDraft): NeedSlot {
   if (!d.trade) return NeedSlot.trade;
   if (d.scope && !d.scope.confirmed) return NeedSlot.scope;
   if (firstQuestion(d.trade) && d.detail === undefined) return NeedSlot.detail;
+  if (needsArrangement(d)) return NeedSlot.arrangement;
   if (d.area === undefined) return NeedSlot.area;
   if (priceOpen(d)) return NeedSlot.driver;
   if (d.day === undefined) return NeedSlot.when;
@@ -264,7 +181,9 @@ export const answerMyself = (s: NeedState): NeedState =>
 
 /** Jumps to one field from the readback (or a Change chip); once it is answered the readback comes again. */
 export function editNeed(s: NeedState, field: NeedField): NeedState {
-  const usable = field !== NeedSlot.detail || firstQuestion(s.draft.trade) !== undefined;
+  const usable =
+    (field !== NeedSlot.detail || firstQuestion(s.draft.trade) !== undefined) &&
+    (field !== NeedSlot.arrangement || arrangedTrade(s.draft.trade));
   const ownAnswer = [...s.ownAnswer, field];
   const slot = usable ? field : NeedSlot.confirm;
   return { ...s, slot, notes: [], changing: !usable, fresh: false, ownAnswer, filled: [] };

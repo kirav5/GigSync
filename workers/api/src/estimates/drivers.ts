@@ -1,4 +1,11 @@
-import { driverSpread, ESTIMATE_UNIT, jobRange, KARNATAKA_MINIMUM, rateCardEntry } from "@gigsync/core";
+import {
+  arrangementEntry,
+  arrangementOf,
+  driverSpread,
+  estimateUnit,
+  jobRange,
+  KARNATAKA_MINIMUM,
+} from "@gigsync/core";
 import {
   type DriverValues,
   driversFromScope,
@@ -35,9 +42,12 @@ export async function serveEstimate(db: Db, req: EstimateRequest, now: Date): Pr
   // The schema checked each trade's drivers; the cast only widens that union to the shape every trade shares.
   const sent = req.drivers as DriverValues | undefined;
   const drivers = tradeDriversOnly(trade, sent ?? driversFromScope(trade, req.scope));
-  const spread = driverSpread(trade, drivers);
-  const gigsync = unitRate(trade, await unitRows(db, trade, marketSince(now)), req.area, now);
-  const card = rateCardEntry(req.city, trade);
+  // ADR 0046: a maid or driver job is priced in its arrangement, from jobs and card figures of that arrangement only.
+  const arrangement = arrangementOf(trade, req.arrangement);
+  const spread = driverSpread(trade, drivers, arrangement);
+  const rows = await unitRows(db, trade, arrangement, marketSince(now));
+  const gigsync = unitRate(trade, rows, req.area, now, arrangement);
+  const card = arrangementEntry(req.city, trade, arrangement);
   const parts: Part[] = [];
   if (gigsync) parts.push({ kind: K.gigsync, band: jobRange(gigsync.rate, spread), weight: gigsync.effective });
   if (card) parts.push({ kind: K.rate_card, band: jobRange(card.range, spread), weight: RATE_CARD_WEIGHT });
@@ -53,7 +63,7 @@ export async function serveEstimate(db: Db, req: EstimateRequest, now: Date): Pr
   return driverEstimate({
     band: blended.band,
     kinds: blended.kinds,
-    unit: ESTIMATE_UNIT[trade],
+    unit: estimateUnit(trade, req.arrangement),
     floor,
     jobs: gigsync?.jobs ?? 0,
     ...(gigsync?.area ? { area: gigsync.area } : {}),

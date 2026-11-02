@@ -1,4 +1,13 @@
-import type { BoardProfile, BoardQuery, BoardWorker, MyBoardProfile, Trade, UserId } from "@gigsync/protocol";
+import {
+  type ArrangementRate,
+  type BoardProfile,
+  type BoardQuery,
+  type BoardWorker,
+  DEFAULT_ARRANGEMENT,
+  type MyBoardProfile,
+  type Trade,
+  type UserId,
+} from "@gigsync/protocol";
 import { recordOf } from "../records/serve.js";
 import type { Db } from "./client.js";
 import { RECORD_COLUMNS, type RecordRow } from "./records.js";
@@ -43,6 +52,12 @@ export async function upsertProfile(db: Db, user: UserId, p: BoardProfile, at: D
   await db.query("INSERT INTO worker_trades (user_id, trade) SELECT $1, unnest($2::text[])", [user, p.trades]);
   await db.query("DELETE FROM worker_languages WHERE user_id = $1", [user]);
   await db.query("INSERT INTO worker_languages (user_id, language) SELECT $1, unnest($2::text[])", [user, p.languages]);
+  const arrangements = p.arrangements ?? [];
+  await db.query("DELETE FROM worker_arrangements WHERE user_id = $1", [user]);
+  await db.query(
+    "INSERT INTO worker_arrangements (user_id, arrangement, rate_paise) SELECT $1, unnest($2::text[]), unnest($3::int[])",
+    [user, arrangements.map((a) => a.arrangement), arrangements.map((a) => a.rate_paise)],
+  );
 }
 
 /** Takes a worker off the board. True when there was a card to remove; trades and languages go with it. */
@@ -58,6 +73,8 @@ export async function removeProfile(db: Db, user: UserId): Promise<boolean> {
 export const CARD_COLUMNS = `p.display_name, p.area_lat, p.area_lon, p.area_name, p.rate_paise, p.about,
   ARRAY(SELECT t.trade FROM worker_trades t WHERE t.user_id = p.user_id ORDER BY t.trade) AS trades,
   ARRAY(SELECT l.language FROM worker_languages l WHERE l.user_id = p.user_id ORDER BY l.language) AS languages,
+  ARRAY(SELECT json_build_object('arrangement', a.arrangement, 'rate_paise', a.rate_paise)
+    FROM worker_arrangements a WHERE a.user_id = p.user_id ORDER BY a.arrangement) AS arrangements,
   ${RECORD_COLUMNS}`;
 
 /** The columns CARD_COLUMNS selects. */
@@ -70,6 +87,8 @@ export interface CardRow extends RecordRow {
   about: string;
   trades: Trade[];
   languages: string[];
+  /** Empty for a card that takes monthly work only. */
+  arrangements: ArrangementRate[];
 }
 
 /** The card's own fields, without the record. */
@@ -81,6 +100,7 @@ const fieldsOf = (r: CardRow): BoardProfile => ({
   rate_paise: r.rate_paise,
   languages: r.languages,
   about: r.about,
+  ...(r.arrangements.length > 0 ? { arrangements: r.arrangements } : {}),
 });
 
 /** The card as the board and a scanned QR show it: the server's record unless the worker hid it, never the switch. */
@@ -118,9 +138,23 @@ export async function searchWorkers(db: Db, q: BoardQuery): Promise<BoardWorker[
        AND p.area_lat BETWEEN $2 - $4 / $8::float8 AND $2 + $4 / $8::float8
        AND d.km <= $4
        AND ($5::int IS NULL OR p.rate_paise <= $5)
+       AND ($9::text IS NULL OR EXISTS (
+         SELECT 1 FROM worker_arrangements a WHERE a.user_id = p.user_id AND a.arrangement = $9)
+         OR ($9::text = $10::text AND NOT EXISTS (SELECT 1 FROM worker_arrangements a WHERE a.user_id = p.user_id)))
      ORDER BY d.km, p.rate_paise, p.user_id
      LIMIT $6`,
-    [q.trade, q.lat, q.lon, q.radius_km, q.max_rate_paise ?? null, q.limit, EARTH_RADIUS_KM, KM_PER_DEGREE],
+    [
+      q.trade,
+      q.lat,
+      q.lon,
+      q.radius_km,
+      q.max_rate_paise ?? null,
+      q.limit,
+      EARTH_RADIUS_KM,
+      KM_PER_DEGREE,
+      q.arrangement ?? null,
+      DEFAULT_ARRANGEMENT,
+    ],
   );
   return rows.map((r) => ({
     ...cardOf(r),

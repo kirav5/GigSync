@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Arrangement, ArrangementRates } from "./arrangement.js";
 import { UserId } from "./ids.js";
 import { Paise } from "./payment.js";
 import { Place } from "./place.js";
@@ -42,6 +43,8 @@ export const BoardProfile = z.object({
   about: z.string().max(300).default(""),
   /** Served only: the server's record of the worker's stored jobs; left out when hidden or no job is stored. */
   record: WorkerRecord.optional(),
+  /** ADR 0046: the arrangements a maid or driver takes, with the usual rate for each; absent means monthly only. */
+  arrangements: ArrangementRates.optional(),
   /** Show my record: false hides it from the card entirely (never single ratings). Absent means unchanged (new: shown). */
   show_record: z.boolean().optional(),
 });
@@ -61,6 +64,8 @@ export const BoardQuery = z.object({
   lon: z.coerce.number().min(-180).max(180),
   radius_km: z.coerce.number().positive().max(MAX_RADIUS_KM).default(DEFAULT_RADIUS_KM),
   max_rate_paise: z.coerce.number().int().positive().optional(),
+  /** ADR 0046: only workers who take this arrangement; a card without arrangements takes monthly work only. */
+  arrangement: Arrangement.optional(),
   limit: z.coerce.number().int().min(1).max(MAX_RESULTS).default(DEFAULT_RESULTS),
 });
 export type BoardQuery = z.infer<typeof BoardQuery>;

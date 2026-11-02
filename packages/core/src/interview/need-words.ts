@@ -100,6 +100,7 @@ export const COUNT_WORDS: Readonly<Partial<Record<QuestionKey, readonly string[]
 /** Words naming each field to change from the readback, most specific first ("budget" before "work"). */
 export const NEED_FIELD_WORDS: Readonly<Record<NeedField, readonly string[]>> = {
   budget: ["budget", "price", "pay", "money", "amount", "बजट", "दाम", "पैसे", "ಬಜೆಟ್", "ಹಣ", "ದುಡ್ಡು", "ಬೆಲೆ"],
+  arrangement: ["how long", "hours", "monthly", "कितने समय", "घंटे", "महीने", "ಎಷ್ಟು ಸಮಯ", "ಗಂಟೆ", "ತಿಂಗಳ"],
   when: ["when", "day", "date", "time", "कब", "दिन", "तारीख", "समय", "ಯಾವಾಗ", "ದಿನ", "ದಿನಾಂಕ", "ಸಮಯ"],
   area: ["area", "place", "इलाका", "जगह", "एरिया", "ಏರಿಯಾ", "ಜಾಗ"],
   detail: ["detail", "problem", "समस्या", "दिक्कत", "ವಿವರ", "ಸಮಸ್ಯೆ"],

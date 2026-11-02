@@ -115,7 +115,7 @@ export async function recordsPage(db: Db, user: UserId, page: RecordsPage): Prom
        scope_meals, scope_hours_band, scope_labour_only, to_char(work_day, 'YYYY-MM-DD') AS work_day, work_daily,
        work_window, materials_by, coats, hours_per_day, price_paise, status, attested, agreed_at, done_at, cancelled_at,
        stars, qty_area_band, qty_rooms, qty_surface, qty_floors, qty_house_type, qty_finish, qty_people, qty_days_week,
-       qty_tasks, qty_hours, qty_vehicle, qty_points
+       qty_tasks, qty_hours, qty_vehicle, qty_points, qty_arrangement
      FROM job_records
      WHERE (worker_id = $1 OR household_id = $1) AND ($2::text IS NULL OR engagement_id > $2)
      ORDER BY engagement_id LIMIT $3`,

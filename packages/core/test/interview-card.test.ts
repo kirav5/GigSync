@@ -274,8 +274,11 @@ describe("changing a card the owner already has", () => {
   it("asks the new trade's ask-first question after changing the trade", () => {
     const electrician = { ...FULL, trades: [T.electrician], rate_paise: 50000, limit_paise: 40000 };
     const s = run(edit(start(config("hi"), electrician), Slot.trade), ["घर का काम"]);
-    expect(s.slot).toBe(Slot.ask_first);
-    expect(hear(s, "हाँ").slot).toBe(Slot.confirm);
+    // A maid says which work she takes first (ADR 0046), then her rate for it, in that unit.
+    expect(s.slot).toBe(Slot.arrangements);
+    const atRate = hear(s, "महीने के हिसाब से");
+    expect(atRate.slot).toBe(Slot.rate);
+    expect(prompt(atRate).lines.some((l) => l.key === "iv.ask.rate_month")).toBe(true);
   });
 
   it("goes back to the summary when there is nothing to change", () => {

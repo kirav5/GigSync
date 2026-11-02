@@ -1,3 +1,4 @@
+export * from "./address/book.js";
 export * from "./agent.js";
 export * from "./chat/index.js";
 export * from "./contacts/index.js";
@@ -5,6 +6,7 @@ export * from "./device-model/index.js";
 export * from "./engagement/machine.js";
 export * from "./estimate/area-names.js";
 export * from "./estimate/areas.js";
+export * from "./estimate/arrangement-rates.js";
 export * from "./estimate/band.js";
 export * from "./estimate/driver-details.js";
 export * from "./estimate/driver-price.js";
@@ -48,6 +50,8 @@ export {
   searchFailed,
   startNeed,
 } from "./interview/need.js";
+export { ADD_ADDRESS, atAddress } from "./interview/need-address.js";
+export { arrangedTrade } from "./interview/need-arrangement.js";
 export { DriverPick, priceContext, withPriceStep } from "./interview/need-drivers.js";
 export {
   needDetails,
@@ -71,6 +75,7 @@ export {
 } from "./interview/need-request.js";
 export { chipChoice, ScopePick, scopeDetails } from "./interview/need-scope.js";
 export { needTerms, windowOf } from "./interview/need-terms.js";
+export type { AddressChoice } from "./interview/need-types.js";
 export {
   checkPriceStep,
   MAX_PRICE_QUESTIONS,
@@ -87,6 +92,12 @@ export { TRADE_MIN_SIMILARITY, tradeByMeaning, tradeIndex } from "./interview/tr
 export * from "./job/activity.js";
 export * from "./job/advice.js";
 export * from "./job/aftercare.js";
+export {
+  type ArrangementMandate,
+  arrangementMandates,
+  askedArrangement,
+  rateFor,
+} from "./job/arrangement-rules.js";
 export { QUESTIONS } from "./job/ask.js";
 export * from "./job/city-rates.js";
 export * from "./job/deal.js";

@@ -86,6 +86,8 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await expect(log).toContainText(t(en, "question.rooms"));
   await say(priyaPage, ROOMS);
   await expect(log.getByRole("button", { name: t(en, "memory.use"), exact: true })).toHaveCount(0);
+  // A maid: how long first (ADR 0046).
+  await tap(priyaPage, t(en, "need.arr.monthly"));
   await tap(priyaPage, t(en, "area.hsr_layout"));
   await skipPriceQuestions(priya);
   await say(priyaPage, BUDGET);
@@ -131,7 +133,8 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await expect(log).toContainText(t(en, "memory.offer_detail", roomsParams));
   await shoot("ask-first", { household: priyaPage }, FOLDER);
   await tap(priyaPage, t(en, "memory.use"));
-  await expect(log).toContainText(t(en, "need.ask.area"));
+  await tap(priyaPage, t(en, "need.arr.monthly"));
+  await expect(log).toContainText(t(en, "need.ask.address"));
   await expect(log).not.toContainText(t(en, "memory.offer_area", { area: t(en, "area.hsr_layout") }));
   await tap(priyaPage, t(en, "area.hsr_layout"));
   await skipPriceQuestions(priya);
@@ -165,7 +168,8 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await expect(log).toContainText(t(en, "need.start"));
   await tap(priyaPage, t(en, "trade.maid"));
   await expect(log).toContainText(t(en, "memory.filled_detail", roomsParams));
-  await expect(log).toContainText(t(en, "need.ask.area"));
+  // Memory has nothing for how long the work is for (ADR 0046): asked next.
+  await expect(log).toContainText(t(en, "need.ask.arrangement"));
   await shoot("answer-for-me", { household: priyaPage }, FOLDER);
   await tap(priyaPage, t(en, "memory.change_detail", { detail: t(en, "detail.rooms") }));
   await expect(log.getByText(t(en, "question.rooms"))).toHaveCount(1);

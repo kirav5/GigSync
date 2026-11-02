@@ -1,4 +1,5 @@
-import { type DriverValues, TRADE_DRIVERS } from "./estimate-drivers.js";
+import { allDrivers } from "./arrangement.js";
+import type { DriverValues } from "./estimate-drivers.js";
 import {
   DEFAULT_SCOPE,
   type HoursBand,
@@ -105,5 +106,5 @@ export function scopeFromDrivers<K extends Trade>(trade: K, drivers: DriverValue
 
 /** Only the drivers the trade has: a value for another trade's driver is dropped. */
 export function tradeDriversOnly(trade: Trade, drivers: DriverValues): DriverValues {
-  return Object.fromEntries(TRADE_DRIVERS[trade].flatMap((n) => (drivers[n] === undefined ? [] : [[n, drivers[n]]])));
+  return Object.fromEntries(allDrivers(trade).flatMap((n) => (drivers[n] === undefined ? [] : [[n, drivers[n]]])));
 }

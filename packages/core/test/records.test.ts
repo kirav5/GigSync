@@ -130,9 +130,10 @@ describe("the facts a job record carries", () => {
     for (const words of ["9800000101", "Flat 302", "Saturday", "4th Block"]) expect(sent).not.toContain(words);
   });
 
-  it("carries the pilot area's slug when the request's point is one (ADR 0039), never the point", () => {
-    expect(submissionOf(signed(job()))?.area).toBeUndefined();
+  it("carries the pilot area's slug when the request's point is in one (ADR 0039, 0045), never the point", () => {
     const r = job();
+    const far = { ...r, request: { ...r.request, area: { lat: 13.1, lon: 77.4 } } };
+    expect(submissionOf(signed(far))?.area).toBeUndefined();
     const inJayanagar = { ...r, request: { ...r.request, area: { lat: 12.9308, lon: 77.5838 } } };
     const s = submissionOf(signed(inJayanagar));
     expect(s?.area).toBe("jayanagar");

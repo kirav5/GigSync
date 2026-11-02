@@ -24,6 +24,8 @@ import {
   tradeFor,
   withTrade,
 } from "./need.js";
+import { atArea, chooseAddress } from "./need-address.js";
+import { chooseArrangement, hearArrangement } from "./need-arrangement.js";
 import { detailAnswer, settledProblem } from "./need-detail.js";
 import { chooseDriver, hearDriver } from "./need-drivers.js";
 import { suggestedBudget } from "./need-estimate.js";
@@ -125,9 +127,11 @@ function onSlot(s: NeedState, d: NeedDraft, text: string, fill: NeedFill, aloud:
       if (detail && detail.length > DETAIL_MAX) return retryNeed(s, { key: Say.long });
       return moveOn(s, settledProblem({ ...d, detail }));
     }
+    case NeedSlot.arrangement:
+      return hearArrangement(s, text);
     case NeedSlot.area: {
       const area = areaIn(text, s.config.areas);
-      return area ? moveOn(s, { ...d, area }) : undefined;
+      return area ? moveOn(s, atArea(d, area)) : undefined;
     }
     case NeedSlot.when: {
       if (!fill.day && !fill.time) return undefined;
@@ -252,8 +256,10 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
       const yes = flag(value);
       return yes === undefined ? s : moveOn(s, { ...d, detail: yes ? DetailFlag.enum.yes : DetailFlag.enum.no });
     }
+    case NeedSlot.arrangement:
+      return chooseArrangement(s, value);
     case NeedSlot.area:
-      return s.config.areas.some((a) => a.key === value) ? moveOn(s, { ...d, area: value }) : s;
+      return chooseAddress(s, value) ?? (s.config.areas.some((a) => a.key === value) ? moveOn(s, atArea(d, value)) : s);
     case NeedSlot.when:
       return WHEN_VALUES.includes(value) ? moveOn(s, { ...d, day: value }) : s;
     case NeedSlot.budget: {

@@ -1,22 +1,24 @@
 import { askable, type CardDraft, log, type Ports, parseAmount, type TermPrefs } from "@gigsync/core";
-import { Lang, Trade } from "@gigsync/protocol";
+import { hasArrangements, Lang, mainArrangement, Trade } from "@gigsync/protocol";
 import { type FormEvent, useRef, useState } from "react";
 import { type Account, apiClient, saveAccount } from "../adapters/account.js";
 import { offerAlerts } from "../adapters/push.js";
 import { closeInterview } from "../card/interviewStore.js";
-import { AboutPrivateError, accountDraft, publishCard } from "../card/publish.js";
+import { AboutPrivateError, accountDraft, DEFAULT_RADIUS_KM, publishCard } from "../card/publish.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
 import { errorKey } from "../ui/errorKey.js";
 import { Icon } from "../ui/Icon.js";
 import { AREAS, money, rupeesOf } from "../ui/places.js";
+import { AreaField, type WorkArea } from "./card/AreaField.js";
+import { ArrangementsField, arrangementsValue, otherRates } from "./card/ArrangementsField.js";
 import { TermPrefsField } from "./card/TermPrefsField.js";
 import { CardRates } from "./estimate/CardRates.js";
 
 /** The form's id, so Publish can sit in the dock, outside it. */
 const FORM_ID = "my-card";
-const Field = { area: "area", rate: "rate", min: "min", about: "about", auto: "auto" } as const;
+const Field = { rate: "rate", min: "min", about: "about", auto: "auto" } as const;
 const ASK_FIELD = "ask.";
 /** What the board keeps of the line about their work. */
 const ABOUT_MAX = 300;
@@ -44,6 +46,14 @@ export function MyCard({
   const [trades, setTrades] = useState<Trade[]>(draft.trades ?? []);
   const [spoken, setSpoken] = useState<Lang[]>(account.languages ?? [lang]);
   const [prefs, setPrefs] = useState<TermPrefs>(draft.terms ?? {});
+  const [where, setWhere] = useState<WorkArea>({
+    area: draft.area,
+    place: draft.place,
+    radius_km: draft.radius_km ?? DEFAULT_RADIUS_KM,
+  });
+  const [work, setWork] = useState(arrangementsValue(draft.arrangements, draft.other_rates));
+  const arranged = trades[0] !== undefined && hasArrangements(trades[0]);
+  const main = arranged ? mainArrangement(work.picked) : undefined;
   const [error, setError] = useState<string>();
   const [status, setStatus] = useState<string>();
   /** A publish or unlist is on its way: a second tap must not send the card twice. */
@@ -67,10 +77,15 @@ export function MyCard({
     const min = parseAmount(String(v.get(Field.min) ?? ""));
     if (trades.length === 0) return setError(t("card.err_trade"));
     if (rate === undefined || min === undefined || !(min > 0 && rate >= min)) return setError(t("card.err_rate"));
+    const others = arranged ? otherRates(work) : {};
+    if (!others || (arranged && work.picked.length === 0)) return setError(t("card.err_arrangements"));
     if (busy) return;
     const next: CardDraft = {
       trades,
-      area: String(v.get(Field.area)),
+      ...(where.area ? { area: where.area } : {}),
+      ...(where.place ? { place: where.place } : {}),
+      radius_km: where.radius_km,
+      ...(arranged ? { arrangements: work.picked, other_rates: others } : {}),
       rate_paise: rate,
       limit_paise: min,
       languages: spoken,
@@ -82,12 +97,12 @@ export function MyCard({
     setBusy(true);
     try {
       const saved = await publishCard(ports, account, next, lang);
-      const area = AREAS.find((a) => a.key === next.area) ?? AREAS[0];
+      const pilot = AREAS.find((a) => a.key === next.area);
       setError(undefined);
       setStatus(
         t("card.on_board", {
           trades: trades.map((tr) => t(`trade.${tr}`)).join(", "),
-          area: t(`area.${area.key}`),
+          area: pilot ? t(`area.${pilot.key}`) : (where.place?.name ?? ""),
           price: money(rate),
         }),
       );
@@ -156,19 +171,14 @@ export function MyCard({
           session={account.session}
           onRate={fill(rateField)}
           onMin={fill(minField)}
+          arrangement={main}
+          others={work.picked.filter((a) => a !== main)}
+          onOther={(a, paise) => setWork((w) => ({ ...w, typed: { ...w.typed, [a]: rupeesOf(paise) } }))}
         />
+        {arranged && <ArrangementsField value={work} onChange={setWork} />}
+        <AreaField session={account.session} value={where} onChange={setWhere} />
         <label className={C.fieldLabel}>
-          <span className={C.muted}>{t("card.where")}</span>
-          <select className={C.field} name={Field.area} defaultValue={draft.area}>
-            {AREAS.map((a) => (
-              <option key={a.key} value={a.key}>
-                {t(`area.${a.key}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={C.fieldLabel}>
-          <span className={C.muted}>{t("card.rate")}</span>
+          <span className={C.muted}>{t(main ? `card.rate.${main}` : "card.rate")}</span>
           <input
             className={C.field}
             name={Field.rate}

@@ -1,4 +1,5 @@
 import {
+  addressChoice,
   ChatIntent,
   type GigDevice,
   type Line,
@@ -25,7 +26,7 @@ import { stopSpeaking } from "../../adapters/speech.js";
 import { needConfig } from "../../card/choices.js";
 import { answerMarket, routedMarket } from "../../estimate/market.js";
 import { fetchEstimate } from "../../estimate/useEstimate.js";
-import { askedTo, askWorkers, needOf, searchBoard } from "../../find/ask.js";
+import { askedTo, askWorkers, needOf, searchBoard, whereOf } from "../../find/ask.js";
 import { claimSearch, startFindChat, useNeed } from "../../find/findChats.js";
 import {
   answerNeed,
@@ -40,14 +41,16 @@ import {
   showOwner,
 } from "../../find/needStore.js";
 import { findRoute } from "../../find/route.js";
+import { useAddresses } from "../../find/useAddresses.js";
 import { usePriceQuestions } from "../../find/usePriceQuestions.js";
 import { useI18n } from "../../i18n.js";
 import { Composer, Via } from "../../ui/Composer.js";
 import { C } from "../../ui/cls.js";
 import { Dock } from "../../ui/Dock.js";
 import { errorKey } from "../../ui/errorKey.js";
-import { AREAS, PILOT_CITY } from "../../ui/places.js";
+import { PILOT_CITY } from "../../ui/places.js";
 import { phoneDay } from "../jobGroups.js";
+import { AddAddress } from "./AddAddress.js";
 import { type FoundTurn, NeedTurns } from "./NeedTurns.js";
 import { needMemory, withMemory } from "./remembered.js";
 import "../talk.css";
@@ -85,18 +88,23 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   // A chat with nothing in it starts a new need; one under way carries on where it was. What the agent remembers
   // from past jobs comes along, with the owner's setting: offered first ("Use it?"), or filled in and said.
   const empty = ready && !state && turns.length === 0;
+  const { saved, added } = useAddresses(ports, open, state?.config.addresses);
+  const [adding, setAdding] = useState(false);
   useEffect(() => {
-    if (!empty) return;
-    const config = needConfig(lang, phoneDay(ports.clock.now()));
+    if (!empty || !saved) return;
+    const config = { ...needConfig(lang, phoneDay(ports.clock.now())), addresses: saved.map(addressChoice) };
     void needMemory(ports, account).then((remembered) =>
       beginNeed(open, startNeed({ ...withMemory(config, remembered), modelQuestions: modelOn() }, to)),
     );
-  }, [empty, open, to, lang, ports, account]);
+  }, [empty, open, to, lang, ports, account, saved]);
 
   // A language picked in About me part-way: the questions from here on, and what the mic listens for, follow it.
   useEffect(() => {
     if (state && state.config.own !== lang)
-      relanguageNeed(open, withMemory(needConfig(lang, state.config.today), state.config.remembered));
+      relanguageNeed(open, {
+        ...withMemory(needConfig(lang, state.config.today), state.config.remembered),
+        ...(state.config.addresses ? { addresses: state.config.addresses } : {}),
+      });
   }, [state, open, lang]);
 
   // Only a new turn scrolls the chat down: ticking a worker rewrites its turn, and must leave the list where it is.
@@ -130,7 +138,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     const claim = claimSearch(open);
     if (claim === undefined) return;
     if (state.to) {
-      const sent = needOf(state, i18n, ports.clock.now());
+      const sent = needOf(state, i18n, ports.clock.now(), saved);
       if (!sent) return needSearchFailed(claim, INCOMPLETE);
       askWorkers(ports, device, sent, [askedTo(state.to)])
         .then(() => {
@@ -143,14 +151,16 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
         });
       return;
     }
-    const area = AREAS.find((a) => a.key === state.draft.area) ?? AREAS[0];
-    searchBoard(account, trade, area, state.radius_km)
+    // Where the need is (ADR 0045): its saved address or pilot area; never a fallback to another area.
+    const at = whereOf(state.draft, saved ?? []);
+    if (!at) return needSearchFailed(claim, INCOMPLETE);
+    searchBoard(account, trade, at.area, state.radius_km, state.draft.arrangement)
       .then((workers) => needFound(claim, workers))
       .catch((err: unknown) => {
         log.warn("search failed", failure(err));
         needSearchFailed(claim, errorKey(err));
       });
-  }, [state, open, account, i18n, ports, device, onAsked]);
+  }, [state, open, account, i18n, ports, device, onAsked, saved]);
 
   // The first answer, the need in the owner's words: in English the phone's model helps read it, and in every
   // language its scope is read into chips the owner confirms before the estimate is asked (ADR 0033 §5).
@@ -205,7 +215,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   async function ask(turn: FoundTurn) {
     // Asking workers is when this household starts to have news to hear about: the browser may ask, once.
     void offerAlerts();
-    const need = state && needOf(state, i18n, ports.clock.now());
+    const need = state && needOf(state, i18n, ports.clock.now(), saved);
     if (busy || !need) return;
     const chat = open;
     setBusy(true);
@@ -227,7 +237,17 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   }
 
   const conversation = (
-    <NeedTurns chat={open} state={state} turns={turns} busy={busy} onAsk={(turn) => void ask(turn)} />
+    <NeedTurns
+      chat={open}
+      state={state}
+      turns={turns}
+      busy={busy}
+      onAsk={(turn) => void ask(turn)}
+      onAddAddress={() => setAdding(true)}
+    />
+  );
+  const form = adding && (
+    <AddAddress chat={open} session={account.session} ports={ports} added={added} onDone={() => setAdding(false)} />
   );
   // The workers were asked: the chat stays to read, and asking for something else opens a new one.
   if (ready && !state && turns.length > 0)
@@ -247,6 +267,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   return (
     <>
       {conversation}
+      {form}
       {reading && (
         <p className={C.muted} role="status">
           {t("need.reading")}

@@ -1,0 +1,48 @@
+/**
+ * Saved addresses and current location (ADR 0045): the permission explanation shown before the phone is asked, the
+ * address form's fields, search, and how Find and My card offer them. Workers see only the area before both sign.
+ */
+export const address = {
+  "addr.title": "Saved addresses",
+  "addr.add": "Add an address",
+  "addr.none": "No saved addresses yet.",
+  "addr.private":
+    "Workers see only your area until you both sign. The full address goes only to the worker you sign with.",
+  "addr.use_location": "Use my current location",
+  "addr.why_title": "Use your location?",
+  "addr.why":
+    "GigSync asks your phone where you are once, to fill in your area, city and PIN code. Only a rough point, about a kilometre wide, leaves your phone, and workers see only your area before you sign.",
+  "addr.allow": "Continue",
+  "addr.not_now": "Not now",
+  "addr.locating": "Finding your area…",
+  "addr.denied": "Location is off for GigSync. Search or type the address instead.",
+  "addr.failed": "Could not find your area. Search or type it instead.",
+  "addr.found": "You are in {area}. Check the details and add your house or flat number.",
+  "addr.search": "Search for your area or building",
+  "addr.find": "Search",
+  "addr.search_none": "Nothing found. Type the address below.",
+  "addr.search_off": "Search is not available right now. Type the address below.",
+  "addr.house": "House or flat number",
+  "addr.floor": "Floor (optional)",
+  "addr.building": "Building or society (optional)",
+  "addr.street": "Street (optional)",
+  "addr.landmark": "Landmark (optional)",
+  "addr.area": "Area or locality",
+  "addr.city": "City",
+  "addr.pin": "PIN code",
+  "addr.label": "Save as",
+  "addr.label.home": "Home",
+  "addr.label.work": "Work",
+  "addr.label.other": "Other",
+  "addr.save": "Save address",
+  "addr.cancel": "Cancel",
+  "addr.err_pin": "A PIN code has six digits.",
+  "addr.err_missing": "Add the house or flat number, area, city and PIN code.",
+  "addr.near": "GigSync could not place this address. Which of these areas is it nearest to?",
+  "addr.remove": "Remove",
+  "addr.chip": "{label} · {area}",
+  "addr.max": "You can keep up to {max} addresses. Remove one to add another.",
+  "need.ask.address": "Where do you need the work done?",
+  "card.use_location": "Use my location for my area",
+  "card.area_found": "Your area: {area}",
+} as const;

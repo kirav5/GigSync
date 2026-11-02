@@ -1,4 +1,5 @@
 import {
+  allDrivers,
   DetailFlag,
   DRIVERS_SCHEMA,
   DriverKind,
@@ -7,7 +8,6 @@ import {
   driverSpec,
   MaterialsBy,
   QuestionKey,
-  TRADE_DRIVERS,
   type Trade,
   type TradeDrivers,
 } from "@gigsync/protocol";
@@ -60,7 +60,7 @@ function driverValueOf(trade: Trade, name: DriverName, detail: string | undefine
 /** The drivers a job's details give, for its trade. */
 export function detailsToDrivers(trade: Trade, details: Readonly<Record<string, string | undefined>>): DriverValues {
   const out: DriverValues = {};
-  for (const name of TRADE_DRIVERS[trade]) {
+  for (const name of allDrivers(trade)) {
     const value = driverValueOf(trade, name, details[detailKeyOf(name)]);
     if (value !== undefined) out[name] = value;
   }
@@ -70,7 +70,7 @@ export function detailsToDrivers(trade: Trade, details: Readonly<Record<string, 
 /** The drivers as details: what joins the request's details, so the worker's agent need not ask them again. */
 export function driversToDetails(trade: Trade, drivers: DriverValues): Record<string, string> {
   const out: Record<string, string> = {};
-  for (const name of TRADE_DRIVERS[trade]) {
+  for (const name of allDrivers(trade)) {
     const value = drivers[name];
     if (value === undefined) continue;
     if (name === D.paint_by)

@@ -40,6 +40,8 @@ export const QuestionKey = z.enum([
   "tasks",
   "vehicle",
   "points",
+  /** How long the work is for (ADR 0046): an `Arrangement` value, for the trades priced by arrangement. */
+  "arrangement",
 ]);
 export type QuestionKey = z.infer<typeof QuestionKey>;
 
