@@ -43,6 +43,16 @@ describe("Mailbox durable object", () => {
     expect(await box.fetchFor(d2)).toHaveLength(1);
   });
 
+  it("lets the first device to claim an engagement keep it", async () => {
+    const box = env.MAILBOX.get(env.MAILBOX.idFromName("usr_test_4"));
+    const job = `eng_${U}` as const;
+    const other = "eng_01J0000000000000000000CCCC" as const;
+    expect(await box.claim(job, d2)).toBe(d2);
+    expect(await box.claim(job, d1)).toBe(d2);
+    expect(await box.claim(job, d2)).toBe(d2);
+    expect(await box.claim(other, d1)).toBe(d1);
+  });
+
   it("refuses an already-expired envelope", async () => {
     const box = env.MAILBOX.get(env.MAILBOX.idFromName("usr_test_2"));
     const stale = { ...envelope(2), expires_at: new Date(Date.now() - 1000).toISOString() };

@@ -5,6 +5,7 @@ import {
   FINISHED_WORK,
   type JobRecord,
   NUMBER_ONLY,
+  noteShown,
   t as say,
   timeText,
   WhenDetail,
@@ -67,17 +68,18 @@ export function JobThread(props: JobActionProps) {
     view.names[e.counterpart] || job.contact?.name || job.their_name || t(isWorker ? "job.customer" : "job.worker");
   const terms = job.mine?.terms;
   const payments = view.payments.filter((p) => p.engagement === e.id);
-  const notes = job.notes ?? [];
+  // On the way and done are steps on the progress line; listing them again as notes said everything twice.
+  const notes = (job.notes ?? []).filter(noteShown);
   // The consumer's free text (need, when, typed answers, review) is in the language their request says.
   const theirs = isWorker ? job.request.lang : undefined;
   // The signed slot is a copy of the request's `when`; with a structured day, the When line below says it in this
   // phone's own words, so the slot's machine-translated copy is left out. Older requests have only the slot.
   const slot = terms && dayOf(job.request) === undefined ? terms.slot : undefined;
-  // Finished work both signed makes them someone this owner knows: a worker may ask the household whether they know
-  // someone in a new city, and a household may introduce the worker who did the job.
-  // A name kept after the card was removed still counts: an introduction needs no phone number.
+  // Finished work both signed makes them someone this owner knows: a household may introduce the worker who did the
+  // job. (Asking around for a newcomer stays on mentor links; on a job card it read as noise.) A name kept after the
+  // card was removed still counts: an introduction needs no phone number.
   const knownName = job.contact?.name ?? job.their_name;
-  const known = knownName && bothSigned(job) && FINISHED_WORK.has(e.status) ? knownName : undefined;
+  const known = !isWorker && knownName && bothSigned(job) && FINISHED_WORK.has(e.status) ? knownName : undefined;
   // The request's words, unless they only repeat the trade or are a bare count (older requests used the first answer).
   const need = job.request.need.trim();
   const tradeName = say(job.request.lang, `trade.${job.request.trade}`);
@@ -112,12 +114,15 @@ export function JobThread(props: JobActionProps) {
       <When request={job.request} from={theirs} />
       <RestoredLine job={job} />
 
+      {/* Another of this owner's phones claimed the request and negotiates it there (ADR 0045): nothing to do here. */}
+      {job.elsewhere && <p className={C.faint}>{t("job.elsewhere")}</p>}
       {/* A restored job's messages never reached the server, so its thread cannot go on: it ends through the record. */}
-      {job.restored ? (
-        <RestoredActions job={job} device={device} run={run} them={them} />
-      ) : (
-        <JobActions {...props} them={them} />
-      )}
+      {!job.elsewhere &&
+        (job.restored ? (
+          <RestoredActions job={job} device={device} run={run} them={them} />
+        ) : (
+          <JobActions {...props} them={them} />
+        ))}
 
       {job.contact && (
         <fieldset className="contact" aria-label={t("a11y.contact")}>
@@ -127,15 +132,7 @@ export function JobThread(props: JobActionProps) {
           {job.contact.address && <span>{job.contact.address}</span>}
         </fieldset>
       )}
-      {known && (
-        <IntroActions
-          device={device}
-          person={{ user: e.counterpart, name: known }}
-          run={run}
-          ask={isWorker}
-          introduce={!isWorker}
-        />
-      )}
+      {known && <IntroActions device={device} person={{ user: e.counterpart, name: known }} run={run} introduce />}
       <RemovedLine job={job} />
       <ProblemCard job={job} them={them} device={device} run={run} />
       {notes.length > 0 && (

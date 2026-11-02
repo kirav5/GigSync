@@ -1,4 +1,5 @@
 import { SELF } from "cloudflare:test";
+import type { EngagementId } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import { envelope, post, signIn } from "./people.js";
 
@@ -87,5 +88,23 @@ describe("api", () => {
 
   it("rejects requests without a session", async () => {
     expect((await SELF.fetch("http://x/v1/inbox")).status).toBe(401);
+    expect((await SELF.fetch("http://x/v1/inbox/claims", { method: "POST", body: "{}" })).status).toBe(401);
+  });
+
+  it("gives an engagement to the first of a person's devices that claims it, in their own mailbox only", async () => {
+    const phone = await signIn("+919800000010");
+    const laptop = await signIn("+919800000010");
+    const someoneElse = await signIn("+919800000011");
+    expect(laptop.session.user).toBe(phone.session.user);
+    const engagement = "eng_01J0000000000000000000E001";
+    expect(await laptop.api.claim(engagement)).toBe(laptop.session.device);
+    expect(await phone.api.claim(engagement)).toBe(laptop.session.device);
+    // Another person's mailbox is their own: the same id is free there.
+    expect(await someoneElse.api.claim(engagement)).toBe(someoneElse.session.device);
+  });
+
+  it("refuses a claim without an engagement id", async () => {
+    const a = await signIn("+919800000012");
+    await expect(a.api.claim("not-an-id" as EngagementId)).rejects.toMatchObject({ status: 400 });
   });
 });

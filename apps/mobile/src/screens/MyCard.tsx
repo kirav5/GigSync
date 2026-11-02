@@ -2,6 +2,7 @@ import { askable, type CardDraft, log, type Ports, parseAmount, type TermPrefs }
 import { hasArrangements, Lang, mainArrangement, Trade } from "@gigsync/protocol";
 import { type FormEvent, useRef, useState } from "react";
 import { type Account, apiClient, saveAccount } from "../adapters/account.js";
+import { offerAlerts } from "../adapters/push.js";
 import { closeInterview } from "../card/interviewStore.js";
 import { AboutPrivateError, accountDraft, DEFAULT_RADIUS_KM, publishCard } from "../card/publish.js";
 import { useI18n } from "../i18n.js";
@@ -68,6 +69,8 @@ export function MyCard({
 
   async function publish(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // A listed card is when requests start to come: the browser may ask about notifications, once.
+    void offerAlerts();
     const v = new FormData(e.currentTarget);
     // Amounts as people type them: "7,000", "₹7000", "७०००", "7k".
     const rate = parseAmount(String(v.get(Field.rate) ?? ""));

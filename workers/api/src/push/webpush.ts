@@ -1,15 +1,19 @@
 import { Header, HttpMethod } from "@gigsync/core/http";
 import { log } from "@gigsync/core/log";
-import { EnvelopeKind, isPushEndpoint } from "@gigsync/protocol";
+import { EnvelopeKind, isPushEndpoint, type PushNews, type PushSubscribe } from "@gigsync/protocol";
 import type { Env } from "../env.js";
+import { b64url, fromB64url } from "./b64.js";
+import { encryptPush } from "./encrypt.js";
 
 /**
- * Empty Web Push wake-ups (RFC 8030, signed with VAPID, RFC 8292): the push carries no data at all, so nothing about a
- * job ever passes through Google's, Apple's or Mozilla's push service. The phone's service worker shows a plain
- * "your job has an update" and the app opens its own sealed messages. WebCrypto only, so no library on the Worker.
+ * Web Push notifications (RFC 8030, signed with VAPID, RFC 8292; ADR 0043, 0044). A push says only what kind of
+ * message came and from whom, encrypted to the phone's own keys (RFC 8291), so Google's, Apple's or Mozilla's push
+ * service carries bytes it cannot read; nothing of the job's content is in it, as the API never sees that either. The
+ * phone's service worker names the sender from what the phone knows and words the notification in its owner's
+ * language. A device from before ADR 0044 gave no keys and gets an empty push. WebCrypto only, no library.
  */
 
-/** How long a push service keeps a wake-up for a phone that is off: a day, after which the news waits for the app. */
+/** How long a push service keeps a push for a phone that is off: a day, after which the news waits for the app. */
 const TTL_SECONDS = 86_400;
 /** A VAPID token's life: push services take at most 24 hours. */
 const TOKEN_SECONDS = 12 * 3600;
@@ -41,10 +45,17 @@ export const WAKE_KINDS: ReadonlySet<EnvelopeKind> = new Set([
   K.colleague_note,
 ]);
 
-/** RFC 8030's headers, by their names. */
-const PushHeader = { ttl: "TTL", urgency: "Urgency", contentLength: "Content-Length" } as const;
+/** RFC 8030's and RFC 8188's headers, by their names. */
+const PushHeader = {
+  ttl: "TTL",
+  urgency: "Urgency",
+  contentLength: "Content-Length",
+  contentEncoding: "Content-Encoding",
+} as const;
 const HIGH = "high";
 const EMPTY = "0";
+const AES128GCM = "aes128gcm";
+const OCTETS = "application/octet-stream";
 const ES256 = { name: "ECDSA", namedCurve: "P-256" } as const;
 const SHA256 = { name: "ECDSA", hash: "SHA-256" } as const;
 /** An uncompressed P-256 point: 0x04, then x and y of 32 bytes each. */
@@ -60,20 +71,9 @@ export interface Vapid {
   subject: string;
 }
 
-/** What one wake-up came to: sent, the address is gone (the phone subscribes again when it opens), or failed. */
+/** What one push came to: sent, the address is gone (the phone subscribes again when it opens), or failed. */
 export const Woke = { sent: "sent", gone: "gone", failed: "failed" } as const;
 export type Woke = (typeof Woke)[keyof typeof Woke];
-
-const b64url = (bytes: Uint8Array): string =>
-  btoa(String.fromCharCode(...bytes))
-    .replaceAll("+", "-")
-    .replaceAll("/", "_")
-    .replace(/=+$/, "");
-
-function fromB64url(text: string): Uint8Array {
-  const padded = text.replaceAll("-", "+").replaceAll("_", "/") + "=".repeat((4 - (text.length % 4)) % 4);
-  return Uint8Array.from(atob(padded), (c) => c.charCodeAt(0));
-}
 
 const json64 = (value: unknown) => b64url(new TextEncoder().encode(JSON.stringify(value)));
 
@@ -108,18 +108,38 @@ export async function vapidAuthorization(endpoint: string, vapid: Vapid, now: Da
   return `vapid t=${unsigned}.${b64url(new Uint8Array(sig))}, k=${vapid.publicKey}`;
 }
 
-/** One empty wake-up to one device's push address. */
-export async function wake(endpoint: string, vapid: Vapid, now: Date): Promise<Woke> {
+/** The news encrypted to the device, or nothing at all for a device that gave no keys. */
+async function bodyFor(
+  address: PushSubscribe,
+  news: PushNews,
+): Promise<{ headers: Record<string, string>; body?: Uint8Array<ArrayBuffer> }> {
+  if (!address.keys) return { headers: { [PushHeader.contentLength]: EMPTY } };
+  const body = await encryptPush(new TextEncoder().encode(JSON.stringify(news)), address.keys);
+  return {
+    headers: {
+      [PushHeader.contentEncoding]: AES128GCM,
+      [Header.contentType]: OCTETS,
+      [PushHeader.contentLength]: String(body.length),
+    },
+    body,
+  };
+}
+
+/** One push to one device: the news, encrypted to it. */
+export async function wake(address: PushSubscribe, news: PushNews, vapid: Vapid, now: Date): Promise<Woke> {
+  const { endpoint } = address;
   if (!isPushEndpoint(endpoint)) return Woke.failed;
   try {
+    const { headers, body } = await bodyFor(address, news);
     const res = await fetch(endpoint, {
       method: HttpMethod.post,
       headers: {
+        ...headers,
         [Header.authorization]: await vapidAuthorization(endpoint, vapid, now),
         [PushHeader.ttl]: String(TTL_SECONDS),
         [PushHeader.urgency]: HIGH,
-        [PushHeader.contentLength]: EMPTY,
       },
+      ...(body ? { body } : {}),
     });
     if (GONE.has(res.status)) return Woke.gone;
     return res.ok ? Woke.sent : Woke.failed;
@@ -128,9 +148,15 @@ export async function wake(endpoint: string, vapid: Vapid, now: Date): Promise<W
   }
 }
 
-/** Wakes every device given, together; counts what happened, never the addresses. */
-export async function wakeAll(endpoints: readonly string[], vapid: Vapid, now: Date, requestId: string): Promise<void> {
-  const results = await Promise.all(endpoints.map((e) => wake(e, vapid, now)));
+/** Tells every device given, together; counts what happened, never the addresses or the news. */
+export async function wakeAll(
+  addresses: readonly PushSubscribe[],
+  news: PushNews,
+  vapid: Vapid,
+  now: Date,
+  requestId: string,
+): Promise<void> {
+  const results = await Promise.all(addresses.map((a) => wake(a, news, vapid, now)));
   const count = (w: Woke) => results.filter((r) => r === w).length;
   log.info("push wake-ups", { requestId, sent: count(Woke.sent), gone: count(Woke.gone), failed: count(Woke.failed) });
 }

@@ -217,14 +217,12 @@ test("a household introduces two workers it signed jobs with, both say yes, and 
   await seedSignedJob(s, a);
   await seedSignedJob(s, m);
 
-  // ── Asha asks Suresh whether he knows someone in Bengaluru, from the job they signed ───────────────────────────
+  // ── Her job card asks nothing of him (asking around stays on mentor links) ──────────────────────────────────────
   const withSuresh = await pastJob(asha, s.name);
-  await withSuresh.getByRole("button", { name: t(hi, "mentor.intro_ask", { city: city(hi) }) }).click();
-  await expect(statusOn(asha.page, t(hi, "mentor.intro_asked", { name: s.name }))).toBeVisible();
+  await expect(withSuresh.getByRole("button", { name: t(hi, "mentor.intro_ask", { city: city(hi) }) })).toHaveCount(0);
 
-  // ── Suresh reads her ask with that job, and introduces Mukesh to her from it ───────────────────────────────────
+  // ── Suresh introduces Mukesh to her from the job they signed ───────────────────────────────────────────────────
   const withAsha = await pastJob(suresh, a.name);
-  await expect(withAsha.getByRole("list", { name: t(en, "a11y.notes") })).toBeVisible();
   await withAsha.getByRole("button", { name: t(en, "mentor.introduce", { name: a.name }) }).click();
   await withAsha.getByRole("button", { name: t(en, "mentor.intro_send", { name: m.name }) }).click();
   await expect(statusOn(suresh.page, t(en, "mentor.intro_sent", { name: a.name, other: m.name }))).toBeVisible();

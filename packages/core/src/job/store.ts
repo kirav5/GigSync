@@ -2,6 +2,7 @@ import type {
   Agree,
   Cancel,
   ContactCard,
+  DeviceId,
   Engagement,
   EngagementId,
   Estimate,
@@ -48,6 +49,11 @@ export interface JobRecord {
   strategy?: Strategy;
   /** Why the agent proposed that plan, when it came from the city's rates. */
   advice?: Advice;
+  /**
+   * Another of this owner's devices claimed the request first and runs its agent (ADR 0045); this one shows the
+   * request and how it was called off, and never answers it.
+   */
+  elsewhere?: DeviceId;
   /** The worker said yes to a request their own rules said to show them first. */
   owner_ok?: boolean;
   /** Terms this side's agent accepted, waiting for the owner to sign. */

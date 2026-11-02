@@ -1,10 +1,10 @@
 import { log } from "@gigsync/core/log";
 import { verify } from "@gigsync/crypto";
-import { Envelope, MessageId, QR_KINDS, signingBytes, UserId } from "@gigsync/protocol";
+import { ClaimRequest, Envelope, MessageId, QR_KINDS, signingBytes, UserId } from "@gigsync/protocol";
 import { Hono } from "hono";
 import { z } from "zod";
 import { ApiError, type AppEnv, USER_PARAM, Var } from "../context.js";
-import { activeDeviceIds, deviceSigningKey, pushEndpoints } from "../db/devices.js";
+import { activeDeviceIds, deviceSigningKey, pushAddresses } from "../db/devices.js";
 import { offerTaken } from "../db/qr-offers.js";
 import { vapidOf, WAKE_KINDS, wakeAll } from "../push/webpush.js";
 import { OFFER_SEND_MS } from "../qr/rules.js";
@@ -56,12 +56,15 @@ mail.post(`/mailbox/:${USER_PARAM}`, async (c) => {
     stored: out.stored,
     devices: out.devices,
   });
-  // News a person wants even with the app closed wakes their phones with an empty push (push/webpush.ts). The
-  // addresses are read now, while the request's database connection is open; the pushes go after the answer.
+  // News a person wants even with the app closed reaches their phones as a push saying what came and from whom,
+  // encrypted to each phone (push/webpush.ts). The addresses are read now, while the request's database connection
+  // is open; the pushes go after the answer.
   const vapid = vapidOf(c.env);
   if (vapid && out.stored && WAKE_KINDS.has(e.kind)) {
-    const endpoints = await pushEndpoints(db, to.data);
-    if (endpoints.length > 0) c.executionCtx.waitUntil(wakeAll(endpoints, vapid, new Date(), c.get(Var.requestId)));
+    const addresses = await pushAddresses(db, to.data);
+    const news = { kind: e.kind, from: e.from.user };
+    if (addresses.length > 0)
+      c.executionCtx.waitUntil(wakeAll(addresses, news, vapid, new Date(), c.get(Var.requestId)));
   }
   return c.json(out, out.stored ? 201 : 200);
 });
@@ -83,4 +86,20 @@ mail.post("/inbox/ack", async (c) => {
   const acked = await box.ack(c.get(Var.device), body.data.ids);
   log.info("inbox acked", { requestId: c.get(Var.requestId), device: c.get(Var.device), acked });
   return c.json({ acked });
+});
+
+// ── One agent per job (ADR 0045): the first of my devices to claim an engagement answers it ──────────────────────
+mail.post("/inbox/claims", async (c) => {
+  const body = ClaimRequest.safeParse(await c.req.json().catch(() => null));
+  if (!body.success) return c.json({ error: ApiError.badRequest }, 400);
+  const { engagement } = body.data;
+  const box = c.env.MAILBOX.get(c.env.MAILBOX.idFromName(c.get(Var.user)));
+  const owner = await box.claim(engagement, c.get(Var.device));
+  log.info("engagement claimed", {
+    requestId: c.get(Var.requestId),
+    engagement,
+    device: c.get(Var.device),
+    won: owner === c.get(Var.device),
+  });
+  return c.json({ engagement, owner });
 });

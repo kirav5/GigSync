@@ -1,14 +1,26 @@
 import { type MessageKey, type Params, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { listWorker, MovePrompt, newPhone, open, Role, RUN, shoot, showTab, signIn, statusTag } from "./helpers.js";
+import {
+  listWorker,
+  MovePrompt,
+  newPhone,
+  open,
+  Role,
+  RUN,
+  shoot,
+  showTab,
+  signIn,
+  statusTag,
+  textOf,
+} from "./helpers.js";
 import { fillAsk, publishCard, signBoth, unlistCards } from "./journey.js";
 import { drawer, openDrawer } from "./menu.js";
 
 /**
  * A worker's phone loses its jobs mid-job (a fresh browser, or one that cleared its storage) and rebuilds them from
  * the record on sign-in. The rebuilt card can still be marked done; the household's phone follows the record; both
- * cards show the same progress line with times; and the household can ask the same worker again.
+ * cards show the same progress line with times; and the household can ask the same worker again, on his new phone.
  */
 
 const en = Lang.enum.en;
@@ -71,14 +83,17 @@ test("a rebuilt job can still be finished, both phones agree on its progress, an
   const workerJob = worker.getByRole("article", { name: say("a11y.job_with", { name: householdName }) });
   await expect(step(worker, "progress.agreed")).toHaveAttribute("aria-current", "step");
   await workerJob.getByRole("button", { name: say("update.on_my_way") }).click();
-  // The worker's own note stays on the card, marked as theirs, with its time.
-  await expect(workerJob.getByLabel(say("a11y.notes"))).toContainText(say("progress.you"));
+  // His card moves to On the way with its time, and does not list it again as a note.
+  await expect(step(worker, "progress.on_my_way").locator("time")).toBeVisible();
+  await expect(workerJob.getByLabel(say("a11y.notes"))).toHaveCount(0);
   // The household's card moves to On the way, with when.
   await expect(step(household, "progress.on_my_way")).toHaveAttribute("aria-current", "step");
   await expect(step(household, "progress.on_my_way").locator("time")).toBeVisible();
   await shoot("on-the-way", { worker, household }, FOLDER);
 
   // ── The worker's phone loses its jobs: a fresh browser, signed in with the same number ────────────────────────
+  // The old one is gone (its storage cleared, or the phone lost): nothing of it answers any more.
+  await contexts[0]?.close();
   const fresh = await browser.newContext();
   contexts.push(fresh);
   const again = await fresh.newPage();
@@ -108,6 +123,12 @@ test("a rebuilt job can still be finished, both phones agree on its progress, an
     .getByRole("button", { name: say("chats.new"), exact: true })
     .click();
   await ask(household, "Switchboard sparking");
+  // The request reaches his rebuilt phone (sealed to it too, not only to the phone he lost). His lowest price stayed
+  // on the old phone, so his agent asks him before quoting; he says go ahead.
+  await open(again, "nav.activity");
+  await showTab(again, "activity.tab_awaiting");
+  const check = again.getByRole("group", { name: say("a11y.approve") });
+  await check.getByRole("button", { name: textOf(en, "approve.yes") }).click({ timeout: 60_000 });
   // His agent took it up: its offers reach her, and she is asked to sign.
   await expect(household.getByRole("button", { name: /^Sign deal for/ })).toBeVisible({ timeout: 90_000 });
   await shoot("asked-again", { worker: again, household }, FOLDER);

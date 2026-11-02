@@ -247,3 +247,10 @@ export async function listWorker(
 /** A job card's status tag (its words in the owner's language): the progress line's steps share some of its words. */
 export const statusTag = (scope: Locator | Page, lang: Lang, key: MessageKey) =>
   scope.locator(".tag").filter({ hasText: new RegExp(`^${t(lang, key)}$`) });
+
+/** One step of a job card's progress line (JobProgress.tsx), by its name. */
+export const progressStep = (scope: Locator | Page, lang: Lang, key: MessageKey) =>
+  scope
+    .getByRole("list", { name: t(lang, "progress.title") })
+    .getByRole("listitem")
+    .filter({ hasText: t(lang, key) });

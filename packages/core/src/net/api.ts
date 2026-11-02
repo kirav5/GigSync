@@ -5,9 +5,13 @@ import {
   type BoardWorker,
   type City,
   CityGuide,
+  Claim,
+  type ClaimRequest,
   coarsePoint,
+  type DeviceId,
   type DeviceRegistration,
   DirectoryEntry,
+  type EngagementId,
   Envelope,
   type EstimateRequest,
   EstimateResponse,
@@ -24,6 +28,7 @@ import {
   type MyQrRequest,
   type Place,
   PushKey,
+  type PushSubscribe,
   type QrCode,
   QrPerson,
   Session,
@@ -46,6 +51,8 @@ export const ApiPath = {
   mailbox: "/v1/mailbox/",
   inbox: "/v1/inbox",
   ack: "/v1/inbox/ack",
+  /** Which of my devices answers an engagement (ADR 0045): `POST /v1/inbox/claims`. */
+  claims: "/v1/inbox/claims",
   boardProfile: "/v1/board/profile",
   boardWorkers: "/v1/board/workers",
   mentorMe: "/v1/mentors/me",
@@ -83,6 +90,8 @@ export interface Relay {
   deliver(envelope: Envelope): Promise<unknown>;
   inbox(): Promise<Envelope[]>;
   ack(ids: MessageId[]): Promise<unknown>;
+  /** Claims an engagement for this device in its owner's mailbox; returns the device that holds it (ADR 0045). */
+  claim(engagement: EngagementId): Promise<DeviceId>;
 }
 
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
@@ -158,6 +167,10 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
     return this.call(HttpMethod.post, ApiPath.ack, { ids });
   }
 
+  async claim(engagement: EngagementId): Promise<DeviceId> {
+    return Claim.parse(await this.call(HttpMethod.post, ApiPath.claims, { engagement } satisfies ClaimRequest)).owner;
+  }
+
   publishProfile(profile: BoardProfile): Promise<unknown> {
     return this.call(HttpMethod.put, ApiPath.boardProfile, profile);
   }
@@ -216,9 +229,12 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
     return PushKey.parse(await this.call(HttpMethod.get, ApiPath.pushKey)).public_key;
   }
 
-  /** Tells the API where this device's browser takes pushes; only a real push service's address is kept. */
-  async subscribePush(endpoint: string): Promise<void> {
-    await this.call(HttpMethod.put, ApiPath.devicePush, { endpoint });
+  /**
+   * Tells the API where this device's browser takes pushes and the keys to encrypt them to; only a real push service's
+   * address is kept.
+   */
+  async subscribePush(subscription: PushSubscribe): Promise<void> {
+    await this.call(HttpMethod.put, ApiPath.devicePush, subscription);
   }
 
   async unsubscribePush(): Promise<void> {
