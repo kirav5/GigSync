@@ -1,5 +1,5 @@
 import { type Lang, Trade } from "@gigsync/protocol";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   CITY_RATES,
   chooseNeed,
@@ -25,6 +25,7 @@ const SKIP = "skip";
 
 describe("problemByMeaning", () => {
   const index = problemIndex(new BagOfWordsEmbedder());
+  beforeAll(() => index.warm());
 
   it("names the kind within the trade, from a saying it knows", async () => {
     expect(await problemByMeaning(index, T.carpenter, "table leg is broken")).toBe("repair");
