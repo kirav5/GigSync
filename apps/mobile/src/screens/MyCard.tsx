@@ -1,5 +1,5 @@
 import { askable, type CardDraft, log, type Ports, parseAmount, type TermPrefs } from "@gigsync/core";
-import { hasArrangements, Lang, mainArrangement, Trade } from "@gigsync/protocol";
+import { hasArrangements, Lang, mainArrangement, type Skill, Trade } from "@gigsync/protocol";
 import { type FormEvent, useRef, useState } from "react";
 import { type Account, apiClient, saveAccount } from "../adapters/account.js";
 import { offerAlerts } from "../adapters/push.js";
@@ -11,8 +11,10 @@ import { Dock } from "../ui/Dock.js";
 import { errorKey } from "../ui/errorKey.js";
 import { Icon } from "../ui/Icon.js";
 import { AREAS, money, rupeesOf } from "../ui/places.js";
+import { cardWork } from "../ui/work.js";
 import { AreaField, type WorkArea } from "./card/AreaField.js";
 import { ArrangementsField, arrangementsValue, otherRates } from "./card/ArrangementsField.js";
+import { SkillsField } from "./card/SkillsField.js";
 import { TermPrefsField } from "./card/TermPrefsField.js";
 import { CardRates } from "./estimate/CardRates.js";
 
@@ -44,6 +46,7 @@ export function MyCard({
   const { lang, t } = i18n;
   const draft = accountDraft(account);
   const [trades, setTrades] = useState<Trade[]>(draft.trades ?? []);
+  const [skills, setSkills] = useState<Skill[]>(draft.skills ?? []);
   const [spoken, setSpoken] = useState<Lang[]>(account.languages ?? [lang]);
   const [prefs, setPrefs] = useState<TermPrefs>(draft.terms ?? {});
   const [where, setWhere] = useState<WorkArea>({
@@ -75,13 +78,14 @@ export function MyCard({
     // Amounts as people type them: "7,000", "₹7000", "७०००", "7k".
     const rate = parseAmount(String(v.get(Field.rate) ?? ""));
     const min = parseAmount(String(v.get(Field.min) ?? ""));
-    if (trades.length === 0) return setError(t("card.err_trade"));
+    if (trades.length + skills.length === 0) return setError(t("card.err_trade"));
     if (rate === undefined || min === undefined || !(min > 0 && rate >= min)) return setError(t("card.err_rate"));
     const others = arranged ? otherRates(work) : {};
     if (!others || (arranged && work.picked.length === 0)) return setError(t("card.err_arrangements"));
     if (busy) return;
     const next: CardDraft = {
       trades,
+      ...(skills.length > 0 ? { skills } : {}),
       ...(where.area ? { area: where.area } : {}),
       ...(where.place ? { place: where.place } : {}),
       radius_km: where.radius_km,
@@ -101,7 +105,7 @@ export function MyCard({
       setError(undefined);
       setStatus(
         t("card.on_board", {
-          trades: trades.map((tr) => t(`trade.${tr}`)).join(", "),
+          trades: cardWork(t, { trades, skills }),
           area: pilot ? t(`area.${pilot.key}`) : (where.place?.name ?? ""),
           price: money(rate),
         }),
@@ -165,6 +169,12 @@ export function MyCard({
             </button>
           ))}
         </div>
+        <SkillsField
+          skills={skills}
+          trades={trades}
+          onChange={setSkills}
+          onTrade={(tr) => setTrades((ts) => [...ts, tr])}
+        />
         <CardRates
           trades={trades}
           area={draft.area}

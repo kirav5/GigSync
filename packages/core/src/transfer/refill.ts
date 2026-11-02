@@ -25,6 +25,7 @@ export function refillFromCard(card: BoardProfile, defaults: RefillDefaults): Re
   return {
     worker: {
       trades: card.trades,
+      ...(card.skills?.length ? { skills: card.skills } : {}),
       rate: { opening_paise: card.rate_paise, limit_paise: card.rate_paise },
       base: card.area,
       radius_km: defaults.radius_km,

@@ -15,7 +15,7 @@ export const interview = {
   "iv.ask.about": "Tell customers one line about your work, or say skip.",
   "iv.ask.ask_first": "When there are {item}, should I ask you before quoting?",
   "iv.ask.auto": "When a customer agrees inside your prices, should I sign for you?",
-  "iv.again.trade": "Say the work, like cook, house work or electrician.",
+  "iv.again.trade": "Say the work in a few words, like cook, electrician or tailor.",
   "iv.again.area": "Say the area's name, or tap it below.",
   "iv.again.amount": "Say the amount in rupees, like eight thousand.",
   "iv.again.yes_no": "Please say yes or no.",

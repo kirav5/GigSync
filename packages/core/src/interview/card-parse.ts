@@ -1,6 +1,7 @@
 import { DEFAULT_ARRANGEMENT, Lang, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
 import type { MessageKey } from "../i18n/t.js";
 import { asciiDigits } from "../job/details.js";
+import { readSkill, spokenSkill } from "../skills/read.js";
 import { parseAmount } from "./amount.js";
 import { advance, askable, edit, FIELDS, type InterviewState, Pick, retry, Slot } from "./card.js";
 import { chooseArrangements, hearArrangements, hearMoreRate, mainOf } from "./card-arrangements.js";
@@ -51,7 +52,20 @@ function aboutProblem(text: string): AboutProblem | undefined {
 function onTrades(s: InterviewState, trades: Trade[]): InterviewState {
   if (trades.length === 0) return retry(s, { key: "iv.again.trade" });
   const keep = askable(trades);
-  return advance(s, { ...s.draft, trades, ask_me: (s.draft.ask_me ?? []).filter((k) => keep.includes(k)) });
+  const ask_me = (s.draft.ask_me ?? []).filter((k) => keep.includes(k));
+  const { skills: _replaced, ...rest } = s.draft;
+  return advance(s, { ...rest, trades, ask_me });
+}
+
+/** The work, said: the trades it names, else the worker's own skill in a few words (ADR 0047), else ask again. */
+function onWork(s: InterviewState, text: string): InterviewState {
+  const trades = tradesIn(text);
+  if (trades.length > 0) return onTrades(s, trades);
+  const read = readSkill(spokenSkill(text), s.config.own);
+  if ("trade" in read) return onTrades(s, [read.trade]);
+  if ("problem" in read) return retry(s, { key: `skill.err.${read.problem}` });
+  const draft = { ...s.draft, trades: [], skills: [read.skill], ask_me: [] };
+  return advance(s, draft, [{ key: "iv.skill_kept", params: { skill: read.skill.text } }]);
 }
 
 function onArea(s: InterviewState, area: string | undefined): InterviewState {
@@ -172,7 +186,7 @@ function heardLanguages(text: string): Lang[] | undefined {
 export function hear(state: InterviewState, text: string, aloud = false): InterviewState {
   switch (state.slot) {
     case Slot.trade:
-      return onTrades(state, tradesIn(text));
+      return onWork(state, text);
     case Slot.arrangements:
       return hearArrangements(state, text);
     case Slot.more_rates:

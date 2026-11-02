@@ -28,6 +28,7 @@ import { record } from "./record.js";
 import { records } from "./records.js";
 import { screens } from "./screens.js";
 import { shell } from "./shell.js";
+import { skill } from "./skill.js";
 import { speech } from "./speech.js";
 import { talk } from "./talk.js";
 import { terms } from "./terms.js";
@@ -64,6 +65,7 @@ export const en = {
   ...estimate,
   ...drivers,
   ...arrangement,
+  ...skill,
   ...address,
   ...bargain,
   ...terms,

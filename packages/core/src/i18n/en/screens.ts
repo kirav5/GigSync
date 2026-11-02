@@ -49,7 +49,7 @@ export const screens = {
   "card.off_board": "Off the board",
   "card.publish": "Publish my card",
   "card.unlist": "Take my card off the board",
-  "card.err_trade": "Choose at least one trade.",
+  "card.err_trade": "Choose at least one trade, or add your own work.",
   "card.err_rate": "Your usual rate must be at least your lowest rate.",
   "requests.checked": "Checked {time}",
   "error.generic": "Something went wrong. Please try again.",

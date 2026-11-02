@@ -2,7 +2,7 @@ import { DetailFlag, DriverName, QuestionKey } from "@gigsync/protocol";
 import { YES_NO_QUESTIONS } from "../job/details.js";
 import { draftDrivers } from "./driver-ask.js";
 import { isSkip, yesNo } from "./lexicon.js";
-import { firstQuestion, type NeedDraft, type NeedState } from "./need.js";
+import { firstQuestion, type NeedDraft, type NeedState, workOf } from "./need.js";
 import { withoutMoney } from "./need-parse.js";
 
 /**
@@ -24,7 +24,7 @@ export function settledProblem(d: NeedDraft): NeedDraft {
 
 /** The answer to the trade's first question: a yes or no for a yes-or-no question, else the owner's words. */
 export function detailAnswer(s: NeedState, text: string): string | null | undefined {
-  const question = firstQuestion(s.draft.trade);
+  const question = firstQuestion(workOf(s.draft));
   if (question && YES_NO_QUESTIONS.has(question)) {
     const yes = yesNo(text);
     return yes === undefined ? undefined : yes ? DetailFlag.enum.yes : DetailFlag.enum.no;

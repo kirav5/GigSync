@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Trade } from "./trade.js";
+import { JobTrade, Trade } from "./trade.js";
 
 /**
  * Terms of a job other than its price (ADR 0033 §3): when, who buys the materials, how many coats, how many hours a
@@ -55,7 +55,7 @@ const T = Trade.enum;
 const K = TermKey.enum;
 
 /** The terms each trade negotiates; a term outside its trade's list is never part of a deal. */
-export const TRADE_TERMS: Readonly<Record<Trade, readonly TermKey[]>> = {
+export const TRADE_TERMS: Readonly<Record<JobTrade, readonly TermKey[]>> = {
   [T.electrician]: [K.when],
   [T.plumber]: [K.when],
   [T.ac_technician]: [K.when],
@@ -64,12 +64,14 @@ export const TRADE_TERMS: Readonly<Record<Trade, readonly TermKey[]>> = {
   [T.maid]: [K.when, K.hours],
   [T.cook]: [K.when, K.hours],
   [T.driver]: [K.when, K.hours],
+  // ADR 0047: a skill outside the trades agrees only when; hours or materials are said in the job's own words.
+  [JobTrade.enum.other]: [K.when],
 };
 
 /** Every term set in `terms` is one the trade negotiates. */
-export const termsFit = (trade: Trade, terms: Terms): boolean =>
+export const termsFit = (trade: JobTrade, terms: Terms): boolean =>
   TermKey.options.every((key) => terms[key] === undefined || TRADE_TERMS[trade].includes(key));
 
 /** Only the terms the trade negotiates, for a proposal that came with others. */
-export const fitTerms = (trade: Trade, terms: Terms): Terms =>
+export const fitTerms = (trade: JobTrade, terms: Terms): Terms =>
   Terms.parse(Object.fromEntries(TRADE_TERMS[trade].map((key) => [key, terms[key]])));

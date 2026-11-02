@@ -5,6 +5,8 @@ import {
   DEFAULT_ARRANGEMENT,
   EnvelopeKind,
   type Estimate,
+  isTrade,
+  type JobRequest,
   type Offer,
   type Place,
   QuestionKey,
@@ -12,6 +14,8 @@ import {
   Role,
   SCOPE_MAX,
   SKIPPED,
+  type Skill,
+  skillKey,
   type Trade,
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
@@ -45,6 +49,8 @@ const R = Role.enum;
  */
 export interface WorkerRules {
   trades: Trade[];
+  /** ADR 0047: work outside the trades, in the worker's own words, as their card lists it; absent before skills. */
+  skills?: Skill[];
   /**
    * Opening = the usual rate shown on the board; limit = the least they will take for any job. When the city's rates
    * cover the trade, each job's plan comes from them instead, never below this limit.
@@ -79,11 +85,18 @@ export function distanceKm(a: Place, b: Place): number {
   return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(h));
 }
 
+/** The worker does this work: one of their trades, or a skill on their card by its key (ADR 0047 §5). */
+export function doesWork(rules: Pick<WorkerRules, "trades" | "skills">, req: Pick<JobRequest, "trade" | "skill">) {
+  if (isTrade(req.trade)) return rules.trades.includes(req.trade);
+  const asked = req.skill && skillKey(req.skill.text);
+  return (rules.skills ?? []).some((s) => skillKey(s.text) === asked);
+}
+
 /** A new request: decline what this worker does not do, ask what is missing, otherwise quote. */
 export async function onRequest(ctx: JobContext, rules: WorkerRules, r: JobRecord): Promise<JobRecord> {
   const req = r.request;
   const takes = arrangementMandate(rules, req) !== undefined;
-  if (!rules.trades.includes(req.trade) || distanceKm(rules.base, req.area) > rules.radius_km || !takes)
+  if (!doesWork(rules, req) || distanceKm(rules.base, req.area) > rules.radius_km || !takes)
     return cancel(ctx, r, { reason: CancelReason.enum.no_match });
   // The household's terms answer the details they decide (who buys the paint): its agent need not ask them.
   const told = withTermDetails(r, req.terms);
@@ -120,8 +133,8 @@ export async function refuse(ctx: JobContext, r: JobRecord): Promise<JobRecord> 
 }
 
 /** The estimate for this job's scope, for the whole job; undefined when there is none or it cannot be had. */
-async function jobEstimate(ctx: JobContext, r: JobRecord): Promise<Estimate | undefined> {
-  const { trade, details, area, locality } = r.request;
+async function jobEstimate(ctx: JobContext, r: JobRecord, trade: Trade): Promise<Estimate | undefined> {
+  const { details, area, locality } = r.request;
   // A pilot area by its point, else the locality the household's phone named (ADR 0045).
   const key = areaKeyOf(area) ?? (locality ? localitySlug(locality) : undefined);
   const request = ctx.estimates && estimateRequest(ctx.estimates.city, trade, details, key);
@@ -147,14 +160,17 @@ async function planFor(ctx: JobContext, rules: WorkerRules, r: JobRecord): Promi
   if (r.mandate) return r;
   const strategy = await strategyFor(ctx, r);
   const drawn = { ...r, ...(strategy ? { strategy } : {}) };
+  const trade = r.request.trade;
+  // Other work has no estimate or band (ADR 0047 §6): the worker's own usual and lowest rates are the plan.
+  if (!isTrade(trade)) return { ...drawn, mandate: rateFor(rules, r.request) };
   // The city pack's band is monthly: for work by the hour, the visit or the week only the estimate in its unit counts.
   const rate = rateFor(rules, r.request);
   const monthly = askedArrangement(r.request) === DEFAULT_ARRANGEMENT;
-  const cityBand = monthly ? rules.rates?.bands.find((b) => b.trade === r.request.trade) : undefined;
-  const estimate = await jobEstimate(ctx, r);
-  const band = estimate ? estimateBand(estimate, r.request.trade, cityBand) : cityBand;
+  const cityBand = monthly ? rules.rates?.bands.find((b) => b.trade === trade) : undefined;
+  const estimate = await jobEstimate(ctx, r, trade);
+  const band = estimate ? estimateBand(estimate, trade, cityBand) : cityBand;
   if (!band) return { ...drawn, mandate: rate };
-  const history = pastPrices(await ctx.store.jobs(), r.request.trade);
+  const history = pastPrices(await ctx.store.jobs(), trade);
   const legal = estimate?.basis.legal_minimum_paise;
   const advice = proposeMandate({
     band,

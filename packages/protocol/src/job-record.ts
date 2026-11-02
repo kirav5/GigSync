@@ -17,7 +17,7 @@ import { TermsHash } from "./job.js";
 import { JobQuantities, quantitiesFit } from "./job-quantities.js";
 import { Paise, PaymentMethod } from "./payment.js";
 import { Terms, TermWhen, termsFit } from "./terms.js";
-import { Trade } from "./trade.js";
+import { JobTrade, Trade } from "./trade.js";
 import { MAX_STARS, MIN_STARS } from "./worker-record.js";
 
 /**
@@ -40,7 +40,7 @@ export const RECORD_SUBMISSIONS_PER_HOUR = 60;
 export const STARS_PER_HOUR = 20;
 
 const T = Trade.enum;
-const work = <K extends Trade, S extends z.ZodRawShape>(trade: K, scope: z.ZodObject<S>) =>
+const work = <K extends JobTrade, S extends z.ZodRawShape>(trade: K, scope: z.ZodObject<S>) =>
   z.strictObject({ trade: z.literal(trade), scope: z.strictObject(scope.shape) });
 
 /** The trade and its scope buckets (ADR 0030's, the only keys and values allowed): counts and yes/no, never words. */
@@ -53,6 +53,8 @@ export const JobWork = z.discriminatedUnion("trade", [
   work(T.painter, PainterScope),
   work(T.cook, CookScope),
   work(T.driver, DriverScope),
+  // ADR 0047: a skill outside the trades is recorded without its words or any scope, so it is never priced from.
+  work(JobTrade.enum.other, z.object({})),
 ]);
 export type JobWork = z.infer<typeof JobWork>;
 

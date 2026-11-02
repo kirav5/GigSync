@@ -63,11 +63,15 @@ function summary(state: InterviewState): Line[] {
   const area = areaName(state);
   const trades = (draft.trades ?? []).map((tr) => `trade.${tr}` as const);
   const about: Line[] = draft.about ? [{ key: "iv.summary_about", params: { about: draft.about } }] : [];
+  // The worker's own skills are their words, not catalog keys: the list is written out in their language (ADR 0047).
+  const skills = draft.skills ?? [];
+  const work = [...trades.map((k) => t(state.config.own, k)), ...skills.map((k) => k.text)].join(", ");
+  const params = { ...area.params, ...(skills.length > 0 ? { trades: work } : {}) };
   return [
     {
       key: "iv.summary",
-      ...(area.params ? { params: area.params } : {}),
-      names: { trades, ...area.names },
+      ...(Object.keys(params).length > 0 ? { params } : {}),
+      names: { ...(skills.length > 0 ? {} : { trades }), ...area.names },
       prices: { rate: draft.rate_paise ?? 0 },
     },
     ...ratesSummary(draft),

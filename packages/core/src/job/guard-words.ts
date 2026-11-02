@@ -169,6 +169,8 @@ export const TOPIC: Readonly<Record<QuestionKey, readonly RegExp[]>> = {
   vehicle: [latin(["car", "vehicle", "suv", "sedan", "hatchback"]), indic(["गाड़ी", "ಕಾರು"])],
   points: [latin(["points?", "how many switch", "how many taps?"]), indic(["पॉइंट", "ಪಾಯಿಂಟ್"])],
   arrangement: [latin(["by the hour", "hourly", "monthly", "per month", "one[- ]off"]), indic(["महीने", "ತಿಂಗಳ"])],
+  job: [latin(["what (?:is the|exactly)", "the work", "the job"]), indic(["क्या काम", "ಏನು ಕೆಲಸ"])],
+  duration: [latin(["how long", "how many hours", "how much time"]), indic(["कितना समय", "कितने घंटे", "ಎಷ್ಟು ಸಮಯ"])],
 };
 
 /** The standard detail a question's words are about, if any. */

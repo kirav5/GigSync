@@ -4,6 +4,7 @@ import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { areaLabel, money } from "../../ui/places.js";
 import { Said } from "../../ui/Said.js";
+import { cardWork } from "../../ui/work.js";
 import { cardLang, languageNames } from "./cardWords.js";
 import { RecordStats } from "./RecordStats.js";
 
@@ -21,7 +22,7 @@ export function WorkerCard({ card }: { card: BoardProfile }) {
         <div className="who">
           <strong>{card.display_name}</strong>
           <span className={C.muted}>
-            {card.trades.map((tr) => t(`trade.${tr}`)).join(", ")} · {areaLabel(lang, card.area_name)}
+            {cardWork(t, card)} · {areaLabel(lang, card.area_name)}
           </span>
           {card.languages.length > 0 && <span className={C.faint}>{languageNames(card.languages, t)}</span>}
         </div>

@@ -7,6 +7,7 @@ import { useServedRecords } from "../../qr/useServedRecords.js";
 import { C } from "../../ui/cls.js";
 import { WorkerCard } from "./PersonCard.js";
 import "./qr.css";
+import { cardWork } from "../../ui/work.js";
 
 interface Props {
   offers: readonly ReceivedOffer[];
@@ -42,8 +43,7 @@ export function OfferCards({ offers, device, run, onAsk }: Props) {
     <section className="job-section" aria-label={title}>
       <h2>{title}</h2>
       {offers.map((o) => {
-        const [trade] = o.card.trades;
-        const line = t("qr.offer_line", { name: o.card.display_name, trade: trade ? t(`trade.${trade}`) : "" });
+        const line = t("qr.offer_line", { name: o.card.display_name, trade: cardWork(t, o.card) });
         return (
           <article key={o.channel} className={C.cardWait} aria-label={line}>
             <strong>{line}</strong>

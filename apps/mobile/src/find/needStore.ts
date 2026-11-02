@@ -20,8 +20,9 @@ import {
   searchFailed,
   withJobType,
   withPriceStep,
+  withSkill,
 } from "@gigsync/core";
-import type { BoardWorker } from "@gigsync/protocol";
+import type { BoardSkill, BoardWorker } from "@gigsync/protocol";
 import { changeChat, type FindChat, movedOnFrom, type SearchClaim, settleSearch, withNeedTurns } from "./findChats.js";
 import { appSaid, foundSaid, NeedSpeaker, type NeedTurn, ownerSaid } from "./needTurns.js";
 
@@ -82,6 +83,11 @@ export function stepNeed(chat: string, step: PriceStep): void {
 /** A need outside the trades, named by the phone's model; the owner's words are on screen already. */
 export function jobTypeNeed(chat: string, jobType: string, words: string): void {
   moved(chat, (state) => withJobType(state, jobType, words), []);
+}
+
+/** A need for a skill workers list (ADR 0047), matched on this phone; the owner's words are on screen already. */
+export function skillNeed(chat: string, skill: BoardSkill, words: string): void {
+  moved(chat, (state) => withSkill(state, skill, words), []);
 }
 
 /** A date picked on the calendar at the When question; `label` is the date as the owner reads it. */

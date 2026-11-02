@@ -1,5 +1,6 @@
 import {
   EngagementStatus,
+  isTrade,
   JobRecordStatus,
   type JobRecordSubmit,
   type JobStatusChange,
@@ -45,7 +46,8 @@ function sharedDetails(r: JobRecord): Record<string, string> {
 export function jobWork(job: SignedJob): JobWork | undefined {
   const { trade, terms } = job.mine.terms;
   const details = { ...sharedDetails(job), ...termDetails(trade, terms) };
-  return JobWork.safeParse({ trade, scope: tradeScope(trade, details) }).data;
+  // Other work (ADR 0047) is recorded without scope: no words reach the server, and it is never priced from.
+  return JobWork.safeParse({ trade, scope: isTrade(trade) ? tradeScope(trade, details) : {} }).data;
 }
 
 /** What this phone submits about a job both signed: the same fields from either side, with its own signature. */
@@ -57,7 +59,7 @@ export function submissionOf(job: SignedJob): JobRecordSubmit | undefined {
   // The pilot area's slug, from the request both phones hold (ADR 0039 §1): never the point, never an address.
   const area = areaKeyOf(job.request.area);
   // The job's quantities (ADR 0041 §4), from the same details both phones hold; not compared between the sides.
-  const quantities = jobQuantities(work.trade, sharedDetails(job));
+  const quantities = isTrade(work.trade) ? jobQuantities(work.trade, sharedDetails(job)) : undefined;
   return {
     engagement: job.engagement.id,
     counterpart: job.engagement.counterpart,

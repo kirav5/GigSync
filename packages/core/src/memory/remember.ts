@@ -1,4 +1,4 @@
-import { type Lang, type QuestionKey, Role, SKIPPED, type Trade } from "@gigsync/protocol";
+import { isTrade, type Lang, type QuestionKey, Role, SKIPPED, type Trade } from "@gigsync/protocol";
 import type { JobRecord, Need } from "../job/store.js";
 import { log } from "../log.js";
 import { load, save } from "./store.js";
@@ -61,7 +61,9 @@ function updatedPerson(doc: MemoryDoc, job: JobRecord, on: string, firstTime: bo
     user,
     role: theirRole,
     ...(name ? { name } : {}),
-    trades: before?.trades.includes(trade) ? before.trades : [...(before?.trades ?? []), trade],
+    // Other work (ADR 0047) is not a trade to remember them by; the jobs still count.
+    trades:
+      !isTrade(trade) || before?.trades.includes(trade) ? (before?.trades ?? []) : [...(before?.trades ?? []), trade],
     jobs: (before?.jobs ?? 0) + (firstTime ? 1 : 0),
     details: { ...before?.details, ...theirDetails },
     ...(theirRole === R.requester ? { lang: job.request.lang } : {}),
@@ -106,9 +108,9 @@ function withOwnFacts(doc: MemoryDoc, job: JobRecord, need: Need | undefined, on
 function withSignedJob(doc: MemoryDoc, job: JobRecord, on: string): MemoryDoc {
   const firstTime = !doc.counted.includes(job.engagement.id);
   const person = updatedPerson(doc, job, on, firstTime);
-  const trade: Trade = job.request.trade;
+  const trade = job.request.trade;
   const asked =
-    job.engagement.role === R.provider && firstTime
+    job.engagement.role === R.provider && firstTime && isTrade(trade)
       ? { ...doc.asked, [trade]: updatedAsked(doc.asked[trade] ?? [], job, on) }
       : doc.asked;
   const people = person ? keepNewestPeople({ ...doc.people, [person.user]: person }) : doc.people;

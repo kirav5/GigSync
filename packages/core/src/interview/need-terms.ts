@@ -1,6 +1,7 @@
 import {
   DetailFlag,
   fitTerms,
+  type JobTrade,
   MAX_COATS,
   MAX_HOURS,
   MaterialsBy,
@@ -8,7 +9,6 @@ import {
   TermKey,
   type Terms,
   TimeWindow,
-  type Trade,
 } from "@gigsync/protocol";
 import { asciiDigits, countIn } from "../job/details.js";
 import type { NewNeed } from "../job/device.js";
@@ -57,7 +57,7 @@ const within = (n: number | undefined, max: number) => (n !== undefined && n >= 
  * The household's terms for a need on `day` (an ISO day or every day): only what its owner said or confirmed, and
  * only the terms its trade negotiates.
  */
-export function needTerms(d: NeedDraft, trade: Trade, day: string): Pick<NewNeed, "terms" | "flexible"> {
+export function needTerms(d: NeedDraft, trade: JobTrade, day: string): Pick<NewNeed, "terms" | "flexible"> {
   const details = { ...d.seen, ...draftDetails(d) };
   const window = windowOf(d.time);
   const labour = DetailFlag.safeParse(details[Q.labour_only]).data;

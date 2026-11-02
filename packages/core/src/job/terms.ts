@@ -1,5 +1,6 @@
 import {
   EVERY_DAY,
+  type JobTrade,
   MAX_COATS,
   MAX_HOURS,
   MaterialsBy,
@@ -10,7 +11,6 @@ import {
   type TermWhen,
   TimeWindow,
   TRADE_TERMS,
-  type Trade,
 } from "@gigsync/protocol";
 
 /**
@@ -117,7 +117,7 @@ const accepted = <T extends TermKey>(stance: Stance, key: T, value: TermValue<T>
  * countered with the closest acceptable value (or this side's own choice, when nothing near is acceptable; `stuck`
  * when it has none). A term the other side left out is proposed only when this side wants one.
  */
-export function answerTerms(trade: Trade, stance: Stance, theirs: Terms | undefined): TermsAnswer {
+export function answerTerms(trade: JobTrade, stance: Stance, theirs: Terms | undefined): TermsAnswer {
   const next: Record<string, unknown> = {};
   const options: Record<string, unknown[]> = {};
   const stuck: TermKey[] = [];

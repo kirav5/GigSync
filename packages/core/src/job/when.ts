@@ -1,4 +1,4 @@
-import { EVERY_DAY, type JobRequest, Trade } from "@gigsync/protocol";
+import { EVERY_DAY, type JobRequest, type JobTrade, Trade } from "@gigsync/protocol";
 
 /**
  * The job's day as a structured detail, so each phone can file it under Today or Coming up without reading translated
@@ -12,9 +12,9 @@ export type WhenDetail = (typeof WhenDetail)[keyof typeof WhenDetail];
 export { EVERY_DAY };
 
 /** Trades paid by the month: the work recurs, so it counts as every day. */
-export const MONTHLY_TRADES: ReadonlySet<Trade> = new Set([Trade.enum.cook, Trade.enum.maid]);
+export const MONTHLY_TRADES: ReadonlySet<JobTrade> = new Set([Trade.enum.cook, Trade.enum.maid]);
 
-export const isMonthly = (trade: Trade): boolean => MONTHLY_TRADES.has(trade);
+export const isMonthly = (trade: JobTrade): boolean => MONTHLY_TRADES.has(trade);
 
 /** The part of a request (or a consumer's need) that says when the work is. */
 type Dated = Pick<JobRequest, "trade" | "details">;

@@ -1,6 +1,7 @@
 import {
   DetailFlag,
   fitTerms,
+  type JobTrade,
   MAX_ROUNDS,
   MaterialsBy,
   QuestionKey,
@@ -70,7 +71,7 @@ export function withTerms(move: Move, agreed: boolean, theirPrice: number, offer
 }
 
 /** `{ terms }` for an offer or the signed terms, with only the terms the trade negotiates; nothing when there are none. */
-export function termsField(trade: Trade, terms: Terms | undefined): { terms?: Terms } {
+export function termsField(trade: JobTrade, terms: Terms | undefined): { terms?: Terms } {
   const fitted = terms && fitTerms(trade, terms);
   return fitted && Object.keys(fitted).length > 0 ? { terms: fitted } : {};
 }
@@ -79,7 +80,7 @@ export function termsField(trade: Trade, terms: Terms | undefined): { terms?: Te
  * The job details a set of terms decides, so the estimate's scope and the city band's rules read them (ADR 0030): who
  * buys the paint is the painter's `labour_only`, and coats and hours are counts.
  */
-export function termDetails(trade: Trade, terms: Terms | undefined): Record<string, string> {
+export function termDetails(trade: JobTrade, terms: Terms | undefined): Record<string, string> {
   const details: Record<string, string> = {};
   if (terms?.materials && trade === Trade.enum.painter)
     details[Q.labour_only] = terms.materials === MaterialsBy.enum.household ? DetailFlag.enum.yes : DetailFlag.enum.no;
@@ -101,7 +102,7 @@ export function withTermDetails(r: JobRecord, terms: Terms | undefined): JobReco
 }
 
 /** The terms a household's own details already say: the inverse of `termDetails`, for its agent's stance. */
-export function detailTerms(trade: Trade, details: Readonly<Record<string, string>>): Terms {
+export function detailTerms(trade: JobTrade, details: Readonly<Record<string, string>>): Terms {
   const labour = DetailFlag.safeParse(details[Q.labour_only]).data;
   const materials = labour && (labour === DetailFlag.enum.yes ? MaterialsBy.enum.household : MaterialsBy.enum.worker);
   const counts = Terms.pick({ coats: true, hours: true }).safeParse({

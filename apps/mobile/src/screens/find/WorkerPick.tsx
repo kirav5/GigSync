@@ -4,6 +4,7 @@ import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { areaLabel, money, unitKey } from "../../ui/places.js";
 import { Said } from "../../ui/Said.js";
+import { cardWork } from "../../ui/work.js";
 import { cardLang, languageNames } from "../qr/cardWords.js";
 import { RecordStats } from "../qr/RecordStats.js";
 
@@ -49,8 +50,7 @@ export function WorkerPick({
         <div className="who">
           <strong>{w.display_name}</strong>
           <span className={C.muted}>
-            {w.trades.map((tr) => t(`trade.${tr}`)).join(", ")} · {areaLabel(lang, w.area_name)} ·{" "}
-            {t("find.distance", { km: w.distance_km })}
+            {cardWork(t, w)} · {areaLabel(lang, w.area_name)} · {t("find.distance", { km: w.distance_km })}
           </span>
           {w.languages.length > 0 && <span className={C.faint}>{languageNames(w.languages, t)}</span>}
         </div>

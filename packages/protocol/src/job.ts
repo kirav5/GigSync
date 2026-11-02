@@ -9,11 +9,12 @@ import { Paise, PaymentRecord, PaymentRequest } from "./payment.js";
 import { LOCALITY_MAX, Place } from "./place.js";
 import { JobProblem } from "./problem.js";
 import { WorkOffer } from "./qr.js";
+import { Skill } from "./skill.js";
 import { Terms, termsFit } from "./terms.js";
-import { Trade } from "./trade.js";
+import { isTrade, JobTrade, Trade } from "./trade.js";
 import { MAX_STARS, MIN_STARS } from "./worker-record.js";
 
-export { Place, Trade };
+export { isTrade, JobTrade, Place, Trade };
 
 /**
  * What travels inside a job's sealed envelopes, one body per envelope kind. The server never sees any of it: the
@@ -33,20 +34,24 @@ export const MAX_ROUNDS = 5;
 export const MAX_QUESTIONS = 5;
 
 /** `request`: the consumer's need, as their agent may share it. Their budget never leaves the phone. */
-export const JobRequest = z.object({
-  trade: Trade,
-  need: z.string().min(1).max(1000),
-  when: z.string().min(1).max(SLOT_MAX),
-  area: Place,
-  /** ADR 0045: the locality the area is in, as the household's phone named it ("Banashankari"); never the address. */
-  locality: z.string().min(1).max(LOCALITY_MAX).optional(),
-  /** Answers the consumer gave up front, so the worker's agent need not ask. */
-  details: z.record(DetailKey, shortText).default({}),
-  /** The language `need` and any free-text detail are written in, so the worker's phone can translate on receipt. */
-  lang: Lang.default(DEFAULT_LANG),
-  /** The terms the household asks for, from its own words and chips; only to phones at `TERMS_PROTOCOL`. */
-  terms: Terms.optional(),
-});
+export const JobRequest = z
+  .object({
+    /** A trade, or `other` with the `skill` the household asked for, as a worker's card lists it (ADR 0047). */
+    trade: JobTrade,
+    skill: Skill.optional(),
+    need: z.string().min(1).max(1000),
+    when: z.string().min(1).max(SLOT_MAX),
+    area: Place,
+    /** ADR 0045: the locality the area is in, as the household's phone named it ("Banashankari"); never the address. */
+    locality: z.string().min(1).max(LOCALITY_MAX).optional(),
+    /** Answers the consumer gave up front, so the worker's agent need not ask. */
+    details: z.record(DetailKey, shortText).default({}),
+    /** The language `need` and any free-text detail are written in, so the worker's phone can translate on receipt. */
+    lang: Lang.default(DEFAULT_LANG),
+    /** The terms the household asks for, from its own words and chips; only to phones at `TERMS_PROTOCOL`. */
+    terms: Terms.optional(),
+  })
+  .refine((r) => isTrade(r.trade) === (r.skill === undefined), "a skill exactly when the work is other");
 export type JobRequest = z.infer<typeof JobRequest>;
 
 /** The device capability number that understands questions a model wrote (`ModelQuestion`); older phones stall on them. */
@@ -132,7 +137,7 @@ export const JobTerms = z
     offer_id: OfferId,
     worker: UserId,
     consumer: UserId,
-    trade: Trade,
+    trade: JobTrade,
     scope: z.string().min(1).max(SCOPE_MAX),
     slot: z.string().min(1).max(SLOT_MAX),
     price_paise: Paise,

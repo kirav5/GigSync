@@ -5,6 +5,8 @@ import {
   type BoardWorker,
   DEFAULT_ARRANGEMENT,
   type MyBoardProfile,
+  type Skill,
+  skillKey,
   type Trade,
   type UserId,
 } from "@gigsync/protocol";
@@ -52,6 +54,12 @@ export async function upsertProfile(db: Db, user: UserId, p: BoardProfile, at: D
   await db.query("INSERT INTO worker_trades (user_id, trade) SELECT $1, unnest($2::text[])", [user, p.trades]);
   await db.query("DELETE FROM worker_languages WHERE user_id = $1", [user]);
   await db.query("INSERT INTO worker_languages (user_id, language) SELECT $1, unnest($2::text[])", [user, p.languages]);
+  const skills = p.skills ?? [];
+  await db.query("DELETE FROM worker_skills WHERE user_id = $1", [user]);
+  await db.query(
+    "INSERT INTO worker_skills (user_id, skill_key, text, lang) SELECT $1, unnest($2::text[]), unnest($3::text[]), unnest($4::text[])",
+    [user, skills.map((k) => skillKey(k.text)), skills.map((k) => k.text), skills.map((k) => k.lang)],
+  );
   const arrangements = p.arrangements ?? [];
   await db.query("DELETE FROM worker_arrangements WHERE user_id = $1", [user]);
   await db.query(
@@ -72,6 +80,8 @@ export async function removeProfile(db: Db, user: UserId): Promise<boolean> {
  */
 export const CARD_COLUMNS = `p.display_name, p.area_lat, p.area_lon, p.area_name, p.rate_paise, p.about,
   ARRAY(SELECT t.trade FROM worker_trades t WHERE t.user_id = p.user_id ORDER BY t.trade) AS trades,
+  ARRAY(SELECT json_build_object('text', s.text, 'lang', s.lang)
+    FROM worker_skills s WHERE s.user_id = p.user_id ORDER BY s.skill_key) AS skills,
   ARRAY(SELECT l.language FROM worker_languages l WHERE l.user_id = p.user_id ORDER BY l.language) AS languages,
   ARRAY(SELECT json_build_object('arrangement', a.arrangement, 'rate_paise', a.rate_paise)
     FROM worker_arrangements a WHERE a.user_id = p.user_id ORDER BY a.arrangement) AS arrangements,
@@ -86,6 +96,8 @@ export interface CardRow extends RecordRow {
   rate_paise: number;
   about: string;
   trades: Trade[];
+  /** ADR 0047: the worker's own skills; empty for a card that lists trades only. */
+  skills: Skill[];
   languages: string[];
   /** Empty for a card that takes monthly work only. */
   arrangements: ArrangementRate[];
@@ -95,6 +107,7 @@ export interface CardRow extends RecordRow {
 const fieldsOf = (r: CardRow): BoardProfile => ({
   display_name: r.display_name,
   trades: r.trades,
+  ...(r.skills.length > 0 ? { skills: r.skills } : {}),
   area: { lat: r.area_lat, lon: r.area_lon },
   area_name: r.area_name,
   rate_paise: r.rate_paise,
@@ -121,21 +134,24 @@ interface BoardRow extends CardRow {
   distance_km: number;
 }
 
+/** Where a search starts: the workers of one trade, or the workers who list one skill (ADR 0047), as `w`. */
+const BY_TRADE = "SELECT user_id FROM worker_trades WHERE trade = $1";
+const BY_SKILL = "SELECT user_id FROM worker_skills WHERE skill_key = $1";
+
 /**
- * Active workers of one trade within the radius, nearest first, then cheapest. Distance is the haversine formula in
- * SQL; a latitude band (served by an index) keeps it from running over every worker of the trade.
+ * Active workers of one trade or skill within the radius, nearest first, then cheapest. Distance is the haversine
+ * formula in SQL; a latitude band (served by an index) keeps it from running over every worker of the trade.
  */
 export async function searchWorkers(db: Db, q: BoardQuery): Promise<BoardWorker[]> {
   const { rows } = await db.query<BoardRow>(
     `SELECT p.user_id, ${CARD_COLUMNS}, d.km AS distance_km
-     FROM worker_trades wt
-     JOIN worker_profiles p ON p.user_id = wt.user_id
+     FROM (${q.skill === undefined ? BY_TRADE : BY_SKILL}) w
+     JOIN worker_profiles p ON p.user_id = w.user_id
      JOIN users u ON u.user_id = p.user_id AND u.status = 'active'
      CROSS JOIN LATERAL (SELECT 2 * $7::float8 * asin(sqrt(
        power(sin(radians(p.area_lat - $2) / 2), 2)
        + cos(radians($2)) * cos(radians(p.area_lat)) * power(sin(radians(p.area_lon - $3) / 2), 2))) AS km) d
-     WHERE wt.trade = $1
-       AND p.area_lat BETWEEN $2 - $4 / $8::float8 AND $2 + $4 / $8::float8
+     WHERE p.area_lat BETWEEN $2 - $4 / $8::float8 AND $2 + $4 / $8::float8
        AND d.km <= $4
        AND ($5::int IS NULL OR p.rate_paise <= $5)
        AND ($9::text IS NULL OR EXISTS (
@@ -144,7 +160,7 @@ export async function searchWorkers(db: Db, q: BoardQuery): Promise<BoardWorker[
      ORDER BY d.km, p.rate_paise, p.user_id
      LIMIT $6`,
     [
-      q.trade,
+      q.skill ?? q.trade,
       q.lat,
       q.lon,
       q.radius_km,

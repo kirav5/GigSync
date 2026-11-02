@@ -1,10 +1,10 @@
-import { type Estimate, type Lang, type Place, QuestionKey, type Trade } from "@gigsync/protocol";
+import { type Estimate, type JobTrade, type Lang, type Place, QuestionKey, type Skill } from "@gigsync/protocol";
 import { driversToDetails } from "../estimate/driver-details.js";
 import { t } from "../i18n/t.js";
 import { YES_NO_QUESTIONS } from "../job/details.js";
 import type { NewNeed } from "../job/device.js";
 import { localDay, WhenDetail } from "../job/when.js";
-import { DayWord, firstQuestion, type NeedDraft } from "./need.js";
+import { DayWord, firstQuestion, type NeedDraft, workOf } from "./need.js";
 import { scopeDetails } from "./need-scope.js";
 
 /**
@@ -23,7 +23,9 @@ export const MAX_ASK = 3;
 const MS_PER_DAY = 86_400_000;
 
 export interface NeedParts {
-  trade: Trade;
+  /** A trade, or `other` with the listed `skill` the household asked for (ADR 0047). */
+  trade: JobTrade;
+  skill?: Skill | undefined;
   need: string;
   /** An ISO day or `EVERY_DAY` (`resolveDay`). */
   day: string;
@@ -49,6 +51,7 @@ export interface NeedParts {
 export function needToSend(p: NeedParts): NewNeed {
   return {
     trade: p.trade,
+    ...(p.skill ? { skill: p.skill } : {}),
     need: p.need,
     when: p.time ? `${p.label} ${p.time}` : p.label,
     area: { lat: p.area.lat, lon: p.area.lon },
@@ -80,7 +83,7 @@ export function resolveDay(day: string, now: Date, offsetMinutes: number): strin
  * owner confirmed, and the first question's answer.
  */
 export function draftDetails(d: NeedDraft): Record<string, string> {
-  const first = firstQuestion(d.trade);
+  const first = firstQuestion(workOf(d));
   const drivers = d.trade && d.drivers ? driversToDetails(d.trade, d.drivers) : {};
   const arrangement = d.arrangement ? { [QuestionKey.enum.arrangement]: d.arrangement } : {};
   return { ...drivers, ...scopeDetails(d), ...(first && d.detail ? { [first]: d.detail } : {}), ...arrangement };
@@ -95,6 +98,8 @@ export const NUMBER_ONLY = /^\p{Nd}+$/u;
  * alone on the card it read as a bare "4".
  */
 export function needWords(d: NeedDraft, own: Lang): string {
+  // A listed skill's name heads the request; the owner's words about the work are its first answer (ADR 0047).
+  if (d.skill) return d.skill.text;
   const first = firstQuestion(d.trade);
   const answer = first && !YES_NO_QUESTIONS.has(first) ? d.detail?.trim() : undefined;
   const detail = answer && !NUMBER_ONLY.test(answer) ? answer : undefined;

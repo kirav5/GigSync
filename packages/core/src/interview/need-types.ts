@@ -3,6 +3,7 @@ import type {
   AddressLabel,
   AnswerFromMemory,
   Arrangement,
+  BoardSkill,
   DriverName,
   DriverValues,
   EstimateFact,
@@ -58,6 +59,8 @@ export interface NeedDraft {
   facts?: readonly EstimateFact[] | undefined;
   /** A need outside GigSync's trades, as a short label the phone's model gave ("wedding photographer"). */
   jobType?: string | undefined;
+  /** ADR 0047: a skill workers here list, matched on the phone from the owner's words; set only without a trade. */
+  skill?: BoardSkill | undefined;
 }
 
 /** The model's side of the price questions: the question waiting, what was asked and said, what it covered. */
@@ -113,4 +116,6 @@ export interface NeedTo {
   name: string;
   /** The trades on their card: the need is for one of them, asked only when there are several. */
   trades: readonly Trade[];
+  /** ADR 0047: the skills on their card, in their words; the need may be for one of them instead. */
+  skills?: readonly BoardSkill[];
 }

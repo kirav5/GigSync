@@ -1,9 +1,10 @@
 import { log } from "@gigsync/core/log";
-import { BoardProfile, BoardQuery, type BoardResult, UserId } from "@gigsync/protocol";
+import { BoardProfile, BoardQuery, type BoardResult, type BoardSkills, UserId } from "@gigsync/protocol";
 import { Hono } from "hono";
 import { ApiError, type AppEnv, USER_PARAM, Var } from "../context.js";
 import { myCard, removeProfile, searchWorkers, upsertProfile, workerCard } from "../db/board.js";
 import { transaction } from "../db/client.js";
+import { listSkills } from "../db/skills.js";
 
 /**
  * The job board, behind the session middleware: a worker publishes their own card; anyone signed in searches or reads
@@ -11,7 +12,12 @@ import { transaction } from "../db/client.js";
  */
 export const board = new Hono<AppEnv>();
 
-const Path = { profile: "/profile", workers: "/workers", worker: `/workers/:${USER_PARAM}` } as const;
+const Path = {
+  profile: "/profile",
+  skills: "/skills",
+  workers: "/workers",
+  worker: `/workers/:${USER_PARAM}`,
+} as const;
 
 board.put(Path.profile, async (c) => {
   const profile = BoardProfile.safeParse(await c.req.json().catch(() => null));
@@ -22,6 +28,7 @@ board.put(Path.profile, async (c) => {
     requestId: c.get(Var.requestId),
     user: c.get(Var.user),
     trades: profile.data.trades.length,
+    skills: profile.data.skills?.length ?? 0,
   });
   // The card as others now see it: area rounded, record computed.
   const card = await workerCard(db, c.get(Var.user));
@@ -48,11 +55,19 @@ board.get(Path.workers, async (c) => {
   const workers = await searchWorkers(c.get(Var.db), query.data);
   log.info("board searched", {
     requestId: c.get(Var.requestId),
+    // A skill's key is not logged: it says what one household looked for (ADR 0047).
     trade: query.data.trade,
+    bySkill: query.data.skill !== undefined,
     radiusKm: query.data.radius_km,
     found: workers.length,
   });
   return c.json({ workers } satisfies BoardResult);
+});
+
+/** The board's skills, for a household's phone to match its owner's words against on the phone (ADR 0047 §4). */
+board.get(Path.skills, async (c) => {
+  const skills = await listSkills(c.get(Var.db));
+  return c.json({ skills } satisfies BoardSkills);
 });
 
 /** One worker's card as served, for a card that reached the phone sealed (an offer to work) without the server's record. */

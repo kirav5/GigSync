@@ -13,6 +13,7 @@ import {
   EstimateRequest,
   hasArrangements,
   hoursBand,
+  type JobTrade,
   MaidFrequency,
   mealsBucket,
   PlumberProblem,
@@ -121,7 +122,7 @@ export function estimateRequest(
 }
 
 /** The arrangement a job's details name (ADR 0046), for a trade priced by arrangement; undefined otherwise. */
-export function arrangementIn(trade: Trade, details: Details): Arrangement | undefined {
+export function arrangementIn(trade: JobTrade, details: Details): Arrangement | undefined {
   if (!hasArrangements(trade)) return undefined;
   return Arrangement.safeParse(details[Q.arrangement]).data;
 }
