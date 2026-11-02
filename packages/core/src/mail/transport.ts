@@ -5,7 +5,7 @@ import {
   type DeviceKeys,
   type EngagementId,
   type Envelope,
-  type EnvelopeKind,
+  EnvelopeKind,
   PROTOCOL_VERSION,
   type UserId,
 } from "@gigsync/protocol";
@@ -30,6 +30,11 @@ const MS_PER_SECOND = 1000;
  * dropped it unread (a household's second request to the same worker never reached him).
  */
 const DEVICE_LIST_MS = 60 * MS_PER_SECOND;
+/**
+ * A request opens a job, so it is sealed to the devices the directory lists right now: a list read a moment before
+ * the worker signed in on a new phone would miss it, and requests are few.
+ */
+const FRESH_LIST_KINDS: ReadonlySet<EnvelopeKind> = new Set([EnvelopeKind.enum.request]);
 /** 4xx answers other than these mean the envelope itself is wrong; retrying cannot help, so it is dropped. */
 const RETRYABLE = new Set([408, 425, 429]);
 const isPermanent = (err: unknown) =>
@@ -59,7 +64,7 @@ export class MailTransport {
   /** Seals, signs and queues one envelope; `flush` hands it to the mailbox. */
   async send(to: UserId, engagement: EngagementId, kind: EnvelopeKind, body: unknown): Promise<Envelope> {
     const now = this.clock.now();
-    const recipients: Recipient[] = (await this.devicesOf(to)).map((d) => ({
+    const recipients: Recipient[] = (await this.devicesOf(to, FRESH_LIST_KINDS.has(kind))).map((d) => ({
       device: d.device_id,
       encryption_key: d.encryption_key,
     }));

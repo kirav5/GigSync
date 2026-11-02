@@ -36,4 +36,21 @@ describe("sealing to a person's devices", () => {
     const second = await transport.send(worker.user, JOB, "request", { need: "switchboard" });
     expect(Object.keys(second.keys).sort()).toEqual([worker.device, again].sort());
   });
+
+  it("seals a request to the devices listed right now, even within the minute", async () => {
+    const relay = new MemoryRelay();
+    const household = person();
+    const worker = person();
+    const keys = new SecretKeys(newDeviceSecrets());
+    relay.register(household.user, household.device, await keys.publicKeys());
+    relay.register(worker.user, worker.device, await new SecretKeys(newDeviceSecrets()).publicKeys());
+    const clock = new TestClock(new Date("2026-11-02T10:00:00+05:30"));
+    const transport = new MailTransport(relay.for(household), new MemoryStorage(), keys, clock, household);
+    await transport.send(worker.user, JOB, "update", { text: "on the way" });
+    const again = `dev_${ulid()}` as DeviceId;
+    relay.register(worker.user, again, await new SecretKeys(newDeviceSecrets()).publicKeys());
+    clock.advance(5_000);
+    const request = await transport.send(worker.user, `eng_${ulid()}` as EngagementId, "request", { need: "fan" });
+    expect(Object.keys(request.keys).sort()).toEqual([worker.device, again].sort());
+  });
 });
