@@ -13,3 +13,13 @@
   justify-content: space-between;
   gap: 12px;
 }
+
+/* The words wrap; Delete keeps its width so it never breaks mid-word on a phone. */
+.booking-lines li > .stack {
+  min-width: 0;
+}
+
+.booking-lines li > button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
