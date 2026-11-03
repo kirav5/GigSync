@@ -10,8 +10,13 @@ describe("the card interview, for work outside the trades (ADR 0047)", () => {
     const s = hear(start(config("en")), "I am a tailor");
     expect(s.draft.skills).toEqual([{ text: "tailor", lang: "en" }]);
     expect(s.draft.trades).toEqual([]);
-    expect(s.slot).toBe(Slot.area);
+    // ADR 0051: work of their own may be taken any way, so the card asks which, before the area.
+    expect(s.slot).toBe(Slot.arrangements);
     expect(prompt(s).lines[0]).toEqual({ key: "iv.skill_kept", params: { skill: "tailor" } });
+    expect(prompt(s).choices?.map((c) => c.value)).toEqual(["hourly", "visit", "weekly", "monthly", "yes"]);
+    const taken = hear(s, "by the hour and by the month");
+    expect(taken.draft.arrangements).toEqual(["hourly", "monthly"]);
+    expect(taken.slot).toBe(Slot.area);
   });
 
   it("takes a trade by its words as before, dropping a skill said earlier", () => {

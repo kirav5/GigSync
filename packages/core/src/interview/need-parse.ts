@@ -1,7 +1,8 @@
-import { PAISE_PER_RUPEE, QuestionKey, Trade } from "@gigsync/protocol";
+import { type Arrangement, PAISE_PER_RUPEE, QuestionKey, Trade } from "@gigsync/protocol";
 import { asciiDigits } from "../job/details.js";
 import { EVERY_DAY } from "../job/when.js";
 import { parseAmount } from "./amount.js";
+import { arrangementSaid } from "./arrangement-words.js";
 import type { AreaChoice } from "./card.js";
 import { areaNamedIn, tradesIn } from "./lexicon.js";
 import { DayWord } from "./need.js";
@@ -30,6 +31,8 @@ import { type Finder, finder, firstIn, normalize, SPACE } from "./normalize.js";
 /** What one sentence said; every field is optional. */
 export interface NeedFill {
   trade?: Trade;
+  /** How long the work is for, when the words say it ("for 3 hours", "every month"); kept only where it fits. */
+  arrangement?: Arrangement;
   area?: string;
   day?: string;
   time?: string;
@@ -233,8 +236,10 @@ export function parseNeed(text: string, { areas, today }: NeedParseOptions): Nee
   const day = dayIn(text, today);
   const time = timeIn(text);
   const budget_paise = amountIn(text, true);
+  const arrangement = arrangementSaid(text);
   return {
     ...(trade ? { trade } : {}),
+    ...(arrangement ? { arrangement } : {}),
     ...(area ? { area } : {}),
     ...(day ? { day } : {}),
     ...(time ? { time } : {}),

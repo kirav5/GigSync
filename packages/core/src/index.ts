@@ -53,7 +53,7 @@ export {
   workOf,
 } from "./interview/need.js";
 export { ADD_ADDRESS, atAddress } from "./interview/need-address.js";
-export { arrangedTrade } from "./interview/need-arrangement.js";
+export { boardArrangement } from "./interview/need-arrangement.js";
 export { DriverPick, priceContext, withPriceStep } from "./interview/need-drivers.js";
 export {
   needDetails,

@@ -3,6 +3,7 @@ import {
   type ArrangementRate,
   DEFAULT_ARRANGEMENT,
   hasArrangements,
+  isTrade,
   type JobRequest,
   PAISE_PER_RUPEE,
 } from "@gigsync/protocol";
@@ -30,14 +31,19 @@ export interface ArrangementRules {
 export const askedArrangement = (request: Pick<JobRequest, "trade" | "details">): Arrangement =>
   arrangementIn(request.trade, request.details) ?? DEFAULT_ARRANGEMENT;
 
-/** The worker's plan for a request's arrangement; undefined when they do not take that arrangement. */
+/**
+ * The worker's plan for a request's arrangement; undefined when they do not take that arrangement. A card that names
+ * no arrangements takes monthly work only for a trade (ADR 0046), and any arrangement for work outside the trades,
+ * whose card never named one before ADR 0051.
+ */
 export function arrangementMandate(
   rules: ArrangementRules,
   request: Pick<JobRequest, "trade" | "details">,
 ): Mandate | undefined {
   if (!hasArrangements(request.trade)) return rules.rate;
   const asked = askedArrangement(request);
-  if (!rules.arrangements?.length) return asked === DEFAULT_ARRANGEMENT ? rules.rate : undefined;
+  if (!rules.arrangements?.length)
+    return asked === DEFAULT_ARRANGEMENT || !isTrade(request.trade) ? rules.rate : undefined;
   return rules.arrangements.find((a) => a.arrangement === asked)?.rate;
 }
 

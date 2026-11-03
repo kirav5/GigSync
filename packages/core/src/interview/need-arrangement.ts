@@ -1,23 +1,64 @@
-import { Arrangement, hasArrangements, type Trade } from "@gigsync/protocol";
+import {
+  Arrangement,
+  arrangementsOf,
+  hasArrangements,
+  isTrade,
+  type JobTrade,
+  ONE_OFF_ARRANGEMENTS,
+  oneOffWork,
+  Trade,
+} from "@gigsync/protocol";
 import { type MessageKey, t } from "../i18n/t.js";
 import { EVERY_DAY } from "../job/when.js";
+import { arrangementSaid } from "./arrangement-words.js";
 import type { Choice, Line, Prompt } from "./card.js";
-import { moveOn, type NeedState } from "./need.js";
+import { moveOn, type NeedState, workOf } from "./need.js";
 import type { NeedDraft } from "./need-types.js";
 
 /**
- * Find's "how long" question (ADR 0046): for maid and driver work, a few hours, one visit, some days a week or every
- * month, asked after the trade and before the estimate, which is then given in that arrangement's unit.
+ * Find's "how long" question (ADR 0046), asked by the job's nature (ADR 0051): a few hours, one visit, some days a week
+ * or every month, offering only what fits the work. A repair is one visit and never asked; a cook comes for one meal,
+ * some days a week or every month; work outside the trades may be any, narrowed by the phone's model when it has one.
+ * Asked after the trade and before the estimate, which is then given in that arrangement's unit.
  */
 
 const A = Arrangement.enum;
 
-/** The trade is one Find asks the arrangement for. */
-export const arrangedTrade = (trade: Trade | undefined): trade is Trade =>
-  trade !== undefined && hasArrangements(trade);
+/** More than one arrangement fits the work, so the owner is asked which. */
+export const arrangedWork = (d: Pick<NeedDraft, "trade" | "skill">): boolean => {
+  const work = workOf(d);
+  return work !== undefined && hasArrangements(work);
+};
+
+/**
+ * The arrangement a board search filters by: a trade's only. Workers of a skill of their own listed none before
+ * ADR 0051, so filtering would hide them all; their agent declines an arrangement its owner does not take instead.
+ */
+export const boardArrangement = (d: NeedDraft): Arrangement | undefined =>
+  d.trade !== undefined && hasArrangements(d.trade) ? d.arrangement : undefined;
 
 /** The arrangement is still to be asked. */
-export const needsArrangement = (d: NeedDraft): boolean => arrangedTrade(d.trade) && d.arrangement === undefined;
+export const needsArrangement = (d: NeedDraft): boolean => arrangedWork(d) && d.arrangement === undefined;
+
+/**
+ * The arrangements offered as chips: the work's by its nature. For work outside the trades the model's reading of the
+ * job narrows them (a nanny by the hour or the month, a photographer once); a trade's are reviewed data it never
+ * overrides. Words may still name any arrangement the work allows.
+ */
+export function offeredArrangements(d: NeedDraft): readonly Arrangement[] {
+  const work = workOf(d);
+  if (!work) return [];
+  const nature = arrangementsOf(work);
+  const narrowed = isTrade(work) ? [] : nature.filter((a) => d.fits?.includes(a));
+  return narrowed.length > 0 ? narrowed : nature;
+}
+
+/** The work is done on one day: an hour or a visit asked for, or work that is one visit by its nature. */
+export function oneOffNeed(d: NeedDraft): boolean {
+  if (d.arrangement !== undefined) return ONE_OFF_ARRANGEMENTS.has(d.arrangement);
+  const work = workOf(d);
+  return work !== undefined && oneOffWork(work);
+}
 
 const BUDGET_PER: Readonly<Record<Arrangement, MessageKey>> = {
   [A.hourly]: "need.budget_per.hour",
@@ -26,22 +67,16 @@ const BUDGET_PER: Readonly<Record<Arrangement, MessageKey>> = {
   [A.monthly]: "need.budget_per.month",
 };
 
-const CHOICES: readonly Choice[] = Arrangement.options.map((a) => ({ value: a, key: `need.arr.${a}` as const }));
+/** A chip worded for the work where the plain one would not fit: a cook comes once for a meal, not a "visit". */
+const CHIP_FOR: Readonly<Partial<Record<JobTrade, Partial<Record<Arrangement, MessageKey>>>>> = {
+  [Trade.enum.cook]: { [A.visit]: "need.arr.meal" },
+};
+
+const chipKey = (work: JobTrade | undefined, a: Arrangement): MessageKey =>
+  (work && CHIP_FOR[work]?.[a]) ?? `need.arr.${a}`;
 
 /** Work that recurs, on every day it is due; hours or one visit are on one day, which the owner is asked. */
 const RECURRING: ReadonlySet<Arrangement> = new Set([A.weekly, A.monthly]);
-
-/** The words for each arrangement in English, Hindi and Kannada, checked longest stretch of time first. */
-const SAID: readonly (readonly [Arrangement, RegExp])[] = [
-  [A.monthly, /\b(?:month|monthly)\b|महीन|ಮಾಸಿಕ|ತಿಂಗಳ/i],
-  [A.weekly, /\b(?:weekly|a week|per week|days? a week)\b|हफ़्त|हफ्त|ವಾರದಲ್ಲಿ|ವಾರಕ್ಕೆ/i],
-  [A.visit, /\b(?:once|one[- ]?(?:time|off|visit))\b|एक बार|ಒಂದೇ ಸಲ|ಒಮ್ಮೆ|ಒಂದು ಸಲ/i],
-  [A.hourly, /\b(?:hours?|hourly)\b|घंट|ಗಂಟೆ/i],
-];
-
-/** The arrangement a sentence names, if any. */
-export const arrangementSaid = (text: string): Arrangement | undefined =>
-  SAID.find(([, words]) => words.test(text))?.[0];
 
 /** The draft with an arrangement: recurring work is every day unless the owner said a day; one-off work is not. */
 export function withArrangement(d: NeedDraft, arrangement: Arrangement): NeedDraft {
@@ -49,32 +84,49 @@ export function withArrangement(d: NeedDraft, arrangement: Arrangement): NeedDra
   return { ...d, arrangement, day };
 }
 
+/** An arrangement the work allows, or undefined: a cook is never hired by the hour. */
+function allowed(d: NeedDraft, a: Arrangement | undefined): Arrangement | undefined {
+  const work = workOf(d);
+  return a !== undefined && work !== undefined && arrangementsOf(work).includes(a) ? a : undefined;
+}
+
+/**
+ * The arrangement the owner's words named before it was asked ("a maid for 3 hours on Saturday"), kept when the work
+ * allows it, so the question is never asked of what was already said; the readback shows it either way.
+ */
+export function withSaidArrangement(d: NeedDraft, said: Arrangement | undefined): NeedDraft {
+  const fits = needsArrangement(d) ? allowed(d, said) : undefined;
+  return fits ? withArrangement(d, fits) : d;
+}
+
 export function arrangementPrompt(s: NeedState): Prompt {
+  const work = workOf(s.draft);
+  const choices: Choice[] = offeredArrangements(s.draft).map((a) => ({ value: a, key: chipKey(work, a) }));
   return {
     lines: [{ key: "need.ask.arrangement" }],
-    choices: CHOICES,
-    hints: CHOICES.map((c) => t(s.config.own, c.key)),
+    choices,
+    hints: choices.map((c) => t(s.config.own, c.key)),
   };
 }
 
-/** A spoken or typed answer; undefined when it names no arrangement, so the question is asked again. */
+/** A spoken or typed answer; undefined when it names no arrangement the work allows, so the question is asked again. */
 export function hearArrangement(s: NeedState, text: string): NeedState | undefined {
-  const said = arrangementSaid(text);
+  const said = allowed(s.draft, arrangementSaid(text));
   return said ? moveOn(s, withArrangement(s.draft, said)) : undefined;
 }
 
-/** A chip tapped. */
+/** A chip tapped; one the work does not allow changes nothing. */
 export function chooseArrangement(s: NeedState, value: string): NeedState {
-  const picked = Arrangement.safeParse(value).data;
+  const picked = allowed(s.draft, Arrangement.safeParse(value).data);
   return picked ? moveOn(s, withArrangement(s.draft, picked)) : s;
 }
 
-/** The arrangement in the readback, when the trade has one. */
+/** The arrangement in the readback, when the work has one. */
 export const arrangementLines = (d: NeedDraft): Line[] =>
-  d.arrangement && arrangedTrade(d.trade)
+  d.arrangement && arrangedWork(d)
     ? [{ key: "need.summary_arrangement", names: { arrangement: [`arrangement.${d.arrangement}`] } }]
     : [];
 
 /** Under the budget question: what the budget is for, an hour, the visit, a week or a month. */
 export const budgetUnitLines = (d: NeedDraft): Line[] =>
-  d.arrangement && arrangedTrade(d.trade) ? [{ key: BUDGET_PER[d.arrangement] }] : [];
+  d.arrangement && arrangedWork(d) ? [{ key: BUDGET_PER[d.arrangement] }] : [];

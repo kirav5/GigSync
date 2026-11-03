@@ -1,5 +1,4 @@
 import {
-  Arrangement,
   EngagementStatus,
   EVERY_DAY,
   type Lang,
@@ -8,9 +7,8 @@ import {
   PROBLEM_HOLD_DAYS,
   type ProblemReason,
 } from "@gigsync/protocol";
-import { arrangementIn } from "../estimate/scope.js";
 import type { JobRecord } from "../job/store.js";
-import { dayOf, isMonthly } from "../job/when.js";
+import { dayOf, recurs } from "../job/when.js";
 import { OPEN_PAYMENT } from "../payments/book.js";
 import { bothSigned, FINISHED_WORK } from "../payments/passbook.js";
 
@@ -45,20 +43,12 @@ export interface ProblemRecord {
 /** Over: done (handed over or closed) or cancelled. An arrangement is over only when one side ends or cancels it. */
 const ENDED: ReadonlySet<EngagementStatus> = new Set([...FINISHED_WORK, S.cancelled]);
 
-/** Arrangements a job ends after its one stretch of work (ADR 0046): its contacts settle as a visit's do. */
-const ONE_OFF: ReadonlySet<string> = new Set([Arrangement.enum.hourly, Arrangement.enum.visit]);
-
 /**
- * Monthly or daily work: a monthly trade (cook, maid) unless the job was asked by the hour or for one visit, or a day
+ * Monthly or daily work: work that recurs (`recurs`: a cook or maid not asked for one visit or a few hours), or a day
  * of "every day" in the request or the signed terms.
  */
 export function isArrangement(job: JobRecord): boolean {
-  const oneOff = ONE_OFF.has(arrangementIn(job.request.trade, job.request.details) ?? "");
-  return (
-    (isMonthly(job.request.trade) && !oneOff) ||
-    dayOf(job.request) === EVERY_DAY ||
-    job.mine?.terms.terms?.when?.day === EVERY_DAY
-  );
+  return recurs(job.request) || dayOf(job.request) === EVERY_DAY || job.mine?.terms.terms?.when?.day === EVERY_DAY;
 }
 
 /** The job is over, so its contacts may go once it is paid up or the cap has passed. */

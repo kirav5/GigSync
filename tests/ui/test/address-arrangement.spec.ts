@@ -85,6 +85,7 @@ test("a household saves its home from its location and asks for a maid by the ho
 
   // Find: a maid, for a few hours, at home.
   await open(page, "nav.find", en);
+  await chip(page, en, "need.pick_work").click();
   await chip(page, en, "trade.maid").click();
   await chip(page, en, "iv.skip").click();
   await expect(chip(page, en, "need.arr.hourly")).toBeVisible();
@@ -118,6 +119,7 @@ for (const lang of [hi, kn]) {
   test(`Find asks how long the work is for, in ${lang}`, async ({ browser }) => {
     const page = await phoneHere(browser);
     await signIn(page, { role: Role.consumer, name: `Ravi ${RUN}`, phone: newPhone(), lang });
+    await chip(page, lang, "need.pick_work").click();
     await chip(page, lang, "trade.driver").click();
     // A driver's first question is the route; skipped here.
     await chip(page, lang, "iv.skip").click();

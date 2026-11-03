@@ -101,7 +101,7 @@ test("a household's screens at 360×640 in Hindi: Language, Sign-in and Find's A
   });
 
   // Find's chat on a small phone: its choices are tappable, the found workers listed, and Ask reachable.
-  await tappable(page.getByRole("log").getByRole("button", { name: t(hi, "trade.painter"), exact: true }));
+  await tappable(page.getByRole("log").getByRole("button", { name: t(hi, "need.pick_work"), exact: true }));
   await tellNeed(
     { page, lang: hi },
     { trade: "painter", area: "Whitefield", need: t(hi, "trade.painter"), when: "when.today", budget: "8000" },

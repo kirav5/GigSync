@@ -31,7 +31,8 @@ import { nextTurn, type } from "./talk.js";
 const { en } = Lang.enum;
 const say = (key: MessageKey, params?: Params) => t(en, key, params);
 const FOLDER = "chats";
-const TRADE = "cook";
+/** One-visit work, so the card goes straight on to the area (ADR 0051). */
+const TRADE = "plumber";
 const EARNED = say("agent.suggest_earned");
 const EARNINGS = say("agent.earnings", { week: "₹0", month: "₹0", waiting: "₹0" });
 

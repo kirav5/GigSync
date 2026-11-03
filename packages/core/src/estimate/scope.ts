@@ -11,7 +11,7 @@ import {
   type Estimate,
   EstimateBasisKind,
   EstimateRequest,
-  hasArrangements,
+  fitsWork,
   hoursBand,
   type JobTrade,
   MaidFrequency,
@@ -121,10 +121,10 @@ export function estimateRequest(
   }).data;
 }
 
-/** The arrangement a job's details name (ADR 0046), for a trade priced by arrangement; undefined otherwise. */
+/** The arrangement a job's details name (ADR 0046), when it fits the work (ADR 0051); undefined otherwise. */
 export function arrangementIn(trade: JobTrade, details: Details): Arrangement | undefined {
-  if (!hasArrangements(trade)) return undefined;
-  return Arrangement.safeParse(details[Q.arrangement]).data;
+  const asked = Arrangement.safeParse(details[Q.arrangement]).data;
+  return asked !== undefined && fitsWork(trade, asked) ? asked : undefined;
 }
 
 /** Two requests ask for the same estimate. */

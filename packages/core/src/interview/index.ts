@@ -31,7 +31,7 @@ export {
   start,
   withConfig,
 } from "./card.js";
-export { arrangementRates, askingArrangement, mainOf, pickedOf } from "./card-arrangements.js";
+export { arrangementRates, askingArrangement, cardArrangements, mainOf, pickedOf } from "./card-arrangements.js";
 export { cardEstimate, withEstimate } from "./card-estimate.js";
 export { aboutIsPrivate, choose, hear } from "./card-parse.js";
 export { legalLines, legalMonthly, rateHint, rateNote } from "./card-rates.js";

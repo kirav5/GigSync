@@ -18,8 +18,8 @@ const T = Trade.enum;
 const AREAS = [{ key: "koramangala", names: ["Koramangala", "कोरमंगला", "ಕೋರಮಂಗಲ"] }];
 const config = (own: Lang, rates: RateCard = CITY_RATES) => ({ own, areas: AREAS, rates });
 const run = (state: InterviewState, answers: readonly string[]) => answers.reduce((s, a) => hear(s, a), state);
-/** A maid or driver says which work they take first (ADR 0046): monthly, as every card before arrangements. */
-const ARRANGED = new Set(["maid", "driver"]);
+/** A maid, cook or driver says which work they take first (ADR 0046, 0051): monthly, as every card before arrangements. */
+const ARRANGED = new Set(["maid", "cook", "driver"]);
 const atRate = (trade: string, rates?: RateCard) =>
   run(start(config("en", rates)), [trade, ...(ARRANGED.has(trade) ? ["monthly"] : []), "Koramangala"]);
 /** A union-signed card in another city, with a band for a per-visit trade. */

@@ -82,6 +82,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await open(priyaPage, "nav.find");
   const log = priyaPage.getByRole("log");
   await expect(log).toContainText(t(en, "need.start"));
+  await tap(priyaPage, t(en, "need.pick_work"));
   await tap(priyaPage, t(en, "trade.maid"));
   await expect(log).toContainText(t(en, "question.rooms"));
   await say(priyaPage, ROOMS);
@@ -129,6 +130,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   );
   await open(priyaPage, "nav.find");
   await expect(log).toContainText(t(en, "need.start"));
+  await tap(priyaPage, t(en, "need.pick_work"));
   await tap(priyaPage, t(en, "trade.maid"));
   await expect(log).toContainText(t(en, "memory.offer_detail", roomsParams));
   await shoot("ask-first", { household: priyaPage }, FOLDER);
@@ -166,6 +168,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   );
   await open(priyaPage, "nav.find");
   await expect(log).toContainText(t(en, "need.start"));
+  await tap(priyaPage, t(en, "need.pick_work"));
   await tap(priyaPage, t(en, "trade.maid"));
   await expect(log).toContainText(t(en, "memory.filled_detail", roomsParams));
   // Memory has nothing for how long the work is for (ADR 0046): asked next.

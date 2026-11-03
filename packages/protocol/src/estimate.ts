@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { AreaKey } from "./area-key.js";
-import { Arrangement, hasArrangements } from "./arrangement.js";
+import { Arrangement, fitsWork } from "./arrangement.js";
 import { City } from "./content.js";
 import {
   AcDrivers,
@@ -58,7 +58,7 @@ const scoped = <K extends Trade, S extends z.ZodType<TradeScope[K]>, D extends z
     trade: z.literal(trade),
     scope,
     drivers: drivers.optional(),
-    /** ADR 0046: for maid and driver work, how long it is for; the range is then in that arrangement's unit. */
+    /** ADR 0046, 0051: for work asked by arrangement, how long it is for; the range is in that arrangement's unit. */
     arrangement: Arrangement.optional(),
   });
 
@@ -79,7 +79,7 @@ export const EstimateRequest = z
     scoped(T.cook, CookScope, CookDrivers),
     scoped(T.driver, DriverScope, ChauffeurDrivers),
   ])
-  .refine((r) => r.arrangement === undefined || hasArrangements(r.trade), "no arrangements for this trade");
+  .refine((r) => r.arrangement === undefined || fitsWork(r.trade, r.arrangement), "arrangement does not fit the trade");
 export type EstimateRequest = z.infer<typeof EstimateRequest>;
 
 /**

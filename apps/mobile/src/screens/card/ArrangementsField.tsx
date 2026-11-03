@@ -11,12 +11,16 @@ export interface ArrangementsValue {
   typed: Partial<Record<Arrangement, string>>;
 }
 
-/** The value from the card's draft: what they take, and each rate in rupees as a field holds it. */
+/**
+ * The value from the card's draft: what they take, and each rate in rupees as a field holds it. With none set, monthly,
+ * as every trade's card was; nothing for a card of the worker's own skills (`ownWork`), which then takes any.
+ */
 export const arrangementsValue = (
   picked: readonly Arrangement[] | undefined,
   rates: Partial<Record<Arrangement, number>> | undefined,
+  ownWork = false,
 ): ArrangementsValue => ({
-  picked: picked?.length ? [...picked] : [Arrangement.enum.monthly],
+  picked: picked?.length ? [...picked] : ownWork ? [] : [Arrangement.enum.monthly],
   typed: Object.fromEntries(Object.entries(rates ?? {}).map(([a, paise]) => [a, rupeesOf(paise)])),
 });
 
@@ -34,13 +38,16 @@ export function otherRates(v: ArrangementsValue): Partial<Record<Arrangement, nu
 }
 
 /**
- * Which work a maid or driver takes (ADR 0046): hourly, one visit, weekly, monthly, each a box; a rate field beside each
- * one ticked besides the main one (the longest), whose rate is the card's usual rate above.
+ * Which work a worker takes (ADR 0046), of those that fit their work (ADR 0051): hourly, one visit, weekly, monthly,
+ * each a box; a rate field beside each one ticked besides the main one (the longest), whose rate is the card's usual
+ * rate above.
  */
 export function ArrangementsField({
+  offered,
   value,
   onChange,
 }: {
+  offered: readonly Arrangement[];
   value: ArrangementsValue;
   onChange: (next: ArrangementsValue) => void;
 }) {
@@ -48,12 +55,12 @@ export function ArrangementsField({
   const main = mainArrangement(value.picked);
   const toggle = (a: Arrangement) => {
     const picked = value.picked.includes(a) ? value.picked.filter((x) => x !== a) : [...value.picked, a];
-    onChange({ ...value, picked: Arrangement.options.filter((x) => picked.includes(x)) });
+    onChange({ ...value, picked: offered.filter((x) => picked.includes(x)) });
   };
   return (
     <fieldset className={C.stack} aria-label={t("card.arrangements")}>
       <span className={C.label}>{t("card.arrangements")}</span>
-      {Arrangement.options.map((a) => (
+      {offered.map((a) => (
         <div key={a} className={C.row}>
           <label className={C.checkRow}>
             <input type="checkbox" checked={value.picked.includes(a)} onChange={() => toggle(a)} />

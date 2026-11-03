@@ -25,7 +25,7 @@ import {
   withTrade,
 } from "./need.js";
 import { atArea, chooseAddress } from "./need-address.js";
-import { chooseArrangement, hearArrangement } from "./need-arrangement.js";
+import { chooseArrangement, hearArrangement, withSaidArrangement } from "./need-arrangement.js";
 import { detailAnswer, settledProblem } from "./need-detail.js";
 import { chooseDriver, hearDriver } from "./need-drivers.js";
 import { suggestedBudget } from "./need-estimate.js";
@@ -41,8 +41,8 @@ import { finder, firstIn, normalize } from "./normalize.js";
  * that also names the day or the budget fills those too, so the interview never asks what it was already told.
  */
 
-/** What the tap choices carry besides trades, areas, days, radii and fields. */
-export const NeedPick = { date: "date", change: "change" } as const;
+/** What the tap choices carry besides trades, areas, days, radii and fields; `list` opens the trades (ADR 0051). */
+export const NeedPick = { date: "date", change: "change", list: "list" } as const;
 /** The Change chips under a question, by the field the agent filled in from memory. */
 const REDO = new Map<string, NeedField>([
   [MemoryPick.redoDetail, NeedSlot.detail],
@@ -76,6 +76,7 @@ function fillEmpty(d: NeedDraft, fill: NeedFill): NeedDraft {
   const first = firstQuestion(next.trade);
   if (first && next.detail === undefined && seen[first]) next = { ...next, detail: seen[first] };
   if (fill.trade && !next.trade) next = withTrade(next, fill.trade);
+  next = withSaidArrangement(next, fill.arrangement);
   return {
     ...next,
     area: next.area ?? fill.area,
@@ -105,7 +106,7 @@ function fillFromHint(d: NeedDraft, hint: NeedHint, words: string): NeedDraft {
   const kind = DriverName.enum.problem;
   const drivers =
     hint.problemKind && d.drivers?.[kind] === undefined ? { ...d.drivers, [kind]: hint.problemKind } : d.drivers;
-  const next = withScopeRead({ ...d, seen, drivers }, hint.scope);
+  const next = withScopeRead({ ...d, seen, drivers, fits: d.fits ?? hint.fits }, hint.scope);
   return fillEmpty(next, { ...hint, details: {}, words });
 }
 
@@ -248,6 +249,7 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
   if (s.slot === NeedSlot.driver) return chooseDriver(s, value) ?? s;
   switch (s.slot) {
     case NeedSlot.trade: {
+      if (value === NeedPick.list) return { ...s, fresh: false, notes: [] };
       const trade = Trade.options.find((tr) => tr === value);
       return tradeFor(s, trade) ? moveOn(s, withTrade(d, trade)) : s;
     }

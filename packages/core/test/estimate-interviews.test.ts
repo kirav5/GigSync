@@ -34,8 +34,14 @@ const painterFound = (): FoundEstimate => ({
 const keys = (lines: readonly { key: string }[]) => lines.map((l) => l.key);
 
 describe("the estimate under the card's rate questions", () => {
+  /** A cook's card is for monthly work here, so its estimate is asked for that arrangement (ADR 0051). */
+  const MONTHLY = { arrangement: "monthly" };
   const atRate = (trade: string, own: Lang = "en"): InterviewState =>
-    ["Koramangala"].reduce((s, a) => hear(s, a), hear(start({ own, areas: AREAS, rates: CITY_RATES }), trade));
+    // A cook says which work they take first (ADR 0051): monthly, as every cook's card before.
+    [...(trade === T.cook ? ["monthly"] : []), "Koramangala"].reduce(
+      (s, a) => hear(s, a),
+      hear(start({ own, areas: AREAS, rates: CITY_RATES }), trade),
+    );
 
   it("shows a painter the range with its scope and what it rests on, and suggests opening at the typical figure", () => {
     const s = withEstimate(atRate("painter"), painterFound());
@@ -71,7 +77,7 @@ describe("the estimate under the card's rate questions", () => {
   });
 
   it("puts the legal minimum under both questions for a cook, and nothing below it is suggested", () => {
-    const found = { request: estimateRequest(city, T.cook) as EstimateRequest, estimate: COOK_MONTH };
+    const found = { request: estimateRequest(city, T.cook, MONTHLY) as EstimateRequest, estimate: COOK_MONTH };
     const s = withEstimate(atRate("cook"), found);
     expect(keys(prompt(s).lines)).toContain("estimate.legal_min");
     const min = choose(s, Pick.suggested);
@@ -84,7 +90,7 @@ describe("the estimate under the card's rate questions", () => {
   });
 
   it("a range from GigSync's jobs says how many and where, with no sources to open", () => {
-    const found = { request: estimateRequest(city, T.cook) as EstimateRequest, estimate: COOK_GIGSYNC };
+    const found = { request: estimateRequest(city, T.cook, MONTHLY) as EstimateRequest, estimate: COOK_GIGSYNC };
     const lines = prompt(withEstimate(atRate("cook"), found)).lines;
     expect(lines.find((l) => l.key === "estimate.jobs.other")).toEqual({
       key: "estimate.jobs.other",
@@ -98,7 +104,7 @@ describe("the estimate under the card's rate questions", () => {
   it("a city-wide GigSync range names the city", () => {
     const { area: _, ...citywide } = COOK_GIGSYNC.basis;
     const found = {
-      request: estimateRequest(city, T.cook) as EstimateRequest,
+      request: estimateRequest(city, T.cook, MONTHLY) as EstimateRequest,
       estimate: { ...COOK_GIGSYNC, basis: citywide },
     };
     const line = prompt(withEstimate(atRate("cook"), found)).lines.find((l) => l.key === "estimate.jobs.other");

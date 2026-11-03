@@ -1,6 +1,6 @@
 /**
- * Work arrangements (ADR 0046): maid and driver work by the hour, one visit, some days a week or by the month. The
- * worker's card asks which they take and a rate for each; Find asks the household before the estimate.
+ * Work arrangements (ADR 0046, 0051): work by the hour, one visit, some days a week or by the month, as fits the job.
+ * The worker's card asks which they take and a rate for each; Find asks the household before the estimate.
  */
 export const arrangement = {
   "question.arrangement": "How long is the work for?",
@@ -20,6 +20,7 @@ export const arrangement = {
   "need.arr.visit": "Just once",
   "need.arr.weekly": "Some days a week",
   "need.arr.monthly": "Every month",
+  "need.arr.meal": "One meal or occasion",
   "need.field_arrangement": "How long",
   "need.summary_arrangement": "Work: {arrangement}.",
   "need.budget_per.hour": "That is the most for one hour.",

@@ -1,5 +1,6 @@
 import {
   addressChoice,
+  boardArrangement,
   ChatIntent,
   type GigDevice,
   type Line,
@@ -155,7 +156,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     // Where the need is (ADR 0045): its saved address or pilot area; never a fallback to another area.
     const at = whereOf(state.draft, saved ?? []);
     if (!at) return needSearchFailed(claim, INCOMPLETE);
-    searchBoard(account, state.draft, at.area, state.radius_km, state.draft.arrangement)
+    searchBoard(account, state.draft, at.area, state.radius_km, boardArrangement(state.draft))
       .then((workers) => needFound(claim, workers))
       .catch((err: unknown) => {
         log.warn("search failed", failure(err));
