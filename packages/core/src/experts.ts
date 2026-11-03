@@ -4,7 +4,10 @@ import { newEngagement } from "./engagement/machine.js";
 import type { MessageKey, Params } from "./i18n/t.js";
 import { BULLET_MARK, plainReply } from "./model-reply.js";
 import { Collection, type Ports } from "./ports.js";
+import { choicesOf } from "./router/clarify.js";
+import type { ChatIntent, ChatLine } from "./router/intent.js";
 import { Expert, type Route } from "./router/keyword.js";
+import { recentLines } from "./router/model-prompt.js";
 
 export const CardKind = {
   text: "text",
@@ -12,6 +15,7 @@ export const CardKind = {
   answer: "answer",
   draft: "draft",
   needsModel: "needs_model",
+  clarify: "clarify",
 } as const;
 
 /** What the agent says, as a key each phone renders in its owner's language (`t(lang, key, params)`). */
@@ -37,7 +41,16 @@ export type Card =
   | { kind: typeof CardKind.answer; say: Phrase; sources: string[] }
   | { kind: typeof CardKind.answer; words: Words; sources: string[] }
   | { kind: typeof CardKind.draft; say: Phrase; engagement: Engagement }
-  | { kind: typeof CardKind.needsModel; say: Phrase };
+  | { kind: typeof CardKind.needsModel; say: Phrase }
+  /** The agent could not tell what the owner meant: it asks, with one choice per intent and "Something else" last. */
+  | { kind: typeof CardKind.clarify; say: Phrase; choices: readonly ChatIntent[] };
+
+/** The question for a message the model could not place, offering the intents it was torn between. */
+export const clarifyCard = (unsure: readonly ChatIntent[]): Card => ({
+  kind: CardKind.clarify,
+  say: { key: "agent.clarify" },
+  choices: choicesOf(unsure),
+});
 
 /** The language the on-device models answer in today (HLD 7.6); their replies are translated on the phone. */
 const MODEL_LANG = Lang.enum.en;
@@ -61,7 +74,13 @@ export interface Contact {
   name: string;
 }
 
-export async function runExpert(route: Route, ports: Ports, contacts: Contact[]): Promise<Card> {
+/** The card for a route; `recent` is the chat so far, which a free reply is written against. */
+export async function runExpert(
+  route: Route,
+  ports: Ports,
+  contacts: Contact[],
+  recent?: readonly ChatLine[],
+): Promise<Card> {
   const now = ports.clock.now();
   switch (route.expert) {
     case Expert.remember: {
@@ -105,7 +124,7 @@ export async function runExpert(route: Route, ports: Ports, contacts: Contact[])
     case Expert.find:
       return { kind: CardKind.text, say: { key: "agent.market_later", params: { text: route.text } } };
     default: {
-      const answered = await ports.model.generate(chatPrompt(route.text), { maxTokens: REPLY_MAX_TOKENS });
+      const answered = await ports.model.generate(chatPrompt(route.text, recent), { maxTokens: REPLY_MAX_TOKENS });
       const reply = answered && plainReply(answered);
       return reply
         ? { kind: CardKind.text, words: { text: reply, lang: MODEL_LANG } }
@@ -145,13 +164,18 @@ function answerPrompt(question: string, notes: Episode[]): string {
   ].join(LINE);
 }
 
-/** The chat's prompt: who is answering, the work GigSync knows, and how short; never the owner's words alone. */
-function chatPrompt(message: string): string {
+/**
+ * The chat's prompt: who is answering, the work GigSync knows, what it cannot do, how short, and the chat so far;
+ * never the owner's words alone.
+ */
+function chatPrompt(message: string, recent: readonly ChatLine[] | undefined): string {
   return [
     "You are the owner's own GigSync agent, on their phone in Bengaluru.",
     `GigSync connects households with people who do home work: ${TRADES}.`,
     "Answer the message warmly and only what it asks. If you do not know, say so: never make up jobs, prices, people or kinds of work.",
+    "You only talk: you cannot book, arrange, send or agree to anything, so never say you did or will.",
     REPLY_RULES,
+    ...recentLines(recent),
     `Message: ${JSON.stringify(message)}`,
   ].join(LINE);
 }

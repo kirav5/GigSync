@@ -45,8 +45,6 @@ export const model = {
   "model.line": "{name} · about {mb} MB · {state}",
   "model.download": "Download (about {mb} MB)",
   "model.remove": "Remove from this phone",
-  "model.slow": "Too slow on this phone; using lite mode.",
-  "model.try_again": "Try again",
   "model.why.no_webgpu": "This browser can't run a model on this phone (no WebGPU). Lite mode does every job.",
   "model.why.gpu_limits": "This phone's graphics chip is too small for the model. Lite mode does every job.",
   "model.why.low_memory": "This phone has too little memory for the model. Lite mode does every job.",

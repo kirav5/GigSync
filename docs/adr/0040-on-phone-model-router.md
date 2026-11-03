@@ -81,7 +81,7 @@ Consequences:
 - Phones without WebGPU stay on the lists: Chrome on Android before version 121 or Android 12, GPUs Chrome does not
   enable, and iPhones before iOS 26.
 - The routing prompt is about 1,560 tokens for a worker. A Mac's GPU answers in about 3.5 s; a phone will be slower,
-  and the speed guard may turn the model off on many budget phones. Cutting three market examples saved 8% of the
+  and the speed guard may turn the model off on many budget phones (removed 2026-11-03, ADR 0042). Cutting three market examples saved 8% of the
   prompt but lowered accuracy (69% to 68% combined, English 84% to 79%), so the prompt is unchanged.
 - The first eval showed Kannada worse with qwen2.5:1.5b (49%) than with the lists (61%); Qwen2.5-0.5B is untested on
   Indic text, and likely weaker. It must be measured on real phones before the pilot.

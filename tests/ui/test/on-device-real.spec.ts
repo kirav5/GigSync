@@ -12,9 +12,12 @@ import { newPhone, open, Role, RUN, shoot, signIn, textOf } from "./helpers.js";
 const { en } = Lang.enum;
 const FOLDER = "on-device-real";
 const FAKE_MODEL_KEY = "gigsync-fake-model";
-const RECORD_KEY = "CapacitorStorage.settings:model_device";
 const DOWNLOAD_MS = 600_000;
 const QUESTION = "is ₹8,000 fair for a cook?";
+const ROUTED = "chat routed";
+const BY_MODEL = "model";
+/** A first answer loads the model onto the GPU, which takes far longer than any later one. */
+const ANSWER_MS = 120_000;
 
 test.skip(!process.env.REAL_MODEL, "downloads 1 GB; run with REAL_MODEL=1");
 test.skip(({ browserName }) => browserName !== "chromium", "one engine is enough for a smoke test");
@@ -38,18 +41,24 @@ test("the real model downloads, loads and answers on this GPU", async ({ page })
 
   await page.getByRole("button", { name: t(en, "iv.later"), exact: true }).click();
   const box = page.getByRole("form", { name: t(en, "nav.talk") });
+  // The chat's log says who named the message's intent: the model itself, as proof it answered.
+  const routed = page.waitForEvent("console", {
+    predicate: async (m) =>
+      m.text().includes(ROUTED) &&
+      (
+        await m
+          .args()[1]
+          ?.jsonValue()
+          .catch(() => undefined)
+      )?.via === BY_MODEL,
+    timeout: ANSWER_MS,
+  });
+  const sent = Date.now();
   await box.getByPlaceholder(t(en, "agent.placeholder")).fill(QUESTION);
   await page.getByRole("button", { name: t(en, "a11y.send"), exact: true }).click();
   await expect(page.getByRole("log").getByText(QUESTION)).toBeVisible();
-  // The speed guard timed the model's routing answer: proof the model itself answered.
-  await expect
-    .poll(async () => {
-      const record = await page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? "{}"), RECORD_KEY);
-      return record.speed?.times?.length ?? 0;
-    })
-    .toBeGreaterThan(0);
-  const times = await page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? "{}").speed.times, RECORD_KEY);
-  console.log(`routing answer took ${times.join(", ")} ms`);
+  await routed;
+  console.log(`routed by the model in ${Date.now() - sent} ms`);
   await shoot("answered", { worker: page }, FOLDER);
   await open(page, "nav.settings");
   await expect(page.getByRole("region", { name: t(en, "model.title") })).toContainText(t(en, "model.state_ready"));

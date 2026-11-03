@@ -9,6 +9,7 @@ import { firstObject, within } from "../interview/need-model.js";
 import { asciiDigits, numbersIn } from "../job/details.js";
 import { log } from "../log.js";
 import type { Model } from "../ports.js";
+import { CLARIFY, unsureRoute } from "./clarify.js";
 import {
   ChatIntent,
   type ChatRoute,
@@ -17,6 +18,7 @@ import {
   intentAllowed,
   RouteVia,
   routeComplete,
+  withWholeNote,
 } from "./intent.js";
 import { routePrompt } from "./model-prompt.js";
 import { replySchema } from "./reply-schema.js";
@@ -25,8 +27,10 @@ import { replySchema } from "./reply-schema.js";
  * The phone's own model names a message's intent (ADR 0040): it never acts, it only names. Its reply is JSON checked
  * by a zod schema, and a slot is kept only when core can verify it against what it knows and what the owner said: a
  * trade from the list, a pilot area the words name, a contact the owner has, an amount whose digits are in the words,
- * a note cut from the words. An intent this chat cannot have, one missing what its action needs (a contact, a note),
- * a reply that is not the JSON asked for, no model, or no answer in time, and the word lists answer instead.
+ * a note cut from the words, or the whole message as the note to keep. An intent this chat cannot have, one missing
+ * what its action needs (a contact), a reply that is not the JSON asked for, no model, or no answer in time, and the
+ * next reader answers instead. Where the chat may ask, "clarify" names the intents the message could mean
+ * (clarify.ts).
  */
 
 /** How long a message waits for the model to name its intent before the word lists answer instead. */
@@ -38,6 +42,8 @@ const MAX_TOKENS = 120;
 /** No slot value from a well-behaved model is longer; a note is cut from the message, which the chat caps anyway. */
 const SLOT_MAX = 80;
 const NOTE_MAX = 1000;
+/** Every intent at most once over: more options than that is not a reply to read. */
+const OPTIONS_READ = 2 * Object.keys(ChatIntent).length;
 /** No amount anyone asks about in the pilot comes near this, in rupees. */
 const MAX_AMOUNT_RUPEES = 10_000_000;
 const GROUPING = /(?<=\d),(?=\d)/g;
@@ -63,6 +69,8 @@ const Reply = z.object({
   contact: Text(SLOT_MAX),
   field: Text(SLOT_MAX),
   note: Text(NOTE_MAX),
+  // A model may name more than a question offers; the first that check are kept (clarify.ts).
+  options: z.array(z.string().max(SLOT_MAX)).max(OPTIONS_READ).nullish().catch(null),
 });
 type Reply = z.infer<typeof Reply>;
 
@@ -142,9 +150,14 @@ function checkSlots(reply: Reply, text: string, ctx: IntentContext): ChatSlots {
 /** The route a reply names, when its intent is this chat's and its action has what it needs, with the slots that check. */
 function checkedRoute(reply: string, text: string, ctx: IntentContext): ChatRoute | undefined {
   const parsed = parseReply(reply);
-  const intent = parsed && oneOf(parsed.intent, INTENTS);
-  if (!parsed || !intent || !intentAllowed(intent, ctx)) return undefined;
-  const slots = checkSlots(parsed, text, ctx);
+  if (!parsed) return undefined;
+  if (ctx.mayAsk && lower(parsed.intent) === CLARIFY) {
+    const named = (parsed.options ?? []).flatMap((o) => oneOf(o, INTENTS) ?? []);
+    return unsureRoute(named, text, ctx);
+  }
+  const intent = oneOf(parsed.intent, INTENTS);
+  if (!intent || !intentAllowed(intent, ctx)) return undefined;
+  const slots = withWholeNote(intent, checkSlots(parsed, text, ctx), text);
   return routeComplete(intent, slots, ctx) ? { intent, slots, via: RouteVia.model } : undefined;
 }
 

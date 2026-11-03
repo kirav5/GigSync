@@ -55,13 +55,25 @@ export interface ChatSlots {
  * Who named the intent: the phone's embedding model by nearest labelled saying (ADR 0042), the phone's language
  * model, or the word lists (no model, too slow, or a reply core rejected).
  */
-export const RouteVia = { meaning: "meaning", model: "model", keywords: "keywords" } as const;
+export const RouteVia = { meaning: "meaning", model: "model", keywords: "keywords", owner: "owner" } as const;
 export type RouteVia = (typeof RouteVia)[keyof typeof RouteVia];
 
 export interface ChatRoute {
   intent: ChatIntent;
   slots: ChatSlots;
   via: RouteVia;
+  /** The intents the model could not choose between, `intent` first: the chat asks the owner before it acts. */
+  unsure?: readonly ChatIntent[];
+}
+
+/** Who said a line of a chat: the owner, or their agent (its answers and questions). */
+export const ChatSide = { owner: "owner", agent: "agent" } as const;
+export type ChatSide = (typeof ChatSide)[keyof typeof ChatSide];
+
+/** A line said earlier in the chat, which the phone's language model reads the new message against. */
+export interface ChatLine {
+  side: ChatSide;
+  text: string;
 }
 
 /** Who is chatting: households look for help in Find; workers talk to their agent in Talk. */
@@ -77,6 +89,10 @@ export interface IntentContext {
   trades?: readonly Trade[];
   /** The chat is about a move, so questions the city's guide answers count. */
   inMove?: boolean;
+  /** The chat so far, oldest first; the language model reads the message as a reply to it. */
+  recent?: readonly ChatLine[];
+  /** The language model may answer that the message could mean two or three intents, for the chat to ask which. */
+  mayAsk?: boolean;
 }
 
 /** Intents only a worker has: a household has no card, no newcomers to help, no move and no passbook in its chat. */
@@ -104,6 +120,12 @@ const NEEDS: Partial<Record<ChatIntent, keyof ChatSlots>> = {
   [ChatIntent.setRule]: "contact",
   [ChatIntent.remember]: "note",
 };
+
+/** A note to keep is the owner's own words: the whole message, when no reader cut a shorter note from it. */
+export function withWholeNote(intent: ChatIntent, slots: ChatSlots, text: string): ChatSlots {
+  const note = text.trim();
+  return intent === ChatIntent.remember && slots.note === undefined && note ? { ...slots, note } : slots;
+}
 
 /** The route has what its action needs; a market question needs a trade, the worker's own when none was named. */
 export function routeComplete(intent: ChatIntent, slots: ChatSlots, ctx: IntentContext): boolean {

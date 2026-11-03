@@ -2,23 +2,19 @@ import {
   Collection,
   type ConnectionFacts,
   DEFAULT_MAX_TOKENS,
-  freshSpeed,
   type GenerateOptions,
   log,
   mayResumeAlone,
   type Network,
   networkOf,
-  recordSpeed,
-  type SpeedRecord,
   type Storage,
-  tooSlow,
 } from "@gigsync/core";
 import { type ModelOptions, ModelState, type ModelStatus } from "@gigsync/plugin-llm";
 import { type ModelEngine, modelEngine, NO_MODEL } from "./model-engine.js";
 
 /**
  * The phone's own model as the app manages it (LLD §9.1): what the engine reports, the owner's answer to the offer,
- * a download they agreed to (resumed by itself only on Wi-Fi), the one line saying it is ready, and the speed guard.
+ * a download they agreed to (resumed by itself only on Wi-Fi) and the one line saying it is ready.
  * Kept per phone, in the settings everyone signed in on it shares, as the model itself is.
  */
 
@@ -32,7 +28,6 @@ interface DeviceModelRecord {
   wanted?: boolean;
   /** The chat said once that the model is ready. */
   readySaid?: boolean;
-  speed: SpeedRecord;
 }
 
 /** What the chat shows about the model, if anything (screens/model/ModelNotice.tsx). */
@@ -61,7 +56,7 @@ async function quietly<T>(work: (e: ModelEngine) => Promise<T>, fallback: T): Pr
 
 export class OnDevice {
   status: ModelStatus | undefined;
-  record: DeviceModelRecord = { speed: freshSpeed() };
+  record: DeviceModelRecord = {};
   private storage: Storage | undefined;
   private options: ModelOptions;
 
@@ -79,7 +74,7 @@ export class OnDevice {
   async load(storage: Storage): Promise<void> {
     this.storage = storage;
     const saved = await storage.get<DeviceModelRecord>(Collection.settings, RECORD_KEY);
-    if (saved) this.record = { ...saved, speed: saved.speed ?? freshSpeed() };
+    if (saved) this.record = saved;
     await this.refresh();
     // A download the owner agreed to that stopped part-way carries on by itself only on Wi-Fi.
     if (this.notice() === Notice.paused && mayResumeAlone(currentNetwork())) void this.download();
@@ -110,24 +105,22 @@ export class OnDevice {
 
   later = () => this.save({ offer: OfferAnswer.later });
   sayReady = () => this.save({ readySaid: true });
-  /** "Try again" after the speed guard gave up on this phone: the next answers are timed afresh. */
-  retrySpeed = () => this.save({ speed: freshSpeed() });
 
   async remove(): Promise<void> {
     this.status = await quietly((e) => e.remove(this.options), NO_MODEL);
     await this.save({ wanted: false, readySaid: false });
   }
 
-  get tooSlow(): boolean {
-    return tooSlow(this.record.speed);
-  }
-
-  /** Auto uses the model: ready, room in memory, and not found too slow on this phone. */
+  /**
+   * Auto uses the model: ready, with room in memory. However long it takes, it stays in use (ADR 0042 amendment
+   * 2026-11-03): the chat shows that the agent is thinking, and a routing answer past the router's limit falls to the
+   * embedding model for that one message.
+   */
   usable(): boolean {
-    return deviceUsable(this.status) && !this.tooSlow;
+    return deviceUsable(this.status);
   }
 
-  /** The model's answer, or null. Routing answers (asked as JSON) are timed for the speed guard. */
+  /** The model's answer, or null. */
   async generate(prompt: string, options?: GenerateOptions): Promise<string | null> {
     const result = await quietly(
       (e) =>
@@ -141,10 +134,6 @@ export class OnDevice {
         }),
       { available: false, text: "", engine: NO_MODEL.engine },
     );
-    if (result.available && options?.json && result.elapsedMs !== undefined) {
-      log.debug("model: routing answer timed", { ms: result.elapsedMs });
-      await this.save({ speed: recordSpeed(this.record.speed, result.elapsedMs) });
-    }
     return result.available ? result.text : null;
   }
 

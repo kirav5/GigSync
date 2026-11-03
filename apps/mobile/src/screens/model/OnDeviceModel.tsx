@@ -29,7 +29,7 @@ function stateLine(status: ModelStatus | undefined, t: ReturnType<typeof useI18n
 
 /**
  * Settings › On-device model, the model itself: name, size and state, its download with progress (the owner's tap is
- * the consent), Remove, and the speed guard's verdict with "Try again".
+ * the consent) and Remove.
  */
 export function OnDeviceModel() {
   const { t } = useI18n();
@@ -64,14 +64,6 @@ export function OnDeviceModel() {
         <div>
           <button type={C.button} className={C.secondary} onClick={() => void device.remove()}>
             {t("model.remove")}
-          </button>
-        </div>
-      )}
-      {device.tooSlow && (
-        <div className={C.row}>
-          <span className={C.muted}>{t("model.slow")}</span>
-          <button type={C.button} className={`${C.linkBtn} end`} onClick={() => void device.retrySpeed()}>
-            {t("model.try_again")}
           </button>
         </div>
       )}

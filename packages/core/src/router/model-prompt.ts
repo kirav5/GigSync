@@ -1,6 +1,7 @@
 import type { Lang } from "@gigsync/protocol";
+import { CLARIFY } from "./clarify.js";
 import { EXAMPLES, type Example, Script } from "./examples.js";
-import { allowedIntents, ChatIntent, ChatRole, type IntentContext } from "./intent.js";
+import { allowedIntents, ChatIntent, type ChatLine, ChatRole, type IntentContext } from "./intent.js";
 
 /**
  * The one prompt the phone's model reads to name a message's intent (ADR 0040 §2): the intents this chat can have,
@@ -42,6 +43,14 @@ const RULES = [
 const PROMPT_ORDER: readonly ChatIntent[] = Object.values(ChatIntent).flatMap((intent) =>
   intent === ChatIntent.setRule ? [] : intent === ChatIntent.askContact ? [ChatIntent.setRule, intent] : [intent],
 );
+
+/** The chat so far the prompt shows: the last few lines, each cut short, as reading them is most of a phone's wait. */
+export const RECENT_LINES = 6;
+export const RECENT_LINE_CHARS = 200;
+const ELLIPSIS = "…";
+
+/** "Ask instead of guessing", said once where the chat can ask (Talk). */
+const ASK_LINE = `If the message could mean two or three of these intents and you cannot tell which, reply {"intent":"${CLARIFY}","options":[those intents, likeliest first]}. Do not ask when one intent fits.`;
 
 const NONE = "none";
 const LIST_GAP = ", ";
@@ -86,6 +95,18 @@ function exampleLine({ said, reply }: Example): string {
   return `${JSON.stringify(said)} -> ${JSON.stringify(reply)}`;
 }
 
+/** The chat's last few lines before the message, oldest first, each cut to RECENT_LINE_CHARS. */
+export function recentLines(recent: readonly ChatLine[] | undefined): string[] {
+  const shown = (recent ?? []).slice(-RECENT_LINES);
+  if (shown.length === 0) return [];
+  const cut = (text: string) =>
+    text.length > RECENT_LINE_CHARS ? `${text.slice(0, RECENT_LINE_CHARS)}${ELLIPSIS}` : text;
+  return [
+    "The chat so far, oldest first; read the message as a reply to it:",
+    ...shown.map((line) => `${line.side}: ${JSON.stringify(cut(line.text))}`),
+  ];
+}
+
 /** The prompt for one message, with only the intents this chat can have. */
 export function routePrompt(text: string, ctx: IntentContext): string {
   const allowed = allowedIntents(ctx);
@@ -97,9 +118,11 @@ export function routePrompt(text: string, ctx: IntentContext): string {
     "Intents:",
     ...intents.map((intent) => `- ${intent}: ${MEANING[intent]}`),
     ...RULES,
+    ...(ctx.mayAsk ? [ASK_LINE] : []),
     ...SLOT_LINES,
     "Examples:",
     ...intents.flatMap((intent) => EXAMPLES[intent].filter((e) => e.script === script).map(exampleLine)),
+    ...recentLines(ctx.recent),
     `Message: ${JSON.stringify(text)}`,
   ].join("\n");
 }

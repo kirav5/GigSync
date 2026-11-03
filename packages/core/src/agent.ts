@@ -1,7 +1,8 @@
 import { type Card, type Contact, runExpert } from "./experts.js";
 import { log, pii } from "./log.js";
 import { Collection, type Ports } from "./ports.js";
-import { ChatIntent, type ChatRoute, type IntentContext } from "./router/intent.js";
+import { chosenRoute } from "./router/clarify.js";
+import { ChatIntent, type ChatLine, type ChatRoute, type IntentContext } from "./router/intent.js";
 import { Expert, type Route } from "./router/keyword.js";
 import type { MeaningIndex } from "./router/meaning.js";
 import { intentIndex } from "./router/meaning-route.js";
@@ -46,13 +47,19 @@ export class Agent {
     return routeChat(text, full, this.ports.model, { meaning: this.meaning });
   }
 
-  /** The card for a routed message, from the expert its intent names. */
-  async answer(text: string, chat: ChatRoute): Promise<Card> {
+  /** The route for an intent the owner picked from the agent's question, read from the words first asked. */
+  async chosen(intent: ChatIntent, text: string, ctx: RouteContext): Promise<ChatRoute | undefined> {
+    const contacts = await this.ports.storage.list<Contact>(Collection.contacts);
+    return chosenRoute(intent, text, { ...ctx, contacts: contacts.map((c) => c.name) });
+  }
+
+  /** The card for a routed message, from the expert its intent names; a free reply reads the chat so far. */
+  async answer(text: string, chat: ChatRoute, recent?: readonly ChatLine[]): Promise<Card> {
     const start = Date.now();
     const contacts = await this.ports.storage.list<Contact>(Collection.contacts);
     const route = expertRoute(text, chat);
     log.debug("chat: expert", { expert: route.expert, contact: pii(route.contact), text: pii(route.text) });
-    const card = await runExpert(route, this.ports, contacts);
+    const card = await runExpert(route, this.ports, contacts, recent);
     log.debug("chat: reply", { kind: card.kind, card: pii(JSON.stringify(card)) });
     // What happened, never what was said: the expert, the outcome, the size of the message and the time taken.
     log.info("chat handled", { expert: route.expert, card: card.kind, chars: text.length, ms: Date.now() - start });

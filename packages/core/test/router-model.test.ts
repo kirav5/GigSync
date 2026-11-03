@@ -153,14 +153,19 @@ describe("modelRoute", () => {
     expect(householdSchema.properties.contact).toBeUndefined();
   });
 
-  it("gives nothing when what the action needs fails: a contact the owner has, a note in their words, a trade", async () => {
+  it("gives nothing when what the action needs fails: a contact the owner has, a trade", async () => {
     expect(await modelRoute("is Raju free?", worker, reply({ intent: "askContact", contact: "Raju" }))).toBeUndefined();
     expect(await modelRoute("is she free?", worker, reply({ intent: "askContact" }))).toBeUndefined();
     expect(await modelRoute("let Raju see me", worker, reply({ intent: "setRule", contact: "Raju" }))).toBeUndefined();
-    const madeUpNote = reply({ intent: "remember", note: "Kabir pays on the 6th" });
-    expect(await modelRoute("remember Kabir pays on the 5th", worker, madeUpNote)).toBeUndefined();
     expect(await modelRoute("what's the going rate?", household, reply({ intent: "market" }))).toBeUndefined();
     expect((await modelRoute("what's the going rate?", worker, reply({ intent: "market" })))?.intent).toBe(I.market);
+  });
+
+  it("keeps the owner's whole message as the note when the model's note is not their words, or missing", async () => {
+    const said = "I have a booking from 2-3PM tomorrow";
+    const madeUp = reply({ intent: "remember", note: "a booking at 3 PM" });
+    expect((await modelRoute(said, worker, madeUp))?.slots).toEqual({ note: said });
+    expect((await modelRoute(said, worker, reply({ intent: "remember" })))?.slots).toEqual({ note: said });
   });
 });
 

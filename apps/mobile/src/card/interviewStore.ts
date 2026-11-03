@@ -77,13 +77,25 @@ export function addNote(text: string): NoteRef {
   return { generation: talkGeneration(), chat, id: turn.id };
 }
 
+/** A note already in the open chat, to answer again: the owner picked one of the choices under its question. */
+export const noteInOpen = (id: number): NoteRef => ({ generation: talkGeneration(), chat: currentTalk().open, id });
+
 /** The agent's answer to a note; nothing when the note is gone (its chat deleted, signed out since, dropped as old). */
-export function noteAnswered(note: NoteRef, card: Card): void {
+export const noteAnswered = (note: NoteRef, card: Card): void => setNoteCard(note, card);
+
+/** A note's question is answered: its card goes while the agent works on the choice, which the chat shows. */
+export const noteReopened = (note: NoteRef): void => setNoteCard(note, undefined);
+
+function setNoteCard(note: NoteRef, card: Card | undefined): void {
   if (note.generation !== talkGeneration()) return;
   updateTalk((t) => {
     const turns = turnsIn(t, note.chat);
     if (!turns.some((turn) => turn.id === note.id)) return t;
-    const answered = turns.map((turn) => (turn.id === note.id && turn.who === Speaker.note ? { ...turn, card } : turn));
+    const answered = turns.map((turn) => {
+      if (turn.id !== note.id || turn.who !== Speaker.note) return turn;
+      const { card: _old, ...said } = turn;
+      return card ? { ...said, card } : said;
+    });
     return withChatTurns(t, note.chat, answered);
   });
 }
