@@ -58,6 +58,7 @@ export const job = {
   "job.reached": "Your agent reached {price}.",
   "job.sign": "Sign deal for {price}",
   "job.decline": "Decline",
+  "job.start_work": "Arrived: start work",
   "job.mark_done": "Mark done",
   "job.ask_payment": "Ask for payment",
   "lang.en": "English",

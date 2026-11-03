@@ -82,6 +82,9 @@ export const addressChoice = (a: SavedAddress): AddressChoice => ({
   area: areaKeyOfAddress(a),
 });
 
+/** The door's exact point, for the worker once both sign: only one the owner pinned, never an area's point. */
+export const doorOf = (a: SavedAddress | undefined): Place | undefined => (a?.pinned ? a.point : undefined);
+
 /** The point a request at this address is sent with, rounded to the coarse grid; undefined when none is known. */
 export function requestPoint(a: SavedAddress): Place | undefined {
   const at = a.point ?? pilotAreaOf(a);

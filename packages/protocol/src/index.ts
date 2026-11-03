@@ -34,4 +34,5 @@ export * from "./records.js";
 export * from "./skill.js";
 export * from "./terms.js";
 export * from "./transfer.js";
+export * from "./work-hours.js";
 export * from "./worker-record.js";

@@ -4,9 +4,12 @@ import {
   type BoardQuery,
   type BoardWorker,
   DEFAULT_ARRANGEMENT,
+  EVERY_DAY,
+  isoWeekday,
   type MyBoardProfile,
   type Skill,
   skillKey,
+  type TimeWindow,
   type Trade,
   type UserId,
 } from "@gigsync/protocol";
@@ -32,12 +35,13 @@ export const roundArea = (degrees: number) => Math.round(degrees * AREA_SCALE) /
 export async function upsertProfile(db: Db, user: UserId, p: BoardProfile, at: Date): Promise<void> {
   await db.query(
     `INSERT INTO worker_profiles (user_id, display_name, area_lat, area_lon, area_name, rate_paise, about, updated_at,
-       show_record)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, TRUE))
+       show_record, work_days, work_windows)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, TRUE), $10, $11)
      ON CONFLICT (user_id) DO UPDATE SET display_name = excluded.display_name, area_lat = excluded.area_lat,
        area_lon = excluded.area_lon, area_name = excluded.area_name, rate_paise = excluded.rate_paise,
        about = excluded.about, updated_at = excluded.updated_at,
-       show_record = COALESCE($9, worker_profiles.show_record)`,
+       show_record = COALESCE($9, worker_profiles.show_record),
+       work_days = excluded.work_days, work_windows = excluded.work_windows`,
     [
       user,
       p.display_name,
@@ -48,6 +52,8 @@ export async function upsertProfile(db: Db, user: UserId, p: BoardProfile, at: D
       p.about,
       at,
       p.show_record ?? null,
+      p.work_hours?.days ?? null,
+      p.work_hours?.windows ?? null,
     ],
   );
   await db.query("DELETE FROM worker_trades WHERE user_id = $1", [user]);
@@ -79,6 +85,7 @@ export async function removeProfile(db: Db, user: UserId): Promise<boolean> {
  * record is served from.
  */
 export const CARD_COLUMNS = `p.display_name, p.area_lat, p.area_lon, p.area_name, p.rate_paise, p.about,
+  p.work_days, p.work_windows,
   ARRAY(SELECT t.trade FROM worker_trades t WHERE t.user_id = p.user_id ORDER BY t.trade) AS trades,
   ARRAY(SELECT json_build_object('text', s.text, 'lang', s.lang)
     FROM worker_skills s WHERE s.user_id = p.user_id ORDER BY s.skill_key) AS skills,
@@ -95,6 +102,9 @@ export interface CardRow extends RecordRow {
   area_name: string;
   rate_paise: number;
   about: string;
+  /** ADR 0050: the worker's days and parts of the day; NULL when they work any day, any time. */
+  work_days: number[] | null;
+  work_windows: TimeWindow[] | null;
   trades: Trade[];
   /** ADR 0047: the worker's own skills; empty for a card that lists trades only. */
   skills: Skill[];
@@ -114,6 +124,7 @@ const fieldsOf = (r: CardRow): BoardProfile => ({
   languages: r.languages,
   about: r.about,
   ...(r.arrangements.length > 0 ? { arrangements: r.arrangements } : {}),
+  ...(r.work_days && r.work_windows ? { work_hours: { days: r.work_days, windows: r.work_windows } } : {}),
 });
 
 /** The card as the board and a scanned QR show it: the server's record unless the worker hid it, never the switch. */
@@ -140,9 +151,12 @@ const BY_SKILL = "SELECT user_id FROM worker_skills WHERE skill_key = $1";
 
 /**
  * Active workers of one trade or skill within the radius, nearest first, then cheapest. Distance is the haversine
- * formula in SQL; a latitude band (served by an index) keeps it from running over every worker of the trade.
+ * formula in SQL; a latitude band (served by an index) keeps it from running over every worker of the trade. With a
+ * day and part of the day (ADR 0050): only workers whose hours include them, and none with a signed job then on
+ * GigSync's record (the same window on that date, or every day). Bookings on phones are not seen here.
  */
 export async function searchWorkers(db: Db, q: BoardQuery): Promise<BoardWorker[]> {
+  const date = q.day !== undefined && q.day !== EVERY_DAY ? q.day : null;
   const { rows } = await db.query<BoardRow>(
     `SELECT p.user_id, ${CARD_COLUMNS}, d.km AS distance_km
      FROM (${q.skill === undefined ? BY_TRADE : BY_SKILL}) w
@@ -157,6 +171,11 @@ export async function searchWorkers(db: Db, q: BoardQuery): Promise<BoardWorker[
        AND ($9::text IS NULL OR EXISTS (
          SELECT 1 FROM worker_arrangements a WHERE a.user_id = p.user_id AND a.arrangement = $9)
          OR ($9::text = $10::text AND NOT EXISTS (SELECT 1 FROM worker_arrangements a WHERE a.user_id = p.user_id)))
+       AND ($12::smallint IS NULL OR p.work_days IS NULL OR $12::smallint = ANY (p.work_days))
+       AND ($13::text IS NULL OR p.work_windows IS NULL OR $13::text = ANY (p.work_windows))
+       AND NOT ($13::text IS NOT NULL AND ($11::date IS NOT NULL OR $14::boolean) AND EXISTS (
+         SELECT 1 FROM job_records j WHERE j.worker_id = p.user_id AND j.status = 'agreed' AND j.work_window = $13
+           AND (j.work_daily OR j.work_day = $11::date)))
      ORDER BY d.km, p.rate_paise, p.user_id
      LIMIT $6`,
     [
@@ -170,6 +189,10 @@ export async function searchWorkers(db: Db, q: BoardQuery): Promise<BoardWorker[
       KM_PER_DEGREE,
       q.arrangement ?? null,
       DEFAULT_ARRANGEMENT,
+      date,
+      date ? isoWeekday(date) : null,
+      q.window ?? null,
+      q.day === EVERY_DAY,
     ],
   );
   return rows.map((r) => ({

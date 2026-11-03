@@ -72,3 +72,28 @@
     transform: scale(1);
   }
 }
+
+/* Find's address in use, at the top left (ADR 0050 §6): its label, and the line under it. Tapping opens the chat's
+   address turn. */
+.address-head {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  padding: 4px 0;
+  background: none;
+  border: 0;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.address-head-label {
+  font-weight: 600;
+}
+.address-head-line {
+  color: var(--text2);
+  font-size: 14px;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

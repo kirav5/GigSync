@@ -6,6 +6,7 @@ import {
   JobStore,
   jobProgress,
   MemoryStorage,
+  nextWorkerStep,
   RestoredJobError,
   recordsDue,
   restoredJob,
@@ -127,5 +128,29 @@ describe("the progress line", () => {
     ]);
     const { restored: _, ...unsigned } = job;
     expect(jobProgress(unsigned, [])).toBeUndefined();
+  });
+});
+
+describe("the worker's next step", () => {
+  const at = "2026-11-01T09:00:00Z";
+  const withStatus = (job: ReturnType<typeof restoredJob>, status: "in_progress" | "delivered") =>
+    stamped({ ...job, engagement: { ...job.engagement, status } }, at);
+
+  it("is on the way, then arrived and started, then done: one at a time, in order", () => {
+    let job = restoredJob(exported(), ME);
+    expect(nextWorkerStep(job)).toBe("on_my_way");
+    job = withStatus(withNote(job, { text: "On my way", lang: "en", code: "on_my_way" }, at, true), "in_progress");
+    expect(nextWorkerStep(job)).toBe("started");
+    job = withNote(job, { text: "Started work", lang: "en", code: "started" }, at, true);
+    expect(nextWorkerStep(job)).toBe("done");
+    expect(nextWorkerStep(withStatus(job, "delivered"))).toBeUndefined();
+  });
+
+  it("does not skip 'on my way' when a free-text note moved the job on", () => {
+    const job = withStatus(
+      withNote(restoredJob(exported(), ME), { text: "Reaching at 10", lang: "en" }, at, true),
+      "in_progress",
+    );
+    expect(nextWorkerStep(job)).toBe("on_my_way");
   });
 });

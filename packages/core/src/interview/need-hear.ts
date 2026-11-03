@@ -1,4 +1,4 @@
-import { DetailFlag, DriverName, QuestionKey, Trade } from "@gigsync/protocol";
+import { DetailFlag, Trade } from "@gigsync/protocol";
 import type { MessageKey } from "../i18n/t.js";
 import { countIn } from "../job/details.js";
 import { EVERY_DAY } from "../job/when.js";
@@ -10,7 +10,6 @@ import {
   answerMyself,
   DayWord,
   editNeed,
-  firstQuestion,
   moveOn,
   NEED_FIELDS,
   type NeedDraft,
@@ -25,14 +24,16 @@ import {
   withTrade,
 } from "./need.js";
 import { atArea, chooseAddress } from "./need-address.js";
-import { chooseArrangement, hearArrangement, withSaidArrangement } from "./need-arrangement.js";
+import { chooseArrangement, hearArrangement } from "./need-arrangement.js";
 import { detailAnswer, settledProblem } from "./need-detail.js";
 import { chooseDriver, hearDriver } from "./need-drivers.js";
 import { suggestedBudget } from "./need-estimate.js";
+import { fillEmpty, fillFromHint } from "./need-fill.js";
 import { MemoryPick } from "./need-memory.js";
 import type { NeedHint } from "./need-model.js";
 import { amountIn, DETAIL_MAX, type NeedFill, parseNeed } from "./need-parse.js";
-import { chooseScope, hearScope, withScopeRead } from "./need-scope.js";
+import { chooseScope, hearScope } from "./need-scope.js";
+import { chooseHour, needsHour } from "./need-time.js";
 import { NEED_FIELD_WORDS } from "./need-words.js";
 import { finder, firstIn, normalize } from "./normalize.js";
 
@@ -69,23 +70,6 @@ export function needFieldIn(text: string): NeedField | undefined {
 const options = (s: NeedState) => ({ areas: s.config.areas, today: s.config.today });
 const joined = (a: string | undefined, b: string) => [a, b].filter(Boolean).join(" ").slice(0, NEED_MAX);
 
-/** The sentence's other answers, each only where nothing was given yet. */
-function fillEmpty(d: NeedDraft, fill: NeedFill): NeedDraft {
-  const seen = { ...fill.details, ...d.seen };
-  let next: NeedDraft = { ...d, seen };
-  const first = firstQuestion(next.trade);
-  if (first && next.detail === undefined && seen[first]) next = { ...next, detail: seen[first] };
-  if (fill.trade && !next.trade) next = withTrade(next, fill.trade);
-  next = withSaidArrangement(next, fill.arrangement);
-  return {
-    ...next,
-    area: next.area ?? fill.area,
-    day: next.day ?? fill.day,
-    time: next.time ?? fill.time,
-    budget_paise: next.budget_paise ?? fill.budget_paise,
-  };
-}
-
 /** At a price question: the answer's other details and drivers kept, whatever the question takes. */
 function driverDraft(s: NeedState, text: string): NeedDraft {
   const fill = parseNeed(text, options(s));
@@ -98,17 +82,6 @@ const budgetReadback = (paise: number, aloud: boolean): Line => ({
   prices: { price: paise },
   ...minAloud(aloud),
 });
-
-/** A model's reading, only where the words lists found nothing (`understandNeed` has checked every value). */
-function fillFromHint(d: NeedDraft, hint: NeedHint, words: string): NeedDraft {
-  const problem = QuestionKey.enum.problem;
-  const seen = hint.problem && words && !d.seen[problem] ? { ...d.seen, [problem]: words } : d.seen;
-  const kind = DriverName.enum.problem;
-  const drivers =
-    hint.problemKind && d.drivers?.[kind] === undefined ? { ...d.drivers, [kind]: hint.problemKind } : d.drivers;
-  const next = withScopeRead({ ...d, seen, drivers, fits: d.fits ?? hint.fits }, hint.scope);
-  return fillEmpty(next, { ...hint, details: {}, words });
-}
 
 /** The field now asked, read loosely from the answer; undefined when the answer did not give it. */
 function onSlot(s: NeedState, d: NeedDraft, text: string, fill: NeedFill, aloud: boolean): NeedState | undefined {
@@ -174,7 +147,8 @@ function changedBy(d: NeedDraft, fill: NeedFill): NeedDraft | undefined {
   const next: NeedDraft = {
     ...(fill.trade ? withTrade(d, fill.trade) : d),
     ...(fill.area ? { area: fill.area } : {}),
-    ...(fill.day ? { day: fill.day, time: fill.time } : fill.time ? { time: fill.time } : {}),
+    // A new day said alone keeps the hour already given; the hour is asked only when there is none.
+    ...(fill.day ? { day: fill.day, time: fill.time ?? d.time } : fill.time ? { time: fill.time } : {}),
     ...(fill.budget_paise ? { budget_paise: fill.budget_paise } : {}),
   };
   const same = (Object.keys(next) as (keyof NeedDraft)[]).every((k) => next[k] === d[k]);
@@ -263,7 +237,8 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
     case NeedSlot.area:
       return chooseAddress(s, value) ?? (s.config.areas.some((a) => a.key === value) ? moveOn(s, atArea(d, value)) : s);
     case NeedSlot.when:
-      return WHEN_VALUES.includes(value) ? moveOn(s, { ...d, day: value }) : s;
+      if (needsHour(d)) return chooseHour(s, value) ?? s;
+      return WHEN_VALUES.includes(value) ? moveOn(s, { ...d, day: value, time: undefined }) : s;
     case NeedSlot.budget: {
       // The estimate's suggested budget, tapped: kept like a typed one, so it is not read back aloud.
       const budget = value === Pick.suggested ? suggestedBudget(s) : undefined;
@@ -293,5 +268,5 @@ const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 /** A date picked on the calendar, "YYYY-MM-DD", at the When question. A past or malformed day changes nothing. */
 export function chooseNeedDate(s: NeedState, day: string): NeedState {
   if (s.slot !== NeedSlot.when || !ISO_DAY.test(day) || day < s.config.today) return s;
-  return moveOn(s, { ...s.draft, day });
+  return moveOn(s, { ...s.draft, day, time: undefined });
 }

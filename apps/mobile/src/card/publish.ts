@@ -12,8 +12,9 @@ import {
   refreshOwnCard,
   type TermPrefs,
   type WorkerRules,
+  workHoursOf,
 } from "@gigsync/core";
-import { type BoardProfile, coarsePoint, type Lang } from "@gigsync/protocol";
+import { type BoardProfile, coarsePoint, type Lang, type WorkHours } from "@gigsync/protocol";
 import { type Account, apiClient, saveAccount } from "../adapters/account.js";
 import { recordsClient } from "../adapters/records.js";
 import { AREAS } from "../ui/places.js";
@@ -57,6 +58,7 @@ export async function publishCard(ports: Ports, account: Account, draft: CardDra
     languages,
     about,
     ...(rates.length > 0 ? { arrangements: rates } : {}),
+    ...withHours(draft.terms ?? account.worker?.terms),
   };
   const worker: WorkerRules = {
     trades,
@@ -81,10 +83,14 @@ export async function publishCard(ports: Ports, account: Account, draft: CardDra
   return next;
 }
 
-/** Where the card says the worker works from: a pilot area by key, or the place they found with their location. */
+/**
+ * Where the card says the worker works from: the place they found with their location, at its own point, whenever
+ * there is one (even when its name matches a pilot area's, whose centre can be kilometres off); else a pilot area's
+ * centre, picked from the list.
+ */
 function baseOf(draft: CardDraft): { name: string; lat: number; lon: number } | undefined {
-  const pilot = AREAS.find((a) => a.key === draft.area);
-  return pilot ?? (draft.place && draft.area ? draft.place : undefined);
+  if (draft.place && draft.area) return draft.place;
+  return AREAS.find((a) => a.key === draft.area);
 }
 
 /** The card's arrangements and their rates back as a draft's: the main one's is the usual rate. */
@@ -143,7 +149,14 @@ export function publicCard(account: Account): BoardProfile | undefined {
     rate_paise: rules.rate.opening_paise,
     languages: account.languages ?? [],
     about: account.about ?? "",
+    ...withHours(rules.terms),
   };
+}
+
+/** `{ work_hours }` when the worker said which days or parts of the day they work (ADR 0050 §2). */
+function withHours(terms: TermPrefs | undefined): { work_hours?: WorkHours } {
+  const hours = workHoursOf(terms);
+  return hours ? { work_hours: hours } : {};
 }
 
 /** "Show my record on my card" needs a card on the board to change: the switch is set by publishing the card with it. */

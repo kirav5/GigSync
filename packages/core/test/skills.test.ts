@@ -1,6 +1,7 @@
 import type { BoardSkill, Lang } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import {
+  ANY_TIME_PICK,
   CITY_RATES,
   chooseNeed,
   draftDetails,
@@ -94,7 +95,7 @@ describe("Find for a listed skill", () => {
     expect(needPrompt(s).choices?.map((c) => c.value)).toEqual(["hourly", "visit", "weekly", "monthly"]);
     s = chooseNeed(s, "visit");
     expect(s.slot).toBe(NeedSlot.area);
-    s = chooseNeed(chooseNeed(s, "koramangala"), "tomorrow");
+    s = chooseNeed(chooseNeed(chooseNeed(s, "koramangala"), "tomorrow"), ANY_TIME_PICK);
     expect(s.slot).toBe(NeedSlot.budget);
     expect(keys(s)).toContain("need.skill_no_rate");
     s = hearNeed(s, "800");

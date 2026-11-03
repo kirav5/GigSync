@@ -1,5 +1,8 @@
 import {
   EVERY_DAY,
+  ISO_WEEKDAYS,
+  type IsoWeekday,
+  isoWeekday,
   type JobTrade,
   MAX_COATS,
   MAX_HOURS,
@@ -11,6 +14,7 @@ import {
   type TermWhen,
   TimeWindow,
   TRADE_TERMS,
+  type WorkHours,
 } from "@gigsync/protocol";
 
 /**
@@ -57,6 +61,8 @@ export interface TermsAnswer {
 export interface TermPrefs {
   /** Parts of the day they take work in; every part when unset. */
   windows?: TimeWindow[];
+  /** ISO weekdays they work (1 Monday … 7 Sunday); every day when unset. On the card's public hours (ADR 0050). */
+  days?: IsoWeekday[];
   /** Who they want to buy the materials; either when unset. */
   materials?: MaterialsBy;
   /** The most hours a day they take on; any when unset. */
@@ -182,7 +188,9 @@ export function householdStance(wants: Terms, flexible: readonly TermKey[], work
  */
 export function workerStance(prefs: TermPrefs | undefined, booked: readonly TermWhen[], day?: string): Stance {
   const windows = prefs?.windows?.length ? prefs.windows : WINDOWS;
-  const free = (w: TermWhen) => windows.includes(w.window) && !booked.some((b) => clashes(b, w));
+  // A day the worker does not work (ADR 0050 §2) is never free; work every day is judged by its window alone.
+  const workDay = (d: string) => !prefs?.days?.length || d === EVERY_DAY || prefs.days.includes(isoWeekday(d));
+  const free = (w: TermWhen) => workDay(w.day) && windows.includes(w.window) && !booked.some((b) => clashes(b, w));
   const first = day && prefs?.windows?.length ? windows.map((window) => ({ day, window })).find(free) : undefined;
   const maxHours = prefs?.max_hours ?? MAX_HOURS;
   return {
@@ -206,4 +214,16 @@ export const clashes = (a: TermWhen, b: TermWhen): boolean =>
 /** The terms the owner asked for that the agreed terms change: the owner signs those themselves. */
 export function changedFromWants(wants: Terms, agreed: Terms | undefined): TermKey[] {
   return TermKey.options.filter((key) => wants[key] !== undefined && !sameTerm(key, agreed?.[key], wants[key]));
+}
+
+/**
+ * The working hours a card shows (ADR 0050 §2), from the worker's preferences: the days and parts of the day they
+ * take work, each every one when only the other is set; none when they set neither, which works any time.
+ */
+export function workHoursOf(prefs: TermPrefs | undefined): WorkHours | undefined {
+  if (!prefs?.days?.length && !prefs?.windows?.length) return undefined;
+  return {
+    days: prefs.days?.length ? [...prefs.days] : [...ISO_WEEKDAYS],
+    windows: prefs.windows?.length ? [...prefs.windows] : [...TimeWindow.options],
+  };
 }

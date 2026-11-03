@@ -131,7 +131,10 @@ describe("the estimate under the card's rate questions", () => {
 describe("the estimate beside the household's budget", () => {
   const config = { own: "en" as const, areas: AREAS, rates: CITY_RATES, today: "2026-10-29" };
   const atBudget = (): NeedState =>
-    ["paint my 2BHK", "Koramangala", "don't know", "tomorrow"].reduce((s, a) => hearNeed(s, a), startNeed(config));
+    ["paint my 2BHK", "Koramangala", "don't know", "tomorrow 10 am"].reduce(
+      (s, a) => hearNeed(s, a),
+      startNeed(config),
+    );
 
   it("asks for the job the household described, rooms from their own sentence", () => {
     const s = atBudget();

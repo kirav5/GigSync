@@ -1,13 +1,17 @@
 import { type Lang, Trade } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import {
+  ANY_TIME,
+  ANY_TIME_PICK,
   CITY_RATES,
   chooseNeed,
   chooseNeedDate,
   DriverPick,
   draftDetails,
   EVERY_DAY,
+  FIRST_HOUR,
   hearNeed,
+  LAST_HOUR,
   NeedPick,
   NeedSlot,
   type NeedState,
@@ -18,6 +22,7 @@ import {
   searchedNeed,
   searchFailed,
   startNeed,
+  windowOf,
 } from "../src/index.js";
 
 const T = Trade.enum;
@@ -84,7 +89,14 @@ describe("the need interview", () => {
   });
 
   it("defaults monthly work to every day and asks the budget with the city's band", () => {
-    const s = run(startNeed(config("hi")), ["खाना बनाने वाली चाहिए", "4 लोग", "हर महीने", "कोरमंगला", "पता नहीं"]);
+    const s = run(startNeed(config("hi")), [
+      "खाना बनाने वाली चाहिए",
+      "4 लोग",
+      "हर महीने",
+      "कोरमंगला",
+      "पता नहीं",
+      "सुबह 7 बजे",
+    ]);
     expect(s.draft.day).toBe(EVERY_DAY);
     expect(s.slot).toBe(NeedSlot.budget);
     const p = needPrompt(s);
@@ -105,7 +117,14 @@ describe("the need interview", () => {
   });
 
   it("runs on taps alone", () => {
-    let s = tap(startNeed(config("hi")), [T.electrician, "skip", "koramangala", DriverPick.dontKnow, "tomorrow"]);
+    let s = tap(startNeed(config("hi")), [
+      T.electrician,
+      "skip",
+      "koramangala",
+      DriverPick.dontKnow,
+      "tomorrow",
+      ANY_TIME_PICK,
+    ]);
     expect(s.slot).toBe(NeedSlot.budget);
     s = hearNeed(s, "800");
     expect(s.slot).toBe(NeedSlot.confirm);
@@ -118,8 +137,8 @@ describe("the need interview", () => {
     const again = hearNeed(s, "tomorrow");
     expect(again.slot).toBe(NeedSlot.area);
     expect(keys(again)).toEqual(["need.again", "need.ask.area"]);
-    expect(run(again, ["Koramangala", "don't know"]).slot).toBe(NeedSlot.budget);
-    expect(keys(hearNeed(run(again, ["Koramangala", "don't know"]), "lots"))).toEqual([
+    expect(run(again, ["Koramangala", "don't know", "10 am"]).slot).toBe(NeedSlot.budget);
+    expect(keys(hearNeed(run(again, ["Koramangala", "don't know", "10 am"]), "lots"))).toEqual([
       "need.again_budget",
       "need.ask.budget",
     ]);
@@ -135,7 +154,11 @@ describe("the need interview", () => {
 });
 
 describe("the readback", () => {
-  const atConfirm = run(startNeed(config("en")), ["plumber, tap leaking, HSR, today, up to 600", "don't know"]);
+  const atConfirm = run(startNeed(config("en")), [
+    "plumber, tap leaking, HSR, today, up to 600",
+    "don't know",
+    "10 am",
+  ]);
 
   it("searches on yes", () => {
     expect(atConfirm.slot).toBe(NeedSlot.confirm);
@@ -206,5 +229,50 @@ describe("the request", () => {
     expect(resolveDay("today", lateNightUtc, 330)).toBe("2026-10-30");
     expect(resolveDay("tomorrow", lateNightUtc, 330)).toBe("2026-10-31");
     expect(resolveDay(EVERY_DAY, lateNightUtc, 330)).toBe(EVERY_DAY);
+  });
+});
+
+describe("the hour, once the day is known", () => {
+  const at = (hour?: number) =>
+    run(startNeed({ ...config("en"), ...(hour === undefined ? {} : { hour }) }), [
+      "plumber, tap leaking, HSR",
+      "don't know",
+    ]);
+
+  it("asks what time, with a chip for each hour and Any time, and reads the window from the hour picked", () => {
+    const s = chooseNeed(at(), "tomorrow");
+    expect(s.slot).toBe(NeedSlot.when);
+    expect(keys(s)).toEqual(["need.ask.hour"]);
+    const values = needPrompt(s).choices?.map((c) => c.value) ?? [];
+    expect(values.at(0)).toBe(`at:${FIRST_HOUR}`);
+    expect(values.at(-2)).toBe(`at:${LAST_HOUR}`);
+    expect(values.at(-1)).toBe(ANY_TIME_PICK);
+    const two = chooseNeed(s, "at:14");
+    expect(two.draft.time).toBe("2 pm");
+    expect(windowOf(two.draft.time)).toBe("afternoon");
+    expect(chooseNeed(s, ANY_TIME_PICK).draft.time).toBe(ANY_TIME);
+    expect(chooseNeed(s, "at:3")).toBe(s);
+  });
+
+  it("offers only hours still ahead today", () => {
+    const s = chooseNeed(at(15), "today");
+    expect(needPrompt(s).choices?.[0]?.value).toBe("at:16");
+    expect(chooseNeed(s, "at:9")).toBe(s);
+    expect(needPrompt(chooseNeed(at(15), "tomorrow")).choices?.[0]?.value).toBe(`at:${FIRST_HOUR}`);
+  });
+
+  it("reads the window from an hour in Hindi or Kannada words too", () => {
+    const hi = { ...config("hi") };
+    const kn = { ...config("kn") };
+    const hiAt = (h: string) =>
+      chooseNeed(chooseNeed(run(startNeed(hi), ["प्लंबर, नल टपक रहा है, HSR", "पता नहीं"]), "tomorrow"), h);
+    const knAt = (h: string) =>
+      chooseNeed(chooseNeed(run(startNeed(kn), ["ಪ್ಲಂಬರ್, ನಲ್ಲಿ ಸೋರುತ್ತಿದೆ, HSR", "ಗೊತ್ತಿಲ್ಲ"]), "tomorrow"), h);
+    expect(windowOf(hiAt("at:8").draft.time)).toBe("morning");
+    expect(windowOf(hiAt("at:14").draft.time)).toBe("afternoon");
+    expect(windowOf(hiAt("at:18").draft.time)).toBe("evening");
+    expect(windowOf(knAt("at:8").draft.time)).toBe("morning");
+    expect(windowOf(knAt("at:14").draft.time)).toBe("afternoon");
+    expect(windowOf(knAt("at:18").draft.time)).toBe("evening");
   });
 });

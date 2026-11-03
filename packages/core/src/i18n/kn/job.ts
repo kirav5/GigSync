@@ -60,6 +60,7 @@ export const job: Readonly<Record<keyof typeof en, string>> = {
   "job.reached": "ನಿಮ್ಮ ಏಜೆಂಟ್ ತಲುಪಿದ ಬೆಲೆ: {price}.",
   "job.sign": "{price} ಬೆಲೆಗೆ ಸಹಿ ಮಾಡಿ",
   "job.decline": "ನಿರಾಕರಿಸಿ",
+  "job.start_work": "ತಲುಪಿ ಕೆಲಸ ಶುರು ಮಾಡಿ",
   "job.mark_done": "ಕೆಲಸ ಮುಗಿಸಿದ್ದೇನೆ",
   "job.ask_payment": "ಹಣ ಕೇಳಿ",
   "lang.en": "ಇಂಗ್ಲಿಷ್",

@@ -60,7 +60,11 @@ export function scrubJob(job: JobRecord, clean: Clean): JobRecord {
   };
 }
 
-/** A household's need, cleaned the same way: it is the words its signed request was made from. */
+/**
+ * A household's need, cleaned the same way: it is the words its signed request was made from. The door's exact point
+ * the worker was sent (ADR 0050 §7) goes too; the household's saved addresses keep their own.
+ */
 export function scrubNeed(need: Need, clean: Clean): Need {
-  return { ...need, need: clean(need.need), when: clean(need.when), details: cleanValues(need.details, clean) };
+  const { door: _door, ...rest } = need;
+  return { ...rest, need: clean(need.need), when: clean(need.when), details: cleanValues(need.details, clean) };
 }

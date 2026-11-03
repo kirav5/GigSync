@@ -1,6 +1,7 @@
 import { Arrangement, type BoardSkill, type Lang, Trade } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import {
+  ANY_TIME_PICK,
   boardArrangement,
   CITY_RATES,
   chooseNeed,
@@ -80,6 +81,8 @@ describe("a cook, asked as a cook is hired", () => {
     s = chooseNeed(s, "koramangala");
     while (s.slot === NeedSlot.driver) s = chooseNeed(s, DriverPick.dontKnow);
     s = chooseNeed(s, "tomorrow");
+    // The hour, once the day is known (ADR 0050 §1).
+    s = chooseNeed(s, ANY_TIME_PICK);
     expect(s.slot).toBe(NeedSlot.budget);
     expect(keys(s)).toEqual(["need.ask.budget", "need.budget_per.visit", "need.skill_no_rate"]);
     expect(keys(s)).not.toContain("need.band_month");

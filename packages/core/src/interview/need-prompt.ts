@@ -26,6 +26,7 @@ import { NeedPick } from "./need-hear.js";
 import { OFFER_CHOICES, recalledLine, redoChoice } from "./need-memory.js";
 import { needWords } from "./need-request.js";
 import { scopeQuestion } from "./need-scope.js";
+import { hourPrompt, needsHour } from "./need-time.js";
 
 /**
  * What the need interview shows and reads aloud now: the question for the field still missing, with its tap choices
@@ -205,6 +206,7 @@ function question(s: NeedState): Prompt {
     case NeedSlot.area:
       return wherePrompt(s);
     case NeedSlot.when: {
+      if (needsHour(s.draft)) return hourPrompt(s);
       const choices = whenChoices(s);
       return { lines: [{ key: "need.ask.when" }], choices, hints: choices.map((c) => t(own, c.key)) };
     }

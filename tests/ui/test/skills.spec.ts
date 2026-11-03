@@ -89,6 +89,7 @@ test("a worker lists her own skill and a household who asks for it finds and ask
   await expect(log(meena)).toContainText(t(en, "need.ask.address"));
   await tap(meena, t(en, "addr.chip", { label: t(en, "addr.label.home"), area: "Koramangala" }));
   await tap(meena, t(en, "when.tomorrow"));
+  await tap(meena, t(en, "when.any_time"));
   // No estimate for work GigSync has no prices for: the budget is hers alone, and the chat says why.
   await expect(log(meena)).toContainText(t(en, "need.skill_no_rate"));
   await say(household, "700");

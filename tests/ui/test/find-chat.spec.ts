@@ -120,6 +120,7 @@ test("a Hindi household finds an electrician by tapping the choices", async ({ b
   await expect(log).not.toContainText(t(hi, "driver.ask.problem"));
   await tap(page, t(hi, "driver.dont_know"));
   await tap(page, t(hi, "when.tomorrow"));
+  await tap(page, t(hi, "when.any_time"));
   // The budget is the one answer typed: it is a number, and private.
   await expect(log).toContainText(t(hi, "need.ask.budget"));
   await say(page, hi, "800");

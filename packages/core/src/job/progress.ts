@@ -71,3 +71,19 @@ export function jobProgress(r: JobRecord, payments: readonly Payment[]): Progres
     { step: Step.cancelled, reached: true, ...at(reachedAt(r, S.cancelled) ?? r.ended_at) },
   ];
 }
+
+/** Statuses in which the worker is still to finish the work, and either side may call it off. */
+export const UNDER_WAY: ReadonlySet<EngagementStatus> = new Set([S.agreed, S.in_progress]);
+
+/** The worker's moves on a signed job, one at a time: on the way, then started, then done. */
+export type WorkerStep = typeof U.on_my_way | typeof U.started | typeof U.done;
+
+/**
+ * The one move the worker makes next, read from the step notes the job keeps rather than its status: a free-text
+ * note also moves a job to in progress, and must not skip "on my way". Undefined once the work is handed over.
+ */
+export function nextWorkerStep(r: JobRecord): WorkerStep | undefined {
+  if (!UNDER_WAY.has(r.engagement.status)) return undefined;
+  if (noteAt(r, U.on_my_way) === undefined) return U.on_my_way;
+  return noteAt(r, U.started) === undefined ? U.started : U.done;
+}
