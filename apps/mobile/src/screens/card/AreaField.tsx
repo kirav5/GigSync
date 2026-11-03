@@ -2,6 +2,7 @@ import { localitySlug, nearestPilotArea } from "@gigsync/core";
 import { coarsePoint, type GeoPlace, type Place, type Session } from "@gigsync/protocol";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
+import { PlaceMap } from "../../ui/PlaceMap.js";
 import { AREAS } from "../../ui/places.js";
 import { LocateStep } from "../address/LocateStep.js";
 
@@ -68,6 +69,14 @@ export function AreaField({
         <p className={C.muted} role="status">
           {t("card.area_found", { area: value.place.name })}
         </p>
+      )}
+      {/* Where they start from, on the map (ADR 0050 §7): moving it moves the point; the board still gets only its coarse rounding. */}
+      {value.place && (
+        <PlaceMap
+          at={value.place}
+          label={t("map.of", { place: value.place.name })}
+          onMove={(at) => value.place && onChange({ ...value, place: { ...value.place, lat: at.lat, lon: at.lon } })}
+        />
       )}
       <fieldset className={C.row} aria-label={t("card.radius")}>
         <span className={C.muted}>{t("card.radius")}</span>

@@ -27,6 +27,7 @@ import { ProblemCard } from "./ProblemCard.js";
 import { RestoredActions } from "./RestoredActions.js";
 import { TermsList } from "./terms/TermsList.js";
 import "./jobs.css";
+import { PlaceMap } from "../ui/PlaceMap.js";
 import { requestWork } from "../ui/work.js";
 
 const S = EngagementStatus.enum;
@@ -131,6 +132,9 @@ export function JobThread(props: JobActionProps) {
           <strong>{job.contact.name}</strong>
           <span>{job.contact.phone}</span>
           {job.contact.address && <span>{job.contact.address}</span>}
+          {job.contact.point && (
+            <PlaceMap at={job.contact.point} label={t("map.of", { place: job.contact.address ?? "" })} />
+          )}
         </fieldset>
       )}
       {known && <IntroActions device={device} person={{ user: e.counterpart, name: known }} run={run} introduce />}

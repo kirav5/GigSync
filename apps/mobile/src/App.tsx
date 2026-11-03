@@ -5,6 +5,7 @@ import { type Account, deviceFor, loadAccount, raiseDeviceProtocol, signOut } fr
 import { keepBackInApp, onBackButton } from "./adapters/back.js";
 import { understanding } from "./adapters/embedder.js";
 import { loadLang, saveLang, suggestedLang } from "./adapters/lang.js";
+import { setMapSession } from "./adapters/map.js";
 import { chosenModel } from "./adapters/model.js";
 import { createPorts } from "./adapters/ports.js";
 import { prepareListening } from "./adapters/speech.js";
@@ -60,6 +61,9 @@ export function App() {
     // The understanding pack loads from the cache only when the owner fetched it before (ADR 0042).
     void understanding.load(ports.storage);
   }, [ports]);
+
+  // The map asks GigSync's API with the signed-in owner's session (ADR 0050 §7); none once signed out.
+  useEffect(() => setMapSession(account?.session), [account]);
 
   // Talk's and Find's chats are the owner's: read once they are signed in, from their records on this phone.
   useEffect(() => {

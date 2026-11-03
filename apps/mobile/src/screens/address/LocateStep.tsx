@@ -25,11 +25,14 @@ export function LocateStep({
   onFound,
   onPointOnly,
   precise = false,
+  asked = false,
   label = "addr.use_location",
 }: {
   session: Session;
   /** Ask the phone for its best fix: a household's address, not a worker's area. */
   precise?: boolean;
+  /** The owner already asked for their current location (the chat's button): open on the reason, not the button. */
+  asked?: boolean;
   /**
    * The phone's point when the server cannot name it (geocoding off, or nothing found there): the caller may still use
    * the point; it returns whether it could, and the step says why not otherwise.
@@ -41,7 +44,7 @@ export function LocateStep({
   onFound: (place: GeoPlace, point: Place) => void;
 }) {
   const { t } = useI18n();
-  const [step, setStep] = useState<Step>(Step.idle);
+  const [step, setStep] = useState<Step>(asked ? Step.explain : Step.idle);
   const [problem, setProblem] = useState<MessageKey>();
 
   async function locate() {

@@ -41,6 +41,8 @@ export interface NeedParts {
   locality?: string | undefined;
   /** The saved address as one line, for the worker once both have signed. */
   site?: string | undefined;
+  /** That address's exact point, released with it (ADR 0050 §7). */
+  door?: Place | undefined;
   /** The estimate for the whole job the owner saw beside the budget, if any; it stays on this phone. */
   estimate?: Estimate | undefined;
   /** The terms the owner asked for and what they are flexible about (`needTerms`); their agent negotiates them. */
@@ -57,6 +59,7 @@ export function needToSend(p: NeedParts): NewNeed {
     area: { lat: p.area.lat, lon: p.area.lon },
     ...(p.locality ? { locality: p.locality } : {}),
     ...(p.site ? { site: p.site } : {}),
+    ...(p.door ? { door: p.door } : {}),
     details: {
       ...p.details,
       [WhenDetail.day]: p.day,

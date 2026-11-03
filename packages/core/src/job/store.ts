@@ -126,6 +126,8 @@ export interface Need {
   locality?: string;
   /** ADR 0045: the saved address this need is for, as one line: released to the worker only once both have signed. */
   site?: string;
+  /** ADR 0050 §7: that address's exact point, released with it once both have signed, for the worker's map. */
+  door?: Place;
   /** Answers given up front or later; used to answer the worker's questions. */
   details: Record<string, string>;
   budget: Mandate;

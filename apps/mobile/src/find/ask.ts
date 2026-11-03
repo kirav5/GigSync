@@ -123,16 +123,17 @@ export function needOf(
 export function whereOf(
   d: NeedState["draft"],
   saved: readonly SavedAddress[],
-): Pick<NeedParts, "area" | "locality" | "site"> | undefined {
+): Pick<NeedParts, "area" | "locality" | "site" | "door"> | undefined {
   // The one picked; else, for an area said in words, the household's only saved address in it; else their only one.
   const inArea = saved.filter((a) => areaKeyOfAddress(a) === d.area);
   const only = inArea.length === 1 ? inArea[0] : saved.length === 1 && !d.area ? saved[0] : undefined;
   const address = d.address ? saved.find((a) => a.id === d.address) : only;
   const point = address && requestPoint(address);
-  if (address && point) return { area: point, locality: address.area, site: addressLine(address) };
+  const door = address?.point ? { door: address.point } : {};
+  if (address && point) return { area: point, locality: address.area, site: addressLine(address), ...door };
   const pilot = AREAS.find((a) => a.key === d.area);
   // A saved address with no point and no pilot area near it: searched from its area's name when GigSync has one.
-  if (address && pilot) return { area: pilot, locality: address.area, site: addressLine(address) };
+  if (address && pilot) return { area: pilot, locality: address.area, site: addressLine(address), ...door };
   return pilot && { area: pilot };
 }
 

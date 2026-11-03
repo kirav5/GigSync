@@ -1,4 +1,5 @@
 export * from "./address/book.js";
+export * from "./address/served.js";
 export * from "./agent.js";
 export * from "./chat/index.js";
 export * from "./contacts/index.js";
