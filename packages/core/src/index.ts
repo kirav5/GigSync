@@ -134,6 +134,7 @@ export { type MentorFilters, matchQuery, womenOnly } from "./mentor/match.js";
 export * from "./mentor/mentors.js";
 export { isOpenRequest, type LandingAsk, mondayOf } from "./mentor/request.js";
 export * from "./mentor/types.js";
+export * from "./model-reply.js";
 export * from "./moving/index.js";
 export * from "./net/api.js";
 export { claimLegacyRecords } from "./owner/claim.js";

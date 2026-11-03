@@ -2,6 +2,7 @@ import { t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, type Page, test } from "@playwright/test";
 import { newPhone, open, Role, RUN, shoot, signIn, textOf, toChat } from "./helpers.js";
+import { type } from "./talk.js";
 
 /**
  * The phone's own model in the web app (ADR 0040, LLD §9.1), walked with the dev build's fake engine
@@ -9,6 +10,7 @@ import { newPhone, open, Role, RUN, shoot, signIn, textOf, toChat } from "./help
  * offered the download once in the chat; "Later" puts it away for good; "Download" shows progress in the chat, then
  * one line when it is ready; Settings removes it. On mobile data the offer says so and a stopped download never
  * carries on by itself; on Wi-Fi it does. A phone that cannot run it is never offered it. Too slow, and Auto stops.
+ * Its replies show as plain words: never the thinking block WebLLM puts first, nor Markdown's marks.
  */
 
 const { en } = Lang.enum;
@@ -19,6 +21,13 @@ const PROGRESS_KEY = "gigsync-fake-model-progress";
 const READY_KEY = "gigsync-fake-model-ready";
 /** The app's record of the model on this phone, where Capacitor's web storage keeps it (model-device.ts). */
 const RECORD_KEY = "CapacitorStorage.settings:model_device";
+/** The model the fake has downloaded, and the record of a phone that took the offer and was told it is ready. */
+const MODEL_ID = "Qwen3.5-2B-q4f16_1-MLC";
+const DONE = JSON.stringify({ offer: "download", readySaid: true, speed: { times: [], verdict: "measuring" } });
+/** The fake's free answer (model-fake.ts), as the owner should read it. */
+const HEY_REPLY = "Hey there! How can I help you?";
+const THINK_TAG = /<\/?think>/;
+const MARKDOWN_BOLD = "**";
 const Mode = { capable: "capable", incapable: "incapable", slow: "slow" } as const;
 type Mode = (typeof Mode)[keyof typeof Mode];
 /** Half of the fake's download had arrived before the page went away. */
@@ -170,8 +179,7 @@ test("a phone that cannot run the model is never offered it, and Settings says w
 });
 
 test("too slow on this phone, Auto stops using the model until Try again", async ({ page }) => {
-  const done = JSON.stringify({ offer: "download", readySaid: true, speed: { times: [], verdict: "measuring" } });
-  await phone(page, Mode.slow, { [READY_KEY]: "Qwen3.5-2B-q4f16_1-MLC", [RECORD_KEY]: done });
+  await phone(page, Mode.slow, { [READY_KEY]: MODEL_ID, [RECORD_KEY]: DONE });
   await worker(page, "Bhavya");
   await page.getByRole("button", { name: t(en, "iv.later"), exact: true }).click();
   const box = page.getByRole("form", { name: t(en, "nav.talk") });
@@ -190,4 +198,16 @@ test("too slow on this phone, Auto stops using the model until Try again", async
   await card.getByRole("button", { name: t(en, "model.try_again"), exact: true }).click();
   await expect(card).not.toContainText(t(en, "model.slow"));
   await toChat(page);
+});
+
+test("the model's reply shows as plain words, without its thinking block", async ({ page }) => {
+  await phone(page, Mode.capable, { [READY_KEY]: MODEL_ID, [RECORD_KEY]: DONE });
+  await worker(page, "Gowri");
+  await page.getByRole("button", { name: t(en, "iv.later"), exact: true }).click();
+  await type(page, en, "hey");
+  const chat = page.getByRole("log");
+  await expect(chat.getByText(HEY_REPLY)).toBeVisible();
+  await expect(chat).not.toContainText(THINK_TAG);
+  await expect(chat).not.toContainText(MARKDOWN_BOLD);
+  await shoot("reply", { worker: page }, FOLDER);
 });

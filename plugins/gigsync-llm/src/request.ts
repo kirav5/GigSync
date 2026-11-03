@@ -26,6 +26,7 @@ const LAST_PART = /[^/]+$/;
 /**
  * One prompt as a single user turn, with the caller's length, temperature and JSON wish. A model that `thinks` is told
  * not to: WebLLM then starts the reply with an empty thinking block, which a model without one would read as noise.
+ * The block comes back in the reply's text; the app takes it off before anyone reads it (core's `withoutReasoning`).
  */
 export function completionRequest(options: GenerateOptions, thinks = false): ChatCompletionRequestNonStreaming {
   return {
