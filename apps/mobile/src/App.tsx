@@ -62,8 +62,12 @@ export function App() {
     void understanding.load(ports.storage);
   }, [ports]);
 
-  // The map asks GigSync's API with the signed-in owner's session (ADR 0050 §7); none once signed out.
-  useEffect(() => setMapSession(account?.session), [account]);
+  // The map and GigSync's model ask the API with the signed-in owner's session (ADR 0050 §7, 0052); none once signed
+  // out.
+  useEffect(() => {
+    setMapSession(account?.session);
+    chosenModel.setSession(account?.session);
+  }, [account]);
 
   // Talk's and Find's chats are the owner's: read once they are signed in, from their records on this phone.
   useEffect(() => {

@@ -18,6 +18,7 @@ export const shell: Readonly<Record<keyof typeof en, string>> = {
   "shell.model_about": "ನಿಮ್ಮ ಏಜೆಂಟ್ ಯಾವುದರಿಂದ ನಡೆಯುತ್ತದೆ. ಸೆಟ್ಟಿಂಗ್ಸ್‌ಗೆ ಒತ್ತಿ.",
   "shell.model_device": "ಈ ಫೋನ್‌ನಲ್ಲೇ",
   "shell.model_lite": "ಲೈಟ್ ಮೋಡ್",
+  "shell.model_server": "GigSync ಮಾಡೆಲ್",
   "shell.model_ollama": "Ollama ಮಾಡೆಲ್ · {name}",
   "shell.edit_card": "ನನ್ನ ಕಾರ್ಡ್ ಬದಲಿಸಿ",
   "profile.card_off": "ನಿಮ್ಮ ಕಾರ್ಡ್ ಈಗ ಬೋರ್ಡ್‌ನಲ್ಲಿ ಇಲ್ಲ",

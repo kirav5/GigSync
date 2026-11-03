@@ -19,6 +19,9 @@ export const page = {
   // Privacy
   "page.privacy_title": "Who sees what.",
   "page.privacy_soft": "What your agent shares, and who you keep away.",
+  "page.privacy_model_title": "Your words and GigSync's model",
+  "page.privacy_model_about":
+    "What you write to your agent is read by GigSync's own model, on GigSync's computer in India, so it understands you. It is not kept, and nobody else sees it. Answers to private questions, like your lowest rate, never leave this phone. To keep everything on this phone, choose On-device or Lite mode in Settings › Your agent's model.",
   "page.blocked": "People you blocked",
   "page.blocked_about":
     "Hidden everywhere on this phone and never matched with you again. Blocking cannot be undone here.",

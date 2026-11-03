@@ -2,7 +2,7 @@ import type { model as en } from "../en/model.js";
 
 /** Kannada: the model on this phone: Settings › On-device model, and the chat's one offer and lines about it. */
 export const model: Readonly<Record<keyof typeof en, string>> = {
-  "model.title": "ಫೋನ್‌ನಲ್ಲೇ ಇರುವ ಮಾಡೆಲ್",
+  "model.title": "ನಿಮ್ಮ ಏಜೆಂಟ್‌ನ ಮಾಡೆಲ್",
   "model.check": "ಮತ್ತೆ ಪರಿಶೀಲಿಸಿ",
   "model.checking": "ಈ ಫೋನನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ…",
   "model.none": "ಈ ಫೋನ್‌ನಲ್ಲಿ ಮಾಡೆಲ್ ಇಲ್ಲ.",
@@ -10,7 +10,8 @@ export const model: Readonly<Record<keyof typeof en, string>> = {
   "model.not_ready": "ಸಿದ್ಧವಾಗಿಲ್ಲ",
   "model.free_mb": "{mb} ಎಂಬಿ ಖಾಲಿ",
   "model.auto": "ತಾನಾಗಿಯೇ",
-  "model.auto_about": "ಮಾಡೆಲ್ ಸಿದ್ಧವಾಗಿ ಈ ಫೋನ್‌ನಲ್ಲಿ ಬೇಗ ಉತ್ತರಿಸಿದರೆ ಫೋನಿನ ಮಾಡೆಲ್; ಇಲ್ಲದಿದ್ದರೆ ಲೈಟ್ ಮೋಡ್.",
+  "model.auto_about":
+    "GigSync ನ ಸ್ವಂತ ಮಾಡೆಲ್, ಭಾರತದಲ್ಲಿರುವ GigSync ಕಂಪ್ಯೂಟರ್‌ನಲ್ಲಿ, ನಿಮ್ಮ ಮಾತು ಅರ್ಥಮಾಡಿಕೊಳ್ಳಲು ನೀವು ಬರೆದದ್ದನ್ನು ಓದುತ್ತದೆ; ಅದನ್ನು ಇಟ್ಟುಕೊಳ್ಳುವುದಿಲ್ಲ. ಅದು ಸಿಗದಿದ್ದರೆ, ಫೋನಿನ ಮಾಡೆಲ್ ಸಿದ್ಧವಿದ್ದರೆ ಅದು; ಇಲ್ಲದಿದ್ದರೆ ಲೈಟ್ ಮೋಡ್.",
   "model.device": "ಫೋನ್‌ನಲ್ಲಿ",
   "model.device_about": "ಯಾವಾಗಲೂ ಫೋನಿನ ಸ್ವಂತ ಮಾಡೆಲ್. ಉತ್ತರಿಸಲಾಗದಿದ್ದರೆ ಮಾತ್ರ ಲೈಟ್ ಮೋಡ್.",
   "model.lite": "ಲೈಟ್ ಮೋಡ್",
@@ -30,6 +31,7 @@ export const model: Readonly<Record<keyof typeof en, string>> = {
   "model.not_ready_lite": "{device} · ಸಿದ್ಧವಿಲ್ಲ, ಆದ್ದರಿಂದ ಲೈಟ್ ಮೋಡ್",
   "model.on_device_label": "ಫೋನ್‌ನಲ್ಲಿ: {engine}",
   "model.auto_label": "ತಾನಾಗಿಯೇ · {model}",
+  "model.server_label": "GigSync ಮಾಡೆಲ್",
   "model.offer": "ನಿಮ್ಮ ಏಜೆಂಟ್ ನಿಮ್ಮನ್ನು ಇನ್ನೂ ಚೆನ್ನಾಗಿ ಅರ್ಥಮಾಡಿಕೊಳ್ಳಲು: ಈ ಫೋನ್‌ಗೆ ಸುಮಾರು {mb} ಎಂಬಿ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.",
   "model.offer_download": "ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
   "model.offer_later": "ನಂತರ",

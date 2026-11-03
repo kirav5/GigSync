@@ -31,6 +31,7 @@ export * from "./push.js";
 export * from "./qr.js";
 export * from "./rates.js";
 export * from "./records.js";
+export * from "./server-model.js";
 export * from "./skill.js";
 export * from "./terms.js";
 export * from "./transfer.js";
