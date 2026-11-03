@@ -126,16 +126,24 @@ describe("meaningRoute", () => {
 });
 
 describe("routeChat with a meaning index", () => {
-  it("asks the embedding model before the language model, and the lists last", async () => {
+  it("asks the language model before the embedding model, and the lists last", async () => {
     const model = new FakeModel(JSON.stringify({ intent: "chat" }));
     const index = intentIndex(new BagOfWordsEmbedder());
     await index.warm();
-    expect((await routeChat(EXACT, worker, model, { meaning: index })).via).toBe(RouteVia.meaning);
-    expect(model.prompts).toHaveLength(0);
-    const far = await routeChat("zxqv plorth", worker, model, { meaning: index });
+    // The language model's answer stands, even for a saying the embedding model knows word for word.
+    const first = await routeChat(EXACT, worker, model, { meaning: index });
     expect(model.prompts).toHaveLength(1);
-    expect(far.via).toBe(RouteVia.model);
+    expect(first).toMatchObject({ intent: I.chat, via: RouteVia.model });
+    // No language model on this phone: the embedding model, then the lists for words unlike any saying.
+    expect((await routeChat(EXACT, worker, new NoModel(), { meaning: index })).via).toBe(RouteVia.meaning);
     expect((await routeChat("zxqv plorth", worker, new NoModel(), { meaning: index })).via).toBe(RouteVia.keywords);
+  });
+
+  it("asks the embedding model when the language model's reply is rejected", async () => {
+    const index = intentIndex(new BagOfWordsEmbedder());
+    await index.warm();
+    const route = await routeChat(EXACT, worker, new FakeModel("not json"), { meaning: index });
+    expect(route.via).toBe(RouteVia.meaning);
   });
 
   it("is the old chain without an index", async () => {

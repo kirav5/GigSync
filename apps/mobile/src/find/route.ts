@@ -13,7 +13,7 @@ import { meaningFor } from "../adapters/meaning.js";
 
 /**
  * Where a household's message in Find goes (ADR 0040, ADR 0042): the need's first sentence is routed by the phone's
- * embedding model when it has one, then its language model, else by the word lists; later answers stay with the need's
+ * language model when it has one, then its embedding model, else by the word lists; later answers stay with the need's
  * questions, where only the lists listen for a market question, as before, so an answer like "Jayanagar" or "up to
  * 8000" is never sent anywhere else.
  */

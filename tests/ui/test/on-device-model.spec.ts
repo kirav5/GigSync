@@ -1,7 +1,7 @@
 import { t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, type Page, test } from "@playwright/test";
-import { newPhone, open, Role, RUN, shoot, signIn, textOf, toChat } from "./helpers.js";
+import { newPhone, open, Role, RUN, shoot, signIn, textOf } from "./helpers.js";
 import { type } from "./talk.js";
 
 /**
@@ -9,7 +9,7 @@ import { type } from "./talk.js";
  * (apps/mobile/src/adapters/model-fake.ts): headless browsers' GPUs say nothing about a phone's. A capable phone is
  * offered the download once in the chat; "Later" puts it away for good; "Download" shows progress in the chat, then
  * one line when it is ready; Settings removes it. On mobile data the offer says so and a stopped download never
- * carries on by itself; on Wi-Fi it does. A phone that cannot run it is never offered it. Too slow, and Auto stops.
+ * carries on by itself; on Wi-Fi it does. A phone that cannot run it is never offered it.
  * Its replies show as plain words: never the thinking block WebLLM puts first, nor Markdown's marks.
  */
 
@@ -23,12 +23,12 @@ const READY_KEY = "gigsync-fake-model-ready";
 const RECORD_KEY = "CapacitorStorage.settings:model_device";
 /** The model the fake has downloaded, and the record of a phone that took the offer and was told it is ready. */
 const MODEL_ID = "Qwen3.5-2B-q4f16_1-MLC";
-const DONE = JSON.stringify({ offer: "download", readySaid: true, speed: { times: [], verdict: "measuring" } });
+const DONE = JSON.stringify({ offer: "download", readySaid: true });
 /** The fake's free answer (model-fake.ts), as the owner should read it. */
 const HEY_REPLY = "Hey there! How can I help you?";
 const THINK_TAG = /<\/?think>/;
 const MARKDOWN_BOLD = "**";
-const Mode = { capable: "capable", incapable: "incapable", slow: "slow" } as const;
+const Mode = { capable: "capable", incapable: "incapable" } as const;
 type Mode = (typeof Mode)[keyof typeof Mode];
 /** Half of the fake's download had arrived before the page went away. */
 const HALF_DOWN = "5";
@@ -36,7 +36,6 @@ const HALF_DOWN = "5";
 const SETTLE_MS = 1500;
 /** The model's download, as the catalog in plugins/gigsync-llm/src/catalog.ts gives it. */
 const MODEL_MB = 1050;
-const SLOW_ANSWERS = 3;
 /** A share of the download between 30% and 70%. */
 const PART_WAY = /[3-6]0%/;
 
@@ -176,28 +175,6 @@ test("a phone that cannot run the model is never offered it, and Settings says w
     0,
   );
   await shoot("settings-incapable", { worker: page }, FOLDER);
-});
-
-test("too slow on this phone, Auto stops using the model until Try again", async ({ page }) => {
-  await phone(page, Mode.slow, { [READY_KEY]: MODEL_ID, [RECORD_KEY]: DONE });
-  await worker(page, "Bhavya");
-  await page.getByRole("button", { name: t(en, "iv.later"), exact: true }).click();
-  const box = page.getByRole("form", { name: t(en, "nav.talk") });
-  for (let i = 0; i < SLOW_ANSWERS; i++) {
-    await box.getByPlaceholder(t(en, "agent.placeholder")).fill(`remember note ${i}`);
-    await page.getByRole("button", { name: t(en, "a11y.send"), exact: true }).click();
-    await expect(page.getByRole("log").getByText(`remember note ${i}`)).toBeVisible();
-  }
-  await open(page, "nav.settings");
-  const card = settingsCard(page);
-  await expect(card).toContainText(t(en, "model.slow"));
-  await expect(card).toContainText(
-    t(en, "model.now", { model: t(en, "model.auto_label", { model: t(en, "model.lite_label") }) }),
-  );
-  await shoot("settings-slow", { worker: page }, FOLDER);
-  await card.getByRole("button", { name: t(en, "model.try_again"), exact: true }).click();
-  await expect(card).not.toContainText(t(en, "model.slow"));
-  await toChat(page);
 });
 
 test("the model's reply shows as plain words, without its thinking block", async ({ page }) => {

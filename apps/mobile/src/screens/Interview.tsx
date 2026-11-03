@@ -1,14 +1,12 @@
 import {
   areaSlug,
   askingArrangement,
-  type Card,
-  CardKind,
+  type ChatIntent,
   type Choice,
   draftOf,
   estimateRequest,
   type Line,
   log,
-  type MessageKey,
   type Ports,
   Slot,
 } from "@gigsync/core";
@@ -35,55 +33,15 @@ import type { Moves } from "../talk/useMoves.js";
 import { C } from "../ui/cls.js";
 import { errorKey } from "../ui/errorKey.js";
 import { AREAS, PILOT_CITY } from "../ui/places.js";
-import { Said } from "../ui/Said.js";
-import { ScheduleLines } from "./schedule/ScheduleLines.js";
 import { MoveTurnView } from "./talk/AgentTurns.js";
 import { Ask, Own } from "./talk/Bubbles.js";
+import { Note } from "./talk/NoteView.js";
 import "./talk.css";
 
 /** "Later": the voice stops with the questions, so a summary half read out does not carry on over the next screen. */
 function later() {
   void stopSpeaking();
   pauseInterview();
-}
-
-/** The heading each card kind gets on screen. */
-const KIND_LABEL: Readonly<Record<Card["kind"], MessageKey>> = {
-  [CardKind.text]: "card.text",
-  [CardKind.saved]: "card.saved",
-  [CardKind.answer]: "card.answer",
-  [CardKind.draft]: "card.draft",
-  [CardKind.needsModel]: "card.needs_model",
-  [CardKind.schedule]: "card.schedule",
-};
-
-/** A card's words: a phrase in the owner's language, or quoted words translated on the phone when needed. */
-function CardText({ card }: { card: Card }) {
-  const { t } = useI18n();
-  if ("say" in card) return <>{t(card.say.key, card.say.params)}</>;
-  return <Said text={card.words.text} from={card.words.lang} />;
-}
-
-/** A note to the agent and, once it has answered, its card. */
-function Note({ text, card }: { text: string; card: Card | undefined }) {
-  const { t, plural } = useI18n();
-  return (
-    <div className={C.stack}>
-      <Own text={text} />
-      {card && (
-        <div className="msg-agent">
-          <span className={C.label}>{t(KIND_LABEL[card.kind])}</span>
-          <div className="text">
-            <CardText card={card} />
-          </div>
-          {card.kind === CardKind.schedule && <ScheduleLines card={card} />}
-          {card.kind === CardKind.answer && card.sources.length > 0 && (
-            <span className={C.faint}>{plural("agent.sources", card.sources.length)}</span>
-          )}
-        </div>
-      )}
-    </div>
-  );
 }
 
 /** The tap answers under the newest question, and "Later", which pauses the interview. */
@@ -112,18 +70,23 @@ function Choices({ choices }: { choices: readonly Choice[] }) {
  * Talk's conversation, in the order it happened: notes to the agent with its answers, the card interview, each
  * question with a replay button, read aloud once when it appears, the owner's answers opposite, and a move to a new
  * city as the agent answers it (`moves` acts on its buttons). When the owner says yes to the summary, the card is
- * published from here.
+ * published from here. While the agent works on the newest note, `thinking` shows it; the choices under its question
+ * go to `onChoose`.
  */
 export function Interview({
   ports,
   account,
   onSaved,
   moves,
+  thinking,
+  onChoose,
 }: {
   ports: Ports;
   account: Account;
   onSaved: (a: Account) => void;
   moves: Moves;
+  thinking: boolean;
+  onChoose: (note: { id: number; text: string }, intent: ChatIntent) => void;
 }) {
   const { lang } = useI18n();
   const { state, turns, paused } = useTalk();
@@ -188,7 +151,18 @@ export function Interview({
   const show = (turn: Turn) => {
     if (isMove(turn)) return <MoveTurnView key={turn.id} turn={turn} newest={turn.id === last?.id} moves={moves} />;
     if (turn.who === Speaker.owner) return <Own key={turn.id} text={turn.text} />;
-    if (turn.who === Speaker.note) return <Note key={turn.id} text={turn.text} card={turn.card} />;
+    if (turn.who === Speaker.note) {
+      const newestNote = turn.id === last?.id;
+      return (
+        <Note
+          key={turn.id}
+          text={turn.text}
+          card={turn.card}
+          thinking={thinking && newestNote}
+          onChoose={newestNote && !thinking ? (intent) => onChoose(turn, intent) : undefined}
+        />
+      );
+    }
     return (
       <Ask key={turn.id} lines={turn.lines}>
         {asking && turn.id === newest?.id && <Choices choices={turn.choices} />}

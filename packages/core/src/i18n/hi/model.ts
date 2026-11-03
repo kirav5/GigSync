@@ -46,8 +46,6 @@ export const model: Readonly<Record<keyof typeof en, string>> = {
   "model.line": "{name} · लगभग {mb} एमबी · {state}",
   "model.download": "डाउनलोड करें (लगभग {mb} एमबी)",
   "model.remove": "इस फ़ोन से हटाएँ",
-  "model.slow": "इस फ़ोन पर बहुत धीमा है; लाइट मोड चल रहा है।",
-  "model.try_again": "फिर से आज़माएँ",
   "model.why.no_webgpu": "यह ब्राउज़र इस फ़ोन पर मॉडल नहीं चला सकता (WebGPU नहीं है)। लाइट मोड हर काम करता है।",
   "model.why.gpu_limits": "इस फ़ोन का ग्राफ़िक्स चिप मॉडल के लिए छोटा है। लाइट मोड हर काम करता है।",
   "model.why.low_memory": "इस फ़ोन में मॉडल के लिए मेमोरी कम है। लाइट मोड हर काम करता है।",

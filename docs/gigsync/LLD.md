@@ -1058,7 +1058,7 @@ English/Hinglish.
 
 The app hands core one `Model`: `ChosenModel` (`apps/mobile/src/adapters/model.ts`), which routes each call to the
 engine chosen in Settings and kept on the device; `OnDevice` (`adapters/model-device.ts`) holds the device model's
-status, the download and the speed guard:
+status and the download:
 
 | Choice       | Uses                                                                                              |
 | ------------ | ------------------------------------------------------------------------------------------------- |
@@ -1112,10 +1112,10 @@ quota (`navigator.storage.estimate`) for the model plus 200 MB. Each failure is 
   again, never fetched silently. Remove (`deleteModelAllInfoInCache`) deletes it; downloading the model deletes any
   older build (Qwen2.5 from before 2026-11-01).
 
-**The speed guard** (`core/device-model/speed.ts`): routing answers (asked as JSON) are timed. When 3 of the first 5
-on a phone take longer than `MODEL_ROUTE_TIMEOUT_MS`, Auto stops using the model there; Settings says "Too slow on
-this phone; using lite mode" with "Try again", which starts the count afresh. The routing prompt is about 1,560
-tokens for a worker (1,080 for a household); on a Mac's GPU one answer takes about 3.5 s.
+**Slow phones:** a model that is ready stays in use however long it takes (ADR 0042 amendment 2026-11-03; the speed
+guard that used to turn it off is gone). Talk shows the agent thinking while it reads; a routing answer past
+`MODEL_ROUTE_TIMEOUT_MS` falls to the embedding router for that message. The routing prompt is about 1,560 tokens for
+a worker (1,080 for a household); on a Mac's GPU one answer takes about 3.5 s.
 
 **Model files:** WebLLM's default hosting (Hugging Face for weights, GitHub for the WebGPU library) for now. To move
 them to Cloudflare R2, set `VITE_MODEL_BASE_URL` at build time (e.g. `https://models.gigsync.network`) and fill the
@@ -1129,7 +1129,7 @@ bucket so that:
 
 A new WebLLM version may need new libraries (its `modelVersion`); copy them when the package is upgraded.
 
-Tests: the gate, progress mapping and requests in `plugins/gigsync-llm/test`; the speed guard and Wi-Fi rule in
+Tests: the gate, progress mapping and requests in `plugins/gigsync-llm/test`; the Wi-Fi rule in
 `packages/core/test/device-model.test.ts`; the experience with the dev build's fake engine
 (`adapters/model-fake.ts`, `localStorage["gigsync-fake-model"]`) in `tests/ui/test/on-device-model.spec.ts`; a real
 download and answer on a GPU in `on-device-real.spec.ts` (`REAL_MODEL=1`). Settings shows the model's name, size and

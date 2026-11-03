@@ -4,6 +4,7 @@ Date: 2026-10-31. Status: accepted. Amends [ADR 0040](0040-on-phone-model-router
 reads chat intent first) and [ADR 0041](0041-prices-from-drivers.md) §2 (how a need's trade is read); keeps
 [ADR 0010](0010-no-cloud-model-in-gigsync.md) (nothing an owner types leaves the phone for a model).
 Amended 2026-11-01: 301 more sayings, and the reader order measured ([Amendment](#amendment-2026-11-01-more-sayings-and-the-order-measured)).
+Amended 2026-11-03: the language model reads first, asks when unsure, and is never switched off for speed ([Amendment](#amendment-2026-11-03-the-language-model-reads-first-asks-when-unsure-and-is-never-switched-off-for-speed)).
 
 ## Context
 
@@ -118,3 +119,51 @@ Consequences:
 - The similarity floor (0.8) almost never decides: e5's similarities sit between about 0.8 and 0.95. Routes are dropped
   for a missing slot instead. Neighbour counts from 1 to 7 score within a point; a softmax head on the same embeddings
   did not beat nearest neighbour (54% against 63% with the same training sayings).
+
+## Amendment 2026-11-03: the language model reads first, asks when unsure, and is never switched off for speed
+
+Decided by the founders after hand-testing on a phone with Qwen3.5-2B.
+1. **Chat routing order becomes: language model, then meaning, then lists** (`router/route-chat.ts`), in Talk and in
+   Find's first sentence. The embedding router answers only when the language model gives no route: none on this
+   phone, no answer within `MODEL_ROUTE_TIMEOUT_MS`, or a reply core rejected. On a phone without the language model
+   nothing changes.
+2. **In Talk the model may ask instead of guessing** (`router/clarify.ts`). Where the chat allows it (`mayAsk`), the
+   prompt says that a message that could mean two or three intents gets `{"intent":"clarify","options":[…]}`, and the
+   reply's schema allows it. Core keeps only options this chat can act on, once each, at most three; with one left
+   that is the route. The agent then asks in the owner's language, with one choice per intent and "Something else"
+   (chat) last. The model only names the intents; the question and its choices are fixed strings in en/hi/kn, so
+   nothing the model writes is shown as the question. A choice routes the words first written as that intent; words
+   typed in reply that the model routes to one of the choices do the same. Find's chat never asks.
+3. **The model reads the chat so far.** The routing prompt and the free reply's prompt get the last `RECENT_LINES` (6)
+   lines of the chat, owner's and agent's, each cut to `RECENT_LINE_CHARS` (200), oldest first. They come from the
+   phone's own chat and never leave it (ADR 0040, ADR 0010).
+4. **The speed guard is removed.** Auto no longer turns the model off on a phone where 3 of the first 5 routing
+   answers missed the time limit, and Settings no longer says so. While a note is being answered, Talk shows three
+   pulsing dots and "Thinking…" (still under reduced motion). The per-message limit stays, so a message is never
+   held longer than it.
+5. **A note to keep is the whole message when no note was cut from it.** The meaning router took the note only from the
+   word lists, so "I have a booking from 2-3PM tomorrow", which it placed as `remember` at 0.874, was dropped for a
+   missing note; the model's route dropped a note that was not the owner's words the same way. Both now keep the
+   owner's whole message.
+6. **The free reply may not claim actions.** Its prompt now says the agent only talks and cannot book, arrange, send or
+   agree to anything: on the same message the 2B had answered as if a booking were being arranged.
+
+Why: the embedding router names an intent confidently even when it is wrong, and the similarity floor cannot catch it
+(right and wrong routes score alike, above). The language model can say it is unsure and can read the chat so far;
+the embedding router can do neither. Hand-testing found a worker's "save my booking for tomorrow 2-3PM" sent to
+`find` at 0.876; Qwen3.5-2B named it `remember`, as it did the Hindi and Kanglish forms. The eval was not rerun for
+this change; the 2026-11-01 numbers stand: model first 69.8%, meaning first 67.3% on the 978 test cases.
+
+Consequences:
+- On a phone with the 2B every chat message now waits for it: about 4 s per message on an M2 in WebLLM (round 2's
+  prompt), slower on phones, against about 6 ms for the embedding router. Before, the model ran on about 15% of
+  messages. The recent lines make the prompt longer still. Real-phone timing, open since ADR 0040, now decides how
+  usable Talk is on the phones that carry the model.
+- A phone that cannot answer within the limit sends every message through the limit's wait and then the embedding
+  router, every time: nothing turns the model off for it any more.
+- The model's first answer after the app opens includes loading it onto the GPU (7.5 s through Ollama on an M2), so
+  the first message of a session often falls to the embedding router.
+- An answer of `chat` from the model is final: the embedding router is not asked for a second opinion. How often the
+  2B answers `chat`, or asks, when unsure is not measured; the intent eval has no ambiguous or multi-turn cases yet.
+- Phones without the model, most of the pilot's, still get no question when unsure: the readers they have give no
+  "unsure". Asking from the readers' disagreement there is the next step.

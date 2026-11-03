@@ -3,7 +3,15 @@ import { areaIn, tradesIn } from "../interview/lexicon.js";
 import { log } from "../log.js";
 import type { Embedder } from "../ports.js";
 import { EXAMPLES } from "./examples.js";
-import { ChatIntent, type ChatRoute, type IntentContext, intentAllowed, RouteVia, routeComplete } from "./intent.js";
+import {
+  ChatIntent,
+  type ChatRoute,
+  type IntentContext,
+  intentAllowed,
+  RouteVia,
+  routeComplete,
+  withWholeNote,
+} from "./intent.js";
 import { keywordRoute, wordsBear } from "./keyword-route.js";
 import { type Labelled, MeaningIndex } from "./meaning.js";
 import { MORE_SAYINGS } from "./sayings.js";
@@ -61,7 +69,8 @@ export async function meaningRoute(
   // The lists' own reading of the words, kept whole when they heard the same intent; else only the slots that need
   // nothing but the words (a trade, an area, an amount, a contact) are trusted from it.
   const byWords = keywordRoute(text, ctx);
-  const slots = byWords.intent === found.label ? byWords.slots : wordSlots(text, byWords, found.label);
+  const read = byWords.intent === found.label ? byWords.slots : wordSlots(text, byWords, found.label);
+  const slots = withWholeNote(found.label, read, text);
   return routeComplete(found.label, slots, ctx) ? { intent: found.label, slots, via: RouteVia.meaning } : undefined;
 }
 
@@ -70,11 +79,11 @@ const CONTACT_INTENTS: ReadonlySet<ChatIntent> = new Set([ChatIntent.askContact,
 
 /**
  * Slots that mean the same whatever the intent, read from the words themselves: a trade, an area, an amount or a
- * city the lists heard, and a contact for the intents that act on one. Never a note or a field, which belong to the
- * list that read them. The lists may have heard a different intent and read nothing, so the trade and the area are
+ * city the lists heard, and a contact for the intents that act on one. Never a field, which belongs to the list that
+ * read it; a note to keep is then the whole message (`withWholeNote`). The lists may have heard a different intent and read nothing, so the trade and the area are
  * read again by their own word lists.
  */
-function wordSlots(text: string, byWords: ChatRoute, intent: ChatIntent): ChatRoute["slots"] {
+export function wordSlots(text: string, byWords: ChatRoute, intent: ChatIntent): ChatRoute["slots"] {
   const trade = byWords.slots.trade ?? tradesIn(text)[0];
   const area = byWords.slots.area ?? areaIn(text, PILOT_AREA_CHOICES);
   const { amount_paise, contact, city } = byWords.slots;

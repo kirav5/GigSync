@@ -1,63 +1,38 @@
 import {
-  answerSchedule,
-  CardKind,
-  ChatIntent,
-  ChatRole,
-  type ChatRoute,
   type Agent as CoreAgent,
   edit,
   type GigDevice,
-  log,
   movingIntent,
   type Ports,
-  passbook,
   prompt,
-  RouteVia,
   Slot,
   start,
 } from "@gigsync/core";
 import type { City } from "@gigsync/protocol";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { type Account, AccountRole } from "../adapters/account.js";
 import { interviewConfig } from "../card/choices.js";
 import {
   addNote,
   answerInterview,
   beginInterview,
-  dropNote,
-  type NoteRef,
-  noteAnswered,
   pauseInterview,
   relanguageInterview,
   resumeInterview,
 } from "../card/interviewStore.js";
 import { accountDraft } from "../card/publish.js";
-import { answerMarket, routedMarket } from "../estimate/market.js";
 import { useI18n } from "../i18n.js";
-import { phoneNow } from "../schedule/useBookings.js";
-import { moveCity } from "../talk/moveStore.js";
 import { openChat, useTalk } from "../talk/talkStore.js";
 import { useMoves } from "../talk/useMoves.js";
+import { useNotes } from "../talk/useNotes.js";
 import { Composer, Via } from "../ui/Composer.js";
 import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
-import { errorKey } from "../ui/errorKey.js";
-import { money } from "../ui/places.js";
 import type { GigView } from "../useGig.js";
 import { Interview } from "./Interview.js";
 import { ModelNotice } from "./model/ModelNotice.js";
 import { type Suggestion, Suggestions } from "./talk/TalkStart.js";
 import "./talk.css";
-
-/** What the agent's own experts answer: notes, questions, contacts, finding and chat. */
-const AGENT_INTENTS: ReadonlySet<ChatIntent> = new Set([
-  ChatIntent.remember,
-  ChatIntent.askSelf,
-  ChatIntent.askContact,
-  ChatIntent.setRule,
-  ChatIntent.find,
-  ChatIntent.chat,
-]);
 
 interface TalkProps {
   agent: CoreAgent;
@@ -86,9 +61,9 @@ interface TalkProps {
  */
 export function AgentScreen(props: TalkProps) {
   const { agent, ports, account, interview, onSaved, onChecklist, onFindMentor, view, device, run } = props;
-  const { lang, t } = useI18n();
+  const i18n = useI18n();
+  const { lang, t } = i18n;
   const { ready, open, state, turns, paused, interviewIn } = useTalk();
-  const [busy, setBusy] = useState(false);
   const moves = useMoves({ ports, account, device, run, lang }, { onChecklist, onMoreWays: onFindMentor });
   const opened = useRef(false);
   const end = useRef<HTMLDivElement>(null);
@@ -116,14 +91,16 @@ export function AgentScreen(props: TalkProps) {
   }, [turns]);
 
   const fresh = () => start(interviewConfig(lang), accountDraft(account));
-
-  /** The answer to a note from this phone's passbook: received this week and month, and still to come. */
-  function answerEarnings(note: NoteRef) {
-    const now = new Date();
-    const { totals } = passbook(view.jobs, view.payments, account.session.user, now, -now.getTimezoneOffset());
-    const params = { week: money(totals.week), month: money(totals.month), waiting: money(totals.waiting) };
-    noteAnswered(note, { kind: CardKind.text, say: { key: "agent.earnings", params } });
-  }
+  const { busy, sendNote, choose, answerEarnings } = useNotes({
+    agent,
+    ports,
+    account,
+    view,
+    i18n,
+    turns,
+    moves,
+    fresh,
+  });
 
   const isWorker = account.role === AccountRole.worker;
   /** Ways in for an empty Talk, at most three; changing the rate needs a card, a move is for a worker. */
@@ -139,57 +116,6 @@ export function AgentScreen(props: TalkProps) {
     { label: "agent.suggest_earned", run: (said: string) => answerEarnings(addNote(said)) },
     ...(isWorker ? [{ label: "moving.suggest", run: (said: string) => moves.start(said, undefined) } as const] : []),
   ];
-
-  /** Words that go on to an answer showing them itself: the note shown while routing makes way for it. */
-  const handOver = (note: NoteRef, then: () => void) => {
-    dropNote(note);
-    then();
-  };
-
-  /** Where a routed note goes; the agent's experts answer whatever no screen handles. */
-  async function follow(route: ChatRoute, own: string, note: NoteRef): Promise<void> {
-    const { intent, slots } = route;
-    if (intent === ChatIntent.editCard)
-      return handOver(note, () =>
-        beginInterview(account.worker && slots.field ? edit(fresh(), slots.field) : fresh(), own),
-      );
-    if (intent === ChatIntent.helpOffer) return handOver(note, () => moves.offer(own));
-    if (intent === ChatIntent.helpStop) return handOver(note, () => moves.stop(own));
-    if (intent === ChatIntent.moving) return handOver(note, () => moves.start(own, slots.city));
-    if (intent === ChatIntent.earnings) return answerEarnings(note);
-    // The worker's own bookings, read and kept on this phone (ADR 0048).
-    if (intent === ChatIntent.schedule)
-      return noteAnswered(note, await answerSchedule(own, ports.storage, ports.clock.now(), phoneNow(ports)));
-    const market = intent === ChatIntent.market ? routedMarket(own, slots, account.worker?.trades[0]) : undefined;
-    if (market) {
-      // What the market pays, from the estimate route (ADR 0039 §2); the answer lands under the words when it comes.
-      const answer = await answerMarket(account.session, ports.model, lang, market);
-      return noteAnswered(note, { kind: CardKind.text, words: { text: answer.text, lang } });
-    }
-    // In a chat about a move, a question the city's guide answers is answered from it. Without a model the guide's
-    // own words decide, as they always did: the word lists cannot see what the guide covers.
-    const guide = intent === ChatIntent.guide || (route.via === RouteVia.keywords && AGENT_INTENTS.has(intent));
-    if (guide && (await moves.followUp(own, () => dropNote(note)))) return;
-    noteAnswered(note, await agent.answer(own, route));
-  }
-
-  async function sendNote(own: string) {
-    if (busy || moves.busy) return;
-    setBusy(true);
-    // Kept outside the screen: an answer that comes after the owner went to another screen still lands under its note.
-    const note = addNote(own);
-    try {
-      const trades = account.worker?.trades ?? [];
-      const role = isWorker ? ChatRole.worker : ChatRole.household;
-      const route = await agent.route(own, { lang, role, trades, inMove: moveCity(turns) !== undefined });
-      await follow(route, own, note);
-    } catch (err) {
-      log.warn("note failed", { error: err instanceof Error ? err.message : String(err) });
-      noteAnswered(note, { kind: CardKind.text, say: { key: errorKey(err) } });
-    } finally {
-      setBusy(false);
-    }
-  }
 
   /**
    * Mid-interview, words go to the interview, except words that only mean moving: a newcomer often has no card yet, so
@@ -211,7 +137,16 @@ export function AgentScreen(props: TalkProps) {
         </h1>
       </div>
       <ModelNotice />
-      {turns.length > 0 && <Interview ports={ports} account={account} onSaved={onSaved} moves={moves} />}
+      {turns.length > 0 && (
+        <Interview
+          ports={ports}
+          account={account}
+          onSaved={onSaved}
+          moves={moves}
+          thinking={busy}
+          onChoose={(asked, intent) => void choose(asked, intent)}
+        />
+      )}
       {paused && (
         <div className={C.row}>
           <button type={C.button} className={C.chipOn} onClick={resumeInterview}>

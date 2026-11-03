@@ -19,8 +19,7 @@ export { ENGINE_NONE } from "./model-engine.js";
 /**
  * Which model the agent uses, chosen in Settings and kept on this device. Everything goes through core's `Model`
  * port, so the agent never knows which engine answered (HLD principle 6).
- *   auto:   the device's own model once it is downloaded and ready, has the memory, and is not too slow on this
- *           phone (the speed guard); otherwise lite mode
+ *   auto:   the device's own model once it is downloaded and ready and has the memory; otherwise lite mode
  *   device: always try the device's own model (WebLLM in the web app; LiteRT-LM on Android, Apple Foundation Models)
  *   lite:   no model at all: rules and templates do every job
  *   ollama: development builds only, a model served by Ollama on this computer
@@ -56,7 +55,7 @@ export class ChosenModel implements Model {
   private settings: ModelSettings = DEFAULTS;
   private readonly listeners = new Set<() => void>();
   private version = 0;
-  /** The phone's own model: its status, the download and the speed guard. */
+  /** The phone's own model: its status and the download. */
   readonly device = new OnDevice(() => this.notify(), import.meta.env.VITE_MODEL_BASE_URL);
 
   get current(): ModelSettings {
