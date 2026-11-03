@@ -1,5 +1,5 @@
 import { askable, type CardDraft, cardArrangements, log, type Ports, parseAmount, type TermPrefs } from "@gigsync/core";
-import { Lang, mainArrangement, type Skill, Trade } from "@gigsync/protocol";
+import { Arrangement, Lang, mainArrangement, type Skill, Trade } from "@gigsync/protocol";
 import { type FormEvent, useRef, useState } from "react";
 import { type Account, apiClient, saveAccount } from "../adapters/account.js";
 import { offerAlerts } from "../adapters/push.js";
@@ -54,13 +54,14 @@ export function MyCard({
     place: draft.place,
     radius_km: draft.radius_km ?? DEFAULT_RADIUS_KM,
   });
-  // A card of the worker's own skills starts with none ticked: naming none, it takes any (ADR 0051).
-  const [work, setWork] = useState(arrangementsValue(draft.arrangements, draft.other_rates, !draft.trades?.length));
-  // ADR 0051: only the arrangements that fit the card's work, by its first trade or the worker's own skills.
+  const [work, setWork] = useState(arrangementsValue(draft.arrangements, draft.other_rates));
+  // ADR 0051: only the arrangements that fit the card's work, by its first trade or the worker's own skills. Until the
+  // worker ticks one, a trade's card is monthly, as every card was; a card of their own skills alone takes any.
   const offered = cardArrangements({ trades, skills });
   const arranged = offered.length > 1;
   const ownWorkOnly = trades.length === 0;
-  const picked = work.picked.filter((a) => offered.includes(a));
+  const fallback = ownWorkOnly ? [] : [Arrangement.enum.monthly];
+  const picked = (work.set ? work.picked : fallback).filter((a) => offered.includes(a));
   const main = arranged ? mainArrangement(picked) : undefined;
   const [error, setError] = useState<string>();
   const [status, setStatus] = useState<string>();

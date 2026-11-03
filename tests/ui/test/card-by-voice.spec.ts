@@ -218,7 +218,7 @@ test("with no speech recognition at all, the mic says to type and puts the curso
 test("with only a cloud recognizer, the mic asks before her voice leaves the phone, and Settings takes it back", async ({
   page,
 }) => {
-  await fakeSpeech(page, ["मैं खाना बनाती हूँ", "हर महीने", "कोरमंगला"], FakeSpeechMode.cloud);
+  await fakeSpeech(page, ["मैं खाना बनाती हूँ", "हर महीने", "नौ हज़ार"], FakeSpeechMode.cloud);
   await signIn(page, { role: Role.worker, name: `Sunita ${RUN}`, phone: newPhone(), lang: hi });
   const { ask, allow, typeInstead } = consent(page, hi);
 
@@ -237,6 +237,7 @@ test("with only a cloud recognizer, the mic asks before her voice leaves the pho
   // A cook is asked which work she takes (ADR 0051), then her area.
   await nextTurn(page, hi, "iv.ask.arrangements", () => allow.click());
   await nextTurn(page, hi, "iv.ask.area", () => mic(page, hi).click());
+  await nextTurn(page, hi, "iv.ask.rate_month", () => type(page, hi, "कोरमंगला"));
 
   // Settings say where her voice goes, and stop it; the mic then asks again.
   await open(page, "nav.settings", hi);

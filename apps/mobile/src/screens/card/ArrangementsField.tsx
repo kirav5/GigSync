@@ -1,5 +1,5 @@
 import { parseAmount } from "@gigsync/core";
-import { Arrangement, mainArrangement } from "@gigsync/protocol";
+import { type Arrangement, mainArrangement } from "@gigsync/protocol";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { rupeesOf } from "../../ui/places.js";
@@ -7,20 +7,19 @@ import { rupeesOf } from "../../ui/places.js";
 /** What the worker set: the arrangements they take and the rate typed for each one besides the main. */
 export interface ArrangementsValue {
   picked: Arrangement[];
+  /** The worker ticked or unticked one, or the card already named some: `picked` is theirs, not a default. */
+  set: boolean;
   /** Rupees as typed, by arrangement. */
   typed: Partial<Record<Arrangement, string>>;
 }
 
-/**
- * The value from the card's draft: what they take, and each rate in rupees as a field holds it. With none set, monthly,
- * as every trade's card was; nothing for a card of the worker's own skills (`ownWork`), which then takes any.
- */
+/** The value from the card's draft: what they take (nothing set when it names none), and each rate as a field holds it. */
 export const arrangementsValue = (
   picked: readonly Arrangement[] | undefined,
   rates: Partial<Record<Arrangement, number>> | undefined,
-  ownWork = false,
 ): ArrangementsValue => ({
-  picked: picked?.length ? [...picked] : ownWork ? [] : [Arrangement.enum.monthly],
+  picked: picked?.length ? [...picked] : [],
+  set: !!picked?.length,
   typed: Object.fromEntries(Object.entries(rates ?? {}).map(([a, paise]) => [a, rupeesOf(paise)])),
 });
 
@@ -55,7 +54,7 @@ export function ArrangementsField({
   const main = mainArrangement(value.picked);
   const toggle = (a: Arrangement) => {
     const picked = value.picked.includes(a) ? value.picked.filter((x) => x !== a) : [...value.picked, a];
-    onChange({ ...value, picked: offered.filter((x) => picked.includes(x)) });
+    onChange({ ...value, picked: offered.filter((x) => picked.includes(x)), set: true });
   };
   return (
     <fieldset className={C.stack} aria-label={t("card.arrangements")}>

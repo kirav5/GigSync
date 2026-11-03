@@ -83,6 +83,9 @@ test("a worker lists her own skill and a household who asks for it finds and ask
   await expect(log(meena)).toContainText(t(en, "need.skill_found", { skill: SKILL }));
   await expect(log(meena)).toContainText(t(en, "question.job"));
   await say(household, "Pleat and pin two silk sarees for a wedding");
+  // Work of a worker's own may be done any way, so how long is asked, with no model here to narrow it (ADR 0051).
+  await expect(log(meena)).toContainText(t(en, "need.ask.arrangement"));
+  await tap(meena, t(en, "need.arr.visit"));
   await expect(log(meena)).toContainText(t(en, "need.ask.address"));
   await tap(meena, t(en, "addr.chip", { label: t(en, "addr.label.home"), area: "Koramangala" }));
   await tap(meena, t(en, "when.tomorrow"));
