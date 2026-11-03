@@ -230,7 +230,7 @@ function scopeOf(r: JobRecord): string {
   return [r.request.need, ...details].join("; ").slice(0, SCOPE_MAX);
 }
 
-function quote(ctx: JobContext, r: JobRecord, price: number): Promise<JobRecord> {
+export function quote(ctx: JobContext, r: JobRecord, price: number): Promise<JobRecord> {
   const round = r.offers_made + 1;
   const offer: Offer = {
     offer_id: `off_${ulid(ctx.clock.now().getTime())}`,

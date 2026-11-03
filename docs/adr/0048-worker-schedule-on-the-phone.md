@@ -1,6 +1,6 @@
 # ADR 0048: A worker's own schedule, kept on the phone
 
-Date: 2026-11-03. Status: accepted. Builds on [ADR 0040](0040-on-phone-model-router.md) (chat text stays on the
+Date: 2026-11-03. Status: accepted. Amended the same day: one time, one household (§5, §8). Builds on [ADR 0040](0040-on-phone-model-router.md) (chat text stays on the
 phone), [ADR 0042](0042-meaning-router-small-embedding-model.md) (the meaning router),
 [ADR 0033](0033-unpredictable-negotiation-model-tactics-and-terms.md) §3 (the `when` term) and
 [ADR 0037](0037-server-held-record-earnings-and-moving-phones.md) (moving to a new phone).
@@ -67,6 +67,15 @@ schedule is worth keeping only if it holds those.
    booked window gets the worker's next free one, or no deal when none is free, exactly as for a signed job. Saving a
    booking that overlaps another booking or a signed job saves it and says so: the worker may well have double-booked
    on purpose, and only they can call a customer.
+   - **One time, one household.** Testing this showed a worker double-booked on main: two households asked for the
+     same morning, the agent offered it to both while nothing was signed, and signed back whichever household signed,
+     both of them. Now the first to sign gets the time (`job/taken.ts`, `job/worker-time.ts`). A time is taken by a
+     signed job, by a deal the worker signed that waits for the household, or by a booking. The worker's side never
+     signs a taken time: when a household signs one, or the owner taps Sign on one, the agent re-offers the next free
+     time at the price already reached (the protocol lets a new offer reopen a deal awaiting signatures), or ends the
+     talks when none is free. After every sync and every Sign tap, any other deal waiting for the worker's signature
+     at a now-taken time is re-offered, so with auto-sign off (the default) the owner never sees two deals for one
+     morning.
 6. **Availability grants stay unanswered for now.** `Topic.availability` is a schema with no flow behind it. When it
    gets one, it answers "busy" or "free" for a part of a day from this schedule and never a note, a customer or a
    place. Nothing here depends on it.
@@ -75,6 +84,11 @@ schedule is worth keeping only if it holds those.
    service worker, once per booking and day. A reminder timed by the server was rejected: the server would have to
    know when a worker is busy. A closed app gets no reminder; that needs the phone's own scheduled notifications
    (Capacitor Local Notifications in the native apps), a new dependency for a later change.
+8. **One phone at a time.** A worker's phone handles one message and one tap at a time (`useGig`'s queue), so the
+   check in §5 cannot race itself. Two phones of one worker can still each give away the same time: each answers the
+   requests it claimed ([ADR 0045](0045-one-agent-per-job.md)) and does not see the other's deals. That needs a lock
+   both phones share, such as an opaque slot claim in the owner's own mailbox; it is designed in its own ADR, together
+   with clock-time slots for hourly work.
 
 ## Consequences
 
