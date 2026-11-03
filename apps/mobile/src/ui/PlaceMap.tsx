@@ -9,7 +9,8 @@ const STREET_ZOOM = 16;
 
 /**
  * A map around a place (ADR 0050 §7). To pick a place (`onMove`), the pin stays in the middle and the owner moves the
- * map under it; the place under the pin is reported when the map stops. To show one, the pin marks it. Nothing is
+ * map under it; the place under the pin is reported when the map stops. To show one, a marker holds the place while
+ * the owner moves and zooms around it to see the way there. Nothing is
  * drawn when the map cannot be had (no key on the server, no connection): the screen around it works the same.
  */
 export function PlaceMap({
@@ -35,11 +36,7 @@ export function PlaceMap({
     let live = true;
     const container = box.current;
     if (!container) return;
-    void openMap(container, {
-      center: [at.lon, at.lat],
-      zoom: STREET_ZOOM,
-      interactive: picking,
-    }).then((m) => {
+    void openMap(container, { center: [at.lon, at.lat], zoom: STREET_ZOOM }, picking ? undefined : at).then((m) => {
       if (!live) return m?.remove();
       map.current = m;
       setShown(m !== undefined);
@@ -66,7 +63,7 @@ export function PlaceMap({
   return (
     <div className="place-map" hidden={!shown} role="img" aria-label={label}>
       <div ref={box} className="place-map-canvas" />
-      <span className="place-map-pin" aria-hidden="true" />
+      {picking && <span className="place-map-pin" aria-hidden="true" />}
       {picking && shown && <span className="place-map-hint">{t("map.move_pin")}</span>}
     </div>
   );

@@ -50,6 +50,7 @@ export const address = {
   "addr.done": "Done",
   "map.move_pin": "Move the map to put the pin on the door",
   "map.of": "Map of {place}",
+  "map.directions": "Directions",
   "addr.chip": "{label} · {area}",
   "addr.max": "You can keep up to {max} addresses. Remove one to add another.",
   "need.ask.address": "Where do you need the work done?",

@@ -1,5 +1,5 @@
 import { BEARER_PREFIX, Header, log } from "@gigsync/core";
-import type { Session } from "@gigsync/protocol";
+import type { Place, Session } from "@gigsync/protocol";
 import type { Map as MapLibreMap, MapOptions, StyleSpecification } from "maplibre-gl";
 import { API_BASE } from "./api.js";
 
@@ -21,16 +21,25 @@ const onOurApi = (url: string): string | undefined => {
   return at < 0 ? undefined : `${API_BASE}${url.slice(at)}`;
 };
 
+/** Directions to a point in the phone's maps app (Google Maps opens its app where installed, else the web). */
+const DIRECTIONS = "https://www.google.com/maps/dir/?api=1&destination=";
+export const directionsTo = ({ lat, lon }: Place): string => `${DIRECTIONS}${lat},${lon}`;
+const MARKER_CLASS = "place-map-marker";
+
 /** The signed-in owner's session, set by the app shell; maps are drawn only while someone is signed in. */
 let mapSession: Session | undefined;
 export const setMapSession = (session: Session | undefined): void => {
   mapSession = session;
 };
 
-/** A map in `container`, or undefined when there is none to draw. */
+/**
+ * A map in `container`, or undefined when there is none to draw. With `mark`, the place is marked on the map itself,
+ * so it stays put while the owner moves and zooms around it, with zoom buttons for a phone held in one hand.
+ */
 export async function openMap(
   container: HTMLElement,
   options: Omit<MapOptions, "container" | "style">,
+  mark?: Place,
 ): Promise<MapLibreMap | undefined> {
   const session = mapSession;
   if (!API_BASE || !session) return undefined;
@@ -53,6 +62,11 @@ export async function openMap(
     });
     // A missing tile, or a layer Ola's style names that its data lacks (its 3D buildings): the rest still draws.
     map.on("error", (e) => log.debug("map: part not drawn", { error: e.error?.message }));
+    if (mark) {
+      const pin = Object.assign(document.createElement("span"), { className: MARKER_CLASS });
+      new maplibre.Marker({ element: pin, anchor: "bottom" }).setLngLat([mark.lon, mark.lat]).addTo(map);
+      map.addControl(new maplibre.NavigationControl({ showCompass: false }));
+    }
     return map;
   } catch (err) {
     log.debug("map: not drawn", { error: err instanceof Error ? err.name : typeof err });

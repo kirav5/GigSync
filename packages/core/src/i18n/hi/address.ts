@@ -49,6 +49,7 @@ export const address: Readonly<Record<keyof typeof en, string>> = {
   "addr.done": "हो गया",
   "map.move_pin": "नक्शा खिसकाकर पिन को दरवाज़े पर लाएँ",
   "map.of": "{place} का नक्शा",
+  "map.directions": "रास्ता देखें",
   "addr.chip": "{label} · {area}",
   "addr.max": "आप ज़्यादा से ज़्यादा {max} पते रख सकते हैं। नया जोड़ने के लिए एक हटाएँ।",
   "need.ask.address": "काम कहाँ करवाना है?",

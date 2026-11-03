@@ -14,6 +14,8 @@ import { fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journ
 const { en } = Lang.enum;
 const FOLDER = "contacts";
 const say = (key: MessageKey, params?: Params) => t(en, key, params);
+/** Directions to a point, opened in the phone's maps app. */
+const DIRECTIONS = /^https:\/\/www\.google\.com\/maps\/dir\/\?api=1&destination=-?\d+(\.\d+)?,-?\d+(\.\d+)?$/;
 
 let contexts: BrowserContext[] = [];
 test.afterEach(async () => {
@@ -63,7 +65,11 @@ async function signedJob(workerPage: Page, householdPage: Page, tag: string) {
   await answer.getByRole("button", { name: say("job.send_answers") }).click();
   await signBoth({ worker, household }, FOLDER);
   await expect(householdPage.getByLabel(say("a11y.contact"))).toContainText(names.worker);
-  await expect(workerPage.getByLabel(say("a11y.contact"))).toContainText(address);
+  const contact = workerPage.getByLabel(say("a11y.contact"));
+  await expect(contact).toContainText(address);
+  // The household's door, for the way there (ADR 0050 §7): the pin her saved address has, in the phone's maps app.
+  const directions = contact.getByRole("link", { name: say("map.directions") });
+  await expect(directions).toHaveAttribute("href", DIRECTIONS);
   return names;
 }
 

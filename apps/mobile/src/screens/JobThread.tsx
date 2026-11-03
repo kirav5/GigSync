@@ -11,6 +11,7 @@ import {
   WhenDetail,
 } from "@gigsync/core";
 import { EngagementStatus, type JobRequest, type Lang, QuestionKey, Role } from "@gigsync/protocol";
+import { directionsTo } from "../adapters/map.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { jobPrice, money } from "../ui/places.js";
@@ -132,8 +133,19 @@ export function JobThread(props: JobActionProps) {
           <strong>{job.contact.name}</strong>
           <span>{job.contact.phone}</span>
           {job.contact.address && <span>{job.contact.address}</span>}
+          {/* The door, until the job settles: the pin goes with the rest of the card (ADR 0039 §3). */}
           {job.contact.point && (
-            <PlaceMap at={job.contact.point} label={t("map.of", { place: job.contact.address ?? "" })} />
+            <>
+              <PlaceMap at={job.contact.point} label={t("map.of", { place: job.contact.address ?? "" })} />
+              <a
+                className={C.secondary}
+                href={directionsTo(job.contact.point)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t("map.directions")}
+              </a>
+            </>
           )}
         </fieldset>
       )}
