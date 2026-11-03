@@ -3,6 +3,7 @@ import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { areaLabel, money } from "../../ui/places.js";
 import { Said } from "../../ui/Said.js";
+import { cardWork } from "../../ui/work.js";
 import { cardLang, languageNames } from "./cardWords.js";
 import { Initial } from "./PersonCard.js";
 import { RecordStats } from "./RecordStats.js";
@@ -33,7 +34,7 @@ export function WorkerTop({ name, card, missing, record, hidden }: WorkerTopProp
         {card ? (
           <>
             <span className={C.muted}>
-              {card.trades.map((tr) => t(`trade.${tr}`)).join(", ")} · {areaLabel(lang, card.area_name)}
+              {cardWork(t, card)} · {areaLabel(lang, card.area_name)}
             </span>
             {card.languages.length > 0 && <span className={C.faint}>{languageNames(card.languages, t)}</span>}
             <span className={C.money}>{t("find.from", { price: money(card.rate_paise) })}</span>

@@ -27,6 +27,7 @@ import { ProblemCard } from "./ProblemCard.js";
 import { RestoredActions } from "./RestoredActions.js";
 import { TermsList } from "./terms/TermsList.js";
 import "./jobs.css";
+import { requestWork } from "../ui/work.js";
 
 const S = EngagementStatus.enum;
 const TALK = "tag talk";
@@ -82,7 +83,7 @@ export function JobThread(props: JobActionProps) {
   const known = !isWorker && knownName && bothSigned(job) && FINISHED_WORK.has(e.status) ? knownName : undefined;
   // The request's words, unless they only repeat the trade or are a bare count (older requests used the first answer).
   const need = job.request.need.trim();
-  const tradeName = say(job.request.lang, `trade.${job.request.trade}`);
+  const tradeName = job.request.skill?.text ?? say(job.request.lang, `trade.${job.request.trade}`);
   const needShown = need && need !== tradeName && !NUMBER_ONLY.test(need) ? need : "";
 
   return (
@@ -93,7 +94,7 @@ export function JobThread(props: JobActionProps) {
         </span>
         <div className="who">
           <strong>{them}</strong>
-          <span className={C.muted}>{t(`trade.${job.request.trade}`)}</span>
+          <span className={C.muted}>{requestWork(t, job.request)}</span>
         </div>
         <span className={`${TAG[e.status]} end`}>{t(`status.${e.status}`)}</span>
       </div>

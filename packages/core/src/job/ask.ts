@@ -1,5 +1,7 @@
 import {
   FREE_QUESTIONS_PROTOCOL,
+  isTrade,
+  JobTrade,
   MAX_QUESTIONS,
   type Question,
   QuestionKey,
@@ -19,7 +21,7 @@ const Q = QuestionKey.enum;
  * The worker's agent's standard questions, per trade: what it asks when there is no model, the model fails, or the
  * guards drop everything it wrote. Keys only: each phone shows them in its owner's language (`questionText`).
  */
-export const QUESTIONS: Readonly<Record<Trade, readonly QuestionKey[]>> = {
+export const QUESTIONS: Readonly<Record<JobTrade, readonly QuestionKey[]>> = {
   [T.electrician]: [Q.problem],
   [T.plumber]: [Q.problem],
   [T.maid]: [Q.rooms, Q.pets],
@@ -29,10 +31,12 @@ export const QUESTIONS: Readonly<Record<Trade, readonly QuestionKey[]>> = {
   [T.painter]: [Q.rooms, Q.labour_only],
   [T.cook]: [Q.people, Q.meals, Q.pets],
   [T.driver]: [Q.route, Q.hours],
+  // ADR 0047: a skill outside the trades has no price drivers, so only what and how long; when and budget are Find's.
+  [JobTrade.enum.other]: [Q.job, Q.duration],
 };
 
 /** A detail one of the worker's own rules reads: the city band's scope rules (price) or their "show me first" list. */
-function ruleReads(rules: WorkerRules, trade: Trade, key: QuestionKey): boolean {
+function ruleReads(rules: WorkerRules, trade: JobTrade, key: QuestionKey): boolean {
   const band = rules.rates?.bands.find((b) => b.trade === trade);
   return Boolean(band?.scope.some((s) => s.key === key) || rules.ask_me?.includes(key));
 }
@@ -56,7 +60,8 @@ export async function questionsFor(ctx: JobContext, rules: WorkerRules, r: JobRe
   const { trade, details, need } = r.request;
   const missing = QUESTIONS[trade].filter((key) => !details[key]);
   const standard: StandardQuestion[] = missing.map((key) => ({ key }));
-  if (!ctx.model || !(await understands(ctx, r))) return standard;
+  // Other work (ADR 0047) gets the generic questions only: no memory or model prompt is keyed to a skill yet.
+  if (!isTrade(trade) || !ctx.model || !(await understands(ctx, r))) return standard;
   const read = missing.filter((key) => ruleReads(rules, trade, key));
   const counterpart = r.engagement.counterpart;
   const [known, memory] = await Promise.all([recall(ctx, trade, counterpart), summary(ctx, trade, counterpart)]);

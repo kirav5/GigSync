@@ -51,7 +51,7 @@ export const screens: Readonly<Record<keyof typeof en, string>> = {
   "card.off_board": "बोर्ड से हटा दिया",
   "card.publish": "मेरा कार्ड लगाएँ",
   "card.unlist": "मेरा कार्ड बोर्ड से हटाएँ",
-  "card.err_trade": "कम से कम एक काम चुनें।",
+  "card.err_trade": "कम से कम एक काम चुनें, या अपना काम जोड़ें।",
   "card.err_rate": "आम दाम आपके सबसे कम दाम से कम नहीं हो सकता।",
   "requests.checked": "{time} पर देखा",
   "error.generic": "कुछ गड़बड़ हो गई। फिर से कोशिश करें।",

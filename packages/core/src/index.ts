@@ -49,6 +49,7 @@ export {
   searchedNeed,
   searchFailed,
   startNeed,
+  workOf,
 } from "./interview/need.js";
 export { ADD_ADDRESS, atAddress } from "./interview/need-address.js";
 export { arrangedTrade } from "./interview/need-arrangement.js";
@@ -74,6 +75,7 @@ export {
   resolveDay,
 } from "./interview/need-request.js";
 export { chipChoice, ScopePick, scopeDetails } from "./interview/need-scope.js";
+export { withSkill } from "./interview/need-skill.js";
 export { needTerms, windowOf } from "./interview/need-terms.js";
 export type { AddressChoice } from "./interview/need-types.js";
 export {
@@ -117,7 +119,7 @@ export * from "./job/talk.js";
 export * from "./job/terms.js";
 export { type TermsTrack, termDetails } from "./job/terms-flow.js";
 export * from "./job/when.js";
-export type { WorkerRules } from "./job/worker.js";
+export { doesWork, type WorkerRules } from "./job/worker.js";
 export * from "./keys.js";
 export * from "./landing/index.js";
 export * from "./log.js";
@@ -162,4 +164,7 @@ export * from "./router/moving.js";
 export * from "./router/newcomers.js";
 export * from "./router/reply-schema.js";
 export * from "./router/route-chat.js";
+export { listedSkill, SKILL_MEANING_MAX, skillIndex, skillNamedIn } from "./skills/match.js";
+export { workName } from "./skills/name.js";
+export { readSkill, type SkillRead, spokenSkill } from "./skills/read.js";
 export * from "./transfer/index.js";

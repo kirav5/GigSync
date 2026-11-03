@@ -138,6 +138,38 @@ function named<V>(said: string, table: readonly (readonly [V, readonly Finder[]]
 /** The trades in an answer, as said: "मैं खाना बनाती हूँ" is cook; several are allowed, up to the board's limit. */
 export const tradesIn = (text: string): Trade[] => named(normalize(text), TRADES).slice(0, MAX_TRADES);
 
+/** Words that only say it is work ("bijli ka kaam", "ತೋಟದ ಕೆಲಸ"), dropped before a skill is compared with a trade. */
+const WORK_WORDS = new Set([
+  "work",
+  "job",
+  "jobs",
+  "service",
+  "services",
+  "ka",
+  "ki",
+  "kaam",
+  "का",
+  "की",
+  "काम",
+  "ಕೆಲಸ",
+]);
+const TRADE_NAMES = new Map(
+  Trade.options.flatMap((tr) =>
+    [...TRADE_WORDS[tr], ...Lang.options.map((l) => t(l, `trade.${tr}`))].map((w) => [normalize(w), tr] as const),
+  ),
+);
+
+/**
+ * The trade a skill's words are, when they are nothing but one of its words or names ("Bijli ka kaam", "ಕುಕ್"); a
+ * skill that only contains one ("car cleaning", "painting classes") is its own work, not the trade (ADR 0047 §2).
+ */
+export function tradeNamed(text: string): Trade | undefined {
+  const words = normalize(text)
+    .split(SPACE)
+    .filter((w) => !WORK_WORDS.has(w));
+  return TRADE_NAMES.get(words.join(SPACE));
+}
+
 /** The languages named in an answer, as said. */
 export const languagesIn = (text: string): Lang[] => named(normalize(text), LANGS);
 

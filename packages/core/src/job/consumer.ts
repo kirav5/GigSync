@@ -33,6 +33,7 @@ export async function startRequest(ctx: JobContext, need: Need, worker: UserId):
   const terms = await speaksTerms(ctx, worker);
   const request: JobRequest = {
     trade: need.trade,
+    ...(need.skill ? { skill: need.skill } : {}),
     need: need.need,
     when: need.when,
     area: coarsePoint(need.area),

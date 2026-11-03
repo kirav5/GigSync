@@ -1,7 +1,10 @@
 import {
   BoardProfile,
+  type BoardProfileInput,
   type BoardQueryInput,
   BoardResult,
+  type BoardSkill,
+  BoardSkills,
   type BoardWorker,
   type City,
   CityGuide,
@@ -42,47 +45,11 @@ import type { MentorApi } from "../mentor/types.js";
 import type { QrApi } from "../qr/types.js";
 import { REQUEST_TIMEOUT_MS, withDeadline } from "./deadline.js";
 import { HttpError } from "./errors.js";
-
-/** The routes of workers/api this client calls. */
-export const ApiPath = {
-  otpRequest: "/v1/auth/otp/request",
-  otpVerify: "/v1/auth/otp/verify",
-  directory: "/v1/directory/",
-  mailbox: "/v1/mailbox/",
-  inbox: "/v1/inbox",
-  ack: "/v1/inbox/ack",
-  /** Which of my devices answers an engagement (ADR 0045): `POST /v1/inbox/claims`. */
-  claims: "/v1/inbox/claims",
-  boardProfile: "/v1/board/profile",
-  boardWorkers: "/v1/board/workers",
-  mentorMe: "/v1/mentors/me",
-  mentorMatch: "/v1/mentors/match",
-  mentorReport: "/v1/mentors/report",
-  mentorBlock: "/v1/mentors/block",
-  /** A city's guide for the landing journey: `GET /v1/content/:city`. */
-  content: "/v1/content/",
-  /** This device now speaks a newer protocol: `PUT /v1/devices/me/protocol`. */
-  deviceProtocol: "/v1/devices/me/protocol",
-  /** Where this device's browser takes pushes: `PUT` keeps it, `DELETE` turns alerts off. */
-  devicePush: "/v1/devices/me/push",
-  /** The API's public VAPID key to subscribe with: `GET /v1/devices/push-key`. */
-  pushKey: "/v1/devices/push-key",
-  /** The usual range for a job (ADR 0030): `POST /v1/estimates`. */
-  estimates: "/v1/estimates",
-  /** ADR 0045: a coarse point, or typed words, to places (locality, city, PIN). */
-  geoReverse: "/v1/geo/reverse",
-  geoSearch: "/v1/geo/search",
-  /** One agreed price shared anonymously: `POST /v1/estimates/prices`. */
-  /** The caller's personal QR (ADR 0034): `PUT` gets or makes it, `/replace` makes a new one. */
-  qrMe: "/v1/qr/me",
-  qrReplace: "/v1/qr/me/replace",
-  /** `GET /v1/qr/:code` looks a code up; `POST /v1/qr/:code/offer` takes an offer to work through it. */
-  qr: "/v1/qr/",
-  qrOffer: "/offer",
-} as const;
+import { ApiPath } from "./paths.js";
 
 export { REQUEST_TIMEOUT_MS } from "./deadline.js";
 export { HttpError, NetError, NetReason } from "./errors.js";
+export { ApiPath };
 
 /** What the mail transport needs from the server. ApiClient implements it; tests can use an in-memory relay. */
 export interface Relay {
@@ -171,7 +138,7 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
     return Claim.parse(await this.call(HttpMethod.post, ApiPath.claims, { engagement } satisfies ClaimRequest)).owner;
   }
 
-  publishProfile(profile: BoardProfile): Promise<unknown> {
+  publishProfile(profile: BoardProfileInput): Promise<unknown> {
     return this.call(HttpMethod.put, ApiPath.boardProfile, profile);
   }
 
@@ -196,6 +163,10 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
         .map(([k, v]) => [k, String(v)]),
     );
     return BoardResult.parse(await this.call(HttpMethod.get, `${ApiPath.boardWorkers}?${params}`)).workers;
+  }
+
+  async boardSkills(): Promise<BoardSkill[]> {
+    return BoardSkills.parse(await this.call(HttpMethod.get, ApiPath.boardSkills)).skills;
   }
 
   async publishMentor(listing: MentorListingInput): Promise<MyMentorListing> {

@@ -39,8 +39,10 @@ import {
   needSearchFailed,
   relanguageNeed,
   showOwner,
+  skillNeed,
 } from "../../find/needStore.js";
 import { findRoute } from "../../find/route.js";
+import { skillAsked } from "../../find/skills.js";
 import { useAddresses } from "../../find/useAddresses.js";
 import { usePriceQuestions } from "../../find/usePriceQuestions.js";
 import { useI18n } from "../../i18n.js";
@@ -133,8 +135,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   // The owner said yes to the readback: search the board, once, wherever they are by the time it answers; or, for a
   // chat addressed to one worker, ask them.
   useEffect(() => {
-    const trade = state?.draft.trade;
-    if (state?.slot !== NeedSlot.done || !trade) return;
+    if (state?.slot !== NeedSlot.done || !(state.draft.trade || state.draft.skill)) return;
     const claim = claimSearch(open);
     if (claim === undefined) return;
     if (state.to) {
@@ -154,7 +155,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     // Where the need is (ADR 0045): its saved address or pilot area; never a fallback to another area.
     const at = whereOf(state.draft, saved ?? []);
     if (!at) return needSearchFailed(claim, INCOMPLETE);
-    searchBoard(account, trade, at.area, state.radius_km, state.draft.arrangement)
+    searchBoard(account, state.draft, at.area, state.radius_km, state.draft.arrangement)
       .then((workers) => needFound(claim, workers))
       .catch((err: unknown) => {
         log.warn("search failed", failure(err));
@@ -201,7 +202,13 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     const trade = heard ?? state.draft.trade;
     const problemKind = trade && meaning ? await problemByMeaning(meaning.problems, trade, text) : undefined;
     if (problemKind) hint.problemKind = problemKind;
-    // Outside the trades, the phone's model may name the work, and the need goes on to its questions and estimate.
+    // Outside the trades: a skill workers list, matched on this phone (ADR 0047); else the phone's model may name the
+    // work, and the need goes on to its questions and estimate.
+    const skill = trade ? undefined : await skillAsked(ports, account.session, text, state.to?.skills);
+    if (skill) {
+      setReading(false);
+      return skillNeed(chat, skill, text);
+    }
     const jobType = !trade && state.draft.modelAsk ? await modelJobType(ports.model, text, lang) : undefined;
     if (jobType) {
       setReading(false);

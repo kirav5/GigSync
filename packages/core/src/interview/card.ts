@@ -1,4 +1,4 @@
-import type { Arrangement, Lang, QuestionKey, RateCard, Trade } from "@gigsync/protocol";
+import type { Arrangement, Lang, QuestionKey, RateCard, Skill, Trade } from "@gigsync/protocol";
 import type { MessageKey } from "../i18n/t.js";
 import { ASK_FIRST_DETAILS } from "../job/details.js";
 import type { TermPrefs } from "../job/terms.js";
@@ -15,6 +15,8 @@ import type { Field } from "./lexicon.js";
 /** What the interview has gathered so far; every field is optional until the owner confirms. */
 export interface CardDraft {
   trades?: Trade[];
+  /** ADR 0047: work outside the trades, in the worker's own words. A card needs a trade or a skill. */
+  skills?: Skill[];
   /** An area key: a pilot area's ("koramangala"), or a locality's slug when the worker used their location. */
   area?: string;
   /** ADR 0045: the worker's own area when it is not a pilot area: its name and coarse point. */
@@ -159,8 +161,11 @@ const ORDER: readonly Slot[] = [
 export const askable = (trades: readonly Trade[]): QuestionKey[] =>
   [...ASK_FIRST_DETAILS].filter((k) => trades.some((tr) => QUESTIONS[tr].includes(k)));
 
+/** The card names some work: a trade, or a skill of the worker's own. */
+export const hasWork = (d: CardDraft): boolean => !!d.trades?.length || !!d.skills?.length;
+
 const complete = (d: CardDraft): boolean =>
-  !!d.trades?.length &&
+  hasWork(d) &&
   d.area !== undefined &&
   d.rate_paise !== undefined &&
   d.limit_paise !== undefined &&
@@ -168,7 +173,7 @@ const complete = (d: CardDraft): boolean =>
   missingRate(d) === undefined;
 
 function firstMissing(d: CardDraft): Slot {
-  if (!d.trades?.length) return Slot.trade;
+  if (!hasWork(d)) return Slot.trade;
   if (arranged(d) && d.arrangements === undefined) return Slot.arrangements;
   if (d.area === undefined) return Slot.area;
   if (d.rate_paise === undefined) return Slot.rate;

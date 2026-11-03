@@ -42,6 +42,10 @@ export const QuestionKey = z.enum([
   "points",
   /** How long the work is for (ADR 0046): an `Arrangement` value, for the trades priced by arrangement. */
   "arrangement",
+  /** ADR 0047, a skill outside the trades: what exactly the work is, in the household's words. */
+  "job",
+  /** ADR 0047: about how long the work will take, in the household's words. */
+  "duration",
 ]);
 export type QuestionKey = z.infer<typeof QuestionKey>;
 

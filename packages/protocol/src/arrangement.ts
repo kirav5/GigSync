@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { DriverName, PriceUnit, TRADE_DRIVERS } from "./estimate-drivers.js";
 import { Paise } from "./payment.js";
-import { Trade } from "./trade.js";
+import { type JobTrade, Trade } from "./trade.js";
 
 /**
  * How long a job is for (ADR 0046): a few hours, one visit, some days a week, or every month. Household work is sold
@@ -19,9 +19,9 @@ const D = DriverName.enum;
 export const DEFAULT_ARRANGEMENT = A.monthly;
 
 /** The trades whose work is asked and priced by arrangement; every other trade is priced as it always was. */
-export const ARRANGEMENT_TRADES: readonly Trade[] = [T.maid, T.driver];
+export const ARRANGEMENT_TRADES: readonly JobTrade[] = [T.maid, T.driver];
 
-export const hasArrangements = (trade: Trade): boolean => ARRANGEMENT_TRADES.includes(trade);
+export const hasArrangements = (trade: JobTrade): boolean => ARRANGEMENT_TRADES.includes(trade);
 
 /** What a price is per, for each arrangement. */
 export const ARRANGEMENT_UNIT: Readonly<Record<Arrangement, PriceUnit>> = {

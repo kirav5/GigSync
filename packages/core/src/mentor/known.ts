@@ -1,4 +1,4 @@
-import { type ColleagueCard, type EngagementId, Role, type UserId } from "@gigsync/protocol";
+import { type ColleagueCard, type EngagementId, isTrade, Role, type UserId } from "@gigsync/protocol";
 import type { JobRecord } from "../job/store.js";
 import { bothSigned } from "../payments/passbook.js";
 import type { MentorContext } from "./context.js";
@@ -30,7 +30,7 @@ function jobPerson(r: JobRecord, name: string): KnownPerson {
   const theyWorked = r.engagement.role === Role.enum.requester;
   const card: ColleagueCard = {
     name,
-    trades: theyWorked ? [r.request.trade] : [],
+    trades: theyWorked && isTrade(r.request.trade) ? [r.request.trade] : [],
     languages: theyWorked ? [] : [r.request.lang],
   };
   return { user: r.engagement.counterpart, card, worker: theyWorked, channel: r.engagement.id };

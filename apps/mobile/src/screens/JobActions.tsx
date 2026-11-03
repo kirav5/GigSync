@@ -15,6 +15,7 @@ import { qrDataUrl } from "../payments/qr.js";
 import { WorkerPay } from "../payments/WorkerPay.js";
 import { C } from "../ui/cls.js";
 import { jobPrice, money } from "../ui/places.js";
+import { requestWork } from "../ui/work.js";
 import type { GigView } from "../useGig.js";
 import { AnswerForm } from "./AnswerForm.js";
 import { ApproveCard, type ApproveDetail, SignCard } from "./JobDecide.js";
@@ -61,7 +62,7 @@ export function JobActions({ job, view, device, run, onAddPayee, them }: JobActi
       {approve && (
         <ApproveCard
           detail={approve.detail as ApproveDetail}
-          say={t("home.say_approve", { name: them, trade: t(`trade.${job.request.trade}`) })}
+          say={t("home.say_approve", { name: them, trade: requestWork(t, job.request) })}
           onApprove={() => void run(() => device.approveRequest(id))}
           onDecline={() => void run(() => device.declineRequest(id))}
         />

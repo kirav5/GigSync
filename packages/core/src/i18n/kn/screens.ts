@@ -51,7 +51,7 @@ export const screens: Readonly<Record<keyof typeof en, string>> = {
   "card.off_board": "ಬೋರ್ಡ್‌ನಿಂದ ತೆಗೆಯಲಾಗಿದೆ",
   "card.publish": "ನನ್ನ ಕಾರ್ಡ್ ಬೋರ್ಡ್‌ಗೆ ಹಾಕಿ",
   "card.unlist": "ನನ್ನ ಕಾರ್ಡ್ ಬೋರ್ಡ್‌ನಿಂದ ತೆಗೆಯಿರಿ",
-  "card.err_trade": "ಕನಿಷ್ಠ ಒಂದು ಕೆಲಸ ಆಯ್ಕೆಮಾಡಿ.",
+  "card.err_trade": "ಕನಿಷ್ಠ ಒಂದು ಕೆಲಸ ಆಯ್ಕೆಮಾಡಿ, ಅಥವಾ ನಿಮ್ಮ ಕೆಲಸ ಸೇರಿಸಿ.",
   "card.err_rate": "ಸಾಮಾನ್ಯ ದರ ನಿಮ್ಮ ಕನಿಷ್ಠ ಬೆಲೆಗಿಂತ ಕಡಿಮೆ ಇರಬಾರದು.",
   "requests.checked": "ಕೊನೆಯ ಪರಿಶೀಲನೆ: {time}",
   "error.generic": "ಏನೋ ತಪ್ಪಾಗಿದೆ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",

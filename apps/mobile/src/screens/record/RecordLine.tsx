@@ -8,6 +8,7 @@ import type { JobActionProps } from "../JobActions.js";
 import { JobThread } from "../JobThread.js";
 import type { Chip } from "./text.js";
 import "./record.css";
+import { requestWork } from "../../ui/work.js";
 
 /** What a row needs to open the job's own card in place: the same as a card on Activity. */
 export type CardProps = Omit<JobActionProps, "job">;
@@ -46,7 +47,7 @@ export function RecordLine({ job, when, who, price, chip, facts = [], open, onTo
   const id = useId();
   const about = `${id}-about`;
   const panel = `${id}-job`;
-  const trade = t(`trade.${job.request.trade}`);
+  const trade = requestWork(t, job.request);
   return (
     <li>
       <button

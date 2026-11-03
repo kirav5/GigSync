@@ -9,14 +9,15 @@ import type {
   JobRequest,
   JobReview,
   JobTerms,
+  JobTrade,
   Offer,
   Place,
   Question,
   QuestionKey,
   Role,
+  Skill,
   TermKey,
   Terms,
-  Trade,
 } from "@gigsync/protocol";
 import type { ProblemRecord } from "../contacts/rules.js";
 import { Collection, type Storage } from "../ports.js";
@@ -115,7 +116,9 @@ export interface Suggested {
 /** What a consumer is looking for, shared by every request in one group. The budget stays on this phone. */
 export interface Need {
   group: EngagementId;
-  trade: Trade;
+  /** A trade, or `other` with the listed `skill` asked for (ADR 0047). */
+  trade: JobTrade;
+  skill?: Skill;
   need: string;
   when: string;
   area: Place;

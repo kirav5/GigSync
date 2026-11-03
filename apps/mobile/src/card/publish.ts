@@ -36,9 +36,9 @@ export class AboutPrivateError extends Error {}
  * ID is not part of either: payment requests read it from About me at send time.
  */
 export async function publishCard(ports: Ports, account: Account, draft: CardDraft, lang: Lang): Promise<Account> {
-  const { trades, rate_paise: rate, limit_paise: limit } = draft;
+  const { trades = [], skills = [], rate_paise: rate, limit_paise: limit } = draft;
   const area = baseOf(draft);
-  if (!trades?.length || !area || rate === undefined || limit === undefined || limit > rate)
+  if (trades.length + skills.length === 0 || !area || rate === undefined || limit === undefined || limit > rate)
     throw new CardIncompleteError("card draft is incomplete");
   const main = mainOf(draft);
   const rates = arrangementRates(draft);
@@ -50,6 +50,7 @@ export async function publishCard(ports: Ports, account: Account, draft: CardDra
   const card: BoardProfile = {
     display_name: account.contact.name,
     trades,
+    ...(skills.length > 0 ? { skills } : {}),
     area: coarsePoint(area),
     area_name: area.name,
     rate_paise: rate,
@@ -59,6 +60,7 @@ export async function publishCard(ports: Ports, account: Account, draft: CardDra
   };
   const worker: WorkerRules = {
     trades,
+    ...(skills.length > 0 ? { skills } : {}),
     rate: { opening_paise: rate, limit_paise: limit },
     // The agent's own copy stays on the phone as the worker set it; the board keeps the coarse one.
     base: { lat: area.lat, lon: area.lon },
@@ -102,6 +104,7 @@ export function accountDraft(account: Account): CardDraft {
   const custom = place && localitySlug(place.name);
   return {
     trades: rules.trades,
+    ...(rules.skills?.length ? { skills: rules.skills } : {}),
     ...(pilot ? { area: pilot.key } : {}),
     ...(place && custom ? { area: custom, place } : {}),
     radius_km: rules.radius_km,
@@ -133,6 +136,7 @@ export function publicCard(account: Account): BoardProfile | undefined {
   return {
     display_name: account.contact.name,
     trades: rules.trades,
+    ...(rules.skills?.length ? { skills: rules.skills } : {}),
     area: coarsePoint(rules.base),
     area_name: name,
     ...(rates?.length ? { arrangements: rates } : {}),

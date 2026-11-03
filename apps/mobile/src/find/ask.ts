@@ -18,6 +18,7 @@ import {
   perJob,
   requestPoint,
   resolveDay,
+  workOf,
 } from "@gigsync/core";
 import {
   type Arrangement,
@@ -26,7 +27,7 @@ import {
   coarsePoint,
   type Place,
   type SavedAddress,
-  type Trade,
+  skillKey,
   type UserId,
 } from "@gigsync/protocol";
 import { type Account, apiClient, rememberName } from "../adapters/account.js";
@@ -53,18 +54,23 @@ export const needToOf = ({ user, card }: ChosenWorker): NeedTo => ({
   user,
   name: card.display_name,
   trades: card.trades,
+  skills: (card.skills ?? []).map((s) => ({ ...s, key: skillKey(s.text), workers: 1 })),
 });
 
-/** The board's workers for a trade near a place, never the owner's own card (a worker hiring never hires themself). */
+/**
+ * The board's workers for a trade, or a listed skill by its key (ADR 0047: never the owner's words), near a place;
+ * never the owner's own card (a worker hiring never hires themself).
+ */
 export async function searchBoard(
   account: Account,
-  trade: Trade,
+  work: Pick<NeedState["draft"], "trade" | "skill">,
   at: Place,
   radius_km: number,
   arrangement?: Arrangement,
 ): Promise<BoardWorker[]> {
   const near = coarsePoint(at);
-  const query = { trade, lat: near.lat, lon: near.lon, radius_km, ...(arrangement ? { arrangement } : {}) };
+  const what = work.skill ? { skill: work.skill.key } : { trade: work.trade };
+  const query = { ...what, lat: near.lat, lon: near.lon, radius_km, ...(arrangement ? { arrangement } : {}) };
   const board = await apiClient(account.session).searchWorkers(query);
   return board.filter((w) => w.user !== account.session.user);
 }
@@ -88,11 +94,13 @@ export function needOf(
 ): NewNeed | undefined {
   const d = state.draft;
   const at = whereOf(d, saved);
-  if (!d.trade || !at || d.budget_paise === undefined) return undefined;
+  const trade = workOf(d);
+  if (!trade || !at || d.budget_paise === undefined) return undefined;
   const day = resolveDay(d.day ?? DayWord.today, now, -now.getTimezoneOffset());
   const found = needEstimate(state);
   return needToSend({
-    trade: d.trade,
+    trade,
+    ...(d.skill ? { skill: { text: d.skill.text, lang: d.skill.lang } } : {}),
     need: needWords(d, state.config.own),
     day,
     label: dayLabel(i18n, day),
@@ -101,7 +109,7 @@ export function needOf(
     budget_paise: d.budget_paise,
     ...at,
     estimate: found && perJob(found.estimate, needDetails(d)),
-    terms: needTerms(d, d.trade, day),
+    terms: needTerms(d, trade, day),
   });
 }
 

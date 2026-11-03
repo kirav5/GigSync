@@ -1,4 +1,4 @@
-import { AnswerFromMemory, type QuestionKey, type Trade } from "@gigsync/protocol";
+import { AnswerFromMemory, JobTrade, type QuestionKey, type Trade } from "@gigsync/protocol";
 import { EVERY_DAY, isMonthly } from "../job/when.js";
 import { QUESTIONS } from "../job/worker.js";
 import type { Line } from "./card.js";
@@ -82,8 +82,12 @@ export interface NeedState {
 }
 
 /** The trade's first question, which the request answers up front so the worker's agent need not ask it. */
-export const firstQuestion = (trade: Trade | undefined): QuestionKey | undefined =>
+export const firstQuestion = (trade: JobTrade | undefined): QuestionKey | undefined =>
   trade ? QUESTIONS[trade][0] : undefined;
+
+/** The kind of work a draft is for: its trade, `other` for a listed skill (ADR 0047), or not known yet. */
+export const workOf = (d: Pick<NeedDraft, "trade" | "skill">): JobTrade | undefined =>
+  d.trade ?? (d.skill ? JobTrade.enum.other : undefined);
 
 /**
  * The next field still missing, in the order asked; confirm once the need is whole. A household's need is not whole
@@ -91,10 +95,10 @@ export const firstQuestion = (trade: Trade | undefined): QuestionKey | undefined
  * real door, never to whatever address an older screen once took.
  */
 export function firstMissing(d: NeedDraft, needsAddress = false): NeedSlot {
-  if (!d.trade && d.jobType) return priceOpen(d) ? NeedSlot.driver : NeedSlot.outside;
-  if (!d.trade) return NeedSlot.trade;
+  if (!d.trade && !d.skill && d.jobType) return priceOpen(d) ? NeedSlot.driver : NeedSlot.outside;
+  if (!d.trade && !d.skill) return NeedSlot.trade;
   if (d.scope && !d.scope.confirmed) return NeedSlot.scope;
-  if (firstQuestion(d.trade) && d.detail === undefined) return NeedSlot.detail;
+  if (firstQuestion(workOf(d)) && d.detail === undefined) return NeedSlot.detail;
   if (needsArrangement(d)) return NeedSlot.arrangement;
   if (d.area === undefined || (needsAddress && d.address === undefined)) return NeedSlot.area;
   if (priceOpen(d)) return NeedSlot.driver;
@@ -111,14 +115,17 @@ export function withTrade(d: NeedDraft, trade: Trade): NeedDraft {
   if (d.trade === trade) return d;
   const first = firstQuestion(trade);
   const day = d.day ?? (isMonthly(trade) ? EVERY_DAY : undefined);
-  return { ...d, trade, detail: first ? d.seen[first] : undefined, ...(day ? { day } : {}) };
+  return { ...d, trade, skill: undefined, detail: first ? d.seen[first] : undefined, ...(day ? { day } : {}) };
 }
 
 /** A new need; addressed `to` one worker, it is for their trade from the start when their card has only one. */
 export function startNeed(config: NeedConfig, to?: NeedTo): NeedState {
-  const [only, ...others] = to?.trades ?? [];
+  const work = [...(to?.trades ?? []), ...(to?.skills ?? [])];
+  const [only] = work;
   const empty: NeedDraft = config.modelQuestions ? { seen: {}, modelAsk: { said: [], covered: [] } } : { seen: {} };
-  const draft: NeedDraft = only && others.length === 0 ? withTrade(empty, only) : empty;
+  const one = work.length === 1 ? only : undefined;
+  const draft: NeedDraft =
+    one === undefined ? empty : typeof one === "string" ? withTrade(empty, one) : { ...empty, skill: one };
   return {
     config,
     draft,
@@ -144,7 +151,7 @@ export const retryNeed = (s: NeedState, note: Line): NeedState => ({ ...s, notes
 export function recalled(s: NeedState, field: NeedSlot = s.slot): Recalled | undefined {
   const memory = s.config.remembered;
   if (!memory || s.ownAnswer.includes(field)) return undefined;
-  const question = field === NeedSlot.detail ? firstQuestion(s.draft.trade) : undefined;
+  const question = field === NeedSlot.detail ? firstQuestion(workOf(s.draft)) : undefined;
   const fact = question ? memory.facts[question] : undefined;
   if (question && fact) return { known: fact, question };
   const area = field === NeedSlot.area ? memory.area : undefined;
@@ -200,7 +207,7 @@ export const answerMyself = (s: NeedState): NeedState =>
 /** Jumps to one field from the readback (or a Change chip); once it is answered the readback comes again. */
 export function editNeed(s: NeedState, field: NeedField): NeedState {
   const usable =
-    (field !== NeedSlot.detail || firstQuestion(s.draft.trade) !== undefined) &&
+    (field !== NeedSlot.detail || firstQuestion(workOf(s.draft)) !== undefined) &&
     (field !== NeedSlot.arrangement || arrangedTrade(s.draft.trade));
   const ownAnswer = [...s.ownAnswer, field];
   const slot = usable ? field : NeedSlot.confirm;

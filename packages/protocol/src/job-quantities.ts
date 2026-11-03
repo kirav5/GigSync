@@ -8,7 +8,7 @@ import {
   MaidDrivers,
   PainterDrivers,
 } from "./estimate-drivers.js";
-import type { Trade } from "./trade.js";
+import { isTrade, type JobTrade, type Trade } from "./trade.js";
 
 /**
  * A job record's quantities (ADR 0041 §4): the price drivers a record needs so GigSync can learn its own per-unit rates
@@ -44,6 +44,7 @@ const driverOf = (key: string): string => (key === AREA_BAND ? DriverName.enum.a
 const fits = (trade: Trade, key: string): boolean =>
   key === ARRANGEMENT ? hasArrangements(trade) : allDrivers(trade).includes(driverOf(key) as DriverName);
 
-/** Every quantity is one of the trade's drivers: a cook's record carries no floors. */
-export const quantitiesFit = (trade: Trade, q: JobQuantities | undefined): boolean =>
-  q === undefined || Object.entries(q).every(([key, value]) => value === undefined || fits(trade, key));
+/** Every quantity is one of the trade's drivers: a cook's record carries no floors, and other work none (ADR 0047). */
+export const quantitiesFit = (trade: JobTrade, q: JobQuantities | undefined): boolean =>
+  q === undefined ||
+  Object.entries(q).every(([key, value]) => value === undefined || (isTrade(trade) && fits(trade, key)));

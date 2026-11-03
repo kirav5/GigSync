@@ -15,6 +15,7 @@ import {
   offered,
   recalled,
   SEARCH_RADII_KM,
+  workOf,
 } from "./need.js";
 import { areaParts, wherePrompt } from "./need-address.js";
 import { arrangedTrade, arrangementLines, arrangementPrompt, budgetUnitLines } from "./need-arrangement.js";
@@ -74,7 +75,7 @@ function bandLine(s: NeedState): Line[] {
 function summary(s: NeedState): Line[] {
   const d = s.draft;
   const area = areaParts(d);
-  const first = firstQuestion(d.trade);
+  const first = firstQuestion(workOf(d));
   const words = needWords(d, s.config.own);
   const detail: Line[] =
     first && d.detail && d.detail !== words
@@ -93,8 +94,9 @@ function summary(s: NeedState): Line[] {
   return [
     {
       key: "need.summary",
-      names: { trade: d.trade ? [`trade.${d.trade}`] : [], ...area.names, ...when.names },
-      ...(area.params ? { params: area.params } : {}),
+      // A listed skill is named in its worker's own words (ADR 0047), a trade in the reader's language.
+      names: { ...(d.skill ? {} : { trade: d.trade ? [`trade.${d.trade}`] : [] }), ...area.names, ...when.names },
+      ...(area.params || d.skill ? { params: { ...area.params, ...(d.skill ? { trade: d.skill.text } : {}) } } : {}),
       ...(when.dates ? { dates: when.dates } : {}),
     },
     ...arrangementLines(d),
@@ -119,7 +121,7 @@ function confirmPrompt(s: NeedState): Prompt {
   if (!s.changing) return { lines: [...summary(s), confirmLine(s)], choices: YES_NO, hints: yesNoHints(s) };
   const fields = NEED_FIELDS.filter(
     (f) =>
-      (f !== NeedSlot.detail || firstQuestion(s.draft.trade) !== undefined) &&
+      (f !== NeedSlot.detail || firstQuestion(workOf(s.draft)) !== undefined) &&
       (f !== NeedSlot.arrangement || arrangedTrade(s.draft.trade)),
   );
   return {
@@ -130,7 +132,7 @@ function confirmPrompt(s: NeedState): Prompt {
 }
 
 function detailPrompt(s: NeedState): Prompt {
-  const first = firstQuestion(s.draft.trade);
+  const first = firstQuestion(workOf(s.draft));
   if (!first) return { lines: [], hints: [] };
   const yesNo = YES_NO_QUESTIONS.has(first);
   return {
@@ -156,7 +158,7 @@ const filledLines = (s: NeedState): Line[] =>
 /** A Change chip for each of those, shown under the next question. */
 const redoChoices = (s: NeedState): Choice[] =>
   s.filled.map((field) =>
-    redoChoice(s.config.own, field === NeedSlot.detail ? firstQuestion(s.draft.trade) : undefined),
+    redoChoice(s.config.own, field === NeedSlot.detail ? firstQuestion(workOf(s.draft)) : undefined),
   );
 
 function question(s: NeedState): Prompt {
@@ -193,7 +195,9 @@ function question(s: NeedState): Prompt {
       // The estimate, when there is one for this job, in place of the city band; the budget itself stays secret.
       const estimate = budgetEstimate(s);
       const shown = estimate ?? { lines: bandLine(s) };
-      const lines = [{ key: "need.ask.budget" } as const, ...budgetUnitLines(s.draft), ...shown.lines];
+      // No going rate for a listed skill (ADR 0047 §6): said plainly, so the owner knows the budget is theirs alone.
+      const noRate = s.draft.skill ? [{ key: "need.skill_no_rate" } as const] : [];
+      const lines = [{ key: "need.ask.budget" } as const, ...budgetUnitLines(s.draft), ...noRate, ...shown.lines];
       return { ...shown, lines, numeric: true, hints: [], secret: true };
     }
     case NeedSlot.confirm:
