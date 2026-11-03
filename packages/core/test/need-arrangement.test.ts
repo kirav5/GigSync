@@ -2,6 +2,7 @@ import { Arrangement, type Lang, Trade } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import {
   ADD_ADDRESS,
+  ANY_TIME_PICK,
   CITY_RATES,
   chooseNeed,
   DayWord,
@@ -40,7 +41,7 @@ function toReadback(start: NeedState): NeedState {
   let s = start;
   for (let i = 0; i < 10 && s.slot !== NeedSlot.confirm; i++) {
     if (s.slot === NeedSlot.driver) s = chooseNeed(s, DriverPick.dontKnow);
-    else if (s.slot === NeedSlot.when) s = chooseNeed(s, DayWord.today);
+    else if (s.slot === NeedSlot.when) s = chooseNeed(s, s.draft.day ? ANY_TIME_PICK : DayWord.today);
     else if (s.slot === NeedSlot.budget) s = hearNeed(s, "900");
     else break;
   }
@@ -92,7 +93,8 @@ describe("how long the work is for", () => {
   it("says the budget is per hour for hourly work, and shows no monthly band beside it", () => {
     let s = chooseNeed(chooseNeed(atArrangement(), A.hourly), "hsr_layout");
     for (let i = 0; i < 3 && s.slot === NeedSlot.driver; i++) s = chooseNeed(s, DriverPick.dontKnow);
-    if (s.slot === NeedSlot.when) s = chooseNeed(s, DayWord.today);
+    for (let i = 0; i < 2 && s.slot === NeedSlot.when; i++)
+      s = chooseNeed(s, s.draft.day ? ANY_TIME_PICK : DayWord.today);
     expect(s.slot).toBe(NeedSlot.budget);
     expect(keys(s)).toEqual(["need.ask.budget", "need.budget_per.hour"]);
   });

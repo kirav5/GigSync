@@ -84,3 +84,24 @@ export function inSection(page: Page, heading: MessageKey, lang: Lang = DEFAULT_
     `xpath=//article[not(ancestor::details)][${nearest}[starts-with(normalize-space(.), "${title}")]]`,
   );
 }
+
+/** The worker's steps on a signed job, in order: on the way, arrived and started, done. */
+const WORK_STEPS: readonly MessageKey[] = ["update.on_my_way", "job.start_work", "job.mark_done"];
+
+/**
+ * Takes a signed job in `scope` through the worker's steps that are left, one tap at a time as the card offers them,
+ * and ends with the work marked done. Each tap waits for the card to offer its next step; steps already taken (an
+ * earlier "On my way") are never offered again, so they are skipped.
+ */
+export async function finishWork(scope: Locator, lang: Lang = DEFAULT_LANG) {
+  const buttons = WORK_STEPS.map((key) => scope.getByRole("button", { name: t(lang, key), exact: true }));
+  const [onMyWay, start, done] = buttons as [Locator, Locator, Locator];
+  for (let taps = 0; taps < WORK_STEPS.length; taps++) {
+    // Whichever step the card offers now: exactly one of them shows at a time.
+    await expect(onMyWay.or(start).or(done)).toBeVisible();
+    const step = (await onMyWay.isVisible()) ? onMyWay : (await start.isVisible()) ? start : done;
+    await step.click();
+    await expect(step).toBeHidden();
+    if (step === done) return;
+  }
+}

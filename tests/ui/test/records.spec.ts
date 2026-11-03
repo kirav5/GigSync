@@ -13,6 +13,7 @@ import {
   SHOTS,
   signIn,
 } from "./helpers.js";
+import { finishWork } from "./jobs.js";
 import { fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 import { seedServedJobs } from "./record-seed.js";
 import {
@@ -238,8 +239,8 @@ test("a household deleted its records; the worker's job still counts, marked as 
   // counts on his card.
   await open(workerPage, "nav.activity");
   const job = workerPage.getByRole("article", { name: t(en, "a11y.job_with", { name: who.name }) });
-  await reveal(workerPage, job.getByRole("button", { name: t(en, "job.mark_done") }));
-  await job.getByRole("button", { name: t(en, "job.mark_done") }).click();
+  await reveal(workerPage, job.getByRole("button", { name: t(en, "update.on_my_way") }));
+  await finishWork(job);
   const mine = workerPage.getByRole("region", { name: t(en, "page.card_seen") });
   await expect(async () => {
     // Opened afresh each time: the card's record is read again when My card opens.

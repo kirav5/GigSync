@@ -75,6 +75,7 @@ async function askToPaint(page: Page, budget: "suggested" | string) {
   await tap(page, t(en, "driver.value.paint_by.household"));
   await tap(page, t(en, "driver.dont_know"));
   await tap(page, t(en, "when.tomorrow"));
+  await tap(page, t(en, "when.any_time"));
   await expect(line(page, "need.ask.budget")).toBeVisible();
   await expect(line(page, "estimate.range_job", RANGE)).toBeVisible();
   await expect(line(page, "driver.confidence_line", { level: t(en, "driver.confidence.low") })).toBeVisible();

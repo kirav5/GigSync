@@ -155,7 +155,7 @@ export function AddressForm({
     <form className={C.card} aria-label={t("addr.add")} onSubmit={(e) => void save(e)}>
       <span className={C.label}>{t("addr.add")}</span>
       <p className={C.faint}>{t("addr.private")}</p>
-      <LocateStep session={session} onFound={fillFrom} />
+      <LocateStep session={session} onFound={fillFrom} precise />
       <PlaceSearch session={session} onPick={(p) => fillFrom(p, p.point)} />
       {found && (
         <p className={C.muted} role="status">

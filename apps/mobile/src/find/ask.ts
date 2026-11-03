@@ -18,6 +18,7 @@ import {
   perJob,
   requestPoint,
   resolveDay,
+  windowOf,
   workOf,
 } from "@gigsync/core";
 import {
@@ -59,18 +60,23 @@ export const needToOf = ({ user, card }: ChosenWorker): NeedTo => ({
 
 /**
  * The board's workers for a trade, or a listed skill by its key (ADR 0047: never the owner's words), near a place;
- * never the owner's own card (a worker hiring never hires themself).
+ * never the owner's own card (a worker hiring never hires themself). With the need's day and the part of the day its
+ * hour falls in, only workers who work then and have no signed job then (ADR 0050 §3).
  */
 export async function searchBoard(
   account: Account,
-  work: Pick<NeedState["draft"], "trade" | "skill">,
+  work: Pick<NeedState["draft"], "trade" | "skill" | "day" | "time">,
   at: Place,
   radius_km: number,
   arrangement?: Arrangement,
+  now = new Date(),
 ): Promise<BoardWorker[]> {
   const near = coarsePoint(at);
   const what = work.skill ? { skill: work.skill.key } : { trade: work.trade };
-  const query = { ...what, lat: near.lat, lon: near.lon, radius_km, ...(arrangement ? { arrangement } : {}) };
+  const day = work.day && resolveDay(work.day, now, -now.getTimezoneOffset());
+  const window = windowOf(work.time);
+  const when = { ...(day ? { day } : {}), ...(window ? { window } : {}) };
+  const query = { ...what, lat: near.lat, lon: near.lon, radius_km, ...(arrangement ? { arrangement } : {}), ...when };
   const board = await apiClient(account.session).searchWorkers(query);
   return board.filter((w) => w.user !== account.session.user);
 }

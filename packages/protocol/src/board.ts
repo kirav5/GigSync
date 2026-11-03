@@ -4,7 +4,9 @@ import { UserId } from "./ids.js";
 import { Paise } from "./payment.js";
 import { Place } from "./place.js";
 import { distinctSkills, MAX_SKILLS, Skill, SkillKey } from "./skill.js";
+import { TimeWindow } from "./terms.js";
 import { Trade } from "./trade.js";
+import { SearchDay, WorkHours } from "./work-hours.js";
 import { WorkerRecord } from "./worker-record.js";
 
 /**
@@ -47,6 +49,8 @@ const CardFields = z.object({
   record: WorkerRecord.optional(),
   /** ADR 0046: the arrangements a maid or driver takes, with the usual rate for each; absent means monthly only. */
   arrangements: ArrangementRates.optional(),
+  /** ADR 0050: the days and parts of the day the worker works; absent means any day, any time. */
+  work_hours: WorkHours.optional(),
   /** Show my record: false hides it from the card entirely (never single ratings). Absent means unchanged (new: shown). */
   show_record: z.boolean().optional(),
 });
@@ -82,6 +86,12 @@ export const BoardQuery = z
     max_rate_paise: z.coerce.number().int().positive().optional(),
     /** ADR 0046: only workers who take this arrangement; a card without arrangements takes monthly work only. */
     arrangement: Arrangement.optional(),
+    /**
+     * ADR 0050: the household's day and part of the day. Workers whose hours leave it out, or who already have a
+     * signed job then on GigSync's record, are not listed. Either may be absent: any day, or any time that day.
+     */
+    day: SearchDay.optional(),
+    window: TimeWindow.optional(),
     limit: z.coerce.number().int().min(1).max(MAX_RESULTS).default(DEFAULT_RESULTS),
   })
   .refine((q) => (q.trade === undefined) !== (q.skill === undefined), "a trade or a skill");

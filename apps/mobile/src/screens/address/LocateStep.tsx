@@ -23,9 +23,18 @@ const FAILURE: Readonly<Record<LocateFailure, MessageKey>> = {
 export function LocateStep({
   session,
   onFound,
+  onPointOnly,
+  precise = false,
   label = "addr.use_location",
 }: {
   session: Session;
+  /** Ask the phone for its best fix: a household's address, not a worker's area. */
+  precise?: boolean;
+  /**
+   * The phone's point when the server cannot name it (geocoding off, or nothing found there): the caller may still use
+   * the point; it returns whether it could, and the step says why not otherwise.
+   */
+  onPointOnly?: (point: Place) => boolean;
   /** The button's words: a household's "Use my current location", a worker's "for my area". */
   label?: MessageKey;
   /** The place found and the phone's own point, for the form to fill in and the owner to check. */
@@ -39,10 +48,15 @@ export function LocateStep({
     setStep(Step.locating);
     setProblem(undefined);
     try {
-      const point = await currentPoint();
-      const [place] = await placesAt(session, point);
-      if (!place) setProblem("addr.failed");
-      else onFound(place, point);
+      const point = await currentPoint(precise);
+      const named: { place?: GeoPlace | undefined; err?: unknown } = await placesAt(session, point).then(
+        ([place]) => ({ place }),
+        (err: unknown) => ({ err }),
+      );
+      if (named.place) return onFound(named.place, point);
+      if (onPointOnly?.(point)) return;
+      if (named.err) throw named.err;
+      setProblem("addr.failed");
     } catch (err) {
       const reason = err instanceof LocateError ? err.reason : geocodingOff(err) ? LocateFailure.off : undefined;
       setProblem(FAILURE[reason ?? LocateFailure.failed]);

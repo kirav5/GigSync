@@ -1,6 +1,7 @@
-import { EngagementStatus, EnvelopeKind, JobRecordStatus, type JobStatusChange } from "@gigsync/protocol";
+import { EnvelopeKind, JobRecordStatus, type JobStatusChange } from "@gigsync/protocol";
 import { apply } from "../engagement/machine.js";
 import { stamped } from "../job/history.js";
+import { UNDER_WAY } from "../job/progress.js";
 import type { JobRecord, JobStore } from "../job/store.js";
 import { log } from "../log.js";
 import { allMyRecords } from "./export.js";
@@ -13,7 +14,6 @@ import type { RecordsApi } from "./types.js";
  * the record (`followRecord`). Only ever forward: the record never moves a job back.
  */
 
-const S = EngagementStatus.enum;
 const K = EnvelopeKind.enum;
 const R = JobRecordStatus.enum;
 
@@ -21,7 +21,6 @@ const R = JobRecordStatus.enum;
 export type RestoredEnd = JobStatusChange["status"];
 
 /** Statuses a job is still under way in: the record may still finish or cancel it. */
-const UNDER_WAY: ReadonlySet<EngagementStatus> = new Set([S.agreed, S.in_progress]);
 
 export class RestoredJobError extends Error {}
 

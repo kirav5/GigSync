@@ -1,4 +1,14 @@
-import { asciiDigits, type GigDevice, type JobRecord, TaskKind, termsLines } from "@gigsync/core";
+import {
+  asciiDigits,
+  type GigDevice,
+  type JobRecord,
+  type MessageKey,
+  nextWorkerStep,
+  TaskKind,
+  termsLines,
+  UNDER_WAY,
+  type WorkerStep,
+} from "@gigsync/core";
 import {
   EngagementStatus,
   type JobTerms,
@@ -19,6 +29,7 @@ import { requestWork } from "../ui/work.js";
 import type { GigView } from "../useGig.js";
 import { AnswerForm } from "./AnswerForm.js";
 import { ApproveCard, type ApproveDetail, SignCard } from "./JobDecide.js";
+import { CancelJob } from "./job/CancelJob.js";
 
 export interface JobActionProps {
   job: JobRecord;
@@ -34,8 +45,12 @@ const P = PaymentStatus.enum;
 const U = UpdateCode.enum;
 /** Once both have signed, a worker may leave a note for the customer. */
 const SIGNED: ReadonlySet<EngagementStatus> = new Set([S.agreed, S.in_progress, S.delivered]);
-/** Before the work is handed over, a worker may say they are on the way or mark it done. */
-const WORKING: ReadonlySet<EngagementStatus> = new Set([S.agreed, S.in_progress]);
+/** The worker's next move as its button says it: on the way, then arrived and started, then done. */
+const STEP_LABEL: Readonly<Record<WorkerStep, MessageKey>> = {
+  [U.on_my_way]: "update.on_my_way",
+  [U.started]: "job.start_work",
+  [U.done]: "job.mark_done",
+};
 const STARS = [5, 4, 3, 2, 1] as const;
 /** Between the sentence read aloud and each term after it. */
 const SAY_PAUSE = ". ";
@@ -56,6 +71,10 @@ export function JobActions({ job, view, device, run, onAddPayee, them }: JobActi
   const terms = task(TaskKind.confirmDeal)?.detail as JobTerms | undefined;
   const questions = task(TaskKind.answerQuestions);
   const approve = task(TaskKind.approveRequest);
+  const step = nextWorkerStep(job);
+  /** The worker's next step: a progress update, or the work handed over once it is done. */
+  const moveOn = (next: WorkerStep) =>
+    next === U.done ? device.deliver(id, { code: U.done }) : device.update(id, { code: next });
 
   return (
     <div className={C.stack}>
@@ -88,25 +107,15 @@ export function JobActions({ job, view, device, run, onAddPayee, them }: JobActi
           onDecline={() => void run(() => device.declineDeal(id))}
         />
       )}
-      {isWorker && WORKING.has(status) && (
-        <div className={C.actions}>
-          {status === S.agreed && (
-            <button
-              type={C.button}
-              className={C.secondary}
-              onClick={() => void run(() => device.update(id, { code: U.on_my_way }))}
-            >
-              {t("update.on_my_way")}
+      {/* Until the work is handed over, either side may call the job off; the worker moves it on one step at a time. */}
+      {UNDER_WAY.has(status) && (
+        <CancelJob onCancel={() => void run(() => device.cancelJob(id))}>
+          {isWorker && step && (
+            <button type={C.button} className={C.secondary} onClick={() => void run(() => moveOn(step))}>
+              {t(STEP_LABEL[step])}
             </button>
           )}
-          <button
-            type={C.button}
-            className={C.secondary}
-            onClick={() => void run(() => device.deliver(id, { code: U.done }))}
-          >
-            {t("job.mark_done")}
-          </button>
-        </div>
+        </CancelJob>
       )}
       {/* Only Today lists a worker's jobs, and it always passes onAddPayee. */}
       {isWorker && onAddPayee && <WorkerPay job={job} view={view} device={device} run={run} onAddPayee={onAddPayee} />}

@@ -94,7 +94,8 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   const [adding, setAdding] = useState(false);
   useEffect(() => {
     if (!empty || !saved) return;
-    const config = { ...needConfig(lang, phoneDay(ports.clock.now())), addresses: saved.map(addressChoice) };
+    const now = ports.clock.now();
+    const config = { ...needConfig(lang, phoneDay(now)), hour: now.getHours(), addresses: saved.map(addressChoice) };
     void needMemory(ports, account).then((remembered) =>
       beginNeed(open, startNeed({ ...withMemory(config, remembered), modelQuestions: modelOn() }, to)),
     );
@@ -105,6 +106,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     if (state && state.config.own !== lang)
       relanguageNeed(open, {
         ...withMemory(needConfig(lang, state.config.today), state.config.remembered),
+        hour: state.config.hour,
         ...(state.config.addresses ? { addresses: state.config.addresses } : {}),
       });
   }, [state, open, lang]);

@@ -2,6 +2,7 @@ import { type MessageKey, type Params, plural, questionText, t } from "@gigsync/
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { completeSignIn, newPhone, open, Role, RUN, shoot, signIn, signOutHere } from "./helpers.js";
+import { finishWork } from "./jobs.js";
 import { fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -89,9 +90,7 @@ test("two workers on one phone each see only their own jobs, memory and Records,
   await signBoth({ worker, household }, FOLDER);
   await expect(jobWithLata(phonePage).getByLabel(say("a11y.contact"))).toBeVisible();
   // He does the job and she pays cash at the door: it is finished, so it moves to Records.
-  await jobWithLata(phonePage)
-    .getByRole("button", { name: say("job.mark_done") })
-    .click();
+  await finishWork(jobWithLata(phonePage));
   await jobWithLata(phonePage)
     .getByRole("button", { name: say("getpaid.cash") })
     .click();

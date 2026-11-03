@@ -1,4 +1,4 @@
-import { localitySlug } from "@gigsync/core";
+import { localitySlug, nearestPilotArea } from "@gigsync/core";
 import { coarsePoint, type GeoPlace, type Place, type Session } from "@gigsync/protocol";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
@@ -17,7 +17,8 @@ export interface WorkArea {
 
 /**
  * Where a worker works from and how far they go (ADR 0045): a pilot area from the list, or "Use my location", which
- * names their locality from a coarse point; and a radius. Only the coarse point goes on the board.
+ * names their locality from a coarse point (or, when the server cannot name places, the pilot area that point is in,
+ * keeping the point itself); and a radius. Only the coarse point goes on the board.
  */
 export function AreaField({
   session,
@@ -34,6 +35,12 @@ export function AreaField({
     const key = localitySlug(place.locality);
     if (key) onChange({ ...value, area: key, place: { name: place.locality, ...at } });
   };
+  /** No place names from the server: the pilot area the phone is in, at the phone's own coarse point. */
+  const nearby = (point: Place): boolean => {
+    const pilot = nearestPilotArea(point);
+    if (pilot) onChange({ ...value, area: pilot.key, place: { name: pilot.name, ...coarsePoint(point) } });
+    return pilot !== undefined;
+  };
   return (
     <div className={C.stack}>
       <label className={C.fieldLabel}>
@@ -43,6 +50,11 @@ export function AreaField({
           value={value.area ?? ""}
           onChange={(e) => onChange({ ...value, area: e.target.value, place: undefined })}
         >
+          {!value.area && (
+            <option value="" disabled>
+              {t("card.area_choose")}
+            </option>
+          )}
           {value.place && <option value={value.area}>{value.place.name}</option>}
           {AREAS.map((a) => (
             <option key={a.key} value={a.key}>
@@ -51,7 +63,7 @@ export function AreaField({
           ))}
         </select>
       </label>
-      <LocateStep session={session} onFound={found} label="card.use_location" />
+      <LocateStep session={session} onFound={found} onPointOnly={nearby} label="card.use_location" />
       {value.place && (
         <p className={C.muted} role="status">
           {t("card.area_found", { area: value.place.name })}
