@@ -36,6 +36,7 @@ import { C } from "../ui/cls.js";
 import { errorKey } from "../ui/errorKey.js";
 import { AREAS, PILOT_CITY } from "../ui/places.js";
 import { Said } from "../ui/Said.js";
+import { ScheduleLines } from "./schedule/ScheduleLines.js";
 import { MoveTurnView } from "./talk/AgentTurns.js";
 import { Ask, Own } from "./talk/Bubbles.js";
 import "./talk.css";
@@ -53,6 +54,7 @@ const KIND_LABEL: Readonly<Record<Card["kind"], MessageKey>> = {
   [CardKind.answer]: "card.answer",
   [CardKind.draft]: "card.draft",
   [CardKind.needsModel]: "card.needs_model",
+  [CardKind.schedule]: "card.schedule",
 };
 
 /** A card's words: a phrase in the owner's language, or quoted words translated on the phone when needed. */
@@ -74,6 +76,7 @@ function Note({ text, card }: { text: string; card: Card | undefined }) {
           <div className="text">
             <CardText card={card} />
           </div>
+          {card.kind === CardKind.schedule && <ScheduleLines card={card} />}
           {card.kind === CardKind.answer && card.sources.length > 0 && (
             <span className={C.faint}>{plural("agent.sources", card.sources.length)}</span>
           )}

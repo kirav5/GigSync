@@ -9,7 +9,6 @@ import {
   TERMS_PROTOCOL,
   TermKey,
   Terms,
-  type TermWhen,
   Trade,
   type UserId,
 } from "@gigsync/protocol";
@@ -18,6 +17,7 @@ import type { JobContext } from "./context.js";
 import { countIn } from "./details.js";
 import { type Move, MoveKind } from "./negotiate.js";
 import type { JobRecord, Need } from "./store.js";
+import { takenTimes } from "./taken.js";
 import {
   answerTerms,
   changedFromWants,
@@ -112,15 +112,6 @@ export function detailTerms(trade: JobTrade, details: Readonly<Record<string, st
   return fitTerms(trade, { ...(materials ? { materials } : {}), ...(counts.success ? counts.data : {}) });
 }
 
-/** The times this worker has already agreed to, from jobs both sides signed. */
-export function bookedTimes(jobs: readonly JobRecord[]): TermWhen[] {
-  return jobs.flatMap((j) => {
-    const both = j.engagement.role === R.provider && j.mine && j.mine.terms_hash === j.theirs?.terms_hash;
-    const when = both && !j.cancel ? j.mine?.terms.terms?.when : undefined;
-    return when ? [when] : [];
-  });
-}
-
 /** Each countered term set to the option a model chose from the list code generated; the first without a model. */
 async function chosen(model: Model | undefined, answer: TermsAnswer, owner?: string, other?: string): Promise<Terms> {
   const next: Record<string, unknown> = { ...answer.next };
@@ -155,7 +146,9 @@ export async function workerTerms(
   const on = await termsOn(ctx, r);
   if (!on) return { r: r.terms ? r : { ...r, terms: { on } }, agreed: true };
   const trade = r.request.trade;
-  const stance = workerStance(prefs, bookedTimes(await ctx.store.jobs()), dayOf(r.request));
+  // Signed jobs, deals waiting for a household's signature and the worker's own bookings (ADR 0048 §5).
+  const busy = await takenTimes(ctx, r.engagement.id);
+  const stance = workerStance(prefs, busy, dayOf(r.request));
   const answer = answerTerms(trade, stance, theirs && fitTerms(trade, theirs));
   // The worker wrote nothing for this job; the household's words let the model suit them, inside the list.
   const next = await chosen(ctx.model, answer, undefined, r.request.need);

@@ -1,0 +1,60 @@
+{
+  "cases": [
+    {
+      "id": "hinglish-schedule-01",
+      "lang": "hi",
+      "role": "worker",
+      "text": "kal 2 se 3 baje ki booking save karo",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-schedule-02",
+      "lang": "hi",
+      "role": "worker",
+      "text": "shanivar subah 8 se 11 Verma ji ke ghar safai ka kaam hai, likh lo",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-schedule-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "aaj shaam 6 se 8 party mein khana banana hai booking add karo",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-schedule-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "meri kal ki booking kya hai",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-schedule-05",
+      "lang": "hi",
+      "role": "worker",
+      "text": "is hafte mere schedule mein kya hai",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-schedule-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "kal 2 baje wali booking cancel karo",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "hinglish-schedule-07",
+      "lang": "hi",
+      "role": "worker",
+      "text": "roz subah 7 se 9 Shah family ke yahan kaam hai schedule mein daalo",
+      "intent": "schedule",
+      "source": "list"
+    }
+  ]
+}

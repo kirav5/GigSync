@@ -1,0 +1,60 @@
+{
+  "cases": [
+    {
+      "id": "hi-schedule-01",
+      "lang": "hi",
+      "role": "worker",
+      "text": "कल दोपहर 2 से 3 बजे की बुकिंग सेव करो",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "hi-schedule-02",
+      "lang": "hi",
+      "role": "worker",
+      "text": "शनिवार सुबह 8 से 11 बजे वर्मा जी के घर सफाई का काम है, लिख लो",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "hi-schedule-03",
+      "lang": "hi",
+      "role": "worker",
+      "text": "आज शाम 6 से 8 बजे पार्टी में खाना बनाना है, बुकिंग जोड़ दो",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "hi-schedule-04",
+      "lang": "hi",
+      "role": "worker",
+      "text": "मेरी कल की बुकिंग क्या है",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "hi-schedule-05",
+      "lang": "hi",
+      "role": "worker",
+      "text": "इस हफ्ते मेरे शेड्यूल में क्या क्या है",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "hi-schedule-06",
+      "lang": "hi",
+      "role": "worker",
+      "text": "कल 2 बजे वाली बुकिंग रद्द कर दो",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "hi-schedule-07",
+      "lang": "hi",
+      "role": "worker",
+      "text": "रोज़ सुबह 7 से 9 बजे शाह परिवार के यहाँ काम है, ये शेड्यूल में डालो",
+      "intent": "schedule",
+      "source": "list"
+    }
+  ]
+}

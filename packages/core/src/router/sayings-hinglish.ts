@@ -57,6 +57,13 @@ export const HINGLISH_SAYINGS: Readonly<Partial<Record<ChatIntent, readonly stri
     "Sharma ji wale ghar se kitna mila mujhe",
     "is month ki meri income dikhao plz",
   ],
+  schedule: [
+    "parso subah 8 se 10 Gupta ji ke ghar ka kaam note karo schedule mein",
+    "mangal ko 3 baje se 5 baje tak booking hai",
+    "meri kal ki bookings kya hain",
+    "mera schedule dikhao aage kaunsi booking hai",
+    "budh wali booking radd kar do",
+  ],
   market: [
     "cook ko 8000 dena sahi h kya",
     "bhai electrician kitna leta h ek visit ka",

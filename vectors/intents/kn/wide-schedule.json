@@ -1,0 +1,60 @@
+{
+  "cases": [
+    {
+      "id": "kn-schedule-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಾಳೆ ಮಧ್ಯಾಹ್ನ 2 ರಿಂದ 3 ಗಂಟೆಗೆ ಬುಕಿಂಗ್ ಉಳಿಸಿ",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "kn-schedule-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಶನಿವಾರ ಬೆಳಿಗ್ಗೆ 8 ರಿಂದ 11 ರವರೆಗೆ ರಾವ್ ಮನೆಯಲ್ಲಿ ಕೆಲಸ ಇದೆ, ಬರೆದುಕೊಳ್ಳಿ",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "kn-schedule-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಇವತ್ತು ಸಂಜೆ 6 ರಿಂದ 8 ಅಡುಗೆ ಕೆಲಸ ಇದೆ, ಬುಕಿಂಗ್ ಹಾಕಿ",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "kn-schedule-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಾಳೆ ನನ್ನ ಬುಕಿಂಗ್ ಏನಿದೆ",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "kn-schedule-05",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಈ ವಾರ ನನ್ನ ವೇಳಾಪಟ್ಟಿಯಲ್ಲಿ ಏನೇನಿದೆ",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "kn-schedule-06",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ನಾಳೆ 2 ಗಂಟೆಯ ಬುಕಿಂಗ್ ರದ್ದು ಮಾಡಿ",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "kn-schedule-07",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ 7 ರಿಂದ 9 ಶಾ ಮನೆಯಲ್ಲಿ ಕೆಲಸ, ವೇಳಾಪಟ್ಟಿಗೆ ಸೇರಿಸಿ",
+      "intent": "schedule",
+      "source": "list"
+    }
+  ]
+}

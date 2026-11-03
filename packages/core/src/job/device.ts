@@ -39,6 +39,7 @@ import { stamped } from "./history.js";
 import type { Mandate } from "./negotiate.js";
 import { type JobRecord, JobStore, type Need, type OwnerTask, TaskKind } from "./store.js";
 import * as worker from "./worker.js";
+import { confirm, reofferTaken } from "./worker-time.js";
 
 export interface DeviceOptions {
   relay: Relay;
@@ -128,6 +129,8 @@ export class GigDevice {
     const side = { mentors: this.mentors, offers: this.offers, contacts: this.contacts };
     // In order on purpose: each envelope may depend on the one before it.
     for (const item of received) await dispatch(this.ctx, this.o.worker, item, side);
+    // A time given to one household is never signed for another (ADR 0048 §5).
+    if (this.o.worker) await reofferTaken(this.ctx, this.o.worker);
     await this.contacts.sweep();
     const sent = await this.transport.flush();
     await this.records?.run();
@@ -220,7 +223,8 @@ export class GigDevice {
   }
 
   async confirmDeal(id: EngagementId): Promise<JobRecord> {
-    const r = await deal.sign(this.ctx, await this.job(id));
+    const r = await confirm(this.ctx, this.o.worker, await this.job(id));
+    if (this.o.worker) await reofferTaken(this.ctx, this.o.worker);
     this.records?.soon();
     return r;
   }

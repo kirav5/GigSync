@@ -1,4 +1,5 @@
 import {
+  answerSchedule,
   CardKind,
   ChatIntent,
   ChatRole,
@@ -33,6 +34,7 @@ import {
 import { accountDraft } from "../card/publish.js";
 import { answerMarket, routedMarket } from "../estimate/market.js";
 import { useI18n } from "../i18n.js";
+import { phoneNow } from "../schedule/useBookings.js";
 import { moveCity } from "../talk/moveStore.js";
 import { openChat, useTalk } from "../talk/talkStore.js";
 import { useMoves } from "../talk/useMoves.js";
@@ -155,6 +157,9 @@ export function AgentScreen(props: TalkProps) {
     if (intent === ChatIntent.helpStop) return handOver(note, () => moves.stop(own));
     if (intent === ChatIntent.moving) return handOver(note, () => moves.start(own, slots.city));
     if (intent === ChatIntent.earnings) return answerEarnings(note);
+    // The worker's own bookings, read and kept on this phone (ADR 0048).
+    if (intent === ChatIntent.schedule)
+      return noteAnswered(note, await answerSchedule(own, ports.storage, ports.clock.now(), phoneNow(ports)));
     const market = intent === ChatIntent.market ? routedMarket(own, slots, account.worker?.trades[0]) : undefined;
     if (market) {
       // What the market pays, from the estimate route (ADR 0039 §2); the answer lands under the words when it comes.

@@ -20,6 +20,7 @@ import { log } from "../log.js";
 import { remember } from "../memory/remember.js";
 import type { JobContext } from "./context.js";
 import { type JobRecord, type Need, TaskKind } from "./store.js";
+import { timeTaken } from "./taken.js";
 import { mustReview, termsField } from "./terms-flow.js";
 
 const K = EnvelopeKind.enum;
@@ -67,7 +68,11 @@ async function signingAnother(ctx: JobContext, r: JobRecord): Promise<boolean> {
 export async function accept(ctx: JobContext, r: JobRecord, terms: JobTerms): Promise<JobRecord> {
   const next = { ...r, pending: terms };
   await ctx.store.saveJob(next);
-  const own = ctx.autoConfirm && !(await signingAnother(ctx, next)) && !(await mustReview(ctx, next, terms.terms));
+  const own =
+    ctx.autoConfirm &&
+    !(await signingAnother(ctx, next)) &&
+    !(await mustReview(ctx, next, terms.terms)) &&
+    !(await timeTaken(ctx, next, terms.terms));
   if (own) return sign(ctx, next);
   await ctx.store.addTask(TaskKind.confirmDeal, r.engagement.id, terms, ctx.clock.now());
   return next;
@@ -77,6 +82,8 @@ export async function accept(ctx: JobContext, r: JobRecord, terms: JobTerms): Pr
 export async function sign(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
   if (!r.pending) throw new DealError("no terms to sign");
   if (await signingAnother(ctx, r)) throw new DealError("already signing with another worker for this need");
+  // A worker never signs a time another job or a booking holds; their agent offers another (worker-time.ts).
+  if (await timeTaken(ctx, r, r.pending.terms)) throw new DealError("time already taken");
   const hash = termsHash(r.pending);
   const mine: Agree = { terms: r.pending, terms_hash: hash, sig: toBase64(await ctx.keys.sign(agreeBytes(hash))) };
   await ctx.store.removeTask(TaskKind.confirmDeal, r.engagement.id);
