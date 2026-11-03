@@ -20,7 +20,7 @@ On `main` the code is the M0 foundation (agent core, protocol, mailbox, policy e
 the agent-to-agent job flow ([#11](https://github.com/kirav5/GigSync/pull/11)) on the Neon directory
 ([#7](https://github.com/kirav5/GigSync/pull/7)). The pilot runs on `gigsync.network`: the app on `gigsync.network` and
 `www.`, the API on `api.gigsync.network`. Two static pages ship with the app: `/home`, the worker-facing site, and
-`/website`, a switcher between eight complete candidate sites, each in its own look (`apps/mobile/website.html`;
+`/website`, a switcher between nine complete candidate sites, each in its own look (`apps/mobile/website.html`;
 the sites are under `apps/mobile/website/sites/`).
 
 The skeleton builds, tests and deploys end to end. Nothing in GigSync calls a cloud model: the only models are
