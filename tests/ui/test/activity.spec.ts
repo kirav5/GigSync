@@ -2,6 +2,7 @@ import { type MessageKey, type Params, plural, questionText, t } from "@gigsync/
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Locator, type Page, test } from "@playwright/test";
 import { newPhone, onScreen, open, openCard, Role, RUN, shoot, showTab, signIn, statusTag } from "./helpers.js";
+import { finishWork } from "./jobs.js";
 import { dealPaise, fillAsk, type Phone, publishCard, unlistCards } from "./journey.js";
 
 /**
@@ -126,7 +127,7 @@ test("a job walks from Awaiting you to In talks to Agreed, then leaves Activity 
   await shoot("agreed", shots, FOLDER);
 
   // ── Handed over but not paid: still Agreed. Paid in cash at the door: it leaves his Activity for Records ───────
-  await job.getByRole("button", { name: say("job.mark_done") }).click();
+  await finishWork(job);
   await expect(statusTag(job, en, "status.delivered")).toBeVisible();
   await counts(tab(workerPage, "activity.tab_agreed"), 1);
   await job.getByRole("button", { name: say("getpaid.cash") }).click();

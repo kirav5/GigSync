@@ -26,7 +26,7 @@ const KM_PER_DEGREE = 111;
 const RADIANS = Math.PI / 180;
 
 /** Kilometres between two points, flat-earth: exact enough across a city. */
-const kmBetween = (a: Place, b: Place): number =>
+export const kmBetween = (a: Place, b: Place): number =>
   Math.hypot(a.lat - b.lat, (a.lon - b.lon) * Math.cos(a.lat * RADIANS)) * KM_PER_DEGREE;
 
 /**

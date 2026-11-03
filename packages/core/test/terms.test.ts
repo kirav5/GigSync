@@ -1,4 +1,4 @@
-import { type EngagementId, type Terms, Trade } from "@gigsync/protocol";
+import { type EngagementId, type IsoWeekday, type Terms, Trade } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import {
   answerTerms,
@@ -10,6 +10,7 @@ import {
   MAX_OPTIONS,
   termDetails,
   workerStance,
+  workHoursOf,
 } from "../src/index.js";
 import { withTermDetails } from "../src/job/terms-flow.js";
 
@@ -117,5 +118,18 @@ describe("terms that change the price do it through the scope", () => {
     expect(replanned.mandate).toBeUndefined();
     expect(replanned.request.details).toEqual({ rooms: "2", labour_only: "no" });
     expect(withTermDetails(job, { materials: "household" })).toBe(job);
+  });
+});
+
+describe("working days (ADR 0050)", () => {
+  it("never finds a day off free, and shows the days and parts of the day on the card", () => {
+    const weekdays = { days: [1, 2, 3, 4, 5] as IsoWeekday[], windows: ["morning" as const] };
+    const stance = workerStance(weekdays, [], "2026-11-09");
+    expect(stance.accepts.when({ day: "2026-11-09", window: "morning" })).toBe(true);
+    expect(stance.accepts.when({ day: "2026-11-07", window: "morning" })).toBe(false);
+    expect(stance.accepts.when({ day: "daily", window: "morning" })).toBe(true);
+    expect(workHoursOf(weekdays)).toEqual(weekdays);
+    expect(workHoursOf({ days: [6, 7] })).toEqual({ days: [6, 7], windows: ["morning", "afternoon", "evening"] });
+    expect(workHoursOf({ materials: "worker" })).toBeUndefined();
   });
 });

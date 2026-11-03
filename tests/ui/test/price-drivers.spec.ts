@@ -66,6 +66,7 @@ test("a household describing a villa is asked what moves the price, then sees a 
   await expect(line(page, "driver.ask.finish")).toBeVisible();
   await tap(page, t(en, "driver.value.finish.plain"));
   await tap(page, t(en, "when.tomorrow"));
+  await tap(page, t(en, "when.any_time"));
 
   // 3,000 sq ft × (inside + 0.88 outside) × 1.15 (villa) × 0.4 (labour only) = 2,594 units at ₹40–₹65.
   await expect(line(page, "need.ask.budget")).toBeVisible();
@@ -86,6 +87,7 @@ test("'I don't know' ends the questions, and the range says what it assumed and 
   await villaAsked(page);
   await tap(page, t(en, "driver.dont_know"));
   await tap(page, t(en, "when.tomorrow"));
+  await tap(page, t(en, "when.any_time"));
   await expect(line(page, "need.ask.budget")).toBeVisible();
   await expect(line(page, "driver.confidence_line", { level: t(en, "driver.confidence.low") })).toBeVisible();
   await expect(line(page, "driver.spread", { driver: t(en, "driver.noun.paint_by") })).toBeVisible();

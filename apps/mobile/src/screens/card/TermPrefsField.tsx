@@ -1,5 +1,13 @@
 import type { MessageKey, TermPrefs } from "@gigsync/core";
-import { MaterialsBy, TermKey, TimeWindow, TRADE_TERMS, type Trade } from "@gigsync/protocol";
+import {
+  ISO_WEEKDAYS,
+  type IsoWeekday,
+  MaterialsBy,
+  TermKey,
+  TimeWindow,
+  TRADE_TERMS,
+  type Trade,
+} from "@gigsync/protocol";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 
@@ -41,6 +49,9 @@ function OneOf<V extends string | number>(p: {
   );
 }
 
+/** A list with nothing in it is no preference: left out. */
+const orNone = <T,>(list: T[]): T[] | undefined => (list.length > 0 ? list : undefined);
+
 /** The preferences with one field set, or left out when `value` is undefined. */
 function withField<K extends keyof TermPrefs>(prefs: TermPrefs, key: K, value: TermPrefs[K] | undefined): TermPrefs {
   const rest = Object.fromEntries(Object.entries(prefs).filter(([k]) => k !== key));
@@ -66,6 +77,10 @@ export function TermPrefsField({
   const windows = prefs.windows ?? [];
   const toggle = (w: TimeWindow) =>
     onChange({ ...prefs, windows: windows.includes(w) ? windows.filter((x) => x !== w) : [...windows, w] });
+  const days = prefs.days ?? [];
+  /** A day on or off; none ticked means every day, as before. */
+  const toggleDay = (d: IsoWeekday) =>
+    onChange(withField(prefs, "days", days.includes(d) ? orNone(days.filter((x) => x !== d)) : [...days, d].sort()));
 
   if (trades.length === 0) return null;
   return (
@@ -77,6 +92,13 @@ export function TermPrefsField({
           <Chip key={w} on={windows.includes(w)} label={t(`terms.window.${w}`)} onClick={() => toggle(w)} />
         ))}
       </div>
+      <span className={C.muted}>{t("terms.card_days")}</span>
+      <div className={C.row}>
+        {ISO_WEEKDAYS.map((d) => (
+          <Chip key={d} on={days.includes(d)} label={t(`day.${d}`)} onClick={() => toggleDay(d)} />
+        ))}
+      </div>
+      <span className={C.faint}>{t("terms.card_public")}</span>
       {negotiates(TermKey.enum.materials) && (
         <OneOf
           title={t("terms.card_materials")}

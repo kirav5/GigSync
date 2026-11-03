@@ -5,6 +5,7 @@ import {
   pilotAreaOf,
   type Storage,
   saveAddress,
+  served,
   TooManyAddressesError,
 } from "@gigsync/core";
 import {
@@ -19,13 +20,18 @@ import {
 import { type FormEvent, useState } from "react";
 import { ulid } from "ulid";
 import { placesNamed } from "../../adapters/geo.js";
+import { mapsAvailable } from "../../adapters/map.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
+import { PlaceMap } from "../../ui/PlaceMap.js";
 import { AREAS } from "../../ui/places.js";
 import { LocateStep } from "./LocateStep.js";
 import { PlaceSearch } from "./PlaceSearch.js";
 
 /** The form's text fields, in the order a visitor needs them; the label and the point are kept apart. */
+/** "Sorry, we're not in your area yet": a place outside every city GigSync serves. */
+const NOT_SERVED: MessageKey = "addr.not_served";
+
 const F = {
   house: "house",
   floor: "floor",
@@ -99,22 +105,32 @@ export function AddressForm({
   storage,
   onSaved,
   onCancel,
+  locateFirst = false,
 }: {
   session: Session;
   storage: Storage;
   onSaved: (address: SavedAddress) => void;
   onCancel: () => void;
+  /** Opened from "Use my current location": the location step starts at once. */
+  locateFirst?: boolean;
 }) {
   const { t } = useI18n();
   const [values, setValues] = useState<Values>({ ...EMPTY, city: PILOT_CITY_NAME });
   const [label, setLabel] = useState<AddressLabel>(AddressLabel.enum.home);
   const [point, setPoint] = useState<Place>();
+  // Whether the point marks the door (ADR 0050 §7): the phone's own fix, or a pin the owner has seen on the map.
+  const [fromPhone, setFromPhone] = useState(false);
+  const [mapShown, setMapShown] = useState(false);
+  const [checking, setChecking] = useState(false);
   const [found, setFound] = useState<string>();
   const [problem, setProblem] = useState<MessageKey>();
   const [busy, setBusy] = useState(false);
 
   const set = (name: FieldName, value: string) => setValues((v) => ({ ...v, [name]: value }));
   function fillFrom(place: GeoPlace, at: Place) {
+    // Outside the cities GigSync serves (ADR 0050 §6): said at once, and nothing filled in.
+    if (!served(at)) return setProblem(NOT_SERVED);
+    setProblem(undefined);
     setValues((v) => ({
       ...v,
       area: place.locality,
@@ -134,12 +150,19 @@ export function AddressForm({
       const at = point ?? (await pointFor(session, values)) ?? pilotAreaOf(values);
       // Search off or nothing found, and no pilot area in the words: the owner says which area it is nearest to.
       if (!at) return setProblem("addr.near");
+      if (!served(at)) return setProblem(NOT_SERVED);
+      // A typed address's point is its area's, never the door: with a map, the owner puts the pin on the door first.
+      if (!point && (await mapsAvailable())) {
+        setPoint(at);
+        return setChecking(true);
+      }
       const filled = Object.fromEntries(FIELDS.map((f) => [f, values[f].trim()]).filter(([, v]) => v));
       const parsed = SavedAddress.safeParse({
         id: `${ID_PREFIX}${ulid()}`,
         label,
         ...filled,
-        ...(at ? { point: at } : {}),
+        point: at,
+        pinned: fromPhone || mapShown,
       });
       if (!parsed.success) return setProblem("addr.err_missing");
       await saveAddress(storage, parsed.data);
@@ -155,11 +178,48 @@ export function AddressForm({
     <form className={C.card} aria-label={t("addr.add")} onSubmit={(e) => void save(e)}>
       <span className={C.label}>{t("addr.add")}</span>
       <p className={C.faint}>{t("addr.private")}</p>
-      <LocateStep session={session} onFound={fillFrom} />
-      <PlaceSearch session={session} onPick={(p) => fillFrom(p, p.point)} />
+      <LocateStep
+        session={session}
+        onFound={(place, at) => {
+          fillFrom(place, at);
+          setFromPhone(true);
+        }}
+        precise
+        asked={locateFirst}
+      />
+      {/* Not served: said where the owner is looking, next to the location they just used. */}
+      {problem === NOT_SERVED && (
+        <p className={C.error} role="alert">
+          {t(NOT_SERVED)}
+        </p>
+      )}
+      <PlaceSearch
+        session={session}
+        onPick={(p) => {
+          fillFrom(p, p.point);
+          setFromPhone(false);
+        }}
+      />
       {found && (
         <p className={C.muted} role="status">
           {t("addr.found", { area: found })}
+        </p>
+      )}
+      {/* The pin on the door (ADR 0050 §7): moving the map moves the exact point the worker will come to. */}
+      {point && (
+        <PlaceMap
+          at={point}
+          label={t("map.of", { place: found ?? values.area })}
+          onMove={(at) => {
+            setPoint(at);
+            setProblem(served(at) ? undefined : NOT_SERVED);
+          }}
+          onShown={() => setMapShown(true)}
+        />
+      )}
+      {checking && mapShown && (
+        <p className={C.muted} role="status">
+          {t("addr.check_pin")}
         </p>
       )}
       {FIELDS.map((f) => (
@@ -185,7 +245,7 @@ export function AddressForm({
           </label>
         ))}
       </fieldset>
-      {problem && (
+      {problem && problem !== NOT_SERVED && (
         <p className={C.error} role="alert">
           {t(problem, { max: MAX_ADDRESSES })}
         </p>
@@ -194,6 +254,7 @@ export function AddressForm({
         <NearestArea
           onPick={(a) => {
             setPoint({ lat: a.lat, lon: a.lon });
+            setFromPhone(false);
             setProblem(undefined);
           }}
         />

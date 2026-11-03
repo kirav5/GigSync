@@ -3,8 +3,9 @@ import type { GeoPlace, Place, Session } from "@gigsync/protocol";
 import { apiClient } from "./account.js";
 
 /**
- * Where the owner is, and what a point or typed words are (ADR 0045). The phone is asked once, with low accuracy (an
- * area is all that is needed), only after the app said why; the point is rounded to about a kilometre by the API
+ * Where the owner is, and what a point or typed words are (ADR 0045). The phone is asked once, only after the app said
+ * why: with low accuracy for a worker's area, which is all that needs, and with the phone's best accuracy for a
+ * household's address, the door a worker comes to; the point is rounded to about a kilometre by the API
  * client before it leaves the phone. Geocoding goes through GigSync's API, never to a map company from the phone.
  */
 
@@ -26,14 +27,21 @@ const PERMISSION_DENIED = 1;
 /** The API answers this when geocoding is not set up on the server: the app offers typing instead. */
 const GEOCODING_OFF = 503;
 
-/** The phone's position, once. */
-export function currentPoint(): Promise<Place> {
+/** A fresh fix for an address: an old or cell-tower one can be a street or two out. */
+const PRECISE_MAX_AGE_MS = 30_000;
+
+/** The phone's position, once; `precise` for an address, coarse (and possibly a few minutes old) for an area. */
+export function currentPoint(precise = false): Promise<Place> {
   return new Promise((resolve, reject) => {
     if (!("geolocation" in navigator)) return reject(new LocateError(LocateFailure.failed));
     navigator.geolocation.getCurrentPosition(
       (p) => resolve({ lat: p.coords.latitude, lon: p.coords.longitude }),
       (err) => reject(new LocateError(err.code === PERMISSION_DENIED ? LocateFailure.denied : LocateFailure.failed)),
-      { enableHighAccuracy: false, timeout: LOCATE_TIMEOUT_MS, maximumAge: FIX_MAX_AGE_MS },
+      {
+        enableHighAccuracy: precise,
+        timeout: LOCATE_TIMEOUT_MS,
+        maximumAge: precise ? PRECISE_MAX_AGE_MS : FIX_MAX_AGE_MS,
+      },
     );
   });
 }

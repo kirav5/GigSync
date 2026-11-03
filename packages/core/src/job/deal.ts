@@ -14,7 +14,7 @@ import {
   Role,
   TERMINAL_STATUSES,
 } from "@gigsync/protocol";
-import { addressFor, addressLine, listAddresses } from "../address/book.js";
+import { addressFor, addressLine, doorOf, listAddresses } from "../address/book.js";
 import { isArrangement } from "../contacts/rules.js";
 import { log } from "../log.js";
 import { remember } from "../memory/remember.js";
@@ -147,7 +147,8 @@ async function releasedCard(ctx: JobContext, r: JobRecord, need: Need | undefine
   if (r.engagement.role !== R.requester) return card;
   const saved = need?.site ? undefined : addressFor(await listAddresses(ctx.storage), need?.locality);
   const address = need?.site ?? (saved ? addressLine(saved) : signInAddress);
-  return address ? { ...card, address } : card;
+  const door = need?.site ? need.door : doorOf(saved);
+  return address ? { ...card, address, ...(door ? { point: door } : {}) } : card;
 }
 
 /** Both signed: send this owner's card, and (consumer) release every other request in the group. */

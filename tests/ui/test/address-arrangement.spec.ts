@@ -95,6 +95,7 @@ test("a household saves its home from its location and asks for a maid by the ho
   await shoot("where", { household: page }, FOLDER);
   await home.click();
   await chip(page, en, "when.today").click();
+  await chip(page, en, "when.any_time").click();
   // The budget is per hour, beside the estimate for an hour.
   await expect(log(page)).toContainText(t(en, "need.budget_per.hour"));
   await expect(log(page)).toContainText(/an hour/);

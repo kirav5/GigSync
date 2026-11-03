@@ -102,7 +102,8 @@ export function firstMissing(d: NeedDraft, needsAddress = false): NeedSlot {
   if (needsArrangement(d)) return NeedSlot.arrangement;
   if (d.area === undefined || (needsAddress && d.address === undefined)) return NeedSlot.area;
   if (priceOpen(d)) return NeedSlot.driver;
-  if (d.day === undefined) return NeedSlot.when;
+  // The day, then the hour in it (need-time.ts); a time said with the day answers both.
+  if (d.day === undefined || d.time === undefined) return NeedSlot.when;
   if (d.budget_paise === undefined) return NeedSlot.budget;
   return NeedSlot.confirm;
 }

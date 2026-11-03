@@ -5,6 +5,7 @@ import {
   addressFor,
   addressLine,
   areaKeyOf,
+  doorOf,
   listAddresses,
   localitySlug,
   NeedSlot,
@@ -64,6 +65,15 @@ describe("what the worker gets, and what leaves the phone before that", () => {
 
   it("sends only a point rounded to about a kilometre", () => {
     expect(requestPoint(home())).toEqual({ lat: 12.93, lon: 77.55 });
+  });
+
+  it("gives the worker the door's point only when the owner pinned it (ADR 0050 §7)", () => {
+    const pinned = home(1, { pinned: true });
+    expect(doorOf(pinned)).toEqual(pinned.point);
+    // A point from a search for the area, or from before pins were checked, is the area's, not the door.
+    expect(doorOf(home(1, { pinned: false }))).toBeUndefined();
+    expect(doorOf(home())).toBeUndefined();
+    expect(doorOf(undefined)).toBeUndefined();
   });
 
   it("places an address in a pilot area by its name or its point, else by its locality's slug", () => {

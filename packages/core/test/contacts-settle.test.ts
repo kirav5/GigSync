@@ -39,11 +39,16 @@ async function pair(protocol?: number) {
   return { worker, household, clock, both: [household.device, worker.device] };
 }
 
-/** A fan repair both signed, with Priya's number and address typed into her words. */
+/** Priya's door, as the pin on her address puts it (ADR 0050 §7). */
+const PRIYA_DOOR = { lat: 12.9719, lon: 77.6412 };
+
+/** A fan repair both signed, with Priya's number and address typed into her words, sent to her door. */
 async function signedFan(household: Phone, worker: Phone, both: Phone["device"][]): Promise<EngagementId> {
   const need = {
     ...fanNeed(65000, { problem: "fan dead, call 9800000101" }),
     need: "Fan at Flat 302, 3rd floor, 5th Cross",
+    site: "Flat 302, 3rd floor, 5th Cross",
+    door: PRIYA_DOOR,
   };
   const [job] = await household.device.request(need, [worker.user]);
   await settle(both);
@@ -66,7 +71,7 @@ describe("contact details of a one-time job", () => {
   it("go from both phones once it is done and the worker confirmed payment; the record stays", async () => {
     const { worker, household, both } = await pair();
     const id = await signedFan(household, worker, both);
-    expect((await job(worker, id)).contact?.phone).toBe(PRIYA.phone);
+    expect((await job(worker, id)).contact).toMatchObject({ phone: PRIYA.phone, point: PRIYA_DOOR });
     await worker.device.deliver(id, "Done, call 98450 12345 if it stops");
     await settle(both);
     expect((await job(household, id)).contact).toBeDefined();
@@ -87,6 +92,7 @@ describe("contact details of a one-time job", () => {
     expect((await worker.device.mentors.people()).map((p) => p.card.name)).toEqual([PRIYA.name]);
     const need = await household.device.store.need((await job(household, id)).engagement.group);
     expect(JSON.stringify(need)).not.toContain("9800000101");
+    expect(need?.door).toBeUndefined();
     expect(await household.device.payments.forEngagement(id)).toHaveLength(1);
 
     // Words that reach the job later (a note that was on its way) are cleaned on the next sync too.

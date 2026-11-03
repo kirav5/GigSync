@@ -1,6 +1,7 @@
 import { AnswerFromMemory, Arrangement, DetailFlag, type Lang, Trade } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import {
+  ANY_TIME_PICK,
   CITY_RATES,
   chooseNeed,
   DriverPick,
@@ -146,7 +147,7 @@ describe("the Find chat without memory, and the budget", () => {
       if (mode === ask) s = chooseNeed(s, MemoryPick.use);
       s = chooseNeed(s, Arrangement.enum.monthly);
       if (mode === ask) s = chooseNeed(s, MemoryPick.use);
-      s = chooseNeed(s, DriverPick.dontKnow);
+      s = chooseNeed(chooseNeed(s, DriverPick.dontKnow), ANY_TIME_PICK);
       expect(s.slot).toBe(NeedSlot.budget);
       expect(s.draft.budget_paise).toBeUndefined();
       expect(needPrompt(s).lines.some((l) => l.key.startsWith("memory.offer"))).toBe(false);

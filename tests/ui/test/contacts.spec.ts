@@ -1,7 +1,9 @@
 import { type MessageKey, type Params, plural, questionText, t } from "@gigsync/core";
 import { Lang, PROBLEM_HOLD_DAYS } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
+import { plainMap } from "./address.js";
 import { newPhone, open, Role, RUN, reveal, shoot, signIn, statusTag } from "./helpers.js";
+import { finishWork } from "./jobs.js";
 import { fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -13,6 +15,8 @@ import { fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journ
 const { en } = Lang.enum;
 const FOLDER = "contacts";
 const say = (key: MessageKey, params?: Params) => t(en, key, params);
+/** Directions to a point, opened in the phone's maps app. */
+const DIRECTIONS = /^https:\/\/www\.google\.com\/maps\/dir\/\?api=1&destination=-?\d+(\.\d+)?,-?\d+(\.\d+)?$/;
 
 let contexts: BrowserContext[] = [];
 test.afterEach(async () => {
@@ -26,8 +30,13 @@ async function pages(browser: { newContext: () => Promise<BrowserContext> }): Pr
   return (await Promise.all(contexts.map((c) => c.newPage()))) as [Page, Page];
 }
 
-/** A carpenter in Jayanagar and a household there, both signed on one job; their names and the household's address. */
-async function signedJob(workerPage: Page, householdPage: Page, tag: string) {
+/**
+ * A carpenter in Jayanagar and a household there, both signed on one job; their names. With `map`, the household's
+ * phone draws a map, so it checked the pin on its typed address and the worker gets the way to the door; without one,
+ * the address's point is only its area's, and the worker gets the address alone.
+ */
+async function signedJob(workerPage: Page, householdPage: Page, tag: string, map: boolean) {
+  if (map) await plainMap(householdPage);
   const worker: Phone = { page: workerPage, lang: en };
   const household: Phone = { page: householdPage, lang: en };
   const names = { worker: `Ganesh ${tag} ${RUN}`, household: `Lakshmi ${tag} ${RUN}` };
@@ -62,7 +71,12 @@ async function signedJob(workerPage: Page, householdPage: Page, tag: string) {
   await answer.getByRole("button", { name: say("job.send_answers") }).click();
   await signBoth({ worker, household }, FOLDER);
   await expect(householdPage.getByLabel(say("a11y.contact"))).toContainText(names.worker);
-  await expect(workerPage.getByLabel(say("a11y.contact"))).toContainText(address);
+  const contact = workerPage.getByLabel(say("a11y.contact"));
+  await expect(contact).toContainText(address);
+  // The household's door, for the way there (ADR 0050 §7): the pin she checked, in the phone's maps app.
+  const directions = contact.getByRole("link", { name: say("map.directions") });
+  if (map) await expect(directions).toHaveAttribute("href", DIRECTIONS);
+  else await expect(directions).toHaveCount(0);
   return names;
 }
 
@@ -71,7 +85,7 @@ const jobWith = (page: Page, name: string) => page.getByRole("article", { name: 
 /** The worker marks the job done and records the cash she was paid at the door. */
 async function doneAndCash(workerPage: Page, household: string) {
   const job = jobWith(workerPage, household);
-  await job.getByRole("button", { name: say("job.mark_done") }).click();
+  await finishWork(job);
   await expect(statusTag(job, en, "status.delivered")).toBeVisible();
   await job.getByRole("button", { name: say("getpaid.cash") }).click();
   await job.getByRole("button", { name: say("flag.yes"), exact: true }).click();
@@ -87,7 +101,7 @@ async function contactsGone(page: Page, name: string) {
 
 test("a one-time job done and paid: the contact details go from both phones, the job stays", async ({ browser }) => {
   const [workerPage, householdPage] = await pages(browser);
-  const names = await signedJob(workerPage, householdPage, "Paid");
+  const names = await signedJob(workerPage, householdPage, "Paid", true);
   await open(householdPage, "nav.my_jobs");
   await doneAndCash(workerPage, names.household);
 
@@ -102,7 +116,7 @@ test("a one-time job done and paid: the contact details go from both phones, the
 
 test("Report a problem keeps the contact details on both phones until it is resolved", async ({ browser }) => {
   const [workerPage, householdPage] = await pages(browser);
-  const names = await signedJob(workerPage, householdPage, "Problem");
+  const names = await signedJob(workerPage, householdPage, "Problem", false);
   await open(householdPage, "nav.my_jobs");
   const hers = jobWith(householdPage, names.worker);
   await hers.getByRole("button", { name: say("problem.report") }).click();

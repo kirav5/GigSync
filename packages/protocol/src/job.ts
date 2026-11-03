@@ -158,6 +158,8 @@ export const ContactCard = z.object({
   name: z.string().min(1).max(60),
   phone: Phone,
   address: z.string().min(1).max(300).optional(),
+  /** ADR 0050 §7: the address's exact point, for the worker's map; sealed to their devices like the address. */
+  point: Place.optional(),
 });
 export type ContactCard = z.infer<typeof ContactCard>;
 

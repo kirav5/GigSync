@@ -29,6 +29,8 @@ export interface NeedAnswers {
   /** The household's own words: the first thing said. */
   need: string;
   when: WhenChip;
+  /** The hour's chip as the owner reads it ("2 pm"); any time when not given. */
+  hour?: string;
   /** Said at the readback, when given: the chat reads it into the need's time. */
   time?: string;
   /** The answer to the trade's first question; skipped when not given. */
@@ -89,6 +91,11 @@ async function answer(phone: Phone, ask: NeedAnswers): Promise<boolean> {
   const { page, lang } = phone;
   if ((await says(page, lang, "need.confirm")) || (await says(page, lang, "need.confirm_to"))) return true;
   if (await says(page, lang, "need.ask.budget")) return say(phone, ask.budget).then(() => false);
+  // The hour, once the day is known (ADR 0050 §1): the journeys take any time unless they say one.
+  if (await says(page, lang, "need.ask.hour"))
+    return chip(page, ask.hour ?? t(lang, "when.any_time"))
+      .click()
+      .then(() => false);
   if (await says(page, lang, "need.ask.when"))
     return chip(page, t(lang, ask.when))
       .click()

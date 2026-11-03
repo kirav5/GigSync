@@ -1,10 +1,9 @@
 import {
+  addressAsked,
   addressChoice,
   ChatIntent,
   type GigDevice,
-  type Line,
   log,
-  type MessageKey,
   modelJobType,
   NeedSlot,
   needPrompt,
@@ -26,17 +25,16 @@ import { stopSpeaking } from "../../adapters/speech.js";
 import { needConfig } from "../../card/choices.js";
 import { answerMarket, routedMarket } from "../../estimate/market.js";
 import { fetchEstimate } from "../../estimate/useEstimate.js";
-import { askedTo, askWorkers, needOf, searchBoard, whereOf } from "../../find/ask.js";
-import { claimSearch, startFindChat, useNeed } from "../../find/findChats.js";
+import { openAddressDesk } from "../../find/addressDesk.js";
+import { askWorkers, needOf } from "../../find/ask.js";
+import { startFindChat, useNeed } from "../../find/findChats.js";
 import {
   answerNeed,
   beginNeed,
   jobTypeNeed,
   needAsked,
   needEstimateFound,
-  needFound,
   needSay,
-  needSearchFailed,
   relanguageNeed,
   showOwner,
   skillNeed,
@@ -44,6 +42,7 @@ import {
 import { findRoute } from "../../find/route.js";
 import { skillAsked } from "../../find/skills.js";
 import { useAddresses } from "../../find/useAddresses.js";
+import { ASKED, useNeedSearch } from "../../find/useNeedSearch.js";
 import { usePriceQuestions } from "../../find/usePriceQuestions.js";
 import { useI18n } from "../../i18n.js";
 import { Composer, Via } from "../../ui/Composer.js";
@@ -53,6 +52,7 @@ import { errorKey } from "../../ui/errorKey.js";
 import { PILOT_CITY } from "../../ui/places.js";
 import { phoneDay } from "../jobGroups.js";
 import { AddAddress } from "./AddAddress.js";
+import { AddressDesk } from "./AddressDesk.js";
 import { type FoundTurn, NeedTurns } from "./NeedTurns.js";
 import { needMemory, withMemory } from "./remembered.js";
 import "../talk.css";
@@ -67,9 +67,6 @@ interface Props {
 /** The phone has a usable model now: it decides the price questions (ADR 0041 §2); lite mode asks the fixed ones. */
 const modelOn = () => chosenModel.answering() !== ModelChoice.lite;
 const failure = (err: unknown) => ({ error: err instanceof Error ? err.message : String(err) });
-const ASKED: Line = { key: "need.asked" };
-/** Said if a yes ever comes before the need is whole: the readback asks again. */
-const INCOMPLETE: MessageKey = "need.again";
 
 /**
  * Find as a conversation, the way workers make their card in Talk: the owner says what they need in their own words,
@@ -94,7 +91,8 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   const [adding, setAdding] = useState(false);
   useEffect(() => {
     if (!empty || !saved) return;
-    const config = { ...needConfig(lang, phoneDay(ports.clock.now())), addresses: saved.map(addressChoice) };
+    const now = ports.clock.now();
+    const config = { ...needConfig(lang, phoneDay(now)), hour: now.getHours(), addresses: saved.map(addressChoice) };
     void needMemory(ports, account).then((remembered) =>
       beginNeed(open, startNeed({ ...withMemory(config, remembered), modelQuestions: modelOn() }, to)),
     );
@@ -105,6 +103,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     if (state && state.config.own !== lang)
       relanguageNeed(open, {
         ...withMemory(needConfig(lang, state.config.today), state.config.remembered),
+        hour: state.config.hour,
         ...(state.config.addresses ? { addresses: state.config.addresses } : {}),
       });
   }, [state, open, lang]);
@@ -132,42 +131,18 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     if (request) void fetchEstimate(session, request).then((found) => needEstimateFound(open, found));
   }, [requestKey, session, open]);
 
-  // The owner said yes to the readback: search the board, once, wherever they are by the time it answers; or, for a
-  // chat addressed to one worker, ask them.
-  useEffect(() => {
-    if (state?.slot !== NeedSlot.done || !(state.draft.trade || state.draft.skill)) return;
-    const claim = claimSearch(open);
-    if (claim === undefined) return;
-    if (state.to) {
-      const sent = needOf(state, i18n, ports.clock.now(), saved);
-      if (!sent) return needSearchFailed(claim, INCOMPLETE);
-      askWorkers(ports, device, sent, [askedTo(state.to)])
-        .then(() => {
-          needAsked(claim.chat, ASKED);
-          onAsked();
-        })
-        .catch((err: unknown) => {
-          log.warn("asking the worker failed", failure(err));
-          needSearchFailed(claim, errorKey(err));
-        });
-      return;
-    }
-    // Where the need is (ADR 0045): its saved address or pilot area; never a fallback to another area.
-    const at = whereOf(state.draft, saved ?? []);
-    if (!at) return needSearchFailed(claim, INCOMPLETE);
-    searchBoard(account, state.draft, at.area, state.radius_km, state.draft.arrangement)
-      .then((workers) => needFound(claim, workers))
-      .catch((err: unknown) => {
-        log.warn("search failed", failure(err));
-        needSearchFailed(claim, errorKey(err));
-      });
-  }, [state, open, account, i18n, ports, device, onAsked, saved]);
+  useNeedSearch({ state, open, account, i18n, ports, device, onAsked, saved });
 
   // The first answer, the need in the owner's words: in English the phone's model helps read it, and in every
   // language its scope is read into chips the owner confirms before the estimate is asked (ADR 0033 §5).
   async function send(text: string, via: Via) {
     if (!state || busy || reading) return;
     const chat = open;
+    // "Change my address", "नया पता जोड़ो": the address turn opens in the chat, whatever was being asked (ADR 0050 §6).
+    if (addressAsked(text)) {
+      showOwner(chat, text);
+      return openAddressDesk();
+    }
     const aloud = via === Via.voice;
     const first = state.slot === NeedSlot.trade;
     if (first) {
@@ -253,6 +228,14 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       onAddAddress={() => setAdding(true)}
     />
   );
+  const desk = (
+    <AddressDesk
+      ports={ports}
+      session={account.session}
+      added={(a) => added(open, a)}
+      said={(line) => needSay(open, line)}
+    />
+  );
   const form = adding && (
     <AddAddress chat={open} session={account.session} ports={ports} added={added} onDone={() => setAdding(false)} />
   );
@@ -274,6 +257,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   return (
     <>
       {conversation}
+      {desk}
       {form}
       {reading && (
         <p className={C.muted} role="status">

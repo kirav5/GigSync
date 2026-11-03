@@ -2,6 +2,7 @@ import { LOCALE, type MessageKey, type Params, plural, questionText, t } from "@
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { newPhone, open, openCard, Role, RUN, shoot, showTab, signIn, statusTag } from "./helpers.js";
+import { finishWork } from "./jobs.js";
 import { dealPaise, fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -86,7 +87,7 @@ test("a paid finished job moves from Agreed to Records, under its month, and ope
   await open(workerPage, "nav.activity");
   await showTab(workerPage, "activity.tab_agreed");
   const card = workerPage.getByRole("article", { name: say("a11y.job_with", { name: householdName }) });
-  await card.getByRole("button", { name: say("job.mark_done") }).click();
+  await finishWork(card);
   await expect(statusTag(card, en, "status.delivered")).toBeVisible();
   await open(workerPage, "nav.records");
   await expect(workerPage.getByText(say("passbook.empty"))).toBeVisible();

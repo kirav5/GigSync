@@ -33,6 +33,7 @@ import { MemoryPick } from "./need-memory.js";
 import type { NeedHint } from "./need-model.js";
 import { amountIn, DETAIL_MAX, type NeedFill, parseNeed } from "./need-parse.js";
 import { chooseScope, hearScope, withScopeRead } from "./need-scope.js";
+import { chooseHour, needsHour } from "./need-time.js";
 import { NEED_FIELD_WORDS } from "./need-words.js";
 import { finder, firstIn, normalize } from "./normalize.js";
 
@@ -173,7 +174,8 @@ function changedBy(d: NeedDraft, fill: NeedFill): NeedDraft | undefined {
   const next: NeedDraft = {
     ...(fill.trade ? withTrade(d, fill.trade) : d),
     ...(fill.area ? { area: fill.area } : {}),
-    ...(fill.day ? { day: fill.day, time: fill.time } : fill.time ? { time: fill.time } : {}),
+    // A new day said alone keeps the hour already given; the hour is asked only when there is none.
+    ...(fill.day ? { day: fill.day, time: fill.time ?? d.time } : fill.time ? { time: fill.time } : {}),
     ...(fill.budget_paise ? { budget_paise: fill.budget_paise } : {}),
   };
   const same = (Object.keys(next) as (keyof NeedDraft)[]).every((k) => next[k] === d[k]);
@@ -261,7 +263,8 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
     case NeedSlot.area:
       return chooseAddress(s, value) ?? (s.config.areas.some((a) => a.key === value) ? moveOn(s, atArea(d, value)) : s);
     case NeedSlot.when:
-      return WHEN_VALUES.includes(value) ? moveOn(s, { ...d, day: value }) : s;
+      if (needsHour(d)) return chooseHour(s, value) ?? s;
+      return WHEN_VALUES.includes(value) ? moveOn(s, { ...d, day: value, time: undefined }) : s;
     case NeedSlot.budget: {
       // The estimate's suggested budget, tapped: kept like a typed one, so it is not read back aloud.
       const budget = value === Pick.suggested ? suggestedBudget(s) : undefined;
@@ -291,5 +294,5 @@ const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 /** A date picked on the calendar, "YYYY-MM-DD", at the When question. A past or malformed day changes nothing. */
 export function chooseNeedDate(s: NeedState, day: string): NeedState {
   if (s.slot !== NeedSlot.when || !ISO_DAY.test(day) || day < s.config.today) return s;
-  return moveOn(s, { ...s.draft, day });
+  return moveOn(s, { ...s.draft, day, time: undefined });
 }

@@ -93,6 +93,8 @@ export interface NeedConfig {
   rates: RateCard;
   /** The phone's calendar day when the interview started, "YYYY-MM-DD", for dates said without a year. */
   today: string;
+  /** The phone's hour (0-23) when the interview started, so a job today is offered only hours still ahead. */
+  hour?: number | undefined;
   /** The phone has a usable model (ADR 0040): it decides the price questions; lite mode asks the fixed ones. */
   modelQuestions?: boolean;
   /** What the owner's agent remembers from past jobs, and whether to ask before using it; never the budget. */

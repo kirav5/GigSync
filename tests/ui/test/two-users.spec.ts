@@ -22,6 +22,7 @@ import {
   signIn,
   statusTag,
 } from "./helpers.js";
+import { finishWork } from "./jobs.js";
 import { fillAsk, publishCard, unlistCards } from "./journey.js";
 import { downloadRecord } from "./records.js";
 
@@ -187,7 +188,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   const job = anil.getByRole("article", { name: say("a11y.job_with", { name: priyaName }) });
   const askPayment = job.getByRole("button", { name: say("job.ask_payment"), exact: true });
   await job.getByRole("button", { name: say("update.on_my_way") }).click();
-  await job.getByRole("button", { name: say("job.mark_done") }).click();
+  await finishWork(job);
   // He asks before saving a UPI ID: the job says where it goes, and takes him there.
   await askPayment.click();
   await expect(job.getByText(say("money.need_upi"))).toBeVisible();
