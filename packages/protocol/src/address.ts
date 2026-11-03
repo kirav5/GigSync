@@ -44,6 +44,11 @@ export const SavedAddress = z.object({
   pin: PinCode,
   /** Where the owner said they are, when they used their location; else the locality's point from search. */
   point: Place.optional(),
+  /**
+   * The point marks the door (ADR 0050 §7): the phone's own fix, or a pin the owner saw on the map before saving. Only
+   * then is it sent to the worker; a point from a search for the area, or an address saved before this, is not.
+   */
+  pinned: z.boolean().optional(),
 });
 export type SavedAddress = z.infer<typeof SavedAddress>;
 

@@ -2,6 +2,7 @@ import {
   addressLine,
   areaKeyOfAddress,
   DayWord,
+  doorOf,
   draftDetails,
   EVERY_DAY,
   type GigDevice,
@@ -129,7 +130,8 @@ export function whereOf(
   const only = inArea.length === 1 ? inArea[0] : saved.length === 1 && !d.area ? saved[0] : undefined;
   const address = d.address ? saved.find((a) => a.id === d.address) : only;
   const point = address && requestPoint(address);
-  const door = address?.point ? { door: address.point } : {};
+  const pin = doorOf(address);
+  const door = pin ? { door: pin } : {};
   if (address && point) return { area: point, locality: address.area, site: addressLine(address), ...door };
   const pilot = AREAS.find((a) => a.key === d.area);
   // A saved address with no point and no pilot area near it: searched from its area's name when GigSync has one.

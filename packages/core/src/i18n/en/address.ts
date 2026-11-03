@@ -35,6 +35,7 @@ export const address = {
   "addr.label.work": "Work",
   "addr.label.other": "Other",
   "addr.save": "Save address",
+  "addr.check_pin": "Is the pin on your door? Move the map until it is, then tap Save address.",
   "addr.cancel": "Cancel",
   "addr.err_pin": "A PIN code has six digits.",
   "addr.err_missing": "Add the house or flat number, area, city and PIN code.",

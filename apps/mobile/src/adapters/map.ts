@@ -32,6 +32,27 @@ export const setMapSession = (session: Session | undefined): void => {
   mapSession = session;
 };
 
+/** The style, kept once fetched for this session; a failure (no key on the server, offline) is asked again next time. */
+let kept: { token: string; style: StyleSpecification } | undefined;
+async function styleOf(session: Session): Promise<StyleSpecification | undefined> {
+  if (kept?.token === session.token) return structuredClone(kept.style);
+  const auth = { [Header.authorization]: `${BEARER_PREFIX}${session.token}` };
+  const res = await fetch(`${API_BASE}${STYLE_PATH}`, { headers: auth });
+  if (!res.ok) return undefined;
+  kept = { token: session.token, style: (await res.json()) as StyleSpecification };
+  return structuredClone(kept.style);
+}
+
+/** Whether a map can be drawn now: someone is signed in and the API serves the map. */
+export async function mapsAvailable(): Promise<boolean> {
+  const session = mapSession;
+  if (!API_BASE || !session) return false;
+  return styleOf(session).then(
+    (style) => style !== undefined,
+    () => false,
+  );
+}
+
 /**
  * A map in `container`, or undefined when there is none to draw. With `mark`, the place is marked on the map itself,
  * so it stays put while the owner moves and zooms around it, with zoom buttons for a phone held in one hand.
@@ -45,9 +66,8 @@ export async function openMap(
   if (!API_BASE || !session) return undefined;
   const auth = { [Header.authorization]: `${BEARER_PREFIX}${session.token}` };
   try {
-    const res = await fetch(`${API_BASE}${STYLE_PATH}`, { headers: auth });
-    if (!res.ok) return undefined;
-    const style = (await res.json()) as StyleSpecification;
+    const style = await styleOf(session);
+    if (!style) return undefined;
     const [maplibre] = await Promise.all([import("maplibre-gl"), import("maplibre-gl/dist/maplibre-gl.css")]);
     const map = new maplibre.Map({
       ...options,

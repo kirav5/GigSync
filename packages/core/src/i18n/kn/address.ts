@@ -33,6 +33,7 @@ export const address: Readonly<Record<keyof typeof en, string>> = {
   "addr.label.work": "ಕಚೇರಿ",
   "addr.label.other": "ಬೇರೆ",
   "addr.save": "ವಿಳಾಸ ಉಳಿಸಿ",
+  "addr.check_pin": "ಪಿನ್ ನಿಮ್ಮ ಬಾಗಿಲಿನ ಮೇಲಿದೆಯೇ? ನಕ್ಷೆಯನ್ನು ಸರಿಸಿ ಅದನ್ನು ಬಾಗಿಲಿಗೆ ತನ್ನಿ, ನಂತರ ವಿಳಾಸ ಉಳಿಸಿ ಒತ್ತಿ.",
   "addr.cancel": "ರದ್ದುಮಾಡಿ",
   "addr.err_pin": "ಪಿನ್ ಕೋಡ್ ಆರು ಅಂಕಿಗಳದ್ದು.",
   "addr.err_missing": "ಮನೆ ಅಥವಾ ಫ್ಲ್ಯಾಟ್ ಸಂಖ್ಯೆ, ಏರಿಯಾ, ನಗರ ಮತ್ತು ಪಿನ್ ಕೋಡ್ ತುಂಬಿ.",

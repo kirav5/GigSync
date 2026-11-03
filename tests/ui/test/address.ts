@@ -1,6 +1,7 @@
 import { t } from "@gigsync/core";
 import type { Lang } from "@gigsync/protocol";
 import { expect, type Page } from "@playwright/test";
+import { API } from "../stack.js";
 import { open } from "./menu.js";
 
 /**
@@ -24,13 +25,31 @@ export interface NewAddress {
   area: string;
 }
 
-/** Fills the address form (Settings, or Find's "Add an address") with a house in the pilot area, and saves it. */
+/** A map with nothing but its background: enough to show the pin over it. */
+export const PLAIN_STYLE = {
+  version: 8,
+  sources: {},
+  layers: [{ id: "land", type: "background", paint: { "background-color": "#e9eef2" } }],
+};
+
+/** Ola's map needs the API's key, which test runs do not have: a plain style stands in, so maps are drawn. */
+export const plainMap = (page: Page) =>
+  page.route(`${API}/v1/geo/map/style.json`, (route) => route.fulfill({ json: PLAIN_STYLE }));
+
+/**
+ * Fills the address form (Settings, or Find's "Add an address") with a house in the pilot area, and saves it. Where a
+ * map is drawn, a typed address's pin is shown for the owner to check first (ADR 0050 §7): a second Save keeps it.
+ */
 export async function fillAddressForm(page: Page, lang: Lang, a: NewAddress) {
   const form = page.getByRole("form", { name: t(lang, "addr.add") });
   await form.getByLabel(t(lang, "addr.house"), { exact: true }).fill(a.house);
   await form.getByLabel(t(lang, "addr.area"), { exact: true }).fill(a.area);
   await form.getByLabel(t(lang, "addr.pin"), { exact: true }).fill(TEST_PIN);
-  await form.getByRole("button", { name: t(lang, "addr.save"), exact: true }).click();
+  const save = form.getByRole("button", { name: t(lang, "addr.save"), exact: true });
+  await save.click();
+  const check = form.getByRole("status").filter({ hasText: t(lang, "addr.check_pin") });
+  await expect.poll(async () => (await check.isVisible()) || !(await form.isVisible())).toBe(true);
+  if (await check.isVisible()) await save.click();
 }
 
 /** Saves an address from Settings › Saved addresses and comes back to the chat. */

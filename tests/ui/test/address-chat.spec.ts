@@ -1,6 +1,7 @@
 import { type MessageKey, t } from "@gigsync/core";
 import { type GeoResult, Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
+import { plainMap } from "./address.js";
 import { say } from "./findChat.js";
 import { API, newPhone, Role, RUN, shoot, signIn } from "./helpers.js";
 import { openCard } from "./menu.js";
@@ -24,12 +25,6 @@ const FOUND = {
   bengaluru: place("Banashankari 2nd Stage", "Bengaluru", "560070", 12.93, 77.55),
   mysuru: place("Saraswathipuram", "Mysuru", "570009", 12.31, 76.66),
 };
-/** A map with nothing but its background: enough to show the pin over it. */
-const PLAIN_STYLE = {
-  version: 8,
-  sources: {},
-  layers: [{ id: "land", type: "background", paint: { "background-color": "#e9eef2" } }],
-};
 const say_ = (key: MessageKey, params?: Record<string, string>) => t(en, key, params);
 
 let contexts: BrowserContext[] = [];
@@ -48,8 +43,7 @@ async function phoneAt(
   contexts.push(context);
   const page = await context.newPage();
   await page.route(`${API}/v1/geo/reverse**`, (route) => route.fulfill({ json: found }));
-  // Ola's map needs the API's key, which test runs do not have: a plain style stands in, so the pin and its map show.
-  await page.route(`${API}/v1/geo/map/style.json`, (route) => route.fulfill({ json: PLAIN_STYLE }));
+  await plainMap(page);
   return page;
 }
 

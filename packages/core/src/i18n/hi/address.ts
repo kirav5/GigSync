@@ -34,6 +34,7 @@ export const address: Readonly<Record<keyof typeof en, string>> = {
   "addr.label.work": "दफ़्तर",
   "addr.label.other": "दूसरा",
   "addr.save": "पता सहेजें",
+  "addr.check_pin": "क्या पिन आपके दरवाज़े पर है? नक्शा खिसकाकर उसे दरवाज़े पर लाएँ, फिर पता सहेजें दबाएँ।",
   "addr.cancel": "रद्द करें",
   "addr.err_pin": "पिन कोड छह अंकों का होता है।",
   "addr.err_missing": "मकान या फ़्लैट नंबर, इलाक़ा, शहर और पिन कोड भरें।",

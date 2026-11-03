@@ -61,7 +61,11 @@ Hand-testing against a home-services app the founders use found five gaps:
    place (a household's address and a worker's area: the pin is the map's centre, "Current location" recentres it),
    and the worker's signed job, where the household's door is marked. For that, the contact card a household's
    phone sends once both have signed (`ContactCard`) gains the address's exact `point`, sealed to the worker's
-   devices like the address text; an older phone ignores the field. On the job the worker can move and zoom the map
+   devices like the address text; an older phone ignores the field. Only a point that marks the door is sent
+   (`SavedAddress.pinned`, read by `doorOf`): the phone's own fix from "Use my current location", or a pin the owner
+   saw on the map before saving. A typed address takes its area's point from search, never the door, so where a map
+   can be drawn the form shows that pin and asks "Is the pin on your door?" before a second Save keeps it; with no
+   map, it saves unpinned and the worker gets the address text alone. Addresses saved before this are unpinned too. On the job the worker can move and zoom the map
    around a marker on the door, and "Directions" opens the way there in the phone's maps app (Google Maps' directions
    link, which opens its app where installed): only that tap sends the point outside GigSync, from the worker's own
    phone. The point goes when the contacts do (ADR 0039 §3): with the card on both phones, and from the household's
@@ -79,5 +83,5 @@ Hand-testing against a home-services app the founders use found five gaps:
 - Map tiles cost per request at Ola; the API caches them, but a busy pilot needs a budget, and a static map on the
   job card may be cheaper than an interactive one.
 - The household's exact door reaches the worker they signed with. It went as text already; the point makes it
-  navigable. A typed address saved without the owner seeing the pin takes its point from search, which can be wrong
-  for a loosely written address, and the worker's directions follow it.
+  navigable. A pin is still only as good as the owner's check: one who taps Save without looking sends the area's
+  point. Households who saved an address before pins existed give no Directions until they save it again.

@@ -16,10 +16,13 @@ const STREET_ZOOM = 16;
 export function PlaceMap({
   at,
   onMove,
+  onShown,
   label,
 }: {
   at: Place;
   onMove?: (place: Place) => void;
+  /** The map is drawn, so the owner sees the pin. */
+  onShown?: () => void;
   /** What the map is of, for screen readers. */
   label: string;
 }) {
@@ -28,6 +31,8 @@ export function PlaceMap({
   const map = useRef<MapLibreMap | undefined>(undefined);
   const moved = useRef(onMove);
   moved.current = onMove;
+  const drawn = useRef(onShown);
+  drawn.current = onShown;
   const [shown, setShown] = useState(false);
   const picking = onMove !== undefined;
 
@@ -40,6 +45,7 @@ export function PlaceMap({
       if (!live) return m?.remove();
       map.current = m;
       setShown(m !== undefined);
+      if (m) drawn.current?.();
       m?.on("moveend", () => {
         const c = m.getCenter();
         moved.current?.({ lat: c.lat, lon: c.lng });
@@ -51,6 +57,11 @@ export function PlaceMap({
       map.current = undefined;
     };
   }, []);
+
+  // The map is made while its box is hidden, at no size: once shown, it fits the box.
+  useEffect(() => {
+    if (shown) map.current?.resize();
+  }, [shown]);
 
   // A new place from elsewhere (the phone's location, a search): the map goes there.
   useEffect(() => {
