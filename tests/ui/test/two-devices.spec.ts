@@ -49,7 +49,13 @@ test("a worker's two open phones answer one request once", async ({ browser }) =
   await floor.getByRole("button", { name: say("settings.save") }).click();
   await expect(floor).toHaveCount(0);
 
-  await signIn(household, { role: Role.consumer, name: householdName, phone: newPhone(), address: `Flat 9 (${RUN})` });
+  await signIn(household, {
+    role: Role.consumer,
+    name: householdName,
+    phone: newPhone(),
+    address: `Flat 9 (${RUN})`,
+    area: "Indiranagar",
+  });
   await fillAsk(
     { page: household, lang: en },
     {

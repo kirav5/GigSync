@@ -24,15 +24,20 @@ export interface NewAddress {
   area: string;
 }
 
-/** Saves an address from Settings › Saved addresses and comes back to the chat. */
-export async function saveAddress(page: Page, lang: Lang, a: NewAddress) {
-  await open(page, "nav.settings", lang);
-  await page.getByRole("button", { name: t(lang, "addr.add"), exact: true }).click();
+/** Fills the address form (Settings, or Find's "Add an address") with a house in the pilot area, and saves it. */
+export async function fillAddressForm(page: Page, lang: Lang, a: NewAddress) {
   const form = page.getByRole("form", { name: t(lang, "addr.add") });
   await form.getByLabel(t(lang, "addr.house"), { exact: true }).fill(a.house);
   await form.getByLabel(t(lang, "addr.area"), { exact: true }).fill(a.area);
   await form.getByLabel(t(lang, "addr.pin"), { exact: true }).fill(TEST_PIN);
   await form.getByRole("button", { name: t(lang, "addr.save"), exact: true }).click();
+}
+
+/** Saves an address from Settings › Saved addresses and comes back to the chat. */
+export async function saveAddress(page: Page, lang: Lang, a: NewAddress) {
+  await open(page, "nav.settings", lang);
+  await page.getByRole("button", { name: t(lang, "addr.add"), exact: true }).click();
+  await fillAddressForm(page, lang, a);
   await expect(page.getByRole("region", { name: t(lang, "addr.title") })).toContainText(a.house);
   await open(page, "nav.find", lang);
 }
