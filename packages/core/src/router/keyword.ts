@@ -46,9 +46,13 @@ function noteText(t: string): string | undefined {
   return undefined;
 }
 
+/** The first of the owner's contacts the words name, as a whole name. */
+export const namedContact = (text: string, contacts: readonly string[]): string | undefined =>
+  contacts.find((c) => new RegExp(`(?<!${LETTER})${escapeRe(c)}(?!${LETTER})`, "iu").test(text));
+
 export function routeByKeywords(text: string, contacts: readonly string[]): Route {
   const t = text.trim();
-  const contact = contacts.find((c) => new RegExp(`(?<!${LETTER})${escapeRe(c)}(?!${LETTER})`, "iu").test(t));
+  const contact = namedContact(t, contacts);
   const note = noteText(t);
 
   if (note !== undefined) return { expert: Expert.remember, text: note };

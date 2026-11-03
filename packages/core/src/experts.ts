@@ -1,4 +1,4 @@
-import { type Engagement, Lang, Role, Trade, type UserId } from "@gigsync/protocol";
+import { type Booking, type Engagement, Lang, Role, type TermWhen, Trade, type UserId } from "@gigsync/protocol";
 import { ulid } from "ulid";
 import { newEngagement } from "./engagement/machine.js";
 import type { MessageKey, Params } from "./i18n/t.js";
@@ -12,6 +12,8 @@ export const CardKind = {
   answer: "answer",
   draft: "draft",
   needsModel: "needs_model",
+  /** The worker's own schedule (ADR 0048): a line, then bookings and signed jobs the phone writes in its language. */
+  schedule: "schedule",
 } as const;
 
 /** What the agent says, as a key each phone renders in its owner's language (`t(lang, key, params)`). */
@@ -37,7 +39,8 @@ export type Card =
   | { kind: typeof CardKind.answer; say: Phrase; sources: string[] }
   | { kind: typeof CardKind.answer; words: Words; sources: string[] }
   | { kind: typeof CardKind.draft; say: Phrase; engagement: Engagement }
-  | { kind: typeof CardKind.needsModel; say: Phrase };
+  | { kind: typeof CardKind.needsModel; say: Phrase }
+  | { kind: typeof CardKind.schedule; say: Phrase; bookings: Booking[]; jobs: TermWhen[] };
 
 /** The language the on-device models answer in today (HLD 7.6); their replies are translated on the phone. */
 const MODEL_LANG = Lang.enum.en;

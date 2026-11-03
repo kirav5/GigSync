@@ -18,6 +18,7 @@ import {
   RouteVia,
   routeComplete,
 } from "./intent.js";
+import { wordsBear } from "./keyword-route.js";
 import { routePrompt } from "./model-prompt.js";
 import { replySchema } from "./reply-schema.js";
 
@@ -145,7 +146,9 @@ function checkedRoute(reply: string, text: string, ctx: IntentContext): ChatRout
   const intent = parsed && oneOf(parsed.intent, INTENTS);
   if (!parsed || !intent || !intentAllowed(intent, ctx)) return undefined;
   const slots = checkSlots(parsed, text, ctx);
-  return routeComplete(intent, slots, ctx) ? { intent, slots, via: RouteVia.model } : undefined;
+  return routeComplete(intent, slots, ctx) && wordsBear(intent, text)
+    ? { intent, slots, via: RouteVia.model }
+    : undefined;
 }
 
 /** The intent the phone's model names, checked by core; undefined when there is none to trust. */

@@ -1,0 +1,15 @@
+/* A worker's bookings (ADR 0048): one line each, Delete at the end of the line. */
+.booking-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.booking-lines li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}

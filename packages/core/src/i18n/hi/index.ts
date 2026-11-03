@@ -27,6 +27,7 @@ import { progress } from "./progress.js";
 import { qr } from "./qr.js";
 import { record } from "./record.js";
 import { records } from "./records.js";
+import { schedule } from "./schedule.js";
 import { screens } from "./screens.js";
 import { shell } from "./shell.js";
 import { skill } from "./skill.js";
@@ -52,6 +53,7 @@ export const hi: Strings = {
   ...record,
   ...records,
   ...talk,
+  ...schedule,
   ...progress,
   ...need,
   ...memory,

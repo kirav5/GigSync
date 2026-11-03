@@ -117,7 +117,7 @@ function tradeIn(text: string): Trade | undefined {
 const prepared = (text: string) => asciiDigits(normalize(text));
 
 /** The day `days` after an ISO day, as "YYYY-MM-DD". */
-const addDays = (iso: string, days: number): string =>
+export const addDays = (iso: string, days: number): string =>
   new Date(Date.parse(iso) + days * MS_PER_DAY).toISOString().slice(0, ISO_DAY_LENGTH);
 
 /** A real calendar day as ISO, or undefined ("31/2" is not a date). */
@@ -156,7 +156,7 @@ function dateIn(text: string, today: string): string | undefined {
 }
 
 /** The day a sentence names: a day word, every day, or a date. */
-function dayIn(text: string, today: string): string | undefined {
+export function dayIn(text: string, today: string): string | undefined {
   const said = prepared(text);
   if (firstIn(said, DAY_AFTER) >= 0) return addDays(today, DAYS_AFTER_TOMORROW);
   if (firstIn(said, DAILY) >= 0) return EVERY_DAY;

@@ -11,16 +11,16 @@ const Q = QuestionKey.enum;
 const T = Trade.enum;
 
 /** "कल" is both yesterday and tomorrow; in a request for work it can only mean tomorrow. */
-export const TOMORROW_WORDS = ["tomorrow", "tomorow", "tmrw", "kal", "कल", "ನಾಳೆ"];
+export const TOMORROW_WORDS = ["tomorrow", "tomorow", "tmrw", "kal", "कल", "ನಾಳೆ", "naale"];
 /** Today, and the words for "as soon as you can", which can only mean today. */
 export const TODAY_WORDS = ["today", "tonight", "this morning", "this afternoon", "this evening", "asap", "urgent"]
   .concat(["right away", "immediately", "aaj", "abhi", "turant", "आज", "अभी", "तुरंत", "फौरन"])
-  .concat(["ಇಂದು", "ಇವತ್ತು", "ಇವೊತ್ತು", "ಈವತ್ತು", "ಈಗಲೇ", "ತಕ್ಷಣ"]);
+  .concat(["ಇಂದು", "ಇವತ್ತು", "ಇವೊತ್ತು", "ಈವತ್ತು", "ಈಗಲೇ", "ತಕ್ಷಣ", "ivattu", "ivatthu"]);
 /** Checked before tomorrow: "day after tomorrow" names tomorrow too. */
 export const DAY_AFTER_WORDS = ["day after tomorrow", "parso", "parson", "परसों", "ನಾಡಿದ್ದು"];
 export const DAILY_WORDS = ["every day", "every morning", "every evening", "each day", "daily", "everyday", "roz"]
   .concat(["rozana", "har din", "रोज", "रोजाना", "हर दिन", "प्रतिदिन"])
-  .concat(["ಪ್ರತಿದಿನ", "ಪ್ರತಿ ದಿನ", "ದಿನಾಲೂ", "ದಿನಾಲು", "ದಿನನಿತ್ಯ"]);
+  .concat(["ಪ್ರತಿದಿನ", "ಪ್ರತಿ ದಿನ", "ದಿನಾಲೂ", "ದಿನಾಲು", "ದಿನನಿತ್ಯ", "pratidina", "prati dina", "dinaalu"]);
 
 /** Parts of the day, kept as the owner said them for the time. */
 export const PART_OF_DAY = ["morning", "afternoon", "evening", "night", "subah", "dopahar", "shaam", "raat"].concat([

@@ -14,6 +14,8 @@ import {
   type UserId,
 } from "@gigsync/protocol";
 import type { Model } from "../ports.js";
+import { listBookings } from "../schedule/store.js";
+import { bookingWhens } from "../schedule/windows.js";
 import type { JobContext } from "./context.js";
 import { countIn } from "./details.js";
 import { type Move, MoveKind } from "./negotiate.js";
@@ -155,7 +157,10 @@ export async function workerTerms(
   const on = await termsOn(ctx, r);
   if (!on) return { r: r.terms ? r : { ...r, terms: { on } }, agreed: true };
   const trade = r.request.trade;
-  const stance = workerStance(prefs, bookedTimes(await ctx.store.jobs()), dayOf(r.request));
+  // Signed jobs and the worker's own bookings alike (ADR 0048 §5): the agent never offers a window either covers.
+  const [jobs, bookings] = await Promise.all([ctx.store.jobs(), listBookings(ctx.storage)]);
+  const busy = [...bookedTimes(jobs), ...bookingWhens(bookings)];
+  const stance = workerStance(prefs, busy, dayOf(r.request));
   const answer = answerTerms(trade, stance, theirs && fitTerms(trade, theirs));
   // The worker wrote nothing for this job; the household's words let the model suit them, inside the list.
   const next = await chosen(ctx.model, answer, undefined, r.request.need);

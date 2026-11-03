@@ -12,6 +12,7 @@ import {
 } from "@gigsync/protocol";
 import { asciiDigits, countIn } from "../job/details.js";
 import type { NewNeed } from "../job/device.js";
+import { AFTERNOON_FROM, EVENING_FROM } from "../schedule/windows.js";
 import type { NeedDraft } from "./need.js";
 import { draftDetails } from "./need-request.js";
 import { scopeFlexible } from "./need-scope.js";
@@ -30,9 +31,6 @@ const PM: Finder[] = PM_WORDS.map(finder);
 const AM: Finder[] = AM_WORDS.map(finder);
 const HOUR = /(?<!\d)(\d{1,2})(?!\d)/;
 const NOON = 12;
-/** From this hour (24-hour clock) the work is in the afternoon, and from the next in the evening. */
-const AFTERNOON_FROM = 12;
-const EVENING_FROM = 16;
 const LAST_HOUR = 23;
 
 /** The part of the day a time names: a word for it, or an hour said with am or pm; undefined otherwise. */

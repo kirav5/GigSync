@@ -1,0 +1,68 @@
+{
+  "cases": [
+    {
+      "id": "en-schedule-01",
+      "lang": "en",
+      "role": "worker",
+      "text": "save my booking for tomorrow 2-3PM",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "en-schedule-02",
+      "lang": "en",
+      "role": "worker",
+      "text": "I've got a deep cleaning at the Menon flat on Saturday 9 to 1, put it down",
+      "intent": "schedule",
+      "source": "miss"
+    },
+    {
+      "id": "en-schedule-03",
+      "lang": "en",
+      "role": "worker",
+      "text": "block 4:30 to 6 pm today, I'm cooking for a party in Koramangala",
+      "intent": "schedule",
+      "source": "miss"
+    },
+    {
+      "id": "en-schedule-04",
+      "lang": "en",
+      "role": "worker",
+      "text": "what bookings do I have tomorrow?",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "en-schedule-05",
+      "lang": "en",
+      "role": "worker",
+      "text": "am I free on Friday afternoon or do I have something booked",
+      "intent": "schedule",
+      "source": "miss"
+    },
+    {
+      "id": "en-schedule-06",
+      "lang": "en",
+      "role": "worker",
+      "text": "cancel my booking tomorrow at 2 pm",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "en-schedule-07",
+      "lang": "en",
+      "role": "worker",
+      "text": "the Wednesday job with Mrs Kulkarni got called off, remove it",
+      "intent": "schedule",
+      "source": "miss"
+    },
+    {
+      "id": "en-schedule-08",
+      "lang": "en",
+      "role": "worker",
+      "text": "I work at the Shah house every day 7 to 9 am, add that",
+      "intent": "schedule",
+      "source": "list"
+    }
+  ]
+}

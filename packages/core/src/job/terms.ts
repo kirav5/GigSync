@@ -200,7 +200,7 @@ export function workerStance(prefs: TermPrefs | undefined, booked: readonly Term
 }
 
 /** Two times overlap: the same window on the same day, or on any day for work done every day. */
-const clashes = (a: TermWhen, b: TermWhen): boolean =>
+export const clashes = (a: TermWhen, b: TermWhen): boolean =>
   a.window === b.window && (a.day === b.day || a.day === EVERY_DAY || b.day === EVERY_DAY);
 
 /** The terms the owner asked for that the agreed terms change: the owner signs those themselves. */

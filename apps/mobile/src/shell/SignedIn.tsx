@@ -9,6 +9,7 @@ import { startFindChat } from "../find/findChats.js";
 import { useI18n } from "../i18n.js";
 import { useMovePrompt } from "../move/useMovePrompt.js";
 import { useOpenedQr } from "../qr/useOpenedQr.js";
+import { useReminders } from "../schedule/useReminders.js";
 import { LinksProvider } from "../screens/mentor/links.js";
 import { Screen } from "../state.js";
 import { startChat } from "../talk/talkStore.js";
@@ -80,6 +81,8 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
   useRecordFollow(device, account, () => void run(async () => undefined));
   // Notifications: the push address and language told again on each open, and who the jobs are with.
   useAlerts(account.session, lang, view.jobs, view.names);
+  // A worker's own bookings about to start, reminded by the phone itself while the app runs (ADR 0048 §7).
+  useReminders(ports, lang, isWorker);
   // A new phone (ADR 0037): an owner with nothing here yet and another active phone is asked once whether they are
   // moving from it, and a worker's card comes back from the board.
   // Only from the chat it opened on: a screen the owner moved to meanwhile stays.

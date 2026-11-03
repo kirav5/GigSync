@@ -18,6 +18,7 @@ const MEANING: Readonly<Record<ChatIntent, string>> = {
   [I.helpStop]: "they want to stop helping newcomers or being a mentor, or be taken off that list",
   [I.moving]: "they themselves are moving or coming to another city for work, not someone else (city, if named)",
   [I.earnings]: "how much money they themselves earned, got paid or are still owed",
+  [I.schedule]: "their own bookings or work times: keep one, ask what is on their schedule, or cancel one",
   [I.market]:
     "they ask a price, rate or salary for a kind of work, or if an amount is fair; not their own earnings (trade, area, amount)",
   [I.guide]: "a question about settling in the new city: a room, a bank, a SIM, documents, transport",
@@ -36,6 +37,7 @@ const RULES = [
   "setRule is permission: a contact can or cannot see, know or ask something. askContact is a question to or about them.",
   "Asking what they wrote, noted or told before is askSelf, even when it names a trade or a person.",
   "Work already done, money already paid and news about someone else are chat.",
+  "Keeping, asking about or cancelling their own booking or work time is schedule, not find and not remember.",
 ];
 
 /** setRule just before askContact, chat still last: models reach for askContact whenever a contact is named. */

@@ -106,6 +106,12 @@ export const EDGE_SAYINGS: Readonly<Partial<Record<ChatIntent, readonly string[]
     "ಶೋಭಾ ಅವ್ರಿಗೆ ಒಳ್ಳೆ ಎಲೆಕ್ಟ್ರಿಷಿಯನ್ ಗೊತ್ತಾ ಕೇಳಿ",
     "ಪ್ರಕಾಶ್ ಇವತ್ತು ಎಷ್ಟೊತ್ತಿಗೆ ಫ್ರೀ ಆಗ್ತಾನೆ",
   ],
+  schedule: [
+    "keep 3 to 4 tomorrow blocked, I have a cleaning job at Mrs Das",
+    "save Sunday 7 to 9 am for the Kapoor family",
+    "रविवार सुबह 7 से 9 कपूर परिवार के यहाँ काम है, बुकिंग रख लो",
+    "ರವಿವಾರ ಬೆಳಿಗ್ಗೆ 7 ರಿಂದ 9 ಕಪೂರ್ ಮನೆಯಲ್ಲಿ ಕೆಲಸ ಇದೆ, ಬುಕಿಂಗ್ ಇಡಿ",
+  ],
   chat: [
     "my cousin just got a job in Pune, he leaves next week",
     "the maid next door told me she gets 6000 a month",
