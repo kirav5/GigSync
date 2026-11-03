@@ -125,6 +125,11 @@ export interface Model {
  */
 export interface Embedder {
   embed(text: string): Promise<readonly number[] | null>;
+  /**
+   * Several texts at once, in order, null where one could not be embedded. Where the model batches, this is far
+   * faster than one call per text; an embedder without it is asked one text at a time.
+   */
+  embedMany?(texts: readonly string[]): Promise<(readonly number[] | null)[]>;
 }
 
 export interface Clock {

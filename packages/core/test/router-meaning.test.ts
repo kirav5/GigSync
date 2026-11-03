@@ -1,5 +1,5 @@
 import { Lang, Trade } from "@gigsync/protocol";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   ChatIntent,
   ChatRole,
@@ -37,6 +37,7 @@ describe("MeaningIndex", () => {
       { said: "paint the walls", label: "painter" },
       { said: "fix the tap", label: "plumber" },
     ]);
+    await index.warm();
     expect(await index.nearest("please paint my walls", () => true)).toMatchObject({ label: "painter" });
     expect(await index.nearest("please paint my walls", (l) => l !== "painter")).toMatchObject({ label: "plumber" });
   });
@@ -46,9 +47,33 @@ describe("MeaningIndex", () => {
     expect(await new MeaningIndex(new BrokenEmbedder(), INTENT_SAYINGS).nearest("hello", () => true)).toBeUndefined();
     const embedder = new BagOfWordsEmbedder();
     const index = new MeaningIndex(embedder, INTENT_SAYINGS);
+    await index.warm();
     await index.nearest("hello", () => true);
     await index.nearest("thanks", () => true);
+    await index.warm();
     expect(embedder.texts.length).toBe(INTENT_SAYINGS.length + 2);
+  });
+
+  it("never makes a lookup wait for the sayings: nothing until they are ready, then the label", async () => {
+    const index = new MeaningIndex(new BagOfWordsEmbedder(), [{ said: "paint the walls", label: "painter" }]);
+    expect(await index.nearest("paint the walls", () => true)).toBeUndefined();
+    await index.warm();
+    expect(await index.nearest("paint the walls", () => true)).toMatchObject({ label: "painter" });
+  });
+
+  it("embeds the sayings in batches when the embedder can", async () => {
+    const embedder = new BagOfWordsEmbedder();
+    const calls: number[] = [];
+    const batching = {
+      embed: (t: string) => embedder.embed(t),
+      embedMany: async (texts: readonly string[]) => {
+        calls.push(texts.length);
+        return Promise.all(texts.map((t) => embedder.embed(t)));
+      },
+    };
+    await new MeaningIndex(batching, INTENT_SAYINGS).warm();
+    expect(calls.length).toBe(Math.ceil(INTENT_SAYINGS.length / 32));
+    expect(calls.reduce((a, b) => a + b, 0)).toBe(INTENT_SAYINGS.length);
   });
 
   it("cosine of unit vectors", () => {
@@ -59,6 +84,7 @@ describe("MeaningIndex", () => {
 
 describe("meaningRoute", () => {
   const index = intentIndex(new BagOfWordsEmbedder());
+  beforeAll(() => index.warm());
 
   it("names the intent of a saying it knows, and says who named it", async () => {
     expect(await meaningRoute(EXACT, worker, index)).toEqual({ intent: I.helpStop, slots: {}, via: RouteVia.meaning });
@@ -103,6 +129,7 @@ describe("routeChat with a meaning index", () => {
   it("asks the embedding model before the language model, and the lists last", async () => {
     const model = new FakeModel(JSON.stringify({ intent: "chat" }));
     const index = intentIndex(new BagOfWordsEmbedder());
+    await index.warm();
     expect((await routeChat(EXACT, worker, model, { meaning: index })).via).toBe(RouteVia.meaning);
     expect(model.prompts).toHaveLength(0);
     const far = await routeChat("zxqv plorth", worker, model, { meaning: index });
@@ -120,6 +147,7 @@ describe("routeChat with a meaning index", () => {
 
 describe("tradeByMeaning", () => {
   const index = tradeIndex(new BagOfWordsEmbedder());
+  beforeAll(() => index.warm());
 
   it("hears a trade the word lists do not", async () => {
     expect(await tradeByMeaning(index, "get my house cleaned")).toBe(Trade.enum.maid);
