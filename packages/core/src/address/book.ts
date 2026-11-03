@@ -48,6 +48,16 @@ export function addressLine(a: SavedAddress): string {
   return parts.filter((p): p is string => Boolean(p?.trim())).join(LINE_GAP);
 }
 
+/**
+ * The saved address a need without one picked is for, so the worker never gets an address the owner replaced: the one
+ * in the need's locality, else the only one, else the newest. Undefined only when nothing is saved.
+ */
+export function addressFor(saved: readonly SavedAddress[], locality: string | undefined): SavedAddress | undefined {
+  const wanted = locality?.trim().toLowerCase();
+  const inLocality = wanted ? saved.filter((a) => a.area.trim().toLowerCase() === wanted) : [];
+  return inLocality.at(-1) ?? saved.at(-1);
+}
+
 /** The pilot area the address is in: named in its area field, else the one whose centre is near its point. */
 export function pilotAreaOf(a: Pick<SavedAddress, "area" | "point">): PilotArea | undefined {
   const named = areaIn(a.area, PILOT_AREA_CHOICES);

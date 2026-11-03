@@ -41,6 +41,7 @@ export const address: Readonly<Record<keyof typeof en, string>> = {
   "addr.chip": "{label} · {area}",
   "addr.max": "ನೀವು ಗರಿಷ್ಠ {max} ವಿಳಾಸ ಇಟ್ಟುಕೊಳ್ಳಬಹುದು. ಹೊಸದನ್ನು ಸೇರಿಸಲು ಒಂದನ್ನು ತೆಗೆಯಿರಿ.",
   "need.ask.address": "ಕೆಲಸ ಎಲ್ಲಿ ಆಗಬೇಕು?",
+  "need.ask.address_in": "{area} ನಲ್ಲಿ ಕೆಲಸಗಾರ ಯಾವ ವಿಳಾಸಕ್ಕೆ ಬರಬೇಕು?",
   "card.use_location": "ನನ್ನ ಏರಿಯಾಗೆ ನನ್ನ ಸ್ಥಳ ಬಳಸಿ",
   "card.area_found": "ನಿಮ್ಮ ಏರಿಯಾ: {area}",
 };

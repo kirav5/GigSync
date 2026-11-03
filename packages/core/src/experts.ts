@@ -1,7 +1,8 @@
-import { type Engagement, Lang, Role, type UserId } from "@gigsync/protocol";
+import { type Engagement, Lang, Role, Trade, type UserId } from "@gigsync/protocol";
 import { ulid } from "ulid";
 import { newEngagement } from "./engagement/machine.js";
 import type { MessageKey, Params } from "./i18n/t.js";
+import { BULLET_MARK, plainReply } from "./model-reply.js";
 import { Collection, type Ports } from "./ports.js";
 import { Expert, type Route } from "./router/keyword.js";
 
@@ -41,6 +42,11 @@ export type Card =
 /** The language the on-device models answer in today (HLD 7.6); their replies are translated on the phone. */
 const MODEL_LANG = Lang.enum.en;
 
+/** Two short sentences and a little room: a reply the owner reads at a glance and hears in a breath. */
+const REPLY_MAX_TOKENS = 120;
+
+const LINE = "\n";
+
 /** Engagements the agent opens from a chat question. */
 const QUESTION_TOPIC = "question";
 
@@ -67,11 +73,12 @@ export async function runExpert(route: Route, ports: Ports, contacts: Contact[])
       const episodes = await ports.storage.list<Episode>(Collection.episodes);
       const hits = search(route.text, episodes).slice(0, 3);
       if (hits.length === 0) return { kind: CardKind.answer, say: { key: "agent.nothing" }, sources: [] };
-      const draft = await ports.model.generate(answerPrompt(route.text, hits));
+      const answered = await ports.model.generate(answerPrompt(route.text, hits), { maxTokens: REPLY_MAX_TOKENS });
+      const draft = answered && plainReply(answered);
       // Grounding rule: with no model we quote the notes; with one we still show which notes it used.
       const words: Words = draft
         ? { text: draft, lang: MODEL_LANG }
-        : { text: hits.map((h) => `• ${h.text}`).join("\n") };
+        : { text: hits.map((h) => `${BULLET_MARK}${h.text}`).join(LINE) };
       return { kind: CardKind.answer, words, sources: hits.map((h) => h.id) };
     }
     case Expert.askContact: {
@@ -98,7 +105,8 @@ export async function runExpert(route: Route, ports: Ports, contacts: Contact[])
     case Expert.find:
       return { kind: CardKind.text, say: { key: "agent.market_later", params: { text: route.text } } };
     default: {
-      const reply = await ports.model.generate(route.text);
+      const answered = await ports.model.generate(chatPrompt(route.text), { maxTokens: REPLY_MAX_TOKENS });
+      const reply = answered && plainReply(answered);
       return reply
         ? { kind: CardKind.text, words: { text: reply, lang: MODEL_LANG } }
         : { kind: CardKind.needsModel, say: { key: "agent.needs_model" } };
@@ -122,10 +130,28 @@ function search(query: string, episodes: Episode[]): Episode[] {
     .map((x) => x.e);
 }
 
+/** How every free reply is asked for: the chat shows it as typed, the phone translates it and may read it aloud. */
+const REPLY_RULES = "Reply in plain text, with no Markdown, in at most two short sentences.";
+const UNDERSCORE = /_/g;
+/** The kinds of work GigSync lists, as words: a small model otherwise fills in a trade from anywhere. */
+const TRADES = Trade.options.map((trade) => trade.replace(UNDERSCORE, " ")).join(", ");
+
 function answerPrompt(question: string, notes: Episode[]): string {
   return [
     "Answer the owner's question using only these notes. If the notes do not answer it, say you don't know.",
+    REPLY_RULES,
     ...notes.map((n, i) => `Note ${i + 1}: ${n.text}`),
     `Question: ${question}`,
-  ].join("\n");
+  ].join(LINE);
+}
+
+/** The chat's prompt: who is answering, the work GigSync knows, and how short; never the owner's words alone. */
+function chatPrompt(message: string): string {
+  return [
+    "You are the owner's own GigSync agent, on their phone in Bengaluru.",
+    `GigSync connects households with people who do home work: ${TRADES}.`,
+    "Answer the message warmly and only what it asks. If you do not know, say so: never make up jobs, prices, people or kinds of work.",
+    REPLY_RULES,
+    `Message: ${JSON.stringify(message)}`,
+  ].join(LINE);
 }

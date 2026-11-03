@@ -84,7 +84,10 @@ function createModel(): Model {
 
 function createEmbedder(): Embedder {
   // The understanding pack (adapters/embedder.ts): null until the owner has fetched it, and in lite mode.
-  return { embed: traced("embedder.embed", understanding.embed.bind(understanding)) };
+  return {
+    embed: traced("embedder.embed", understanding.embed.bind(understanding)),
+    embedMany: understanding.embedMany.bind(understanding),
+  };
 }
 
 export function createPorts(): Ports {

@@ -26,6 +26,9 @@ export function wherePrompt(s: NeedState): Prompt {
   const saved = s.config.addresses;
   if (!saved) return { lines: [{ key: "need.ask.area" }], ...areas };
   const chips = [...saved.map((a) => addressChip(s, a)), { value: ADD_ADDRESS, key: "addr.add" } as const];
+  // The area is known but not the door (no saved address there, or several): only an address answers now.
+  if (s.draft.area !== undefined)
+    return { lines: [{ key: "need.ask.address_in", ...areaParts(s.draft) }], choices: chips, hints: [] };
   return { lines: [{ key: "need.ask.address" }], choices: [...chips, ...areas.choices], hints: areas.hints };
 }
 

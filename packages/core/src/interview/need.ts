@@ -89,14 +89,18 @@ export const firstQuestion = (trade: JobTrade | undefined): QuestionKey | undefi
 export const workOf = (d: Pick<NeedDraft, "trade" | "skill">): JobTrade | undefined =>
   d.trade ?? (d.skill ? JobTrade.enum.other : undefined);
 
-/** The next field still missing, in the order asked; confirm once the need is whole. */
-export function firstMissing(d: NeedDraft): NeedSlot {
+/**
+ * The next field still missing, in the order asked; confirm once the need is whole. A household's need is not whole
+ * without one of its saved addresses (ADR 0045): an area alone narrows the search, but the worker must be sent to a
+ * real door, never to whatever address an older screen once took.
+ */
+export function firstMissing(d: NeedDraft, needsAddress = false): NeedSlot {
   if (!d.trade && !d.skill && d.jobType) return priceOpen(d) ? NeedSlot.driver : NeedSlot.outside;
   if (!d.trade && !d.skill) return NeedSlot.trade;
   if (d.scope && !d.scope.confirmed) return NeedSlot.scope;
   if (firstQuestion(workOf(d)) && d.detail === undefined) return NeedSlot.detail;
   if (needsArrangement(d)) return NeedSlot.arrangement;
-  if (d.area === undefined) return NeedSlot.area;
+  if (d.area === undefined || (needsAddress && d.address === undefined)) return NeedSlot.area;
   if (priceOpen(d)) return NeedSlot.driver;
   if (d.day === undefined) return NeedSlot.when;
   if (d.budget_paise === undefined) return NeedSlot.budget;
@@ -161,20 +165,34 @@ export const offered = (s: NeedState): Recalled | undefined =>
 const withRecalled = (d: NeedDraft, field: NeedSlot, value: string): NeedDraft =>
   field === NeedSlot.area ? { ...d, area: value } : { ...d, detail: value };
 
+/** The household's one saved address in the area the need is in, taken without asking; else the draft as it is. */
+function withOnlyAddress(config: NeedConfig, d: NeedDraft): NeedDraft {
+  if (!config.addresses || d.area === undefined || d.address !== undefined) return d;
+  const inArea = config.addresses.filter((a) => a.area === d.area);
+  const only = inArea.length === 1 ? inArea[0] : undefined;
+  return only ? { ...d, area: only.area, areaName: only.areaName, address: only.id } : d;
+}
+
+/** Where a need goes next: the household's address settled if it can be, then whatever is still missing. */
+function nextSlot(config: NeedConfig, d: NeedDraft): { draft: NeedDraft; slot: NeedSlot } {
+  const draft = withOnlyAddress(config, d);
+  return { draft, slot: firstMissing(draft, config.addresses !== undefined) };
+}
+
 /** "Answer for me": each fresh remembered answer fills its question as it comes up (the prompt says so). */
 function autoFilled(s: NeedState): NeedState {
   if (s.config.remembered?.mode !== AnswerFromMemory.enum.auto) return s;
   let next = s;
   for (let r = recalled(next); r?.known.fresh; r = recalled(next)) {
-    const draft = withRecalled(next.draft, next.slot, r.known.value);
-    next = { ...next, draft, slot: firstMissing(draft), filled: [...next.filled, next.slot] };
+    const { draft, slot } = nextSlot(next.config, withRecalled(next.draft, next.slot, r.known.value));
+    next = { ...next, draft, slot, filled: [...next.filled, next.slot] };
   }
   return next;
 }
 
 /** An answer taken: on to whatever is still missing (filling what memory may), or the readback. */
 export const moveOn = (s: NeedState, draft: NeedDraft, notes: Line[] = []): NeedState =>
-  autoFilled({ ...s, draft, slot: firstMissing(draft), notes, changing: false, fresh: false, filled: [] });
+  autoFilled({ ...s, ...nextSlot(s.config, draft), notes, changing: false, fresh: false, filled: [] });
 
 /** "Use it": the remembered answer offered for the question now asked; anything else changes nothing. */
 export function takeRecalled(s: NeedState): NeedState {

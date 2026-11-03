@@ -5,6 +5,7 @@ import {
   type Model,
   type Params,
   type Storage,
+  withoutReasoning,
 } from "@gigsync/core";
 import type { ModelStatus } from "@gigsync/plugin-llm";
 import { useSyncExternalStore } from "react";
@@ -81,14 +82,20 @@ export class ChosenModel implements Model {
     this.notify();
   }
 
+  /** The answer without the model's reasoning (model-reply.ts), whichever engine gave it; null when there is none. */
   async generate(prompt: string, options?: GenerateOptions): Promise<string | null> {
+    const reply = await this.ask(prompt, options);
+    return reply === null ? null : withoutReasoning(reply) || null;
+  }
+
+  private ask(prompt: string, options?: GenerateOptions): Promise<string | null> {
     switch (this.answering()) {
       case ModelChoice.ollama:
         return new OllamaModel(this.settings.ollamaModel).generate(prompt, options);
       case ModelChoice.device:
         return this.device.generate(prompt, options);
       default:
-        return null;
+        return Promise.resolve(null);
     }
   }
 

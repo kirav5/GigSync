@@ -43,6 +43,7 @@ export const address = {
   "addr.chip": "{label} · {area}",
   "addr.max": "You can keep up to {max} addresses. Remove one to add another.",
   "need.ask.address": "Where do you need the work done?",
+  "need.ask.address_in": "Which address in {area} should the worker come to?",
   "card.use_location": "Use my location for my area",
   "card.area_found": "Your area: {area}",
 } as const;

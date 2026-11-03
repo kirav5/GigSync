@@ -14,6 +14,7 @@ import {
   Role,
   TERMINAL_STATUSES,
 } from "@gigsync/protocol";
+import { addressFor, addressLine, listAddresses } from "../address/book.js";
 import { isArrangement } from "../contacts/rules.js";
 import { log } from "../log.js";
 import { remember } from "../memory/remember.js";
@@ -129,13 +130,17 @@ export async function onAgree(ctx: JobContext, r: JobRecord, theirs: Agree, from
 }
 
 /**
- * The card this side releases. The worker goes to the requester's place, so a provider never sends an address, even
- * one an older build saved on a worker's card as their own work site.
+ * The card this side releases. The worker goes to the requester's place: the address picked for this need, else one
+ * from the owner's saved addresses (`addressFor`), and the address typed at sign-in by an older build only when none
+ * is saved, so an address the owner has since replaced is never sent. A provider never sends an address, even one an
+ * older build saved on a worker's card as their own work site.
  */
-function releasedCard(ctx: JobContext, r: JobRecord, need: Need | undefined): ContactCard {
-  if (r.engagement.role === R.requester) return need?.site ? { ...ctx.contact, address: need.site } : ctx.contact;
-  const { address: _site, ...card } = ctx.contact;
-  return card;
+async function releasedCard(ctx: JobContext, r: JobRecord, need: Need | undefined): Promise<ContactCard> {
+  const { address: signInAddress, ...card } = ctx.contact;
+  if (r.engagement.role !== R.requester) return card;
+  const saved = need?.site ? undefined : addressFor(await listAddresses(ctx.storage), need?.locality);
+  const address = need?.site ?? (saved ? addressLine(saved) : signInAddress);
+  return address ? { ...card, address } : card;
 }
 
 /** Both signed: send this owner's card, and (consumer) release every other request in the group. */
@@ -143,7 +148,7 @@ async function onAgreed(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
   const hash = r.mine?.terms_hash as string;
   // The address of the saved place this need is for (ADR 0045), else the one given at sign-in by an older build.
   const need = r.engagement.role === R.requester ? await ctx.store.need(r.engagement.group) : undefined;
-  const contact = releasedCard(ctx, r, need);
+  const contact = await releasedCard(ctx, r, need);
   const out = await ctx.send(r, K.contact_release, { terms_hash: hash, contact } satisfies ContactRelease);
   if (r.engagement.role === R.requester) {
     for (const other of await ctx.store.group(r.engagement.group)) {

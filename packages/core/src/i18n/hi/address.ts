@@ -42,6 +42,7 @@ export const address: Readonly<Record<keyof typeof en, string>> = {
   "addr.chip": "{label} · {area}",
   "addr.max": "आप ज़्यादा से ज़्यादा {max} पते रख सकते हैं। नया जोड़ने के लिए एक हटाएँ।",
   "need.ask.address": "काम कहाँ करवाना है?",
+  "need.ask.address_in": "{area} में वर्कर किस पते पर आए?",
   "card.use_location": "मेरे इलाक़े के लिए मेरी जगह इस्तेमाल करें",
   "card.area_found": "आपका इलाक़ा: {area}",
 };

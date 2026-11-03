@@ -1,22 +1,24 @@
 import { Collection, type Embedder, log, type Storage } from "@gigsync/core";
-import { env, type FeatureExtractionPipeline, pipeline } from "@huggingface/transformers";
 import { useSyncExternalStore } from "react";
+import {
+  EMBEDDING_MODEL,
+  FromWorker,
+  type FromWorkerMessage,
+  ToWorker,
+  type ToWorkerMessage,
+} from "./embed/messages.js";
 import { chosenModel, ModelChoice } from "./model.js";
 
 /**
  * The understanding pack (ADR 0042): a small multilingual embedding model that runs inside this app, through ONNX
  * Runtime in the browser or webview, and turns a sentence into a vector core compares with its labelled sayings. It is
  * fetched once, on the owner's tap, and kept by the browser's cache; after that it loads from the device and nothing
- * typed ever leaves the phone. Lite mode turns it off like every other model.
+ * typed ever leaves the phone. Lite mode turns it off like every other model. The model itself runs in a worker
+ * (embed/worker.ts), so loading and embedding never hold up typing or the screen.
  */
 
-/** The model, as Hugging Face publishes its ONNX export; 8-bit weights, about 118 MB plus the tokenizer. */
-export const EMBEDDING_MODEL = "Xenova/multilingual-e5-small";
+export { EMBEDDING_MODEL };
 export const EMBEDDING_PACK_MB = 129;
-const DTYPE = "q8";
-/** e5 models expect this prefix on the text they embed for a lookup. */
-const QUERY_PREFIX = "query: ";
-const POOLING = "mean";
 const PERCENT = 100;
 /** Remembers that the owner fetched the pack, so later launches load it from the cache without asking again. */
 const SETTINGS_KEY = "understanding_pack";
@@ -24,6 +26,8 @@ const SETTINGS_KEY = "understanding_pack";
 const TRANSFORMERS_CACHE = "transformers-cache";
 const MODEL_FILES = ["config.json", "tokenizer_config.json", "tokenizer.json", "onnx/model_quantized.onnx"];
 const REVISION = "main";
+/** Transformers.js's default model host, as its cache keys start (`env.remoteHost`); read here without loading it. */
+const MODEL_HOST = "https://huggingface.co/";
 
 export const PackState = {
   /** Not fetched; a tap fetches it. */
@@ -35,27 +39,18 @@ export const PackState = {
 } as const;
 export type PackState = (typeof PackState)[keyof typeof PackState];
 
-interface Progress {
-  progress?: number;
-}
-
-/**
- * Transformers.js types `pipeline` for every task at once, which TypeScript cannot resolve for one call; this is the
- * one shape the pack uses.
- */
-type LoadExtractor = (
-  task: "feature-extraction",
-  model: string,
-  options: { dtype: string; progress_callback: (p: Progress) => void },
-) => Promise<FeatureExtractionPipeline>;
-const loadExtractor = pipeline as unknown as LoadExtractor;
+type Vectors = (readonly number[] | null)[];
 
 /** The embedding model's state on this device, and the `Embedder` the agent's ports hand to core. */
 export class UnderstandingPack implements Embedder {
   state: PackState = PackState.downloadable;
   /** Of the download, 0 to 100, while downloading. */
   percent = 0;
-  private pipe: Promise<FeatureExtractionPipeline> | undefined;
+  private worker: Worker | undefined;
+  private loading: Promise<void> | undefined;
+  private settle: ((ok: boolean) => void) | undefined;
+  private nextId = 0;
+  private readonly pending = new Map<number, (vectors: Vectors | null) => void>();
   /** The device's settings, from `load`: the pack belongs to the device (its cache), not to one owner. */
   private storage: Storage | undefined;
   private readonly listeners = new Set<() => void>();
@@ -82,7 +77,7 @@ export class UnderstandingPack implements Embedder {
     try {
       if (!(await caches.has(TRANSFORMERS_CACHE))) return false;
       const cache = await caches.open(TRANSFORMERS_CACHE);
-      const base = `${env.remoteHost}${EMBEDDING_MODEL}/resolve/${REVISION}/`;
+      const base = `${MODEL_HOST}${EMBEDDING_MODEL}/resolve/${REVISION}/`;
       const found = await Promise.all(MODEL_FILES.map((file) => cache.match(`${base}${file}`)));
       return found.every((hit) => hit !== undefined);
     } catch {
@@ -90,34 +85,65 @@ export class UnderstandingPack implements Embedder {
     }
   }
 
-  private async start(): Promise<void> {
-    if (this.pipe) return;
-    this.set(PackState.downloading, 0);
-    // Files come from the browser's cache when it has them, else from the model's host: `load` only gets here when
-    // the cache is complete, so the network is reached from the owner's tap alone.
-    env.allowRemoteModels = true;
-    env.allowLocalModels = false;
-    this.pipe = loadExtractor("feature-extraction", EMBEDDING_MODEL, {
-      dtype: DTYPE,
-      progress_callback: (p) => {
-        if (p.progress !== undefined) this.set(PackState.downloading, Math.round(p.progress));
-      },
-    });
-    try {
-      await this.pipe;
-      this.set(PackState.ready, PERCENT);
-    } catch (err) {
-      log.warn("understanding pack: load failed", { error: err instanceof Error ? err.name : String(err) });
-      this.pipe = undefined;
-      this.set(PackState.failed, 0);
+  private send(m: ToWorkerMessage) {
+    if (!this.worker) {
+      this.worker = new Worker(new URL("./embed/worker.ts", import.meta.url), { type: "module" });
+      this.worker.onmessage = (e: MessageEvent<FromWorkerMessage>) => this.heard(e.data);
+    }
+    this.worker.postMessage(m);
+  }
+
+  private heard(m: FromWorkerMessage) {
+    switch (m.type) {
+      case FromWorker.progress:
+        return this.set(PackState.downloading, m.percent);
+      case FromWorker.ready:
+        this.set(PackState.ready, PERCENT);
+        return this.settle?.(true);
+      case FromWorker.failed:
+        log.warn("understanding pack: load failed", { error: m.error });
+        this.set(PackState.failed, 0);
+        return this.settle?.(false);
+      case FromWorker.vectors:
+        this.pending.get(m.id)?.(m.vectors);
+        return this.pending.delete(m.id);
+      case FromWorker.error:
+        log.warn("understanding pack: embed failed", { error: m.error });
+        this.pending.get(m.id)?.(null);
+        return this.pending.delete(m.id);
     }
   }
 
+  private start(): Promise<void> {
+    if (this.state === PackState.ready) return Promise.resolve();
+    this.loading ??= new Promise<void>((resolve) => {
+      this.set(PackState.downloading, 0);
+      this.settle = (ok) => {
+        this.loading = ok ? this.loading : undefined;
+        resolve();
+      };
+      this.send({ type: ToWorker.load });
+    });
+    return this.loading;
+  }
+
+  private ask(texts: readonly string[], keep: boolean): Promise<Vectors | null> {
+    if (this.state !== PackState.ready || chosenModel.current.choice === ModelChoice.lite) return Promise.resolve(null);
+    const id = this.nextId++;
+    return new Promise((resolve) => {
+      this.pending.set(id, resolve);
+      this.send({ type: ToWorker.embed, id, texts, keep });
+    });
+  }
+
+  /** An owner's own words: embedded in the worker and forgotten there. */
   async embed(text: string): Promise<readonly number[] | null> {
-    if (this.state !== PackState.ready || !this.pipe || chosenModel.current.choice === ModelChoice.lite) return null;
-    const run = await this.pipe;
-    const out = await run(QUERY_PREFIX + text, { pooling: POOLING, normalize: true });
-    return Array.from(out.data as Float32Array);
+    return (await this.ask([text], false))?.[0] ?? null;
+  }
+
+  /** Fixed sayings, a batch at a time: the worker keeps their vectors, so later launches start ready. */
+  async embedMany(texts: readonly string[]): Promise<Vectors> {
+    return (await this.ask(texts, true)) ?? texts.map(() => null);
   }
 
   private set(state: PackState, percent: number) {
