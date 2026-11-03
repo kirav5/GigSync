@@ -4,6 +4,7 @@ Date: 2026-10-31. Status: accepted. Amends [ADR 0040](0040-on-phone-model-router
 reads chat intent first) and [ADR 0041](0041-prices-from-drivers.md) §2 (how a need's trade is read); keeps
 [ADR 0010](0010-no-cloud-model-in-gigsync.md) (nothing an owner types leaves the phone for a model).
 Amended 2026-11-01: 301 more sayings, and the reader order measured ([Amendment](#amendment-2026-11-01-more-sayings-and-the-order-measured)).
+Amended 2026-11-03: the language model reads first where a phone has one ([Amendment](#amendment-2026-11-03-the-language-model-reads-first)).
 
 ## Context
 
@@ -118,3 +119,25 @@ Consequences:
 - The similarity floor (0.8) almost never decides: e5's similarities sit between about 0.8 and 0.95. Routes are dropped
   for a missing slot instead. Neighbour counts from 1 to 7 score within a point; a softmax head on the same embeddings
   did not beat nearest neighbour (54% against 63% with the same training sayings).
+
+## Amendment 2026-11-03: the language model reads first
+
+1. **Chat routing order becomes: language model, then meaning, then lists** (`router/route-chat.ts`), in Talk and in
+   Find's first sentence. The embedding router answers only when the language model gives no route: none on this
+   phone, too slow, or a reply core rejected. On a phone without the language model nothing changes.
+2. **Why:** the embedding router names an intent confidently even when it is wrong, and the similarity floor cannot
+   catch it (see the consequences above: right and wrong routes score alike). Hand-testing found a worker's "save my
+   booking for tomorrow 2-3PM" sent to `find` at 0.876, overriding the word lists, which had heard a note; Qwen3.5-2B
+   named it `remember`, as it did the Hindi and Kanglish forms. The founders chose the reader that understands the
+   sentence over the faster one. The eval was not rerun for this change; the 2026-11-01 numbers stand: model first
+   69.8%, meaning first 67.3% on the 978 test cases.
+
+Consequences:
+- On a phone with the 2B every chat message now waits for it: about 4 s per message on an M2 in WebLLM (round 2's
+  prompt), slower on phones, against about 6 ms for the embedding router. Before, the model ran on about 15% of
+  messages. The model's time limit and Auto's "too slow on this phone" switch (ADR 0040) still apply, so a slow phone
+  falls back to the embedding router rather than waiting longer.
+- An answer of `chat` from the model is final: the embedding router is not asked for a second opinion. If the 2B falls
+  back to `chat` on messages it is unsure of, as the 0.8B did on most, those messages lose the embedding router's
+  reading; how often it does is not measured here.
+- Real-phone timing, still open from ADR 0040, now decides how usable Talk is on the phones that carry the model.

@@ -12,9 +12,9 @@ export interface RouteChatOptions extends ModelRouteOptions, MeaningRouteOptions
 }
 
 /**
- * One message's route (ADR 0040 §3, ADR 0042): the phone's embedding model first, by nearest labelled saying; the
- * phone's language model when the message is too far from every saying; the word lists when neither gives a route (no
- * usable model, too slow, or a reply core rejected). Chat text never leaves the phone for this.
+ * One message's route (ADR 0040 §3, ADR 0042 as amended 2026-11-03): the phone's language model first; the phone's
+ * embedding model, by nearest labelled saying, when the language model gives no route (none on this phone, too slow,
+ * or a reply core rejected); the word lists when neither does. Chat text never leaves the phone for this.
  */
 export async function routeChat(
   text: string,
@@ -23,8 +23,9 @@ export async function routeChat(
   opts?: RouteChatOptions,
 ): Promise<ChatRoute> {
   log.debug("chat: routing", { text: pii(text) });
-  const byMeaning = opts?.meaning ? await meaningRoute(text, ctx, opts.meaning, opts) : undefined;
-  const route = byMeaning ?? (await modelRoute(text, ctx, model, opts)) ?? keywordRoute(text, ctx);
+  const byModel = await modelRoute(text, ctx, model, opts);
+  const byMeaning = !byModel && opts?.meaning ? await meaningRoute(text, ctx, opts.meaning, opts) : undefined;
+  const route = byModel ?? byMeaning ?? keywordRoute(text, ctx);
   // Who named it and what, never what was said.
   log.info("chat routed", { via: route.via, intent: route.intent });
   return route;

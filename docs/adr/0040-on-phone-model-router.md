@@ -128,7 +128,7 @@ Consequences, on the 978 test cases with the phone's own build (WebLLM, M2):
   most (54% to 47%), the place for the next examples.
 - Shorter intent meanings (−9 points on dev) and examples written without JSON (−4) were tried and left out.
 - With ADR 0042's grown sayings the reader order matters little: embedding router first 67.3%, model first 69.8%, and
-  the first is faster. ADR 0042's order stays.
+  the first is faster. ADR 0042's order stays. (Changed 2026-11-03: the model reads first; see ADR 0042's amendment.)
 - Read in careful English translations, the 2B names 91% of the non-English test messages right against 72% in their
   own words (Kanglish 50% to 93%): it knows the intents and reads romanized Kannada badly. That is a ceiling no phone
   translator reaches; transliteration into the native script is the cheap step to measure next

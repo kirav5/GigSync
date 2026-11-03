@@ -28,7 +28,7 @@ function expertRoute(text: string, { intent, slots }: ChatRoute): Route {
 
 /**
  * One message in, one route, and for the agent's own experts (notes, questions, contacts, finding, chat) one card out.
- * Routing is `routeChat` alone (ADR 0040, ADR 0042): the phone's embedding model when it has one, then its language
+ * Routing is `routeChat` alone (ADR 0040, ADR 0042): the phone's language model when it has one, then its embedding
  * model, the word lists otherwise.
  */
 export class Agent {
