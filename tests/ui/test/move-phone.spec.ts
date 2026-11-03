@@ -105,6 +105,7 @@ async function signedJob(meena: Phone, priya: Phone, meenaName: string) {
   const page = priya.page;
   await open(page, "nav.find");
   await expect(page.getByRole("log")).toContainText(t(en, "need.start"));
+  await tap(page, t(en, "need.pick_work"));
   await tap(page, t(en, "trade.maid"));
   await say(page, ROOMS);
   await tap(page, t(en, "need.arr.monthly"));
