@@ -36,6 +36,7 @@ import * as deal from "./deal.js";
 import { stamped, withNote } from "./history.js";
 import type { JobRecord, Need } from "./store.js";
 import * as worker from "./worker.js";
+import * as workerTime from "./worker-time.js";
 
 const K = EnvelopeKind.enum;
 const R = Role.enum;
@@ -159,7 +160,8 @@ async function react(
       await consumer.onQuote(ctx, await needOf(ctx, r), r, body as Offer);
       return;
     case K.agree:
-      await deal.onAgree(ctx, r, body as Agree, from);
+      if (w) await workerTime.onAgree(ctx, w, r, body as Agree, from);
+      else await deal.onAgree(ctx, r, body as Agree, from);
       return;
     case K.contact_release:
       await deal.onContact(ctx, r, body as ContactRelease);

@@ -1,9 +1,10 @@
 import { PILOT_AREA_CHOICES } from "../estimate/area-names.js";
 import { editIntent } from "../interview/lexicon.js";
 import { asksGuide } from "../moving/guide-replies.js";
+import { hasScheduleCue, soundsLikeSchedule } from "../schedule/read.js";
 import { earningsIntent } from "./earnings.js";
 import { ChatIntent, ChatRole, type ChatRoute, type ChatSlots, type IntentContext, RouteVia } from "./intent.js";
-import { Expert, routeByKeywords } from "./keyword.js";
+import { Expert, namedContact, routeByKeywords } from "./keyword.js";
 import { marketQuestion } from "./market.js";
 import { movingIntent } from "./moving.js";
 import { HelpIntent, helpIntent } from "./newcomers.js";
@@ -11,8 +12,8 @@ import { HelpIntent, helpIntent } from "./newcomers.js";
 /**
  * The word lists as one router (ADR 0040 §3, §5): what answers when the phone has no usable model, the model is too
  * slow, or its reply fails core's checks. The lists run in the order the chats always checked them, so lite mode is
- * unchanged. A worker's Talk: changing the card, helping newcomers, moving, a market question, earnings, the city's
- * guide in a chat about a move, then notes, questions and the rest. A household: a market question, then the same
+ * unchanged. A worker's Talk: changing the card, helping newcomers, moving, a market question, earnings, their
+ * schedule, the city's guide in a chat about a move, then notes, questions and the rest. A household: a market question, then the same
  * finding, notes, questions and the rest (Find itself treats every route but a market question as its need, as before).
  */
 
@@ -54,9 +55,19 @@ function workerRoute(text: string, ctx: IntentContext): ChatRoute {
   const market = marketRoute(text, ctx);
   if (market) return market;
   if (earningsIntent(text, ctx.lang)) return route(ChatIntent.earnings);
+  // Before notes: "save my booking for tomorrow 2-3PM" is a booking, not words to keep (ADR 0048 §2). A contact named
+  // makes it about them: "let Ravi see my schedule" is a rule.
+  if (soundsLikeSchedule(text) && !namedContact(text, ctx.contacts)) return route(ChatIntent.schedule);
   if (ctx.inMove && asksGuide(text, ctx.lang)) return route(ChatIntent.guide);
   return expertRoute(text, ctx);
 }
+
+/**
+ * The words bear the intent a model named: a schedule route needs a time, a booking word or work on a day in the
+ * words themselves (`hasScheduleCue`); every other intent stands on its slots (`routeComplete`).
+ */
+export const wordsBear = (intent: ChatIntent, text: string): boolean =>
+  intent !== ChatIntent.schedule || hasScheduleCue(text);
 
 /** The intent the word lists hear in one message, with the slots they read. Never fails: "chat" is the rest. */
 export function keywordRoute(text: string, ctx: IntentContext): ChatRoute {

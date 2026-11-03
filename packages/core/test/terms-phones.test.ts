@@ -9,7 +9,15 @@ import {
   Trade,
 } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import { type NewNeed, ReasonKind, settle, TaskKind, type TermPrefs, type WorkerRules } from "../src/index.js";
+import {
+  type NewNeed,
+  ReasonKind,
+  saveBooking,
+  settle,
+  TaskKind,
+  type TermPrefs,
+  type WorkerRules,
+} from "../src/index.js";
 import { estimateOptions, FakeEstimateApi, PAINT_2BHK } from "./estimate-fixtures.js";
 import { FakeModel } from "./model-fakes.js";
 import { BENGALURU, MemoryRelay, PRIYA, phone, RAVI } from "./phones.js";
@@ -89,6 +97,19 @@ describe("the agents settle the terms besides the price", () => {
     expect(signed.mine?.terms_hash).toBe(signed.theirs?.terms_hash);
     expect(signed.mine?.terms.terms?.when).toEqual(afternoon);
     expect((await ravi.device.job(id)).mine?.terms.terms).toEqual(pending.terms);
+  });
+
+  it("never agrees to a window the worker's own booking covers (ADR 0048)", async () => {
+    const { priya, ravi, talk } = await pair(kiran({ windows: ["morning", "afternoon"] }));
+    // Ravi told his agent in Talk: "booking on the 2nd, 9 to 11 am"; the household asks for that morning.
+    await saveBooking(ravi.storage, { day: DAY, start_min: 540, end_min: 660 }, new Date(), { day: DAY, minute: 0 });
+    const [job] = await priya.device.request(paintNeed({ when: morning, coats: 2 }), [ravi.user]);
+    await talk();
+    const home = await priya.device.job(job?.engagement.id as EngagementId);
+    const theirs = home.offers.filter((o) => o.by === "provider").map((o) => o.offer.terms?.when);
+    expect(theirs.length).toBeGreaterThan(0);
+    expect(theirs).not.toContainEqual(morning);
+    expect(theirs[0]).toEqual(afternoon);
   });
 
   it("signs at once under auto-confirm when the worker takes the household's terms as they are", async () => {

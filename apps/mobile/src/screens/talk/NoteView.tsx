@@ -2,6 +2,7 @@ import { type Card, CardKind, type ChatIntent, type MessageKey } from "@gigsync/
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { Said } from "../../ui/Said.js";
+import { ScheduleLines } from "../schedule/ScheduleLines.js";
 import { Own } from "./Bubbles.js";
 
 /**
@@ -18,6 +19,7 @@ const KIND_LABEL: Readonly<Record<Card["kind"], MessageKey>> = {
   [CardKind.draft]: "card.draft",
   [CardKind.needsModel]: "card.needs_model",
   [CardKind.clarify]: "card.clarify",
+  [CardKind.schedule]: "card.schedule",
 };
 
 /** A card's words: a phrase in the owner's language, or quoted words translated on the phone when needed. */
@@ -82,6 +84,7 @@ export function Note({
           <div className="text">
             <CardText card={card} />
           </div>
+          {card.kind === CardKind.schedule && <ScheduleLines card={card} />}
           {card.kind === CardKind.answer && card.sources.length > 0 && (
             <span className={C.faint}>{plural("agent.sources", card.sources.length)}</span>
           )}

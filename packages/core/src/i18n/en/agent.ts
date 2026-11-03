@@ -29,6 +29,7 @@ export const agent = {
   "choose.askSelf": "Look in my notes",
   "choose.askContact": "Ask my contact",
   "choose.setRule": "What my contact may see",
+  "choose.schedule": "My schedule",
   "choose.chat": "Something else",
   "agent.saved": 'Saved: "{text}"',
   "agent.nothing": "I have nothing saved about that.",

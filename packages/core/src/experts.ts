@@ -1,4 +1,4 @@
-import { type Engagement, Lang, Role, Trade, type UserId } from "@gigsync/protocol";
+import { type Booking, type Engagement, Lang, Role, type TermWhen, Trade, type UserId } from "@gigsync/protocol";
 import { ulid } from "ulid";
 import { newEngagement } from "./engagement/machine.js";
 import type { MessageKey, Params } from "./i18n/t.js";
@@ -16,6 +16,8 @@ export const CardKind = {
   draft: "draft",
   needsModel: "needs_model",
   clarify: "clarify",
+  /** The worker's own schedule (ADR 0048): a line, then bookings and signed jobs the phone writes in its language. */
+  schedule: "schedule",
 } as const;
 
 /** What the agent says, as a key each phone renders in its owner's language (`t(lang, key, params)`). */
@@ -42,6 +44,7 @@ export type Card =
   | { kind: typeof CardKind.answer; words: Words; sources: string[] }
   | { kind: typeof CardKind.draft; say: Phrase; engagement: Engagement }
   | { kind: typeof CardKind.needsModel; say: Phrase }
+  | { kind: typeof CardKind.schedule; say: Phrase; bookings: Booking[]; jobs: TermWhen[] }
   /** The agent could not tell what the owner meant: it asks, with one choice per intent and "Something else" last. */
   | { kind: typeof CardKind.clarify; say: Phrase; choices: readonly ChatIntent[] };
 

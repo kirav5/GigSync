@@ -16,6 +16,8 @@ export const ChatIntent = {
   moving: "moving",
   /** What the worker earned, from this phone's passbook. */
   earnings: "earnings",
+  /** The worker's own bookings (ADR 0048): keep one, ask what is on, or cancel one; code reads which from the words. */
+  schedule: "schedule",
   /** What the market pays for a kind of work ("is ₹8,000 fair for a cook?"). */
   market: "market",
   /** A question the city's guide answers, in a chat about a move. */
@@ -95,13 +97,17 @@ export interface IntentContext {
   mayAsk?: boolean;
 }
 
-/** Intents only a worker has: a household has no card, no newcomers to help, no move and no passbook in its chat. */
+/**
+ * Intents only a worker has: a household has no card, no newcomers to help, no move, no passbook and no bookings in
+ * its chat.
+ */
 const WORKER_ONLY: ReadonlySet<ChatIntent> = new Set([
   ChatIntent.editCard,
   ChatIntent.helpOffer,
   ChatIntent.helpStop,
   ChatIntent.moving,
   ChatIntent.earnings,
+  ChatIntent.schedule,
 ]);
 
 /** True when this owner's chat can have the intent: worker-only intents for workers, the guide only in a move. */

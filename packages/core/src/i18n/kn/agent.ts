@@ -31,6 +31,7 @@ export const agent: Readonly<Record<keyof typeof en, string>> = {
   "choose.askSelf": "ನನ್ನ ಟಿಪ್ಪಣಿಗಳಲ್ಲಿ ನೋಡಿ",
   "choose.askContact": "ನನ್ನ ಸಂಪರ್ಕವನ್ನು ಕೇಳಿ",
   "choose.setRule": "ನನ್ನ ಸಂಪರ್ಕ ಏನು ನೋಡಬಹುದು",
+  "choose.schedule": "ನನ್ನ ವೇಳಾಪಟ್ಟಿ",
   "choose.chat": "ಬೇರೆ ಏನೋ",
   "agent.saved": 'ಉಳಿಸಲಾಗಿದೆ: "{text}"',
   "agent.nothing": "ಅದರ ಬಗ್ಗೆ ನನ್ನಲ್ಲಿ ಏನೂ ಉಳಿಸಿಲ್ಲ.",

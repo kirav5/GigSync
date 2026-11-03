@@ -1,4 +1,5 @@
 import {
+  answerSchedule,
   CardKind,
   ChatIntent,
   ChatRole,
@@ -25,6 +26,7 @@ import {
 } from "../card/interviewStore.js";
 import { answerMarket, routedMarket } from "../estimate/market.js";
 import type { I18n } from "../i18n.js";
+import { phoneNow } from "../schedule/useBookings.js";
 import { errorKey } from "../ui/errorKey.js";
 import { money } from "../ui/places.js";
 import type { GigView } from "../useGig.js";
@@ -109,6 +111,9 @@ export function useNotes({ agent, ports, account, view, i18n, turns, moves, fres
     if (intent === ChatIntent.helpStop) return handOver(note, () => moves.stop(own));
     if (intent === ChatIntent.moving) return handOver(note, () => moves.start(own, slots.city));
     if (intent === ChatIntent.earnings) return answerEarnings(note);
+    // The worker's own bookings, read and kept on this phone (ADR 0048).
+    if (intent === ChatIntent.schedule)
+      return noteAnswered(note, await answerSchedule(own, ports.storage, ports.clock.now(), phoneNow(ports)));
     const market = intent === ChatIntent.market ? routedMarket(own, slots, account.worker?.trades[0]) : undefined;
     if (market) {
       // What the market pays, from the estimate route (ADR 0039 §2); the answer lands under the words when it comes.

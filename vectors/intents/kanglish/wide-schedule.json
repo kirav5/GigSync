@@ -1,0 +1,60 @@
+{
+  "cases": [
+    {
+      "id": "kanglish-schedule-01",
+      "lang": "kn",
+      "role": "worker",
+      "text": "naale madhyahna 2 inda 3 booking save maadi",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-schedule-02",
+      "lang": "kn",
+      "role": "worker",
+      "text": "shanivaara beligge 8 inda 11 Rao mane alli kelsa ide bardko",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-schedule-03",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ivattu sanje 6 inda 8 aduge kelsa ide booking haaki",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-schedule-04",
+      "lang": "kn",
+      "role": "worker",
+      "text": "naale nanna booking enu ide",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-schedule-05",
+      "lang": "kn",
+      "role": "worker",
+      "text": "ee vaara nanna schedule alli enenide",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-schedule-06",
+      "lang": "kn",
+      "role": "worker",
+      "text": "naale 2 gante booking cancel maadi",
+      "intent": "schedule",
+      "source": "list"
+    },
+    {
+      "id": "kanglish-schedule-07",
+      "lang": "kn",
+      "role": "worker",
+      "text": "pratidina beligge 7 inda 9 Shah mane alli kelsa ide schedule ge serisi",
+      "intent": "schedule",
+      "source": "list"
+    }
+  ]
+}

@@ -29,7 +29,7 @@ export const newPhone = () => `+9198${digits(8)}`;
 export const Role = { consumer: "consumer", worker: "worker" } as const;
 type Role = (typeof Role)[keyof typeof Role];
 
-const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+export const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const PLACEHOLDER = /\{(\w+)\}/;
 const COUNT = "count";
 

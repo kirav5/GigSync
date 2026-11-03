@@ -7,7 +7,7 @@ import {
   routeComplete,
   withWholeNote,
 } from "./intent.js";
-import { keywordRoute } from "./keyword-route.js";
+import { keywordRoute, wordsBear } from "./keyword-route.js";
 import { wordSlots } from "./meaning-route.js";
 
 /**
@@ -25,7 +25,7 @@ export const MAX_CHOICES = 3;
 
 /** The route for an intent the owner picked: slots read from their words, as the word lists and meaning router do. */
 export function chosenRoute(intent: ChatIntent, text: string, ctx: IntentContext): ChatRoute | undefined {
-  if (!intentAllowed(intent, ctx)) return undefined;
+  if (!intentAllowed(intent, ctx) || !wordsBear(intent, text)) return undefined;
   const byWords = keywordRoute(text, ctx);
   const read = byWords.intent === intent ? byWords.slots : wordSlots(text, byWords, intent);
   const slots = withWholeNote(intent, read, text);

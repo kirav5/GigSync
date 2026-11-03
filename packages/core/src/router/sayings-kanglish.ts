@@ -58,6 +58,12 @@ export const KANGLISH_SAYINGS: Readonly<Partial<Record<ChatIntent, readonly stri
     "ee varsha ondu lakh aaytaa nanna sampaadane",
     "mane avru kodbekaagiro pending amount total eshtu",
   ],
+  schedule: [
+    "shanivaara madhyahna 2 inda 4 booking ide ulisi",
+    "naale enu bookings ive nange",
+    "somvaarada booking cancel maadi",
+    "bhanuvaara beligge 9 kke kelsa ide schedule alli haaki",
+  ],
   market: [
     "adige maadoravrige full time ge sambla yeshtu nadiyutte",
     "plumber ondu visit ge eshtu tagotare",

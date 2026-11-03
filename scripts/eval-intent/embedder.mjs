@@ -22,5 +22,8 @@ export async function loadMeaning() {
       return Array.from(out.data);
     },
   };
-  return { embedder, intents: core.intentIndex(embedder) };
+  const intents = core.intentIndex(embedder);
+  // The index embeds its sayings only when asked to; until then it finds nothing and every case falls to the lists.
+  await intents.warm();
+  return { embedder, intents };
 }

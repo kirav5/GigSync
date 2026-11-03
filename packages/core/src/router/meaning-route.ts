@@ -12,7 +12,7 @@ import {
   routeComplete,
   withWholeNote,
 } from "./intent.js";
-import { keywordRoute } from "./keyword-route.js";
+import { keywordRoute, wordsBear } from "./keyword-route.js";
 import { type Labelled, MeaningIndex } from "./meaning.js";
 import { MORE_SAYINGS } from "./sayings.js";
 import { EDGE_SAYINGS } from "./sayings-edges.js";
@@ -59,7 +59,8 @@ export async function meaningRoute(
   opts?: MeaningRouteOptions,
 ): Promise<ChatRoute | undefined> {
   if (!text.trim()) return undefined;
-  const found = await index.nearest(text, (intent) => intentAllowed(intent, ctx));
+  // An intent the words cannot bear does not compete: "show my passbook" is near "show my bookings" but has no time.
+  const found = await index.nearest(text, (intent) => intentAllowed(intent, ctx) && wordsBear(intent, text));
   const floor = opts?.minSimilarity ?? MIN_SIMILARITY;
   if (!found || found.top < floor) {
     if (found) log.debug("chat: meaning too far", { top: Number(found.top.toFixed(2)) });

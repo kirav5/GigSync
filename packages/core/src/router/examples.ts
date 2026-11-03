@@ -93,6 +93,15 @@ export const EXAMPLES: Readonly<Record<ChatIntent, readonly Example[]>> = {
     ex(S.kn, "ಈ ವಾರ ಎಷ್ಟು ದುಡಿಮೆ ಆಯಿತು", I.earnings),
     ex(S.kanglish, "nange ivattinavarege eshtu sambla bandide", I.earnings),
   ],
+  [I.schedule]: [
+    ex(S.en, "put a booking on Friday from 10 to 12 at the Iyer flat", I.schedule),
+    ex(S.en, "what's on my schedule for tomorrow?", I.schedule),
+    ex(S.hi, "परसों सुबह 9 से 11 बजे की बुकिंग रख लो", I.schedule),
+    ex(S.hinglish, "kal shaam 5 se 7 Mehta ji ke yahan kaam hai, schedule mein daal do", I.schedule),
+    ex(S.hinglish, "kal wali booking cancel kar do", I.schedule),
+    ex(S.kn, "ಶುಕ್ರವಾರ 3 ರಿಂದ 5 ಗಂಟೆ ಬುಕಿಂಗ್ ಇದೆ, ಉಳಿಸಿ", I.schedule),
+    ex(S.kanglish, "naale beligge 8 inda 10 booking ide, save maadi", I.schedule),
+  ],
   [I.market]: [
     ex(S.en, "is ₹9,500 okay for a full-time driver?", I.market, { trade: T.driver, amount: 9500 }),
     ex(S.en, "what do painters take in Jayanagar", I.market, { trade: T.painter, area: "jayanagar" }),

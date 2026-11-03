@@ -9,10 +9,14 @@ import { Client } from "pg";
 import { migrate } from "./migrate.mjs";
 
 const SERVER_URL = process.env.E2E_POSTGRES_URL ?? "postgres://postgres:postgres@localhost:54329/postgres";
-const DATABASE = "gigsync_e2e";
+// A second worktree's stack runs beside the first with its own E2E_DATABASE, E2E_API_PORT, E2E_INSPECTOR_PORT and
+// E2E_APP_ORIGIN; the name goes into DROP DATABASE, which takes no bound values, so it must be a plain identifier.
+const DATABASE = process.env.E2E_DATABASE ?? "gigsync_e2e";
+const IDENTIFIER = /^[a-z_][a-z0-9_]{0,62}$/;
+if (!IDENTIFIER.test(DATABASE)) throw new Error("E2E_DATABASE must be a plain lowercase name");
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 const PORT = process.env.E2E_API_PORT ?? "8788";
-const INSPECTOR_PORT = "9230";
+const INSPECTOR_PORT = process.env.E2E_INSPECTOR_PORT ?? "9230";
 const APP_ORIGIN = process.env.E2E_APP_ORIGIN ?? "http://localhost:5174";
 const STATE_DIR = ".wrangler/e2e-state";
 
