@@ -15,6 +15,7 @@ import { accept, cancel, termsFor } from "./deal.js";
 import { offerFacts } from "./explain.js";
 import { type Explanation, explainOffer } from "./explain-model.js";
 import { askTime, clearTalkTasks, counter, roundsOf, type TakeOver, waitOnThem, withRounds } from "./handover.js";
+import { withHours } from "./hours-gate.js";
 import { planHousehold } from "./household-plan.js";
 import { MoveKind, respond } from "./negotiate.js";
 import { type JobRecord, type Need, TaskKind } from "./store.js";
@@ -117,8 +118,16 @@ export class Talks {
       planned.strategy,
     );
     const price = move.kind === MoveKind.offer ? move.price_paise : offer.price_paise;
-    const next = Terms.parse({ ...nextTerms(planned), when });
-    return waitOnThem(this.ctx, await counter(this.ctx, { ...planned, terms: { on: true, next } }, price, true));
+    const next = withHours(Terms.parse({ ...nextTerms(planned), when }), planned.terms?.hours);
+    return waitOnThem(
+      this.ctx,
+      await counter(
+        this.ctx,
+        { ...planned, terms: { on: true, next, ...(planned.terms?.hours ? { hours: true } : {}) } },
+        price,
+        true,
+      ),
+    );
   }
 
   /**

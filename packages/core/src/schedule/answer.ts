@@ -3,12 +3,11 @@ import { type Card, CardKind } from "../experts.js";
 import type { MessageKey } from "../i18n/t.js";
 import type { JobRecord } from "../job/store.js";
 import { bookedTimes } from "../job/taken.js";
-import { clashes } from "../job/terms.js";
 import { log } from "../log.js";
 import { Collection, type Storage } from "../ports.js";
 import { readSchedule, ScheduleAction, type ScheduleAsk } from "./read.js";
 import { isOn, listBookings, type NewBooking, removeBooking, saveBooking, upcoming } from "./store.js";
-import { bookingWhens, type Hours, type LocalNow } from "./windows.js";
+import { type Hours, type LocalNow, overlaps, spanOf } from "./windows.js";
 
 /**
  * The agent's answer to a message about the worker's schedule (ADR 0048): keep a booking, list what is coming, or take
@@ -23,16 +22,11 @@ const schedule = (key: MessageKey, bookings: Booking[] = [], jobs: TermWhen[] = 
   jobs,
 });
 
-/** Two stretches of a day share some minutes, on a day both fall on. */
-const overlaps = (a: Hours, b: Hours): boolean =>
-  (a.day === b.day || a.day === EVERY_DAY || b.day === EVERY_DAY) && a.start_min < b.end_min && b.start_min < a.end_min;
-
-/** What a new booking runs into: other bookings by their minutes, signed jobs by their part of the day. */
+/** What a new booking runs into: other bookings by their minutes, signed jobs by their start hour or part of the day. */
 function clashesWith(booking: Hours, bookings: readonly Booking[], jobs: readonly TermWhen[]) {
-  const mine = bookingWhens([booking]);
   return {
     bookings: bookings.filter((b) => overlaps(booking, b)),
-    jobs: jobs.filter((j) => mine.some((w) => clashes(w, j))),
+    jobs: jobs.filter((j) => overlaps(booking, spanOf(j))),
   };
 }
 

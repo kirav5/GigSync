@@ -1,8 +1,8 @@
 import type { Arrangement, Lang, QuestionKey, RateCard, Skill, Trade } from "@gigsync/protocol";
 import type { MessageKey } from "../i18n/t.js";
 import { ASK_FIRST_DETAILS } from "../job/details.js";
-import type { TermPrefs } from "../job/terms.js";
 import { QUESTIONS } from "../job/worker.js";
+import type { TermPrefs } from "../job/worker-stance.js";
 import { arranged, missingRate } from "./card-arrangements.js";
 import type { FoundEstimate } from "./estimate-lines.js";
 import type { Field } from "./lexicon.js";

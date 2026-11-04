@@ -12,7 +12,8 @@ import {
 } from "@gigsync/protocol";
 import { asciiDigits, countIn } from "../job/details.js";
 import type { NewNeed } from "../job/device.js";
-import { AFTERNOON_FROM, EVENING_FROM } from "../schedule/windows.js";
+import { timeIn } from "../schedule/clock.js";
+import { AFTERNOON_FROM, EVENING_FROM, MINUTES_PER_HOUR, windowAt } from "../schedule/windows.js";
 import type { NeedDraft } from "./need.js";
 import { draftDetails } from "./need-request.js";
 import { scopeFlexible } from "./need-scope.js";
@@ -48,6 +49,12 @@ export function windowOf(time: string | undefined): TimeWindow | undefined {
   return clock >= AFTERNOON_FROM ? TimeWindow.enum.afternoon : TimeWindow.enum.morning;
 }
 
+/** The hour on the clock a time names ("2 pm", "दोपहर 2 बजे", "kal 10 baje"); undefined when it names none. */
+export function hourOf(time: string | undefined): number | undefined {
+  const read = time ? timeIn(time) : undefined;
+  return read && Math.floor(read.start_min / MINUTES_PER_HOUR);
+}
+
 /** A count the protocol allows (1 to `max`), else undefined. */
 const within = (n: number | undefined, max: number) => (n !== undefined && n >= 1 && n <= max ? n : undefined);
 
@@ -57,12 +64,14 @@ const within = (n: number | undefined, max: number) => (n !== undefined && n >= 
  */
 export function needTerms(d: NeedDraft, trade: JobTrade, day: string): Pick<NewNeed, "terms" | "flexible"> {
   const details = { ...d.seen, ...draftDetails(d) };
-  const window = windowOf(d.time);
+  // A start hour when the owner gave one (ADR 0053 §1); its part of the day goes with it, for older phones.
+  const hour = hourOf(d.time);
+  const window = hour !== undefined ? windowAt(hour) : windowOf(d.time);
   const labour = DetailFlag.safeParse(details[Q.labour_only]).data;
   const coats = within(countIn(details[Q.coats]), MAX_COATS);
   const hours = within(countIn(details[Q.hours]), MAX_HOURS);
   const terms: Terms = fitTerms(trade, {
-    ...(window ? { when: { day, window } } : {}),
+    ...(window ? { when: { day, window, ...(hour !== undefined ? { hour } : {}) } } : {}),
     ...(labour
       ? { materials: labour === DetailFlag.enum.yes ? MaterialsBy.enum.household : MaterialsBy.enum.worker }
       : {}),

@@ -156,7 +156,7 @@ describe("the agents settle the terms besides the price", () => {
     const { priya, ravi } = await pair(kiran(), { worker: MENTOR_PROTOCOL });
     const [job] = await priya.device.request(paintNeed({ when: morning }), [ravi.user]);
     expect(job?.request.terms).toBeUndefined();
-    expect(job?.terms).toEqual({ on: false });
+    expect(job?.terms).toEqual({ on: false, hours: false });
   });
 
   it("lets the worker's model choose among the counters code listed, and nothing outside them", async () => {

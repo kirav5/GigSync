@@ -79,7 +79,7 @@ export {
 export { chipChoice, ScopePick, scopeDetails } from "./interview/need-scope.js";
 export { withSkill } from "./interview/need-skill.js";
 export { needTerms, windowOf } from "./interview/need-terms.js";
-export { ANY_TIME, ANY_TIME_PICK, FIRST_HOUR, hoursOpen, LAST_HOUR } from "./interview/need-time.js";
+export { ANY_TIME, ANY_TIME_PICK, hoursOpen } from "./interview/need-time.js";
 export type { AddressChoice } from "./interview/need-types.js";
 export {
   checkPriceStep,
@@ -125,6 +125,7 @@ export * from "./job/terms.js";
 export { type TermsTrack, type TimeAsk, termDetails } from "./job/terms-flow.js";
 export * from "./job/when.js";
 export { doesWork, type WorkerRules } from "./job/worker.js";
+export * from "./job/worker-stance.js";
 export * from "./keys.js";
 export * from "./landing/index.js";
 export * from "./log.js";

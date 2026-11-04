@@ -1,9 +1,8 @@
 import { type EngagementId, EngagementStatus, Role, type Terms, type TermWhen } from "@gigsync/protocol";
 import { listBookings } from "../schedule/store.js";
-import { bookingWhens } from "../schedule/windows.js";
+import { type Hours, overlaps, spanOf } from "../schedule/windows.js";
 import type { JobContext } from "./context.js";
 import type { JobRecord } from "./store.js";
-import { clashes } from "./terms.js";
 
 /**
  * The times a worker has given (ADR 0048 §5): what their agent may not offer or sign again. A worker's phone answers
@@ -25,26 +24,27 @@ export function bookedTimes(jobs: readonly JobRecord[]): TermWhen[] {
 }
 
 /**
- * The times signed jobs hold, and the time of a deal this worker signed that waits for the household's signature: two
- * households must not both get it while the first is still signing.
+ * The time signed jobs hold, and the time of a deal this worker signed that waits for the household's signature: two
+ * households must not both get it while the first is still signing. Each as the minutes of its day it takes.
  */
-export function heldTimes(jobs: readonly JobRecord[]): TermWhen[] {
-  const waiting = jobs.flatMap((j) => {
-    const when = isMine(j) && j.engagement.status === S.confirming ? j.mine?.terms.terms?.when : undefined;
-    return when ? [when] : [];
+export function heldTimes(jobs: readonly JobRecord[]): Hours[] {
+  return jobs.flatMap((j) => {
+    const signed = isMine(j) && (j.mine?.terms_hash === j.theirs?.terms_hash || j.engagement.status === S.confirming);
+    const terms = signed ? j.mine?.terms.terms : undefined;
+    return terms?.when ? [spanOf(terms.when, terms.hours)] : [];
   });
-  return [...bookedTimes(jobs), ...waiting];
 }
 
 /** Every time the worker cannot give to `except`'s job: held by another job, or one of their own bookings. */
-export async function takenTimes(ctx: JobContext, except?: EngagementId): Promise<TermWhen[]> {
+export async function takenTimes(ctx: JobContext, except?: EngagementId): Promise<Hours[]> {
   const [jobs, bookings] = await Promise.all([ctx.store.jobs(), listBookings(ctx.storage)]);
-  return [...heldTimes(jobs.filter((j) => j.engagement.id !== except)), ...bookingWhens(bookings)];
+  return [...heldTimes(jobs.filter((j) => j.engagement.id !== except)), ...bookings];
 }
 
 /** The terms give the worker's time to this job although another job or a booking already has it. */
 export async function timeTaken(ctx: JobContext, r: JobRecord, terms: Terms | undefined): Promise<boolean> {
   const when = terms?.when;
   if (r.engagement.role !== R.provider || !when) return false;
-  return (await takenTimes(ctx, r.engagement.id)).some((t) => clashes(t, when));
+  const span = spanOf(when, terms.hours);
+  return (await takenTimes(ctx, r.engagement.id)).some((t) => overlaps(t, span));
 }
