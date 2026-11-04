@@ -1,13 +1,17 @@
-// The hero mural glides into the smaller frame of the roots section as the page scrolls. One fixed element
-// carries the picture from the hero frame to the roots window, shrinking on the way, and hands over to the real
-// image in the roots frame once it has landed. Phones and reduced-motion settings get the two images in place,
-// no flight.
+// The hero mural glides into the small tilted frame of the roots section as the page scrolls. One fixed element
+// carries the picture from the hero frame to the roots window, growing smaller and tilting on the way, and hands
+// over to the real image in the roots frame once it has landed. Phones and reduced-motion settings get the two
+// images in place, no flight.
 const DESKTOP = "(min-width: 800px)";
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
+const MEASURING = "measuring";
 const LANDED = "landed";
 const FLYING = "flying";
 const BLOCK = "block";
 const NONE = "none";
+/** The roots frame's tilt and the zoom of the picture inside it, as the stylesheet draws them. */
+const ROOTS_TILT_DEG = -2;
+const ROOTS_ZOOM = 1.22;
 /** How far into the flight the hero frame and caption have fully faded. */
 const FRAME_FADE_END = 0.35;
 
@@ -18,12 +22,14 @@ const docRect = (node) => {
   return { left: r.left + window.scrollX, top: r.top + window.scrollY, width: r.width, height: r.height };
 };
 
-export function startHeroFlight({ heroArt, heroFrame, heroCaption, rootsWindow, fly }) {
+export function startHeroFlight({ heroArt, heroFrame, heroCaption, rootsArt, rootsWindow, fly }) {
   const desktop = matchMedia(DESKTOP);
   const reduced = matchMedia(REDUCED_MOTION);
+  const picture = fly.firstElementChild;
   let start = null;
   let end = null;
   let endScroll = 0;
+  let origin = "50% 50%";
   let enabled = false;
   let frame = 0;
 
@@ -41,9 +47,15 @@ export function startHeroFlight({ heroArt, heroFrame, heroCaption, rootsWindow, 
       return;
     }
     document.body.classList.add(FLYING);
-    start = docRect(heroArt);
+    // the roots frame is measured untilted; the flight tilts the picture about the frame's own centre at the end
+    rootsArt.classList.add(MEASURING);
+    const art = docRect(rootsArt);
     end = docRect(rootsWindow);
-    // the picture has landed once the roots frame sits in the middle of the viewport
+    rootsArt.classList.remove(MEASURING);
+    start = docRect(heroArt);
+    const cx = art.left + art.width / 2;
+    const cy = art.top + art.height / 2;
+    origin = `${((cx - end.left) / end.width) * 100}% ${((cy - end.top) / end.height) * 100}%`;
     endScroll = end.top - (window.innerHeight - end.height) / 2;
     render();
   }
@@ -67,7 +79,9 @@ export function startHeroFlight({ heroArt, heroFrame, heroCaption, rootsWindow, 
     fly.style.display = BLOCK;
     fly.style.width = `${lerp(start.width, end.width, t)}px`;
     fly.style.height = `${lerp(start.height, end.height, t)}px`;
-    fly.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+    fly.style.transformOrigin = origin;
+    fly.style.transform = `translate3d(${left}px, ${top}px, 0) rotate(${ROOTS_TILT_DEG * t}deg)`;
+    picture.style.transform = `scale(${lerp(1, ROOTS_ZOOM, t)})`;
   }
 
   const schedule = () => {
