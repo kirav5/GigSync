@@ -16,3 +16,9 @@ ADMIN_KEY=dev-only-admin-key
 # Geocoding for the address form (ADR 0045): an Ola Maps key. Unset means the geo routes answer 503 and the app
 # offers typing the address instead. Deployed: `wrangler secret put OLA_MAPS_API_KEY`.
 # OLA_MAPS_API_KEY=
+
+# GigSync's own model (ADR 0052): Ollama on the Mac Studio. Unset, the model route answers 503 and phones use their
+# own model or lite mode. Locally, the Studio's LAN address; deployed, the Cloudflare Tunnel's hostname, set as vars,
+# with the Access service token as secrets (`wrangler secret put MODEL_ACCESS_ID`, `MODEL_ACCESS_SECRET`).
+# MODEL_ORIGIN=http://192.168.1.8:11434
+# MODEL_NAME=qwen3:30b-a3b-instruct-2507-q4_K_M

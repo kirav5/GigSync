@@ -1,5 +1,6 @@
 import type { SpeechStatus, SpeechVendor } from "@gigsync/plugin-speech";
 import { type FormEvent, useEffect, useId, useRef, useState } from "react";
+import { chosenModel } from "../adapters/model.js";
 import { needsExplaining, Permission } from "../adapters/permissions.js";
 import {
   ListenRefusal,
@@ -88,6 +89,12 @@ export function Composer({
   const askId = useId();
   const langName = t(`lang.${lang}`);
   const vendorName = status?.cloud ? t(`speech.vendor_${status.cloud.vendor}`) : "";
+
+  // A secret answer (the lowest rate) is read only by a model on this phone, never GigSync's (ADR 0052).
+  useEffect(() => {
+    chosenModel.holdOnPhone(onDeviceOnly);
+    return () => chosenModel.holdOnPhone(false);
+  }, [onDeviceOnly]);
 
   // A fetch the line speaks of ends: ready, the mic works and the line clears; not coming, it says to type unless a
   // company's recognizer is left to ask about.

@@ -1,6 +1,6 @@
-/** The model on this phone: Settings › On-device model, and the chat's one offer and lines about it (ADR 0040). */
+/** The agent's model: Settings › Your agent's model (GigSync's, ADR 0052; the phone's, ADR 0040), and the chat's offer. */
 export const model = {
-  "model.title": "On-device model",
+  "model.title": "Your agent's model",
   "model.check": "Check again",
   "model.checking": "Checking this device…",
   "model.none": "This device has no on-device model.",
@@ -9,7 +9,7 @@ export const model = {
   "model.free_mb": "{mb} MB free",
   "model.auto": "Auto",
   "model.auto_about":
-    "Use this phone's model once it is ready, if it answers quickly enough here; otherwise lite mode.",
+    "GigSync's own model, on GigSync's computer in India, reads what you write to understand you; it is not kept. When it can't be reached, this phone's model if it is ready; otherwise lite mode.",
   "model.device": "On-device",
   "model.device_about": "Always use this device's own model. Falls back to lite mode only if it cannot answer.",
   "model.lite": "Lite mode",
@@ -29,6 +29,7 @@ export const model = {
   "model.not_ready_lite": "{device} · not ready, so lite mode",
   "model.on_device_label": "On-device: {engine}",
   "model.auto_label": "Auto · {model}",
+  "model.server_label": "GigSync's model",
   "model.offer": "Help your agent understand you better: download about {mb} MB to this phone.",
   "model.offer_download": "Download",
   "model.offer_later": "Later",
