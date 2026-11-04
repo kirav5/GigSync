@@ -4,7 +4,7 @@ import { UserId } from "./ids.js";
 import { Paise } from "./payment.js";
 import { Place } from "./place.js";
 import { distinctSkills, MAX_SKILLS, Skill, SkillKey } from "./skill.js";
-import { TimeWindow } from "./terms.js";
+import { StartHour, TimeWindow } from "./terms.js";
 import { Trade } from "./trade.js";
 import { SearchDay, WorkHours } from "./work-hours.js";
 import { WorkerRecord } from "./worker-record.js";
@@ -92,6 +92,8 @@ export const BoardQuery = z
      */
     day: SearchDay.optional(),
     window: TimeWindow.optional(),
+    /** ADR 0053 §1: the hour the work starts. With it, workers' own hours and signed jobs are matched by the hour. */
+    hour: z.coerce.number().pipe(StartHour).optional(),
     limit: z.coerce.number().int().min(1).max(MAX_RESULTS).default(DEFAULT_RESULTS),
   })
   .refine((q) => (q.trade === undefined) !== (q.skill === undefined), "a trade or a skill");

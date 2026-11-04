@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   BODY,
+  BoardQuery,
   canonicalJson,
   EVERY_DAY,
   fitTerms,
@@ -10,9 +11,11 @@ import {
   Offer,
   TermKey,
   Terms,
+  TermWhen,
   TRADE_TERMS,
   Trade,
   termsFit,
+  WorkHours,
 } from "../src/index.js";
 
 const ULID = "01J0000000000000000000AAAA";
@@ -79,5 +82,36 @@ describe("terms other than price", () => {
   it("an older phone's schema drops terms it does not know rather than failing", () => {
     const older = Offer.omit({ terms: true });
     expect(older.safeParse({ ...offer, terms: { coats: 2 } }).success).toBe(true);
+  });
+});
+
+describe("start hours (ADR 0053 §1)", () => {
+  it("takes a start hour on the clock beside the part of the day, and nothing past 23", () => {
+    expect(TermWhen.safeParse({ day: "2026-11-10", window: "afternoon", hour: 14 }).success).toBe(true);
+    expect(TermWhen.safeParse({ day: "2026-11-10", window: "afternoon", hour: 24 }).success).toBe(false);
+    expect(TermWhen.safeParse({ day: "2026-11-10", window: "morning", hour: 9.5 }).success).toBe(false);
+  });
+
+  it("an older phone's schema drops the hour rather than failing, so it is sent only to phones that keep it", () => {
+    const older = TermWhen.omit({ hour: true });
+    expect(older.parse({ day: "2026-11-10", window: "evening", hour: 18 })).toEqual({
+      day: "2026-11-10",
+      window: "evening",
+    });
+  });
+
+  it("takes a worker's hours from and to together, from before to, within the day", () => {
+    const base = { days: [1, 2, 3], windows: ["morning", "afternoon"] };
+    expect(WorkHours.safeParse({ ...base, from: 9, to: 18 }).success).toBe(true);
+    expect(WorkHours.safeParse(base).success).toBe(true);
+    expect(WorkHours.safeParse({ ...base, from: 9 }).success).toBe(false);
+    expect(WorkHours.safeParse({ ...base, from: 18, to: 9 }).success).toBe(false);
+    expect(WorkHours.safeParse({ ...base, from: 9, to: 25 }).success).toBe(false);
+  });
+
+  it("reads the board's hour from the query string", () => {
+    const q = BoardQuery.parse({ trade: "plumber", lat: "12.9", lon: "77.6", hour: "14" });
+    expect(q.hour).toBe(14);
+    expect(BoardQuery.safeParse({ trade: "plumber", lat: "12.9", lon: "77.6", hour: "24" }).success).toBe(false);
   });
 });

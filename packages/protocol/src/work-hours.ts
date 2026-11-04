@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { TermWhen, TimeWindow } from "./terms.js";
+import { DAY_HOURS, StartHour, TermWhen, TimeWindow } from "./terms.js";
 
 /**
  * When a worker works, as a shop shows its hours (ADR 0050 §2): the weekdays and the parts of the day. It is on the
@@ -16,10 +16,20 @@ const MAX_WINDOWS = TimeWindow.options.length;
 
 const distinct = (values: readonly unknown[]) => new Set(values).size === values.length;
 
-export const WorkHours = z.object({
-  days: z.array(IsoWeekday).min(1).max(ISO_WEEKDAYS.length).refine(distinct, "no repeated days"),
-  windows: z.array(TimeWindow).min(1).max(MAX_WINDOWS).refine(distinct, "no repeated windows"),
-});
+/**
+ * `from`–`to`: the hours of the day they work, on the clock (ADR 0053 §1), e.g. 9–18; both or neither, within one day
+ * (no night shift past midnight in the pilot). `windows` are still the parts of the day those hours touch, for older
+ * phones and older servers that filter by them.
+ */
+export const WorkHours = z
+  .object({
+    days: z.array(IsoWeekday).min(1).max(ISO_WEEKDAYS.length).refine(distinct, "no repeated days"),
+    windows: z.array(TimeWindow).min(1).max(MAX_WINDOWS).refine(distinct, "no repeated windows"),
+    from: StartHour.optional(),
+    to: z.number().int().min(1).max(DAY_HOURS).optional(),
+  })
+  .refine((h) => (h.from === undefined) === (h.to === undefined), "from and to together")
+  .refine((h) => h.from === undefined || h.to === undefined || h.from < h.to, "from before to");
 export type WorkHours = z.infer<typeof WorkHours>;
 
 /** The ISO weekday of a "YYYY-MM-DD" day, as the calendar has it anywhere. */
