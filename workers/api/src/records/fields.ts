@@ -46,6 +46,8 @@ export interface JobColumns {
   work_day: string | null;
   work_daily: boolean;
   work_window: string | null;
+  /** ADR 0053 §1: the hour the work starts on the phone's clock, when the terms say it. */
+  work_hour: number | null;
   materials_by: string | null;
   coats: number | null;
   hours_per_day: number | null;
@@ -70,6 +72,7 @@ export function columnsOf(work: JobWork, terms: JobTermsFields): JobColumns {
     work_day: terms.when && !daily ? terms.when.day : null,
     work_daily: daily,
     work_window: terms.when?.window ?? null,
+    work_hour: terms.when?.hour ?? null,
     materials_by: terms.materials ?? null,
     coats: terms.coats ?? null,
     hours_per_day: terms.hours ?? null,
@@ -96,6 +99,7 @@ export function workOf(c: JobColumns): JobWork {
 
 export function termsOf(c: JobColumns): JobTermsFields {
   const day = c.work_daily ? EVERY_DAY : c.work_day;
-  const when = day !== null && c.work_window !== null ? { day, window: c.work_window } : null;
+  const hour = c.work_hour === null ? {} : { hour: c.work_hour };
+  const when = day !== null && c.work_window !== null ? { day, window: c.work_window, ...hour } : null;
   return JobTermsFields.parse(present({ when, materials: c.materials_by, coats: c.coats, hours: c.hours_per_day }));
 }

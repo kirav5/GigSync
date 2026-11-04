@@ -1,5 +1,5 @@
 import { HttpMethod } from "@gigsync/core";
-import { type MyJobRecords, RECORDS_NOTICE_VERSION, Role } from "@gigsync/protocol";
+import { JobSubmitState, type MyJobRecords, RECORDS_NOTICE_VERSION, Role } from "@gigsync/protocol";
 import { ulid } from "ulid";
 import { describe, expect, it } from "vitest";
 import { ADMIN_HEADER, ADMIN_KEY, call } from "./mentor-helpers.js";
@@ -14,6 +14,7 @@ import {
   newHash,
   paintJob,
   rate,
+  stateOf,
   storedJob,
   workerCard,
 } from "./record-helpers.js";
@@ -55,6 +56,20 @@ describe("my work record: the export", () => {
     await asHousehold(stranger, w, paintJob(newEngagement(), newHash()));
     expect((await exportOf(w)).jobs).toHaveLength(1);
     expect((await exportOf(stranger)).jobs).toEqual([]);
+  });
+
+  it("keeps the hour a job starts (ADR 0053 §1), so a restored job has it", async () => {
+    const w = await consented("+919888340101");
+    const home = await consented("+919888340102");
+    const job = paintJob(newEngagement(), newHash());
+    const at10 = { ...job, terms: { ...job.terms, when: { ...job.terms.when, hour: 10 } } };
+    expect(await stateOf(await asHousehold(home, w, at10))).toBe(JobSubmitState.enum.pending);
+    expect(await stateOf(await asWorker(w, home, at10))).toBe(JobSubmitState.enum.stored);
+    const [stored] = (await exportOf(w)).jobs;
+    expect(stored?.terms).toEqual({ when: { day: "2026-11-02", window: "morning", hour: 10 }, coats: 2 });
+    // A job agreed without an hour comes back without one.
+    await storedJob(w, home);
+    expect((await exportOf(w)).jobs[1]?.terms.when).toEqual({ day: "2026-11-02", window: "morning" });
   });
 
   it("pages oldest first with a cursor, and refuses a bad page or no session", async () => {
