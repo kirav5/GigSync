@@ -8,9 +8,10 @@
 
 ALTER TABLE worker_profiles
   ADD COLUMN IF NOT EXISTS work_from SMALLINT CHECK (work_from BETWEEN 0 AND 23), -- a StartHour
-  ADD COLUMN IF NOT EXISTS work_to SMALLINT CHECK (work_to BETWEEN 1 AND 24),     -- at most DAY_HOURS
-  ADD CONSTRAINT worker_profiles_work_from_to_check
-    CHECK ((work_from IS NULL) = (work_to IS NULL) AND (work_from IS NULL OR work_from < work_to));
+  ADD COLUMN IF NOT EXISTS work_to SMALLINT CHECK (work_to BETWEEN 1 AND 24);     -- at most DAY_HOURS
+ALTER TABLE worker_profiles DROP CONSTRAINT IF EXISTS worker_profiles_work_from_to_check;
+ALTER TABLE worker_profiles ADD CONSTRAINT worker_profiles_work_from_to_check
+  CHECK ((work_from IS NULL) = (work_to IS NULL) AND (work_from IS NULL OR work_from < work_to));
 
 ALTER TABLE job_records
   ADD COLUMN IF NOT EXISTS work_hour SMALLINT CHECK (work_hour BETWEEN 0 AND 23); -- a StartHour
