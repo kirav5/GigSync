@@ -11,6 +11,7 @@ import {
   EVERY_DAY,
   FIRST_HOUR,
   hearNeed,
+  hourOf,
   LAST_HOUR,
   NeedPick,
   NeedSlot,
@@ -59,14 +60,20 @@ describe("the need interview", () => {
     const s = hearNeed(asked, "HSR");
     expect(s.slot).toBe(NeedSlot.driver);
     expect(keys(s)).toEqual(["driver.ask.points.electrician"]);
-    const atConfirm = hearNeed(s, "don't know");
+    // "Morning" alone is no start hour (ADR 0053 §1): the hour is asked, among the morning's hours only.
+    const hour = hearNeed(s, "don't know");
+    expect(hour.slot).toBe(NeedSlot.when);
+    expect(keys(hour)).toEqual(["need.ask.hour"]);
+    const chips = needPrompt(hour).choices?.map((c) => c.value) ?? [];
+    expect(chips).toEqual(["at:7", "at:8", "at:9", "at:10", "at:11", "any_time"]);
+    const atConfirm = hearNeed(hour, "10 am");
     expect(atConfirm.slot).toBe(NeedSlot.confirm);
     expect(atConfirm.draft).toMatchObject({
       trade: T.electrician,
       area: "hsr_layout",
       day: "tomorrow",
-      time: "morning",
     });
+    expect(hourOf(atConfirm.draft.time)).toBe(10);
     expect(atConfirm.draft.budget_paise).toBe(70_000);
     expect(atConfirm.draft.detail).toBe("bedroom fan not working, need an electrician tomorrow morning");
     const lines = needPrompt(atConfirm).lines;

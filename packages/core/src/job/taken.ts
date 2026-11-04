@@ -15,13 +15,16 @@ const S = EngagementStatus.enum;
 
 const isMine = (j: JobRecord) => j.engagement.role === R.provider && j.mine !== undefined && !j.cancel;
 
-/** The times this worker has already agreed to, from jobs both sides signed. */
-export function bookedTimes(jobs: readonly JobRecord[]): TermWhen[] {
+/** The terms of the jobs this worker has already agreed to, both sides signed, that set a time. */
+export function bookedTerms(jobs: readonly JobRecord[]): (Terms & { when: TermWhen })[] {
   return jobs.flatMap((j) => {
-    const when = isMine(j) && j.mine?.terms_hash === j.theirs?.terms_hash ? j.mine?.terms.terms?.when : undefined;
-    return when ? [when] : [];
+    const terms = isMine(j) && j.mine?.terms_hash === j.theirs?.terms_hash ? j.mine?.terms.terms : undefined;
+    return terms?.when ? [{ ...terms, when: terms.when }] : [];
   });
 }
+
+/** The times this worker has already agreed to, from jobs both sides signed. */
+export const bookedTimes = (jobs: readonly JobRecord[]): TermWhen[] => bookedTerms(jobs).map((t) => t.when);
 
 /**
  * The time signed jobs hold, and the time of a deal this worker signed that waits for the household's signature: two

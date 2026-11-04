@@ -175,7 +175,7 @@ export async function workerTerms(
   if (termsUnanswered(mine, theirs)) return { r: { ...r, terms: { on: false } }, agreed: true };
   const busy = await takenTimes(ctx, r.engagement.id);
   const now = ctx.clock.now();
-  const hours = await hoursOn(ctx, r);
+  const hours = await hoursOn(ctx, r, theirs);
   const stance = workerStance(prefs, busy, dayOf(r.request), now, theirs?.hours ?? r.request.terms?.hours);
   const fitted = theirs && fitTerms(trade, theirs);
   // A time asked for that is over is the household's to replace (ADR 0053 §2), never a reason for no deal: the
@@ -229,7 +229,8 @@ export async function householdTerms(
   const hours = await hoursOn(ctx, r);
   const wants = householdWants(need, { ...r, terms: { on, hours } });
   const stance = householdStance(wants, need.flexible ?? [], workerBefore(r));
-  const fitted = theirs && fitTerms(trade, theirs);
+  // A job without hours never compares the worker's time by an hour it cannot keep.
+  const fitted = withHours(theirs && fitTerms(trade, theirs), hours);
   const answer = answerTerms(trade, stance, fitted);
   const next = withHours(await chosen(ctx.model, answer, need.need), hours);
   const moved = { ...r, terms: { on, next, hours } };

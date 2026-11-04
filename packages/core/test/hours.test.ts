@@ -8,6 +8,7 @@ import {
   hourText,
   LAST_HOUR,
   type NewNeed,
+  overlaps,
   settle,
   spanOf,
   type TermPrefs,
@@ -145,5 +146,57 @@ describe("two phones agreeing a start hour", () => {
     const ask = (await priya.device.tasks()).find((t) => t.engagement === id)?.detail as { when?: { hour?: number } };
     expect(ask?.when?.hour).toBeGreaterThanOrEqual(9);
     expect(ask?.when?.hour).toBeLessThan(13);
+  });
+});
+
+describe("the review's cases (ADR 0053 §1–2)", () => {
+  it("reads minutes said after a space when am, pm or a clock word follows", () => {
+    expect(hourOf("10 30 am")).toBe(10);
+    expect(hourOf("2 30 pm")).toBe(14);
+    expect(hourOf("kal 10 30 baje")).toBe(10);
+  });
+
+  it("never gives a job without hours an hour, even when the worker's phone understands them", async () => {
+    const { priya, ravi, talk } = await pair(kiran({ from: 9, to: 18 }), OWNER_OFFERS_PROTOCOL, HOURS_PROTOCOL);
+    const [job] = await priya.device.request(paintAt({ when: { day: DAY, window: "morning" } }), [ravi.user]);
+    const id = job?.engagement.id as EngagementId;
+    await talk();
+    const his = await ravi.device.job(id);
+    for (const o of his.offers) expect(o.offer.terms?.when?.hour).toBeUndefined();
+    expect((await priya.device.job(id)).mine?.terms_hash).toBe(his.mine?.terms_hash);
+  });
+
+  it("offers another time when a deal waiting for the worker's signature has passed, instead of keeping it", async () => {
+    let at = BEFORE.now();
+    const clock: Clock = { now: () => at };
+    const relay = new MemoryRelay();
+    const priya = await phone(relay, PRIYA, { protocol: HOURS_PROTOCOL, autoConfirm: true, clock });
+    const ravi = await phone(relay, RAVI, {
+      worker: kiran({ from: 9, to: 18 }),
+      protocol: HOURS_PROTOCOL,
+      autoConfirm: false,
+      clock,
+    });
+    const need = {
+      ...paintAt({ when: atHour(DAY, 10) }),
+      budget: { opening_paise: 1_000_000, limit_paise: 1_500_000 },
+    };
+    const [job] = await priya.device.request(need, [ravi.user]);
+    const id = job?.engagement.id as EngagementId;
+    await settle([priya.device, ravi.device]);
+    // Whoever's agent said yes first, the deal ends up waiting for his signature.
+    expect((await ravi.device.tasks()).map((t) => t.kind)).toEqual(["confirm_deal"]);
+    // He did not sign before ten: at half past, that deal is gone and his agent offers his next free hour.
+    at = new Date(`${DAY}T05:00:00Z`);
+    await ravi.device.sync();
+    expect(await ravi.device.tasks()).toEqual([]);
+    const next = (await ravi.device.job(id)).offers.at(-1)?.offer.terms?.when;
+    expect(next?.hour).toBe(11);
+  });
+
+  it("warns of a clash with a signed job by that job's own hours a day", () => {
+    const fourHours = spanOf(atHour(DAY, 10), 4);
+    expect(overlaps({ day: DAY, start_min: 13 * 60, end_min: 14 * 60 }, fourHours)).toBe(true);
+    expect(overlaps({ day: DAY, start_min: 14 * 60, end_min: 15 * 60 }, fourHours)).toBe(false);
   });
 });

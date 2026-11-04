@@ -3,7 +3,10 @@ import { hourText } from "../i18n/terms-text.js";
 import { FIRST_HOUR, LAST_HOUR, windowAt } from "../schedule/windows.js";
 import type { Choice, Prompt } from "./card.js";
 import { DayWord, moveOn, type NeedState } from "./need.js";
-import { hourOf, windowOf } from "./need-terms.js";
+import { ANY_TIME, needsHour, windowOf } from "./need-terms.js";
+
+export { ANY_TIME, needsHour };
+
 import type { NeedDraft } from "./need-types.js";
 
 /**
@@ -13,8 +16,6 @@ import type { NeedDraft } from "./need-types.js";
  * (`windowOf`), and the worker reads the hour itself. A time said with the day ("tomorrow 10 am") skips the question.
  */
 
-/** The time of a need whose household said any time that day is fine: asked, and nothing to read a window from. */
-export const ANY_TIME = "";
 /** A chip's value for an hour ("at:14"), and for any time. */
 const HOUR_PICK = "at:";
 export const ANY_TIME_PICK = "any_time";
@@ -33,13 +34,6 @@ export function hoursOpen(s: NeedState): number[] {
     (h) => part === undefined || windowAt(h) === part,
   );
 }
-
-/**
- * The day is set and the household has not said the hour: the hour is asked next (ADR 0053 §1). A part of the day
- * alone ("tomorrow morning") still asks it, among that part's hours; "any time" does not.
- */
-export const needsHour = (d: NeedDraft): boolean =>
-  d.day !== undefined && (d.time === undefined || (d.time !== ANY_TIME && hourOf(d.time) === undefined));
 
 /** "What time should they come?", with a chip for each hour open and "Any time" last. */
 export function hourPrompt(s: NeedState): Prompt {

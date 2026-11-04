@@ -6,6 +6,7 @@ import { priceOpen } from "./driver-ask.js";
 import type { FoundEstimate } from "./estimate-lines.js";
 import { arrangedWork, needsArrangement } from "./need-arrangement.js";
 import type { Recalled } from "./need-memory.js";
+import { needsHour } from "./need-terms.js";
 import type { NeedConfig, NeedDraft, NeedTo } from "./need-types.js";
 
 /**
@@ -103,7 +104,7 @@ export function firstMissing(d: NeedDraft, needsAddress = false): NeedSlot {
   if (d.area === undefined || (needsAddress && d.address === undefined)) return NeedSlot.area;
   if (priceOpen(d)) return NeedSlot.driver;
   // The day, then the hour in it (need-time.ts); a time said with the day answers both.
-  if (d.day === undefined || d.time === undefined) return NeedSlot.when;
+  if (d.day === undefined || needsHour(d)) return NeedSlot.when;
   if (d.budget_paise === undefined) return NeedSlot.budget;
   return NeedSlot.confirm;
 }

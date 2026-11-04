@@ -98,7 +98,8 @@ export class Talks {
     if (!when) throw new TalkError("no time proposed");
     if (whenPassed(when, this.ctx.clock.now())) throw new TalkError(PASSED);
     await clearTalkTasks(this.ctx, r);
-    return onQuote(this.ctx, need, { ...r, time: when, offers: r.offers.slice(0, -1) }, offer);
+    const time = withHours({ when }, r.terms?.hours).when ?? when;
+    return onQuote(this.ctx, need, { ...r, time, offers: r.offers.slice(0, -1) }, offer);
   }
 
   /** The household picks a time of its own: sent to the worker with its agent's next price. */
@@ -123,7 +124,7 @@ export class Talks {
       this.ctx,
       await counter(
         this.ctx,
-        { ...planned, terms: { on: true, next, ...(planned.terms?.hours ? { hours: true } : {}) } },
+        { ...planned, terms: { on: true, next, hours: planned.terms?.hours === true } },
         price,
         true,
       ),

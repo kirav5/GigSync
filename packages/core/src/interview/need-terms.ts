@@ -14,6 +14,7 @@ import { asciiDigits, countIn } from "../job/details.js";
 import type { NewNeed } from "../job/device.js";
 import { timeIn } from "../schedule/clock.js";
 import { AFTERNOON_FROM, EVENING_FROM, MINUTES_PER_HOUR, windowAt } from "../schedule/windows.js";
+import { CLOCK_MARKS } from "../schedule/words.js";
 import type { NeedDraft } from "./need.js";
 import { draftDetails } from "./need-request.js";
 import { scopeFlexible } from "./need-scope.js";
@@ -31,6 +32,12 @@ const WINDOW_FINDERS = TimeWindow.options.map((w) => [w, WINDOW_WORDS[w].map(fin
 const PM: Finder[] = PM_WORDS.map(finder);
 const AM: Finder[] = AM_WORDS.map(finder);
 const HOUR = /(?<!\d)(\d{1,2})(?!\d)/;
+const escapeRe = (word: string) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+/** "10 30 am": minutes after a space, read as "10:30" only when am, pm or a clock word follows. */
+const SPACED_MINUTES = new RegExp(
+  `(?<!\\d)(\\d{1,2}) (\\d{2})(?=\\s*(?:${[...AM_WORDS, ...PM_WORDS, ...CLOCK_MARKS].map(escapeRe).join("|")}))`,
+  "iu",
+);
 const NOON = 12;
 const LAST_HOUR = 23;
 
@@ -51,9 +58,19 @@ export function windowOf(time: string | undefined): TimeWindow | undefined {
 
 /** The hour on the clock a time names ("2 pm", "दोपहर 2 बजे", "kal 10 baje"); undefined when it names none. */
 export function hourOf(time: string | undefined): number | undefined {
-  const read = time ? timeIn(time) : undefined;
+  const read = time ? timeIn(time.replace(SPACED_MINUTES, "$1:$2")) : undefined;
   return read && Math.floor(read.start_min / MINUTES_PER_HOUR);
 }
+
+/** The time of a need whose household said any time that day is fine: asked, and nothing to read a window from. */
+export const ANY_TIME = "";
+
+/**
+ * The day is set and the household has not said the hour: the hour is asked next (ADR 0053 §1). A part of the day
+ * alone ("tomorrow morning") still asks it, among that part's hours; "any time" does not.
+ */
+export const needsHour = (d: NeedDraft): boolean =>
+  d.day !== undefined && (d.time === undefined || (d.time !== ANY_TIME && hourOf(d.time) === undefined));
 
 /** A count the protocol allows (1 to `max`), else undefined. */
 const within = (n: number | undefined, max: number) => (n !== undefined && n >= 1 && n <= max ? n : undefined);
