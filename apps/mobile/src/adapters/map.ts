@@ -21,9 +21,13 @@ const onOurApi = (url: string): string | undefined => {
   return at < 0 ? undefined : `${API_BASE}${url.slice(at)}`;
 };
 
-/** Directions to a point in the phone's maps app (Google Maps opens its app where installed, else the web). */
+/**
+ * Directions in the phone's maps app (Google Maps opens its app where installed, else the web): to the pinned door,
+ * or to the address as written when the household never pinned it, which the maps app looks up itself.
+ */
 const DIRECTIONS = "https://www.google.com/maps/dir/?api=1&destination=";
-export const directionsTo = ({ lat, lon }: Place): string => `${DIRECTIONS}${lat},${lon}`;
+export const directionsTo = (to: Place | string): string =>
+  `${DIRECTIONS}${typeof to === "string" ? encodeURIComponent(to) : `${to.lat},${to.lon}`}`;
 const MARKER_CLASS = "place-map-marker";
 
 /** The signed-in owner's session, set by the app shell; maps are drawn only while someone is signed in. */
