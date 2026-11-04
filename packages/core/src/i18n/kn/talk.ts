@@ -35,6 +35,7 @@ export const talk: Readonly<Record<keyof typeof en, string>> = {
   "decide.time_passed_other": "ನೀವು ಕೇಳಿದ ಸಮಯ ಮುಗಿದಿದೆ. {name} {when} ಬರಬಹುದು.",
   "decide.accept_time": "ಹೌದು, {when}",
   "decide.pick_time": "ಬೇರೆ ಸಮಯ ಆರಿಸಿ",
+  "decide.pick_day": "ದಿನ ಆರಿಸಿ",
   "decide.pick_send": "ಈ ಸಮಯ ಕಳುಹಿಸಿ",
   "a11y.takeover": "ನಿಮ್ಮ ಏಜೆಂಟ್‌ಗಳು ಒಪ್ಪಿಗೆಗೆ ಬರಲಿಲ್ಲ",
   "a11y.new_time": "ಬೇರೆ ಸಮಯ",

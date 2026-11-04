@@ -6,6 +6,7 @@ import {
   draftDetails,
   EVERY_DAY,
   type GigDevice,
+  hourOf,
   type JobRecord,
   type NeedParts,
   type NeedState,
@@ -20,6 +21,7 @@ import {
   perJob,
   requestPoint,
   resolveDay,
+  windowAt,
   windowOf,
   workOf,
 } from "@gigsync/core";
@@ -71,8 +73,9 @@ export const needToOfJob = (job: JobRecord, name: string): NeedTo => ({
 
 /**
  * The board's workers for a trade, or a listed skill by its key (ADR 0047: never the owner's words), near a place;
- * never the owner's own card (a worker hiring never hires themself). With the need's day and the part of the day its
- * hour falls in, only workers who work then and have no signed job then (ADR 0050 §3).
+ * never the owner's own card (a worker hiring never hires themself). With the need's day, its start hour and the part
+ * of the day that hour falls in, only workers who work then and have no signed job then (ADR 0050 §3, ADR 0053 §1):
+ * a newer board matches the hour against each worker's own hours, an older one the part of the day sent beside it.
  */
 export async function searchBoard(
   account: Account,
@@ -85,8 +88,9 @@ export async function searchBoard(
   const near = coarsePoint(at);
   const what = work.skill ? { skill: work.skill.key } : { trade: work.trade };
   const day = work.day && resolveDay(work.day, now, -now.getTimezoneOffset());
-  const window = windowOf(work.time);
-  const when = { ...(day ? { day } : {}), ...(window ? { window } : {}) };
+  const hour = hourOf(work.time);
+  const window = hour !== undefined ? windowAt(hour) : windowOf(work.time);
+  const when = { ...(day ? { day } : {}), ...(window ? { window } : {}), ...(hour !== undefined ? { hour } : {}) };
   const query = { ...what, lat: near.lat, lon: near.lon, radius_km, ...(arrangement ? { arrangement } : {}), ...when };
   const board = await apiClient(account.session).searchWorkers(query);
   return board.filter((w) => w.user !== account.session.user);

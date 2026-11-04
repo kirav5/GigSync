@@ -3,7 +3,7 @@ import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { areaLabel, money } from "../../ui/places.js";
 import { Said } from "../../ui/Said.js";
-import { cardWork } from "../../ui/work.js";
+import { cardHours, cardWork } from "../../ui/work.js";
 import { cardLang, languageNames } from "./cardWords.js";
 import { Initial } from "./PersonCard.js";
 import { RecordStats } from "./RecordStats.js";
@@ -25,7 +25,9 @@ interface WorkerTopProps {
  * line, then their record as GigSync keeps it. Households see the same card, with the same record unless it is hidden.
  */
 export function WorkerTop({ name, card, missing, record, hidden }: WorkerTopProps) {
-  const { lang, t } = useI18n();
+  const i18n = useI18n();
+  const { lang, t } = i18n;
+  const hours = card && cardHours(i18n, card.work_hours);
   return (
     <>
       <div className="share-top">
@@ -37,6 +39,7 @@ export function WorkerTop({ name, card, missing, record, hidden }: WorkerTopProp
               {cardWork(t, card)} · {areaLabel(lang, card.area_name)}
             </span>
             {card.languages.length > 0 && <span className={C.faint}>{languageNames(card.languages, t)}</span>}
+            {hours && <span className={C.faint}>{hours}</span>}
             <span className={C.money}>{t("find.from", { price: money(card.rate_paise) })}</span>
             {card.about && (
               <span className={C.muted}>

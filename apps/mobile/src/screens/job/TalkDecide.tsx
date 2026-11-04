@@ -1,25 +1,21 @@
 import {
   canOffer,
-  dayOf,
   type GigDevice,
   type JobRecord,
-  localNow,
-  phoneOffset,
   type TakeOver,
   TaskKind,
   type TimeAsk,
   theirLast,
   theirLatest,
-  whenPassed,
-  whenText,
 } from "@gigsync/core";
-import { EngagementStatus, EVERY_DAY, Role, type TermWhen, TimeWindow, UPI_MAX_PAISE } from "@gigsync/protocol";
+import { EngagementStatus, Role, UPI_MAX_PAISE } from "@gigsync/protocol";
 import { useState } from "react";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { jobPrice } from "../../ui/places.js";
 import type { GigView } from "../../useGig.js";
 import { OfferTerms } from "../terms/OfferTerms.js";
+import { TimeCard } from "./TimeCard.js";
 
 /**
  * The owner takes the talk over from their agent (ADR 0053 §3–5). After five offers each without agreement: accept
@@ -31,9 +27,6 @@ import { OfferTerms } from "../terms/OfferTerms.js";
 const S = EngagementStatus.enum;
 /** A job its agents are still talking about. */
 const TALKING: ReadonlySet<EngagementStatus> = new Set([S.sent, S.clarifying, S.negotiating]);
-const MS_PER_DAY = 86_400_000;
-/** The days a household may pick another time on: today and the next three. */
-const DAYS = 4;
 const RUPEE = 100;
 
 interface Props {
@@ -42,21 +35,6 @@ interface Props {
   device: GigDevice;
   run: (work: () => Promise<unknown>) => Promise<unknown>;
   them: string;
-}
-
-/**
- * The times still ahead in the next few days, by day then part of the day; for work every day, a part of the day
- * alone, as the job agrees it.
- */
-function timesAhead(now: Date, daily: boolean): TermWhen[] {
-  if (daily) return TimeWindow.options.map((window) => ({ day: EVERY_DAY, window }));
-  const today = localNow(now, phoneOffset(now)).day;
-  const days = Array.from({ length: DAYS }, (_, i) =>
-    new Date(Date.parse(today) + i * MS_PER_DAY).toISOString().slice(0, 10),
-  );
-  return days
-    .flatMap((day) => TimeWindow.options.map((window) => ({ day, window })))
-    .filter((w) => !whenPassed(w, now));
 }
 
 /** The decisions about the talk itself, on a job still being talked about. */
@@ -129,73 +107,5 @@ function OwnOffer({ onSend }: { onSend: (paise: number) => Promise<unknown> }) {
         {t("decide.send_offer")}
       </button>
     </div>
-  );
-}
-
-/** The household decides the time: the worker's other one, a time of its own, or no deal. */
-function TimeCard({ job, ask, device, run, them }: Omit<Props, "view"> & { ask: TimeAsk }) {
-  const { lang, t } = useI18n();
-  const id = job.engagement.id;
-  const [picking, setPicking] = useState(false);
-  const [picked, setPicked] = useState<TermWhen>();
-  const ahead = timesAhead(new Date(), dayOf(job.request) === EVERY_DAY);
-  // A pick whose time went by while the card was open is no pick.
-  const chosen = picked && ahead.find((w) => w.day === picked.day && w.window === picked.window);
-  const theirs = ask.when && whenText(lang, ask.when);
-  const line = ask.passed
-    ? theirs
-      ? t("decide.time_passed_other", { name: them, when: theirs })
-      : t("decide.time_passed")
-    : t("decide.time_other", { name: them, when: theirs ?? "" });
-  return (
-    <fieldset className={C.stack} aria-label={t("a11y.new_time")}>
-      <span className={C.label}>{t("decide.time_title")}</span>
-      <span>{line}</span>
-      <div className={C.actions}>
-        {theirs && (
-          <button type={C.button} className={C.accent} onClick={() => void run(() => device.talks.acceptTime(id))}>
-            {t("decide.accept_time", { when: theirs })}
-          </button>
-        )}
-        <button type={C.button} className={C.secondary} onClick={() => setPicking(true)}>
-          {t("decide.pick_time")}
-        </button>
-        <button type={C.button} className={C.secondary} onClick={() => void run(() => device.talks.end(id))}>
-          {t("decide.end")}
-        </button>
-      </div>
-      {picking && (
-        <>
-          <div className={C.row}>
-            {ahead.map((w) => {
-              const on = picked?.day === w.day && picked.window === w.window;
-              return (
-                <button
-                  key={`${w.day}-${w.window}`}
-                  type={C.button}
-                  aria-pressed={on}
-                  className={on ? C.chipOn : C.chip}
-                  onClick={() => setPicked(w)}
-                >
-                  {whenText(lang, w)}
-                </button>
-              );
-            })}
-          </div>
-          {chosen && (
-            <button
-              type={C.button}
-              className={C.accent}
-              onClick={() => {
-                if (whenPassed(chosen, new Date())) return setPicked(undefined);
-                void run(() => device.talks.pickTime(id, chosen));
-              }}
-            >
-              {t("decide.pick_send")}
-            </button>
-          )}
-        </>
-      )}
-    </fieldset>
   );
 }

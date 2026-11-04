@@ -45,7 +45,7 @@ export function BookingLines({ bookings, jobs = [], today, onDelete, extra }: Pr
         );
       })}
       {jobs.map((j) => (
-        <li key={`${j.day}-${j.window}`}>
+        <li key={`${j.day}-${j.window}-${j.hour ?? ""}`}>
           <span>{t("schedule.job", { when: whenText(lang, j) })}</span>
         </li>
       ))}

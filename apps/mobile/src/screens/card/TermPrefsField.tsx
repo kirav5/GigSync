@@ -10,6 +10,7 @@ import {
 } from "@gigsync/protocol";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
+import { WorkHoursField } from "./WorkHoursField.js";
 
 /** The most-hours choices a worker taps; "Any" leaves it unset. */
 const HOURS = [4, 6, 8, 10] as const;
@@ -59,8 +60,9 @@ function withField<K extends keyof TermPrefs>(prefs: TermPrefs, key: K, value: T
 }
 
 /**
- * A worker's own preferences for the terms besides the price (ADR 0033 §3), on their card: the parts of the day they
- * take work (none ticked means any), who buys the materials, and the most hours a day for trades paid by the hour or
+ * A worker's own preferences for the terms besides the price (ADR 0033 §3), on their card: the hours they work, from–to
+ * on the clock (ADR 0053 §1), else the parts of the day they take work (none ticked means any), the days, who buys the
+ * materials, and the most hours a day for trades paid by the hour or
  * month. Kept on this phone with their rules; their agent counters a household's terms from these, never past them.
  */
 export function TermPrefsField({
@@ -75,6 +77,7 @@ export function TermPrefsField({
   const { t } = useI18n();
   const negotiates = (key: TermKey) => trades.some((tr) => TRADE_TERMS[tr].includes(key));
   const windows = prefs.windows ?? [];
+  const clock = prefs.from !== undefined && prefs.to !== undefined;
   const toggle = (w: TimeWindow) =>
     onChange({ ...prefs, windows: windows.includes(w) ? windows.filter((x) => x !== w) : [...windows, w] });
   const days = prefs.days ?? [];
@@ -86,12 +89,18 @@ export function TermPrefsField({
   return (
     <fieldset className={C.stack} aria-label={t("terms.card")}>
       <span className={C.label}>{t("terms.card")}</span>
-      <span className={C.muted}>{t("terms.card_windows")}</span>
-      <div className={C.row}>
-        {TimeWindow.options.map((w) => (
-          <Chip key={w} on={windows.includes(w)} label={t(`terms.window.${w}`)} onClick={() => toggle(w)} />
-        ))}
-      </div>
+      <WorkHoursField prefs={prefs} onChange={onChange} />
+      {/* With hours on the clock, the parts of the day are the ones those hours touch: nothing to pick. */}
+      {!clock && (
+        <>
+          <span className={C.muted}>{t("terms.card_windows")}</span>
+          <div className={C.row}>
+            {TimeWindow.options.map((w) => (
+              <Chip key={w} on={windows.includes(w)} label={t(`terms.window.${w}`)} onClick={() => toggle(w)} />
+            ))}
+          </div>
+        </>
+      )}
       <span className={C.muted}>{t("terms.card_days")}</span>
       <div className={C.row}>
         {ISO_WEEKDAYS.map((d) => (
