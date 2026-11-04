@@ -23,6 +23,7 @@ const ENGINE_CHIP: Readonly<Record<ModelChoice, MessageKey>> = {
   [ModelChoice.device]: "shell.model_device",
   [ModelChoice.lite]: "shell.model_lite",
   [ModelChoice.ollama]: "shell.model_ollama",
+  [ModelChoice.server]: "shell.model_server",
 };
 
 export interface SidebarProps {
@@ -39,7 +40,10 @@ export interface SidebarProps {
   onClose: () => void;
 }
 
-/** What runs the agent, as collab's "Powered by" chip: the phone's own model, Ollama in development, or lite mode. */
+/**
+ * What runs the agent, as collab's "Powered by" chip: GigSync's model, the phone's own model, Ollama in development,
+ * or lite mode.
+ */
 function EngineChip({ onOpen }: { onOpen: () => void }) {
   const { t } = useI18n();
   const model = useChosenModel();

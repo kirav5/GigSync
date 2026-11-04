@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Notice, useChosenModel } from "../../adapters/model.js";
+import { ModelChoice, Notice, useChosenModel } from "../../adapters/model.js";
 import { currentNetwork } from "../../adapters/model-device.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
@@ -9,11 +9,13 @@ import "./model.css";
 /**
  * The chat's few words about the phone's own model (LLD §9.1): one quiet offer on a phone that can run it, until the
  * owner answers; a slim line while it downloads; a paused download to resume; and once ready, one line saying the
- * agent runs on the phone now, then nothing more. Lite mode works the whole time.
+ * agent runs on the phone now, then nothing more. Lite mode works the whole time. No offer while GigSync's model
+ * answers.
  */
 export function ModelNotice() {
   const { t } = useI18n();
-  const { device } = useChosenModel();
+  const model = useChosenModel();
+  const { device } = model;
   const notice = device.notice();
   // The ready line is said once: marked as said when it shows, and kept on screen until the owner leaves the chat.
   const [readyShown, setReadyShown] = useState(false);
@@ -32,6 +34,8 @@ export function ModelNotice() {
   }
   if (notice === Notice.downloading) return <DownloadLine status={device.status} t={t} />;
   if (notice !== Notice.offer && notice !== Notice.paused) return null;
+  // GigSync's model is answering (ADR 0052): no reason to ask for a download of about a gigabyte.
+  if (notice === Notice.offer && model.answering() === ModelChoice.server) return null;
   const mb = sizeMb(device.status);
   const note = networkNote(currentNetwork(), mb, t);
   const offer = notice === Notice.offer;

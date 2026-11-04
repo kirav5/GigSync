@@ -2,7 +2,7 @@ import type { model as en } from "../en/model.js";
 
 /** Hindi: the model on this phone: Settings › On-device model, and the chat's one offer and lines about it. */
 export const model: Readonly<Record<keyof typeof en, string>> = {
-  "model.title": "फ़ोन पर चलने वाला मॉडल",
+  "model.title": "आपके एजेंट का मॉडल",
   "model.check": "फिर से जाँचें",
   "model.checking": "इस फ़ोन की जाँच हो रही है…",
   "model.none": "इस फ़ोन पर कोई मॉडल नहीं है।",
@@ -10,7 +10,8 @@ export const model: Readonly<Record<keyof typeof en, string>> = {
   "model.not_ready": "तैयार नहीं",
   "model.free_mb": "{mb} एमबी ख़ाली",
   "model.auto": "अपने-आप",
-  "model.auto_about": "मॉडल तैयार हो और इस फ़ोन पर जल्दी जवाब दे, तो फ़ोन का मॉडल; नहीं तो लाइट मोड।",
+  "model.auto_about":
+    "GigSync का अपना मॉडल, भारत में GigSync के कंप्यूटर पर, आपकी बात समझने के लिए आपका लिखा पढ़ता है; उसे रखा नहीं जाता। वह न मिले, तो फ़ोन का मॉडल तैयार हो तो वह; नहीं तो लाइट मोड।",
   "model.device": "फ़ोन पर",
   "model.device_about": "हमेशा फ़ोन का अपना मॉडल। जवाब न दे पाए तभी लाइट मोड।",
   "model.lite": "लाइट मोड",
@@ -30,6 +31,7 @@ export const model: Readonly<Record<keyof typeof en, string>> = {
   "model.not_ready_lite": "{device} · तैयार नहीं, इसलिए लाइट मोड",
   "model.on_device_label": "फ़ोन पर: {engine}",
   "model.auto_label": "अपने-आप · {model}",
+  "model.server_label": "GigSync का मॉडल",
   "model.offer": "आपका एजेंट आपकी बात बेहतर समझे: इस फ़ोन पर लगभग {mb} एमबी डाउनलोड करें।",
   "model.offer_download": "डाउनलोड करें",
   "model.offer_later": "बाद में",

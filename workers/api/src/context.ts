@@ -39,6 +39,8 @@ export const ApiError = {
   geocodingFailed: "geocoding failed",
   geocodingOff: "geocoding not set up",
   internal: "internal error",
+  modelFailed: "model failed",
+  modelOff: "model not set up",
   notFound: "not found",
   offerNotTaken: "offer not taken",
   recipientNotFound: "recipient not found",

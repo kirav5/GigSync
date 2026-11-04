@@ -36,6 +36,12 @@ name = "GEO_RATE_LIMIT"
 namespace_id = "1002"
 simple = { limit = 30, period = 60 }
 
+# Calls to GigSync's model per user (ADR 0052): each chat turn makes a few.
+[[ratelimits]]
+name = "MODEL_RATE_LIMIT"
+namespace_id = "1003"
+simple = { limit = 120, period = 60 }
+
 # One deployment for the pilot. Split into staging and production when there is a team.
 [vars]
 ENVIRONMENT = "pilot"
