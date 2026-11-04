@@ -10,6 +10,10 @@ const PUBLIC = fileURLToPath(new URL("./public/", import.meta.url));
 const INDEX = "index.html";
 const ASSETS = "assets/";
 const SOURCE_MAP = ".map";
+/** Cloudflare reads this file at deploy and never serves it, so it is no part of what the app precaches. */
+const REDIRECTS = "_redirects";
+/** What only the website loads: an app that opens offline has no use for it, and a phone should not pay for it. */
+const WEBSITE_ONLY = /^assets\/(home-|community-mural-)/;
 /** The on-device model's engine (WebLLM, about 12 MB in two files): fetched on its first use, never precached. */
 const MODEL_ENGINE = "/@mlc-ai/web-llm/";
 const MODEL_WORKER = `${ASSETS}model-worker-`;
@@ -21,10 +25,10 @@ function modelEngine(file: Rolldown.OutputChunk | Rolldown.OutputAsset): boolean
 }
 
 /**
- * Writes sw.js into the build with the app shell it precaches: ./, index.html, the manifest and icons (everything in
- * public/), and every emitted file under assets/ except source maps and the on-device model's engine (the worker
- * caches that on its first fetch, when the owner downloads the model). The cache is named by a hash of those names and
- * index.html, so each release gets its own cache and the browser sees a changed worker.
+ * Writes sw.js into the build with the app shell it precaches: ./app (where the web serves index.html), the manifest
+ * and icons (everything in public/), and every emitted file under assets/ except source maps, the website's own files
+ * and the on-device model's engine (the worker caches that on its first fetch, when the owner downloads the model).
+ * The cache is named by a hash of those names and index.html, so each release gets its own cache and the browser sees a changed worker.
  */
 function serviceWorker(): Plugin {
   return {
@@ -35,12 +39,15 @@ function serviceWorker(): Plugin {
       order: "post",
       handler(_output, bundle) {
         const built = Object.entries(bundle)
-          .filter(([f, file]) => f.startsWith(ASSETS) && !f.endsWith(SOURCE_MAP) && !modelEngine(file))
+          .filter(
+            ([f, file]) =>
+              f.startsWith(ASSETS) && !f.endsWith(SOURCE_MAP) && !WEBSITE_ONLY.test(f) && !modelEngine(file),
+          )
           .map(([f]) => f);
         const copied = readdirSync(PUBLIC, { recursive: true, withFileTypes: true })
-          .filter((entry) => entry.isFile())
+          .filter((entry) => entry.isFile() && entry.name !== REDIRECTS)
           .map((entry) => relative(PUBLIC, join(entry.parentPath, entry.name)).split(sep).join("/"));
-        const shell = ["./", `./${INDEX}`, ...[...copied, ...built].sort().map((f) => `./${f}`)];
+        const shell = ["./app", ...[...copied, ...built].sort().map((f) => `./${f}`)];
         const page = bundle[INDEX];
         const html = page?.type === "asset" ? String(page.source) : "";
         const cache = createHash("sha256").update(shell.join("\n")).update(html).digest("hex").slice(0, 12);
@@ -61,7 +68,7 @@ export default defineConfig({
     outDir: "dist",
     target: "es2022",
     sourcemap: true,
-    // Two pages: the app (index.html, what Capacitor loads) and the website (home.html).
+    // Two pages: the app (index.html, what Capacitor loads) and the website (home.html, the web's root: public/_redirects).
     rollupOptions: { input: { app: INDEX, home: "home.html" } },
   },
   // The model's Web Worker under a name the service worker can leave out of its precache.

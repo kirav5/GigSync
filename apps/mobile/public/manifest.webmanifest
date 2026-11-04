@@ -3,7 +3,7 @@
   "name": "GigSync",
   "short_name": "GigSync",
   "description": "A gig worker's own agent: agrees the job, holds back their number, keeps the signed record of their work and pay.",
-  "start_url": "./",
+  "start_url": "./app",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
