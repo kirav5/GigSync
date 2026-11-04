@@ -1,4 +1,4 @@
-import { type Agree, CancelReason, type DeviceId, Role, type Terms } from "@gigsync/protocol";
+import { type Agree, CancelReason, type DeviceId, MAX_ROUNDS, Role, type Terms } from "@gigsync/protocol";
 import { log } from "../log.js";
 import type { JobContext } from "./context.js";
 import * as deal from "./deal.js";
@@ -24,7 +24,8 @@ async function offerAnotherTime(
   log.info("time taken: offering another", { engagement: r.engagement.id });
   await ctx.store.removeTask(TaskKind.confirmDeal, r.engagement.id);
   const { r: termed, stuck } = await workerTerms(ctx, rules.terms, { ...r, pending: undefined }, asked);
-  if (stuck) return deal.cancel(ctx, termed, { reason: CancelReason.enum.no_deal });
+  // No offers left under the protocol's cap: an offer past it would be refused by the other phone.
+  if (stuck || termed.offers_made >= MAX_ROUNDS) return deal.cancel(ctx, termed, { reason: CancelReason.enum.no_deal });
   return quote(ctx, termed, price);
 }
 

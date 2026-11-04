@@ -1,7 +1,15 @@
 import { type EngagementId, TERMS_PROTOCOL, Trade } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import { type NewNeed, settle, TaskKind, type TimeWindow, type WorkerRules } from "../src/index.js";
-import { ASHA, BENGALURU, MemoryRelay, PRIYA, phone, RAVI_HOME } from "./phones.js";
+import {
+  type Clock,
+  type NewNeed,
+  settle,
+  TaskKind,
+  type TimeAsk,
+  type TimeWindow,
+  type WorkerRules,
+} from "../src/index.js";
+import { ASHA, BENGALURU, MemoryRelay, type Phone, PRIYA, phone, RAVI_HOME } from "./phones.js";
 
 /**
  * One time, one household (ADR 0048 §5): two households asking a worker for the same morning never both get it. The
@@ -9,6 +17,8 @@ import { ASHA, BENGALURU, MemoryRelay, PRIYA, phone, RAVI_HOME } from "./phones.
  */
 
 const DAY = "2026-11-10";
+/** The phones' clock: a week before, so the 10th and the days after stay ahead (ADR 0053 §2). */
+const BEFORE: Clock = { now: () => new Date("2026-11-03T03:30:00Z") };
 const morning = { day: DAY, window: "morning" } as const;
 const painter = (windows: TimeWindow[]): WorkerRules => ({
   trades: [Trade.enum.painter],
@@ -29,9 +39,14 @@ const paintNeed = (): NewNeed => ({
 
 async function twoHouseholds(rules: WorkerRules, workerSigns: boolean) {
   const relay = new MemoryRelay();
-  const opts = { protocol: TERMS_PROTOCOL, autoConfirm: true };
+  const opts = { protocol: TERMS_PROTOCOL, autoConfirm: true, clock: BEFORE };
   const homes = [await phone(relay, PRIYA, opts), await phone(relay, RAVI_HOME, opts)];
-  const worker = await phone(relay, ASHA, { protocol: TERMS_PROTOCOL, autoConfirm: workerSigns, worker: rules });
+  const worker = await phone(relay, ASHA, {
+    protocol: TERMS_PROTOCOL,
+    autoConfirm: workerSigns,
+    worker: rules,
+    clock: BEFORE,
+  });
   const ids: EngagementId[] = [];
   for (const home of homes) {
     const [job] = await home.device.request(paintNeed(), [worker.user]);
@@ -40,6 +55,13 @@ async function twoHouseholds(rules: WorkerRules, workerSigns: boolean) {
   const talk = () => settle([...homes.map((h) => h.device), worker.device]);
   const jobs = () => Promise.all(ids.map((id) => worker.device.job(id)));
   return { homes, worker, ids, talk, jobs };
+}
+
+/** Which household is asked about a time, by its index; -1 when none is. */
+async function whoIsAsked(homes: readonly Phone[], ids: readonly EngagementId[]): Promise<number> {
+  for (let i = 0; i < homes.length; i++)
+    if (await homes[i]?.device.store.task(TaskKind.newTime, ids[i] as EngagementId)) return i;
+  return -1;
 }
 
 /** The windows of the worker's jobs both sides signed. */
@@ -74,8 +96,17 @@ describe("one time, one household", () => {
     expect(agreedWindows(await jobs()).filter((w) => w === "morning")).toHaveLength(1);
   });
 
-  it("tells the second household no when the worker has no other time", async () => {
-    const { talk, jobs } = await twoHouseholds(painter(["morning"]), true);
+  it("asks the second household about the worker's next free morning, and ends it when she says no", async () => {
+    const { homes, ids, talk, jobs } = await twoHouseholds(painter(["morning"]), true);
+    await talk();
+    // One morning is signed; the other household is asked about another morning (ADR 0053 §3), never given it.
+    const asked = await whoIsAsked(homes, ids);
+    expect(asked).toBeGreaterThanOrEqual(0);
+    const task = await homes[asked]?.device.store.task(TaskKind.newTime, ids[asked] as EngagementId);
+    const proposed = (task?.detail as TimeAsk | undefined)?.when;
+    expect(proposed?.day).toBeDefined();
+    expect(proposed?.day).not.toBe(DAY);
+    await homes[asked]?.device.talks.end(ids[asked] as EngagementId);
     await talk();
     const [first, second] = await jobs();
     expect([first?.engagement.status, second?.engagement.status].filter((s) => s === "agreed")).toHaveLength(1);

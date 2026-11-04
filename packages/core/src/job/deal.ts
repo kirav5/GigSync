@@ -18,7 +18,9 @@ import { addressFor, addressLine, doorOf, listAddresses } from "../address/book.
 import { isArrangement } from "../contacts/rules.js";
 import { log } from "../log.js";
 import { remember } from "../memory/remember.js";
+import { whenPassed } from "../schedule/windows.js";
 import type { JobContext } from "./context.js";
+import { askTime, handOver } from "./handover.js";
 import { type JobRecord, type Need, TaskKind } from "./store.js";
 import { timeTaken } from "./taken.js";
 import { mustReview, termsField } from "./terms-flow.js";
@@ -66,6 +68,10 @@ async function signingAnother(ctx: JobContext, r: JobRecord): Promise<boolean> {
  * the terms change one the owner asked for (`mustReview`).
  */
 export async function accept(ctx: JobContext, r: JobRecord, terms: JobTerms): Promise<JobRecord> {
+  // Never a deal at a time that has passed (ADR 0053 §2): the household picks a new one, the worker decides.
+  const when = terms.terms?.when;
+  if (when && whenPassed(when, ctx.clock.now()))
+    return r.engagement.role === R.requester ? askTime(ctx, r, { passed: true }) : handOver(ctx, r);
   const next = { ...r, pending: terms };
   await ctx.store.saveJob(next);
   const own =
@@ -97,8 +103,8 @@ export function decline(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
 }
 
 export async function cancel(ctx: JobContext, r: JobRecord, body: Cancel): Promise<JobRecord> {
-  await ctx.store.removeTask(TaskKind.confirmDeal, r.engagement.id);
-  await ctx.store.removeTask(TaskKind.answerQuestions, r.engagement.id);
+  for (const kind of [TaskKind.confirmDeal, TaskKind.answerQuestions, TaskKind.takeOver, TaskKind.newTime])
+    await ctx.store.removeTask(kind, r.engagement.id);
   return ctx.send({ ...r, pending: undefined, cancel: body, contact: cardAfterCancel(r) }, K.cancel, body);
 }
 
@@ -184,8 +190,8 @@ export async function onContact(ctx: JobContext, r: JobRecord, body: ContactRele
 
 /** The other side ended the job: forget their card (an arrangement keeps it to settle) and any decision waiting. */
 export async function onCancel(ctx: JobContext, r: JobRecord, body: Cancel): Promise<JobRecord> {
-  await ctx.store.removeTask(TaskKind.confirmDeal, r.engagement.id);
-  await ctx.store.removeTask(TaskKind.answerQuestions, r.engagement.id);
+  for (const kind of [TaskKind.confirmDeal, TaskKind.answerQuestions, TaskKind.takeOver, TaskKind.newTime])
+    await ctx.store.removeTask(kind, r.engagement.id);
   const next = { ...r, cancel: body, pending: undefined, contact: cardAfterCancel(r) };
   await ctx.store.saveJob(next);
   return next;

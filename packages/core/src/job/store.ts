@@ -18,6 +18,7 @@ import type {
   Skill,
   TermKey,
   Terms,
+  TermWhen,
 } from "@gigsync/protocol";
 import type { ProblemRecord } from "../contacts/rules.js";
 import { Collection, type Storage } from "../ports.js";
@@ -59,6 +60,8 @@ export interface JobRecord {
   owner_ok?: boolean;
   /** Terms this side's agent accepted, waiting for the owner to sign. */
   pending?: JobTerms | undefined;
+  /** The time the household's owner accepted or picked for this job (ADR 0053 §3), over the need's. */
+  time?: TermWhen;
   mine?: Agree;
   theirs?: Agree;
   /** The other party's contact card: only ever set once both have signed the same terms. */
@@ -150,6 +153,10 @@ export const TaskKind = {
   confirmPayment: "confirm_payment",
   /** A request has a detail the worker asked to see first (pets, say): take it, or decline. */
   approveRequest: "approve_request",
+  /** The agents used their offers without agreeing (ADR 0053 §4): accept theirs, send a final offer, or end it. */
+  takeOver: "take_over",
+  /** The worker proposes another time, or the time asked for has passed (ADR 0053 §3): accept, pick, or decline. */
+  newTime: "new_time",
 } as const;
 export type TaskKind = (typeof TaskKind)[keyof typeof TaskKind];
 

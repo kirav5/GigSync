@@ -30,6 +30,7 @@ import { questionsFor } from "./ask.js";
 import type { JobContext } from "./context.js";
 import { accept, cancel, termsFor } from "./deal.js";
 import { present } from "./details.js";
+import { AGENT_OFFERS, clearTalkTasks, handOver } from "./handover.js";
 import { type Mandate, MoveKind, priceAt, respond } from "./negotiate.js";
 import { type JobRecord, TaskKind } from "./store.js";
 import { drawStrategy, type Strategy } from "./strategy.js";
@@ -207,8 +208,9 @@ async function quoteNext(ctx: JobContext, rules: WorkerRules, r: JobRecord): Pro
   return quote(ctx, planned, priceAt(R.provider, plan, planned.offers_made + 1, planned.strategy));
 }
 
-/** The consumer countered: accept, concede one step, or walk away when rounds run out. */
+/** The consumer countered: accept, or concede one step; a talk its agent has made its offers in waits for the owner. */
 export async function onCounter(ctx: JobContext, rules: WorkerRules, r: JobRecord, offer: Offer): Promise<JobRecord> {
+  await clearTalkTasks(ctx, r);
   const termed = await workerTerms(
     ctx,
     rules.terms,
@@ -221,6 +223,8 @@ export async function onCounter(ctx: JobContext, rules: WorkerRules, r: JobRecor
   const priced = respond(R.provider, plan, r.offers_made, offer.price_paise, withOffer.strategy);
   const move = withTerms(priced, termed.agreed, offer.price_paise, r.offers_made);
   if (move.kind === MoveKind.accept) return accept(ctx, withOffer, termsFor(ctx, withOffer, offer));
+  // Its own offers used, the agent never walks away on its owner's behalf: a last offer reaches a person (ADR 0053 §4).
+  if (r.offers_made >= AGENT_OFFERS) return handOver(ctx, withOffer);
   if (move.kind === MoveKind.walk) return cancel(ctx, withOffer, { reason: CancelReason.enum.no_deal });
   return quote(ctx, withOffer, move.price_paise);
 }

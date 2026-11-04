@@ -16,6 +16,7 @@ import {
   TRADE_TERMS,
   type WorkHours,
 } from "@gigsync/protocol";
+import { whenPassed } from "../schedule/windows.js";
 
 /**
  * Negotiating the terms other than price (ADR 0033 §3), as plain data: each side has a stance (its own first choice
@@ -184,13 +185,19 @@ export function householdStance(wants: Terms, flexible: readonly TermKey[], work
  * The worker's stance, from their card's preferences and the work they have already agreed: a window they take work
  * in that is not booked, the materials they asked for, no more than their hours. Any number of coats: the price
  * follows them through the scope (`termDetails`). With a day to work on and preferred windows, they propose the first
- * free window when the household named none.
+ * free window when the household named none. With `now`, a time already over is never free (ADR 0053 §2).
  */
-export function workerStance(prefs: TermPrefs | undefined, booked: readonly TermWhen[], day?: string): Stance {
+export function workerStance(
+  prefs: TermPrefs | undefined,
+  booked: readonly TermWhen[],
+  day?: string,
+  now?: Date,
+): Stance {
   const windows = prefs?.windows?.length ? prefs.windows : WINDOWS;
   // A day the worker does not work (ADR 0050 §2) is never free; work every day is judged by its window alone.
   const workDay = (d: string) => !prefs?.days?.length || d === EVERY_DAY || prefs.days.includes(isoWeekday(d));
-  const free = (w: TermWhen) => workDay(w.day) && windows.includes(w.window) && !booked.some((b) => clashes(b, w));
+  const free = (w: TermWhen) =>
+    workDay(w.day) && windows.includes(w.window) && !booked.some((b) => clashes(b, w)) && !(now && whenPassed(w, now));
   const first = day && prefs?.windows?.length ? windows.map((window) => ({ day, window })).find(free) : undefined;
   const maxHours = prefs?.max_hours ?? MAX_HOURS;
   return {

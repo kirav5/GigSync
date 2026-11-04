@@ -1,3 +1,4 @@
+import type { EngagementId } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import { settle, TaskKind } from "../src/index.js";
 import { electrician, fanNeed, MemoryRelay, PRIYA, phone, RAVI } from "./phones.js";
@@ -46,13 +47,19 @@ describe("a job between two phones", () => {
     expect(JSON.stringify(relay.stored)).not.toContain("9800000101");
   });
 
-  it("walks away without a deal when the budget is below the worker's minimum", async () => {
+  it("hands a budget below the worker's minimum to the worker after three offers, who ends it: no deal", async () => {
     const relay = new MemoryRelay();
     const worker = await phone(relay, RAVI, { worker: electrician(60000) });
     const consumer = await phone(relay, PRIYA);
     const [job] = await consumer.device.request(fanNeed(45000, { problem: "dead" }), [worker.user]);
+    const id = job?.engagement.id as EngagementId;
     await settle([consumer.device, worker.device]);
-    const c = await consumer.device.job(job?.engagement.id as never);
+    // Three offers each and no meeting: the agents stop and the worker's owner decides (ADR 0053 §4).
+    expect((await worker.device.job(id)).offers_made).toBe(3);
+    expect((await worker.device.tasks()).map((t) => t.kind)).toEqual([TaskKind.takeOver]);
+    await worker.device.talks.end(id);
+    await settle([consumer.device, worker.device]);
+    const c = await consumer.device.job(id);
     expect(c.engagement.status).toBe("cancelled");
     expect(c.cancel?.reason).toBe("no_deal");
     expect(c.contact).toBeUndefined();
@@ -100,8 +107,8 @@ describe("a job between two phones", () => {
     expect(jobs.filter((j) => j.engagement.status === "agreed")).toHaveLength(1);
     expect(jobs.filter((j) => j.cancel?.reason === "taken")).toHaveLength(1);
     const won = jobs.find((j) => j.engagement.status === "agreed");
-    // The cheaper electrician wins inside the budget; the other is released.
-    expect(won?.engagement.counterpart).toBe(cheap.user);
+    // Whichever deal closes first inside the budget wins; the other is released.
+    expect(won?.mine?.terms.price_paise).toBeLessThanOrEqual(65000);
     const lost = won?.engagement.id === a?.engagement.id ? cheap : pricey;
     const lostId = (won?.engagement.id === a?.engagement.id ? b : a)?.engagement.id as never;
     expect(await status(lost.device, lostId)).toBe("cancelled");

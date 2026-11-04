@@ -17,10 +17,11 @@ import { ulid } from "ulid";
 import { answersFound } from "./answer.js";
 import type { JobContext } from "./context.js";
 import { accept, cancel, termsFor } from "./deal.js";
+import { AGENT_OFFERS, askTime, clearTalkTasks, counter, handOver } from "./handover.js";
 import { planHousehold } from "./household-plan.js";
 import { MoveKind, respond } from "./negotiate.js";
 import { AnswerSource, type JobRecord, type Need, type Suggested, TaskKind } from "./store.js";
-import { householdTerms, nextTerms, requestTerms, speaksTerms, termsField, withTerms } from "./terms-flow.js";
+import { householdTerms, requestTerms, speaksTerms, withTerms } from "./terms-flow.js";
 
 const K = EnvelopeKind.enum;
 const R = Role.enum;
@@ -117,29 +118,23 @@ const sourcesOf = (typed: Record<string, string>, suggested: Record<string, Sugg
 const mapValues = <T, U>(o: Readonly<Record<string, T>>, f: (v: T) => U): Record<string, U> =>
   Object.fromEntries(Object.entries(o).map(([k, v]) => [k, f(v)]));
 
-/** The worker quoted: accept, counter one step, or walk away when rounds run out. */
+/**
+ * The worker quoted: accept, or counter one step. A time the household did not ask for, or one that has passed, waits
+ * for its owner; so does a talk its agent has made its offers in (ADR 0053 §3–4).
+ */
 export async function onQuote(ctx: JobContext, need: Need, r: JobRecord, offer: Offer): Promise<JobRecord> {
+  await clearTalkTasks(ctx, r);
   const planned = await planHousehold(ctx, need, r);
   const quoted = { ...planned, offers: [...r.offers, { by: R.provider, offer }] };
   const termed = await householdTerms(ctx, need, quoted, offer.terms);
   const withOffer = termed.r;
+  if (termed.time) return askTime(ctx, withOffer, termed.time);
   const plan = planned.mandate ?? need.budget;
   const priced = respond(R.requester, plan, r.offers_made, offer.price_paise, planned.strategy);
   const move = withTerms(priced, termed.agreed, offer.price_paise, r.offers_made);
   if (move.kind === MoveKind.accept) return accept(ctx, withOffer, termsFor(ctx, withOffer, offer));
+  // Its own offers used, the agent never walks away on its owner's behalf: a last offer reaches a person (ADR 0053 §4).
+  if (r.offers_made >= AGENT_OFFERS) return handOver(ctx, withOffer);
   if (move.kind === MoveKind.walk) return cancel(ctx, withOffer, { reason: CancelReason.enum.no_deal });
-  const counter: Offer = {
-    offer_id: `off_${ulid(ctx.clock.now().getTime())}`,
-    round: move.round,
-    price_paise: move.price_paise,
-    slot: offer.slot,
-    scope: offer.scope,
-    ...termsField(r.request.trade, nextTerms(withOffer)),
-  };
-  const next = {
-    ...withOffer,
-    offers: [...withOffer.offers, { by: R.requester, offer: counter }],
-    offers_made: move.round,
-  };
-  return ctx.send(next, K.counter, counter);
+  return counter(ctx, withOffer, move.price_paise);
 }
