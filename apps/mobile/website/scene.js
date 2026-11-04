@@ -33,6 +33,12 @@ const ROOTS_COPY_START = 0.66;
 const ROOTS_COPY_END = 0.96;
 /** How far the copy drifts while it fades, in pixels. */
 const DRIFT_PX = 26;
+/** With Reduce Motion on: the hero fades away by here, then the print, then the roots copy, with nothing moving. */
+const CALM_HERO_END = 0.4;
+const CALM_PRINT_START = 0.42;
+const CALM_PRINT_END = 0.72;
+const CALM_COPY_START = 0.6;
+const CALM_COPY_END = 0.96;
 
 const smooth = (p) => p * p * (3 - 2 * p);
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -61,6 +67,38 @@ export function planScene({ start, art, stage }) {
     pivot: centreOf(art),
     // how much the hero picture must grow to cover the stage, as the mural behind the jobs section covers its own
     cover: Math.max(stage.width / start.width, stage.height / start.height),
+  };
+}
+
+/**
+ * The same scene for a reader who has asked for less motion: everything stays where it stands and only fades, because
+ * a fade is what that setting allows and a zoom filling the screen is what it exists to stop.
+ * @param {number} p
+ * @param {Plan} plan
+ */
+export function calmSceneAt(p, plan) {
+  const heroLeft = 1 - smooth(stretch(p, 0, CALM_HERO_END));
+  const copyIn = smooth(stretch(p, CALM_COPY_START, CALM_COPY_END));
+  return {
+    heroCopy: { opacity: heroLeft, drift: 0 },
+    heroFrame: heroLeft,
+    rootsCopy: { opacity: copyIn, drift: 0 },
+    strip: Math.max(heroLeft, copyIn),
+    wash: {
+      x: plan.from.x - plan.start.width / 2,
+      y: plan.from.y - plan.start.height / 2,
+      scale: 1,
+      opacity: heroLeft,
+    },
+    shade: 0,
+    print: {
+      x: 0,
+      y: 0,
+      scale: 1,
+      turnDeg: ROOTS_TILT_DEG,
+      opacity: smooth(stretch(p, CALM_PRINT_START, CALM_PRINT_END)),
+    },
+    landed: p >= 1,
   };
 }
 

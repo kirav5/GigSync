@@ -8,9 +8,10 @@
 // rather than a jump, and the glide carries on for a few frames after the wheel stops. The mural and the roots print
 // stay in the document for the whole scene and move by transform and opacity alone, so nothing is swapped or laid out
 // mid-flight. A phone plays the same scene; the roots paragraphs do not fit its screen with the print, so they wait
-// just below the camera. Reduced-motion settings and short screens get the three parts stacked in normal flow.
+// just below the camera. With Reduce Motion on the same scene only fades (scene.js). Short screens get the three parts
+// stacked in normal flow.
 // "?flight=direct" in the address keeps a one-to-one mapping for comparison.
-import { FLIGHT_SHARE, planScene, sceneAt } from "./scene.js";
+import { calmSceneAt, FLIGHT_SHARE, planScene, sceneAt } from "./scene.js";
 
 const DESKTOP = "(min-width: 800px)";
 /** A phone or portrait tablet tall enough for the scene. A media query, so the browser's bars sliding away do not flip it. */
@@ -109,7 +110,7 @@ export function startScene(parts) {
 
   function measure() {
     const fits = phone.matches || (desktop.matches && window.innerHeight >= MIN_VIEWPORT_PX);
-    enabled = fits && !reduced.matches;
+    enabled = fits;
     if (!enabled) {
       rest();
       return;
@@ -157,7 +158,7 @@ export function startScene(parts) {
 
   /** Applies the scene at progress `p` to the page. */
   function draw(p) {
-    const scene = sceneAt(p, plan);
+    const scene = reduced.matches ? calmSceneAt(p, plan) : sceneAt(p, plan);
     fade(heroCopy, scene.heroCopy.opacity);
     heroCopy.style.transform = driftOf(scene.heroCopy.drift);
     heroFrame.style.opacity = scene.heroFrame.toFixed(3);

@@ -385,8 +385,8 @@ h2 {
    top bar included, fading into the same faint, shaded background as the jobs section; the roots print appears small
    inside the mural, rides that zoom and grows where it stands; the copy changes sides. fly.js drives it from
    scene.js. The track below the camera gives the scene its scroll distance: 200svh of flight, then 30svh of
-   hold, which the script mirrors as FLIGHT_SHARE 200 / 230. Phones play it on a shorter track in the same ratio (see
-   the end of this file). Short screens, reduced motion and no script get the three parts stacked in normal flow.
+   hold, which the script mirrors as FLIGHT_SHARE 200 / 230. With Reduce Motion on the same scene only fades. Short
+   screens and no script get the three parts stacked in normal flow.
    Layers, back to front: hero, the mural, its shade, roots, then the header and the strip. The header band is clear,
    so the mural shows behind the top bar as soon as it reaches it; the bar's text keeps a dark halo to stay legible. */
 .opening[data-motion="true"] {
@@ -3777,7 +3777,6 @@ body.flying .hero-visual .community-art {
 @media (max-width: 799.98px) {
   .opening[data-motion="true"] {
     --strip-space: 0px;
-    height: calc(100svh + 140svh + 21svh);
   }
   .opening[data-motion="true"] .belief-strip,
   .opening[data-motion="true"] .art-caption,
@@ -3852,7 +3851,7 @@ body.flying .hero-visual .community-art {
 }
 @media (max-width: 759.98px) {
   .jobs-section[data-motion="true"] {
-    height: 320svh;
+    height: 420svh;
   }
   .jobs-section[data-motion="true"] .jobs-stage {
     position: sticky;
