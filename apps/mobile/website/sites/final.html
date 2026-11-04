@@ -14,7 +14,7 @@
 <body>
 <div class="header-band">
   <header id="top" class="site-header wrap">
-    <a class="brand" href="#top"><svg viewBox="0 0 64 64" aria-hidden="true" data-sun></svg>gigsync<span class="brand-dot">.</span></a>
+    <a class="brand" href="#top"><svg viewBox="0 0 64 64" aria-hidden="true" data-logo></svg>gigsync<span class="brand-dot">.</span></a>
     <nav class="desktop-nav"><a href="#the-idea">For workers</a><a href="#our-roots">Our roots</a><a href="#have-a-say">Have a say</a></nav>
     <a class="header-cta" href="https://github.com/kirav5/GigSync">Support the pilot <span>↗</span></a>
   </header>
@@ -31,16 +31,31 @@
         <p class="hero-note"><span class="status-dot"></span> Her work. Her goodwill. Her say.</p>
       </div>
       <figure class="hero-visual">
-        <div class="art-frame"><svg class="community-art" viewBox="0 0 600 600" role="img" aria-label="A circle of people holding hands beneath a tree, with homes, a bullock, a bird and a sun, drawn in ivory on earth brown" data-mural></svg></div>
-        <figcaption class="art-caption"><span class="caption-number">I / The circle</span><span>Each of us. Part of something more.</span></figcaption>
+        <div class="art-frame" id="heroFrame"><img class="community-art" id="heroArt" src="./assets/community-mural.jpg" alt="Ivory folk-art figures on an earth-brown mural: a circle of people holding hands beneath a flourishing tree, surrounded by makers, growers, homes, and people exchanging goods." width="1254" height="1254" /></div>
+        <figcaption class="art-caption" id="heroCaption"><span class="caption-number">I / The circle</span><span>Each of us. Part of something more.</span></figcaption>
       </figure>
     </section>
-    <div class="belief-strip wrap"><span>Individual phones.</span><span class="strip-flower">✳</span><span>Shared possibilities.</span><a href="#the-idea" aria-label="Scroll to the idea">↓</a></div>
+    <div class="belief-strip wrap"><span>Individual phones.</span><span class="strip-flower">✳</span><span>Shared possibilities.</span><a href="#our-roots" aria-label="Scroll to our roots">↓</a></div>
   </div>
+
+  <section id="our-roots" class="roots-section wrap section-space">
+    <figure class="roots-art" id="rootsArt">
+      <div class="roots-image-window" id="rootsWindow"><img src="./assets/community-mural.jpg" alt="Detail of a village community gathering beneath a tree, painted in ivory on earth brown." width="1254" height="1254" /></div>
+      <figcaption>Rooted in people. Open to possibility.</figcaption>
+    </figure>
+    <div class="roots-copy">
+      <p class="eyebrow">01 / Rooted &amp; reaching</p>
+      <h2 id="roots-title">A circle, with room<br>for everyone.</h2>
+      <p class="roots-lead">We go further, together.</p>
+      <p>A circle of people. A shared tree. Everyday acts of finding work, agreeing it, and being paid. Our folk-art world puts connection at the centre, because that is where work in India has always begun.</p>
+      <p>Our roots inspire a simple intention: create value for the benefit of all. GigSync brings that spirit to technology—an agent that works for one person, inside a community that holds her.</p>
+      <div class="roots-signoff"><span>ಒಟ್ಟಿಗೆ</span><span>Many phones.<br>One connected circle.</span></div>
+    </div>
+  </section>
 
   <section id="the-idea" class="idea-section wrap section-space">
     <div class="section-intro">
-      <p class="eyebrow">01 / Starting with workers</p>
+      <p class="eyebrow">02 / Starting with workers</p>
       <div>
         <h2 id="idea-title">More than a service.<br>A person, <em>with possibilities.</em></h2>
         <p class="intro-copy">For the woman who cleans three homes before noon. The cook who arrived with one phone number. The independent professional building a livelihood on a ₹10,000 phone. Her individuality deserves room in every interaction.</p>
@@ -49,21 +64,21 @@
     </div>
     <div class="worker-paths">
       <article class="path-card">
-        <div class="path-art"><span>01</span><svg viewBox="0 0 96 72" aria-hidden="true"><circle cx="30" cy="13" r="5"/><circle cx="66" cy="13" r="5"/><path d="M30 20 20 40h20zM30 40l-6 20h12zM66 20 56 40h20zM66 40l-6 20h12zM40 28h16M22 60l-2 8M38 60l2 8M58 60l-2 8M74 60l2 8"/></svg></div>
+        <div class="path-art"><span>01</span><svg viewBox="0 0 96 72" aria-hidden="true"><circle cx="25" cy="14" r="5"/><circle cx="71" cy="14" r="5"/><path d="m15 24 20 0-10 15Zm10 15L14 57h22ZM61 24h20L71 39Zm10 15L60 57h22ZM16 26 6 42m28-16 14 12 14-12m18 0 10 16M19 58l-3 10m14-10 3 10m32-10-3 10m14-10 3 10"/></svg></div>
         <p class="concept-term">Augmented interactions</p>
         <h3>More room to understand.</h3>
         <p>Her agent answers the familiar questions and explores a good fit within her rules—so she has more time for her work, and for rest.</p>
         <a class="text-link" href="#interactions">Explore this idea <span>↗</span></a>
       </article>
       <article class="path-card">
-        <div class="path-art"><span>02</span><svg viewBox="0 0 96 72" aria-hidden="true"><path d="M48 66V30M48 44c-9-3-15-11-15-21 9 0 15 8 15 21zM48 44c9-3 15-11 15-21-9 0-15 8-15 21zM48 58c-11 0-19-7-19-16 11 0 19 7 19 16zM48 58c11 0 19-7 19-16-11 0-19 7-19 16zM34 66h28"/><circle cx="48" cy="12" r="5"/></svg></div>
+        <div class="path-art"><span>02</span><svg viewBox="0 0 96 72" aria-hidden="true"><path d="M48 65V23m0 24L26 31m22 6 22-16M48 54 75 41M48 26 33 12"/><path d="M26 31Q9 30 12 15q16 0 14 16Zm44-10Q66 5 82 5q2 13-12 16ZM33 12Q19 13 22 1q14 0 11 11ZM75 41q-1-15 15-14 1 14-15 14Z"/><circle cx="48" cy="15" r="6"/><path d="m30 66 18-9 18 9"/></svg></div>
         <p class="concept-term">Worker-owned social capital</p>
         <h3>Goodwill that travels with her.</h3>
         <p>Her work history and the trust she earns belong to her, signed on her own phone, even when she moves to another city or platform.</p>
         <a class="text-link" href="#goodwill">Explore this idea <span>↗</span></a>
       </article>
       <article class="path-card">
-        <div class="path-art"><span>03</span><svg viewBox="0 0 96 72" aria-hidden="true"><path d="M22 6h36l14 14v46H22zM58 6v14h14M31 30h28M31 40h22M31 50h14"/><path d="M60 50l6 6 12-14"/><circle cx="66" cy="54" r="13"/></svg></div>
+        <div class="path-art"><span>03</span><svg viewBox="0 0 96 72" aria-hidden="true"><path d="M23 5h41l10 11v50H23Zm41 0v12h10M33 29h31M33 39h23M33 49h12"/><circle cx="65" cy="55" r="12"/><path d="m59 55 4 4 8-9"/></svg></div>
         <p class="concept-term">Contract writing</p>
         <h3>Clarity before commitment.</h3>
         <p>Rate, hours, weekly off, leave and the payment schedule, agreed and signed by both phones before any work begins.</p>
@@ -138,7 +153,7 @@
 
   <section id="built-around-you" class="principles-section wrap section-space">
     <div class="section-intro">
-      <p class="eyebrow">02 / Built around real life</p>
+      <p class="eyebrow">03 / Built around real life</p>
       <div>
         <h2>Familiar ways in.<br>Personal boundaries intact.</h2>
         <p class="intro-copy">Conversations with workers are shaping the product. These are the principles guiding what we build next.</p>
@@ -152,7 +167,7 @@
   </section>
 
   <section class="community-section"><div class="wrap community-inner">
-    <p class="eyebrow">03 / A future we want to grow</p>
+    <p class="eyebrow">04 / A future we want to grow</p>
     <h2>New city.<br>A familiar circle.</h2>
     <div class="community-columns">
       <p class="community-lead">Sometimes a new beginning starts with one person you know.</p>
@@ -163,21 +178,6 @@
       </div>
     </div>
   </div></section>
-
-  <section id="our-roots" class="roots-section wrap section-space">
-    <figure class="roots-art">
-      <div class="roots-image-window"><svg viewBox="80 140 440 400" role="img" aria-label="Detail of the circle of people beneath the tree" data-mural></svg></div>
-      <figcaption>Rooted in people. Open to possibility.</figcaption>
-    </figure>
-    <div class="roots-copy">
-      <p class="eyebrow">04 / Rooted &amp; reaching</p>
-      <h2 id="roots-title">A circle, with room<br>for everyone.</h2>
-      <p class="roots-lead">We go further, together.</p>
-      <p>A circle of people. A shared tree. Everyday acts of finding work, agreeing it, and being paid. Our folk-art world puts connection at the centre, because that is where work in India has always begun.</p>
-      <p>Our roots inspire a simple intention: create value for the benefit of all. GigSync brings that spirit to technology—an agent that works for one person, inside a community that holds her.</p>
-      <div class="roots-signoff"><span>ಒಟ್ಟಿಗೆ</span><span>Many phones.<br>One connected circle.</span></div>
-    </div>
-  </section>
 
   <section id="have-a-say" class="closing-section">
     <div class="wrap closing-inner">
@@ -192,16 +192,25 @@
 </main>
 
 <footer class="site-footer wrap">
-  <div><a class="brand" href="#top"><svg viewBox="0 0 64 64" aria-hidden="true" data-sun></svg>gigsync<span class="brand-dot">.</span></a><p>Built around people. Enabled by agents on their own phones.</p></div>
+  <div><a class="brand" href="#top"><svg viewBox="0 0 64 64" aria-hidden="true" data-logo></svg>gigsync<span class="brand-dot">.</span></a><p>Built around people. Enabled by agents on their own phones.</p></div>
   <div class="footer-right"><a href="#top">Back to the beginning <span>↑</span></a><p>Product vision · Bengaluru · 2026</p></div>
 </footer>
 
-<script type="module">
-  import { drawMural } from "./circle-art.js";
-  import { drawSunMark } from "./final-art.js";
+<div class="fly" id="fly" aria-hidden="true"><img src="./assets/community-mural.jpg" alt="" /></div>
 
-  for (const svg of document.querySelectorAll("[data-mural]")) drawMural(svg);
-  for (const svg of document.querySelectorAll("[data-sun]")) drawSunMark(svg);
+<script type="module">
+  import { drawLogoMark } from "./final-art.js";
+  import { startHeroFlight } from "./final-fly.js";
+
+  for (const svg of document.querySelectorAll("[data-logo]")) drawLogoMark(svg);
+  startHeroFlight({
+    heroArt: document.getElementById("heroArt"),
+    heroFrame: document.getElementById("heroFrame"),
+    heroCaption: document.getElementById("heroCaption"),
+    rootsArt: document.getElementById("rootsArt"),
+    rootsWindow: document.getElementById("rootsWindow"),
+    fly: document.getElementById("fly"),
+  });
   const proposal = document.getElementById("proposal-text");
   const choices = document.querySelectorAll(".choice-row button");
   for (const b of choices) {

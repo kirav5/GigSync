@@ -1,7 +1,7 @@
-// The sun mark on the "final" site: concentric rings with a filled core and twelve small triangular rays, in the
-// current text colour. Drawn in code so it scales with the brand and stays GigSync's own.
+// The logo mark on the "final" site, taken from the mural: a circle of eight people holding hands around a tree.
+// Drawn in code so it scales with the brand and stays GigSync's own.
 const NS = "http://www.w3.org/2000/svg";
-const RAYS = 12;
+const DANCERS = 8;
 const C = 32;
 
 const el = (name, attrs) => {
@@ -9,21 +9,40 @@ const el = (name, attrs) => {
   for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, String(v));
   return node;
 };
-const polar = (r, a) => [C + r * Math.cos(a), C + r * Math.sin(a)];
-const pt = ([x, y]) => `${x.toFixed(2)} ${y.toFixed(2)}`;
 
-export function drawSunMark(svg) {
-  const g = el("g", { fill: "none", stroke: "currentColor", "stroke-width": 1.2 });
-  for (const r of [18, 14, 9]) g.appendChild(el("circle", { cx: C, cy: C, r }));
-  g.appendChild(el("circle", { cx: C, cy: C, r: 4, fill: "currentColor" }));
-  const rays = [];
-  for (let i = 0; i < RAYS; i++) {
-    const a = (i / RAYS) * Math.PI * 2;
-    const tip = polar(29, a);
-    const base1 = polar(21, a - 0.1);
-    const base2 = polar(21, a + 0.1);
-    rays.push(`M${pt(base1)}L${pt(tip)}L${pt(base2)}Z`);
+/** One dancer standing at twelve o'clock, feet toward the centre: head, hourglass body, arms out to the neighbours. */
+const DANCER =
+  "M29 12.2h6l-3 3zM32 15.2l-2.75 3.6h5.5zM30.1 18.8 29 22.2M33.9 18.8 35 22.2M29 12.2l-3.6 1.9M35 12.2l3.6 1.9";
+
+/** The logo mark: a ring of dancers holding hands around a tree, inside one thin circle. */
+export function drawLogoMark(svg) {
+  const g = el("g", {
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": 1.3,
+    "stroke-linecap": "round",
+    "stroke-linejoin": "round",
+  });
+  g.appendChild(el("circle", { cx: C, cy: C, r: 28.5, "stroke-width": 0.9 }));
+  for (let i = 0; i < DANCERS; i++) {
+    const turn = el("g", { transform: `rotate(${(i * 360) / DANCERS} ${C} ${C})` });
+    turn.appendChild(el("circle", { cx: C, cy: 9.6, r: 1.7 }));
+    turn.appendChild(el("path", { d: DANCER }));
+    g.appendChild(turn);
   }
-  g.appendChild(el("path", { d: rays.join("") }));
+  // the tree: trunk, two branches and a crown of dots
+  g.appendChild(el("path", { d: "M32 41V29M32 35l-5-5M32 35l5-5" }));
+  const crown = el("g", { fill: "currentColor", stroke: "none" });
+  for (const [x, y] of [
+    [32, 23.5],
+    [28.6, 25.8],
+    [35.4, 25.8],
+    [30, 28.8],
+    [34, 28.8],
+    [32, 26.6],
+  ]) {
+    crown.appendChild(el("circle", { cx: x, cy: y, r: 1.25 }));
+  }
+  g.appendChild(crown);
   svg.appendChild(g);
 }

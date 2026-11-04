@@ -317,7 +317,8 @@ h2 {
 .community-art {
   width: 100%;
   height: 100%;
-  color: var(--ivory);
+  object-fit: cover;
+  display: block;
 }
 .art-caption {
   margin-top: 18px;
@@ -879,11 +880,43 @@ summary:hover {
   overflow: hidden;
   background: #482416;
 }
-.roots-image-window svg {
+.roots-image-window img {
   width: 100%;
   height: 100%;
-  color: var(--ivory);
+  object-fit: cover;
+  object-position: center 38%;
   transform: scale(1.22);
+  display: block;
+}
+.roots-art.measuring {
+  transform: none;
+}
+
+/* the picture in flight: one fixed element carries the hero mural down into the roots frame as the page scrolls */
+.fly {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 4;
+  display: none;
+  overflow: hidden;
+  pointer-events: none;
+  background: #32170d;
+  will-change: transform, width, height;
+}
+.fly img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 38%;
+  display: block;
+  transform-origin: center;
+}
+body.flying .hero-visual .community-art {
+  visibility: hidden;
+}
+body.flying:not(.landed) .roots-image-window img {
+  visibility: hidden;
 }
 .roots-art figcaption {
   font-family: var(--sans);
