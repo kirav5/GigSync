@@ -1,4 +1,4 @@
-import { type Booking, MINUTES_PER_DAY, type TermWhen, TimeWindow } from "@gigsync/protocol";
+import { type Booking, EVERY_DAY, MINUTES_PER_DAY, type TermWhen, TimeWindow } from "@gigsync/protocol";
 
 /**
  * Where the `when` term's parts of the day begin, on a 24-hour clock: what a household's "3 pm" means (`windowOf`) and
@@ -46,3 +46,17 @@ export type Hours = Pick<Booking, "day" | "start_min" | "end_min">;
 /** The `when` terms the bookings rule out for the agent, as a signed job would. */
 export const bookingWhens = (bookings: readonly Hours[]): TermWhen[] =>
   bookings.flatMap((b) => windowsOf(b.start_min, b.end_min).map((window) => ({ day: b.day, window })));
+
+/** The phone's own offset from UTC in minutes, from its clock: what `localNow` needs on the phone itself. */
+export const phoneOffset = (now: Date): number => -now.getTimezoneOffset();
+
+/**
+ * A time that is over (ADR 0053 §2): a day before today, or today's part of the day once it has ended. Work every day
+ * is never over. Read on the phone's own clock.
+ */
+export function whenPassed(w: TermWhen, now: Date): boolean {
+  if (w.day === EVERY_DAY) return false;
+  const local = localNow(now, phoneOffset(now));
+  if (w.day !== local.day) return w.day < local.day;
+  return local.minute >= WINDOW_MINUTES[w.window][1];
+}

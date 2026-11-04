@@ -70,6 +70,9 @@ export const TACTIC_RANGES: Readonly<Record<Tactic, TacticRanges>> = {
   },
 };
 
+/** Each agent's own offers before its owner takes over (ADR 0053 §4); the protocol allows `MAX_ROUNDS` a side. */
+export const AGENT_OFFERS = 3;
+
 /** One job's hidden settings, stored on the job record only. */
 export interface Strategy {
   tactic: Tactic;
@@ -110,7 +113,8 @@ export function drawStrategy(role: Role, tactic: Tactic, random: Random): Strate
  * horizon on, and never less than the offer before.
  */
 export function conceded(s: Strategy, round: number): number {
-  if (round >= s.horizon) return 1;
+  // An agent offers its limit by its last offer before its owner takes over (ADR 0053 §4).
+  if (round >= Math.min(s.horizon, AGENT_OFFERS)) return 1;
   let left = 1;
   for (let step = 0; step < round - 1; step++) left *= 1 - Math.min(1, Math.max(0, s.concede[step] ?? 0));
   return 1 - left;

@@ -10,6 +10,7 @@ import {
 } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import {
+  type Clock,
   type NewNeed,
   ReasonKind,
   saveBooking,
@@ -26,6 +27,8 @@ const T = Trade.enum;
 const DAY = "2026-11-02";
 const NEW = TERMS_PROTOCOL;
 const morning = { day: DAY, window: "morning" } as const;
+/** The phones' clock: the morning of the day before, so the 2nd is still ahead (ADR 0053 §2). */
+const BEFORE: Clock = { now: () => new Date("2026-11-01T03:30:00Z") };
 const afternoon = { day: DAY, window: "afternoon" } as const;
 
 /** Kiran paints: floor ₹12,000, usual ₹20,000; his card says when he works and who buys the paint. */
@@ -58,12 +61,18 @@ async function pair(
 ) {
   const relay = new MemoryRelay();
   const estimates = opts.api ? { estimates: estimateOptions(opts.api) } : {};
-  const priya = await phone(relay, PRIYA, { protocol: opts.home ?? NEW, autoConfirm: true, ...estimates });
+  const priya = await phone(relay, PRIYA, {
+    protocol: opts.home ?? NEW,
+    autoConfirm: true,
+    clock: BEFORE,
+    ...estimates,
+  });
   const model = opts.model ? { model: opts.model } : {};
   const ravi = await phone(relay, RAVI, {
     worker: rules,
     protocol: opts.worker ?? NEW,
     autoConfirm: true,
+    clock: BEFORE,
     ...model,
     ...estimates,
   });
@@ -71,32 +80,25 @@ async function pair(
 }
 
 describe("the agents settle the terms besides the price", () => {
-  it("settles the time the worker can do, and leaves the household's owner to sign the change", async () => {
+  it("asks the household about the time the worker can do, and agrees it once she takes it", async () => {
     const { priya, ravi, talk } = await pair(kiran({ windows: ["afternoon"] }));
     const [job] = await priya.device.request(paintNeed({ when: morning, materials: "household", coats: 3 }), [
       ravi.user,
     ]);
     const id = job?.engagement.id as EngagementId;
     await talk();
+    // Ravi's agent proposes the afternoon; Priya's never takes another time itself (ADR 0053 §3): she decides.
     const home = await priya.device.job(id);
-    const offers = home.offers.map((o) => [o.by, o.offer.terms?.when?.window]);
-    // Ravi's agent counters the morning, Priya's asks again, Ravi's holds: firm, so Priya's agent takes it.
-    expect(offers.slice(0, 3)).toEqual([
-      ["provider", "afternoon"],
-      ["requester", "morning"],
-      ["provider", "afternoon"],
-    ]);
-    // Auto-confirm is on, but the time is not what Priya asked for: she signs it herself.
-    const task = await priya.device.store.task(TaskKind.confirmDeal, id);
-    const pending = task?.detail as JobTerms;
-    expect(pending.terms).toEqual({ when: afternoon, materials: "household", coats: 3 });
-    await priya.device.confirmDeal(id);
+    expect(home.offers.map((o) => [o.by, o.offer.terms?.when?.window])).toEqual([["provider", "afternoon"]]);
+    expect((await priya.device.store.task(TaskKind.newTime, id))?.detail).toEqual({ when: afternoon });
+    await priya.device.talks.acceptTime(id);
     await talk();
+    // The afternoon is now hers: under auto-confirm her agent signs it, and both phones agree on the same terms.
     const signed = await priya.device.job(id);
     expect(signed.engagement.status).toBe("agreed");
     expect(signed.mine?.terms_hash).toBe(signed.theirs?.terms_hash);
-    expect(signed.mine?.terms.terms?.when).toEqual(afternoon);
-    expect((await ravi.device.job(id)).mine?.terms.terms).toEqual(pending.terms);
+    expect(signed.mine?.terms.terms).toEqual({ when: afternoon, materials: "household", coats: 3 });
+    expect((await ravi.device.job(id)).mine?.terms.terms?.when).toEqual(afternoon);
   });
 
   it("never agrees to a window the worker's own booking covers (ADR 0048)", async () => {

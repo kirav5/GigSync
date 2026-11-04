@@ -1,0 +1,148 @@
+import {
+  CancelReason,
+  type EngagementId,
+  type Lang,
+  MAX_ROUNDS,
+  type Offer,
+  Paise,
+  Role,
+  Terms,
+  type TermWhen,
+} from "@gigsync/protocol";
+import { whenPassed } from "../schedule/windows.js";
+import { onQuote } from "./consumer.js";
+import type { JobContext } from "./context.js";
+import { accept, cancel, termsFor } from "./deal.js";
+import { offerFacts } from "./explain.js";
+import { type Explanation, explainOffer } from "./explain-model.js";
+import { askTime, clearTalkTasks, counter } from "./handover.js";
+import { planHousehold } from "./household-plan.js";
+import { MoveKind, respond } from "./negotiate.js";
+import { type JobRecord, type Need, TaskKind } from "./store.js";
+import { nextTerms } from "./terms-flow.js";
+import { quote } from "./worker.js";
+
+/**
+ * The owner takes the talk over from their agent (ADR 0053 §3–5), whether it handed the job over or is still talking:
+ * accept the other side's last offer, send an offer of their own, or end it; and, for a household, decide a time the
+ * worker proposed or pick another. Each answers the other side's last word, so it is offered only while that is theirs.
+ */
+
+const R = Role.enum;
+const PASSED = "that time has passed";
+
+export class TalkError extends Error {}
+
+/** The other side's offer, when the last word in the talk is theirs. */
+export function theirLast(r: JobRecord): Offer | undefined {
+  const last = r.offers.at(-1);
+  return last && last.by !== r.engagement.role ? last.offer : undefined;
+}
+
+/** The owner may still send an offer of their own: the other side spoke last and the protocol allows one more. */
+export const canOffer = (r: JobRecord): boolean => theirLast(r) !== undefined && r.offers_made < MAX_ROUNDS;
+
+export class Talks {
+  constructor(private readonly ctx: JobContext) {}
+
+  /**
+   * Accepts the other side's last offer as it stands: price and terms, to sign as any deal. Never at a time that has
+   * passed: the household is asked for a new one instead (ADR 0053 §2).
+   */
+  async acceptTheirs(id: EngagementId): Promise<JobRecord> {
+    const r = await this.job(id);
+    const offer = theirLast(r);
+    if (!offer) throw new TalkError("nothing of theirs to accept");
+    const when = offer.terms?.when;
+    if (when && whenPassed(when, this.ctx.clock.now())) {
+      if (r.engagement.role !== R.requester) throw new TalkError(PASSED);
+      await clearTalkTasks(this.ctx, r);
+      return askTime(this.ctx, r, { passed: true });
+    }
+    await clearTalkTasks(this.ctx, r);
+    return accept(this.ctx, r, termsFor(this.ctx, r, offer));
+  }
+
+  /** Sends the owner's own offer at `price` (paise), with the terms their agent proposes. */
+  async offer(id: EngagementId, price: number): Promise<JobRecord> {
+    if (!Paise.safeParse(price).success) throw new TalkError("price out of range");
+    const found = await this.job(id);
+    if (!canOffer(found)) throw new TalkError("not this side's turn, or no offers left");
+    const r = await this.moveOn(found);
+    return r.engagement.role === R.requester ? counter(this.ctx, r, price) : quote(this.ctx, r, price);
+  }
+
+  /** Ends the talk: no deal, on both phones. */
+  async end(id: EngagementId): Promise<JobRecord> {
+    const r = await this.job(id);
+    await clearTalkTasks(this.ctx, r);
+    return cancel(this.ctx, r, { reason: CancelReason.enum.no_deal });
+  }
+
+  /** The household takes the time the worker proposed; its agent then answers that offer as it would any other. */
+  async acceptTime(id: EngagementId): Promise<JobRecord> {
+    const { r, need, offer } = await this.householdTurn(id);
+    const when = offer.terms?.when;
+    if (!when) throw new TalkError("no time proposed");
+    if (whenPassed(when, this.ctx.clock.now())) throw new TalkError(PASSED);
+    await clearTalkTasks(this.ctx, r);
+    return onQuote(this.ctx, need, { ...r, time: when, offers: r.offers.slice(0, -1) }, offer);
+  }
+
+  /** The household picks a time of its own: sent to the worker with its agent's next price. */
+  async pickTime(id: EngagementId, when: TermWhen): Promise<JobRecord> {
+    const { r, need, offer } = await this.householdTurn(id);
+    if (whenPassed(when, this.ctx.clock.now())) throw new TalkError(PASSED);
+    if (r.offers_made >= MAX_ROUNDS) throw new TalkError("no offers left");
+    const moved = await this.moveOn(r);
+    const planned = await planHousehold(this.ctx, need, { ...moved, time: when });
+    const move = respond(
+      R.requester,
+      planned.mandate ?? need.budget,
+      r.offers_made,
+      offer.price_paise,
+      planned.strategy,
+    );
+    const price = move.kind === MoveKind.offer ? move.price_paise : offer.price_paise;
+    const next = Terms.parse({ ...nextTerms(planned), when });
+    return counter(this.ctx, { ...planned, terms: { on: true, next } }, price);
+  }
+
+  /**
+   * Why the offer at `index` of a job is what it is, for this owner in `lang` (ADR 0033 §4): worded by the phone's
+   * model when its numbers all check out, else the template. Their own limit is in it; it is never sent.
+   */
+  async explain(id: EngagementId, index: number, name: string, lang: Lang): Promise<Explanation> {
+    const r = await this.job(id);
+    const limit =
+      r.engagement.role === R.requester
+        ? (await this.ctx.store.need(r.engagement.group))?.budget.limit_paise
+        : r.mandate?.limit_paise;
+    return explainOffer(this.ctx.model, { facts: offerFacts(r, index, limit), lang, name });
+  }
+
+  /**
+   * The owner moves the talk on with an offer of their own: every decision about it is gone, and so is a deal their
+   * agent reached meanwhile, which is no longer theirs to sign.
+   */
+  private async moveOn(r: JobRecord): Promise<JobRecord> {
+    await clearTalkTasks(this.ctx, r);
+    await this.ctx.store.removeTask(TaskKind.confirmDeal, r.engagement.id);
+    return { ...r, pending: undefined };
+  }
+
+  private async job(id: EngagementId): Promise<JobRecord> {
+    const r = await this.ctx.store.job(id);
+    if (!r) throw new TalkError(`no job ${id}`);
+    return r;
+  }
+
+  /** A household's job whose last word is the worker's quote, with its need. */
+  private async householdTurn(id: EngagementId): Promise<{ r: JobRecord; need: Need; offer: Offer }> {
+    const r = await this.job(id);
+    const offer = theirLast(r);
+    const need = await this.ctx.store.need(r.engagement.group);
+    if (r.engagement.role !== R.requester || !offer || !need) throw new TalkError("not a household's turn");
+    return { r, need, offer };
+  }
+}

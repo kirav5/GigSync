@@ -150,7 +150,8 @@ describe("prices on a strategy, over thousands of seeded jobs", () => {
       expect(end.move).toBe(MoveKind.accept);
       prices.add(end.price);
     }
-    // On the old fixed curve every one of these jobs settled at the same price.
-    expect(prices.size).toBeGreaterThan(20);
+    // On the old fixed curve every one of these jobs settled at the same price. Three offers each (ADR 0053 §4) leave
+    // fewer steps to meet on than five did (over 20 then, 16 now), and still no price a counterpart can count on.
+    expect(prices.size).toBeGreaterThan(12);
   });
 });

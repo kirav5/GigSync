@@ -30,6 +30,7 @@ import type { GigView } from "../useGig.js";
 import { AnswerForm } from "./AnswerForm.js";
 import { ApproveCard, type ApproveDetail, SignCard } from "./JobDecide.js";
 import { CancelJob } from "./job/CancelJob.js";
+import { TalkDecide } from "./job/TalkDecide.js";
 
 export interface JobActionProps {
   job: JobRecord;
@@ -78,6 +79,7 @@ export function JobActions({ job, view, device, run, onAddPayee, them }: JobActi
 
   return (
     <div className={C.stack}>
+      <TalkDecide job={job} view={view} device={device} run={run} them={them} />
       {approve && (
         <ApproveCard
           detail={approve.detail as ApproveDetail}

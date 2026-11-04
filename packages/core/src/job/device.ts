@@ -33,11 +33,10 @@ import * as consumer from "./consumer.js";
 import type { JobContext } from "./context.js";
 import * as deal from "./deal.js";
 import { dispatch, needOf } from "./dispatch.js";
-import { offerFacts } from "./explain.js";
-import { type Explanation, explainOffer } from "./explain-model.js";
 import { stamped } from "./history.js";
 import type { Mandate } from "./negotiate.js";
 import { type JobRecord, JobStore, type Need, type OwnerTask, TaskKind } from "./store.js";
+import { Talks } from "./talks.js";
 import * as worker from "./worker.js";
 import { confirm, reofferTaken } from "./worker-time.js";
 
@@ -88,6 +87,8 @@ export class GigDevice {
   readonly records?: RecordsRunner;
   /** Contact details of settled jobs, removed on sync, and the problems that hold them (ADR 0039 §3). */
   readonly contacts: ContactKeeper;
+  /** The owner takes a talk over from their agent, or decides a time (ADR 0053), and why an offer is what it is. */
+  readonly talks: Talks;
   private readonly transport: MailTransport;
   private readonly ctx: JobContext;
 
@@ -116,6 +117,7 @@ export class GigDevice {
     this.mentors = new Mentors({ ctx: this.ctx, transport: this.transport, relay: o.relay }, o.mentorApi);
     this.offers = new WorkOffers({ ctx: this.ctx, transport: this.transport, isWorker: !!o.worker }, o.qrApi);
     this.contacts = new ContactKeeper(this.ctx);
+    this.talks = new Talks(this.ctx);
     if (o.records)
       this.records = new RecordsRunner(o.records, o.storage, o.clock, {
         jobs: () => this.jobs(),
@@ -246,19 +248,6 @@ export class GigDevice {
 
   jobs(): Promise<JobRecord[]> {
     return this.store.jobs();
-  }
-
-  /**
-   * Why the offer at `index` of a job is what it is, for this owner in `lang` (ADR 0033 §4): worded by the phone's
-   * model when its numbers all check out, else the template. Their own limit is in it; it is never sent.
-   */
-  async explainOffer(id: EngagementId, index: number, name: string, lang: Lang): Promise<Explanation> {
-    const r = await this.job(id);
-    const limit =
-      r.engagement.role === Role.enum.requester
-        ? (await this.store.need(r.engagement.group))?.budget.limit_paise
-        : r.mandate?.limit_paise;
-    return explainOffer(this.o.model, { facts: offerFacts(r, index, limit), lang, name });
   }
 
   async job(id: EngagementId): Promise<JobRecord> {

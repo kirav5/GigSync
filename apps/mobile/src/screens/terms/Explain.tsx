@@ -33,8 +33,8 @@ export function Explain({
     const known = made.get(key);
     if (known) return setShown(known);
     let live = true;
-    void device
-      .explainOffer(job.engagement.id, index, them, lang)
+    void device.talks
+      .explain(job.engagement.id, index, them, lang)
       .then((e) => {
         made.set(key, e);
         if (live) setShown(e);
