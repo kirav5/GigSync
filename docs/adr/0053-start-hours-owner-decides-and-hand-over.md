@@ -17,12 +17,15 @@ people booking an hour, and My card's form too long to read.
 ## Decision
 
 1. **A time is a day and a start hour.** The household picks a start hour (7 am to 8 pm, as Find's chips already
-   offer) or any time; the worker's card says the days and the hours they work (from–to). Phones that understand hours
-   (`HOURS_PROTOCOL`, 9) send `when.hour` with the day; the part of the day travels beside it for older phones, which keep
-   agreeing parts of the day. Two times clash when their hours overlap, taking a job as two hours unless its own hours
-   say otherwise.
-2. **Never a time that has passed.** No agent proposes or accepts a day and hour before now. A job whose asked time has
-   passed before it is agreed stops talking and goes to the household: pick a new time, or end it.
+   offer) or any time; a part of the day said alone ("tomorrow morning") still asks the hour, among that part's
+   hours. The worker's card says the days and the hours they work (from–to, within one day: no night shift past
+   midnight in the pilot). Phones that understand hours (`HOURS_PROTOCOL`, 9) send `when.hour` with the day; the part
+   of the day travels beside it for older phones, which keep agreeing parts of the day, and a job with one never
+   carries an hour (an older phone would drop it and hash different terms). Two times clash when their hours overlap,
+   taking a job as its own hours a day, else `DEFAULT_JOB_HOURS` (two); a booking by its minutes.
+2. **Never a time that has passed.** No agent proposes or accepts a day and hour before now, and no owner signs one.
+   A job whose time passes before it is agreed goes to the household on its turn, even when nobody writes: pick a new
+   time, or end it.
 3. **The household decides a different time.** The worker's agent proposes the nearest times the worker is free; the
    household's agent never takes one itself. The job goes under **Awaiting you** for the household: "Ravi can come at
    5 pm instead", with Accept, Pick another time, or Decline. The other terms (materials, coats, hours) are settled by
