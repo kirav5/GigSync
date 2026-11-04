@@ -33,7 +33,7 @@ async function pages(browser: { newContext: () => Promise<BrowserContext> }): Pr
 /**
  * A carpenter in Jayanagar and a household there, both signed on one job; their names. With `map`, the household's
  * phone draws a map, so it checked the pin on its typed address and the worker gets the way to the door; without one,
- * the address's point is only its area's, and the worker gets the address alone.
+ * the address's point is only its area's, and the worker's directions go to the address as written.
  */
 async function signedJob(workerPage: Page, householdPage: Page, tag: string, map: boolean) {
   if (map) await plainMap(householdPage);
@@ -75,8 +75,9 @@ async function signedJob(workerPage: Page, householdPage: Page, tag: string, map
   await expect(contact).toContainText(address);
   // The household's door, for the way there (ADR 0050 §7): the pin she checked, in the phone's maps app.
   const directions = contact.getByRole("link", { name: say("map.directions") });
+  // Pinned, to the point; never pinned, to the address as written, which the maps app looks up itself.
   if (map) await expect(directions).toHaveAttribute("href", DIRECTIONS);
-  else await expect(directions).toHaveCount(0);
+  else await expect(directions).toHaveAttribute("href", new RegExp(`destination=${encodeURIComponent("No. 9")}`));
   return names;
 }
 

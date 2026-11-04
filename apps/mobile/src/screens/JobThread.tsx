@@ -133,19 +133,19 @@ export function JobThread(props: JobActionProps) {
           <strong>{job.contact.name}</strong>
           <span>{job.contact.phone}</span>
           {job.contact.address && <span>{job.contact.address}</span>}
-          {/* The door, until the job settles: the pin goes with the rest of the card (ADR 0039 §3). */}
+          {/* The door, until the job settles: the pin and the way there go with the rest of the card (ADR 0039 §3). */}
           {job.contact.point && (
-            <>
-              <PlaceMap at={job.contact.point} label={t("map.of", { place: job.contact.address ?? "" })} />
-              <a
-                className={C.secondary}
-                href={directionsTo(job.contact.point)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {t("map.directions")}
-              </a>
-            </>
+            <PlaceMap at={job.contact.point} label={t("map.of", { place: job.contact.address ?? "" })} />
+          )}
+          {(job.contact.point || job.contact.address) && (
+            <a
+              className={C.secondary}
+              href={directionsTo(job.contact.point ?? job.contact.address ?? "")}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t("map.directions")}
+            </a>
           )}
         </fieldset>
       )}
