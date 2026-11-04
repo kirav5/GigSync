@@ -1,9 +1,6 @@
 import {
   DAY_HOURS,
   EVERY_DAY,
-  ISO_WEEKDAYS,
-  type IsoWeekday,
-  isoWeekday,
   type JobTrade,
   MAX_COATS,
   MAX_HOURS,
@@ -15,19 +12,8 @@ import {
   type TermWhen,
   TimeWindow,
   TRADE_TERMS,
-  type WorkHours,
 } from "@gigsync/protocol";
-import {
-  atHour,
-  FIRST_HOUR,
-  type Hours,
-  LAST_HOUR,
-  MINUTES_PER_HOUR,
-  overlaps,
-  spanOf,
-  whenPassed,
-  windowsOf,
-} from "../schedule/windows.js";
+import { atHour, FIRST_HOUR, LAST_HOUR } from "../schedule/windows.js";
 
 /**
  * Negotiating the terms other than price (ADR 0033 §3), as plain data: each side has a stance (its own first choice

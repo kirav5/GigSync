@@ -1,4 +1,4 @@
-import { EVERY_DAY, type Lang, TermKey, type Terms, type TermWhen } from "@gigsync/protocol";
+import { DAY_HOURS, EVERY_DAY, type Lang, TermKey, type Terms, type TermWhen } from "@gigsync/protocol";
 import { type Fact, FactKind } from "../job/explain.js";
 import { AFTERNOON_FROM, EVENING_FROM } from "../schedule/windows.js";
 import { priceText } from "./reasons.js";
@@ -20,9 +20,11 @@ const DAY_FORMAT: Intl.DateTimeFormatOptions = { day: "numeric", month: "short",
 
 /** An hour on the clock in the owner's words, by the part of the day it is in: "2 pm", "दोपहर 2 बजे". */
 export function hourText(lang: Lang, hour: number): string {
+  // Midnight, as the end of a working day (24) or a start (0), reads as 12 in the morning's words.
+  const clock = hour % DAY_HOURS;
   const key: MessageKey =
-    hour < AFTERNOON_FROM ? "hour.morning" : hour < EVENING_FROM ? "hour.afternoon" : "hour.evening";
-  return t(lang, key, { h: hour > NOON ? hour - NOON : hour });
+    clock < AFTERNOON_FROM ? "hour.morning" : clock < EVENING_FROM ? "hour.afternoon" : "hour.evening";
+  return t(lang, key, { h: clock % NOON || NOON });
 }
 
 /** "2 Nov, 2 pm" with a start hour (ADR 0053 §1), else "2 Nov, morning"; "Every day, …" for work done every day. */
