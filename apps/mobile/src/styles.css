@@ -899,7 +899,9 @@ fieldset {
 .place-map[hidden] {
   display: none;
 }
-.place-map-canvas {
+/* MapLibre marks this box .maplibregl-map, whose own stylesheet makes it position: relative; in a production build
+   that sheet loads after this one, and the box would collapse to no height. The child selector wins in either order. */
+.place-map > .place-map-canvas {
   position: absolute;
   inset: 0;
 }
