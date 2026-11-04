@@ -114,4 +114,32 @@ export function drawMural(svg) {
   // figures with tools at the sides
   g.appendChild(el("path", { d: figurePath(80, 220, 28, -1) + "M62 230l-12 36" }));
   g.appendChild(el("path", { d: figurePath(520, 230, 28, 1) + "M538 240l14 30" }));
+  // an inner ring of smaller dancers, facing the other way
+  const inner = [];
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2 - Math.PI / 2 + Math.PI / 12;
+    const [x, y] = polar(300, 380, 66, a);
+    inner.push(figurePath(x, y - 14, 17, i % 2 ? -1 : 1));
+  }
+  g.appendChild(el("path", { d: inner.join("") }));
+  g.appendChild(el("circle", { cx: 300, cy: 380, r: 90, "stroke-dasharray": "1 6" }));
+  // a flock of birds, palms, grass tufts and a dotted ground
+  const birds = [];
+  for (let i = 0; i < 7; i++) {
+    const x = 150 + i * 26 + (i % 2) * 8;
+    const y = 70 + (i % 3) * 9;
+    birds.push(`M${x} ${y}q7-7 14 0q-7-3-14 0`);
+  }
+  g.appendChild(el("path", { d: birds.join("") }));
+  g.appendChild(
+    el("path", {
+      d: "M60 400v-60M60 340c-14 2-22-6-22-16 12-2 20 4 22 16zM60 340c14 2 22-6 22-16-12-2-20 4-22 16zM60 352c-12 6-24 2-28-8 12-4 22 0 28 8zM60 352c12 6 24 2 28-8-12-4-22 0-28 8zM540 400v-60M540 340c-14 2-22-6-22-16 12-2 20 4 22 16zM540 340c14 2 22-6 22-16-12-2-20 4-22 16zM540 352c-12 6-24 2-28-8 12-4 22 0 28 8zM540 352c12 6 24 2 28-8-12-4-22 0-28 8z",
+    }),
+  );
+  const ground = el("g", { fill: "currentColor", stroke: "none" });
+  for (let x = 40; x <= 560; x += 10) ground.appendChild(el("circle", { cx: x, cy: 552 + ((x / 10) % 2) * 4, r: 1.6 }));
+  g.appendChild(ground);
+  const tufts = [];
+  for (let x = 48; x <= 552; x += 36) tufts.push(`M${x} 544l-5-10M${x} 544v-13M${x} 544l5-10`);
+  g.appendChild(el("path", { d: tufts.join("") }));
 }
