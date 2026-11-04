@@ -57,6 +57,10 @@ ALLOWED_ORIGINS = "https://gigsync.network,https://www.gigsync.network,capacitor
 # push services may write to. The private half is `wrangler secret put VAPID_PRIVATE_KEY`; without it, no alerts.
 VAPID_PUBLIC_KEY = "BCViIeyH1H-yLP9j37xoSZfgGJI91upzAJWrgLqDMgtLQzLYLw7FoUBiic1AZ-jyAPW_jIpUb6jPvsuzY5W65ls"
 VAPID_SUBJECT = "mailto:ops@gigsync.network"
+# GigSync's own model (ADR 0052): Ollama on the Mac Studio, through the Cloudflare Tunnel behind Access. The service
+# token is `wrangler secret put MODEL_ACCESS_ID` / `MODEL_ACCESS_SECRET`. Local dev points at the Studio in .dev.vars.
+MODEL_ORIGIN = "https://model.gigsync.network"
+MODEL_NAME = "qwen3:30b-a3b-instruct-2507-q4_K_M"
 
 # Workers Logs: console output and request details, searchable in the dashboard (Observability).
 [observability]

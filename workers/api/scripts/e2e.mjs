@@ -51,5 +51,7 @@ await migrate(databaseUrl);
 process.env.CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_DIRECTORY = databaseUrl;
 const args = ["dev", "--port", PORT, "--inspector-port", INSPECTOR_PORT, "--persist-to", STATE_DIR];
 args.push("--var", `ALLOWED_ORIGINS:${APP_ORIGIN}`);
+// No model for the UI tests (ADR 0052): the pilot's model is never asked by a test run; specs stand in for it.
+args.push("--var", "MODEL_ORIGIN:");
 const wrangler = spawn("wrangler", args, { stdio: "inherit" });
 wrangler.on("exit", (code) => process.exit(code ?? 1));
