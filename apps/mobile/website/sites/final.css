@@ -1478,6 +1478,40 @@ body.flying:not(.landed) .roots-image-window img {
   border: 1px solid rgba(223, 203, 162, 0.14);
   pointer-events: none;
 }
+.say .box.her::after {
+  content: "";
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 9px;
+  height: 12px;
+  background: var(--folk) center bottom / 28px 16px repeat-x;
+  opacity: 0.4;
+  pointer-events: none;
+}
+.say .box.her > div {
+  max-width: 46%;
+  position: relative;
+  z-index: 1;
+}
+.say .scene {
+  position: absolute;
+  top: 26px;
+  right: 22px;
+  bottom: 30px;
+  width: 54%;
+  height: auto;
+  color: #e6d2a9;
+  opacity: 0.95;
+  transition:
+    opacity 0.45s ease,
+    transform 0.9s cubic-bezier(0.65, 0, 0.35, 1);
+  pointer-events: none;
+}
+.say.open .scene {
+  opacity: 0;
+  transform: translateX(28px);
+}
 .say .n,
 .say .tag {
   font-size: 8px;
@@ -1771,6 +1805,13 @@ body.flying:not(.landed) .roots-image-window img {
   .say p {
     margin-top: 2px;
     min-width: 0;
+  }
+  .say .scene,
+  .say .box.her::after {
+    display: none;
+  }
+  .say .box.her > div {
+    max-width: none;
   }
   .say:not(.open) .box.us {
     flex: none;

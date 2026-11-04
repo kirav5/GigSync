@@ -107,11 +107,11 @@
       </div>
     </div>
     <div class="say" id="say">
-      <div class="box her"><span class="n">01 · She</span><span class="ic"><svg aria-hidden="true"><use href="#i-mic"/></svg></span><div><h3>Say it.</h3><p>In Kannada or Hindi: the work, the days, her minimum.</p></div></div>
+      <div class="box her"><span class="n">01 · She</span><span class="ic"><svg aria-hidden="true"><use href="#i-mic"/></svg></span><div><h3>Say it.</h3><p>In Kannada or Hindi: the work, the days, her minimum.</p></div><svg class="scene" viewBox="0 0 400 300" aria-hidden="true" data-scene="say"></svg></div>
       <div class="box us"><span class="tag">Her agent does this</span><span class="ic"><svg aria-hidden="true"><use href="#i-search"/></svg></span><div><h3>We find.</h3><p>Households nearby whose terms fit her rules.</p></div></div>
       <div class="box us"><span class="tag">Her agent does this</span><span class="ic"><svg aria-hidden="true"><use href="#i-chat"/></svg></span><div><h3>We talk.</h3><p>Rate, hours, the weekly off, with the household's agent.</p></div></div>
       <div class="box us"><span class="tag">We ask, she taps</span><span class="ic"><svg aria-hidden="true"><use href="#i-tap"/></svg></span><div><h3>She approves.</h3><p>Nothing is final before this.</p></div></div>
-      <div class="box her"><span class="n">05 · Done</span><span class="ic"><svg aria-hidden="true"><use href="#i-check"/></svg></span><div><h3>Done.</h3><p>Both phones signed. Paid by UPI, straight to her.</p></div></div>
+      <div class="box her"><span class="n">05 · Done</span><span class="ic"><svg aria-hidden="true"><use href="#i-check"/></svg></span><div><h3>Done.</h3><p>Both phones signed. Paid by UPI, straight to her.</p></div><svg class="scene" viewBox="0 0 400 300" aria-hidden="true" data-scene="done"></svg></div>
     </div>
     <div class="say-cap"><span class="a">What she sees: 2 steps</span><span class="b">What her agent does in between: 3 steps</span></div>
   </section>
@@ -305,6 +305,7 @@
   import { drawLogoMark } from "./final-art.js";
   import { startHeroFlight } from "./final-fly.js";
   import { hoverAccordion, revealOnArrival, stackCards } from "./final-motion.js";
+  import { drawDoneScene, drawSayScene } from "./final-scenes.js";
 
   for (const svg of document.querySelectorAll("[data-logo]")) drawLogoMark(svg);
   startHeroFlight({
@@ -317,6 +318,8 @@
   });
   revealOnArrival(".rise");
   hoverAccordion(document.getElementById("say"));
+  drawSayScene(document.querySelector('[data-scene="say"]'));
+  drawDoneScene(document.querySelector('[data-scene="done"]'));
   stackCards(document.getElementById("stack"));
   const proposal = document.getElementById("proposal-text");
   const choices = document.querySelectorAll(".choice-row button");
