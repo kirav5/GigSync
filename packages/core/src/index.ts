@@ -78,7 +78,7 @@ export {
 } from "./interview/need-request.js";
 export { chipChoice, ScopePick, scopeDetails } from "./interview/need-scope.js";
 export { withSkill } from "./interview/need-skill.js";
-export { needTerms, windowOf } from "./interview/need-terms.js";
+export { hourOf, needTerms, windowOf } from "./interview/need-terms.js";
 export { ANY_TIME, ANY_TIME_PICK, hoursOpen } from "./interview/need-time.js";
 export type { AddressChoice } from "./interview/need-types.js";
 export {

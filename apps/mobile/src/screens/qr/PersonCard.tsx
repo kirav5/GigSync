@@ -4,16 +4,18 @@ import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { areaLabel, money } from "../../ui/places.js";
 import { Said } from "../../ui/Said.js";
-import { cardWork } from "../../ui/work.js";
+import { cardHours, cardWork } from "../../ui/work.js";
 import { cardLang, languageNames } from "./cardWords.js";
 import { RecordStats } from "./RecordStats.js";
 
 /**
- * A worker's board card as a QR or an offer shows it: name, trades, area, usual rate, languages, their line, and the
- * record the server vouched for (capped at what it saw delivered), when the worker shows one.
+ * A worker's board card as a QR or an offer shows it: name, trades, area, usual rate, languages, when they work, their
+ * line, and the record the server vouched for (capped at what it saw delivered), when the worker shows one.
  */
 export function WorkerCard({ card }: { card: BoardProfile }) {
-  const { lang, t } = useI18n();
+  const i18n = useI18n();
+  const { lang, t } = i18n;
+  const hours = cardHours(i18n, card.work_hours);
   const record = shownRecord(card);
   return (
     <div className={C.stack}>
@@ -25,6 +27,7 @@ export function WorkerCard({ card }: { card: BoardProfile }) {
             {cardWork(t, card)} · {areaLabel(lang, card.area_name)}
           </span>
           {card.languages.length > 0 && <span className={C.faint}>{languageNames(card.languages, t)}</span>}
+          {hours && <span className={C.faint}>{hours}</span>}
         </div>
         <span className={`${C.money} end`}>{t("find.from", { price: money(card.rate_paise) })}</span>
       </div>
