@@ -1,5 +1,5 @@
 import { parseAmount } from "@gigsync/core";
-import { Arrangement, mainArrangement } from "@gigsync/protocol";
+import { type Arrangement, mainArrangement } from "@gigsync/protocol";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { rupeesOf } from "../../ui/places.js";
@@ -7,16 +7,19 @@ import { rupeesOf } from "../../ui/places.js";
 /** What the worker set: the arrangements they take and the rate typed for each one besides the main. */
 export interface ArrangementsValue {
   picked: Arrangement[];
+  /** The worker ticked or unticked one, or the card already named some: `picked` is theirs, not a default. */
+  set: boolean;
   /** Rupees as typed, by arrangement. */
   typed: Partial<Record<Arrangement, string>>;
 }
 
-/** The value from the card's draft: what they take, and each rate in rupees as a field holds it. */
+/** The value from the card's draft: what they take (nothing set when it names none), and each rate as a field holds it. */
 export const arrangementsValue = (
   picked: readonly Arrangement[] | undefined,
   rates: Partial<Record<Arrangement, number>> | undefined,
 ): ArrangementsValue => ({
-  picked: picked?.length ? [...picked] : [Arrangement.enum.monthly],
+  picked: picked?.length ? [...picked] : [],
+  set: !!picked?.length,
   typed: Object.fromEntries(Object.entries(rates ?? {}).map(([a, paise]) => [a, rupeesOf(paise)])),
 });
 
@@ -34,13 +37,16 @@ export function otherRates(v: ArrangementsValue): Partial<Record<Arrangement, nu
 }
 
 /**
- * Which work a maid or driver takes (ADR 0046): hourly, one visit, weekly, monthly, each a box; a rate field beside each
- * one ticked besides the main one (the longest), whose rate is the card's usual rate above.
+ * Which work a worker takes (ADR 0046), of those that fit their work (ADR 0051): hourly, one visit, weekly, monthly,
+ * each a box; a rate field beside each one ticked besides the main one (the longest), whose rate is the card's usual
+ * rate above.
  */
 export function ArrangementsField({
+  offered,
   value,
   onChange,
 }: {
+  offered: readonly Arrangement[];
   value: ArrangementsValue;
   onChange: (next: ArrangementsValue) => void;
 }) {
@@ -48,12 +54,12 @@ export function ArrangementsField({
   const main = mainArrangement(value.picked);
   const toggle = (a: Arrangement) => {
     const picked = value.picked.includes(a) ? value.picked.filter((x) => x !== a) : [...value.picked, a];
-    onChange({ ...value, picked: Arrangement.options.filter((x) => picked.includes(x)) });
+    onChange({ ...value, picked: offered.filter((x) => picked.includes(x)), set: true });
   };
   return (
     <fieldset className={C.stack} aria-label={t("card.arrangements")}>
       <span className={C.label}>{t("card.arrangements")}</span>
-      {Arrangement.options.map((a) => (
+      {offered.map((a) => (
         <div key={a} className={C.row}>
           <label className={C.checkRow}>
             <input type="checkbox" checked={value.picked.includes(a)} onChange={() => toggle(a)} />

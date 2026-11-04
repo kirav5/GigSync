@@ -19,6 +19,7 @@ export const arrangement: Readonly<Record<keyof typeof en, string>> = {
   "need.arr.visit": "सिर्फ़ एक बार",
   "need.arr.weekly": "हफ़्ते में कुछ दिन",
   "need.arr.monthly": "हर महीने",
+  "need.arr.meal": "एक वक़्त का खाना या कोई मौका",
   "need.field_arrangement": "कितने समय के लिए",
   "need.summary_arrangement": "काम: {arrangement}।",
   "need.budget_per.hour": "यह एक घंटे के लिए ज़्यादा से ज़्यादा है।",

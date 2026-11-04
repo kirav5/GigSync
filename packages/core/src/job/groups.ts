@@ -7,7 +7,7 @@ import {
   TERMINAL_STATUSES,
 } from "@gigsync/protocol";
 import type { JobRecord, OwnerTask } from "./store.js";
-import { isAfterDay, isMonthly, isOnDay } from "./when.js";
+import { isAfterDay, isOnDay, recurs } from "./when.js";
 
 const S = EngagementStatus.enum;
 
@@ -73,7 +73,7 @@ function shelf(groups: JobGroups, job: JobRecord, decide: boolean, paid: boolean
  * leaves Agreed only once the arrangement ends (closed or cancelled).
  */
 function settled(job: JobRecord): boolean {
-  if (isMonthly(job.request.trade)) return false;
+  if (recurs(job.request)) return false;
   const e = job.engagement;
   if (e.status !== S.delivered) return false;
   return !(e.role === Role.enum.requester && !job.review);

@@ -1,4 +1,4 @@
-import { Lang, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
+import { Arrangement, Lang, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
 import { z } from "zod";
 import { asciiDigits, numbersIn } from "../job/details.js";
 import type { Model } from "../ports.js";
@@ -15,7 +15,9 @@ import type { ScopeChip } from "./scope-read.js";
  * It fills only what the word lists left empty. It may infer the trade from the problem ("sink blocked" is a plumber),
  * but it may only read, never guess, the rest: an area or a time counts only when the owner's words name it, a budget
  * only when it is a number they said. It is not asked the day: small models answer "today" when no day was said, and
- * a guessed day would skip the question. Without a model, or when it says anything else, nothing changes.
+ * a guessed day would skip the question. It may say how such work is usually hired (by the hour, once, some days a
+ * week, by the month), which narrows the chips for work outside the trades (ADR 0051) and never answers the question.
+ * Without a model, or when it says anything else, nothing changes.
  */
 
 /** What a model read from a sentence, each value already checked. */
@@ -31,12 +33,14 @@ export interface NeedHint {
   problemKind?: string;
   /** The job's scope read from the words (`readScope`), each value already grounded in them. */
   scope?: readonly ScopeChip[];
+  /** ADR 0051: the ways such work is usually hired, each an arrangement; a suggestion for the chips, never an answer. */
+  fits?: readonly Arrangement[];
 }
 
 /** The on-device models read and answer English only today (HLD 7.6). */
 const MODEL_LANG = Lang.enum.en;
-/** A small model's answer is short; anything longer is not the object asked for. */
-const MAX_TOKENS = 120;
+/** A small model's answer is short; anything longer is not the object asked for. The arrangements list adds ~30. */
+const MAX_TOKENS = 160;
 /** How long the owner waits for the model before the interview carries on without it. */
 export const MODEL_WAIT_MS = 8000;
 /** No household budget in the pilot comes near this. */
@@ -57,6 +61,7 @@ const Reply = z.object({
   // Small models often quote numbers ("9000"); the value is checked against the owner's words either way.
   budget_rupees: z.coerce.number().int().positive().max(MAX_BUDGET_RUPEES).nullish().catch(null),
   problem: z.string().max(DETAIL_MAX).nullish().catch(null),
+  how_long: z.array(z.string()).max(Arrangement.options.length).nullish().catch(null),
 });
 type Reply = z.infer<typeof Reply>;
 
@@ -67,7 +72,8 @@ export function needModelPrompt(text: string, areas: readonly AreaChoice[]): str
     "Read this request for help at home. Reply with one JSON object and nothing else.",
     `{"trade": ${or(Trade.options)} | null, "area": ${or(areas.map((a) => a.key))} | null,`,
     ' "time": the time words they used | null,',
-    ' "budget_rupees": the most they said they will pay, as a number | null, "problem": what is wrong | null}',
+    ' "budget_rupees": the most they said they will pay, as a number | null, "problem": what is wrong | null,',
+    ` "how_long": how such work is usually hired, a list of ${or(Arrangement.options)} | null}`,
     `Request: ${JSON.stringify(text)}`,
   ].join("\n");
 }
@@ -118,12 +124,14 @@ function checked(reply: Reply, text: string, areas: readonly AreaChoice[]): Need
   const time = reply.time?.trim();
   const said = normalize(text);
   const rupees = reply.budget_rupees;
+  const fits = Arrangement.options.filter((a) => reply.how_long?.includes(a));
   return {
     ...(reply.trade ? { trade: reply.trade } : {}),
     ...(area ? { area } : {}),
     ...(time && said.includes(normalize(time)) && isTime(time) ? { time } : {}),
     ...(rupees && stated(text, rupees) ? { budget_paise: rupees * PAISE_PER_RUPEE } : {}),
     ...(reply.problem?.trim() ? { problem: true as const } : {}),
+    ...(fits.length > 0 ? { fits } : {}),
   };
 }
 

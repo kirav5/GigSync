@@ -1,4 +1,12 @@
-import { EVERY_DAY, type JobRequest, type JobTrade, Trade } from "@gigsync/protocol";
+import {
+  Arrangement,
+  EVERY_DAY,
+  type JobRequest,
+  type JobTrade,
+  ONE_OFF_ARRANGEMENTS,
+  QuestionKey,
+  Trade,
+} from "@gigsync/protocol";
 
 /**
  * The job's day as a structured detail, so each phone can file it under Today or Coming up without reading translated
@@ -18,6 +26,15 @@ export const isMonthly = (trade: JobTrade): boolean => MONTHLY_TRADES.has(trade)
 
 /** The part of a request (or a consumer's need) that says when the work is. */
 type Dated = Pick<JobRequest, "trade" | "details">;
+
+/**
+ * The work recurs: a monthly trade's, unless the request asks for one visit or a few hours (ADR 0046), as a cook for
+ * one meal does (ADR 0051). Such a job is on its one day only, and settles once handed over.
+ */
+export function recurs(request: Dated): boolean {
+  const asked = Arrangement.safeParse(request.details[QuestionKey.enum.arrangement]).data;
+  return isMonthly(request.trade) && !(asked !== undefined && ONE_OFF_ARRANGEMENTS.has(asked));
+}
 
 const MS_PER_MINUTE = 60_000;
 /** Length of "YYYY-MM-DD" at the start of an ISO timestamp. */
@@ -45,7 +62,7 @@ export function dayOf(request: Dated): string | undefined {
 export function isOnDay(request: Dated, day: string): boolean {
   const asked = dayOf(request);
   if (asked === EVERY_DAY || asked === day) return true;
-  return isMonthly(request.trade) && (asked === undefined || asked < day);
+  return recurs(request) && (asked === undefined || asked < day);
 }
 
 /** The work is on a single day after `day`, or monthly work that starts after it. */

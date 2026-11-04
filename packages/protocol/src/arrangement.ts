@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { DriverName, PriceUnit, TRADE_DRIVERS } from "./estimate-drivers.js";
 import { Paise } from "./payment.js";
-import { type JobTrade, Trade } from "./trade.js";
+import { JobTrade, Trade } from "./trade.js";
 
 /**
  * How long a job is for (ADR 0046): a few hours, one visit, some days a week, or every month. Household work is sold
@@ -18,10 +18,44 @@ const D = DriverName.enum;
 /** Every job was monthly before arrangements, and a card or record without one still is. */
 export const DEFAULT_ARRANGEMENT = A.monthly;
 
-/** The trades whose work is asked and priced by arrangement; every other trade is priced as it always was. */
-export const ARRANGEMENT_TRADES: readonly JobTrade[] = [T.maid, T.driver];
+const ALL: readonly Arrangement[] = Arrangement.options;
+const ONE_VISIT: readonly Arrangement[] = [A.visit];
+
+/**
+ * How each kind of work is done, by its nature (ADR 0051): a repair or a paint job is one visit; a cook comes for one
+ * meal or occasion, some days a week or every month; house help and drivers are hired all four ways. Work outside the
+ * trades (ADR 0047) may be any of them, so its owner is asked. Find and the card offer only these.
+ */
+export const WORK_ARRANGEMENTS: Readonly<Record<JobTrade, readonly Arrangement[]>> = {
+  [T.electrician]: ONE_VISIT,
+  [T.plumber]: ONE_VISIT,
+  [T.carpenter]: ONE_VISIT,
+  [T.ac_technician]: ONE_VISIT,
+  [T.painter]: ONE_VISIT,
+  [T.cook]: [A.visit, A.weekly, A.monthly],
+  [T.maid]: ALL,
+  [T.driver]: ALL,
+  [JobTrade.enum.other]: ALL,
+};
+
+/** The arrangements a kind of work can be done in, in the order they are offered. */
+export const arrangementsOf = (work: JobTrade): readonly Arrangement[] => WORK_ARRANGEMENTS[work];
+
+/** The work whose arrangement is asked, since more than one fits; every other trade is priced as it always was. */
+export const ARRANGEMENT_TRADES: readonly JobTrade[] = JobTrade.options.filter((w) => WORK_ARRANGEMENTS[w].length > 1);
 
 export const hasArrangements = (trade: JobTrade): boolean => ARRANGEMENT_TRADES.includes(trade);
+
+/** The work is asked by arrangement and can be done in this one: a cook's hour, or a repair's month, never is. */
+export const fitsWork = (work: JobTrade, arrangement: Arrangement): boolean =>
+  hasArrangements(work) && WORK_ARRANGEMENTS[work].includes(arrangement);
+
+/** Arrangements done on one day: the work does not recur, so it is never "every day". */
+export const ONE_OFF_ARRANGEMENTS: ReadonlySet<Arrangement> = new Set([A.hourly, A.visit]);
+
+/** Work that is one-off by its nature: none of its arrangements recurs (a repair, a paint job). */
+export const oneOffWork = (work: JobTrade): boolean =>
+  WORK_ARRANGEMENTS[work].every((a) => ONE_OFF_ARRANGEMENTS.has(a));
 
 /** What a price is per, for each arrangement. */
 export const ARRANGEMENT_UNIT: Readonly<Record<Arrangement, PriceUnit>> = {
@@ -42,7 +76,8 @@ export const mainArrangement = (picked: readonly Arrangement[]): Arrangement | u
 
 /**
  * The drivers that move a price in each arrangement. An hour of a maid's time costs the same whatever the flat; a visit
- * is priced by rooms and tasks; a week by how many days too. Monthly is the trade's own list (ADR 0041).
+ * is priced by rooms and tasks; a week by how many days too. A cook's one meal or occasion is priced by how many eat
+ * (ADR 0051); a cook is never hired by the hour. Monthly is the trade's own list (ADR 0041).
  */
 export const ARRANGEMENT_DRIVERS: Readonly<
   Partial<Record<Trade, Readonly<Record<Arrangement, readonly DriverName[]>>>>
@@ -52,6 +87,12 @@ export const ARRANGEMENT_DRIVERS: Readonly<
     [A.visit]: [D.rooms, D.tasks],
     [A.weekly]: [D.days_week, D.rooms, D.tasks],
     [A.monthly]: TRADE_DRIVERS[T.maid],
+  },
+  [T.cook]: {
+    [A.hourly]: [],
+    [A.visit]: [D.people],
+    [A.weekly]: [D.days_week, D.meals, D.people],
+    [A.monthly]: TRADE_DRIVERS[T.cook],
   },
   [T.driver]: {
     [A.hourly]: [D.vehicle],

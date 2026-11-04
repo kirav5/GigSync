@@ -1,4 +1,5 @@
-import { DEFAULT_ARRANGEMENT, Trade } from "@gigsync/protocol";
+import { City, DEFAULT_ARRANGEMENT, Trade } from "@gigsync/protocol";
+import { arrangementEntry } from "../estimate/arrangement-rates.js";
 import { type MessageKey, t } from "../i18n/t.js";
 import { YES_NO_QUESTIONS } from "../job/details.js";
 import { EVERY_DAY, isMonthly } from "../job/when.js";
@@ -18,7 +19,7 @@ import {
   workOf,
 } from "./need.js";
 import { areaParts, wherePrompt } from "./need-address.js";
-import { arrangedTrade, arrangementLines, arrangementPrompt, budgetUnitLines } from "./need-arrangement.js";
+import { arrangedWork, arrangementLines, arrangementPrompt, budgetUnitLines, oneOffNeed } from "./need-arrangement.js";
 import { driverQuestion } from "./need-drivers.js";
 import { budgetEstimate } from "./need-estimate.js";
 import { NeedPick } from "./need-hear.js";
@@ -54,6 +55,20 @@ const WHEN_CHOICES: readonly Choice[] = [
   { value: EVERY_DAY, key: "when.daily" },
   { value: NeedPick.date, key: "when.pick" },
 ];
+
+/** The When chips that fit the work: "Every day" never for one visit or a few hours (ADR 0051). */
+const whenChoices = (s: NeedState): readonly Choice[] =>
+  oneOffNeed(s.draft) ? WHEN_CHOICES.filter((c) => c.value !== EVERY_DAY) : WHEN_CHOICES;
+
+/**
+ * No going rate for the job as asked, said plainly so the owner knows the budget is theirs alone: a listed skill
+ * (ADR 0047 §6), or work in an arrangement no city's card has a figure for, as a cook for one meal (ADR 0051).
+ */
+function noGoingRate(s: NeedState): boolean {
+  const { skill, trade, arrangement } = s.draft;
+  const priced = (tr: Trade) => City.options.some((city) => arrangementEntry(city, tr, arrangement) !== undefined);
+  return skill !== undefined || (trade !== undefined && !priced(trade));
+}
 
 /** The day as the readback names it: a chip's words, or a date written in the reader's language. */
 function dayParts(day: string): Pick<Line, "names" | "dates"> {
@@ -123,7 +138,7 @@ function confirmPrompt(s: NeedState): Prompt {
   const fields = NEED_FIELDS.filter(
     (f) =>
       (f !== NeedSlot.detail || firstQuestion(workOf(s.draft)) !== undefined) &&
-      (f !== NeedSlot.arrangement || arrangedTrade(s.draft.trade)),
+      (f !== NeedSlot.arrangement || arrangedWork(s.draft)),
   );
   return {
     lines: [{ key: "need.what_change" }],
@@ -170,9 +185,13 @@ function question(s: NeedState): Prompt {
     case NeedSlot.trade: {
       // Addressed to a worker of one trade, it is set already: no chips, only the need in the owner's words.
       const trades = s.to ? (s.draft.trade ? [] : s.to.trades) : Trade.options;
+      // ADR 0051: the first turn invites the need in the owner's words, with one chip to the trades for whoever cannot
+      // say or type it; the grid of trades comes on that tap, or when the words named no work.
+      const opening = s.fresh && !s.to;
+      const chips: Choice[] = trades.map((tr) => ({ value: tr, key: `trade.${tr}` as const }));
       return {
         lines: [s.fresh ? startLine(s) : { key: "need.ask.trade" }],
-        choices: trades.map((tr) => ({ value: tr, key: `trade.${tr}` as const })),
+        choices: opening ? [{ value: NeedPick.list, key: "need.pick_work" }] : chips,
         hints: trades.map((tr) => t(own, `trade.${tr}`)),
       };
     }
@@ -186,19 +205,16 @@ function question(s: NeedState): Prompt {
       return arrangementPrompt(s);
     case NeedSlot.area:
       return wherePrompt(s);
-    case NeedSlot.when:
+    case NeedSlot.when: {
       if (needsHour(s.draft)) return hourPrompt(s);
-      return {
-        lines: [{ key: "need.ask.when" }],
-        choices: WHEN_CHOICES,
-        hints: WHEN_CHOICES.map((c) => t(own, c.key)),
-      };
+      const choices = whenChoices(s);
+      return { lines: [{ key: "need.ask.when" }], choices, hints: choices.map((c) => t(own, c.key)) };
+    }
     case NeedSlot.budget: {
       // The estimate, when there is one for this job, in place of the city band; the budget itself stays secret.
       const estimate = budgetEstimate(s);
       const shown = estimate ?? { lines: bandLine(s) };
-      // No going rate for a listed skill (ADR 0047 §6): said plainly, so the owner knows the budget is theirs alone.
-      const noRate = s.draft.skill ? [{ key: "need.skill_no_rate" } as const] : [];
+      const noRate = !estimate && noGoingRate(s) ? [{ key: "need.skill_no_rate" } as const] : [];
       const lines = [{ key: "need.ask.budget" } as const, ...budgetUnitLines(s.draft), ...noRate, ...shown.lines];
       return { ...shown, lines, numeric: true, hints: [], secret: true };
     }

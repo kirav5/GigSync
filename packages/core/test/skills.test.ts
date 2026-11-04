@@ -90,6 +90,10 @@ describe("Find for a listed skill", () => {
     expect(s.slot).toBe(NeedSlot.detail);
     expect(keys(s)).toEqual(["need.skill_found", "question.job"]);
     s = hearNeed(s, "Stitch two blouses");
+    // ADR 0051: work of the owner's own may be done any way; with no model to narrow it, all four are offered.
+    expect(s.slot).toBe(NeedSlot.arrangement);
+    expect(needPrompt(s).choices?.map((c) => c.value)).toEqual(["hourly", "visit", "weekly", "monthly"]);
+    s = chooseNeed(s, "visit");
     expect(s.slot).toBe(NeedSlot.area);
     s = chooseNeed(chooseNeed(chooseNeed(s, "koramangala"), "tomorrow"), ANY_TIME_PICK);
     expect(s.slot).toBe(NeedSlot.budget);
@@ -100,13 +104,15 @@ describe("Find for a listed skill", () => {
     expect(summary?.params?.trade).toBe("Tailor");
     expect(summary?.names?.trade).toBeUndefined();
     expect(needWords(s.draft, "en")).toBe("Tailor");
-    expect(draftDetails(s.draft)).toEqual({ job: "Stitch two blouses" });
+    expect(draftDetails(s.draft)).toEqual({ job: "Stitch two blouses", arrangement: "visit" });
   });
 
   it("takes a long first sentence as the answer to what the work is", () => {
-    const s = withSkill(startNeed(config("en")), tailor, "I need a tailor to stitch two blouses for a wedding");
+    const s = withSkill(startNeed(config("en")), tailor, "I need a tailor to stitch two blouses, just once");
+    // "Just once" said it is one visit, so how long is not asked either.
+    expect(s.draft.arrangement).toBe("visit");
     expect(s.slot).toBe(NeedSlot.area);
-    expect(s.draft.detail).toBe("I need a tailor to stitch two blouses for a wedding");
+    expect(s.draft.detail).toBe("I need a tailor to stitch two blouses, just once");
   });
 
   it("sends other work with the skill as listed, and never the budget", () => {

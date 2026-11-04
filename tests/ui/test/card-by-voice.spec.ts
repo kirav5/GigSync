@@ -30,7 +30,9 @@ const { en, hi, kn } = Lang.enum;
 
 /** A Hindi cook's answers, as she would say them, and what the app asks after each. */
 const HINDI: readonly (readonly [said: string, next: MessageKey])[] = [
-  ["मैं खाना बनाती हूँ", "iv.ask.area"],
+  // A cook says which work she takes (ADR 0051): every month.
+  ["मैं खाना बनाती हूँ", "iv.ask.arrangements"],
+  ["हर महीने", "iv.ask.area"],
   ["कोरमंगला", "iv.ask.rate_month"],
   ["नौ हज़ार", "iv.ask.min"],
   ["साढ़े सात हज़ार", "iv.ask.languages"],
@@ -58,7 +60,7 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
   await onScreen(page, "nav.talk", hi);
   await expect(page.getByText(textOf(hi, "iv.ask.trade"))).toBeVisible();
 
-  const [head, tail] = [HINDI.slice(0, 2), HINDI.slice(2)];
+  const [head, tail] = [HINDI.slice(0, 3), HINDI.slice(3)];
   for (const [, next] of head) await nextTurn(page, hi, next, () => mic(page, hi).click());
 
   await test.step("under the rate question, the estimate for a cook in Bengaluru, what it rests on and the legal minimum", async () => {
@@ -187,7 +189,8 @@ test("a worker who switches to Hindi part-way gets the rest of the interview, an
 }) => {
   await signIn(page, { role: Role.worker, name: `Divya ${RUN}`, phone: newPhone() });
   for (const [answer, next] of [
-    ["cook", "iv.ask.area"],
+    ["cook", "iv.ask.arrangements"],
+    ["monthly", "iv.ask.area"],
     ["Koramangala", "iv.ask.rate_month"],
     ["9000", "iv.ask.min"],
     ["7000", "iv.ask.languages"],
@@ -215,7 +218,7 @@ test("with no speech recognition at all, the mic says to type and puts the curso
 test("with only a cloud recognizer, the mic asks before her voice leaves the phone, and Settings takes it back", async ({
   page,
 }) => {
-  await fakeSpeech(page, ["मैं खाना बनाती हूँ", "कोरमंगला", "नौ हज़ार"], FakeSpeechMode.cloud);
+  await fakeSpeech(page, ["मैं खाना बनाती हूँ", "हर महीने", "नौ हज़ार"], FakeSpeechMode.cloud);
   await signIn(page, { role: Role.worker, name: `Sunita ${RUN}`, phone: newPhone(), lang: hi });
   const { ask, allow, typeInstead } = consent(page, hi);
 
@@ -226,13 +229,15 @@ test("with only a cloud recognizer, the mic asks before her voice leaves the pho
   await typeInstead.click();
   await expect(ask).toBeHidden();
   await expect(field(page, hi)).toBeFocused();
-  await expect(page.getByText(textOf(hi, "iv.ask.area"))).toHaveCount(0);
+  await expect(page.getByText(textOf(hi, "iv.ask.arrangements"))).toHaveCount(0);
 
   // Asked again, she allows it once: that answer is heard, and so is the next, with no second question.
   await mic(page, hi).click();
   await expect(ask).toBeVisible();
-  await nextTurn(page, hi, "iv.ask.area", () => allow.click());
-  await nextTurn(page, hi, "iv.ask.rate_month", () => mic(page, hi).click());
+  // A cook is asked which work she takes (ADR 0051), then her area.
+  await nextTurn(page, hi, "iv.ask.arrangements", () => allow.click());
+  await nextTurn(page, hi, "iv.ask.area", () => mic(page, hi).click());
+  await nextTurn(page, hi, "iv.ask.rate_month", () => type(page, hi, "कोरमंगला"));
 
   // Settings say where her voice goes, and stop it; the mic then asks again.
   await open(page, "nav.settings", hi);

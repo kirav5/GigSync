@@ -77,11 +77,16 @@ const AR = Arrangement.enum;
 const maidWork = (f: Filled): number =>
   MAID_TASKS_FACTOR[str<MaidTasks>(f, D.tasks)] * atLeast(1 + MAID_PER_ROOM * (num(f, D.rooms) - MAID_BASE_ROOMS));
 
+/** How many a cook cooks for, against the base household. */
+const cookPeople = (f: Filled): number => atLeast(1 + COOK_PER_PERSON * (num(f, D.people) - COOK_BASE_PEOPLE));
+
 /**
  * Work not by the month (ADR 0046), against its own rate card entry: an hour of a maid's time is one unit whatever
  * the home; a visit is its rooms and tasks; a week its days too. A driver's hour is the car only; a trip its hours.
+ * A cook's one meal or occasion is how many eat (ADR 0051).
  */
 function otherFactor(trade: Trade, f: Filled, arrangement: Arrangement): number | undefined {
+  if (trade === T.cook && arrangement === AR.visit) return cookPeople(f);
   if (trade === T.maid && arrangement === AR.hourly) return 1;
   if (trade === T.maid && arrangement === AR.visit) return maidWork(f);
   if (trade === T.maid && arrangement === AR.weekly) return (num(f, D.days_week) / MAID_WEEK_DAYS) * maidWork(f);
@@ -101,7 +106,7 @@ export function jobFactor(trade: Trade, f: Filled, arrangement: Arrangement = DE
     case T.painter:
       return painterFactor(f);
     case T.cook:
-      return num(f, D.meals) * week * atLeast(1 + COOK_PER_PERSON * (num(f, D.people) - COOK_BASE_PEOPLE));
+      return num(f, D.meals) * week * cookPeople(f);
     case T.maid:
       return MAID_FREQUENCY_FACTOR[str<MaidFrequency>(f, D.frequency)] * maidWork(f);
     case T.driver:

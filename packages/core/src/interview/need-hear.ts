@@ -1,4 +1,4 @@
-import { DetailFlag, DriverName, QuestionKey, Trade } from "@gigsync/protocol";
+import { DetailFlag, Trade } from "@gigsync/protocol";
 import type { MessageKey } from "../i18n/t.js";
 import { countIn } from "../job/details.js";
 import { EVERY_DAY } from "../job/when.js";
@@ -10,7 +10,6 @@ import {
   answerMyself,
   DayWord,
   editNeed,
-  firstQuestion,
   moveOn,
   NEED_FIELDS,
   type NeedDraft,
@@ -29,10 +28,11 @@ import { chooseArrangement, hearArrangement } from "./need-arrangement.js";
 import { detailAnswer, settledProblem } from "./need-detail.js";
 import { chooseDriver, hearDriver } from "./need-drivers.js";
 import { suggestedBudget } from "./need-estimate.js";
+import { fillEmpty, fillFromHint } from "./need-fill.js";
 import { MemoryPick } from "./need-memory.js";
 import type { NeedHint } from "./need-model.js";
 import { amountIn, DETAIL_MAX, type NeedFill, parseNeed } from "./need-parse.js";
-import { chooseScope, hearScope, withScopeRead } from "./need-scope.js";
+import { chooseScope, hearScope } from "./need-scope.js";
 import { chooseHour, needsHour } from "./need-time.js";
 import { NEED_FIELD_WORDS } from "./need-words.js";
 import { finder, firstIn, normalize } from "./normalize.js";
@@ -42,8 +42,8 @@ import { finder, firstIn, normalize } from "./normalize.js";
  * that also names the day or the budget fills those too, so the interview never asks what it was already told.
  */
 
-/** What the tap choices carry besides trades, areas, days, radii and fields. */
-export const NeedPick = { date: "date", change: "change" } as const;
+/** What the tap choices carry besides trades, areas, days, radii and fields; `list` opens the trades (ADR 0051). */
+export const NeedPick = { date: "date", change: "change", list: "list" } as const;
 /** The Change chips under a question, by the field the agent filled in from memory. */
 const REDO = new Map<string, NeedField>([
   [MemoryPick.redoDetail, NeedSlot.detail],
@@ -70,22 +70,6 @@ export function needFieldIn(text: string): NeedField | undefined {
 const options = (s: NeedState) => ({ areas: s.config.areas, today: s.config.today });
 const joined = (a: string | undefined, b: string) => [a, b].filter(Boolean).join(" ").slice(0, NEED_MAX);
 
-/** The sentence's other answers, each only where nothing was given yet. */
-function fillEmpty(d: NeedDraft, fill: NeedFill): NeedDraft {
-  const seen = { ...fill.details, ...d.seen };
-  let next: NeedDraft = { ...d, seen };
-  const first = firstQuestion(next.trade);
-  if (first && next.detail === undefined && seen[first]) next = { ...next, detail: seen[first] };
-  if (fill.trade && !next.trade) next = withTrade(next, fill.trade);
-  return {
-    ...next,
-    area: next.area ?? fill.area,
-    day: next.day ?? fill.day,
-    time: next.time ?? fill.time,
-    budget_paise: next.budget_paise ?? fill.budget_paise,
-  };
-}
-
 /** At a price question: the answer's other details and drivers kept, whatever the question takes. */
 function driverDraft(s: NeedState, text: string): NeedDraft {
   const fill = parseNeed(text, options(s));
@@ -98,17 +82,6 @@ const budgetReadback = (paise: number, aloud: boolean): Line => ({
   prices: { price: paise },
   ...minAloud(aloud),
 });
-
-/** A model's reading, only where the words lists found nothing (`understandNeed` has checked every value). */
-function fillFromHint(d: NeedDraft, hint: NeedHint, words: string): NeedDraft {
-  const problem = QuestionKey.enum.problem;
-  const seen = hint.problem && words && !d.seen[problem] ? { ...d.seen, [problem]: words } : d.seen;
-  const kind = DriverName.enum.problem;
-  const drivers =
-    hint.problemKind && d.drivers?.[kind] === undefined ? { ...d.drivers, [kind]: hint.problemKind } : d.drivers;
-  const next = withScopeRead({ ...d, seen, drivers }, hint.scope);
-  return fillEmpty(next, { ...hint, details: {}, words });
-}
 
 /** The field now asked, read loosely from the answer; undefined when the answer did not give it. */
 function onSlot(s: NeedState, d: NeedDraft, text: string, fill: NeedFill, aloud: boolean): NeedState | undefined {
@@ -250,6 +223,7 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
   if (s.slot === NeedSlot.driver) return chooseDriver(s, value) ?? s;
   switch (s.slot) {
     case NeedSlot.trade: {
+      if (value === NeedPick.list) return { ...s, fresh: false, notes: [] };
       const trade = Trade.options.find((tr) => tr === value);
       return tradeFor(s, trade) ? moveOn(s, withTrade(d, trade)) : s;
     }

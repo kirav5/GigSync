@@ -108,6 +108,8 @@ test("a Hindi household finds an electrician by tapping the choices", async ({ b
 
   const log = page.getByRole("log");
   await expect(log).toContainText(t(hi, "need.start"));
+  // ADR 0051: the opening offers one chip to the list of work, for whoever cannot say or type it.
+  await tap(page, t(hi, "need.pick_work"));
   await tap(page, t(hi, "trade.electrician"));
   await expect(log).toContainText(t(hi, "question.problem"));
   await tap(page, t(hi, "iv.skip"));

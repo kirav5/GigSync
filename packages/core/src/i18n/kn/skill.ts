@@ -19,5 +19,6 @@ export const skill: Readonly<Record<keyof typeof en, string>> = {
   "card.skill_remove": "{skill} ತೆಗೆಯಿರಿ",
   "iv.skill_kept": "ನಾನು ಇದನ್ನು “{skill}” ಎಂದು ಬರೆಯುತ್ತೇನೆ.",
   "need.skill_found": "ನಿಮ್ಮ ಹತ್ತಿರದ ಕೆಲಸಗಾರರು “{skill}” ಕೆಲಸ ಮಾಡುತ್ತಾರೆ.",
+  "need.pick_work": "ಪಟ್ಟಿಯಿಂದ ಆರಿಸಿ",
   "need.skill_no_rate": "GigSync ನಲ್ಲಿ ಈ ಕೆಲಸಕ್ಕೆ ಇನ್ನೂ ಚಾಲ್ತಿ ದರ ಇಲ್ಲ. ನೀವು ಎಷ್ಟು ಕೊಡುತ್ತೀರಿ ಹೇಳಿ.",
 };

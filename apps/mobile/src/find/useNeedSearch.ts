@@ -1,4 +1,13 @@
-import { type GigDevice, type Line, log, type MessageKey, NeedSlot, type NeedState, type Ports } from "@gigsync/core";
+import {
+  boardArrangement,
+  type GigDevice,
+  type Line,
+  log,
+  type MessageKey,
+  NeedSlot,
+  type NeedState,
+  type Ports,
+} from "@gigsync/core";
 import type { SavedAddress } from "@gigsync/protocol";
 import { useEffect } from "react";
 import type { Account } from "../adapters/account.js";
@@ -51,7 +60,7 @@ export function useNeedSearch({ state, open, account, i18n, ports, device, onAsk
     // Where the need is (ADR 0045): its saved address or pilot area; never a fallback to another area.
     const at = whereOf(state.draft, saved ?? []);
     if (!at) return needSearchFailed(claim, INCOMPLETE);
-    searchBoard(account, state.draft, at.area, state.radius_km, state.draft.arrangement)
+    searchBoard(account, state.draft, at.area, state.radius_km, boardArrangement(state.draft))
       .then((workers) => needFound(claim, workers))
       .catch((err: unknown) => {
         log.warn("search failed", failure(err));

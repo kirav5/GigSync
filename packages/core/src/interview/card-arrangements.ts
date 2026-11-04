@@ -1,19 +1,22 @@
 import {
   Arrangement,
   type ArrangementRate,
+  arrangementsOf,
   DEFAULT_ARRANGEMENT,
   hasArrangements,
+  JobTrade,
   mainArrangement,
 } from "@gigsync/protocol";
 import type { MessageKey } from "../i18n/t.js";
 import { parseAmount } from "./amount.js";
+import { arrangementsSaid } from "./arrangement-words.js";
 import { advance, type CardDraft, type InterviewState, type Line, Pick, type Prompt, retry, Slot } from "./card.js";
-import { arrangementSaid } from "./need-arrangement.js";
 
 /**
- * The card interview's arrangements (ADR 0046): for a maid or a driver, which of hourly, one visit, weekly and monthly
- * work they take, then the usual rate for the main one (the longest) with their lowest, as every card asks, then the
- * usual rate for each other one. A card for any other trade never sees these questions.
+ * The card interview's arrangements (ADR 0046): for work that can be done several ways, which of hourly, one visit,
+ * weekly and monthly work they take, offering only what fits the work (ADR 0051: a cook's one meal, some days or a
+ * month; a skill of their own any of the four), then the usual rate for the main one (the longest) with their lowest,
+ * as every card asks, then the usual rate for each other one. A card for one-visit work never sees these questions.
  */
 
 const A = Arrangement.enum;
@@ -26,18 +29,32 @@ export const RATE_QUESTION: Readonly<Record<Arrangement, MessageKey>> = {
   [A.monthly]: "iv.ask.rate_month",
 };
 
-/** The card's first trade is priced by arrangement: the card asks which it takes. */
-export const arranged = (d: CardDraft): boolean => {
-  const first = d.trades?.[0];
-  return first !== undefined && hasArrangements(first);
+/** The work the card's arrangements are for: its first trade, or its own skills (ADR 0047) when it has no trade. */
+const workOf = (d: CardDraft): JobTrade | undefined =>
+  d.trades?.[0] ?? (d.skills?.length ? JobTrade.enum.other : undefined);
+
+/** The arrangements the card's work can be done in. */
+export const cardArrangements = (d: Pick<CardDraft, "trades" | "skills">): readonly Arrangement[] => {
+  const work = workOf(d);
+  return work ? arrangementsOf(work) : [];
 };
 
-/** The arrangements picked, monthly when none was (as every card before arrangements). */
-export const pickedOf = (d: CardDraft): Arrangement[] => (d.arrangements?.length ? d.arrangements : [A.monthly]);
+/** More than one arrangement fits the card's work: the card asks which it takes. */
+export const arranged = (d: CardDraft): boolean => {
+  const work = workOf(d);
+  return work !== undefined && hasArrangements(work);
+};
+
+/** A card of the worker's own skills alone (ADR 0047): naming no arrangement, it takes any, as it always did. */
+const ownWorkOnly = (d: CardDraft): boolean => !d.trades?.length && !!d.skills?.length;
+
+/** The arrangements picked: monthly when none was (as every trade's card before arrangements); none for own work. */
+export const pickedOf = (d: CardDraft): Arrangement[] =>
+  d.arrangements?.length ? d.arrangements : ownWorkOnly(d) ? [] : [A.monthly];
 
 /** The arrangement the main rate and lowest are for; undefined for a card not priced by arrangement. */
 export const mainOf = (d: CardDraft): Arrangement | undefined =>
-  arranged(d) ? (mainArrangement(pickedOf(d)) ?? DEFAULT_ARRANGEMENT) : undefined;
+  arranged(d) ? (mainArrangement(pickedOf(d)) ?? (ownWorkOnly(d) ? undefined : DEFAULT_ARRANGEMENT)) : undefined;
 
 /** The next picked arrangement besides the main one that has no rate yet. */
 export function missingRate(d: CardDraft): Arrangement | undefined {
@@ -73,7 +90,7 @@ export function arrangementsPrompt(s: InterviewState): Prompt {
   return {
     lines: [{ key: "iv.ask.arrangements" }, ...(picked.length > 0 ? [pickedLine(s.draft)] : [])],
     choices: [
-      ...Arrangement.options.map((a) => ({ value: a, key: `arrangement.${a}` as const })),
+      ...cardArrangements(s.draft).map((a) => ({ value: a, key: `arrangement.${a}` as const })),
       { value: Pick.yes, key: "iv.done" },
     ],
     hints: [],
@@ -86,21 +103,17 @@ export function chooseArrangements(s: InterviewState, value: string): InterviewS
   if (value === Pick.yes)
     return picked.length > 0 ? advance(s, s.draft, [pickedLine(s.draft)]) : retry(s, { key: "iv.err_arrangements" });
   const a = Arrangement.safeParse(value).data;
-  if (!a) return s;
+  if (!a || !cardArrangements(s.draft).includes(a)) return s;
   const next = picked.includes(a) ? picked.filter((x) => x !== a) : [...picked, a];
   // In the order the options are listed, so the card reads the same however they were tapped.
   const arrangements = Arrangement.options.filter((x) => next.includes(x));
   return { ...s, draft: { ...s.draft, arrangements }, notes: [], fresh: false };
 }
 
-/** Words: every arrangement named ("hourly and monthly") is picked at once, and the interview moves on. */
+/** Words: every arrangement named that fits the work ("hourly and monthly") is picked at once; on to the next. */
 export function hearArrangements(s: InterviewState, text: string): InterviewState {
-  const named = text
-    .split(/,|\band\b|और|ಮತ್ತು/u)
-    .map((part) => arrangementSaid(part))
-    .filter((a): a is Arrangement => a !== undefined);
-  if (named.length === 0) return retry(s, { key: "iv.err_arrangements" });
-  const arrangements = Arrangement.options.filter((a) => named.includes(a));
+  const arrangements = arrangementsSaid(text).filter((a) => cardArrangements(s.draft).includes(a));
+  if (arrangements.length === 0) return retry(s, { key: "iv.err_arrangements" });
   const draft = { ...s.draft, arrangements };
   return advance(s, draft, [pickedLine(draft)]);
 }

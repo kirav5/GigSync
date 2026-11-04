@@ -36,10 +36,16 @@ const run = (s: NeedState, answers: readonly string[]) => answers.reduce((at, a)
 const tap = (s: NeedState, values: readonly string[]) => values.reduce((at, v) => chooseNeed(at, v), s);
 
 describe("the need interview", () => {
-  it("opens on the need in the owner's own words, with trade chips", () => {
+  it("opens on the need in the owner's own words, and shows trade chips only when the words named no work", () => {
     const first = startNeed(config("en"));
     expect(keys(first)).toEqual(["need.start"]);
-    expect(needPrompt(first).choices?.map((c) => c.value)).toEqual(Trade.options);
+    // ADR 0051: no grid of trades before the owner has said anything, only a way to it; the hints still help the
+    // recognizer. The grid comes on that tap, or once the words named no work.
+    expect(needPrompt(first).choices?.map((c) => c.value)).toEqual([NeedPick.list]);
+    expect(needPrompt(first).hints).toHaveLength(Trade.options.length);
+    expect(needPrompt(chooseNeed(first, NeedPick.list)).choices?.map((c) => c.value)).toEqual(Trade.options);
+    const unclear = hearNeed(first, "hello there");
+    expect(needPrompt(unclear).choices?.map((c) => c.value)).toEqual(Trade.options);
   });
 
   it("asks only what one sentence left out", () => {
@@ -83,11 +89,18 @@ describe("the need interview", () => {
   });
 
   it("defaults monthly work to every day and asks the budget with the city's band", () => {
-    const s = run(startNeed(config("hi")), ["खाना बनाने वाली चाहिए", "4 लोग", "कोरमंगला", "पता नहीं", "सुबह 7 बजे"]);
+    const s = run(startNeed(config("hi")), [
+      "खाना बनाने वाली चाहिए",
+      "4 लोग",
+      "हर महीने",
+      "कोरमंगला",
+      "पता नहीं",
+      "सुबह 7 बजे",
+    ]);
     expect(s.draft.day).toBe(EVERY_DAY);
     expect(s.slot).toBe(NeedSlot.budget);
     const p = needPrompt(s);
-    expect(p.lines.map((l) => l.key)).toEqual(["need.ask.budget", "need.band_month"]);
+    expect(p.lines.map((l) => l.key)).toEqual(["need.ask.budget", "need.budget_per.month", "need.band_month"]);
     expect(p.secret).toBe(true);
     expect(p.numeric).toBe(true);
     const typed = hearNeed(s, "नौ हज़ार");

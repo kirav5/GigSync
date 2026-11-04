@@ -31,7 +31,8 @@ import { nextTurn, type } from "./talk.js";
 const { en } = Lang.enum;
 const say = (key: MessageKey, params?: Params) => t(en, key, params);
 const FOLDER = "chats";
-const TRADE = "cook";
+/** One-visit work, so the card goes straight on to the area (ADR 0051). */
+const TRADE = "plumber";
 const EARNED = say("agent.suggest_earned");
 const EARNINGS = say("agent.earnings", { week: "₹0", month: "₹0", waiting: "₹0" });
 
@@ -81,13 +82,13 @@ test("chats are kept: a new chat keeps the last, a past one reopens and carries 
     await expect(talkLog(page).getByText(TRADE, { exact: true })).toBeVisible();
     await expect(talkLog(page).getByText(EARNINGS)).toHaveCount(0);
     await page.getByRole("button", { name: say("iv.resume") }).click();
-    await nextTurn(page, en, "iv.ask.rate_month", () => type(page, en, "Koramangala"));
+    await nextTurn(page, en, "iv.ask.rate_visit", () => type(page, en, "Koramangala"));
   });
 
   await test.step("after a reload, both chats are there and the card is where it was", async () => {
     await page.reload();
     await expect(talkLog(page).getByText(TRADE, { exact: true })).toBeVisible();
-    await expect(page.getByText(textOf(en, "iv.ask.rate_month"))).toHaveCount(1);
+    await expect(page.getByText(textOf(en, "iv.ask.rate_visit"))).toHaveCount(1);
     await showChats(page);
     await expect(chatList(page).getByRole("listitem")).toHaveCount(2);
   });
@@ -118,7 +119,7 @@ test("chats are kept: a new chat keeps the last, a past one reopens and carries 
     await signOutHere(page);
     await completeSignIn(page, asha);
     await expect(talkLog(page).getByText(TRADE, { exact: true })).toBeVisible();
-    await expect(page.getByText(textOf(en, "iv.ask.rate_month"))).toHaveCount(1);
+    await expect(page.getByText(textOf(en, "iv.ask.rate_visit"))).toHaveCount(1);
   });
 });
 

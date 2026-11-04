@@ -23,7 +23,8 @@ describe("what a job is priced in", () => {
     expect(estimateUnit(T.maid, A.visit)).toBe(U.visit);
     expect(estimateUnit(T.driver, A.weekly)).toBe(U.week);
     expect(estimateUnit(T.driver)).toBe(U.month);
-    expect(estimateUnit(T.cook, A.hourly)).toBe(U.month);
+    expect(estimateUnit(T.cook, A.visit)).toBe(U.visit);
+    expect(estimateUnit(T.electrician, A.hourly)).toBe(U.job);
     expect(estimateUnit(T.painter)).toBe(U.job);
   });
 
@@ -35,7 +36,10 @@ describe("what a job is priced in", () => {
         expect(entry?.sources.map((s) => s.name)).toEqual(["GigSync seed, unverified"]);
         expect(entry?.range.low).toBeLessThanOrEqual(entry?.range.typical ?? 0);
       }
-    expect(arrangementEntry(BLR, T.cook, A.hourly)).toBe(rateCardEntry(BLR, T.cook));
+    expect(arrangementEntry(BLR, T.cook, A.monthly)).toBe(rateCardEntry(BLR, T.cook));
+    // ADR 0051: no figure yet for a cook's one meal or week, so no range rather than a monthly one.
+    expect(arrangementEntry(BLR, T.cook, A.visit)).toBeUndefined();
+    expect(arrangementEntry(BLR, T.plumber, A.monthly)).toBe(rateCardEntry(BLR, T.plumber));
   });
 });
 
@@ -78,14 +82,19 @@ describe("the estimate request a job's details make", () => {
   });
 
   it("leaves it out for a trade not priced by arrangement, and ignores words that are not one", () => {
+    expect(estimateRequest(BLR, T.electrician, { arrangement: A.hourly })?.arrangement).toBeUndefined();
     expect(estimateRequest(BLR, T.cook, { arrangement: A.hourly })?.arrangement).toBeUndefined();
+    expect(estimateRequest(BLR, T.cook, { arrangement: A.visit })?.arrangement).toBe(A.visit);
     expect(arrangementIn(T.maid, { arrangement: "every so often" })).toBeUndefined();
     expect(arrangementIn(T.driver, { arrangement: A.visit })).toBe(A.visit);
   });
 
-  it("is refused by the schema for a trade without arrangements", () => {
+  it("is refused by the schema for a trade without arrangements, or one that does not fit the work", () => {
     const cook = { city: BLR, trade: T.cook, scope: { people: "3_4", meals: "2" }, arrangement: A.hourly };
     expect(EstimateRequest.safeParse(cook).success).toBe(false);
+    expect(EstimateRequest.safeParse({ ...cook, arrangement: A.visit }).success).toBe(true);
+    const fix = { city: BLR, trade: T.electrician, scope: { problem: "other" }, arrangement: A.visit };
+    expect(EstimateRequest.safeParse(fix).success).toBe(false);
   });
 });
 

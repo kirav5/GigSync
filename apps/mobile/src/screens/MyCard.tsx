@@ -1,5 +1,5 @@
-import { askable, type CardDraft, log, type Ports, parseAmount, type TermPrefs } from "@gigsync/core";
-import { hasArrangements, Lang, mainArrangement, type Skill, Trade } from "@gigsync/protocol";
+import { askable, type CardDraft, cardArrangements, log, type Ports, parseAmount, type TermPrefs } from "@gigsync/core";
+import { Arrangement, Lang, mainArrangement, type Skill, Trade } from "@gigsync/protocol";
 import { type FormEvent, useRef, useState } from "react";
 import { type Account, apiClient, saveAccount } from "../adapters/account.js";
 import { offerAlerts } from "../adapters/push.js";
@@ -55,8 +55,14 @@ export function MyCard({
     radius_km: draft.radius_km ?? DEFAULT_RADIUS_KM,
   });
   const [work, setWork] = useState(arrangementsValue(draft.arrangements, draft.other_rates));
-  const arranged = trades[0] !== undefined && hasArrangements(trades[0]);
-  const main = arranged ? mainArrangement(work.picked) : undefined;
+  // ADR 0051: only the arrangements that fit the card's work, by its first trade or the worker's own skills. Until the
+  // worker ticks one, a trade's card is monthly, as every card was; a card of their own skills alone takes any.
+  const offered = cardArrangements({ trades, skills });
+  const arranged = offered.length > 1;
+  const ownWorkOnly = trades.length === 0;
+  const fallback = ownWorkOnly ? [] : [Arrangement.enum.monthly];
+  const picked = (work.set ? work.picked : fallback).filter((a) => offered.includes(a));
+  const main = arranged ? mainArrangement(picked) : undefined;
   const [error, setError] = useState<string>();
   const [status, setStatus] = useState<string>();
   /** A publish or unlist is on its way: a second tap must not send the card twice. */
@@ -80,8 +86,8 @@ export function MyCard({
     const min = parseAmount(String(v.get(Field.min) ?? ""));
     if (trades.length + skills.length === 0) return setError(t("card.err_trade"));
     if (rate === undefined || min === undefined || !(min > 0 && rate >= min)) return setError(t("card.err_rate"));
-    const others = arranged ? otherRates(work) : {};
-    if (!others || (arranged && work.picked.length === 0)) return setError(t("card.err_arrangements"));
+    const others = arranged ? otherRates({ ...work, picked }) : {};
+    if (!others || (arranged && picked.length === 0 && !ownWorkOnly)) return setError(t("card.err_arrangements"));
     if (busy) return;
     const next: CardDraft = {
       trades,
@@ -89,7 +95,7 @@ export function MyCard({
       ...(where.area ? { area: where.area } : {}),
       ...(where.place ? { place: where.place } : {}),
       radius_km: where.radius_km,
-      ...(arranged ? { arrangements: work.picked, other_rates: others } : {}),
+      ...(arranged ? { arrangements: picked, other_rates: others } : {}),
       rate_paise: rate,
       limit_paise: min,
       languages: spoken,
@@ -182,10 +188,10 @@ export function MyCard({
           onRate={fill(rateField)}
           onMin={fill(minField)}
           arrangement={main}
-          others={work.picked.filter((a) => a !== main)}
+          others={picked.filter((a) => a !== main)}
           onOther={(a, paise) => setWork((w) => ({ ...w, typed: { ...w.typed, [a]: rupeesOf(paise) } }))}
         />
-        {arranged && <ArrangementsField value={work} onChange={setWork} />}
+        {arranged && <ArrangementsField offered={offered} value={{ ...work, picked }} onChange={setWork} />}
         <AreaField session={account.session} value={where} onChange={setWhere} />
         <label className={C.fieldLabel}>
           <span className={C.muted}>{t(main ? `card.rate.${main}` : "card.rate")}</span>

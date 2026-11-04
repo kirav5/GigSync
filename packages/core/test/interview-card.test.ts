@@ -45,7 +45,7 @@ describe("the card interview, start to finish", () => {
     expect(keys(first)).toEqual(["iv.start", "iv.ask.trade"]);
     const atConfirm = run(
       first,
-      ["मैं खाना बनाती हूँ", "कोरमंगला", "नौ हज़ार", "साढ़े सात हज़ार", "कोई नहीं", "छोड़ो", "हाँ ना", "नहीं"],
+      ["मैं खाना बनाती हूँ", "हर महीने", "कोरमंगला", "नौ हज़ार", "साढ़े सात हज़ार", "कोई नहीं", "छोड़ो", "हाँ ना", "नहीं"],
       true,
     );
     expect(atConfirm.slot).toBe(Slot.confirm);
@@ -62,6 +62,7 @@ describe("the card interview, start to finish", () => {
     expect(done.slot).toBe(Slot.done);
     expect(draftOf(done)).toEqual({
       trades: [T.cook],
+      arrangements: ["monthly"],
       area: "koramangala",
       rate_paise: 900000,
       limit_paise: 750000,
@@ -72,7 +73,7 @@ describe("the card interview, start to finish", () => {
   });
 
   it("runs in Kannada, typed and tapped, changing the rate after a no at confirm", () => {
-    let s = run(start(config("kn")), ["ಅಡುಗೆ"]);
+    let s = run(start(config("kn")), ["ಅಡುಗೆ", "ತಿಂಗಳಿಗೆ"]);
     expect(prompt(s).choices?.map((c) => c.value)).toEqual(["koramangala", "hsr_layout", "jayanagar"]);
     s = choose(s, "jayanagar");
     s = run(s, ["ಎಂಟು ಸಾವಿರ", "ಏಳು ಸಾವಿರ", "ಹಿಂದಿ", "ಹತ್ತು ವರ್ಷದ ಅನುಭವ", "ಇಲ್ಲ", "ಹೌದು", "ಇಲ್ಲ"]);
@@ -121,7 +122,7 @@ describe("the card interview, start to finish", () => {
 });
 
 describe("the card interview's checks", () => {
-  const atRate = run(start(config("hi")), ["कुक", "कोरमंगला"]);
+  const atRate = run(start(config("hi")), ["कुक", "महीने का", "कोरमंगला"]);
 
   it("asks a monthly trade for its monthly rate, and needs an amount", () => {
     expect(keys(atRate)).toEqual(["iv.ask.rate_month", ...COOK_HINT]);
@@ -219,7 +220,7 @@ describe("the card interview's checks", () => {
   });
 
   it("follows a change of language part-way, keeping the answers", () => {
-    const atLanguages = run(start(config("en")), ["cook", "Koramangala", "9000", "7000"]);
+    const atLanguages = run(start(config("en")), ["cook", "monthly", "Koramangala", "9000", "7000"]);
     const switched = withConfig(atLanguages, config("hi"));
     expect(draftOf(switched)).toEqual(draftOf(atLanguages));
     const ask = prompt(switched);

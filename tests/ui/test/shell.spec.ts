@@ -142,6 +142,8 @@ test("a household reaches every screen from the menu, and New chat starts Find a
   }
   await expect(page.getByRole("form", { name: say("settings.paid_to") })).toHaveCount(0);
   await open(page, "nav.find");
+  // ADR 0051: the opening has one chip to the list of work, not the trades themselves.
+  await page.getByRole("button", { name: say("need.pick_work"), exact: true }).click();
   await page.getByRole("button", { name: say("trade.plumber"), exact: true }).click();
   await expect(log).toContainText(say("question.problem"));
   await openDrawer(page);
@@ -150,7 +152,7 @@ test("a household reaches every screen from the menu, and New chat starts Find a
     .click();
   await expect(log).toContainText(say("need.start"));
   await expect(log).not.toContainText(say("question.problem"));
-  await expect(log.getByRole("button", { name: say("trade.plumber"), exact: true })).toBeVisible();
+  await expect(log.getByRole("button", { name: say("need.pick_work"), exact: true })).toBeVisible();
 });
 
 test("a waiting decision shows as N need you in the menu, a dot on ☰ and a pill above, each leading to Activity", async ({

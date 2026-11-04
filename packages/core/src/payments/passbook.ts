@@ -1,6 +1,6 @@
 import { type Agree, EngagementStatus, type Payment, PaymentStatus, Role, type UserId } from "@gigsync/protocol";
 import type { JobRecord } from "../job/store.js";
-import { isMonthly, localDay } from "../job/when.js";
+import { localDay, recurs } from "../job/when.js";
 import { OPEN_PAYMENT } from "./book.js";
 
 /**
@@ -122,7 +122,7 @@ export function askAgain(job: JobRecord, payments: readonly Payment[], now: Date
     .filter((p) => p.engagement === job.engagement.id)
     .sort((a, b) => ms(b.requested_at) - ms(a.requested_at) || b.id.localeCompare(a.id));
   if (mine[0]?.status === S.disputed) return AskAgain.dispute;
-  if (!isMonthly(job.request.trade) || mine.some((p) => OPEN_PAYMENT.has(p.status))) return undefined;
+  if (!recurs(job.request) || mine.some((p) => OPEN_PAYMENT.has(p.status))) return undefined;
   const confirmed = mine.filter((p) => p.status === S.confirmed).map((p) => ms(p.confirmed_at));
   if (confirmed.length === 0) return undefined;
   return now.getTime() - Math.max(...confirmed) >= MONTHLY_REPEAT_DAYS * MS_PER_DAY ? AskAgain.month : undefined;

@@ -35,8 +35,10 @@ export interface NeedDraft {
   areaName?: string | undefined;
   /** The saved address the need is for (ADR 0045); its line goes to the worker only once both have signed. */
   address?: AddressId | undefined;
-  /** How long the work is for (ADR 0046), for the trades priced by arrangement. */
+  /** How long the work is for (ADR 0046), for the work asked by arrangement (ADR 0051). */
   arrangement?: Arrangement | undefined;
+  /** ADR 0051: the arrangements the phone's model reads the job as fitting, for work outside the trades only. */
+  fits?: readonly Arrangement[] | undefined;
   /** A `DayWord`, `EVERY_DAY`, or a day as "YYYY-MM-DD". */
   day?: string | undefined;
   /** The time as the owner said it ("10 am", "सुबह"), for people only. */

@@ -4,7 +4,7 @@ import { QUESTIONS } from "../job/worker.js";
 import type { Line } from "./card.js";
 import { priceOpen } from "./driver-ask.js";
 import type { FoundEstimate } from "./estimate-lines.js";
-import { arrangedTrade, needsArrangement } from "./need-arrangement.js";
+import { arrangedWork, needsArrangement } from "./need-arrangement.js";
 import type { Recalled } from "./need-memory.js";
 import type { NeedConfig, NeedDraft, NeedTo } from "./need-types.js";
 
@@ -209,7 +209,7 @@ export const answerMyself = (s: NeedState): NeedState =>
 export function editNeed(s: NeedState, field: NeedField): NeedState {
   const usable =
     (field !== NeedSlot.detail || firstQuestion(workOf(s.draft)) !== undefined) &&
-    (field !== NeedSlot.arrangement || arrangedTrade(s.draft.trade));
+    (field !== NeedSlot.arrangement || arrangedWork(s.draft));
   const ownAnswer = [...s.ownAnswer, field];
   const slot = usable ? field : NeedSlot.confirm;
   return { ...s, slot, notes: [], changing: !usable, fresh: false, ownAnswer, filled: [] };

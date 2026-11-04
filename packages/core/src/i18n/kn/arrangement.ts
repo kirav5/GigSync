@@ -19,6 +19,7 @@ export const arrangement: Readonly<Record<keyof typeof en, string>> = {
   "need.arr.visit": "ಒಂದೇ ಸಲ",
   "need.arr.weekly": "ವಾರದಲ್ಲಿ ಕೆಲವು ದಿನ",
   "need.arr.monthly": "ಪ್ರತಿ ತಿಂಗಳು",
+  "need.arr.meal": "ಒಂದು ಊಟ ಅಥವಾ ಸಮಾರಂಭ",
   "need.field_arrangement": "ಎಷ್ಟು ಸಮಯಕ್ಕೆ",
   "need.summary_arrangement": "ಕೆಲಸ: {arrangement}.",
   "need.budget_per.hour": "ಇದು ಒಂದು ಗಂಟೆಗೆ ಗರಿಷ್ಠ.",
