@@ -35,6 +35,7 @@ import * as deal from "./deal.js";
 import { dispatch, needOf } from "./dispatch.js";
 import { stamped } from "./history.js";
 import type { Mandate } from "./negotiate.js";
+import { askWherePassed } from "./passed.js";
 import { type JobRecord, JobStore, type Need, type OwnerTask, TaskKind } from "./store.js";
 import { Talks } from "./talks.js";
 import * as worker from "./worker.js";
@@ -133,6 +134,8 @@ export class GigDevice {
     for (const item of received) await dispatch(this.ctx, this.o.worker, item, side);
     // A time given to one household is never signed for another (ADR 0048 §5).
     if (this.o.worker) await reofferTaken(this.ctx, this.o.worker);
+    // A time that passed while nobody wrote goes to the household (ADR 0053 §2).
+    await askWherePassed(this.ctx);
     await this.contacts.sweep();
     const sent = await this.transport.flush();
     await this.records?.run();
