@@ -80,7 +80,8 @@ describe("the people take over from their agents", () => {
     // Ravi meets her halfway himself; her agent cannot go above her limit, so she decides.
     await work.device.talks.offer(id, 52000);
     await talk();
-    expect(await work.device.tasks()).toEqual([]);
+    // He waits on her now, and may still take her last offer.
+    expect((await work.device.tasks()).map((t) => t.detail)).toEqual([{ waiting: true }]);
     // Both phones say Ravi made that offer himself, not his agent (ADR 0053 §6).
     for (const side of [home, work]) {
       const offers = agentTalk(await side.device.job(id)).filter((s) => s.kind === TalkKind.offer);

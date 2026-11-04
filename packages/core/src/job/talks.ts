@@ -14,7 +14,7 @@ import type { JobContext } from "./context.js";
 import { accept, cancel, termsFor } from "./deal.js";
 import { offerFacts } from "./explain.js";
 import { type Explanation, explainOffer } from "./explain-model.js";
-import { askTime, clearTalkTasks, counter, roundsOf, type TakeOver } from "./handover.js";
+import { askTime, clearTalkTasks, counter, roundsOf, type TakeOver, waitOnThem, withRounds } from "./handover.js";
 import { planHousehold } from "./household-plan.js";
 import { MoveKind, respond } from "./negotiate.js";
 import { type JobRecord, type Need, TaskKind } from "./store.js";
@@ -56,11 +56,13 @@ export class Talks {
    */
   async acceptTheirs(id: EngagementId): Promise<JobRecord> {
     const r = await this.job(id);
-    const offer = theirLast(r) ?? ((await this.waiting(id)) ? theirLatest(r) : undefined);
+    const last = theirLast(r);
+    const offer = last ?? ((await this.waiting(id)) ? theirLatest(r) : undefined);
     if (!offer) throw new TalkError("nothing of theirs to accept");
     const when = offer.terms?.when;
     if (when && whenPassed(when, this.ctx.clock.now())) {
-      if (r.engagement.role !== R.requester) throw new TalkError(PASSED);
+      // Only a household whose turn it is picks a new time; one waiting on the worker leaves it to him.
+      if (r.engagement.role !== R.requester || !last) throw new TalkError(PASSED);
       await clearTalkTasks(this.ctx, r);
       return askTime(this.ctx, r, { passed: true });
     }
@@ -71,10 +73,14 @@ export class Talks {
   /** Sends the owner's own offer at `price` (paise), with the terms their agent proposes. */
   async offer(id: EngagementId, price: number): Promise<JobRecord> {
     if (!Paise.safeParse(price).success) throw new TalkError("price out of range");
-    const found = await this.job(id);
+    const found = await withRounds(this.ctx, await this.job(id));
     if (!canOffer(found)) throw new TalkError("not this side's turn, or no offers left");
     const r = await this.moveOn(found);
-    return r.engagement.role === R.requester ? counter(this.ctx, r, price, true) : quote(this.ctx, r, price, true);
+    const sent =
+      r.engagement.role === R.requester
+        ? await counter(this.ctx, r, price, true)
+        : await quote(this.ctx, r, price, true);
+    return waitOnThem(this.ctx, sent);
   }
 
   /** Ends the talk: no deal, on both phones. */
@@ -96,7 +102,9 @@ export class Talks {
 
   /** The household picks a time of its own: sent to the worker with its agent's next price. */
   async pickTime(id: EngagementId, when: TermWhen): Promise<JobRecord> {
-    const { r, need, offer } = await this.householdTurn(id);
+    const turn = await this.householdTurn(id);
+    const { need, offer } = turn;
+    const r = await withRounds(this.ctx, turn.r);
     if (whenPassed(when, this.ctx.clock.now())) throw new TalkError(PASSED);
     if (r.offers_made >= roundsOf(r)) throw new TalkError("no offers left");
     const moved = await this.moveOn(r);
@@ -110,7 +118,7 @@ export class Talks {
     );
     const price = move.kind === MoveKind.offer ? move.price_paise : offer.price_paise;
     const next = Terms.parse({ ...nextTerms(planned), when });
-    return counter(this.ctx, { ...planned, terms: { on: true, next } }, price, true);
+    return waitOnThem(this.ctx, await counter(this.ctx, { ...planned, terms: { on: true, next } }, price, true));
   }
 
   /**

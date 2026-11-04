@@ -2,8 +2,8 @@ import { type Agree, CancelReason, type DeviceId, Role, type Terms } from "@gigs
 import { log } from "../log.js";
 import type { JobContext } from "./context.js";
 import * as deal from "./deal.js";
-import { roundsOf } from "./handover.js";
 import { type JobRecord, TaskKind } from "./store.js";
+import { AGENT_OFFERS } from "./strategy.js";
 import { timeTaken } from "./taken.js";
 import { workerTerms } from "./terms-flow.js";
 import { quote, type WorkerRules } from "./worker.js";
@@ -25,8 +25,8 @@ async function offerAnotherTime(
   log.info("time taken: offering another", { engagement: r.engagement.id });
   await ctx.store.removeTask(TaskKind.confirmDeal, r.engagement.id);
   const { r: termed, stuck } = await workerTerms(ctx, rules.terms, { ...r, pending: undefined }, asked);
-  // No offers left under the other phone's cap: an offer past it would be refused there.
-  if (stuck || termed.offers_made >= roundsOf(termed))
+  // The agent's own offers used: it never spends the two that are its owner's (ADR 0053 §4).
+  if (stuck || termed.offers_made >= AGENT_OFFERS)
     return deal.cancel(ctx, termed, { reason: CancelReason.enum.no_deal });
   return quote(ctx, termed, price);
 }

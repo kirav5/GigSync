@@ -33,11 +33,8 @@ import type { TermsTrack } from "./terms-flow.js";
 export interface JobRecord {
   engagement: Engagement;
   request: JobRequest;
-  /**
-   * Every offer in order, from either side. `owner`: this side's owner sent it, not their agent (ADR 0053 §4); the
-   * other side's are known only past their agent's offers, by round.
-   */
-  offers: { by: Role; offer: Offer; owner?: true }[];
+  /** Every offer in order, from either side. */
+  offers: { by: Role; offer: Offer }[];
   /** How many offers this side has made. */
   offers_made: number;
   /** Questions this side's agent has asked (worker) so it asks only once. */
@@ -71,6 +68,11 @@ export interface JobRecord {
    */
   rounds?: number;
   mine?: Agree;
+  /**
+   * This side's earlier signatures in the talk, overtaken by a newer offer before the other side answered (ADR 0053
+   * §4): their countersignature on one of them still makes the deal.
+   */
+  signed?: Agree[];
   theirs?: Agree;
   /** The other party's contact card: only ever set once both have signed the same terms. */
   contact?: ContactCard | undefined;

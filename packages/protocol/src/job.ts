@@ -134,6 +134,8 @@ export const Offer = z.object({
   scope: z.string().min(1).max(SCOPE_MAX),
   /** The terms this side proposes with the price; only between phones at `TERMS_PROTOCOL`. */
   terms: Terms.optional(),
+  /** The owner made this offer themselves, not their agent (ADR 0053 §6). Never part of the signed terms. */
+  owner: z.literal(true).optional(),
 });
 export type Offer = z.infer<typeof Offer>;
 

@@ -3,7 +3,6 @@ import { type OfferNote, offerNote } from "../estimate/note.js";
 import { QUESTIONS } from "./ask.js";
 import { changedTerms } from "./explain.js";
 import type { AnswerSource, JobRecord } from "./store.js";
-import { AGENT_OFFERS } from "./strategy.js";
 
 /** One thing that happened between the two agents, and the owners' signatures that closed it. */
 export const TalkKind = {
@@ -91,7 +90,7 @@ export function agentTalk(job: JobRecord): TalkStep[] {
     const answers = answersOf(job, questions);
     if (answers.length > 0) steps.push({ kind: TalkKind.answers, by: R.requester, answers });
   }
-  job.offers.forEach(({ by, offer, owner }, index) => {
+  job.offers.forEach(({ by, offer }, index) => {
     const note = job.estimate && offerNote(job.estimate, job.engagement.role, offer.price_paise);
     const terms = offer.terms ? { terms: offer.terms } : {};
     steps.push({
@@ -102,7 +101,7 @@ export function agentTalk(job: JobRecord): TalkStep[] {
       ...(note ? { note } : {}),
       ...terms,
       changed: changedTerms(job, index),
-      owner: owner === true || (by !== job.engagement.role && offer.round > AGENT_OFFERS),
+      owner: offer.owner === true,
     });
   });
   const signed = job.mine ?? job.theirs;

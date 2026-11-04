@@ -35,40 +35,60 @@ export interface TakeOver {
 /** The offers this side may make on the job in all: past `ROUNDS_BEFORE_OWNERS` only to a phone that takes them. */
 export const roundsOf = (r: JobRecord): number => r.rounds ?? ROUNDS_BEFORE_OWNERS;
 
-/** The job with the offers the other side's phone takes, asked once, when the owners are about to take over. */
-async function withRounds(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
-  if (r.rounds !== undefined) return r;
-  const more = await ctx.speaks(r.engagement.counterpart, OWNER_OFFERS_PROTOCOL);
-  return { ...r, rounds: more ? MAX_ROUNDS : ROUNDS_BEFORE_OWNERS };
+/**
+ * The job with the offers the other side's phone takes, asked once the talk reaches the owners. A directory that does
+ * not answer leaves it unknown, to ask again later: the cap stays at `ROUNDS_BEFORE_OWNERS` meanwhile, and the owner's
+ * decision is never lost to it.
+ */
+export async function withRounds(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
+  if (r.rounds !== undefined || r.offers_made < AGENT_OFFERS) return r;
+  try {
+    const more = await ctx.speaks(r.engagement.counterpart, OWNER_OFFERS_PROTOCOL);
+    return { ...r, rounds: more ? MAX_ROUNDS : ROUNDS_BEFORE_OWNERS };
+  } catch {
+    return r;
+  }
+}
+
+/** Saves the job and gives its owner the take-over task: to decide, or (`waiting`) to wait on the other owner. */
+async function takeOver(ctx: JobContext, r: JobRecord, task: TakeOver): Promise<JobRecord> {
+  const kept = await withRounds(ctx, r);
+  await ctx.store.saveJob(kept);
+  await ctx.store.addTask(TaskKind.takeOver, kept.engagement.id, task, ctx.clock.now());
+  return kept;
 }
 
 /** The agent has used its offers: the job is kept as it stands and waits for its owner. */
-export async function handOver(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
-  const kept = await withRounds(ctx, r);
-  await ctx.store.saveJob(kept);
-  const task: TakeOver = {};
-  await ctx.store.addTask(TaskKind.takeOver, kept.engagement.id, task, ctx.clock.now());
-  return kept;
-}
+export const handOver = (ctx: JobContext, r: JobRecord): Promise<JobRecord> => takeOver(ctx, r, {});
 
 /**
- * After its agent's last offer answers the other agent's last, this owner is told too (ADR 0053 §4): both agents are
- * out of offers, so the other side's owner decides next, and this one may still take their last offer.
+ * This side's last word is past its agent's offers, and the other side's owner decides next (ADR 0053 §4): this owner
+ * is told, and may still take the other side's latest offer. After its agent's last offer answers the other agent's
+ * last, or after an offer of the owner's own.
  */
-export async function afterAgentOffer(ctx: JobContext, sent: JobRecord, theirs: Offer): Promise<JobRecord> {
-  if (sent.offers_made < AGENT_OFFERS || theirs.round < AGENT_OFFERS) return sent;
-  const kept = await withRounds(ctx, sent);
-  await ctx.store.saveJob(kept);
-  const task: TakeOver = { waiting: true };
-  await ctx.store.addTask(TaskKind.takeOver, kept.engagement.id, task, ctx.clock.now());
-  return kept;
+export async function waitOnThem(ctx: JobContext, sent: JobRecord): Promise<JobRecord> {
+  const theirs = sent.offers.filter((o) => o.by !== sent.engagement.role).at(-1)?.offer;
+  if (sent.offers_made < AGENT_OFFERS || !theirs || theirs.round < AGENT_OFFERS) return sent;
+  return takeOver(ctx, sent, { waiting: true });
 }
 
 /** The household's owner decides the time: the worker's other one, or a new one for a time that has passed. */
 export async function askTime(ctx: JobContext, r: JobRecord, time: TimeAsk): Promise<JobRecord> {
-  await ctx.store.saveJob(r);
-  await ctx.store.addTask(TaskKind.newTime, r.engagement.id, time, ctx.clock.now());
-  return r;
+  const kept = await withRounds(ctx, r);
+  await ctx.store.saveJob(kept);
+  await ctx.store.addTask(TaskKind.newTime, kept.engagement.id, time, ctx.clock.now());
+  return kept;
+}
+
+/**
+ * Before this side's agent answers a new offer from the other: every decision about the talk is gone, and so is a deal
+ * the agent reached that the owner has not signed, since the talk moved on past it.
+ */
+export async function answering(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
+  await clearTalkTasks(ctx, r);
+  if (!r.pending || r.mine) return r;
+  await ctx.store.removeTask(TaskKind.confirmDeal, r.engagement.id);
+  return { ...r, pending: undefined };
 }
 
 /** Every owner decision about the talk, gone once the owner acts or the job ends. */
@@ -92,7 +112,7 @@ export function counter(ctx: JobContext, r: JobRecord, price: number, owner = fa
     slot: quote.slot,
     scope: quote.scope,
     ...termsField(r.request.trade, nextTerms(r)),
+    ...(owner ? { owner: true as const } : {}),
   };
-  const sent = { by: R.requester, offer, ...(owner ? { owner: true as const } : {}) };
-  return ctx.send({ ...r, offers: [...r.offers, sent], offers_made: round }, K.counter, offer);
+  return ctx.send({ ...r, offers: [...r.offers, { by: R.requester, offer }], offers_made: round }, K.counter, offer);
 }
