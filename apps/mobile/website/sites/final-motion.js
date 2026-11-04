@@ -1,6 +1,7 @@
 // Motion on the "final" site beyond the picture flight: cards that fade up as they arrive, the "she says it"
 // accordion that opens on hover to show the agent's steps in between, and the three cards that stack on scroll.
 const IN = "in";
+const ON = "on";
 const OPEN = "open";
 const MOUSE = "mouse";
 /** How much a stacked card shrinks and dims once the next card has fully covered it. */
@@ -73,4 +74,21 @@ export function stackCards(stack) {
   window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("resize", schedule);
   render();
+}
+
+/** The story whose copy is in the middle of the viewport decides which card shows in the sticky panel. */
+export function storyPanel(rows, demos) {
+  if (!("IntersectionObserver" in window)) return;
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const index = Number(entry.target.dataset.story);
+        for (const row of rows) row.classList.toggle(ON, row === entry.target);
+        for (const demo of demos) demo.classList.toggle(ON, Number(demo.dataset.demo) === index);
+      }
+    },
+    { rootMargin: "-45% 0px -45% 0px" },
+  );
+  for (const row of rows) io.observe(row);
 }

@@ -116,8 +116,9 @@
     <div class="say-cap"><span class="a">What she sees: 2 steps</span><span class="b">What her agent does in between: 3 steps</span></div>
   </section>
 
-  <section id="in-practice" class="worker-stories"><div class="wrap">
-    <article id="interactions" class="story-row">
+  <section id="in-practice" class="worker-stories"><div class="wrap stories-scroll">
+    <div class="stories-copy">
+      <article id="interactions" class="story-row on" data-story="0">
       <div class="story-copy">
         <p class="eyebrow">01 / Augmented interactions</p>
         <h2>Less repetition.<br>More connection.</h2>
@@ -125,7 +126,28 @@
         <p>The aim is to answer recurring questions, understand a household's needs, and negotiate within boundaries she sets. A considered proposal comes back to her for approval—without interrupting every hour of work or rest.</p>
         <details><summary>Why a conversation matters</summary><div class="detail-body"><p>A listing with a fixed price cannot hold what a day of work actually depends on: her hours, her travel, her minimum, the household's budget. A conversation between two agents can.</p><p>Her rules evolve. So do her availability and the scope of a job. The agent carries them into every negotiation, and she steps in whenever she wants.</p></div></details>
       </div>
-      <div class="story-demo negotiation-demo">
+      </article>
+      <article id="goodwill" class="story-row" data-story="1">
+      <div class="story-copy">
+        <p class="eyebrow">02 / Worker-owned social capital</p>
+        <h2>She earned the trust.<br>It should stay hers.</h2>
+        <p class="story-lead">A platform account should not be the only home for her working life.</p>
+        <p>Her completed jobs, the households' countersignatures, and the goodwill she builds are part of the value she creates. Every agreement, visit and payment is signed on her phone and chained together, so it cannot be edited behind her back or deleted when she leaves.</p>
+        <details><summary>What should travel with her?</summary><div class="detail-body"><p>A useful record holds completed work, countersigned receipts, and the terms both sides agreed to, with their dates. It never holds a star rating.</p><p>She chooses what to share with a new household, a union, a helpline or a lender, keeps a copy, and can take it with her when she moves.</p></div></details>
+      </div>
+      </article>
+      <article id="agreements" class="story-row" data-story="2">
+      <div class="story-copy">
+        <p class="eyebrow">03 / Contract writing</p>
+        <h2>Common ground.<br>Before the work begins.</h2>
+        <p class="story-lead">A price means little if two people imagine different outcomes.</p>
+        <p>An agent-assisted agreement makes the hours, the weekly off, the leave and the payment schedule explicit. Both phones sign the same terms, and only then does her number move. The household pays her directly by UPI; GigSync never holds a rupee.</p>
+        <details><summary>From expectations to an agreement</summary><div class="detail-body"><p>Start with the work and what a finished visit means. Add the days, the hours and the rate. For a longer job, pay by stage, with a countersigned receipt at each one.</p><p>If expectations diverge, use a defined path: raise it, compare the work with the agreed terms, and bring the union's steward in if needed.</p></div></details>
+      </div>
+      </article>
+    </div>
+    <div class="stories-panel"><div class="story-demos" id="storyDemos">
+      <div class="story-demo negotiation-demo on" data-demo="0">
         <p class="demo-label">An illustrative conversation</p>
         <div class="worker-identity"><span class="person-glyph">♧</span><div><strong>Lakshmi · Home-service worker</strong><span>Her agent works within her rules.</span></div></div>
         <div class="chat customer"><span>Household</span><p>Cleaning, Monday to Friday, 8 to 11, Koramangala. My budget is ₹500 a visit.</p></div>
@@ -135,17 +157,7 @@
         <div class="proposal"><span>A possibility to review</span><p id="proposal-text">Monday 8 am, ₹450 a visit, Sunday off. Lakshmi reviews the terms before both phones sign. Her number is released only then.</p></div>
         <p class="example-note">Scripted example. No live agent, quote, or agreement.</p>
       </div>
-    </article>
-
-    <article id="goodwill" class="story-row">
-      <div class="story-copy">
-        <p class="eyebrow">02 / Worker-owned social capital</p>
-        <h2>She earned the trust.<br>It should stay hers.</h2>
-        <p class="story-lead">A platform account should not be the only home for her working life.</p>
-        <p>Her completed jobs, the households' countersignatures, and the goodwill she builds are part of the value she creates. Every agreement, visit and payment is signed on her phone and chained together, so it cannot be edited behind her back or deleted when she leaves.</p>
-        <details><summary>What should travel with her?</summary><div class="detail-body"><p>A useful record holds completed work, countersigned receipts, and the terms both sides agreed to, with their dates. It never holds a star rating.</p><p>She chooses what to share with a new household, a union, a helpline or a lender, keeps a copy, and can take it with her when she moves.</p></div></details>
-      </div>
-      <div class="story-demo goodwill-demo">
+      <div class="story-demo goodwill-demo" data-demo="1">
         <p class="demo-label">A goodwill record · illustrative</p>
         <div class="record-title">A body of work.<br><em>A history of care.</em></div>
         <div class="record-row"><span class="record-icon">✳</span><div><strong>The work she completed</strong><span>23 jobs, each countersigned by the household on their own phone.</span></div></div>
@@ -155,17 +167,7 @@
         <a class="sample-link" href="https://github.com/kirav5/GigSync/tree/main/docs/gigsync">Explore the record format <span>↗</span></a>
         <p class="example-note">Open formats for agreements and signed receipts that a union, a helpline or another app can read.</p>
       </div>
-    </article>
-
-    <article id="agreements" class="story-row">
-      <div class="story-copy">
-        <p class="eyebrow">03 / Contract writing</p>
-        <h2>Common ground.<br>Before the work begins.</h2>
-        <p class="story-lead">A price means little if two people imagine different outcomes.</p>
-        <p>An agent-assisted agreement makes the hours, the weekly off, the leave and the payment schedule explicit. Both phones sign the same terms, and only then does her number move. The household pays her directly by UPI; GigSync never holds a rupee.</p>
-        <details><summary>From expectations to an agreement</summary><div class="detail-body"><p>Start with the work and what a finished visit means. Add the days, the hours and the rate. For a longer job, pay by stage, with a countersigned receipt at each one.</p><p>If expectations diverge, use a defined path: raise it, compare the work with the agreed terms, and bring the union's steward in if needed.</p></div></details>
-      </div>
-      <div class="story-demo agreement-demo">
+      <div class="story-demo agreement-demo" data-demo="2">
         <p class="demo-label">A shared plan · illustrative</p>
         <h3>Five mornings. One clear understanding.</h3>
         <div class="agreement-line"><span>The work</span><p>Cleaning, Monday to Friday, 8 to 11, Koramangala. Sunday off, four days' leave a year.</p></div>
@@ -177,7 +179,7 @@
         <details class="safety-detail"><summary>If something feels different</summary><p>Pause the disputed visit. Compare the work with the agreed terms. Both records hold the same signed facts, so the steward sees what both sides saw.</p></details>
         <p class="example-note">Terms and amounts are agreed by both people. No funds are held or released here.</p>
       </div>
-    </article>
+    </div></div>
   </div></section>
 
   <section id="her-agent" class="agent-section wrap section-space">
@@ -304,7 +306,7 @@
 <script type="module">
   import { drawLogoMark } from "./final-art.js";
   import { startHeroFlight } from "./final-fly.js";
-  import { hoverAccordion, revealOnArrival, stackCards } from "./final-motion.js";
+  import { hoverAccordion, revealOnArrival, stackCards, storyPanel } from "./final-motion.js";
   import { drawDoneScene, drawSayScene } from "./final-scenes.js";
 
   for (const svg of document.querySelectorAll("[data-logo]")) drawLogoMark(svg);
@@ -321,6 +323,7 @@
   drawSayScene(document.querySelector('[data-scene="say"]'));
   drawDoneScene(document.querySelector('[data-scene="done"]'));
   stackCards(document.getElementById("stack"));
+  storyPanel(document.querySelectorAll(".stories-copy .story-row"), document.querySelectorAll("#storyDemos .story-demo"));
   const proposal = document.getElementById("proposal-text");
   const choices = document.querySelectorAll(".choice-row button");
   for (const b of choices) {

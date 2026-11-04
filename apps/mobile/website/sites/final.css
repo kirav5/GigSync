@@ -1830,3 +1830,76 @@ body.flying:not(.landed) .roots-image-window img {
     top: 0;
   }
 }
+
+/* ---- the three stories scroll on the left while one card stays in place on the right and its visual changes ---- */
+.stories-scroll {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9%;
+  align-items: start;
+}
+.stories-copy .story-row {
+  display: flex;
+  align-items: center;
+  min-height: calc(100vh - 80px);
+  padding: 72px 0;
+}
+.stories-copy .story-row h2 {
+  transition: color 0.4s;
+}
+.stories-copy .story-row:not(.on) h2 {
+  color: #9a846a;
+}
+.stories-panel {
+  position: sticky;
+  top: max(72px, calc(50vh - 300px));
+  padding-top: 0;
+}
+.story-demos {
+  display: grid;
+}
+.story-demos .story-demo {
+  grid-area: 1 / 1;
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease,
+    visibility 0s 0.5s;
+}
+.story-demos .story-demo:not(.on) {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(14px);
+  pointer-events: none;
+}
+.story-demos .story-demo.on {
+  transition-delay: 0s;
+}
+@media (max-width: 900px) {
+  .stories-scroll {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .stories-copy .story-row {
+    min-height: 0;
+    padding: 58px 0;
+  }
+  .stories-copy .story-row:not(.on) h2 {
+    color: inherit;
+  }
+  .stories-panel {
+    position: static;
+  }
+  .story-demos {
+    gap: 24px;
+    padding-bottom: 58px;
+  }
+  .story-demos .story-demo {
+    grid-area: auto;
+  }
+  .story-demos .story-demo:not(.on) {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    pointer-events: auto;
+  }
+}
