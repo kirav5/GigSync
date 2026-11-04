@@ -7,9 +7,10 @@ import { cleanUpLater, type Phone, signBoth, unlistCards } from "./journey.js";
 
 /**
  * Terms besides the price through the real screens and API (ADR 0033 §3–5), with no model on either phone: the word
- * lists read the household's long description into chips it confirms, the agents settle the time the painter can do
- * and who buys the paint, the household signs the changed time itself, both see the terms they signed, and every offer
- * in the agents' talk says why it is what it is.
+ * lists read the household's long description into chips it confirms, the agents settle the morning she asked for and
+ * who buys the paint (the painter brings his own), the household signs the changed term itself, both see the terms
+ * they signed, and every offer in the agents' talk says why it is what it is. A painter whose hours leave out the
+ * morning is not listed at all since ADR 0050 §3, so the term the agents change is the paint, not the time.
  */
 
 const { en } = Lang.enum;
@@ -18,8 +19,9 @@ const PAINTER = t(en, "trade.painter");
 const DESCRIPTION =
   "We just moved in and the walls are patchy. Please paint 2 rooms with 2 coats, " +
   "I will buy the paint myself. Tomorrow morning in HSR Layout.";
-const AFTERNOON = t(en, "terms.window.afternoon");
 const MORNING = t(en, "terms.window.morning");
+const PAINTER_BUYS = t(en, "terms.materials.worker");
+const SHE_BUYS = t(en, "terms.materials.household");
 
 let contexts: BrowserContext[] = [];
 
@@ -38,8 +40,8 @@ async function say(page: Page, words: string) {
   await box.getByRole("button", { name: t(en, "a11y.send") }).click();
 }
 
-/** The painter's card, saying on My card that they take work only in the afternoons. */
-async function afternoonPainter(phone: Phone, name: string) {
+/** The painter's card, saying on My card that they bring the materials themselves; any day, any time. */
+async function paintBringingPainter(phone: Phone, name: string) {
   const { page } = phone;
   await signIn(page, { role: Role.worker, name, phone: newPhone(), lang: en });
   await openCard(page, en);
@@ -50,8 +52,9 @@ async function afternoonPainter(phone: Phone, name: string) {
   await form.getByLabel(t(en, "card.min")).fill("12000");
   await form.getByLabel(t(en, "card.about")).fill("Walls and ceilings");
   const prefs = form.getByRole("group", { name: t(en, "terms.card") });
-  await prefs.getByRole("button", { name: AFTERNOON, exact: true }).click();
-  await expect(prefs.getByRole("button", { name: AFTERNOON, exact: true })).toHaveAttribute("aria-pressed", "true");
+  const mine = prefs.getByRole("button", { name: t(en, "terms.card_mine"), exact: true });
+  await mine.click();
+  await expect(mine).toHaveAttribute("aria-pressed", "true");
   await shoot("painter-terms", { worker: page }, FOLDER);
   await page.getByRole("button", { name: t(en, "card.publish"), exact: true }).click();
   cleanUpLater(phone);
@@ -66,7 +69,7 @@ test("a long description becomes confirmed chips, the agents settle the terms, a
   const worker: Phone = { page: workerPage, lang: en };
   const home: Phone = { page: homePage, lang: en };
   const name = `Kiran ${RUN}`;
-  await afternoonPainter(worker, name);
+  await paintBringingPainter(worker, name);
 
   await signIn(homePage, { role: Role.consumer, name: `Lata ${RUN}`, phone: newPhone(), address: "HSR", lang: en });
   await open(homePage, "nav.find");
@@ -98,8 +101,8 @@ test("a long description becomes confirmed chips, the agents settle the terms, a
   await found.getByRole("checkbox", { name: t(en, "a11y.ask_worker", { name }) }).check();
   await found.getByRole("button", { name: plural(en, "find.ask", 1) }).click();
 
-  // Kiran works afternoons: his agent holds the afternoon and hers takes it. Whichever agent accepted first, its
-  // owner signs first; Lata's sign card then shows the time changed from the morning she asked for.
+  // Kiran brings the paint: his agent holds to it and hers takes it as a change for her to sign. Whichever agent
+  // accepted first, its owner signs first; Lata's sign card then shows the paint changed from what she asked for.
   await open(homePage, "nav.my_jobs");
   await open(workerPage, "nav.activity");
   const sign = homePage.getByRole("group", { name: t(en, "a11y.sign") });
@@ -110,15 +113,15 @@ test("a long description becomes confirmed chips, the agents settle the terms, a
   }).toPass();
   const workerFirst = !(await sign.isVisible());
   if (workerFirst) {
-    await expect(theirs.getByRole("list", { name: t(en, "terms.title") })).toContainText(AFTERNOON);
+    await expect(theirs.getByRole("list", { name: t(en, "terms.title") })).toContainText(PAINTER_BUYS);
     await theirs.getByRole("button", { name: textOf(en, "job.sign") }).click();
   }
   await reveal(homePage, sign);
   const terms = sign.getByRole("list", { name: t(en, "terms.title") });
-  await expect(terms).toContainText(AFTERNOON);
-  await expect(terms).toContainText(t(en, "terms.materials.household"));
+  await expect(terms).toContainText(MORNING);
+  await expect(terms).toContainText(PAINTER_BUYS);
   await expect(terms).toContainText(plural(en, "terms.coats", 2));
-  await expect(terms.locator("[data-changed]")).toContainText(MORNING);
+  await expect(terms.locator("[data-changed]")).toContainText(SHE_BUYS);
   await expect(sign.getByRole("note")).toContainText(t(en, "terms.check"));
 
   // Every offer in the agents' talk says why it is what it is, from facts the phone built.
@@ -134,7 +137,7 @@ test("a long description becomes confirmed chips, the agents settle the terms, a
   for (const phone of [workerPage, homePage]) {
     const deal = phone.getByLabel(t(en, "a11y.deal"));
     await reveal(phone, deal);
-    await expect(deal.getByRole("list", { name: t(en, "terms.title") })).toContainText(AFTERNOON);
+    await expect(deal.getByRole("list", { name: t(en, "terms.title") })).toContainText(PAINTER_BUYS);
   }
   await shoot("signed-terms", { household: homePage, worker: workerPage }, FOLDER);
 });

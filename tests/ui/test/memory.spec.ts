@@ -91,6 +91,8 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await tap(priyaPage, t(en, "need.arr.monthly"));
   await tap(priyaPage, t(en, "area.hsr_layout"));
   await skipPriceQuestions(priya);
+  // Every day, at an hour (ADR 0050 §1): any time.
+  await tap(priyaPage, t(en, "when.any_time"));
   await say(priyaPage, BUDGET);
   await tap(priyaPage, t(en, "flag.yes"));
   await askOnly(priyaPage, meenaName);
@@ -140,6 +142,8 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await expect(log).not.toContainText(t(en, "memory.offer_area", { area: t(en, "area.hsr_layout") }));
   await tap(priyaPage, t(en, "area.hsr_layout"));
   await skipPriceQuestions(priya);
+  // Every day, at an hour (ADR 0050 §1): any time.
+  await tap(priyaPage, t(en, "when.any_time"));
   await say(priyaPage, BUDGET);
   await expect(log).toContainText(ROOMS);
   await tap(priyaPage, t(en, "flag.yes"));

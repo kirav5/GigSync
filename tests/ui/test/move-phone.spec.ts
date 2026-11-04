@@ -111,6 +111,8 @@ async function signedJob(meena: Phone, priya: Phone, meenaName: string) {
   await tap(page, t(en, "need.arr.monthly"));
   await tap(page, t(en, "area.hsr_layout"));
   await skipPriceQuestions(priya);
+  // Every day, at an hour (ADR 0050 §1): any time.
+  await tap(page, t(en, "when.any_time"));
   await say(page, "7000");
   await tap(page, t(en, "flag.yes"));
   const found = page.getByRole("group", { name: t(en, "a11y.ask_workers") });

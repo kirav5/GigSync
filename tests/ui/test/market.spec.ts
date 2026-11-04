@@ -132,8 +132,8 @@ test("a household's market question and budget both show the range from jobs on 
   await say("I need a cook in Jayanagar for 4 people, 2 meals a day");
   const budget = log(page).getByText(textOf(en, "need.ask.budget"));
   // Whatever the chat still asks before the budget: the scope it read (right), how long (every month, ADR 0051), how
-  // often (every day), a detail (skip).
-  const chips = (["terms.scope_ok", "need.arr.monthly", "when.daily", "iv.skip"] as const).map((key) =>
+  // often (every day), at what hour (any time, ADR 0050 §1), a detail (skip).
+  const chips = (["terms.scope_ok", "need.arr.monthly", "when.daily", "when.any_time", "iv.skip"] as const).map((key) =>
     log(page)
       .getByRole("button", { name: t(en, key), exact: true })
       .last(),
