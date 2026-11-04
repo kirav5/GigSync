@@ -1,4 +1,4 @@
-// The opening scene's driver. On wide screens the header, the hero and the roots section share one earth-brown camera
+// The opening scene's driver. The header, the hero and the roots section share one earth-brown camera
 // that stays on screen while the page scrolls through the opening's track, so the reader sees a scene change rather
 // than a page scroll; scene.js says what the scene looks like at each progress, and this file measures the page,
 // follows the scroll and applies it. The header and the background colour never change.
@@ -7,11 +7,14 @@
 // progress closes a share of the remaining gap set by the elapsed milliseconds, so a wheel notch becomes a short glide
 // rather than a jump, and the glide carries on for a few frames after the wheel stops. The mural and the roots print
 // stay in the document for the whole scene and move by transform and opacity alone, so nothing is swapped or laid out
-// mid-flight. Phones, reduced-motion settings and short screens get the three parts stacked in normal flow.
+// mid-flight. A phone plays the same scene; the roots paragraphs do not fit its screen with the print, so they wait
+// just below the camera. Reduced-motion settings and short screens get the three parts stacked in normal flow.
 // "?flight=direct" in the address keeps a one-to-one mapping for comparison.
 import { FLIGHT_SHARE, planScene, sceneAt } from "./scene.js";
 
 const DESKTOP = "(min-width: 800px)";
+/** A phone or portrait tablet tall enough for the scene. A media query, so the browser's bars sliding away do not flip it. */
+const PHONE = "(max-width: 799.98px) and (min-height: 540px)";
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 /** A viewport shorter than this cannot hold the hero inside the camera. */
 const MIN_VIEWPORT_PX = 600;
@@ -62,14 +65,16 @@ const placed = ({ x, y, scale, turnDeg }) => `translate3d(${x}px, ${y}px, 0) rot
  * @param {{
  *   opening: HTMLElement, camera: HTMLElement, heroLayer: HTMLElement, heroCopy: HTMLElement, heroArt: HTMLElement,
  *   heroFrame: HTMLElement, heroCaption: HTMLElement, strip: HTMLElement, rootsLayer: HTMLElement,
- *   rootsCopy: HTMLElement, rootsArt: HTMLElement, wash: HTMLElement, veil: HTMLElement,
+ *   rootsCopy: HTMLElement, rootsArt: HTMLElement, rootsMore: HTMLElement, rootsAfter: HTMLElement,
+ *   wash: HTMLElement, veil: HTMLElement,
  *   links: Iterable<HTMLAnchorElement>
  * }} parts
  */
 export function startScene(parts) {
   const { opening, camera, heroLayer, heroCopy, heroArt, heroFrame, heroCaption, strip } = parts;
-  const { rootsLayer, rootsCopy, rootsArt, wash, veil, links } = parts;
+  const { rootsLayer, rootsCopy, rootsArt, rootsMore, rootsAfter, wash, veil, links } = parts;
   const desktop = matchMedia(DESKTOP);
+  const phone = matchMedia(PHONE);
   const reduced = matchMedia(REDUCED_MOTION);
   const direct = new URLSearchParams(location.search).get(FLIGHT_PARAM) === DIRECT;
   /** Everything the scene moves; measuring needs them all back in their own places. */
@@ -84,7 +89,15 @@ export function startScene(parts) {
   let shown = 0;
   let lastFrame = 0;
 
+  /** The roots paragraphs: beside the print, or on a phone just below the camera. */
+  function placeRootsMore(belowCamera) {
+    const home = belowCamera ? rootsAfter : rootsCopy;
+    if (rootsMore.parentElement !== home) home.append(rootsMore);
+    rootsAfter.hidden = !belowCamera;
+  }
+
   function rest() {
+    placeRootsMore(false);
     opening.dataset[MOTION] = FALSE;
     wash.style.display = NONE;
     document.body.classList.remove(FLYING, LANDED);
@@ -95,11 +108,13 @@ export function startScene(parts) {
   }
 
   function measure() {
-    enabled = desktop.matches && !reduced.matches && window.innerHeight >= MIN_VIEWPORT_PX;
+    const fits = phone.matches || (desktop.matches && window.innerHeight >= MIN_VIEWPORT_PX);
+    enabled = fits && !reduced.matches;
     if (!enabled) {
       rest();
       return;
     }
+    placeRootsMore(phone.matches);
     opening.dataset[MOTION] = TRUE;
     document.body.classList.add(FLYING);
     // measured with every drift, zoom and tilt removed, relative to the stage: the pictures' positioned parent, which
@@ -208,6 +223,7 @@ export function startScene(parts) {
   window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("resize", measure);
   desktop.addEventListener("change", measure);
+  phone.addEventListener("change", measure);
   reduced.addEventListener("change", measure);
   // fonts, images and opened details all move the frames; measure again whenever the page changes height
   if ("ResizeObserver" in window) new ResizeObserver(measure).observe(document.body);

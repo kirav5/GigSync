@@ -385,8 +385,8 @@ h2 {
    top bar included, fading into the same faint, shaded background as the jobs section; the roots print appears small
    inside the mural, rides that zoom and grows where it stands; the copy changes sides. fly.js drives it from
    scene.js. The track below the camera gives the scene its scroll distance: 200svh of flight, then 30svh of
-   hold, which the script mirrors as FLIGHT_SHARE 200 / 230. Phones, short screens, reduced motion and no script get
-   the three parts stacked in normal flow.
+   hold, which the script mirrors as FLIGHT_SHARE 200 / 230. Phones play it on a shorter track in the same ratio (see
+   the end of this file). Short screens, reduced motion and no script get the three parts stacked in normal flow.
    Layers, back to front: hero, the mural, its shade, roots, then the header and the strip. The header band is clear,
    so the mural shows behind the top bar as soon as it reaches it; the bar's text keeps a dark halo to stay legible. */
 .opening[data-motion="true"] {
@@ -1061,7 +1061,8 @@ body.flying .hero-visual .community-art {
   font-size: 24px;
   margin: 25px 0 13px;
 }
-.roots-copy > p:not(.eyebrow):not(.roots-lead) {
+.roots-copy > p:not(.eyebrow):not(.roots-lead),
+.roots-more > p {
   font-size: 14px;
   color: #cfbea4;
   line-height: 1.85;
@@ -1932,21 +1933,13 @@ body.flying .hero-visual .community-art {
     top: 0;
   }
 }
-/* A tall phone has room for a whole card, so the cards settle on each other there too. */
-@media (max-width: 700px) and (min-height: 780px) {
+/* The cards settle on each other on a phone too; motion.js sets where, so a tall card is read to its end first. */
+@media (max-width: 700px) {
   .stack .card,
   .stack .card:nth-child(2),
   .stack .card:nth-child(3) {
     position: sticky;
-  }
-  .stack .card {
-    top: 64px;
-  }
-  .stack .card:nth-child(2) {
-    top: 78px;
-  }
-  .stack .card:nth-child(3) {
-    top: 92px;
+    top: var(--stick, 64px);
   }
 }
 
@@ -2004,22 +1997,6 @@ body.flying .hero-visual .community-art {
   }
   .stories-copy .story-row:not(.on) h2 {
     color: inherit;
-  }
-  .stories-panel {
-    position: static;
-  }
-  .story-demos {
-    gap: 24px;
-    padding-bottom: 58px;
-  }
-  .story-demos .story-demo {
-    grid-area: auto;
-  }
-  .story-demos .story-demo:not(.on) {
-    opacity: 1;
-    visibility: visible;
-    transform: none;
-    pointer-events: auto;
   }
 }
 
@@ -3780,5 +3757,219 @@ body.flying .hero-visual .community-art {
 @media (prefers-reduced-motion: reduce) {
   .jp-scr.off {
     opacity: 0;
+  }
+}
+
+/* ---- the opening scene on a phone: the copy above the mural, then the print under the roots title. The print's width comes from the height left under the title. The roots paragraphs
+   wait just below the camera (fly.js moves them) on the same earth brown, so they follow on as the camera lets go. ---- */
+.roots-after {
+  background: var(--earth);
+  color: var(--ivory);
+}
+.roots-after[hidden] {
+  display: none;
+}
+.roots-after .roots-more {
+  width: calc(100% - 40px);
+  margin: 0 auto;
+  padding: 8px 0 44px;
+}
+@media (max-width: 799.98px) {
+  .opening[data-motion="true"] {
+    --strip-space: 0px;
+    height: calc(100svh + 140svh + 21svh);
+  }
+  .opening[data-motion="true"] .belief-strip,
+  .opening[data-motion="true"] .art-caption,
+  .opening[data-motion="true"] .hero-note {
+    display: none;
+  }
+  .opening[data-motion="true"] .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 10px 0 16px;
+  }
+  .opening[data-motion="true"] .hero-copy {
+    display: block;
+    flex: none;
+    padding: 0;
+  }
+  .opening[data-motion="true"] .hero h1 {
+    font-size: clamp(38px, 11.4vw, 60px);
+    margin-bottom: 10px;
+  }
+  .opening[data-motion="true"] .hero-description {
+    margin-top: 0;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .opening[data-motion="true"] .hero-actions {
+    margin-top: 12px;
+  }
+  .opening[data-motion="true"] .hero-visual {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    margin: 0;
+  }
+  /* keeps its size: on a short phone the mural rises from the bottom edge, and the zoom brings all of it into view */
+  .opening[data-motion="true"] .art-frame {
+    width: min(100%, 48svh);
+    margin: 0 auto;
+  }
+  .opening[data-motion="true"] .roots-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 22px;
+    padding: 0 0 20px;
+  }
+  .opening[data-motion="true"] .roots-copy {
+    order: -1;
+    flex: none;
+  }
+  .opening[data-motion="true"] .roots-copy h2 {
+    font-size: clamp(32px, 9.4vw, 52px);
+  }
+  .opening[data-motion="true"] .roots-lead {
+    margin-bottom: 0;
+  }
+  .opening[data-motion="true"] .roots-art {
+    width: min(100%, 56svh, calc((100svh - 350px) * 1.08));
+    max-width: none;
+    margin: 0 auto;
+  }
+}
+
+/* ---- behind the scenes on a phone: the same sweep, one row at a time. The row's four cards stand beside the phone,
+   as on a wide screen, so the phone keeps enough height to be read; the rows change as the scroll fills them. ---- */
+@keyframes jobs-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@media (max-width: 759.98px) {
+  .jobs-section[data-motion="true"] {
+    height: 320svh;
+  }
+  .jobs-section[data-motion="true"] .jobs-stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    min-height: 0;
+    padding: 18px 0 14px;
+    overflow: hidden;
+  }
+  .jobs-section[data-motion="true"] .jobs-inner {
+    align-self: stretch;
+    width: calc(100% - 40px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    gap: 12px;
+    align-items: center;
+  }
+  .jobs-section[data-motion="true"] .jobs-left {
+    display: contents;
+  }
+  .jobs-section[data-motion="true"] .jobs-top {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+  .jobs-section[data-motion="true"] .jobs-top .eyebrow {
+    margin-bottom: 8px;
+  }
+  .jobs-section[data-motion="true"] .jobs-top h2 {
+    font-size: clamp(26px, 7.6vw, 40px);
+  }
+  .jobs-section[data-motion="true"] .jobs-lead,
+  .jobs-section[data-motion="true"] .job small,
+  .jobs-section[data-motion="true"] .jobs-phone figcaption {
+    display: none;
+  }
+  .jobs-section[data-motion="true"] .jobs-row {
+    display: none;
+  }
+  .jobs-section[data-motion="true"] .jobs-row[data-active="true"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    animation: jobs-row-in 0.35s ease;
+  }
+  .jobs-section[data-motion="true"] .jobs-row-title {
+    padding: 0 0 2px;
+    font-size: 10px;
+  }
+  .jobs-section[data-motion="true"] .job {
+    min-height: 58px;
+    padding: 8px 8px 8px 26px;
+    font-size: 12.5px;
+    line-height: 1.25;
+  }
+  .jobs-section[data-motion="true"] .job-check {
+    left: 8px;
+  }
+  .jobs-section[data-motion="true"] .jobs-phone-col {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .jobs-section[data-motion="true"] .jp-phone.jobs-phone {
+    width: min(100vw - 170px, (100svh - 216px) / 2.12);
+  }
+  .jobs-section[data-motion="true"] .jobs-bottom {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    margin: 0;
+  }
+  .jobs-section[data-motion="true"] .jobs-track {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+}
+
+/* ---- the three stories without a column to spare: each visual stands under its own story (motion.js moves it there)
+   and comes up as the reader reaches that story. ---- */
+@media (max-width: 900px) {
+  .stories-panel {
+    display: none;
+  }
+  .stories-copy {
+    min-width: 0;
+  }
+  .stories-copy .story-row {
+    gap: 6%;
+  }
+  .stories-copy .story-row > * {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .story-row .story-demo {
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity 0.6s ease,
+      transform 0.6s ease;
+  }
+  .story-row.seen .story-demo {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 700px) {
+  .stories-copy .story-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 30px;
+  }
+  .stories-copy .story-row > * {
+    flex: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-row .story-demo {
+    opacity: 1;
+    transform: none;
   }
 }

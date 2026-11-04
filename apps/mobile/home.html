@@ -67,9 +67,11 @@
             <p class="eyebrow">01 / Rooted &amp; reaching</p>
             <h2 id="roots-title">A circle, with room<br>for everyone.</h2>
             <p class="roots-lead">We go further, together.</p>
-            <p>A circle of people. A shared tree. Everyday acts of finding work, agreeing it, and being paid. Our folk-art world puts connection at the centre, because that is where work in India has always begun.</p>
-            <p>Our roots inspire a simple intention: create value for the benefit of all. GigSync brings that spirit to technology—an agent that works for one person, inside a community that holds her.</p>
-            <div class="roots-signoff"><span>ಒಟ್ಟಿಗೆ</span><span>Many phones.<br>One connected circle.</span></div>
+            <div class="roots-more" id="rootsMore">
+              <p>A circle of people. A shared tree. Everyday acts of finding work, agreeing it, and being paid. Our folk-art world puts connection at the centre, because that is where work in India has always begun.</p>
+              <p>Our roots inspire a simple intention: create value for the benefit of all. GigSync brings that spirit to technology—an agent that works for one person, inside a community that holds her.</p>
+              <div class="roots-signoff"><span>ಒಟ್ಟಿಗೆ</span><span>Many phones.<br>One connected circle.</span></div>
+            </div>
           </div>
         </section>
         <div class="fly fly-wash" id="flyWash" aria-hidden="true"><img src="./website/community-mural.jpg" alt="" /></div>
@@ -77,6 +79,8 @@
       <div class="scene-veil" id="sceneVeil" aria-hidden="true"></div>
     </div>
   </div>
+
+  <div class="roots-after" id="rootsAfter" hidden></div>
 
   <section id="the-idea" class="idea-section wrap section-space">
     <div class="section-intro">
@@ -684,6 +688,8 @@
     rootsLayer: document.getElementById("our-roots"),
     rootsCopy: document.querySelector("#our-roots .roots-copy"),
     rootsArt: document.getElementById("rootsArt"),
+    rootsMore: document.getElementById("rootsMore"),
+    rootsAfter: document.getElementById("rootsAfter"),
     wash: document.getElementById("flyWash"),
     veil: document.getElementById("sceneVeil"),
     links: document.querySelectorAll('a[href="#our-roots"], a[href="#top"]'),

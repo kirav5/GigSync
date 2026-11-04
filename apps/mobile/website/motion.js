@@ -11,6 +11,15 @@ const ESCAPE = "Escape";
 /** How much a stacked card shrinks and dims once the next card has fully covered it. */
 const STACK_SHRINK = 0.05;
 const STACK_DIM = 0.08;
+/** Where stacked cards settle on a phone, in pixels: the first card's top, and the step to each card after it. */
+const PHONE_STACK = "(max-width: 700px)";
+const STACK_TOP_PX = 64;
+const STACK_STEP_PX = 14;
+const STACK_MARGIN_PX = 12;
+const STICK = "--stick";
+/** Where a story's visual stands under its own story, because no column stays beside the text. */
+const STORY_UNDER = "(max-width: 900px)";
+const SEEN = "seen";
 
 /** Elements matching `selector` fade up when they scroll into view; anything already in view shows at once. */
 export function revealOnArrival(selector) {
@@ -75,19 +84,43 @@ export function stackCards(stack) {
   const schedule = () => {
     if (!frame) frame = requestAnimationFrame(render);
   };
+  // on a phone a card taller than the screen settles with its bottom in view, so all of it is read before the next
+  const place = () => {
+    if (!matchMedia(PHONE_STACK).matches) return;
+    cards.forEach((card, i) => {
+      const fitted = window.innerHeight - card.offsetHeight - STACK_MARGIN_PX;
+      card.style.setProperty(STICK, `${Math.min(STACK_TOP_PX + i * STACK_STEP_PX, fitted)}px`);
+    });
+    schedule();
+  };
   window.addEventListener("scroll", schedule, { passive: true });
-  window.addEventListener("resize", schedule);
+  window.addEventListener("resize", place);
+  if ("ResizeObserver" in window) new ResizeObserver(place).observe(stack);
+  place();
   render();
 }
 
 /** The story whose copy is in the middle of the viewport decides which card shows in the sticky panel. */
 export function storyPanel(rows, demos) {
-  if (!("IntersectionObserver" in window)) return;
+  const panel = demos[0]?.parentElement;
+  const under = matchMedia(STORY_UNDER);
+  const placeDemos = () => {
+    demos.forEach((demo, i) => {
+      (under.matches ? rows[i] : panel).append(demo);
+    });
+  };
+  under.addEventListener("change", placeDemos);
+  placeDemos();
+  if (!("IntersectionObserver" in window)) {
+    for (const row of rows) row.classList.add(SEEN);
+    return;
+  }
   const io = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
         const index = Number(entry.target.dataset.story);
+        entry.target.classList.add(SEEN);
         for (const row of rows) row.classList.toggle(ON, row === entry.target);
         for (const demo of demos) demo.classList.toggle(ON, Number(demo.dataset.demo) === index);
       }

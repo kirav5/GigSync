@@ -1,11 +1,13 @@
 // "Behind the scenes": a tall section whose stage sticks while the page scrolls through it. Twenty cards in five rows
 // fill one after another as the scroll advances, and the phone beside them shows the screen for the row being filled,
 // each part of the screen lighting up as its card fills. The progress the cards see chases the scroll position a
-// little behind it, so a wheel step or a trackpad flick never lands as a jump. Phones and reduced-motion settings get
-// the stage in flow, every card filled and the first screen showing. Plain browser JS on purpose: the website loads
+// little behind it, so a wheel step or a trackpad flick never lands as a jump. A phone plays the same sweep one row at a
+// time. Reduced-motion settings and short screens get the stage in flow, every card filled and the first screen showing. Plain browser JS on purpose: the website loads
 // no app code.
 
 const MOTION = "(min-width: 760px)";
+/** A phone tall enough for the stage. A media query, so the browser's bars sliding away do not flip it. */
+const PHONE = "(max-width: 759.98px) and (min-height: 540px)";
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 const FILL = "--fill";
 const PROGRESS = "--p";
@@ -50,6 +52,7 @@ const ease = (p) => p * p * (3 - 2 * p);
 export function startJobs(parts) {
   const { section, stage, jobs, rows, count, track, screens, tabs, phoneScreen, screenName, screenIndex } = parts;
   const motion = matchMedia(MOTION);
+  const phone = matchMedia(PHONE);
   const reduced = matchMedia(REDUCED_MOTION);
   const cards = [...jobs];
   const rowList = [...rows];
@@ -112,7 +115,8 @@ export function startJobs(parts) {
 
   function measure() {
     phoneScreen.style.setProperty(SCALE, (phoneScreen.clientWidth / DRAWN_SCREEN_PX).toFixed(4));
-    enabled = motion.matches && !reduced.matches && window.innerHeight >= MIN_VIEWPORT_PX;
+    const fits = phone.matches || (motion.matches && window.innerHeight >= MIN_VIEWPORT_PX);
+    enabled = fits && !reduced.matches;
     if (!enabled) {
       rest();
       return;
@@ -151,6 +155,7 @@ export function startJobs(parts) {
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", measure);
   motion.addEventListener("change", measure);
+  phone.addEventListener("change", measure);
   reduced.addEventListener("change", measure);
   if ("ResizeObserver" in window) new ResizeObserver(measure).observe(document.body);
   if (document.fonts?.ready) document.fonts.ready.then(measure);
