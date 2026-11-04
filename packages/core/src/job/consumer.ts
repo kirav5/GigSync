@@ -17,7 +17,7 @@ import { ulid } from "ulid";
 import { answersFound } from "./answer.js";
 import type { JobContext } from "./context.js";
 import { accept, cancel, termsFor } from "./deal.js";
-import { AGENT_OFFERS, askTime, clearTalkTasks, counter, handOver } from "./handover.js";
+import { AGENT_OFFERS, afterAgentOffer, askTime, clearTalkTasks, counter, handOver } from "./handover.js";
 import { planHousehold } from "./household-plan.js";
 import { MoveKind, respond } from "./negotiate.js";
 import { AnswerSource, type JobRecord, type Need, type Suggested, TaskKind } from "./store.js";
@@ -136,5 +136,5 @@ export async function onQuote(ctx: JobContext, need: Need, r: JobRecord, offer: 
   // Its own offers used, the agent never walks away on its owner's behalf: a last offer reaches a person (ADR 0053 §4).
   if (r.offers_made >= AGENT_OFFERS) return handOver(ctx, withOffer);
   if (move.kind === MoveKind.walk) return cancel(ctx, withOffer, { reason: CancelReason.enum.no_deal });
-  return counter(ctx, withOffer, move.price_paise);
+  return afterAgentOffer(ctx, await counter(ctx, withOffer, move.price_paise), offer);
 }

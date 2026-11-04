@@ -20,7 +20,7 @@ import { log } from "../log.js";
 import { remember } from "../memory/remember.js";
 import { whenPassed } from "../schedule/windows.js";
 import type { JobContext } from "./context.js";
-import { askTime, handOver } from "./handover.js";
+import { askTime, clearTalkTasks, handOver } from "./handover.js";
 import { type JobRecord, type Need, TaskKind } from "./store.js";
 import { timeTaken } from "./taken.js";
 import { mustReview, termsField } from "./terms-flow.js";
@@ -136,6 +136,8 @@ export async function onAgree(ctx: JobContext, r: JobRecord, theirs: Agree, from
     log.warn("agree rejected", { engagement: r.engagement.id });
     return cancel(ctx, r, { reason: CancelReason.enum.other, note: "terms did not match" });
   }
+  // Their signature settles the talk: a decision left for this owner about it is gone.
+  await clearTalkTasks(ctx, r);
   const next = { ...r, theirs };
   if (countersigns && next.engagement.status === S.agreed) return onAgreed(ctx, next);
   await ctx.store.saveJob(next);

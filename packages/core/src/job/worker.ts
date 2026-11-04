@@ -234,7 +234,8 @@ function scopeOf(r: JobRecord): string {
   return [r.request.need, ...details].join("; ").slice(0, SCOPE_MAX);
 }
 
-export function quote(ctx: JobContext, r: JobRecord, price: number): Promise<JobRecord> {
+/** The worker's quote at `price`, with the terms it proposes next; `owner` when the worker sends it themselves. */
+export function quote(ctx: JobContext, r: JobRecord, price: number, owner = false): Promise<JobRecord> {
   const round = r.offers_made + 1;
   const offer: Offer = {
     offer_id: `off_${ulid(ctx.clock.now().getTime())}`,
@@ -244,5 +245,6 @@ export function quote(ctx: JobContext, r: JobRecord, price: number): Promise<Job
     scope: scopeOf(r),
     ...termsField(r.request.trade, nextTerms(r)),
   };
-  return ctx.send({ ...r, offers: [...r.offers, { by: R.provider, offer }], offers_made: round }, K.quote, offer);
+  const sent = { by: R.provider, offer, ...(owner ? { owner: true as const } : {}) };
+  return ctx.send({ ...r, offers: [...r.offers, sent], offers_made: round }, K.quote, offer);
 }

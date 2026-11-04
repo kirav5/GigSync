@@ -1,12 +1,28 @@
-import { type EngagementId, MENTOR_PROTOCOL, TERMS_PROTOCOL, type TermWhen, Trade } from "@gigsync/protocol";
+import {
+  type EngagementId,
+  MAX_ROUNDS,
+  MENTOR_PROTOCOL,
+  OWNER_OFFERS_PROTOCOL,
+  PROBLEM_PROTOCOL,
+  ROUNDS_BEFORE_OWNERS,
+  TERMS_PROTOCOL,
+  type TermWhen,
+  Trade,
+} from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import {
+  AGENT_OFFERS,
+  agentTalk,
   type Clock,
+  canOffer,
   type NewNeed,
   settle,
+  TalkError,
+  TalkKind,
   TaskKind,
   type TermPrefs,
   type TimeAsk,
+  theirLatest,
   type WorkerRules,
   whenPassed,
 } from "../src/index.js";
@@ -43,9 +59,9 @@ async function pair(rules: WorkerRules, opts: { clock?: Clock; home?: number; wo
   const relay = new MemoryRelay();
   const clock = opts.clock ?? BEFORE;
   const auto = opts.auto ?? true;
-  const home = await phone(relay, PRIYA, { protocol: opts.home ?? TERMS_PROTOCOL, autoConfirm: auto, clock });
+  const home = await phone(relay, PRIYA, { protocol: opts.home ?? OWNER_OFFERS_PROTOCOL, autoConfirm: auto, clock });
   const work = await phone(relay, RAVI, {
-    protocol: opts.worker ?? TERMS_PROTOCOL,
+    protocol: opts.worker ?? OWNER_OFFERS_PROTOCOL,
     autoConfirm: auto,
     worker: rules,
     clock,
@@ -54,16 +70,26 @@ async function pair(rules: WorkerRules, opts: { clock?: Clock; home?: number; wo
 }
 
 describe("the people take over from their agents", () => {
-  it("lets the worker send a final offer after three, which the household's owner accepts", async () => {
+  it("lets the worker send an offer of his own after five each, which the household's owner accepts", async () => {
     const { home, work, talk } = await pair(electrician(60000));
     const [job] = await home.device.request(fanNeed(45000, { problem: "dead" }), [work.user]);
     const id = job?.engagement.id as EngagementId;
     await talk();
+    expect((await work.device.job(id)).offers_made).toBe(AGENT_OFFERS);
     expect((await work.device.tasks()).map((t) => t.kind)).toEqual([TaskKind.takeOver]);
     // Ravi meets her halfway himself; her agent cannot go above her limit, so she decides.
     await work.device.talks.offer(id, 52000);
     await talk();
-    expect((await home.device.tasks()).map((t) => t.kind)).toEqual([TaskKind.takeOver]);
+    expect(await work.device.tasks()).toEqual([]);
+    // Both phones say Ravi made that offer himself, not his agent (ADR 0053 §6).
+    for (const side of [home, work]) {
+      const offers = agentTalk(await side.device.job(id)).filter((s) => s.kind === TalkKind.offer);
+      expect(offers.map((s) => s.kind === TalkKind.offer && s.owner)).toEqual([
+        ...offers.slice(1).map(() => false),
+        true,
+      ]);
+    }
+    expect((await home.device.tasks()).map((t) => [t.kind, t.detail])).toEqual([[TaskKind.takeOver, {}]]);
     await home.device.talks.acceptTheirs(id);
     await talk();
     const done = await home.device.job(id);
@@ -72,12 +98,32 @@ describe("the people take over from their agents", () => {
     expect([...(await home.device.tasks()), ...(await work.device.tasks())]).toEqual([]);
   });
 
-  it("hands the household's final offer to the worker, who takes it, instead of refusing it by itself", async () => {
+  it("tells the household's owner too, who may take the worker's last offer while he decides", async () => {
     const { home, work, talk } = await pair(electrician(60000));
     const [job] = await home.device.request(fanNeed(45000, { problem: "dead" }), [work.user]);
     const id = job?.engagement.id as EngagementId;
     await talk();
-    // Both owners bargain past their agents: offers four and five each, then the household's last word.
+    // Her agent spoke last, so the turn is his; she waits, and may still say yes to his last price.
+    expect((await home.device.tasks()).map((t) => [t.kind, t.detail])).toEqual([
+      [TaskKind.takeOver, { waiting: true }],
+    ]);
+    const homeJob = await home.device.job(id);
+    expect(canOffer(homeJob)).toBe(false);
+    const last = theirLatest(homeJob);
+    await home.device.talks.acceptTheirs(id);
+    await talk();
+    const done = await work.device.job(id);
+    expect(done.engagement.status).toBe("agreed");
+    expect(done.mine?.terms.price_paise).toBe(last?.price_paise);
+    expect([...(await home.device.tasks()), ...(await work.device.tasks())]).toEqual([]);
+  });
+
+  it("gives each owner two offers of their own, then hands the household's last word to the worker", async () => {
+    const { home, work, talk } = await pair(electrician(60000));
+    const [job] = await home.device.request(fanNeed(45000, { problem: "dead" }), [work.user]);
+    const id = job?.engagement.id as EngagementId;
+    await talk();
+    // Both owners bargain past their agents: offers six and seven each, the household's the last.
     for (const [side, price] of [
       [work, 56000],
       [home, 47000],
@@ -88,12 +134,29 @@ describe("the people take over from their agents", () => {
       await side.device.talks.offer(id, price);
       await talk();
     }
-    // Ravi's agent is below his floor at ₹490 and out of offers: it asks him, it does not end the talk.
-    expect((await work.device.job(id)).engagement.status).toBe("negotiating");
-    expect((await work.device.tasks()).map((t) => t.kind)).toEqual([TaskKind.takeOver]);
+    // Ravi has made all seven: he may take her ₹490 or end it, not offer again; nothing ended it by itself.
+    const worker = await work.device.job(id);
+    expect(worker.offers_made).toBe(MAX_ROUNDS);
+    expect(worker.engagement.status).toBe("negotiating");
+    expect(canOffer(worker)).toBe(false);
+    await expect(work.device.talks.offer(id, 50000)).rejects.toThrow(TalkError);
     await work.device.talks.acceptTheirs(id);
     await talk();
     expect((await home.device.job(id)).mine?.terms.price_paise).toBe(49000);
+  });
+
+  it("sends no offer past five to a phone that takes no more: its owner may take it or end it", async () => {
+    const { home, work, talk } = await pair(electrician(60000), { home: PROBLEM_PROTOCOL, worker: PROBLEM_PROTOCOL });
+    const [job] = await home.device.request(fanNeed(45000, { problem: "dead" }), [work.user]);
+    const id = job?.engagement.id as EngagementId;
+    await talk();
+    const worker = await work.device.job(id);
+    expect(worker.offers_made).toBe(ROUNDS_BEFORE_OWNERS);
+    expect(canOffer(worker)).toBe(false);
+    await expect(work.device.talks.offer(id, 52000)).rejects.toThrow(TalkError);
+    await work.device.talks.acceptTheirs(id);
+    await talk();
+    expect((await home.device.job(id)).engagement.status).toBe("agreed");
   });
 
   it("refuses an offer of the owner's outside the prices an offer may carry", async () => {
@@ -123,6 +186,10 @@ describe("the household decides the time", () => {
     const id = job?.engagement.id as EngagementId;
     await talk();
     expect(await home.device.store.task(TaskKind.newTime, id)).toBeDefined();
+    // The story shows the morning she asked for, and marks the time his agent changed (ADR 0053 §6).
+    const story = agentTalk(await home.device.job(id));
+    expect(story[0]).toMatchObject({ kind: TalkKind.request, terms: { when: morning } });
+    expect(story.at(-1)).toMatchObject({ kind: TalkKind.offer, changed: ["when"], owner: false });
     const picked = { day: NEXT, window: "afternoon" } as const;
     await home.device.talks.pickTime(id, picked);
     await talk();

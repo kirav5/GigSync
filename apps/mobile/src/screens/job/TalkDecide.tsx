@@ -5,9 +5,11 @@ import {
   type JobRecord,
   localNow,
   phoneOffset,
+  type TakeOver,
   TaskKind,
   type TimeAsk,
   theirLast,
+  theirLatest,
   whenPassed,
   whenText,
 } from "@gigsync/core";
@@ -17,11 +19,13 @@ import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { jobPrice } from "../../ui/places.js";
 import type { GigView } from "../../useGig.js";
+import { OfferTerms } from "../terms/OfferTerms.js";
 
 /**
- * The owner takes the talk over from their agent (ADR 0053 §3–5). After three offers each without agreement: accept
- * theirs, send an offer, or end it. A time the household did not ask for, or one that has passed: take theirs, pick
- * another, or end it. While the agents are still talking, the owner may end the talk or take theirs at any time.
+ * The owner takes the talk over from their agent (ADR 0053 §3–5). After five offers each without agreement: accept
+ * theirs, send an offer, or end it; the owner waiting on the other may take theirs or end it. A time the household did
+ * not ask for, or one that has passed: take theirs, pick another, or end it. While the agents are still talking, the
+ * owner may end the talk or take theirs at any time.
  */
 
 const S = EngagementStatus.enum;
@@ -65,16 +69,24 @@ export function TalkDecide({ job, view, device, run, them }: Props) {
   if (time && job.engagement.role === Role.enum.requester)
     return <TimeCard job={job} ask={time.detail as TimeAsk} device={device} run={run} them={them} />;
   if (!TALKING.has(job.engagement.status)) return null;
+  // Both agents out of offers and the other owner's turn: this one may still take their latest offer, or end it.
+  const waiting = (takeOver?.detail as TakeOver | undefined)?.waiting === true;
   // A deal waiting for this owner's signature is signed or declined on its own card, not accepted again here.
   const signing = task(TaskKind.confirmDeal);
-  const last = signing ? undefined : theirLast(job);
+  const last = signing ? undefined : (theirLast(job) ?? (waiting ? theirLatest(job) : undefined));
   const price = last && jobPrice(lang, job.request, last.price_paise);
   return (
     <fieldset className={C.stack} aria-label={t("a11y.takeover")}>
       {takeOver && (
         <>
           <span className={C.label}>{t("decide.takeover_title")}</span>
-          {price && <span>{t("decide.takeover_body", { price })}</span>}
+          {price && (
+            <span>
+              {waiting ? t("decide.waiting_body", { name: them, price }) : t("decide.takeover_body", { price })}
+            </span>
+          )}
+          {/* Accepting their offer accepts its terms too: say what they are. */}
+          <OfferTerms terms={last?.terms} />
         </>
       )}
       {!takeOver && <span className={C.muted}>{t("talks.take_over")}</span>}

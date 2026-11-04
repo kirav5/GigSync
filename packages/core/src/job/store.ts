@@ -33,8 +33,11 @@ import type { TermsTrack } from "./terms-flow.js";
 export interface JobRecord {
   engagement: Engagement;
   request: JobRequest;
-  /** Every offer in order, from either side. */
-  offers: { by: Role; offer: Offer }[];
+  /**
+   * Every offer in order, from either side. `owner`: this side's owner sent it, not their agent (ADR 0053 §4); the
+   * other side's are known only past their agent's offers, by round.
+   */
+  offers: { by: Role; offer: Offer; owner?: true }[];
   /** How many offers this side has made. */
   offers_made: number;
   /** Questions this side's agent has asked (worker) so it asks only once. */
@@ -62,6 +65,11 @@ export interface JobRecord {
   pending?: JobTerms | undefined;
   /** The time the household's owner accepted or picked for this job (ADR 0053 §3), over the need's. */
   time?: TermWhen;
+  /**
+   * The offers this side may make in all, once the owners take over: `MAX_ROUNDS` when the other side's phone takes
+   * them, else `ROUNDS_BEFORE_OWNERS` (ADR 0053 §4). Unset until then.
+   */
+  rounds?: number;
   mine?: Agree;
   theirs?: Agree;
   /** The other party's contact card: only ever set once both have signed the same terms. */

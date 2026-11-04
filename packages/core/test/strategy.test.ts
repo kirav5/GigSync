@@ -1,6 +1,7 @@
 import { MAX_ROUNDS, Role } from "@gigsync/protocol";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  AGENT_OFFERS,
   conceded,
   drawStrategy,
   type Mandate,
@@ -62,7 +63,7 @@ describe("hidden strategies", () => {
       expect(within(s.opening, role === R.provider ? ranges.position : ranges.share)).toBe(true);
       expect(Number.isInteger(s.horizon) && within(s.horizon, ranges.horizon)).toBe(true);
       expect(within(s.closeness, ranges.closeness)).toBe(true);
-      expect(s.concede).toHaveLength(MAX_ROUNDS - 2);
+      expect(s.concede).toHaveLength(AGENT_OFFERS - 2);
       for (const c of s.concede) expect(within(c, ranges.concede)).toBe(true);
     }
   });

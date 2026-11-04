@@ -1,14 +1,14 @@
 import { type MessageKey, type Params, plural, questionText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { newPhone, open, Role, RUN, reveal, shoot, signIn, statusTag } from "./helpers.js";
+import { newPhone, open, Role, RUN, reveal, shoot, signIn, statusTag, textOf } from "./helpers.js";
 import { expand } from "./jobs.js";
 import { fillAsk, type Phone, publishCard, unlistCards } from "./journey.js";
 
 /**
- * The people take over from their agents (ADR 0053 §4), through the real screens and API: a household's budget far
- * below a carpenter's lowest rate, three offers each and no meeting, and the job waits for the carpenter under
- * Awaiting you with what to do. Ending it there ends it on both phones.
+ * The people take over from their agents (ADR 0053 §4–5), through the real screens and API: a household's budget far
+ * below a carpenter's lowest rate, five offers each and no meeting, and the job waits for both owners with what each
+ * may do. Ending it ends it on both phones, and the household can ask him again from Records.
  */
 
 const { en } = Lang.enum;
@@ -63,7 +63,16 @@ test("after three offers each without a deal, the carpenter decides, and ending 
   await answer.getByLabel(questionText(en, "problem")).fill("Wardrobe door off its hinge");
   await answer.getByRole("button", { name: say("job.send_answers") }).click();
 
-  // The carpenter's agent made its three offers: the job is his to decide, under Awaiting you. Before a deal he knows
+  // Her agent spoke last after five offers each: she is told, and may take his last price, but it is his turn.
+  await open(homePage, "nav.activity");
+  const hers = jobWith(homePage, names.worker);
+  const waits = hers.getByRole("group", { name: say("a11y.takeover") });
+  await reveal(homePage, waits);
+  await expect(waits).toContainText(say("decide.takeover_title"));
+  await expect(waits.getByRole("button", { name: textOf(en, "decide.accept_theirs") })).toBeVisible();
+  await expect(waits.getByLabel(say("decide.your_offer"))).toHaveCount(0);
+
+  // The carpenter's agent made its five offers: the job is his to decide, under Awaiting you. Before a deal he knows
   // her only as a customer.
   await open(workerPage, "nav.activity");
   const job = jobWith(workerPage, say("job.customer"));
@@ -72,7 +81,7 @@ test("after three offers each without a deal, the carpenter decides, and ending 
   await expect(decide).toContainText(say("decide.takeover_title"));
   await expect(decide.getByRole("button", { name: say("decide.end"), exact: true })).toBeVisible();
   await expect(decide.getByLabel(say("decide.your_offer"))).toBeVisible();
-  await shoot("take-over", { worker: workerPage }, FOLDER);
+  await shoot("take-over", { worker: workerPage, household: homePage }, FOLDER);
 
   await decide.getByRole("button", { name: say("decide.end"), exact: true }).click();
   // An ended talk leaves Activity for Records' Not completed, on both phones.
@@ -82,4 +91,9 @@ test("after three offers each without a deal, the carpenter decides, and ending 
     const notCompleted = page.locator("details").filter({ hasText: NOT_COMPLETED });
     await expect(statusTag(notCompleted.getByRole("article").first(), en, "status.cancelled")).toBeVisible();
   }
+  // She can ask him again, in a new chat that asks the time and budget afresh (ADR 0053 §5).
+  const ended = homePage.locator("details").filter({ hasText: NOT_COMPLETED }).getByRole("article").first();
+  await expect(ended.getByRole("button", { name: say("job.find_another"), exact: true })).toBeVisible();
+  await ended.getByRole("button", { name: say("job.ask_again", { name: names.worker }), exact: true }).click();
+  await expect(homePage.getByRole("log")).toContainText(say("need.start_to", { name: names.worker }));
 });

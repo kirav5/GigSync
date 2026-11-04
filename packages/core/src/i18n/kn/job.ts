@@ -108,4 +108,6 @@ export const job: Readonly<Record<keyof typeof en, string>> = {
   "job.send_review": "ಅಭಿಪ್ರಾಯ ಕಳುಹಿಸಿ",
   "job.note_placeholder": "ಗ್ರಾಹಕರಿಗೆ ಚಿಕ್ಕ ಸಂದೇಶ",
   "job.send_note": "ಸಂದೇಶ ಕಳುಹಿಸಿ",
+  "job.ask_again": "{name} ಅವರನ್ನು ಮತ್ತೆ ಕೇಳಿ",
+  "job.find_another": "ಬೇರೆಯವರನ್ನು ಹುಡುಕಿ",
 };

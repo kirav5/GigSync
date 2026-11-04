@@ -6,6 +6,7 @@ import {
   draftDetails,
   EVERY_DAY,
   type GigDevice,
+  type JobRecord,
   type NeedParts,
   type NeedState,
   type NeedTo,
@@ -27,6 +28,7 @@ import {
   type BoardProfile,
   type BoardWorker,
   coarsePoint,
+  isTrade,
   type Place,
   type SavedAddress,
   skillKey,
@@ -57,6 +59,14 @@ export const needToOf = ({ user, card }: ChosenWorker): NeedTo => ({
   name: card.display_name,
   trades: card.trades,
   skills: (card.skills ?? []).map((s) => ({ ...s, key: skillKey(s.text), workers: 1 })),
+});
+
+/** The worker of a job that ended without one, asked again in a new chat for the same work (ADR 0053 §5). */
+export const needToOfJob = (job: JobRecord, name: string): NeedTo => ({
+  user: job.engagement.counterpart,
+  name,
+  trades: isTrade(job.request.trade) ? [job.request.trade] : [],
+  skills: job.request.skill ? [{ ...job.request.skill, key: skillKey(job.request.skill.text), workers: 1 }] : [],
 });
 
 /**

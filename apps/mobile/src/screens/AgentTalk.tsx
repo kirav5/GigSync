@@ -18,6 +18,7 @@ import { jobPrice, money } from "../ui/places.js";
 import { Said } from "../ui/Said.js";
 import { DetailValue } from "./DetailValue.js";
 import { Explain } from "./terms/Explain.js";
+import { OfferTerms } from "./terms/OfferTerms.js";
 
 const S = EngagementStatus.enum;
 /** The note beside an offer far outside the job's estimate (ADR 0030 §5). */
@@ -67,7 +68,12 @@ export function AgentTalk({
   function line(s: TalkStep): ReactNode {
     switch (s.kind) {
       case TalkKind.request:
-        return mine(s.by) ? t("talk.request_mine", { name: them }) : t("talk.request_theirs", { name: them });
+        return (
+          <>
+            {mine(s.by) ? t("talk.request_mine", { name: them }) : t("talk.request_theirs", { name: them })}
+            <OfferTerms terms={s.terms} />
+          </>
+        );
       case TalkKind.questions:
         return (
           <>
@@ -105,9 +111,10 @@ export function AgentTalk({
         );
       case TalkKind.offer: {
         const price = jobPrice(lang, job.request, s.price_paise);
-        const said = mine(s.by) ? t("talk.offer_mine", { price }) : t("talk.offer_theirs", { name: them, price });
+        const said = mine(s.by)
+          ? t(s.owner ? "talk.offer_mine_owner" : "talk.offer_mine", { price })
+          : t(s.owner ? "talk.offer_theirs_owner" : "talk.offer_theirs", { name: them, price });
         const range = job.estimate && { low: money(job.estimate.low_paise), high: money(job.estimate.high_paise) };
-        const terms = termsLines(lang, s.terms).join(LIST);
         return (
           <>
             {said}
@@ -117,7 +124,7 @@ export function AgentTalk({
                 {t(NOTE[s.note], range)}
               </span>
             )}
-            {terms && <span className="offer-terms">{t("terms.proposed", { terms })}</span>}
+            <OfferTerms terms={s.terms} changed={s.changed} />
             <Explain device={device} job={job} index={s.index} them={them} />
           </>
         );

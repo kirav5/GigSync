@@ -1,4 +1,4 @@
-import { MAX_ROUNDS, Role } from "@gigsync/protocol";
+import { Role } from "@gigsync/protocol";
 import type { Random } from "../ports.js";
 
 /**
@@ -70,8 +70,11 @@ export const TACTIC_RANGES: Readonly<Record<Tactic, TacticRanges>> = {
   },
 };
 
-/** Each agent's own offers before its owner takes over (ADR 0053 §4); the protocol allows `MAX_ROUNDS` a side. */
-export const AGENT_OFFERS = 3;
+/**
+ * Each agent's own offers before its owner takes over (ADR 0053 §4). The protocol allows `MAX_ROUNDS` a side; the
+ * rest are the owner's, to a phone that takes them.
+ */
+export const AGENT_OFFERS = 5;
 
 /** One job's hidden settings, stored on the job record only. */
 export interface Strategy {
@@ -97,8 +100,8 @@ const drawWhole = (random: Random, [low, high]: Range): number =>
 export function drawStrategy(role: Role, tactic: Tactic, random: Random): Strategy {
   const ranges = TACTIC_RANGES[tactic];
   const opening = draw(random, role === Role.enum.provider ? ranges.position : ranges.share);
-  // One share per step between offers; the last offer is the limit itself, so there are at most MAX_ROUNDS - 2.
-  const concede = Array.from({ length: MAX_ROUNDS - 2 }, () => draw(random, ranges.concede));
+  // One share per step between offers; the last offer is the limit itself, so there are at most AGENT_OFFERS - 2.
+  const concede = Array.from({ length: AGENT_OFFERS - 2 }, () => draw(random, ranges.concede));
   return {
     tactic,
     opening,

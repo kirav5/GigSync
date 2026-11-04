@@ -29,8 +29,18 @@ export const DetailKey = z.string().regex(/^[a-z][a-z_]{0,31}$/, "detail key");
 const shortText = z.string().min(1).max(300);
 const SLOT_MAX = 100;
 export const SCOPE_MAX = 500;
-/** Offers stop after this many rounds per side; then the agents hand the decision back to their owners. */
-export const MAX_ROUNDS = 5;
+/**
+ * Offers a side may make in all (ADR 0053 §4): its agent's `AGENT_OFFERS`, then two of its owner's own. A phone below
+ * `OWNER_OFFERS_PROTOCOL` refuses an offer past `ROUNDS_BEFORE_OWNERS`, so a side sends more only to phones above it.
+ */
+export const MAX_ROUNDS = 7;
+/** The offers a side may make to a phone below `OWNER_OFFERS_PROTOCOL`, which refuses any past this. */
+export const ROUNDS_BEFORE_OWNERS = 5;
+/**
+ * The device capability number that takes offers up to `MAX_ROUNDS` a side. Includes PROBLEM_PROTOCOL (7) and
+ * everything before it.
+ */
+export const OWNER_OFFERS_PROTOCOL = 8;
 export const MAX_QUESTIONS = 5;
 
 /** `request`: the consumer's need, as their agent may share it. Their budget never leaves the phone. */
