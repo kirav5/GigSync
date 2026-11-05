@@ -10,7 +10,7 @@ function quantitiesField(r: RecordRowOut) {
 }
 
 /** One stored job from the caller's side: their role, the other party (null once they deleted theirs), the rest as kept. */
-function exportedJob(r: RecordRowOut, user: UserId, payments: ExportedPayment[]): ExportedJob {
+function exportedJob(r: RecordRowOut, user: UserId, payments: ExportedPayment[], hours: boolean): ExportedJob {
   const mine = r.worker_id === user ? Side.worker : Side.household;
   return {
     engagement: r.engagement_id,
@@ -18,7 +18,7 @@ function exportedJob(r: RecordRowOut, user: UserId, payments: ExportedPayment[])
     counterpart: mine === Side.worker ? r.household_id : r.worker_id,
     work: workOf(r),
     ...quantitiesField(r),
-    terms: termsOf(r),
+    terms: termsOf(r, hours),
     price_paise: r.price_paise,
     status: r.status,
     attested: r.attested,
@@ -30,15 +30,19 @@ function exportedJob(r: RecordRowOut, user: UserId, payments: ExportedPayment[])
   };
 }
 
-/** A page of the export from up to `limit + 1` rows: the extra row only says there is a next page. */
+/**
+ * A page of the export from up to `limit + 1` rows: the extra row only says there is a next page. `hours`: the caller's
+ * device reads start hours; an older one gets each time without its hour.
+ */
 export function exportPage(
   rows: RecordRowOut[],
   limit: number,
   user: UserId,
   payments: Map<EngagementId, ExportedPayment[]>,
+  hours = true,
 ): MyJobRecords {
   const page = rows.slice(0, limit);
-  const jobs = page.map((r) => exportedJob(r, user, payments.get(r.engagement_id) ?? []));
+  const jobs = page.map((r) => exportedJob(r, user, payments.get(r.engagement_id) ?? [], hours));
   const last = page.at(-1);
   return rows.length > limit && last ? { jobs, next: last.engagement_id } : { jobs };
 }

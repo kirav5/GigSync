@@ -180,6 +180,10 @@ test("a household's Find chats are kept: a sent need stays to read, new chats ke
       await expect(talkLog(page)).toContainText(say("need.ask.address"));
       await tell(page, "HSR");
       await skipPriceQuestions({ page, lang: en });
+      // A part of the day is not an hour (ADR 0053 §1): any time.
+      await talkLog(page)
+        .getByRole("button", { name: say("when.any_time"), exact: true })
+        .click();
       await talkLog(page)
         .getByRole("button", { name: say("flag.yes"), exact: true })
         .click();

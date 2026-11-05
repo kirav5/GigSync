@@ -113,3 +113,12 @@ export async function revokeDevice(db: Db, user: UserId, device: DeviceId, at: D
   await db.query("UPDATE sessions SET revoked_at = $2 WHERE device_id = $1 AND revoked_at IS NULL", [device, at]);
   return true;
 }
+
+/** The capability number the caller's own device reports; 0 when it is unknown or revoked. */
+export async function deviceProtocol(db: Db, device: DeviceId, user: UserId): Promise<number> {
+  const { rows } = await db.query<{ protocol: number }>(
+    "SELECT protocol FROM devices WHERE device_id = $1 AND user_id = $2 AND revoked_at IS NULL",
+    [device, user],
+  );
+  return rows[0]?.protocol ?? 0;
+}

@@ -87,6 +87,9 @@ export async function accept(ctx: JobContext, r: JobRecord, terms: JobTerms): Pr
 /** The owner signs the pending terms. Sends `agree`; if the other side already signed the same terms, it is agreed. */
 export async function sign(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
   if (!r.pending) throw new DealError("no terms to sign");
+  // Never a deal at a time that has passed (ADR 0053 §2), however long the deal waited for this signature.
+  const when = r.pending.terms?.when;
+  if (when && whenPassed(when, ctx.clock.now())) throw new DealError("that time has passed");
   if (await signingAnother(ctx, r)) throw new DealError("already signing with another worker for this need");
   // A worker never signs a time another job or a booking holds; their agent offers another (worker-time.ts).
   if (await timeTaken(ctx, r, r.pending.terms)) throw new DealError("time already taken");

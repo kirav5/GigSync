@@ -2,7 +2,8 @@ import { log } from "@gigsync/core/log";
 import { BoardProfile, BoardQuery, type BoardResult, type BoardSkills, UserId } from "@gigsync/protocol";
 import { Hono } from "hono";
 import { ApiError, type AppEnv, USER_PARAM, Var } from "../context.js";
-import { myCard, removeProfile, searchWorkers, upsertProfile, workerCard } from "../db/board.js";
+import { myCard, removeProfile, upsertProfile, workerCard } from "../db/board.js";
+import { searchWorkers } from "../db/board-search.js";
 import { transaction } from "../db/client.js";
 import { listSkills } from "../db/skills.js";
 

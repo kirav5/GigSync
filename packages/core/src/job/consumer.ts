@@ -18,6 +18,7 @@ import { answersFound } from "./answer.js";
 import type { JobContext } from "./context.js";
 import { accept, cancel, termsFor } from "./deal.js";
 import { AGENT_OFFERS, answering, askTime, counter, handOver, waitOnThem } from "./handover.js";
+import { speaksHours } from "./hours-gate.js";
 import { planHousehold } from "./household-plan.js";
 import { MoveKind, respond } from "./negotiate.js";
 import { AnswerSource, type JobRecord, type Need, type Suggested, TaskKind } from "./store.js";
@@ -31,7 +32,7 @@ export async function startRequest(ctx: JobContext, need: Need, worker: UserId):
   const now = ctx.clock.now();
   const at = now.toISOString();
   const id = `eng_${ulid(now.getTime())}` as EngagementId;
-  const terms = await speaksTerms(ctx, worker);
+  const [terms, hours] = await Promise.all([speaksTerms(ctx, worker), speaksHours(ctx, worker)]);
   const request: JobRequest = {
     trade: need.trade,
     ...(need.skill ? { skill: need.skill } : {}),
@@ -41,7 +42,7 @@ export async function startRequest(ctx: JobContext, need: Need, worker: UserId):
     ...(need.locality ? { locality: need.locality } : {}),
     details: need.details,
     lang: ctx.lang,
-    ...requestTerms(need, terms),
+    ...requestTerms(need, terms, hours),
   };
   const r: JobRecord = {
     engagement: {
@@ -59,7 +60,7 @@ export async function startRequest(ctx: JobContext, need: Need, worker: UserId):
     offers_made: 0,
     asked: false,
     ...(need.estimate ? { estimate: need.estimate } : {}),
-    terms: { on: terms },
+    terms: { on: terms, hours },
   };
   return ctx.send(r, K.request, request);
 }

@@ -1,7 +1,8 @@
-import { EVERY_DAY, type Lang, TermKey, type Terms, type TermWhen } from "@gigsync/protocol";
+import { DAY_HOURS, EVERY_DAY, type Lang, TermKey, type Terms, type TermWhen } from "@gigsync/protocol";
 import { type Fact, FactKind } from "../job/explain.js";
+import { AFTERNOON_FROM, EVENING_FROM } from "../schedule/windows.js";
 import { priceText } from "./reasons.js";
-import { LOCALE, plural, t } from "./t.js";
+import { LOCALE, type MessageKey, plural, t } from "./t.js";
 
 /**
  * Terms and offer explanations as the owner reads them, in their language (ADR 0033 §3–4). The day is written by the
@@ -13,14 +14,25 @@ const K = TermKey.enum;
 const LIST = ", ";
 /** Separates the sentences of an explanation. */
 const SENTENCE = " ";
+const NOON = 12;
 /** ISO days are calendar days: format them in UTC so no time zone moves them. */
 const DAY_FORMAT: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", timeZone: "UTC" };
 
-/** "2 Nov, morning", or "Every day, morning" for work done every day. */
+/** An hour on the clock in the owner's words, by the part of the day it is in: "2 pm", "दोपहर 2 बजे". */
+export function hourText(lang: Lang, hour: number): string {
+  // Midnight, as the end of a working day (24) or a start (0), reads as 12 in the morning's words.
+  const clock = hour % DAY_HOURS;
+  const key: MessageKey =
+    clock < AFTERNOON_FROM ? "hour.morning" : clock < EVENING_FROM ? "hour.afternoon" : "hour.evening";
+  return t(lang, key, { h: clock % NOON || NOON });
+}
+
+/** "2 Nov, 2 pm" with a start hour (ADR 0053 §1), else "2 Nov, morning"; "Every day, …" for work done every day. */
 export function whenText(lang: Lang, when: TermWhen): string {
   const day =
     when.day === EVERY_DAY ? t(lang, "when.daily") : new Date(when.day).toLocaleDateString(LOCALE[lang], DAY_FORMAT);
-  return t(lang, "terms.when", { day, window: t(lang, `terms.window.${when.window}`) });
+  const time = when.hour !== undefined ? hourText(lang, when.hour) : t(lang, `terms.window.${when.window}`);
+  return t(lang, "terms.when", { day, window: time });
 }
 
 /** One term's value as a phrase; undefined when the terms do not set it. */

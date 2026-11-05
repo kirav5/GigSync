@@ -1,5 +1,6 @@
 import { type Agree, CancelReason, type DeviceId, Role, type Terms } from "@gigsync/protocol";
 import { log } from "../log.js";
+import { whenPassed } from "../schedule/windows.js";
 import type { JobContext } from "./context.js";
 import * as deal from "./deal.js";
 import { type JobRecord, TaskKind } from "./store.js";
@@ -47,12 +48,18 @@ export async function onAgree(
 /** The worker taps Sign: signed, or offered at another time when this one is no longer free. */
 export async function confirm(ctx: JobContext, rules: WorkerRules | undefined, r: JobRecord): Promise<JobRecord> {
   const pending = r.pending;
-  if (!rules || !pending || !(await timeTaken(ctx, r, pending.terms))) return deal.sign(ctx, r);
+  if (!rules || !pending || !(await unavailable(ctx, r, pending.terms))) return deal.sign(ctx, r);
   return offerAnotherTime(ctx, rules, r, pending.terms, pending.price_paise);
 }
 
+/** A deal's time the worker can no longer sign: another job or a booking has it, or it has passed (ADR 0053 §2). */
+async function unavailable(ctx: JobContext, r: JobRecord, terms: Terms | undefined): Promise<boolean> {
+  const when = terms?.when;
+  return (when !== undefined && whenPassed(when, ctx.clock.now())) || timeTaken(ctx, r, terms);
+}
+
 /**
- * Every deal waiting for the worker's signature whose time is now taken (another job signed, a booking saved) is
+ * Every deal waiting for the worker's signature whose time is now taken or over (another job signed, a booking saved) is
  * offered at another time, so the owner is never shown two deals for one morning.
  */
 export async function reofferTaken(ctx: JobContext, rules: WorkerRules): Promise<void> {
@@ -61,7 +68,7 @@ export async function reofferTaken(ctx: JobContext, rules: WorkerRules): Promise
     const r = await ctx.store.job(task.engagement);
     const pending = r?.pending;
     if (!r || !pending || r.engagement.role !== Role.enum.provider) continue;
-    if (await timeTaken(ctx, r, pending.terms))
+    if (await unavailable(ctx, r, pending.terms))
       await offerAnotherTime(ctx, rules, r, pending.terms, pending.price_paise);
   }
 }

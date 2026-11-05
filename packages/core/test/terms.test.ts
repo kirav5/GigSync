@@ -8,6 +8,7 @@ import {
   householdStance,
   type JobRecord,
   MAX_OPTIONS,
+  spanOf,
   termDetails,
   workerStance,
   workHoursOf,
@@ -35,7 +36,7 @@ describe("the terms a worker's stance accepts and counters", () => {
   });
 
   it("never offers a time already booked, and moves the day at most DAYS_AHEAD later", () => {
-    const booked = workerStance({ windows: ["afternoon"] }, [afternoon], DAY);
+    const booked = workerStance({ windows: ["afternoon"] }, [spanOf(afternoon)], DAY);
     const options = counterOptions("when", morning, booked);
     expect(options).not.toContainEqual(afternoon);
     expect(options.length).toBeLessThanOrEqual(MAX_OPTIONS);
@@ -46,14 +47,14 @@ describe("the terms a worker's stance accepts and counters", () => {
     const days = ["2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05"];
     const full = workerStance(
       { windows: ["afternoon"] },
-      days.map((day) => ({ day, window: "afternoon" as const })),
+      days.map((day) => spanOf({ day, window: "afternoon" })),
     );
     const answer = answerTerms(T.painter, full, { when: morning });
     expect(answer).toMatchObject({ agreed: false, stuck: ["when"] });
   });
 
   it("a daily job booked in the morning blocks every morning", () => {
-    const busy = workerStance(undefined, [{ day: "daily", window: "morning" }], DAY);
+    const busy = workerStance(undefined, [spanOf({ day: "daily", window: "morning" })], DAY);
     expect(busy.accepts.when(morning)).toBe(false);
     expect(busy.accepts.when(afternoon)).toBe(true);
   });

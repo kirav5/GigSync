@@ -1,4 +1,4 @@
-import { plural, t } from "@gigsync/core";
+import { hourText, plural, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { skipPriceQuestions } from "./findChat.js";
@@ -7,7 +7,7 @@ import { cleanUpLater, type Phone, signBoth, unlistCards } from "./journey.js";
 
 /**
  * Terms besides the price through the real screens and API (ADR 0033 §3–5), with no model on either phone: the word
- * lists read the household's long description into chips it confirms, the agents settle the morning she asked for and
+ * lists read the household's long description into chips it confirms, the agents settle the hour she booked and
  * who buys the paint (the painter brings his own), the household signs the changed term itself, both see the terms
  * they signed, and every offer in the agents' talk says why it is what it is. A painter whose hours leave out the
  * morning is not listed at all since ADR 0050 §3, so the term the agents change is the paint, not the time.
@@ -19,7 +19,8 @@ const PAINTER = t(en, "trade.painter");
 const DESCRIPTION =
   "We just moved in and the walls are patchy. Please paint 2 rooms with 2 coats, " +
   "I will buy the paint myself. Tomorrow morning in HSR Layout.";
-const MORNING = t(en, "terms.window.morning");
+/** The hour she books out of "tomorrow morning" (ADR 0053 §1), which the terms then carry. */
+const NINE = hourText(en, 9);
 const PAINTER_BUYS = t(en, "terms.materials.worker");
 const SHE_BUYS = t(en, "terms.materials.household");
 
@@ -85,9 +86,10 @@ test("a long description becomes confirmed chips, the agents settle the terms, a
   await shoot("scope-chips", { household: homePage }, FOLDER);
   await tap(homePage, t(en, "terms.scope_ok"));
 
-  // Rooms, area, day and time were all in the words: after a price question (ADR 0041), the budget is next, beside
-  // the estimate for her scope.
+  // Rooms, area and day were all in the words: after a price question (ADR 0041) and the hour, which "morning" is not
+  // (ADR 0053 §1), the budget is next, beside the estimate for her scope.
   await skipPriceQuestions(home);
+  await tap(homePage, NINE);
   await expect(log).toContainText(t(en, "need.ask.budget"));
   // The suggested budget is the rate card's usual figure for the job (ADR 0041); she takes it, whatever it is.
   await log
@@ -118,7 +120,7 @@ test("a long description becomes confirmed chips, the agents settle the terms, a
   }
   await reveal(homePage, sign);
   const terms = sign.getByRole("list", { name: t(en, "terms.title") });
-  await expect(terms).toContainText(MORNING);
+  await expect(terms).toContainText(NINE);
   await expect(terms).toContainText(PAINTER_BUYS);
   await expect(terms).toContainText(plural(en, "terms.coats", 2));
   await expect(terms.locator("[data-changed]")).toContainText(SHE_BUYS);

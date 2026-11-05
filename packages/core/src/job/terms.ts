@@ -1,8 +1,6 @@
 import {
+  DAY_HOURS,
   EVERY_DAY,
-  ISO_WEEKDAYS,
-  type IsoWeekday,
-  isoWeekday,
   type JobTrade,
   MAX_COATS,
   MAX_HOURS,
@@ -14,9 +12,8 @@ import {
   type TermWhen,
   TimeWindow,
   TRADE_TERMS,
-  type WorkHours,
 } from "@gigsync/protocol";
-import { whenPassed } from "../schedule/windows.js";
+import { atHour, FIRST_HOUR, LAST_HOUR } from "../schedule/windows.js";
 
 /**
  * Negotiating the terms other than price (ADR 0033 §3), as plain data: each side has a stance (its own first choice
@@ -32,7 +29,7 @@ export const DAYS_AHEAD = 3;
 export const MAX_OPTIONS = 3;
 const MS_PER_DAY = 86_400_000;
 const ISO_DAY_LENGTH = 10;
-const WINDOWS = TimeWindow.options;
+export const WINDOWS = TimeWindow.options;
 
 /** The value one term holds, by its key. */
 export type TermValue<T extends TermKey> = NonNullable<Terms[T]>;
@@ -58,31 +55,19 @@ export interface TermsAnswer {
   stuck: TermKey[];
 }
 
-/** A worker's own preferences for terms, set on their card: when they work, who buys materials, a day's hours. */
-export interface TermPrefs {
-  /** Parts of the day they take work in; every part when unset. */
-  windows?: TimeWindow[];
-  /** ISO weekdays they work (1 Monday … 7 Sunday); every day when unset. On the card's public hours (ADR 0050). */
-  days?: IsoWeekday[];
-  /** Who they want to buy the materials; either when unset. */
-  materials?: MaterialsBy;
-  /** The most hours a day they take on; any when unset. */
-  max_hours?: number;
-}
-
 const addDays = (iso: string, days: number): string =>
   new Date(Date.parse(iso) + days * MS_PER_DAY).toISOString().slice(0, ISO_DAY_LENGTH);
 const dayGap = (a: string, b: string): number =>
   a === EVERY_DAY || b === EVERY_DAY ? 0 : Math.round((Date.parse(a) - Date.parse(b)) / MS_PER_DAY);
 const windowGap = (a: TimeWindow, b: TimeWindow) => Math.abs(WINDOWS.indexOf(a) - WINDOWS.indexOf(b));
-const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
+export const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
 
 /** Two values of one term are the same proposal. */
 export function sameTerm<T extends TermKey>(key: T, a: Terms[T], b: Terms[T]): boolean {
   if (a === undefined || b === undefined) return a === b;
   if (key !== K.when) return a === b;
   const [x, y] = [a as TermWhen, b as TermWhen];
-  return x.day === y.day && x.window === y.window;
+  return x.day === y.day && x.window === y.window && x.hour === y.hour;
 }
 
 /** Every value a term could take near `around`, with how far each is from it; the day only moves later. */
@@ -93,6 +78,12 @@ function candidates<T extends TermKey>(key: T, around: TermValue<T>): { value: T
     case K.when: {
       const w = around as TermWhen;
       const days = w.day === EVERY_DAY ? [EVERY_DAY] : range(0, DAYS_AHEAD).map((d) => addDays(w.day, d));
+      // A start hour moves by the hour (ADR 0053 §1); a part of the day by the part.
+      if (w.hour !== undefined) {
+        const at = w.hour;
+        const whens = days.flatMap((day) => range(FIRST_HOUR, LAST_HOUR).map((h) => atHour(day, h)));
+        return all(whens, (v: TermWhen) => dayGap(v.day, w.day) * DAY_HOURS + Math.abs((v.hour ?? at) - at));
+      }
       const whens = days.flatMap((day) => WINDOWS.map((window) => ({ day, window })));
       return all(whens, (v: TermWhen) => dayGap(v.day, w.day) * WINDOWS.length + windowGap(v.window, w.window));
     }
@@ -181,56 +172,7 @@ export function householdStance(wants: Terms, flexible: readonly TermKey[], work
   };
 }
 
-/**
- * The worker's stance, from their card's preferences and the work they have already agreed: a window they take work
- * in that is not booked, the materials they asked for, no more than their hours. Any number of coats: the price
- * follows them through the scope (`termDetails`). With a day to work on and preferred windows, they propose the first
- * free window when the household named none. With `now`, a time already over is never free (ADR 0053 §2).
- */
-export function workerStance(
-  prefs: TermPrefs | undefined,
-  booked: readonly TermWhen[],
-  day?: string,
-  now?: Date,
-): Stance {
-  const windows = prefs?.windows?.length ? prefs.windows : WINDOWS;
-  // A day the worker does not work (ADR 0050 §2) is never free; work every day is judged by its window alone.
-  const workDay = (d: string) => !prefs?.days?.length || d === EVERY_DAY || prefs.days.includes(isoWeekday(d));
-  const free = (w: TermWhen) =>
-    workDay(w.day) && windows.includes(w.window) && !booked.some((b) => clashes(b, w)) && !(now && whenPassed(w, now));
-  const first = day && prefs?.windows?.length ? windows.map((window) => ({ day, window })).find(free) : undefined;
-  const maxHours = prefs?.max_hours ?? MAX_HOURS;
-  return {
-    wants: {
-      ...(first ? { when: first } : {}),
-      ...(prefs?.materials ? { materials: prefs.materials } : {}),
-    },
-    accepts: {
-      when: free,
-      materials: (m) => prefs?.materials === undefined || m === prefs.materials,
-      coats: () => true,
-      hours: (h) => h <= maxHours,
-    },
-  };
-}
-
-/** Two times overlap: the same window on the same day, or on any day for work done every day. */
-export const clashes = (a: TermWhen, b: TermWhen): boolean =>
-  a.window === b.window && (a.day === b.day || a.day === EVERY_DAY || b.day === EVERY_DAY);
-
 /** The terms the owner asked for that the agreed terms change: the owner signs those themselves. */
 export function changedFromWants(wants: Terms, agreed: Terms | undefined): TermKey[] {
   return TermKey.options.filter((key) => wants[key] !== undefined && !sameTerm(key, agreed?.[key], wants[key]));
-}
-
-/**
- * The working hours a card shows (ADR 0050 §2), from the worker's preferences: the days and parts of the day they
- * take work, each every one when only the other is set; none when they set neither, which works any time.
- */
-export function workHoursOf(prefs: TermPrefs | undefined): WorkHours | undefined {
-  if (!prefs?.days?.length && !prefs?.windows?.length) return undefined;
-  return {
-    days: prefs.days?.length ? [...prefs.days] : [...ISO_WEEKDAYS],
-    windows: prefs.windows?.length ? [...prefs.windows] : [...TimeWindow.options],
-  };
 }

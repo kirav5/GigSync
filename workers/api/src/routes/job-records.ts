@@ -1,6 +1,7 @@
 import { log } from "@gigsync/core/log";
 import {
   EngagementId,
+  HOURS_PROTOCOL,
   JobRecordSubmit,
   JobStatusChange,
   RECORD_SUBMISSIONS_PER_HOUR,
@@ -9,6 +10,7 @@ import {
 } from "@gigsync/protocol";
 import { Hono } from "hono";
 import { ApiError, type AppEnv, ENGAGEMENT_PARAM, Var } from "../context.js";
+import { deviceProtocol } from "../db/devices.js";
 import { paymentsFor } from "../db/job-payments.js";
 import { partyOf, recordsPage, setStatus } from "../db/job-records.js";
 import { countHit, RateAction } from "../db/rate-windows.js";
@@ -73,7 +75,8 @@ jobRecords.get(Path.mine, async (c) => {
     db,
     rows.slice(0, page.data.limit).map((r) => r.engagement_id),
   );
-  const out = exportPage(rows, page.data.limit, user, payments);
+  const hours = (await deviceProtocol(db, c.get(Var.device), user)) >= HOURS_PROTOCOL;
+  const out = exportPage(rows, page.data.limit, user, payments, hours);
   log.info("job records exported", { requestId: c.get(Var.requestId), user, jobs: out.jobs.length });
   return c.json(out);
 });

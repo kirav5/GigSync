@@ -35,6 +35,7 @@ export const talk: Readonly<Record<keyof typeof en, string>> = {
   "decide.time_passed_other": "आपका माँगा समय निकल चुका है। {name} {when} आ सकते हैं।",
   "decide.accept_time": "हाँ, {when}",
   "decide.pick_time": "दूसरा समय चुनें",
+  "decide.pick_day": "दिन चुनें",
   "decide.pick_send": "यह समय भेजें",
   "a11y.takeover": "आपके एजेंट सहमत नहीं हो पाए",
   "a11y.new_time": "दूसरा समय",

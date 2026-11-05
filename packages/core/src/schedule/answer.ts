@@ -1,14 +1,13 @@
-import { type Booking, EVERY_DAY, type TermWhen } from "@gigsync/protocol";
+import { type Booking, EVERY_DAY, type Terms, type TermWhen } from "@gigsync/protocol";
 import { type Card, CardKind } from "../experts.js";
 import type { MessageKey } from "../i18n/t.js";
 import type { JobRecord } from "../job/store.js";
-import { bookedTimes } from "../job/taken.js";
-import { clashes } from "../job/terms.js";
+import { bookedTerms, bookedTimes } from "../job/taken.js";
 import { log } from "../log.js";
 import { Collection, type Storage } from "../ports.js";
 import { readSchedule, ScheduleAction, type ScheduleAsk } from "./read.js";
 import { isOn, listBookings, type NewBooking, removeBooking, saveBooking, upcoming } from "./store.js";
-import { bookingWhens, type Hours, type LocalNow } from "./windows.js";
+import { type Hours, type LocalNow, overlaps, spanOf } from "./windows.js";
 
 /**
  * The agent's answer to a message about the worker's schedule (ADR 0048): keep a booking, list what is coming, or take
@@ -23,16 +22,14 @@ const schedule = (key: MessageKey, bookings: Booking[] = [], jobs: TermWhen[] = 
   jobs,
 });
 
-/** Two stretches of a day share some minutes, on a day both fall on. */
-const overlaps = (a: Hours, b: Hours): boolean =>
-  (a.day === b.day || a.day === EVERY_DAY || b.day === EVERY_DAY) && a.start_min < b.end_min && b.start_min < a.end_min;
-
-/** What a new booking runs into: other bookings by their minutes, signed jobs by their part of the day. */
-function clashesWith(booking: Hours, bookings: readonly Booking[], jobs: readonly TermWhen[]) {
-  const mine = bookingWhens([booking]);
+/**
+ * What a new booking runs into: other bookings by their minutes; signed jobs from their start hour for their own hours
+ * a day, or by their part of the day.
+ */
+function clashesWith(booking: Hours, bookings: readonly Booking[], jobs: readonly (Terms & { when: TermWhen })[]) {
   return {
     bookings: bookings.filter((b) => overlaps(booking, b)),
-    jobs: jobs.filter((j) => mine.some((w) => clashes(w, j))),
+    jobs: jobs.filter((j) => overlaps(booking, spanOf(j.when, j.hours))).map((j) => j.when),
   };
 }
 
@@ -45,7 +42,7 @@ async function save(storage: Storage, ask: ScheduleAsk, at: Date, now: LocalNow)
   const { day, start_min, end_min, note } = ask;
   if (!day || start_min === undefined || end_min === undefined) return list(storage, ask, now);
   const booking: NewBooking = { day, start_min, end_min, ...(note ? { note } : {}) };
-  const [all, jobs] = await Promise.all([listBookings(storage), signedJobs(storage)]);
+  const [all, jobs] = await Promise.all([listBookings(storage), signedTerms(storage)]);
   const clash = clashesWith(booking, all, jobs);
   const saved = await saveBooking(storage, booking, at, now);
   const any = clash.bookings.length + clash.jobs.length > 0;
@@ -78,6 +75,11 @@ async function cancel(storage: Storage, ask: ScheduleAsk, now: LocalNow): Promis
 /** The times both sides signed for, from this owner's jobs. */
 async function signedJobs(storage: Storage): Promise<TermWhen[]> {
   return bookedTimes(await storage.list<JobRecord>(Collection.jobs));
+}
+
+/** The terms both sides signed that set a time: with each job's own hours a day. */
+async function signedTerms(storage: Storage) {
+  return bookedTerms(await storage.list<JobRecord>(Collection.jobs));
 }
 
 /** One message about the schedule in, one card out; `now` is the phone's own day and minute at `at`. */

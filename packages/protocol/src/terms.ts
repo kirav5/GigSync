@@ -15,6 +15,17 @@ import { JobTrade, Trade } from "./trade.js";
  */
 export const TERMS_PROTOCOL = 5;
 
+/**
+ * The device capability number that understands a start hour in `when` (ADR 0053 §1). A phone below it would drop the
+ * hour when it parses an offer and hash different terms when signing, so `when.hour` travels only when every device of
+ * the other side reports this number. Includes OWNER_OFFERS_PROTOCOL (8) and everything before it.
+ */
+export const HOURS_PROTOCOL = 9;
+/** Hours on the phone's clock: a start hour is 0–23; a worker's day ends at most at 24. */
+export const DAY_HOURS = 24;
+/** How long a job with a start hour and no hours of its own is taken to last, when two times may clash. */
+export const DEFAULT_JOB_HOURS = 2;
+
 /** Part of the day the work happens in. */
 export const TimeWindow = z.enum(["morning", "afternoon", "evening"]);
 export type TimeWindow = z.infer<typeof TimeWindow>;
@@ -35,10 +46,21 @@ export const MIN_HOURS = 1;
 export const MAX_HOURS = 12;
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 
-/** A day ("YYYY-MM-DD", or `EVERY_DAY`) and the part of it. */
+/** A start hour on the phone's clock, 0–23. */
+export const StartHour = z
+  .number()
+  .int()
+  .min(0)
+  .max(DAY_HOURS - 1);
+
+/**
+ * A day ("YYYY-MM-DD", or `EVERY_DAY`) and the part of it; between phones at `HOURS_PROTOCOL`, also the hour the work
+ * starts (ADR 0053 §1). `window` is then the part of the day that hour falls in, still sent for older phones.
+ */
 export const TermWhen = z.object({
   day: z.union([z.string().regex(ISO_DAY, "iso day"), z.literal(EVERY_DAY)]),
   window: TimeWindow,
+  hour: StartHour.optional(),
 });
 export type TermWhen = z.infer<typeof TermWhen>;
 

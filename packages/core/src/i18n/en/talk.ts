@@ -33,6 +33,7 @@ export const talk = {
   "decide.time_passed_other": "The time you asked for has passed. {name} can come {when}.",
   "decide.accept_time": "Yes, {when}",
   "decide.pick_time": "Pick another time",
+  "decide.pick_day": "Pick a day",
   "decide.pick_send": "Send this time",
   "a11y.takeover": "Your agents could not agree",
   "a11y.new_time": "A different time",

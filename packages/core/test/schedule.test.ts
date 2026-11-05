@@ -2,14 +2,15 @@ import { EVERY_DAY } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import {
   answerSchedule,
-  bookingWhens,
   CardKind,
   dueReminders,
   listBookings,
   localNow,
   MemoryStorage,
+  overlaps,
   removeBooking,
   saveBooking,
+  spanOf,
 } from "../src/index.js";
 import { Collection as Store } from "../src/ports.js";
 
@@ -94,14 +95,16 @@ describe("the bookings on the phone", () => {
 });
 
 describe("what bookings rule out and when they are reminded", () => {
-  it("covers each part of the day the minutes touch", () => {
-    expect(bookingWhens([{ day: TOMORROW, start_min: 690, end_min: 750 }])).toEqual([
-      { day: TOMORROW, window: "morning" },
-      { day: TOMORROW, window: "afternoon" },
-    ]);
-    expect(bookingWhens([{ day: EVERY_DAY, start_min: 1020, end_min: 1080 }])).toEqual([
-      { day: EVERY_DAY, window: "evening" },
-    ]);
+  it("clashes with a job by the minutes both take: its start hour and length, or its part of the day", () => {
+    const booking = { day: TOMORROW, start_min: 690, end_min: 750 };
+    expect(overlaps(booking, spanOf({ day: TOMORROW, window: "morning" }))).toBe(true);
+    expect(overlaps(booking, spanOf({ day: TOMORROW, window: "afternoon" }))).toBe(true);
+    expect(overlaps(booking, spanOf({ day: TOMORROW, window: "afternoon", hour: 13 }))).toBe(false);
+    expect(overlaps(booking, spanOf({ day: TOMORROW, window: "morning", hour: 10 }))).toBe(true);
+    expect(overlaps(booking, spanOf({ day: TOMORROW, window: "morning", hour: 9 }, 1))).toBe(false);
+    expect(
+      overlaps({ day: EVERY_DAY, start_min: 1020, end_min: 1080 }, spanOf({ day: TOMORROW, window: "evening" })),
+    ).toBe(true);
   });
 
   it("reminds a booking within half an hour of its start, daily work each day", async () => {

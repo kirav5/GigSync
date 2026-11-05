@@ -17,20 +17,14 @@ import type { Model } from "../ports.js";
 import { whenPassed } from "../schedule/windows.js";
 import type { JobContext } from "./context.js";
 import { countIn } from "./details.js";
+import { hoursOn, withHours } from "./hours-gate.js";
 import { type Move, MoveKind } from "./negotiate.js";
 import type { JobRecord, Need } from "./store.js";
 import { takenTimes } from "./taken.js";
-import {
-  answerTerms,
-  changedFromWants,
-  householdStance,
-  sameTerm,
-  type TermPrefs,
-  type TermsAnswer,
-  workerStance,
-} from "./terms.js";
+import { answerTerms, changedFromWants, householdStance, sameTerm, type TermsAnswer } from "./terms.js";
 import { chooseTerm } from "./terms-model.js";
 import { dayOf } from "./when.js";
+import { type TermPrefs, workerStance } from "./worker-stance.js";
 
 /**
  * The terms path of a job (ADR 0033 §3), between the agents' price moves: whether this job's offers carry terms at
@@ -41,10 +35,14 @@ import { dayOf } from "./when.js";
 const Q = QuestionKey.enum;
 const R = Role.enum;
 
-/** On a job: whether both phones understand terms, and the terms this side proposes next. Never sent as is. */
+/**
+ * On a job: whether both phones understand terms, the terms this side proposes next, and whether its times carry a
+ * start hour (`hours`, ADR 0053 §1). Never sent as is.
+ */
 export interface TermsTrack {
   on: boolean;
   next?: Terms;
+  hours?: boolean;
 }
 
 /** Whether every phone of `user` understands terms; false when unsure, so an older phone never stalls. */
@@ -60,8 +58,9 @@ export async function speaksTerms(ctx: JobContext, user: UserId): Promise<boolea
 export const termsOn = (ctx: JobContext, r: JobRecord): Promise<boolean> =>
   r.terms ? Promise.resolve(r.terms.on) : speaksTerms(ctx, r.engagement.counterpart);
 
-/** The terms this side proposes next, on a job whose offers carry them. */
-export const nextTerms = (r: JobRecord): Terms | undefined => (r.terms?.on ? r.terms.next : undefined);
+/** The terms this side proposes next, on a job whose offers carry them; a start hour only if both phones read it. */
+export const nextTerms = (r: JobRecord): Terms | undefined =>
+  r.terms?.on ? withHours(r.terms.next, r.terms.hours) : undefined;
 
 /**
  * A price move held back by terms still apart: an acceptable price is offered back as it stands, with this side's
@@ -176,15 +175,16 @@ export async function workerTerms(
   if (termsUnanswered(mine, theirs)) return { r: { ...r, terms: { on: false } }, agreed: true };
   const busy = await takenTimes(ctx, r.engagement.id);
   const now = ctx.clock.now();
-  const stance = workerStance(prefs, busy, dayOf(r.request), now);
+  const hours = await hoursOn(ctx, r, theirs);
+  const stance = workerStance(prefs, busy, dayOf(r.request), now, theirs?.hours ?? r.request.terms?.hours);
   const fitted = theirs && fitTerms(trade, theirs);
   // A time asked for that is over is the household's to replace (ADR 0053 §2), never a reason for no deal: the
   // worker's agent leaves it out, and the household's owner is asked for a new one.
   const asked = fitted?.when && whenPassed(fitted.when, now) ? Terms.parse({ ...fitted, when: undefined }) : fitted;
   const answer = answerTerms(trade, stance, asked);
   // The worker wrote nothing for this job; the household's words let the model suit them, inside the list.
-  const next = await chosen(ctx.model, answer, undefined, r.request.need);
-  const moved = withTermDetails({ ...r, terms: { on, next } }, next);
+  const next = withHours(await chosen(ctx.model, answer, undefined, r.request.need), hours);
+  const moved = withTermDetails({ ...r, terms: { on, next, hours } }, next);
   return { r: moved, agreed: answer.agreed, stuck: answer.stuck.length > 0 };
 }
 
@@ -205,11 +205,15 @@ const householdLast = (r: JobRecord): Terms | undefined =>
   r.offers.filter((o) => o.by === R.requester).at(-1)?.offer.terms ?? r.request.terms;
 
 /** What the household asks for on this job: its need's terms, with the time its owner accepted or picked here. */
-export const householdWants = (need: Need, r: JobRecord): Terms => ({
-  ...detailTerms(need.trade, need.details),
-  ...need.terms,
-  ...(r.time ? { when: r.time } : {}),
-});
+export const householdWants = (need: Need, r: JobRecord): Terms =>
+  withHours(
+    {
+      ...detailTerms(need.trade, need.details),
+      ...need.terms,
+      ...(r.time ? { when: r.time } : {}),
+    },
+    r.terms?.hours,
+  );
 
 /** The household's agent answers the worker's terms, from its owner's own words and chips (`Need.terms`). */
 export async function householdTerms(
@@ -222,12 +226,14 @@ export async function householdTerms(
   if (!on) return { r: r.terms ? r : { ...r, terms: { on } }, agreed: true };
   if (termsUnanswered(householdLast(r), theirs)) return { r: { ...r, terms: { on: false } }, agreed: true };
   const trade = r.request.trade;
-  const wants = householdWants(need, r);
+  const hours = await hoursOn(ctx, r);
+  const wants = householdWants(need, { ...r, terms: { on, hours } });
   const stance = householdStance(wants, need.flexible ?? [], workerBefore(r));
-  const fitted = theirs && fitTerms(trade, theirs);
+  // A job without hours never compares the worker's time by an hour it cannot keep.
+  const fitted = withHours(theirs && fitTerms(trade, theirs), hours);
   const answer = answerTerms(trade, stance, fitted);
-  const next = await chosen(ctx.model, answer, need.need);
-  const moved = { ...r, terms: { on, next } };
+  const next = withHours(await chosen(ctx.model, answer, need.need), hours);
+  const moved = { ...r, terms: { on, next, hours } };
   const time = timeAsk(wants.when, fitted?.when, stance.accepts.when, ctx.clock.now());
   return { r: moved, agreed: answer.agreed && !time, ...(time ? { time } : {}) };
 }
@@ -260,6 +266,6 @@ export async function mustReview(ctx: JobContext, r: JobRecord, terms: Terms | u
 }
 
 /** The household's terms for its request: the owner's, to a worker whose phones understand them. */
-export function requestTerms(need: Need, on: boolean): { terms?: Terms } {
-  return on ? termsField(need.trade, need.terms) : {};
+export function requestTerms(need: Need, on: boolean, hours: boolean): { terms?: Terms } {
+  return on ? termsField(need.trade, withHours(need.terms, hours)) : {};
 }

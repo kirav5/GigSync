@@ -35,8 +35,8 @@ import { type Mandate, MoveKind, priceAt, respond } from "./negotiate.js";
 import { type JobRecord, TaskKind } from "./store.js";
 import { drawStrategy, type Strategy } from "./strategy.js";
 import { usualTactic } from "./tactic.js";
-import type { TermPrefs } from "./terms.js";
 import { nextTerms, termsField, withTermDetails, withTerms, workerTerms } from "./terms-flow.js";
+import type { TermPrefs } from "./worker-stance.js";
 
 /** The standard questions live with the rest of the asking; screens and the interview read them from here. */
 export { QUESTIONS } from "./ask.js";

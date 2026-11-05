@@ -96,6 +96,47 @@ describe("both owners acting at once", () => {
   });
 });
 
+describe("a time that passes while nobody writes", () => {
+  it("goes to the household on its turn, replacing the decision it had", async () => {
+    let at = new Date("2026-11-03T03:30:00Z");
+    const clock: Clock = { now: () => at };
+    const painter: WorkerRules = {
+      trades: [Trade.enum.painter],
+      rate: { opening_paise: 2_000_000, limit_paise: 1_200_000 },
+      base: BENGALURU,
+      radius_km: 10,
+      terms: { windows: ["morning"] },
+    };
+    const p = await pair(painter, clock);
+    const [job] = await p.home.device.request(
+      {
+        trade: Trade.enum.painter,
+        need: "Paint my 2BHK",
+        when: DAY,
+        area: { lat: 12.975, lon: 77.645 },
+        details: { rooms: "2", labour_only: "yes", day: DAY },
+        budget: { opening_paise: 300_000, limit_paise: 500_000 },
+        terms: { when: morning },
+      },
+      [p.work.user],
+    );
+    const id = job?.engagement.id as EngagementId;
+    await p.talk();
+    // His own offer makes it her turn: she has the decision, for the morning of the 10th.
+    await p.work.device.talks.offer(id, 1_500_000);
+    await p.talk();
+    expect((await p.home.device.tasks()).map((t) => t.kind)).toEqual([TaskKind.takeOver]);
+    at = new Date(`${DAY}T13:00:00Z`);
+    await p.home.device.sync();
+    expect((await p.home.device.tasks()).map((t) => [t.kind, t.detail])).toEqual([
+      [TaskKind.newTime, { passed: true }],
+    ]);
+    // Once asked, it is not asked again.
+    await p.home.device.sync();
+    expect(await p.home.device.tasks()).toHaveLength(1);
+  });
+});
+
 describe("the offers the other phone takes", () => {
   const record = (offers_made: number) => ({ offers_made, engagement: { counterpart: RAVI } }) as unknown as JobRecord;
 

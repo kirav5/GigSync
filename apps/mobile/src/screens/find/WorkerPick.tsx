@@ -4,7 +4,7 @@ import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { areaLabel, money, unitKey } from "../../ui/places.js";
 import { Said } from "../../ui/Said.js";
-import { cardWork } from "../../ui/work.js";
+import { cardHours, cardWork } from "../../ui/work.js";
 import { cardLang, languageNames } from "../qr/cardWords.js";
 import { RecordStats } from "../qr/RecordStats.js";
 
@@ -28,7 +28,9 @@ export function WorkerPick({
   disabled?: boolean;
   onToggle: () => void;
 }) {
-  const { lang, t } = useI18n();
+  const i18n = useI18n();
+  const { lang, t } = i18n;
+  const hours = cardHours(i18n, w.work_hours);
   const record = shownRecord(w);
   const rate = arrangement && w.arrangements?.find((a) => a.arrangement === arrangement);
   const price = rate
@@ -53,6 +55,7 @@ export function WorkerPick({
             {cardWork(t, w)} · {areaLabel(lang, w.area_name)} · {t("find.distance", { km: w.distance_km })}
           </span>
           {w.languages.length > 0 && <span className={C.faint}>{languageNames(w.languages, t)}</span>}
+          {hours && <span className={C.faint}>{hours}</span>}
         </div>
         <span className={`${C.money} end`}>{price}</span>
       </div>
