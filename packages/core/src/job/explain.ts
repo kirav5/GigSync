@@ -64,7 +64,7 @@ function usualOf(job: JobRecord): Fact | undefined {
 }
 
 /** The terms an offer proposes that differ from the other side's last proposal before it. */
-function changedTerms(job: JobRecord, index: number): TermKey[] {
+export function changedTerms(job: JobRecord, index: number): TermKey[] {
   const { by, offer } = job.offers[index] ?? {};
   if (!offer?.terms) return [];
   const before = lastBefore(job, index, (b) => b !== by)?.terms ?? job.request.terms;

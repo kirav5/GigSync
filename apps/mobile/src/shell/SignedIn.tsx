@@ -1,4 +1,4 @@
-import type { Agent, GigDevice, Ports } from "@gigsync/core";
+import type { Agent, GigDevice, NeedTo, Ports } from "@gigsync/core";
 import type { City, QrCode, UserId } from "@gigsync/protocol";
 import { type RefObject, useCallback, useEffect, useState } from "react";
 import { type Account, AccountRole } from "../adapters/account.js";
@@ -132,6 +132,11 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
     /** A worker chosen from their QR or their offer: a new Find chat, addressed to them alone. */
     askFor: (worker: ChosenWorker) => {
       startFindChat(needToOf(worker));
+      setScreen(Screen.find);
+    },
+    /** A job that ended without the work: the same worker asked again, or anyone (ADR 0053 §5). */
+    findFor: (to?: NeedTo) => {
+      startFindChat(to);
       setScreen(Screen.find);
     },
     signOut: onSignOut,

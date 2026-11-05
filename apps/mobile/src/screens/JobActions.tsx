@@ -3,6 +3,7 @@ import {
   type GigDevice,
   type JobRecord,
   type MessageKey,
+  type NeedTo,
   nextWorkerStep,
   TaskKind,
   termsLines,
@@ -29,6 +30,7 @@ import { requestWork } from "../ui/work.js";
 import type { GigView } from "../useGig.js";
 import { AnswerForm } from "./AnswerForm.js";
 import { ApproveCard, type ApproveDetail, SignCard } from "./JobDecide.js";
+import { AskAgain } from "./job/AskAgain.js";
 import { CancelJob } from "./job/CancelJob.js";
 import { TalkDecide } from "./job/TalkDecide.js";
 
@@ -39,6 +41,8 @@ export interface JobActionProps {
   run: (work: () => Promise<unknown>) => Promise<unknown>;
   /** Opens About me to add a UPI ID. The worker's Today passes it; the consumer's My jobs has no use for it. */
   onAddPayee?: () => void;
+  /** Opens a new Find chat, for the same worker or anyone: a household's Records passes it for jobs that ended. */
+  onAgain?: (to?: NeedTo) => void;
 }
 
 const S = EngagementStatus.enum;
@@ -61,7 +65,7 @@ const SAY_PAUSE = ". ";
  * button that reads it aloud (committing stays a tap), then the work, the money and the note box. `them` is the
  * other side's name as the card shows it.
  */
-export function JobActions({ job, view, device, run, onAddPayee, them }: JobActionProps & { them: string }) {
+export function JobActions({ job, view, device, run, onAddPayee, onAgain, them }: JobActionProps & { them: string }) {
   const { lang, t } = useI18n();
   const id = job.engagement.id;
   const status = job.engagement.status;
@@ -80,6 +84,7 @@ export function JobActions({ job, view, device, run, onAddPayee, them }: JobActi
   return (
     <div className={C.stack}>
       <TalkDecide job={job} view={view} device={device} run={run} them={them} />
+      {onAgain && <AskAgain job={job} them={them} onAgain={onAgain} />}
       {approve && (
         <ApproveCard
           detail={approve.detail as ApproveDetail}

@@ -106,4 +106,6 @@ export const job = {
   "job.send_review": "Send review",
   "job.note_placeholder": "A short note to the customer",
   "job.send_note": "Send note",
+  "job.ask_again": "Ask {name} again",
+  "job.find_another": "Find someone else",
 } as const;

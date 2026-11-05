@@ -62,7 +62,17 @@ export interface JobRecord {
   pending?: JobTerms | undefined;
   /** The time the household's owner accepted or picked for this job (ADR 0053 §3), over the need's. */
   time?: TermWhen;
+  /**
+   * The offers this side may make in all, once the owners take over: `MAX_ROUNDS` when the other side's phone takes
+   * them, else `ROUNDS_BEFORE_OWNERS` (ADR 0053 §4). Unset until then.
+   */
+  rounds?: number;
   mine?: Agree;
+  /**
+   * This side's earlier signatures in the talk, overtaken by a newer offer before the other side answered (ADR 0053
+   * §4): their countersignature on one of them still makes the deal.
+   */
+  signed?: Agree[];
   theirs?: Agree;
   /** The other party's contact card: only ever set once both have signed the same terms. */
   contact?: ContactCard | undefined;

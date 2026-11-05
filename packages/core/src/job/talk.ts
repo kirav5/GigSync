@@ -1,6 +1,7 @@
-import { type CancelReason, Question, Role, type Terms } from "@gigsync/protocol";
+import { type CancelReason, Question, Role, type TermKey, type Terms } from "@gigsync/protocol";
 import { type OfferNote, offerNote } from "../estimate/note.js";
 import { QUESTIONS } from "./ask.js";
+import { changedTerms } from "./explain.js";
 import type { AnswerSource, JobRecord } from "./store.js";
 
 /** One thing that happened between the two agents, and the owners' signatures that closed it. */
@@ -23,14 +24,26 @@ export interface TalkAnswer {
 }
 
 export type TalkStep =
-  | { kind: typeof TalkKind.request; by: Role }
+  /** `terms`: what the household asked for besides the price, as its agent sent them. */
+  | { kind: typeof TalkKind.request; by: Role; terms?: Terms }
   | { kind: typeof TalkKind.questions; by: Role; questions: Question[] }
   | { kind: typeof TalkKind.answers; by: Role; answers: TalkAnswer[] }
   /**
    * `note`: the offer is far outside the job's estimate, as this owner sees it (ADR 0030 §5); never a block. `index`:
-   * the offer's place in the job, for its explanation (`offerFacts`). `terms`: what it proposed besides the price.
+   * the offer's place in the job, for its explanation (`offerFacts`). `terms`: what it proposed besides the price;
+   * `changed`: which of them differ from the other side's last proposal (ADR 0053 §6). `owner`: an owner made it, not
+   * their agent.
    */
-  | { kind: typeof TalkKind.offer; by: Role; price_paise: number; index: number; note?: OfferNote; terms?: Terms }
+  | {
+      kind: typeof TalkKind.offer;
+      by: Role;
+      price_paise: number;
+      index: number;
+      note?: OfferNote;
+      terms?: Terms;
+      changed: TermKey[];
+      owner: boolean;
+    }
   | { kind: typeof TalkKind.agreed; price_paise: number; terms?: Terms }
   | { kind: typeof TalkKind.signed; by: Role }
   | { kind: typeof TalkKind.contacts }
@@ -69,7 +82,8 @@ function answersOf(job: JobRecord, questions: readonly Question[]): TalkAnswer[]
  * ended. Private limits are never in it: they were never sent.
  */
 export function agentTalk(job: JobRecord): TalkStep[] {
-  const steps: TalkStep[] = [{ kind: TalkKind.request, by: R.requester }];
+  const asked = job.request.terms ? { terms: job.request.terms } : {};
+  const steps: TalkStep[] = [{ kind: TalkKind.request, by: R.requester, ...asked }];
   const questions = questionsOf(job);
   if (questions.length > 0) {
     steps.push({ kind: TalkKind.questions, by: R.provider, questions });
@@ -86,6 +100,8 @@ export function agentTalk(job: JobRecord): TalkStep[] {
       index,
       ...(note ? { note } : {}),
       ...terms,
+      changed: changedTerms(job, index),
+      owner: offer.owner === true,
     });
   });
   const signed = job.mine ?? job.theirs;

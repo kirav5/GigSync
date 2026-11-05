@@ -1,4 +1,4 @@
-import type { Agent, GigDevice, Ports } from "@gigsync/core";
+import type { Agent, GigDevice, NeedTo, Ports } from "@gigsync/core";
 import type { City, QrCode, UserId } from "@gigsync/protocol";
 import { type Account, AccountRole } from "../adapters/account.js";
 import type { ChosenWorker } from "../find/ask.js";
@@ -49,6 +49,8 @@ export interface ScreenMoves {
   showLink: (user: UserId) => void;
   showPerson: (code: QrCode) => void;
   askFor: (worker: ChosenWorker) => void;
+  /** A new Find chat, addressed to one worker or open to anyone. */
+  findFor: (to?: NeedTo) => void;
   /** Signs this owner out of this phone. */
   signOut: () => void;
 }
@@ -105,7 +107,7 @@ function Activity({ d, m }: { d: ScreenData; m: ScreenMoves }) {
 function Records({ d, m }: { d: ScreenData; m: ScreenMoves }) {
   const { account, view, device, run } = d;
   if (account.role === AccountRole.consumer)
-    return <HouseholdRecords view={view} me={account.session.user} device={device} run={run} />;
+    return <HouseholdRecords view={view} me={account.session.user} device={device} run={run} onAgain={m.findFor} />;
   return (
     <WorkerRecords account={account} view={view} device={device} run={run} onAddPayee={() => m.go(Screen.about)} />
   );

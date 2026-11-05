@@ -1,6 +1,6 @@
 import type { EngagementId } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import { settle, TaskKind } from "../src/index.js";
+import { AGENT_OFFERS, settle, TaskKind } from "../src/index.js";
 import { electrician, fanNeed, MemoryRelay, PRIYA, phone, RAVI } from "./phones.js";
 
 const status = async (d: { job(id: never): Promise<{ engagement: { status: string } }> }, id: string) =>
@@ -47,16 +47,17 @@ describe("a job between two phones", () => {
     expect(JSON.stringify(relay.stored)).not.toContain("9800000101");
   });
 
-  it("hands a budget below the worker's minimum to the worker after three offers, who ends it: no deal", async () => {
+  it("hands a budget below the worker's minimum to both owners after five offers each; the worker ends it", async () => {
     const relay = new MemoryRelay();
     const worker = await phone(relay, RAVI, { worker: electrician(60000) });
     const consumer = await phone(relay, PRIYA);
     const [job] = await consumer.device.request(fanNeed(45000, { problem: "dead" }), [worker.user]);
     const id = job?.engagement.id as EngagementId;
     await settle([consumer.device, worker.device]);
-    // Three offers each and no meeting: the agents stop and the worker's owner decides (ADR 0053 §4).
-    expect((await worker.device.job(id)).offers_made).toBe(3);
+    // Five offers each and no meeting: the agents stop; the worker's owner decides, and hers is told (ADR 0053 §4).
+    expect((await worker.device.job(id)).offers_made).toBe(AGENT_OFFERS);
     expect((await worker.device.tasks()).map((t) => t.kind)).toEqual([TaskKind.takeOver]);
+    expect((await consumer.device.tasks()).map((t) => t.detail)).toEqual([{ waiting: true }]);
     await worker.device.talks.end(id);
     await settle([consumer.device, worker.device]);
     const c = await consumer.device.job(id);

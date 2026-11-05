@@ -17,7 +17,7 @@ import { ulid } from "ulid";
 import { answersFound } from "./answer.js";
 import type { JobContext } from "./context.js";
 import { accept, cancel, termsFor } from "./deal.js";
-import { AGENT_OFFERS, askTime, clearTalkTasks, counter, handOver } from "./handover.js";
+import { AGENT_OFFERS, answering, askTime, counter, handOver, waitOnThem } from "./handover.js";
 import { planHousehold } from "./household-plan.js";
 import { MoveKind, respond } from "./negotiate.js";
 import { AnswerSource, type JobRecord, type Need, type Suggested, TaskKind } from "./store.js";
@@ -122,8 +122,8 @@ const mapValues = <T, U>(o: Readonly<Record<string, T>>, f: (v: T) => U): Record
  * The worker quoted: accept, or counter one step. A time the household did not ask for, or one that has passed, waits
  * for its owner; so does a talk its agent has made its offers in (ADR 0053 §3–4).
  */
-export async function onQuote(ctx: JobContext, need: Need, r: JobRecord, offer: Offer): Promise<JobRecord> {
-  await clearTalkTasks(ctx, r);
+export async function onQuote(ctx: JobContext, need: Need, found: JobRecord, offer: Offer): Promise<JobRecord> {
+  const r = await answering(ctx, found);
   const planned = await planHousehold(ctx, need, r);
   const quoted = { ...planned, offers: [...r.offers, { by: R.provider, offer }] };
   const termed = await householdTerms(ctx, need, quoted, offer.terms);
@@ -136,5 +136,5 @@ export async function onQuote(ctx: JobContext, need: Need, r: JobRecord, offer: 
   // Its own offers used, the agent never walks away on its owner's behalf: a last offer reaches a person (ADR 0053 §4).
   if (r.offers_made >= AGENT_OFFERS) return handOver(ctx, withOffer);
   if (move.kind === MoveKind.walk) return cancel(ctx, withOffer, { reason: CancelReason.enum.no_deal });
-  return counter(ctx, withOffer, move.price_paise);
+  return waitOnThem(ctx, await counter(ctx, withOffer, move.price_paise));
 }

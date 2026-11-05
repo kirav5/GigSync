@@ -20,7 +20,7 @@ import { log } from "../log.js";
 import { remember } from "../memory/remember.js";
 import { whenPassed } from "../schedule/windows.js";
 import type { JobContext } from "./context.js";
-import { askTime, handOver } from "./handover.js";
+import { askTime, clearTalkTasks, handOver } from "./handover.js";
 import { type JobRecord, type Need, TaskKind } from "./store.js";
 import { timeTaken } from "./taken.js";
 import { mustReview, termsField } from "./terms-flow.js";
@@ -93,7 +93,9 @@ export async function sign(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
   const hash = termsHash(r.pending);
   const mine: Agree = { terms: r.pending, terms_hash: hash, sig: toBase64(await ctx.keys.sign(agreeBytes(hash))) };
   await ctx.store.removeTask(TaskKind.confirmDeal, r.engagement.id);
-  const sent = await ctx.send({ ...r, mine, pending: undefined }, K.agree, mine);
+  // A signature this one overtakes may still be countersigned by the other side: keep it (ADR 0053 §4).
+  const signed = r.mine && r.mine.terms_hash !== hash ? { signed: [...(r.signed ?? []), r.mine] } : {};
+  const sent = await ctx.send({ ...r, ...signed, mine, pending: undefined }, K.agree, mine);
   return sent.engagement.status === S.agreed ? onAgreed(ctx, sent) : sent;
 }
 
@@ -121,26 +123,53 @@ const cardAfterCancel = (r: JobRecord) => (isArrangement(r) && r.theirs ? r.cont
  */
 export async function onAgree(ctx: JobContext, r: JobRecord, theirs: Agree, from: DeviceId): Promise<JobRecord> {
   const key = await ctx.signingKeyOf(r.engagement.counterpart, from);
-  const offer = r.offers.find((o) => o.offer.offer_id === theirs.terms.offer_id);
+  const at = r.offers.findIndex((o) => o.offer.offer_id === theirs.terms.offer_id);
+  const offer = r.offers[at];
   // Either they countersign what this side signed, or they sign first, accepting an offer this side made.
   const countersigns = r.mine?.terms_hash === theirs.terms_hash;
-  const acceptsMyOffer = !r.mine && offer?.by === r.engagement.role;
+  const earlier = r.signed?.find((a) => a.terms_hash === theirs.terms_hash);
+  const mineOffered = offer?.by === r.engagement.role;
+  // Both owners signed at once, each the other's offer (ADR 0053 §4): both phones keep the one on the later offer.
+  const crossed = r.mine !== undefined && !countersigns && !earlier && mineOffered;
   const valid =
     key !== undefined &&
     verify(agreeBytes(theirs.terms_hash), theirs.sig, key) &&
     termsHash(theirs.terms) === theirs.terms_hash &&
     offer !== undefined &&
     termsHash(termsFor(ctx, r, offer.offer)) === theirs.terms_hash &&
-    (countersigns || acceptsMyOffer);
+    (countersigns || earlier !== undefined || mineOffered);
   if (!valid) {
     log.warn("agree rejected", { engagement: r.engagement.id });
     return cancel(ctx, r, { reason: CancelReason.enum.other, note: "terms did not match" });
+  }
+  // Their signature settles the talk: a decision left for this owner about it is gone.
+  await clearTalkTasks(ctx, r);
+  // They countersigned a signature of this side's that a newer offer overtook: that is the deal.
+  if (earlier) return onAgreed(ctx, { ...r, mine: earlier, theirs, pending: undefined, engagement: settled(r) });
+  if (crossed) {
+    const mineAt = r.offers.findIndex((o) => o.offer.offer_id === r.mine?.terms.offer_id);
+    // Ours is on the later offer: theirs is dropped, and their countersignature on ours follows.
+    if (mineAt > at) return keep(ctx, { ...r, engagement: { ...r.engagement, status: S.confirming } });
+    // Theirs is on the later offer: ours is dropped, and this side signs theirs.
+    const { mine: _overtaken, ...rest } = r;
+    const next = { ...rest, theirs, engagement: { ...r.engagement, status: S.confirming } };
+    await ctx.store.saveJob(next);
+    return accept(ctx, next, theirs.terms);
   }
   const next = { ...r, theirs };
   if (countersigns && next.engagement.status === S.agreed) return onAgreed(ctx, next);
   await ctx.store.saveJob(next);
   return accept(ctx, next, theirs.terms);
 }
+
+/** The job saved as it stands. */
+async function keep(ctx: JobContext, r: JobRecord): Promise<JobRecord> {
+  await ctx.store.saveJob(r);
+  return r;
+}
+
+/** The engagement agreed: both have signed the same terms, whatever moves came between. */
+const settled = (r: JobRecord) => ({ ...r.engagement, status: S.agreed });
 
 /**
  * The card this side releases. The worker goes to the requester's place: the address picked for this need, else one

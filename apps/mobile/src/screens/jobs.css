@@ -95,7 +95,8 @@
   margin: 0;
   padding-left: 18px;
 }
-.terms > li[data-changed] {
+.terms > li[data-changed],
+.offer-terms [data-changed] {
   font-weight: 600;
 }
 

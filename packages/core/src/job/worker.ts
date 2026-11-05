@@ -30,7 +30,7 @@ import { questionsFor } from "./ask.js";
 import type { JobContext } from "./context.js";
 import { accept, cancel, termsFor } from "./deal.js";
 import { present } from "./details.js";
-import { AGENT_OFFERS, clearTalkTasks, handOver } from "./handover.js";
+import { AGENT_OFFERS, answering, handOver } from "./handover.js";
 import { type Mandate, MoveKind, priceAt, respond } from "./negotiate.js";
 import { type JobRecord, TaskKind } from "./store.js";
 import { drawStrategy, type Strategy } from "./strategy.js";
@@ -209,8 +209,13 @@ async function quoteNext(ctx: JobContext, rules: WorkerRules, r: JobRecord): Pro
 }
 
 /** The consumer countered: accept, or concede one step; a talk its agent has made its offers in waits for the owner. */
-export async function onCounter(ctx: JobContext, rules: WorkerRules, r: JobRecord, offer: Offer): Promise<JobRecord> {
-  await clearTalkTasks(ctx, r);
+export async function onCounter(
+  ctx: JobContext,
+  rules: WorkerRules,
+  found: JobRecord,
+  offer: Offer,
+): Promise<JobRecord> {
+  const r = await answering(ctx, found);
   const termed = await workerTerms(
     ctx,
     rules.terms,
@@ -234,7 +239,8 @@ function scopeOf(r: JobRecord): string {
   return [r.request.need, ...details].join("; ").slice(0, SCOPE_MAX);
 }
 
-export function quote(ctx: JobContext, r: JobRecord, price: number): Promise<JobRecord> {
+/** The worker's quote at `price`, with the terms it proposes next; `owner` when the worker sends it themselves. */
+export function quote(ctx: JobContext, r: JobRecord, price: number, owner = false): Promise<JobRecord> {
   const round = r.offers_made + 1;
   const offer: Offer = {
     offer_id: `off_${ulid(ctx.clock.now().getTime())}`,
@@ -243,6 +249,7 @@ export function quote(ctx: JobContext, r: JobRecord, price: number): Promise<Job
     slot: r.request.when,
     scope: scopeOf(r),
     ...termsField(r.request.trade, nextTerms(r)),
+    ...(owner ? { owner: true as const } : {}),
   };
   return ctx.send({ ...r, offers: [...r.offers, { by: R.provider, offer }], offers_made: round }, K.quote, offer);
 }
