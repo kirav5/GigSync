@@ -117,8 +117,9 @@ export function JobActions({ job, view, device, run, onAddPayee, onAgain, them }
       {/* Until the work is handed over, either side may call the job off; the worker moves it on one step at a time. */}
       {UNDER_WAY.has(status) && (
         <CancelJob onCancel={() => void run(() => device.cancelJob(id))}>
+          {/* Keyed by step: the next step is a new button, so a tap meant for one never lands on the next. */}
           {isWorker && step && (
-            <button type={C.button} className={C.secondary} onClick={() => void run(() => moveOn(step))}>
+            <button key={step} type={C.button} className={C.secondary} onClick={() => void run(() => moveOn(step))}>
               {t(STEP_LABEL[step])}
             </button>
           )}

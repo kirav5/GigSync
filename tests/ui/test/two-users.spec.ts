@@ -187,7 +187,9 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   // ── Work, then UPI payment for the signed amount ──────────────────────────────────────────────────────────────
   const job = anil.getByRole("article", { name: say("a11y.job_with", { name: priyaName }) });
   const askPayment = job.getByRole("button", { name: say("job.ask_payment"), exact: true });
-  await job.getByRole("button", { name: say("update.on_my_way") }).click();
+  const onMyWay = job.getByRole("button", { name: say("update.on_my_way") });
+  await onMyWay.click();
+  await expect(onMyWay).toBeHidden();
   await finishWork(job);
   // He asks before saving a UPI ID: the job says where it goes, and takes him there.
   await askPayment.click();
