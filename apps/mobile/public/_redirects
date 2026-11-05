@@ -1,0 +1,3 @@
+# The website at the root; index.html stays the app, because that is the file Capacitor loads.
+/ /home 200
+/app/ /app 301

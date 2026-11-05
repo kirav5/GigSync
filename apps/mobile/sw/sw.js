@@ -8,7 +8,7 @@
 
 const CACHE_PREFIX = "gigsync-shell-";
 const CACHE = `${CACHE_PREFIX}__CACHE__`;
-/** Relative to this file: ./, index.html, the manifest and icons, and every built file under assets/. */
+/** Relative to this file: the app, the manifest and icons, and every built file of the app under assets/. */
 const SHELL = __SHELL__;
 /** A slow network should not hold a start hostage: after this, open the copy of the app kept here. */
 const NAV_TIMEOUT_MS = 3000;
@@ -16,9 +16,13 @@ const GET = "GET";
 const NAVIGATE = "navigate";
 
 const scoped = (path) => new URL(path, self.registration.scope);
-const INDEX = scoped("index.html").href;
-/** The website is its own page, not the app: it is never answered with the app shell. */
-const WEBSITE = scoped("home.html").pathname;
+/** The app's own address. The site's root is the website now, and index.html redirects there. */
+const APP = scoped("app").href;
+/**
+ * The website's page is never answered with the app shell. Its other address, the root, is: an app installed before
+ * the website moved in still starts there, and offline that start has to open the app.
+ */
+const WEBSITE = scoped("home").pathname;
 const ASSETS = scoped("assets/").pathname;
 
 self.addEventListener("install", (event) => {
@@ -55,7 +59,7 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname.startsWith(ASSETS)) event.respondWith(cacheFirst(request));
 });
 
-/** Network first, so a new release shows on the next start; this build's index.html when offline or slow. */
+/** Network first, so a new release shows on the next start; this build's app when offline or slow. */
 async function navigate(request) {
   const late = new Promise((resolve) => setTimeout(resolve, NAV_TIMEOUT_MS));
   try {
@@ -64,7 +68,7 @@ async function navigate(request) {
   } catch {
     // Offline: fall through to the shell.
   }
-  const shell = await (await caches.open(CACHE)).match(INDEX);
+  const shell = await (await caches.open(CACHE)).match(APP);
   return shell ?? Response.error();
 }
 
@@ -206,7 +210,7 @@ self.addEventListener("notificationclick", (event) => {
   event.waitUntil(
     self.clients.matchAll({ type: WINDOW, includeUncontrolled: true }).then((windows) => {
       const open = windows[0];
-      return open ? open.focus() : self.clients.openWindow(scoped("./").href);
+      return open ? open.focus() : self.clients.openWindow(APP);
     }),
   );
 });
