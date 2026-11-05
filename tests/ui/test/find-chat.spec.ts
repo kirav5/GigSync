@@ -71,6 +71,9 @@ test("a household says what they need in one sentence and is asked only for the 
   // What moves the price that the words did not say (ADR 0041): how many points; "I don't know" ends it.
   await expect(log).toContainText(t(en, "driver.ask.points.electrician"));
   await tap(page, t(en, "driver.dont_know"));
+  // A part of the day is not an hour (ADR 0053 §1): she is asked it, and takes any time.
+  await expect(log).toContainText(t(en, "need.ask.hour"));
+  await tap(page, t(en, "when.any_time"));
 
   // The readback: what, where and when, the words workers read (never the budget), and the budget, kept here.
   const words = "Bedroom fan not working, need an electrician tomorrow morning";

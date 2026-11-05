@@ -70,6 +70,8 @@ test("live demo", async ({ browser }) => {
   await pause(home);
   await say(home, "HSR Layout");
   await pause(home, 3500);
+  await log.getByRole("button", { name: t("en", "when.any_time"), exact: true }).click();
+  await pause(home);
   await log.getByRole("button", { name: t("en", "flag.yes"), exact: true }).click();
 
   // The board: she asks Ravi only.
