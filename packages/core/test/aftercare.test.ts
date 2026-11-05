@@ -90,6 +90,7 @@ describe("after the deal", () => {
 
   it("with no UPI ID saved, asking fails before anything is saved or sent", async () => {
     const { relay, worker, id } = await agreedJob(null);
+    await worker.device.deliver(id, { code: "done" });
     await expect(worker.device.requestPayment(id, "Fan repair")).rejects.toThrow(PayeeMissingError);
     expect(await worker.device.payments.all()).toEqual([]);
     expect(kinds(relay, "payment_request")).toBe(0);
@@ -106,7 +107,7 @@ describe("after the deal", () => {
   it("a cancel after signing makes the other phone forget the contact card", async () => {
     const { worker, consumer, id, both } = await agreedJob();
     expect((await worker.device.job(id)).contact).toEqual(PRIYA);
-    await consumer.device.cancelJob(id, "Fixed it myself");
+    await consumer.device.cancelJob(id);
     await settle(both);
     const w = await worker.device.job(id);
     expect(w.engagement.status).toBe("cancelled");
@@ -127,6 +128,7 @@ describe("cash", () => {
 
   it("with nothing open, asks and confirms in two records the other phone takes in order", async () => {
     const { relay, worker, consumer, id, price, both } = await agreedJob(null);
+    await worker.device.deliver(id, { code: "done" });
     const cash = await worker.device.recordCash(id);
     await settle(both);
     expect(kinds(relay, "payment_record")).toBe(2);

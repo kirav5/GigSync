@@ -1,4 +1,12 @@
-import { type Agree, EngagementStatus, type Payment, PaymentStatus, Role, type UserId } from "@gigsync/protocol";
+import {
+  ADVANCE_MAX_PERCENT,
+  type Agree,
+  EngagementStatus,
+  type Payment,
+  PaymentStatus,
+  Role,
+  type UserId,
+} from "@gigsync/protocol";
 import type { JobRecord } from "../job/store.js";
 import { localDay, recurs } from "../job/when.js";
 import { OPEN_PAYMENT } from "./book.js";
@@ -23,7 +31,7 @@ export interface PassbookTotals {
   month: number;
   /** Asked for, or marked paid by the customer, and not yet confirmed. */
   waiting: number;
-  /** Done jobs nobody has asked to be paid for yet, at the signed price. */
+  /** What nobody has asked to be paid yet on done jobs: the signed price, less any advance. */
   notAsked: number;
 }
 
@@ -35,6 +43,8 @@ const DAYS_PER_WEEK = 7;
 const MONDAY = 1;
 /** Length of "YYYY-MM" at the start of a "YYYY-MM-DD" day. */
 const MONTH_LENGTH = 7;
+/** The work is still to be finished, so an advance is the only money to ask for. */
+const WORK_AHEAD: ReadonlySet<EngagementStatus> = new Set([E.agreed, E.in_progress]);
 /** Work that is finished, so money is due whether or not anyone has asked for it. */
 export const FINISHED_WORK: ReadonlySet<EngagementStatus> = new Set([E.delivered, E.closed]);
 
@@ -73,6 +83,24 @@ function weekOf(now: Date, offsetMinutes: number): { first: string; last: string
   return { first: localDay(first, 0), last: localDay(last, 0) };
 }
 
+/** What is left of the signed price: a payment asked for, paid or confirmed counts against it; a disputed one does not. */
+export function balanceDue(job: JobRecord, payments: readonly Payment[]): number {
+  const counted = payments.filter((p) => p.engagement === job.engagement.id && p.status !== S.disputed);
+  return Math.max(0, agreedPrice(job) - counted.reduce((sum, p) => sum + p.amount_paise, 0));
+}
+
+/** One-off work is asked for once it is done; work that recurs is asked for by the period, as it goes. */
+export const askableNow = (job: JobRecord): boolean => recurs(job.request) || FINISHED_WORK.has(job.engagement.status);
+
+/** The most an advance may be on this job. */
+export const advanceCap = (job: JobRecord): number => Math.floor((agreedPrice(job) * ADVANCE_MAX_PERCENT) / 100);
+
+/** A one-off job not yet handed over, with nothing asked for so far: one advance a job, and none on recurring work. */
+export function canAskAdvance(job: JobRecord, payments: readonly Payment[]): boolean {
+  const counted = payments.some((p) => p.engagement === job.engagement.id && p.status !== S.disputed);
+  return !counted && !recurs(job.request) && WORK_AHEAD.has(job.engagement.status);
+}
+
 /** Rows newest first, and the totals, for the phone `offsetMinutes` ahead of UTC. */
 export function passbook(
   jobs: readonly JobRecord[],
@@ -99,9 +127,9 @@ export function passbook(
     if (day >= week.first && day <= week.last) totals.week += p.amount_paise;
     if (monthOf(day) === month) totals.month += p.amount_paise;
   }
-  const asked = new Set(rows.filter((row) => row.payment.status !== S.disputed).map((row) => row.job.engagement.id));
+  const mine = rows.map((row) => row.payment);
   for (const job of signed.values()) {
-    if (FINISHED_WORK.has(job.engagement.status) && !asked.has(job.engagement.id)) totals.notAsked += agreedPrice(job);
+    if (FINISHED_WORK.has(job.engagement.status)) totals.notAsked += balanceDue(job, mine);
   }
   return { rows, totals };
 }

@@ -70,6 +70,7 @@ export class PaymentBook {
     amountPaise: number;
     note: string;
     method?: PaymentMethod;
+    advance?: boolean;
   }): Promise<Payment> {
     if (!canRequestPayment(input.engagement)) throw new PaymentError("this job cannot be paid for yet");
     const now = this.clock.now();
@@ -83,6 +84,7 @@ export class PaymentBook {
       status: S.requested,
       note: input.note,
       requested_at: now.toISOString(),
+      ...(input.advance ? { advance: true } : {}),
     };
     await this.save(payment);
     return payment;

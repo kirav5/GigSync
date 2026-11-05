@@ -192,7 +192,18 @@ export const CancelReason = z.enum([
 ]);
 export type CancelReason = z.infer<typeof CancelReason>;
 
-export const Cancel = z.object({ reason: CancelReason, note: z.string().max(300).optional() });
+/**
+ * Why a job was stopped after the work started (ADR 0054). Its own field, not a CancelReason: an older phone refuses a
+ * reason it does not know and would never see the job end, but drops this field and still cancels.
+ */
+export const StopReason = z.enum(["cannot_finish", "asked_to_stop", "not_safe", "other"]);
+export type StopReason = z.infer<typeof StopReason>;
+
+export const Cancel = z.object({
+  reason: CancelReason,
+  note: z.string().max(300).optional(),
+  stop: StopReason.optional(),
+});
 export type Cancel = z.infer<typeof Cancel>;
 
 /**

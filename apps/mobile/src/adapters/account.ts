@@ -16,9 +16,9 @@ import {
 import {
   type ColleagueCard,
   type ContactCard,
-  HOURS_PROTOCOL,
   type Lang,
   MAX_TRADES,
+  PART_PAYMENTS_PROTOCOL,
   PAYEE_NAME_MAX,
   type Session,
   type UserId,
@@ -64,10 +64,10 @@ type Profile = Omit<Account, "session" | "contact" | "protocol">;
  * model wrote, the mentor envelopes, terms besides the price in offers and signed deals, offers to work from a personal
  * QR, a problem reported on a job, the owners' own offers after their agents', and a start hour in a job's time
  * (ADR 0053 §1). Each capability number includes the ones before it (COLLEAGUE_PROTOCOL is 2, FREE_QUESTIONS_PROTOCOL
- * 3, MENTOR_PROTOCOL 4, TERMS_PROTOCOL 5, WORK_OFFER_PROTOCOL 6, PROBLEM_PROTOCOL 7, OWNER_OFFERS_PROTOCOL 8). An older
+ * 3, MENTOR_PROTOCOL 4, TERMS_PROTOCOL 5, WORK_OFFER_PROTOCOL 6, PROBLEM_PROTOCOL 7, OWNER_OFFERS_PROTOCOL 8, HOURS_PROTOCOL 9). An older
  * phone may still send this one an in-person link ask or a referral, which the colleague number promised; both are dropped on arrival.
  */
-const PROTOCOL = HOURS_PROTOCOL;
+const PROTOCOL = PART_PAYMENTS_PROTOCOL;
 
 export class AccountError extends Error {}
 

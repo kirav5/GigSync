@@ -9,6 +9,7 @@ import {
   type Payment,
   Role,
   SIDE_CHANNEL_KINDS,
+  type StopReason,
   type UserId,
 } from "@gigsync/protocol";
 import { ulid } from "ulid";
@@ -185,11 +186,18 @@ export class GigDevice {
     return after.sendDelivery(this.ctx, await this.job(id), say);
   }
 
-  /** Asks for the signed price, with the UPI ID saved in settings; throws `PayeeMissingError` when there is none. */
+  /** Asks for what is due, with the UPI ID saved in settings; throws `PayeeMissingError` when there is none. */
   async requestPayment(id: EngagementId, note: string): Promise<Payment> {
     this.rules();
     return after.requestPayment(this.ctx, await this.provided(id), note);
   }
+
+  /** Asks for part of the price before the work is done (ADR 0054). */
+  async requestAdvance(id: EngagementId, amountPaise: number, note: string): Promise<Payment> {
+    return after.requestAdvance(this.ctx, await this.provided(id), amountPaise, note);
+  }
+
+  takesAdvance = async (id: EngagementId) => after.takesAdvance(this.ctx, await this.job(id));
 
   /** The customer paid in cash: recorded as cash and confirmed on both phones, asking first if nobody had asked. */
   async recordCash(id: EngagementId): Promise<Payment> {
@@ -245,8 +253,8 @@ export class GigDevice {
     return r;
   }
 
-  async cancelJob(id: EngagementId, note?: string): Promise<JobRecord> {
-    return deal.cancel(this.ctx, await this.job(id), { reason: CancelReason.enum.other, ...(note ? { note } : {}) });
+  async cancelJob(id: EngagementId, stop?: StopReason): Promise<JobRecord> {
+    return deal.cancel(this.ctx, await this.job(id), { reason: CancelReason.enum.other, ...(stop ? { stop } : {}) });
   }
 
   jobs(): Promise<JobRecord[]> {

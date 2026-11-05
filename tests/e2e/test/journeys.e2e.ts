@@ -232,7 +232,7 @@ describe("consumer and worker, end to end through the real API and Neon", () => 
     expect([await status(asha, id), await status(babu, id)]).toEqual(["agreed", "agreed"]);
     expect((await babu.device.job(id)).contact?.address).toBe("Row house 7");
 
-    await asha.device.cancelJob(id, "Fixed it myself");
+    await asha.device.cancelJob(id);
     await talk(asha, babu);
     const b = await babu.device.job(id);
     expect(b.engagement.status).toBe("cancelled");

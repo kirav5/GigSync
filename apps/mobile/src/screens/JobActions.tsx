@@ -9,6 +9,7 @@ import {
   termsLines,
   UNDER_WAY,
   type WorkerStep,
+  workStarted,
 } from "@gigsync/core";
 import {
   EngagementStatus,
@@ -116,7 +117,7 @@ export function JobActions({ job, view, device, run, onAddPayee, onAgain, them }
       )}
       {/* Until the work is handed over, either side may call the job off; the worker moves it on one step at a time. */}
       {UNDER_WAY.has(status) && (
-        <CancelJob onCancel={() => void run(() => device.cancelJob(id))}>
+        <CancelJob started={workStarted(job)} onCancel={(stop) => void run(() => device.cancelJob(id, stop))}>
           {/* Keyed by step: the next step is a new button, so a tap meant for one never lands on the next. */}
           {isWorker && step && (
             <button key={step} type={C.button} className={C.secondary} onClick={() => void run(() => moveOn(step))}>
@@ -132,9 +133,12 @@ export function JobActions({ job, view, device, run, onAddPayee, onAgain, them }
         payments
           .filter((p) => p.status === P.requested && p.method === PaymentMethod.enum.upi)
           .map((p) => <PayBox key={p.id} payment={p} device={device} run={run} />)}
-      {!isWorker && status === S.delivered && !job.review && payments.some((p) => p.status === P.confirmed) && (
-        <ReviewForm onSend={(stars, text) => run(() => device.review(id, { stars, text }))} />
-      )}
+      {!isWorker &&
+        status === S.delivered &&
+        !job.review &&
+        payments.some((p) => p.status === P.confirmed && !p.advance) && (
+          <ReviewForm onSend={(stars, text) => run(() => device.review(id, { stars, text }))} />
+        )}
     </div>
   );
 }
@@ -207,7 +211,9 @@ function PayBox({ payment, device, run }: { payment: Payment; device: GigDevice;
   }
   return (
     <form className={C.stack} onSubmit={submit} aria-label={t("a11y.pay")}>
-      <span className={C.label}>{t("job.pay_by_upi", { price: money(payment.amount_paise) })}</span>
+      <span className={C.label}>
+        {t(payment.advance ? "job.pay_advance" : "job.pay_by_upi", { price: money(payment.amount_paise) })}
+      </span>
       {failed && <p className={C.error}>{t("error.generic")}</p>}
       {qr && <img src={qr} alt={t("a11y.qr")} width={160} height={160} />}
       {link && (

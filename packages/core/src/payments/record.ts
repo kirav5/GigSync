@@ -97,7 +97,8 @@ const latest = (payments: readonly Payment[]): Payment | undefined =>
  * received. A disputed payment never counts, so a job whose only payment was disputed reads as not asked.
  */
 function moneyOf(job: JobRecord, toMe: readonly Payment[]): Pick<RecordRow, "state" | "payment"> {
-  const live = latest(toMe.filter((p) => p.status === S.confirmed || OPEN_PAYMENT.has(p.status)));
+  // An advance received is not the job paid: the job still reads as not asked until the rest is.
+  const live = latest(toMe.filter((p) => (p.status === S.confirmed && !p.advance) || OPEN_PAYMENT.has(p.status)));
   if (live?.status === S.confirmed) {
     const cash = live.method === PaymentMethod.enum.cash;
     return { state: cash ? RecordState.cash : RecordState.received, payment: live };
