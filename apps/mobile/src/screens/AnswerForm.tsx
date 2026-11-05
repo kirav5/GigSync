@@ -155,7 +155,7 @@ export function AnswerForm({
   questions: Question[];
   say: string;
   suggested?: Readonly<Record<string, Suggested>> | undefined;
-  onSend: (a: Record<string, string>) => Promise<unknown>;
+  onSend: (a: Record<string, string>) => void;
 }) {
   const { lang, t } = useI18n();
   const [values, setValues] = useState<Record<string, string>>(() =>
@@ -165,7 +165,7 @@ export function AnswerForm({
   const ready = questions.every(answered);
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (ready) void onSend(Object.fromEntries(questions.map((q) => [q.key, (values[q.key] ?? "").trim()])));
+    if (ready) onSend(Object.fromEntries(questions.map((q) => [q.key, (values[q.key] ?? "").trim()])));
   }
   return (
     <form className={C.stack} onSubmit={submit} aria-label={t("a11y.answer")}>

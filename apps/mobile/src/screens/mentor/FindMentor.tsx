@@ -5,6 +5,8 @@ import { type Account, personCard } from "../../adapters/account.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import "./mentor.css";
+import { BusyGroup } from "../../ui/BusyGroup.js";
+import { useBusy } from "../../ui/useBusy.js";
 import { CheckRow } from "./CheckRow.js";
 import { ChipPick } from "./ChipPick.js";
 import { MentorResults } from "./MentorResults.js";
@@ -36,6 +38,7 @@ export function FindMentor({ ports, account, device, run, syncedAt }: Props) {
   const [found, setFound] = useState<MentorProfile[]>();
   const [picked, setPicked] = useState<MentorProfile[]>([]);
   const [busy, setBusy] = useState(false);
+  const searching = useBusy();
   const [problem, setProblem] = useState<MessageKey>();
   const [said, setSaid] = useState<{ key: MessageKey; name: string }>();
   const city = City.enum.bengaluru;
@@ -47,7 +50,7 @@ export function FindMentor({ ports, account, device, run, syncedAt }: Props) {
     setProblem(undefined);
     setPicked([]);
     try {
-      setFound(await device.mentors.find({ city, trade, lang: speaks, women_only }));
+      await searching.guard(async () => setFound(await device.mentors.find({ city, trade, lang: speaks, women_only })));
     } catch (err) {
       setProblem(mentorProblem("finding mentors failed", err));
     }
@@ -131,11 +134,13 @@ export function FindMentor({ ports, account, device, run, syncedAt }: Props) {
           {t("mentor.women_only")}
         </CheckRow>
         {womanChips}
-        <div className={C.actions}>
-          <button type={C.button} className={C.accent} onClick={() => void search()}>
-            {t("mentor.search")}
-          </button>
-        </div>
+        <BusyGroup busy={searching.busy}>
+          <div className={C.actions}>
+            <button type={C.button} className={C.accent} onClick={() => void search()}>
+              {t("mentor.search")}
+            </button>
+          </div>
+        </BusyGroup>
       </div>
       {found && found.length === 0 && (
         <NoMentor ports={ports} session={account.session} city={city} womenOnly={onlyWomen} device={device} run={run} />

@@ -120,7 +120,7 @@ export function SignIn({
           <p className={C.dockError} role="status" aria-live="polite">
             {error}
           </p>
-          <button type={C.submit} form={FORM_ID} className={C.wide} disabled={busy}>
+          <button type={C.submit} form={FORM_ID} className={C.wide} disabled={busy} aria-busy={busy}>
             {t(sent ? "signin.submit" : "signin.send_code")}
           </button>
           <AgreeLine onTerms={() => setTerms(true)} />

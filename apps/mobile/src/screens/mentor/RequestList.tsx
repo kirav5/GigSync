@@ -1,8 +1,10 @@
 import { type GigDevice, type MessageKey, RequestState, type SentRequest } from "@gigsync/core";
 import { useState } from "react";
 import { useI18n } from "../../i18n.js";
+import { BusyGroup } from "../../ui/BusyGroup.js";
 import { C } from "../../ui/cls.js";
 import { Said } from "../../ui/Said.js";
+import { useBusy } from "../../ui/useBusy.js";
 import { BlockReport } from "./BlockReport.js";
 import { MentorFacts } from "./MentorFacts.js";
 import { mentorProblem } from "./problems.js";
@@ -30,13 +32,14 @@ const STATE_LINE: Readonly<Record<RequestState, MessageKey>> = {
  */
 export function OfferCard({ device, run, refresh, request }: Props & { request: SentRequest }) {
   const { t } = useI18n();
+  const { busy, guard } = useBusy();
   const [problem, setProblem] = useState<MessageKey>();
   const card = request.card;
   if (!card) return null;
   const name = card.name;
   async function accept() {
     try {
-      await run(() => device.mentors.confirm(request.channel));
+      await guard(() => run(() => device.mentors.confirm(request.channel)));
       refresh();
     } catch (err) {
       setProblem(mentorProblem("accepting a mentor failed", err));
@@ -52,11 +55,13 @@ export function OfferCard({ device, run, refresh, request }: Props & { request: 
         </blockquote>
       )}
       <span className={C.muted}>{t("mentor.accept_help")}</span>
-      <div className={C.actions}>
-        <button type={C.button} className={C.accent} onClick={() => void accept()}>
-          {t("mentor.accept_offer", { name })}
-        </button>
-      </div>
+      <BusyGroup busy={busy}>
+        <div className={C.actions}>
+          <button type={C.button} className={C.accent} onClick={() => void accept()}>
+            {t("mentor.accept_offer", { name })}
+          </button>
+        </div>
+      </BusyGroup>
       {problem && <p className={C.error}>{t(problem, { name })}</p>}
       <BlockReport device={device} user={request.mentor} name={name} run={run} onBlocked={refresh} />
     </article>
@@ -66,33 +71,41 @@ export function OfferCard({ device, run, refresh, request }: Props & { request: 
 /** This newcomer's requests, newest first: waiting ones can be cancelled, offers accepted, every one blocked or reported. */
 export function RequestList({ device, run, refresh, requests }: Props & { requests: readonly SentRequest[] }) {
   const { t } = useI18n();
+  const { busy, guard } = useBusy();
+  const [problem, setProblem] = useState<MessageKey>();
   if (requests.length === 0) return null;
   const title = t("mentor.your_requests");
   async function cancel(r: SentRequest) {
-    await run(() => device.mentors.cancel(r.channel)).catch((err: unknown) => mentorProblem("cancel failed", err));
+    setProblem(undefined);
+    await guard(() => run(() => device.mentors.cancel(r.channel))).catch((err: unknown) =>
+      setProblem(mentorProblem("cancel failed", err)),
+    );
     refresh();
   }
   return (
     <section className={C.stack} aria-label={title}>
       <span className={C.label}>{title}</span>
-      {requests.map((r) => {
-        const name = r.card?.name ?? r.profile.first_name;
-        if (r.state === RequestState.offered)
-          return <OfferCard key={r.channel} device={device} run={run} refresh={refresh} request={r} />;
-        return (
-          <div key={r.channel} className="mentor-request-row">
-            <span>{t(STATE_LINE[r.state], { name })}</span>
-            {r.state === RequestState.sent && (
-              <>
-                <button type={C.button} className={C.quiet} onClick={() => void cancel(r)}>
-                  {t("mentor.cancel")}
-                </button>
-                <BlockReport device={device} user={r.mentor} name={name} run={run} onBlocked={refresh} />
-              </>
-            )}
-          </div>
-        );
-      })}
+      <BusyGroup busy={busy}>
+        {requests.map((r) => {
+          const name = r.card?.name ?? r.profile.first_name;
+          if (r.state === RequestState.offered)
+            return <OfferCard key={r.channel} device={device} run={run} refresh={refresh} request={r} />;
+          return (
+            <div key={r.channel} className="mentor-request-row">
+              <span>{t(STATE_LINE[r.state], { name })}</span>
+              {r.state === RequestState.sent && (
+                <>
+                  <button type={C.button} className={C.quiet} onClick={() => void cancel(r)}>
+                    {t("mentor.cancel")}
+                  </button>
+                  <BlockReport device={device} user={r.mentor} name={name} run={run} onBlocked={refresh} />
+                </>
+              )}
+            </div>
+          );
+        })}
+      </BusyGroup>
+      {problem && <p className={C.error}>{t(problem, { name: "" })}</p>}
     </section>
   );
 }

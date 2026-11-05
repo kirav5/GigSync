@@ -60,7 +60,7 @@ export function FloorAsk({
         </p>
       )}
       <div className={C.actions}>
-        <button type={C.submit} className={C.accent} disabled={busy}>
+        <button type={C.submit} className={C.accent} disabled={busy} aria-busy={busy}>
           {t("settings.save")}
         </button>
       </div>

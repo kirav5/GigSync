@@ -1,7 +1,9 @@
 import type { GigDevice, MentorLink, MessageKey } from "@gigsync/core";
 import { useState } from "react";
 import { useI18n } from "../../i18n.js";
+import { BusyGroup } from "../../ui/BusyGroup.js";
 import { C } from "../../ui/cls.js";
+import { useBusy } from "../../ui/useBusy.js";
 import { BlockReport } from "./BlockReport.js";
 import { LinkChip } from "./LinkChip.js";
 import { useLinks } from "./links.js";
@@ -19,11 +21,12 @@ interface Props {
 export function MentorLinkBar({ device, link, run, onGone }: Props) {
   const { t } = useI18n();
   const { refresh } = useLinks();
+  const { busy, guard } = useBusy();
   const [said, setSaid] = useState<MessageKey>();
   const name = link.card.name;
   async function renew() {
     try {
-      await run(() => device.mentors.renew(link.user));
+      await guard(() => run(() => device.mentors.renew(link.user)));
       refresh();
       setSaid("mentor.renewed");
     } catch (err) {
@@ -33,11 +36,13 @@ export function MentorLinkBar({ device, link, run, onGone }: Props) {
   return (
     <div className={C.stack}>
       <LinkChip link={link} now={new Date()} />
-      <div className={C.row}>
-        <button type={C.button} className={C.secondary} onClick={() => void renew()}>
-          {t("mentor.renew")}
-        </button>
-      </div>
+      <BusyGroup busy={busy}>
+        <div className={C.row}>
+          <button type={C.button} className={C.secondary} onClick={() => void renew()}>
+            {t("mentor.renew")}
+          </button>
+        </div>
+      </BusyGroup>
       {said && <p role="status">{t(said, { name })}</p>}
       <BlockReport
         device={device}

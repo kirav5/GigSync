@@ -2,7 +2,9 @@ import type { GigDevice, Introduction, MessageKey } from "@gigsync/core";
 import { MentorReply, MentorRole } from "@gigsync/protocol";
 import { useState } from "react";
 import { useI18n } from "../../i18n.js";
+import { BusyGroup } from "../../ui/BusyGroup.js";
 import { C } from "../../ui/cls.js";
+import { useBusy } from "../../ui/useBusy.js";
 import { BlockReport } from "./BlockReport.js";
 import { mentorProblem } from "./problems.js";
 import { SafetyCopy } from "./SafetyCopy.js";
@@ -23,6 +25,7 @@ interface Props {
  */
 export function IntroCard({ device, run, refresh, intro, safetySeen }: Props) {
   const { t } = useI18n();
+  const { busy, guard } = useBusy();
   const [problem, setProblem] = useState<MessageKey>();
   const name = intro.card.name;
   const city = t(`mentor.city.${intro.city}`);
@@ -30,7 +33,7 @@ export function IntroCard({ device, run, refresh, intro, safetySeen }: Props) {
   const line = t(got, { by: intro.by.name, name, city });
   async function answer(reply: MentorReply) {
     try {
-      await run(() => device.mentors.answerIntro(intro.channel, reply));
+      await guard(() => run(() => device.mentors.answerIntro(intro.channel, reply)));
       refresh();
     } catch (err) {
       setProblem(mentorProblem("answering an introduction failed", err));
@@ -44,14 +47,16 @@ export function IntroCard({ device, run, refresh, intro, safetySeen }: Props) {
       {!safetySeen ? (
         <SafetyCopy onRead={() => void device.mentors.safetySeen().then(refresh)} />
       ) : (
-        <div className={C.actions}>
-          <button type={C.button} className={C.accent} onClick={() => void answer(MentorReply.enum.accept)}>
-            {t("mentor.intro_meet", { name })}
-          </button>
-          <button type={C.button} className={C.secondary} onClick={() => void answer(MentorReply.enum.decline)}>
-            {t("mentor.intro_no")}
-          </button>
-        </div>
+        <BusyGroup busy={busy}>
+          <div className={C.actions}>
+            <button type={C.button} className={C.accent} onClick={() => void answer(MentorReply.enum.accept)}>
+              {t("mentor.intro_meet", { name })}
+            </button>
+            <button type={C.button} className={C.secondary} onClick={() => void answer(MentorReply.enum.decline)}>
+              {t("mentor.intro_no")}
+            </button>
+          </div>
+        </BusyGroup>
       )}
       {problem && <p className={C.error}>{t(problem, { name })}</p>}
       <BlockReport device={device} user={intro.other} name={name} run={run} onBlocked={refresh} />

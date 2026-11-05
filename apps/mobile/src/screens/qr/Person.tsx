@@ -98,7 +98,7 @@ function ScannedHousehold(props: Omit<Props, "onAsk"> & { person: HouseholdPerso
       </div>
       {worker && card && status === undefined && (
         <div className={C.actions}>
-          <button type={C.button} className={C.accent} disabled={busy} onClick={() => void offer()}>
+          <button type={C.button} className={C.accent} disabled={busy} aria-busy={busy} onClick={() => void offer()}>
             {t("qr.offer", { name })}
           </button>
         </div>

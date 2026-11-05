@@ -260,7 +260,7 @@ export function AddressForm({
         />
       )}
       <div className={C.actions}>
-        <button type={C.submit} className={C.accent} disabled={busy}>
+        <button type={C.submit} className={C.accent} disabled={busy} aria-busy={busy}>
           {t("addr.save")}
         </button>
         <button type={C.button} className={C.secondary} onClick={onCancel}>

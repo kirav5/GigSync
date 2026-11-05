@@ -6,6 +6,7 @@ import { registerServiceWorker, watchInstall } from "./adapters/install.js";
 import { keepFocusedFieldVisible } from "./adapters/keyboard.js";
 import { openedCode } from "./adapters/links.js";
 import "./styles.css";
+import "./ui/motion.css";
 import { applyLook, watchDeviceLook } from "./ui/look.js";
 
 const RELEASE_ENVIRONMENT = "production";

@@ -1,7 +1,10 @@
 import { type GigDevice, type JobRecord, UNDER_WAY } from "@gigsync/core";
 import { JobRecordStatus, Role } from "@gigsync/protocol";
 import { useI18n } from "../i18n.js";
+import { useStep } from "../payments/useStep.js";
+import { BusyGroup } from "../ui/BusyGroup.js";
 import { C } from "../ui/cls.js";
+import { useBusy } from "../ui/useBusy.js";
 import { CancelJob } from "./job/CancelJob.js";
 
 const R = JobRecordStatus.enum;
@@ -19,18 +22,23 @@ export function RestoredActions(props: {
 }) {
   const { job, device, run, them } = props;
   const { t } = useI18n();
+  const { busy, guard } = useBusy();
+  const { step, error } = useStep((work) => guard(() => run(work)));
   if (!job.restored || !UNDER_WAY.has(job.engagement.status)) return null;
   const id = job.engagement.id;
   const isWorker = job.engagement.role === Role.enum.provider;
-  const end = (to: typeof R.done | typeof R.cancelled) => void run(() => device.endRestored(id, to));
+  const end = (to: typeof R.done | typeof R.cancelled) => step(() => device.endRestored(id, to));
   return (
     <div className={C.stack}>
       <span className={C.faint}>{t("restored.why", { name: them })}</span>
-      <CancelJob onCancel={() => end(R.cancelled)}>
-        <button type={C.button} className={C.secondary} onClick={() => end(R.done)}>
-          {t(isWorker ? "job.mark_done" : "restored.work_done")}
-        </button>
-      </CancelJob>
+      <BusyGroup busy={busy}>
+        <CancelJob onCancel={() => end(R.cancelled)}>
+          <button type={C.button} className={C.secondary} onClick={() => end(R.done)}>
+            {t(isWorker ? "job.mark_done" : "restored.work_done")}
+          </button>
+        </CancelJob>
+      </BusyGroup>
+      {error && <p className={C.error}>{error}</p>}
     </div>
   );
 }

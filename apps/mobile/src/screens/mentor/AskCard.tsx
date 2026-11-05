@@ -2,9 +2,11 @@ import type { GigDevice, MessageKey, ReceivedRequest } from "@gigsync/core";
 import { useState } from "react";
 import { type Account, personCard } from "../../adapters/account.js";
 import { useI18n } from "../../i18n.js";
+import { BusyGroup } from "../../ui/BusyGroup.js";
 import { C } from "../../ui/cls.js";
 import { areaLabel } from "../../ui/places.js";
 import { Said } from "../../ui/Said.js";
+import { useBusy } from "../../ui/useBusy.js";
 import { BlockReport } from "./BlockReport.js";
 import { mentorProblem } from "./problems.js";
 
@@ -25,6 +27,7 @@ interface Props {
  */
 export function AskCard({ account, device, run, refresh, ask }: Props) {
   const { lang, t, date } = useI18n();
+  const { busy, guard } = useBusy();
   const [note, setNote] = useState("");
   const [problem, setProblem] = useState<MessageKey>();
   const r = ask.request;
@@ -38,7 +41,9 @@ export function AskCard({ account, device, run, refresh, ask }: Props) {
   async function answer(yes: boolean) {
     try {
       const card = personCard(account, lang);
-      await run(() => (yes ? device.mentors.offer(ask.channel, card, note) : device.mentors.decline(ask.channel)));
+      await guard(() =>
+        run(() => (yes ? device.mentors.offer(ask.channel, card, note) : device.mentors.decline(ask.channel))),
+      );
       refresh();
     } catch (err) {
       setProblem(mentorProblem("answering a landing request failed", err));
@@ -60,14 +65,16 @@ export function AskCard({ account, device, run, refresh, ask }: Props) {
         <span className={C.fieldLabel}>{t("mentor.offer_note")}</span>
         <textarea value={note} maxLength={NOTE_MAX} onChange={(e) => setNote(e.target.value)} />
       </label>
-      <div className={C.actions}>
-        <button type={C.button} className={C.accent} onClick={() => void answer(true)}>
-          {t("mentor.help", { name })}
-        </button>
-        <button type={C.button} className={C.secondary} onClick={() => void answer(false)}>
-          {t("mentor.not_now")}
-        </button>
-      </div>
+      <BusyGroup busy={busy}>
+        <div className={C.actions}>
+          <button type={C.button} className={C.accent} onClick={() => void answer(true)}>
+            {t("mentor.help", { name })}
+          </button>
+          <button type={C.button} className={C.secondary} onClick={() => void answer(false)}>
+            {t("mentor.not_now")}
+          </button>
+        </div>
+      </BusyGroup>
       {problem && <p className={C.error}>{t(problem, { name })}</p>}
       <BlockReport device={device} user={ask.from} name={name} run={run} onBlocked={refresh} />
     </article>

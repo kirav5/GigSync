@@ -112,7 +112,13 @@ interface DecideProps {
 function Decide({ yes, no, danger = false, busy, onYes, onNo }: DecideProps) {
   return (
     <div className={C.actions}>
-      <button type={C.button} className={danger ? C.danger : C.accent} disabled={busy} onClick={() => void onYes()}>
+      <button
+        type={C.button}
+        className={danger ? C.danger : C.accent}
+        disabled={busy}
+        aria-busy={busy}
+        onClick={() => void onYes()}
+      >
         {yes}
       </button>
       <button type={C.button} className={C.secondary} onClick={onNo}>

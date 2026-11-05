@@ -89,6 +89,7 @@ export function LocateStep({
         type={C.button}
         className={C.secondary}
         disabled={step === Step.locating}
+        aria-busy={step === Step.locating}
         onClick={() => setStep(Step.explain)}
       >
         {t(step === Step.locating ? "addr.locating" : label)}

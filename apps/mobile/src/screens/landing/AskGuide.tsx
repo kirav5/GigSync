@@ -5,6 +5,7 @@ import { useI18n } from "../../i18n.js";
 import { Composer } from "../../ui/Composer.js";
 import { C } from "../../ui/cls.js";
 import { Dock } from "../../ui/Dock.js";
+import { Working } from "../../ui/Working.js";
 import { SectionView } from "./SectionView.js";
 
 /** A question asked and what the guide had for it. */
@@ -59,6 +60,7 @@ export function AskGuide({ guide, model }: { guide: CityGuide; model: Model }) {
   return (
     <>
       {asked ? <GuideAnswerView asked={asked} /> : <span className={C.muted}>{t("landing.ask_hint")}</span>}
+      <Working on={busy} />
       <Dock>
         <Composer
           label={t("landing.ask_title")}

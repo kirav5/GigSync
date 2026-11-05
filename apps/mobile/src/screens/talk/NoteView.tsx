@@ -2,6 +2,7 @@ import { type Card, CardKind, type ChatIntent, type MessageKey } from "@gigsync/
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { Said } from "../../ui/Said.js";
+import { Dots } from "../../ui/Working.js";
 import { ScheduleLines } from "../schedule/ScheduleLines.js";
 import { Own } from "./Bubbles.js";
 
@@ -29,16 +30,12 @@ function CardText({ card }: { card: Card }) {
   return <Said text={card.words.text} from={card.words.lang} />;
 }
 
-/** The agent at work: dots that pulse (still, where the owner asked for less motion) and the words for it. */
+/** The agent at work: dots that pulse (fading only, where the owner asked for less motion) and the words for it. */
 export function Thinking() {
   const { t } = useI18n();
   return (
     <div className="msg-agent thinking" role="status">
-      <span className="thinking-dots" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-      </span>
+      <Dots />
       <span className={C.faint}>{t("agent.thinking")}</span>
     </div>
   );
