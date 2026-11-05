@@ -104,6 +104,7 @@ export {
   rateFor,
 } from "./job/arrangement-rules.js";
 export { QUESTIONS } from "./job/ask.js";
+export * from "./job/card-rates.js";
 export * from "./job/city-rates.js";
 export * from "./job/deal.js";
 export { asciiDigits, countIn, YES_NO_QUESTIONS } from "./job/details.js";

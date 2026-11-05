@@ -44,7 +44,9 @@ people booking an hour, and My card's form too long to read.
    last proposal is marked. The take-over card shows the terms of the offer it would accept.
 7. **My card at a glance.** A worker's card shows their own work only (the trades and skills they chose), a rate for
    each arrangement they take (₹200 a visit, ₹9,000 a month), the days and hours they work, their area and a line about
-   them; no estimate text. Every change is made by talking ("Change by talking" opens the chat), not a form.
+   them; no estimate text. Every change is made by talking ("Change by talking" opens the chat), not a form. A card of
+   one rate takes its unit from the work (a repair's is a visit), so cards already on the board read right without being
+   published again. The form stays behind "Edit my card" until the chat can change every field on it.
 
 ## Consequences
 

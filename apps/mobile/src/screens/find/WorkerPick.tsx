@@ -4,7 +4,7 @@ import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { areaLabel, money, unitKey } from "../../ui/places.js";
 import { Said } from "../../ui/Said.js";
-import { cardHours, cardWork } from "../../ui/work.js";
+import { cardHours, cardRateLine, cardWork } from "../../ui/work.js";
 import { cardLang, languageNames } from "../qr/cardWords.js";
 import { RecordStats } from "../qr/RecordStats.js";
 
@@ -35,7 +35,7 @@ export function WorkerPick({
   const rate = arrangement && w.arrangements?.find((a) => a.arrangement === arrangement);
   const price = rate
     ? t("price.per", { price: money(rate.rate_paise), unit: t(unitKey(rate.arrangement)) })
-    : t("find.from", { price: money(w.rate_paise) });
+    : cardRateLine(t, w);
   return (
     <label className={C.card} aria-label={t("a11y.worker", { name: w.display_name })}>
       <div className={C.row}>

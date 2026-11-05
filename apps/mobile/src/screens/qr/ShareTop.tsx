@@ -1,9 +1,9 @@
 import type { BoardProfile, WorkerRecord } from "@gigsync/protocol";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
-import { areaLabel, money } from "../../ui/places.js";
+import { areaLabel } from "../../ui/places.js";
 import { Said } from "../../ui/Said.js";
-import { cardHours, cardWork } from "../../ui/work.js";
+import { cardHours, cardRates } from "../../ui/work.js";
 import { cardLang, languageNames } from "./cardWords.js";
 import { Initial } from "./PersonCard.js";
 import { RecordStats } from "./RecordStats.js";
@@ -21,8 +21,9 @@ interface WorkerTopProps {
 }
 
 /**
- * The top of a worker's My card, centred as collab's: their initial, name, trades and area, languages, usual rate and
- * line, then their record as GigSync keeps it. Households see the same card, with the same record unless it is hidden.
+ * The top of a worker's My card, centred as collab's: their initial and name, the work they chose as chips, their area,
+ * languages, days and hours, a rate for each arrangement in its unit, and their line (ADR 0053 §7); then their record as
+ * GigSync keeps it. Households see the same card, with the same record unless it is hidden.
  */
 export function WorkerTop({ name, card, missing, record, hidden }: WorkerTopProps) {
   const i18n = useI18n();
@@ -35,12 +36,26 @@ export function WorkerTop({ name, card, missing, record, hidden }: WorkerTopProp
         <strong className="share-name">{name}</strong>
         {card ? (
           <>
-            <span className={C.muted}>
-              {cardWork(t, card)} · {areaLabel(lang, card.area_name)}
-            </span>
+            <ul className="share-chips" aria-label={t("card.what")}>
+              {card.trades.map((tr) => (
+                <li key={tr} className={C.chipOn}>
+                  {t(`trade.${tr}`)}
+                </li>
+              ))}
+              {card.skills?.map((s) => (
+                <li key={s.text} className={C.chipOn}>
+                  {s.text}
+                </li>
+              ))}
+            </ul>
+            <span className={C.muted}>{areaLabel(lang, card.area_name)}</span>
             {card.languages.length > 0 && <span className={C.faint}>{languageNames(card.languages, t)}</span>}
             {hours && <span className={C.faint}>{hours}</span>}
-            <span className={C.money}>{t("find.from", { price: money(card.rate_paise) })}</span>
+            {cardRates(t, card).map((rate) => (
+              <span key={rate} className={C.money}>
+                {rate}
+              </span>
+            ))}
             {card.about && (
               <span className={C.muted}>
                 <Said text={card.about} from={cardLang(card)} />

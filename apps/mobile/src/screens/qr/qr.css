@@ -105,3 +105,17 @@
   border-radius: 6px;
   background: var(--inverse);
 }
+
+/* The work a worker chose, read-only: a chip here is a label, not a button. */
+.share-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.share-chips .chip {
+  cursor: default;
+}

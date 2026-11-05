@@ -40,5 +40,6 @@ export const interview: Readonly<Record<keyof typeof en, string>> = {
   "iv.none": "और कोई नहीं",
   "iv.later": "बाद में",
   "iv.resume": "कार्ड बनाना जारी रखें",
+  "card.change_by_talking": "बोलकर बदलें",
   "iv.by_voice": "बोलकर भरें",
 };
