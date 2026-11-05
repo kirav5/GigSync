@@ -85,9 +85,10 @@ test("a long description becomes confirmed chips, the agents settle the terms, a
   await shoot("scope-chips", { household: homePage }, FOLDER);
   await tap(homePage, t(en, "terms.scope_ok"));
 
-  // Rooms, area, day and time were all in the words: after a price question (ADR 0041), the budget is next, beside
-  // the estimate for her scope.
+  // Rooms, area and day were all in the words: after a price question (ADR 0041) and the hour, which "morning" is not
+  // (ADR 0053 §1), the budget is next, beside the estimate for her scope.
   await skipPriceQuestions(home);
+  await tap(homePage, t(en, "when.any_time"));
   await expect(log).toContainText(t(en, "need.ask.budget"));
   // The suggested budget is the rate card's usual figure for the job (ADR 0041); she takes it, whatever it is.
   await log
