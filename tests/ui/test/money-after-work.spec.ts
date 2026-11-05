@@ -2,7 +2,7 @@ import { type MessageKey, type Params, plural, questionText, t } from "@gigsync/
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { newPhone, open, Role, RUN, setUpi, signIn, statusTag } from "./helpers.js";
-import { finishWork } from "./jobs.js";
+import { expand, finishWork } from "./jobs.js";
 import { fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -13,6 +13,7 @@ import { fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journ
 
 const { en } = Lang.enum;
 const say = (key: MessageKey, params?: Params) => t(en, key, params);
+const NOT_COMPLETED = new RegExp(t(en, "page.not_completed", { count: 0 }).split(" ·")[0] ?? "");
 
 let contexts: BrowserContext[] = [];
 test.afterEach(async () => {
@@ -105,11 +106,14 @@ test("the worker's card offers one step at a time, and asks for the money after 
 });
 
 test("a job stopped after it started says why, on the other phone", async ({ browser }) => {
-  const { job, hers } = await signedJob(browser, "stop");
+  const { householdPage, job } = await signedJob(browser, "stop");
   const button = (key: MessageKey) => job.getByRole("button", { name: say(key), exact: true });
   await button("update.on_my_way").click();
   await button("job.start_work").click();
   await button("job.stop").click();
   await button("stop.not_safe").click();
-  await expect(hers.getByText(say("job.stopped", { why: say("stop.not_safe") }))).toBeVisible();
+  // A job that ended leaves Activity for Records' Not completed.
+  await open(householdPage, "nav.records");
+  await expand(householdPage, NOT_COMPLETED);
+  await expect(householdPage.getByText(say("job.stopped", { why: say("stop.not_safe") }))).toBeVisible();
 });

@@ -45,7 +45,8 @@ export interface JobsOnPhone {
 export function groupJobs({ jobs, tasks, payments, day }: JobsOnPhone): JobGroups {
   const open = new Set<EngagementId>(tasks.map((k) => k.engagement));
   const paidFor = new Set<EngagementId>(
-    payments.filter((p) => p.status === PaymentStatus.enum.confirmed).map((p) => p.engagement),
+    // An advance is not the job paid: the worker still has the rest to ask for here (ADR 0054).
+    payments.filter((p) => p.status === PaymentStatus.enum.confirmed && !p.advance).map((p) => p.engagement),
   );
   const groups: JobGroups = { decide: [], today: [], upcoming: [], other: [], talking: [], earlier: [] };
   const newest = [...jobs].sort((a, b) => b.engagement.created_at.localeCompare(a.engagement.created_at));

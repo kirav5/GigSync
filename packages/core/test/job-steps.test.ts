@@ -5,6 +5,7 @@ import {
   advanceCap,
   balanceDue,
   canAskAdvance,
+  groupJobs,
   jobProgress,
   nextWorkerStep,
   paidUp,
@@ -90,6 +91,10 @@ describe("money follows the work", () => {
 
     await worker.device.deliver(id, { code: "done" });
     await settle(both);
+    // Done with only the advance in: it stays with the jobs to act on, or he could never ask for the rest.
+    const done = await worker.device.job(id);
+    const grouped = groupJobs({ jobs: [done], tasks: [], payments: held, day: "2026-11-05" });
+    expect(grouped.earlier).toEqual([]);
     const rest = await worker.device.requestPayment(id, "Fan");
     expect(rest.amount_paise).toBe(price - cap);
     expect(rest.advance).toBeUndefined();
