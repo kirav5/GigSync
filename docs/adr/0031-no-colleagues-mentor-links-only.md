@@ -4,6 +4,10 @@ Date: 2026-10-29. Status: accepted. Supersedes [ADR 0028](0028-colleagues-linked
 person) and [ADR 0029](0029-workers-hire-and-refer.md) points 1 and 3 (hiring a helper, referrals). Point 2 of ADR 0029
 (a provider never releases an address) stands.
 
+**Amended 2026-11-06 by [ADR 0055](0055-household-recommends-a-worker-through-its-contacts.md):** a household no longer
+introduces two workers from a job card, and is no longer asked around on one. Its way to pass a worker on is to recommend
+them to someone in its own contacts. §3 still holds for mentor links.
+
 ## Context
 
 The founders decided GigSync does not need a colleagues feature: no QR pairing, no colleague list, no hiring a helper

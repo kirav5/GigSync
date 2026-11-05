@@ -97,6 +97,11 @@ export interface JobRecord {
   answered_from?: Record<string, AnswerSource>;
   /** Household side: answers the agent knows from past jobs, held for the owner to send, change or skip. */
   suggested?: Record<string, Suggested>;
+  /**
+   * A recommendation (ADR 0055). Household: when it told the worker, so it does so once per job. Worker: when they were
+   * told, until they read it.
+   */
+  recommended_at?: string;
   /** The estimate for this job's scope (ADR 0030), when there was one: offers far outside it get a note. */
   estimate?: Estimate;
   /** Whether this job's offers carry terms other than price, and the terms this side proposes next (ADR 0033). */

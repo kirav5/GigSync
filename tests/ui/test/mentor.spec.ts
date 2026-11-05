@@ -3,7 +3,7 @@ import { Lang, MENTOR_MIN_JOBS, MENTOR_MIN_MONTHS } from "@gigsync/protocol";
 import { type Browser, type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { newPhone, open, Role, RUN, shoot, signIn } from "./helpers.js";
 import { type Phone, publishCard, unlistCards } from "./journey.js";
-import { seedRecord, seedSignedJob } from "./mentor-seed.js";
+import { type Party, seedMentorLink, seedRecord } from "./mentor-seed.js";
 import { type } from "./talk.js";
 
 /**
@@ -11,7 +11,7 @@ import { type } from "./talk.js";
  * signed work offers to help newcomers in Talk and answers the listing's questions there; a newcomer says in Talk she
  * is moving, asks to find someone who knows the city, says she is a woman (women-only turns on), asks her, reads the
  * safety words and says when she arrives; the mentor helps from Today; the newcomer accepts on Today and a 30-day
- * mentor link opens, with renew, report and block. Then an introduction: a household introduces two workers it signed jobs with, nothing scanned.
+ * mentor link opens, with renew, report and block. Then an introduction: someone linked with two people introduces them, nothing scanned.
  */
 
 const { hi, kn, en } = Lang.enum;
@@ -180,16 +180,6 @@ test("a newcomer picks a woman mentor from the list, they link for 30 days, then
 /** Profile's mentor links, in the owner's language. */
 const linksOn = ({ page, lang }: Phone) => page.getByRole("region", { name: t(lang, "mentor.links") });
 
-/** One finished job's card, opened from its row in Records, where finished jobs live for a worker and a household. */
-async function pastJob(p: Phone, them: string) {
-  await open(p.page, "nav.records", p.lang);
-  await p.page
-    .getByRole("button", { name: t(p.lang, "record.open"), exact: true })
-    .filter({ hasText: them })
-    .click();
-  return p.page.getByRole("article", { name: t(p.lang, "a11y.job_with", { name: them }) });
-}
-
 /** On Today: the introduction's safety words, then Meet. */
 async function meet(p: Phone, name: string) {
   await open(p.page, "nav.activity", p.lang);
@@ -198,33 +188,30 @@ async function meet(p: Phone, name: string) {
   await intros.getByRole("button", { name: t(p.lang, "mentor.intro_meet", { name }) }).click();
 }
 
-test("a household introduces two workers it signed jobs with, both say yes, and a mentor link opens", async ({
-  browser,
-}) => {
+test("a worker linked with two people introduces them, both say yes, and a mentor link opens", async ({ browser }) => {
   const folder = "mentor-intro";
   const [suresh, asha, mukesh] = (await phones(browser, [en, hi, kn])) as [Phone, Phone, Phone];
   const shots = { introducer: suresh.page, newcomer: asha.page, mentor: mukesh.page };
-  const people = {
+  const parties: Record<string, Party> = {
     suresh: { page: suresh.page, name: `Suresh ${RUN}`, phone: newPhone() },
     asha: { page: asha.page, name: `Asha ${RUN}`, phone: newPhone() },
     mukesh: { page: mukesh.page, name: `Mukesh ${RUN}`, phone: newPhone() },
   };
-  const { suresh: s, asha: a, mukesh: m } = people;
-  await signIn(suresh.page, { role: Role.consumer, name: s.name, phone: s.phone, address: "Indiranagar", lang: en });
+  const { suresh: s, asha: a, mukesh: m } = parties as Record<"suresh" | "asha" | "mukesh", Party>;
+  await signIn(suresh.page, { role: Role.worker, name: s.name, phone: s.phone, lang: en });
   await signIn(asha.page, { role: Role.worker, name: a.name, phone: a.phone, lang: hi });
   await signIn(mukesh.page, { role: Role.worker, name: m.name, phone: m.phone, lang: kn });
-  // Suresh's household had Asha (now moving to Bengaluru) and Mukesh (who works there) cook for it, both signed.
-  await seedSignedJob(s, a);
-  await seedSignedJob(s, m);
+  // Suresh has a mentor link with Asha (now moving to Bengaluru) and one with Mukesh (who works there).
+  await seedMentorLink(s, a);
+  await seedMentorLink(s, m);
 
-  // ── Her job card asks nothing of him (asking around stays on mentor links) ──────────────────────────────────────
-  const withSuresh = await pastJob(asha, s.name);
-  await expect(withSuresh.getByRole("button", { name: t(hi, "mentor.intro_ask", { city: city(hi) }) })).toHaveCount(0);
-
-  // ── Suresh introduces Mukesh to her from the job they signed ───────────────────────────────────────────────────
-  const withAsha = await pastJob(suresh, a.name);
-  await withAsha.getByRole("button", { name: t(en, "mentor.introduce", { name: a.name }) }).click();
-  await withAsha.getByRole("button", { name: t(en, "mentor.intro_send", { name: m.name }) }).click();
+  // ── Suresh introduces Mukesh to her from their link ────────────────────────────────────────────────────────────
+  await open(suresh.page, "nav.privacy", en);
+  await linksOn(suresh)
+    .getByRole("button", { name: new RegExp(a.name) })
+    .click();
+  await suresh.page.getByRole("button", { name: t(en, "mentor.introduce", { name: a.name }) }).click();
+  await suresh.page.getByRole("button", { name: t(en, "mentor.intro_send", { name: m.name }) }).click();
   await expect(statusOn(suresh.page, t(en, "mentor.intro_sent", { name: a.name, other: m.name }))).toBeVisible();
   await shoot("introduced", shots, folder);
 

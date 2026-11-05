@@ -256,4 +256,5 @@ export const BODY: Readonly<Record<EnvelopeKind, z.ZodType>> = {
   [K.mentor_accept]: MentorAccept,
   [K.work_offer]: WorkOffer,
   [K.problem]: JobProblem,
+  [K.recommended]: Empty,
 };

@@ -1,20 +1,39 @@
+import { qrOwner } from "@gigsync/core";
 import { log } from "@gigsync/core/log";
-import { MyQrRequest, OfferRefusal, QR_LOOKUPS_PER_HOUR, QrCode, QrRole, type UserId } from "@gigsync/protocol";
+import {
+  MyQrRequest,
+  OfferRefusal,
+  QR_LOOKUPS_PER_HOUR,
+  QrCode,
+  QrRole,
+  type RecommendLink,
+  RecommendRefusal,
+  RecommendRequest,
+  type UserId,
+} from "@gigsync/protocol";
 import { Hono } from "hono";
 import { ApiError, type AppEnv, CODE_PARAM, Var } from "../context.js";
 import { isListed } from "../db/board.js";
 import { type Db, transaction } from "../db/client.js";
 import { endLiveCode, insertCode, liveCode, ownCode, personOf, saveOwner } from "../db/qr.js";
 import { countLookup, offerCounts, recordOffer } from "../db/qr-offers.js";
+import { listedName, mayRecommend } from "../db/qr-recommend.js";
 import { LOOKUP_WINDOW_MS, newCode, OFFER_WINDOW_MS, offerRefusal } from "../qr/rules.js";
 
 /**
  * Personal QR codes (ADR 0034), behind the session middleware: the owner gets or replaces their code; a scanner looks
- * one up; a worker who scanned a household's code offers to work for it. Lookups are capped per person, found or not.
+ * one up; a worker who scanned a household's code offers to work for it; a household gets the code of a worker it hired
+ * to pass on (ADR 0055). Lookups are capped per person, found or not.
  */
 export const qr = new Hono<AppEnv>();
 
-const Path = { me: "/me", replace: "/me/replace", code: `/:${CODE_PARAM}`, offer: `/:${CODE_PARAM}/offer` } as const;
+const Path = {
+  me: "/me",
+  replace: "/me/replace",
+  recommend: "/recommend",
+  code: `/:${CODE_PARAM}`,
+  offer: `/:${CODE_PARAM}/offer`,
+} as const;
 
 const body = async (req: Request) => req.json().catch(() => null);
 const ago = (now: Date, ms: number) => new Date(now.getTime() - ms);
@@ -51,6 +70,29 @@ qr.post(Path.replace, async (c) => {
   });
   log.info("qr code replaced", { requestId: c.get(Var.requestId), user });
   return c.json(mine);
+});
+
+/**
+ * The live code of a worker the caller had a job with, for the caller to pass on to someone it knows (ADR 0055). Only
+ * a worker with a card on the board: the link has nothing else to show. A worker who has not opened My card yet gets
+ * their code here, under the first name on their card.
+ */
+qr.post(Path.recommend, async (c) => {
+  const asked = RecommendRequest.safeParse(await body(c.req.raw));
+  if (!asked.success) return c.json({ error: ApiError.badRequest }, 400);
+  const { worker } = asked.data;
+  const db = c.get(Var.db);
+  const user = c.get(Var.user);
+  const now = new Date();
+  if (!(await mayLookUp(db, user, now))) return c.json({ error: ApiError.tooManyAttempts }, 429);
+  const [may, name] = await Promise.all([mayRecommend(db, worker, user), listedName(db, worker)]);
+  if (!may) return c.json({ error: RecommendRefusal.enum.no_job_record }, 403);
+  if (name === undefined) return c.json({ error: RecommendRefusal.enum.not_listed }, 403);
+  const made = () => ownCode(db, worker, qrOwner(name, QrRole.enum.worker), newCode(), now);
+  const live = (await liveCode(db, worker)) ?? (await made()) ?? (await liveCode(db, worker));
+  if (!live) throw new Error("qr code missing after a concurrent first ask");
+  log.info("worker recommended", { requestId: c.get(Var.requestId), household: user, worker });
+  return c.json({ code: live.code } satisfies RecommendLink);
 });
 
 qr.get(Path.code, async (c) => {

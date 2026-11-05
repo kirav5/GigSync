@@ -33,6 +33,7 @@ export const ApiPath = {
   /** The caller's personal QR (ADR 0034): `PUT` gets or makes it, `/replace` makes a new one. */
   qrMe: "/v1/qr/me",
   qrReplace: "/v1/qr/me/replace",
+  qrRecommend: "/v1/qr/recommend",
   /** `GET /v1/qr/:code` looks a code up; `POST /v1/qr/:code/offer` takes an offer to work through it. */
   qr: "/v1/qr/",
   qrOffer: "/offer",

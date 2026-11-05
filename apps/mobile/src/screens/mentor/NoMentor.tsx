@@ -36,8 +36,7 @@ interface Props {
 
 /**
  * The match was empty: say so plainly (and, with women-only on, that no woman mentor is listed yet), offer asking a
- * person they know (a household they worked for, their mentor) for an introduction, and the guide's helplines under
- * its draft label.
+ * mentor for an introduction, and the guide's helplines under its draft label.
  */
 export function NoMentor({ ports, session, city, womenOnly, device, run }: Props) {
   const { t } = useI18n();

@@ -1,11 +1,8 @@
 import {
   CancelReason,
-  type ContactCard,
   DEFAULT_LANG,
-  type DeviceId,
   type EngagementId,
   type EnvelopeKind,
-  type Lang,
   type Payment,
   Role,
   SIDE_CHANNEL_KINDS,
@@ -15,24 +12,20 @@ import {
 import { ulid } from "ulid";
 import { ContactKeeper } from "../contacts/keeper.js";
 import { apply } from "../engagement/machine.js";
-import type { EstimateOptions } from "../estimate/lookup.js";
 import { MailTransport } from "../mail/transport.js";
 import { Mentors } from "../mentor/mentors.js";
-import type { MentorApi } from "../mentor/types.js";
-import type { Relay } from "../net/api.js";
 import { everyDeviceSpeaks } from "../net/reach.js";
 import { PaymentBook } from "../payments/book.js";
-import type { Clock, Keys, Model, Random, Storage } from "../ports.js";
 import { WorkOffers } from "../qr/offers.js";
-import type { QrApi } from "../qr/types.js";
+import { Recommendations } from "../qr/recommend.js";
 import { endRestored, type RestoredEnd } from "../records/follow.js";
 import { RecordsRunner } from "../records/runner.js";
-import type { RecordsApi } from "../records/types.js";
 import * as after from "./aftercare.js";
 import { claimFor } from "./claim.js";
 import * as consumer from "./consumer.js";
 import type { JobContext } from "./context.js";
 import * as deal from "./deal.js";
+import type { DeviceOptions } from "./device-options.js";
 import { dispatch, needOf } from "./dispatch.js";
 import { stamped } from "./history.js";
 import type { Mandate } from "./negotiate.js";
@@ -42,38 +35,13 @@ import { Talks } from "./talks.js";
 import * as worker from "./worker.js";
 import { confirm, reofferTaken } from "./worker-time.js";
 
-export interface DeviceOptions {
-  relay: Relay;
-  storage: Storage;
-  keys: Keys;
-  clock: Clock;
-  /** Draws each job's hidden negotiation settings; the app passes the platform's cryptographic source (ADR 0033). */
-  random: Random;
-  me: { user: UserId; device: DeviceId };
-  contact: ContactCard;
-  /** The owner's language. Defaults to English. */
-  lang?: Lang;
-  /** Sign deals the agent reaches without asking. Off by default: the owner taps to sign. */
-  autoConfirm?: boolean;
-  /** Set on a worker's phone: what they do, where, and at what price. */
-  worker?: worker.WorkerRules;
-  /** The phone's model, if any: the worker's agent asks it what to ask, the household's agent what was already said. */
-  model?: Model;
-  /** The server's mentor routes; without them the phone can still introduce, answer and use mentor links. */
-  mentorApi?: MentorApi;
-  /** The server's rate estimates; without them plans come from the city's rates, as before. */
-  estimates?: EstimateOptions;
-  /** The server's personal QR routes; without them the phone can still receive and answer offers to work. */
-  qrApi?: QrApi;
-  /** The server's job record routes (ADR 0038); without them nothing about a job leaves the phone. */
-  records?: RecordsApi;
-}
-
 /** A consumer's need before it is sent: the budget is a private mandate and never leaves the phone. */
 export type NewNeed = Omit<Need, "group" | "details" | "budget"> & {
   details?: Record<string, string>;
   budget: Mandate;
 };
+
+export type { DeviceOptions } from "./device-options.js";
 
 export class DeviceError extends Error {}
 
@@ -85,6 +53,8 @@ export class GigDevice {
   readonly mentors: Mentors;
   /** Offers to work through a personal QR: a worker offers, the household answers by asking (ADR 0034). */
   readonly offers: WorkOffers;
+  /** A household passing on a worker it hired, and the worker being told (ADR 0055). */
+  readonly recommendations: Recommendations;
   /** Sends this owner's job records to GigSync once they agreed; absent without the server's routes. */
   readonly records?: RecordsRunner;
   /** Contact details of settled jobs, removed on sync, and the problems that hold them (ADR 0039 §3). */
@@ -118,6 +88,7 @@ export class GigDevice {
     };
     this.mentors = new Mentors({ ctx: this.ctx, transport: this.transport, relay: o.relay }, o.mentorApi);
     this.offers = new WorkOffers({ ctx: this.ctx, transport: this.transport, isWorker: !!o.worker }, o.qrApi);
+    this.recommendations = new Recommendations(this.ctx, o.qrApi);
     this.contacts = new ContactKeeper(this.ctx);
     this.talks = new Talks(this.ctx);
     if (o.records)
@@ -130,7 +101,8 @@ export class GigDevice {
   /** Takes in what arrived, lets the agent answer it, and sends what is queued. */
   async sync(): Promise<{ received: number; sent: number }> {
     const received = await this.transport.receive();
-    const side = { mentors: this.mentors, offers: this.offers, contacts: this.contacts };
+    const { mentors, offers, contacts, recommendations } = this;
+    const side = { mentors, offers, contacts, recommendations };
     // In order on purpose: each envelope may depend on the one before it.
     for (const item of received) await dispatch(this.ctx, this.o.worker, item, side);
     // A time given to one household is never signed for another (ADR 0048 §5).

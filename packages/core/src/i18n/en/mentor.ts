@@ -29,8 +29,7 @@ export const mentor = {
   "mentor.max": "You can ask up to {count} at once.",
   "mentor.none": "No mentor yet",
   "mentor.none_women": "No woman mentor in {city} yet. You can switch off “Women mentors only”.",
-  "mentor.none_intro":
-    "Ask someone you know — a household you worked for, or your mentor — whether they know someone in {city}.",
+  "mentor.none_intro": "Ask your mentor whether they know someone in {city}.",
   "mentor.helplines": "Numbers to save",
   // Asking
   "mentor.ask.one": "Ask {count} mentor",
@@ -104,5 +103,5 @@ export const mentor = {
   "mentor.end": "End link",
   "mentor.end_confirm": "End your link with {name}? Your messages with them are deleted from this phone.",
   "mentor.ask_person": "Ask {name}",
-  "mentor.no_people": "No one yet. People you sign a job with, or link with as a mentor, show here.",
+  "mentor.no_people": "No one yet. People you link with as a mentor show here.",
 } as const;

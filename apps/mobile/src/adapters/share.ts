@@ -20,3 +20,14 @@ export async function shareLink(link: { title: string; text: string; url: string
     return ShareResult.unsupported;
   }
 }
+
+/** WhatsApp's own address for a message with no number: it opens WhatsApp, and the owner picks who gets it. */
+const WHATSAPP_SEND = "https://wa.me/";
+const WHATSAPP_TEXT = "text";
+
+/** Opens WhatsApp with these words ready to send. A share sheet is missing in some web views; this works everywhere. */
+export function whatsAppLink(words: string): string {
+  const url = new URL(WHATSAPP_SEND);
+  url.searchParams.set(WHATSAPP_TEXT, words);
+  return url.toString();
+}

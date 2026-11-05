@@ -38,6 +38,7 @@ export const WAKE_KINDS: ReadonlySet<EnvelopeKind> = new Set([
   K.payment_request,
   K.payment_record,
   K.problem,
+  K.recommended,
   K.referral,
   K.work_offer,
   K.landing_request,

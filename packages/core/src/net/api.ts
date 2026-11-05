@@ -34,6 +34,8 @@ import {
   type PushSubscribe,
   type QrCode,
   QrPerson,
+  RecommendLink,
+  type RecommendRequest,
   Session,
   type UserId,
 } from "@gigsync/protocol";
@@ -249,6 +251,11 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
 
   async takeOffer(code: QrCode): Promise<void> {
     await this.call(HttpMethod.post, `${ApiPath.qr}${code}${ApiPath.qrOffer}`);
+  }
+
+  async recommendWorker(worker: UserId): Promise<RecommendLink> {
+    const asked: RecommendRequest = { worker };
+    return RecommendLink.parse(await this.call(HttpMethod.post, ApiPath.qrRecommend, asked));
   }
 
   protected async call(method: string, path: string, body?: unknown): Promise<unknown> {

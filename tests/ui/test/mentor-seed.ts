@@ -9,6 +9,9 @@ const ACCOUNT_KEY = `${STORE_PREFIX}settings:account`;
 /** Where the web build keeps one owner's jobs: their own collection, as the app's owner storage names it. */
 export const jobsPrefix = (user: UserId) => `${STORE_PREFIX}${ownedName(Collection.jobs, user)}:`;
 
+/** Where the web build keeps one owner's mentor links. */
+const linksPrefix = (user: UserId) => `${STORE_PREFIX}${ownedName(Collection.mentorLinks, user)}:`;
+
 /**
  * Writes `count` finished jobs the signed-in worker did, both sides signed on the same terms, the first begun `days`
  * ago, straight into the phone's storage: the record the mentor rule counts, without signing twenty jobs on screen.
@@ -95,60 +98,33 @@ export async function userOf(page: Page): Promise<UserId> {
   return parsed.data;
 }
 
+/** A mentor link lasts this long. */
+const LINK_DAYS = 30;
+const MS_PER_DAY = 86_400_000;
+
 /**
- * A finished cooking job between a household and a worker, written into both phones' storage on one engagement id:
- * both signed the same terms and each holds the other's contact card, as after a real job. That makes each someone
- * the other knows, without doing the job on screen.
+ * A live mentor link between two signed-in people, written into both phones' storage on one channel: the mentor on
+ * the first, the newcomer on the second. That makes each someone the other knows, without the listing and request
+ * that open one on screen.
  */
-export async function seedSignedJob(household: Party, worker: Party): Promise<void> {
-  const [consumer, me] = await Promise.all([userOf(household.page), userOf(worker.page)]);
-  const engagement = newId("eng");
-  const at = new Date().toISOString();
-  const agree = {
-    terms: {
-      engagement,
-      offer_id: newId("off"),
-      worker: me,
-      consumer,
-      trade: "cook",
-      scope: "Cooking",
-      slot: "mornings",
-      price_paise: 900_000,
-    },
-    terms_hash: "a".repeat(64),
-    sig: "c2lnbmVk",
-  };
-  const job = (role: string, counterpart: string, other: Party) => ({
-    engagement: {
-      id: engagement,
-      group: engagement,
-      role,
-      counterpart,
-      status: "closed",
-      brief: { text: "Cooking", topic: "cook", shared: {} },
-      created_at: at,
-      updated_at: at,
-    },
-    request: {
-      trade: "cook",
-      need: "Cooking",
-      when: "mornings",
-      area: { lat: 12.93, lon: 77.62 },
-      details: {},
-      lang: "en",
-    },
-    offers: [],
-    offers_made: 0,
-    asked: false,
-    mine: agree,
-    theirs: agree,
-    contact: { name: other.name, phone: other.phone },
-  });
-  const write = (page: Page, owner: UserId, record: object) =>
-    page.evaluate(({ key, json }) => localStorage.setItem(key, json), {
-      key: `${jobsPrefix(owner)}${engagement}`,
-      json: JSON.stringify(record),
+export async function seedMentorLink(first: Party, second: Party): Promise<void> {
+  const [a, b] = await Promise.all([userOf(first.page), userOf(second.page)]);
+  const channel = newId("eng");
+  const now = Date.now();
+  const write = (owner: Party, me: UserId, them: UserId, name: string, role: string) =>
+    owner.page.evaluate(({ key, json }) => localStorage.setItem(key, json), {
+      key: `${linksPrefix(me)}${them}`,
+      json: JSON.stringify({
+        user: them,
+        card: { name, trades: ["cook"], languages: ["en"] },
+        channel,
+        unread: 0,
+        kind: "mentor",
+        linked_at: new Date(now).toISOString(),
+        expires_at: new Date(now + LINK_DAYS * MS_PER_DAY).toISOString(),
+        mentor: { role },
+      }),
     });
-  await write(household.page, consumer, job("requester", me, worker));
-  await write(worker.page, me, job("provider", consumer, household));
+  await write(first, a, b, second.name, "newcomer");
+  await write(second, b, a, first.name, "mentor");
 }

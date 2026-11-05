@@ -1,9 +1,9 @@
 import { HttpError, HttpMethod } from "@gigsync/core";
-import { QR_LOOKUPS_PER_HOUR, QrCode } from "@gigsync/protocol";
+import { QR_LOOKUPS_PER_HOUR, QrCode, RecommendRefusal } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import { call } from "./mentor-helpers.js";
 import { signIn } from "./people.js";
-import { card, household, householdWithCode, listedWorker, worker } from "./qr-helpers.js";
+import { card, household, householdWithCode, jobRecord, listedWorker, worker } from "./qr-helpers.js";
 import { sql } from "./sql.js";
 
 const NO_SUCH_CODE = "AAAAAAAAAAAA";
@@ -89,5 +89,98 @@ describe("my QR code", () => {
     const { home, code } = await householdWithCode("+919866600012", "Asha");
     await sql("UPDATE users SET status = 'frozen' WHERE user_id = $1", [home.session.user]);
     await expect((await signIn("+919866600013")).api.lookupQr(code)).rejects.toMatchObject({ status: 404 });
+  });
+});
+
+describe("recommending a worker", () => {
+  const RECOMMEND = "/qr/recommend";
+
+  /** A household and a listed worker, and a job record between them. */
+  async function hired(n: number, status = "done") {
+    const home = await signIn(`+9198666100${n}0`);
+    const w = await listedWorker(`+9198666100${n}1`, "Meena K");
+    await jobRecord(w, home, status);
+    return { home, w };
+  }
+
+  it("gives the household the worker's live code, which finds their card and no number", async () => {
+    const { home, w } = await hired(1);
+    const { code } = await w.api.myQr(worker("Meena"));
+    expect(await home.api.recommendWorker(w.session.user)).toEqual({ code });
+    const friend = await signIn("+919866610099");
+    const found = await friend.api.lookupQr(code);
+    expect(found).toMatchObject({ role: "worker", card: { display_name: "Meena K" } });
+    expect(JSON.stringify(found)).not.toContain("98666100");
+  });
+
+  it("makes the code of a worker who never opened My card, and the worker later gets the same one", async () => {
+    const { home, w } = await hired(2);
+    const { code } = await home.api.recommendWorker(w.session.user);
+    expect(await home.api.lookupQr(code)).toMatchObject({ first_name: "Meena" });
+    expect((await w.api.myQr(worker("Meena"))).code).toBe(code);
+  });
+
+  it("works while the job is still under way", async () => {
+    const { home, w } = await hired(3, "agreed");
+    expect(QrCode.safeParse((await home.api.recommendWorker(w.session.user)).code).success).toBe(true);
+  });
+
+  it("follows the worker's new QR, and the old link stops working", async () => {
+    const { home, w } = await hired(4);
+    const old = await w.api.myQr(worker("Meena"));
+    const next = await w.api.replaceQr(worker("Meena"));
+    expect(await home.api.recommendWorker(w.session.user)).toEqual({ code: next.code });
+    await expect(home.api.lookupQr(old.code)).rejects.toMatchObject({ status: 404 });
+  });
+
+  it.each([
+    ["a cancelled job", "cancelled"],
+    ["no job at all", undefined],
+  ])("refuses %s", async (_case, status) => {
+    const home = await signIn(`+91986661020${status ? 1 : 2}`);
+    const w = await listedWorker(`+91986661021${status ? 1 : 2}`, "Meena K");
+    if (status) await jobRecord(w, home, status);
+    const res = await call(home, HttpMethod.post, RECOMMEND, { worker: w.session.user });
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: RecommendRefusal.enum.no_job_record });
+  });
+
+  it("refuses a household the worker blocked, in the same words as no job", async () => {
+    const { home, w } = await hired(5);
+    await call(w, HttpMethod.post, "/mentors/block", { user: home.session.user });
+    const res = await call(home, HttpMethod.post, RECOMMEND, { worker: w.session.user });
+    expect(await res.json()).toEqual({ error: RecommendRefusal.enum.no_job_record });
+  });
+
+  it("refuses a worker with no card on the board", async () => {
+    const home = await signIn("+919866610301");
+    const w = await signIn("+919866610302");
+    await jobRecord(w, home, "done");
+    const res = await call(home, HttpMethod.post, RECOMMEND, { worker: w.session.user });
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: RecommendRefusal.enum.not_listed });
+  });
+
+  it("refuses the worker asking for someone else's household side", async () => {
+    const { home, w } = await hired(6);
+    const res = await call(w, HttpMethod.post, RECOMMEND, { worker: home.session.user });
+    expect(res.status).toBe(403);
+  });
+
+  it("refuses a bad body and no session", async () => {
+    const p = await signIn("+919866610303");
+    expect((await call(p, HttpMethod.post, RECOMMEND, { worker: "usr_x" })).status).toBe(400);
+    expect((await call(p, HttpMethod.post, RECOMMEND)).status).toBe(400);
+    expect((await call(undefined, HttpMethod.post, RECOMMEND, { worker: p.session.user })).status).toBe(401);
+  });
+
+  it("counts toward the same hourly lookups", async () => {
+    const { home, w } = await hired(7);
+    await sql(
+      `INSERT INTO qr_lookups (user_id, lookups, window_start) VALUES ($1, $2, now())
+       ON CONFLICT (user_id) DO UPDATE SET lookups = excluded.lookups, window_start = excluded.window_start`,
+      [home.session.user, QR_LOOKUPS_PER_HOUR],
+    );
+    await expect(home.api.recommendWorker(w.session.user)).rejects.toMatchObject({ status: 429 });
   });
 });

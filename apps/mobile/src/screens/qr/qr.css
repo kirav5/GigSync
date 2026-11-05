@@ -50,6 +50,11 @@
 .share-grid.quiet > .btn {
   flex: 0 1 auto;
 }
+/* Inside a card there is less width: wider buttons wrap to a second row rather than break a word. */
+.share-grid.roomy > .btn {
+  min-width: 124px;
+  max-width: none;
+}
 .qr-confirm {
   width: 100%;
   text-align: start;

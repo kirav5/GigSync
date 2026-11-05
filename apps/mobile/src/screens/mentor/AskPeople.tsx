@@ -13,7 +13,8 @@ interface Props {
 
 /**
  * The people a newcomer can ask whether they know someone in `city`: a live mentor link (the ask is a note in its
- * thread) or the other side of a job both signed (it lands with that job on their phone). One tap asks one person.
+ * thread), or a worker they signed a job with. Not a household: it could not act on the ask (ADR 0055). One tap asks
+ * one person.
  */
 export function AskPeople({ device, run, city }: Props) {
   const { t } = useI18n();
@@ -24,7 +25,7 @@ export function AskPeople({ device, run, city }: Props) {
     let live = true;
     device.mentors.people().then(
       (all) => {
-        if (live) setPeople(all.filter((p) => p.channel !== undefined));
+        if (live) setPeople(all.filter((p) => p.worker && p.channel !== undefined));
       },
       (err: unknown) => setSaid({ key: mentorProblem("reading people known failed", err), name: "" }),
     );

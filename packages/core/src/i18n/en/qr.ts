@@ -55,4 +55,17 @@ export const qr = {
   "qr.offer_line": "{name} ({trade}) wants to work for you",
   "qr.offer_ask": "Ask",
   "qr.offer_not_now": "Not now",
+  // Recommending a worker to someone the household knows (ADR 0055)
+  "qr.recommend": "Recommend {name}",
+  "qr.recommend_about":
+    "Send {name}'s card to someone you know, from WhatsApp or your contacts. They see the card, never {name}'s number, and can ask for work. GigSync does not see who you pick.",
+  "qr.recommend_words": "I recommend {name} ({work}). See their card and ask them for work on GigSync:",
+  "qr.recommend_whatsapp": "WhatsApp",
+  "qr.recommend_told": "Sent. {name} will see that you recommended them.",
+  "qr.recommend_no_record": "GigSync has no record of this job, so {name} cannot be recommended from here.",
+  "qr.recommend_not_listed": "{name} has no card on the board now, so there is nothing to send.",
+  "qr.recommended": "{name} recommended you to someone they know",
+  "qr.recommended_about":
+    "If that person asks you for work, it comes as a usual request you can say no to. Your number stays private until you both sign.",
+  "qr.recommended_ok": "OK",
 } as const;

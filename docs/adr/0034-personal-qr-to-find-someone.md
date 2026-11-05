@@ -3,6 +3,9 @@
 Date: 2026-10-30. Status: accepted. Distinct from the colleague QR removed by [ADR 0031](0031-no-colleagues-mentor-links-only.md):
 this QR opens no link and no chat. Brings back the camera, only when the owner taps Scan.
 
+**Extended 2026-11-06 by [ADR 0055](0055-household-recommends-a-worker-through-its-contacts.md):** a household a worker
+did a job for may be given the worker's live link, to pass on to someone it knows.
+
 ## Context
 
 The founders want anyone to be able to show their QR so that the other person finds them and they can work together,

@@ -1,4 +1,13 @@
-import type { BoardProfile, EngagementId, MyQr, MyQrRequest, QrCode, QrPerson, UserId } from "@gigsync/protocol";
+import type {
+  BoardProfile,
+  EngagementId,
+  MyQr,
+  MyQrRequest,
+  QrCode,
+  QrPerson,
+  RecommendLink,
+  UserId,
+} from "@gigsync/protocol";
 
 /** workers/api's personal QR routes (ADR 0034). ApiClient implements them; tests fake them in memory. */
 export interface QrApi {
@@ -10,6 +19,8 @@ export interface QrApi {
   lookupQr(code: QrCode): Promise<QrPerson>;
   /** Takes one offer to work through a household's live code; the work_offer envelope may follow. */
   takeOffer(code: QrCode): Promise<void>;
+  /** The live code of a worker this household had a job with, to pass on to someone it knows (ADR 0055). */
+  recommendWorker(worker: UserId): Promise<RecommendLink>;
   /** One worker's card as the board serves it, record capped (ADR 0036); undefined when they are not on the board. */
   workerCard(user: UserId): Promise<BoardProfile | undefined>;
 }
