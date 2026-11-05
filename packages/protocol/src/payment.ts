@@ -12,6 +12,13 @@ export const UPI_MAX_PAISE = 1_00_000 * 100;
 export const PAISE_PER_RUPEE = 100;
 export const PAYMENT_NOTE_MAX = 50;
 export const PAYEE_NAME_MAX = 40;
+/**
+ * The capability a phone reports when it takes part of the price (ADR 0054): an advance, and what is left after it. An
+ * older phone keeps only a request for the whole signed price, so neither is sent to it.
+ */
+export const PART_PAYMENTS_PROTOCOL = 10;
+/** An advance is at most this percent of the signed price. */
+export const ADVANCE_MAX_PERCENT = 50;
 
 /** A UPI ID (virtual payment address), in the form name@bank. */
 export const Vpa = z.string().regex(/^[A-Za-z0-9._-]{2,256}@[A-Za-z][A-Za-z0-9]{1,63}$/, "UPI ID");
@@ -51,6 +58,8 @@ export const PaymentRequest = z.object({
   payee_vpa: Vpa,
   payee_name: z.string().min(1).max(PAYEE_NAME_MAX),
   requested_at: isoDate,
+  /** Part of the price, asked before the work is done. */
+  advance: z.literal(true).optional(),
 });
 export type PaymentRequest = z.infer<typeof PaymentRequest>;
 
@@ -69,6 +78,8 @@ export const Payment = z.object({
   paid_at: isoDate.optional(),
   confirmed_at: isoDate.optional(),
   disputed_at: isoDate.optional(),
+  /** Part of the price, asked before the work is done: it never settles the job on its own. */
+  advance: z.literal(true).optional(),
 });
 export type Payment = z.infer<typeof Payment>;
 

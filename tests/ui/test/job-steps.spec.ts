@@ -91,13 +91,17 @@ test("the worker moves a signed job on one step at a time, and both progress lin
   await button(job, "job.start_work").click();
   await expect(button(job, "job.mark_done")).toBeVisible();
   await expect(button(job, "job.start_work")).toHaveCount(0);
+  // Started: Cancel is now Stop, with a reason (ADR 0054).
+  await expect(button(job, "job.stop")).toBeVisible();
+  await expect(button(job, "restored.cancel")).toHaveCount(0);
   await expect(progressStep(householdPage, en, "progress.started")).toHaveAttribute("aria-current", "step");
   await shoot("started", { worker: workerPage, household: householdPage }, FOLDER);
 
   await button(job, "job.mark_done").click();
   await expect(statusTag(job, en, "status.delivered")).toBeVisible();
-  // Handed over: nothing left to cancel.
+  // Handed over: nothing left to cancel or stop.
   await expect(button(job, "restored.cancel")).toHaveCount(0);
+  await expect(button(job, "job.stop")).toHaveCount(0);
 });
 
 test("the household cancels a signed job after a second tap, and it ends on both phones", async ({ browser }) => {

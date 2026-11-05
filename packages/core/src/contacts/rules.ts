@@ -64,14 +64,14 @@ export function problemHolds(problem: ProblemRecord | undefined, now: Date): boo
 const movedAt = (p: Payment) => Date.parse(p.confirmed_at ?? p.paid_at ?? p.requested_at ?? "") || 0;
 
 /**
- * The money is settled: the last payment that counts (disputed ones never do) is one the worker confirmed, at or after
+ * The money is settled: the last payment that counts (disputed ones and advances never do) is one the worker confirmed, at or after
  * `since` when given, and none is still open. For a one-time job that is its payment, whenever it came; for an
  * arrangement, the last one after it ended, since every month before was paid while it went on.
  */
 export function paidUp(payments: readonly Payment[], since?: string): boolean {
   if (payments.some((p) => OPEN_PAYMENT.has(p.status))) return false;
   const last = payments
-    .filter((p) => p.status === P.confirmed)
+    .filter((p) => p.status === P.confirmed && !p.advance)
     .sort((a, b) => movedAt(b) - movedAt(a) || b.id.localeCompare(a.id))[0];
   return last !== undefined && (since === undefined || movedAt(last) >= Date.parse(since));
 }

@@ -48,7 +48,7 @@ export function jobProgress(r: JobRecord, payments: readonly Payment[]): Progres
   if (!bothSigned(r) && !r.restored) return undefined;
   const status = r.engagement.status;
   const paid = payments
-    .filter((p) => p.engagement === r.engagement.id && PAID.has(p.status))
+    .filter((p) => p.engagement === r.engagement.id && PAID.has(p.status) && !p.advance)
     .map((p) => p.confirmed_at ?? p.paid_at)
     .sort()[0];
   const started = noteAt(r, U.started);
@@ -71,6 +71,9 @@ export function jobProgress(r: JobRecord, payments: readonly Payment[]): Progres
     { step: Step.cancelled, reached: true, ...at(reachedAt(r, S.cancelled) ?? r.ended_at) },
   ];
 }
+
+/** The worker said the work started: from here a job is stopped with a reason, not just cancelled (ADR 0054). */
+export const workStarted = (r: JobRecord): boolean => noteAt(r, U.started) !== undefined;
 
 /** Statuses in which the worker is still to finish the work, and either side may call it off. */
 export const UNDER_WAY: ReadonlySet<EngagementStatus> = new Set([S.agreed, S.in_progress]);

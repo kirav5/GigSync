@@ -1,25 +1,27 @@
 import {
   AskAgain,
+  agreedPrice,
   askAgain,
+  askableNow,
+  balanceDue,
+  canAskAdvance,
   canRequestPayment,
   type GigDevice,
   type JobRecord,
-  log,
   type MessageKey,
-  PayeeMissingError,
+  recurs,
 } from "@gigsync/core";
 import { type Payment, PaymentMethod, PaymentStatus, Role } from "@gigsync/protocol";
 import { useState } from "react";
 import { type I18n, useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
-import { errorKey } from "../ui/errorKey.js";
 import { money } from "../ui/places.js";
 import { SpeakButton } from "../ui/SpeakButton.js";
 import type { GigView } from "../useGig.js";
+import { AskAdvance } from "./AskAdvance.js";
+import { type Run, useStep } from "./useStep.js";
 import { NeedUpi, WorkerQr } from "./WorkerQr.js";
 import "./money.css";
-
-type Run = (work: () => Promise<unknown>) => Promise<unknown>;
 
 interface Props {
   job: JobRecord;
@@ -46,7 +48,8 @@ const ASK_AGAIN: Readonly<Record<AskAgain, MessageKey>> = {
 
 /**
  * The worker's money actions inside a signed job, at most one state at a time: confirm money the customer says they
- * sent; or, with a request open, wait for the customer, show the QR, or take cash; or else ask to be paid. Asking again
+ * sent; or, with a request open, wait for the customer, show the QR, or take cash; or else ask to be paid. One-off work
+ * is asked for once it is done, with at most an advance before that, and what is left after it (ADR 0054). Asking again
  * is offered only after a dispute, or for monthly work a month on: a paid one-off job offers nothing.
  */
 export function WorkerPay({ job, view, device, run, onAddPayee }: Props) {
@@ -58,26 +61,15 @@ export function WorkerPay({ job, view, device, run, onAddPayee }: Props) {
   if (open)
     return <OpenPayment job={job} view={view} payment={open} device={device} run={run} onAddPayee={onAddPayee} />;
   if (!canRequestPayment(job.engagement)) return null;
+  if (!askableNow(job))
+    return canAskAdvance(job, payments) ? (
+      <AskAdvance job={job} device={device} run={run} onAddPayee={onAddPayee} />
+    ) : null;
   const again = payments.length === 0 ? undefined : askAgain(job, payments, new Date());
-  if (payments.length > 0 && !again) return null;
-  const ask: MessageKey = again ? ASK_AGAIN[again] : "job.ask_payment";
-  return <AskPayment job={job} ask={ask} device={device} run={run} onAddPayee={onAddPayee} />;
-}
-
-/** Runs one money step through the sync queue, and says what went wrong: no UPI ID saved, or anything else. */
-function useStep(run: Run) {
-  const { t } = useI18n();
-  const [error, setError] = useState<string>();
-  const [missing, setMissing] = useState(false);
-  function step(work: () => Promise<unknown>) {
-    setError(undefined);
-    run(work).catch((err: unknown) => {
-      if (err instanceof PayeeMissingError) return setMissing(true);
-      log.warn("payment step failed", { error: err instanceof Error ? err.message : String(err) });
-      setError(t(errorKey(err)));
-    });
-  }
-  return { step, error, missing };
+  const repeats = recurs(job.request);
+  const due = repeats ? agreedPrice(job) : balanceDue(job, payments);
+  if (due === 0 || (repeats && payments.length > 0 && !again)) return null;
+  return <AskPayment job={job} again={again} due={due} device={device} run={run} onAddPayee={onAddPayee} />;
 }
 
 /** The customer as the worker knows them: their contact card's name, the board's, or "the customer". */
@@ -87,24 +79,27 @@ function payerName(job: JobRecord, view: GigView, t: I18n["t"]): string {
 
 const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
 
-/** (a) Nothing open: ask for the signed price, or record that the customer already paid in cash. */
+/** (a) Nothing open: ask for what is due, or record that the customer already paid it in cash. */
 function AskPayment({
   job,
-  ask,
+  again,
+  due,
   device,
   run,
   onAddPayee,
-}: Pick<Props, "job" | "device" | "run" | "onAddPayee"> & { ask: MessageKey }) {
+}: Pick<Props, "job" | "device" | "run" | "onAddPayee"> & { again: AskAgain | undefined; due: number }) {
   const { t } = useI18n();
   const { step, error, missing } = useStep(run);
   const [cash, setCash] = useState(false);
   const id = job.engagement.id;
-  const price = job.mine?.terms.price_paise;
+  const hasPrice = job.mine !== undefined;
+  const left = due < agreedPrice(job);
+  const ask = again ? t(ASK_AGAIN[again]) : left ? t("money.ask_balance", { price: money(due) }) : t("job.ask_payment");
   return (
     <div className={PAY}>
-      {cash && price !== undefined ? (
+      {cash && hasPrice ? (
         <Confirm
-          ask={t("money.cash_confirm", { price: money(price) })}
+          ask={t("money.cash_confirm", { price: money(due) })}
           onAnswer={(yes) => {
             setCash(false);
             if (yes) step(() => device.recordCash(id));
@@ -117,9 +112,9 @@ function AskPayment({
             className={C.accent}
             onClick={() => step(() => device.requestPayment(id, job.request.need))}
           >
-            {t(ask)}
+            {ask}
           </button>
-          {price !== undefined && (
+          {hasPrice && (
             <button type={C.button} className={C.secondary} onClick={() => setCash(true)}>
               {t("getpaid.cash")}
             </button>

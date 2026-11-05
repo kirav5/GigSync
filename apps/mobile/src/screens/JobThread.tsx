@@ -171,7 +171,11 @@ export function JobThread(props: JobActionProps) {
           ))}
         </ul>
       )}
-      {job.cancel && <p className={C.error}>{t(`cancel.${job.cancel.reason}`)}</p>}
+      {job.cancel && (
+        <p className={C.error}>
+          {job.cancel.stop ? t("job.stopped", { why: t(`stop.${job.cancel.stop}`) }) : t(`cancel.${job.cancel.reason}`)}
+        </p>
+      )}
       {payments.map((p) => (
         <fieldset key={p.id} aria-label={t("a11y.payment")}>
           {t("job.payment", { price: money(p.amount_paise), status: t(`pay.thread.${p.status}`) })}
