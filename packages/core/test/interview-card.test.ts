@@ -8,6 +8,7 @@ import {
   choose,
   draftOf,
   edit,
+  fieldsFor,
   hear,
   type InterviewState,
   prompt,
@@ -245,15 +246,7 @@ describe("changing a card the owner already has", () => {
     expect(lines[0]).toBe("iv.summary");
     expect(lines.at(-1)).toBe("iv.what_change");
     expect(lines).not.toContain("iv.start");
-    expect(prompt(s).choices?.map((c) => c.value)).toEqual([
-      Slot.trade,
-      Slot.area,
-      Slot.rate,
-      Slot.min,
-      Slot.languages,
-      Slot.about,
-      Slot.auto,
-    ]);
+    expect(prompt(s).choices?.map((c) => c.value)).toEqual(fieldsFor(s));
   });
 
   it("changes one field and comes back to confirm", () => {

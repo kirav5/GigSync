@@ -1,4 +1,4 @@
-import { City, type EstimateRequest, type Lang, Trade } from "@gigsync/protocol";
+import { Arrangement, City, type EstimateRequest, type Lang, QuestionKey, Trade } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import {
   CITY_RATES,
@@ -42,6 +42,21 @@ describe("the estimate under the card's rate questions", () => {
       (s, a) => hear(s, a),
       hear(start({ own, areas: AREAS, rates: CITY_RATES }), trade),
     );
+
+  it("keeps the suggested amount when it is tapped under another arrangement's rate", () => {
+    const draft = {
+      trades: [T.cook],
+      arrangements: [Arrangement.enum.visit, Arrangement.enum.monthly],
+      area: "koramangala",
+      rate_paise: 900000,
+      limit_paise: 700000,
+    };
+    const asked = { ...start({ own: "en", areas: AREAS, rates: CITY_RATES }, draft), slot: Slot.more_rates };
+    const details = { [QuestionKey.enum.arrangement]: Arrangement.enum.visit };
+    const found = { request: estimateRequest(city, T.cook, details) as EstimateRequest, estimate: COOK_MONTH };
+    const s = choose(withEstimate(asked, found), "suggested");
+    expect(s.draft.other_rates?.visit).toBe(1_100_000);
+  });
 
   it("shows a painter the range with its scope and what it rests on, and suggests opening at the typical figure", () => {
     const s = withEstimate(atRate("painter"), painterFound());

@@ -92,13 +92,26 @@ const LANG_WORDS: Readonly<Record<Lang, readonly string[]>> = {
 };
 
 /** A field of the card an owner can ask to change, by voice or a chip. */
-export type Field = Exclude<Slot, "ask_first" | "confirm" | "done" | "arrangements" | "more_rates">;
+export type Field = Exclude<Slot, "confirm" | "done" | "unlisted" | "more_rates" | "hours_to" | "which_rate">;
 
-/** Words naming each field, most specific first ("minimum rate" is the minimum, not the rate). */
+/** Taking the card off the board: said as a whole, so no change word is needed. */
+const UNLIST = ["off the board", "remove my card", "hide my card", "delete my card", "take down my card", "unlist"]
+  .concat(["card hata", "कार्ड हटा", "बोर्ड से हटा", "कार्ड बंद", "card band"])
+  .concat(["ಕಾರ್ಡ್ ತೆಗೆ", "ಕಾರ್ಡ್ ಅಳಿಸಿ", "ಬೋರ್ಡ್‌ನಿಂದ ತೆಗೆ"]);
+
+/** Words naming each field, most specific first ("minimum rate" is the minimum, not the rate; "work hours" the hours). */
 const FIELD_WORDS: Readonly<Record<Field, readonly string[]>> = {
+  unlist: UNLIST,
   min: ["minimum", "lowest", "least", "सबसे कम", "कम से कम", "ಕನಿಷ್ಠ"],
   rate: ["rate", "price", "दाम", "रेट", "पैसे", "ದರ", "ದರವನ್ನು", "ಬೆಲೆ"],
   area: ["area", "इलाक़ा", "जगह", "एरिया", "ಏರಿಯಾ", "ಜಾಗ", "ಜಾಗವನ್ನು"],
+  max_hours: ["hours a day", "hours in a day", "most hours", "कितने घंटे", "दिन में घंटे", "ದಿನಕ್ಕೆ ಎಷ್ಟು ಗಂಟೆ"],
+  hours: ["hours", "timing", "time", "ghante", "समय", "टाइम", "घंटे", "ಸಮಯ", "ಟೈಮ್", "ಗಂಟೆ"],
+  days: ["days", "day", "din", "दिन", "ದಿನ"],
+  radius: ["how far", "distance", "radius", "travel", "km", "दूर", "ದೂರ"],
+  materials: ["material", "saman", "सामान", "ಸಾಮಗ್ರಿ", "ಸಾಮಾನು"],
+  ask_first: ["ask first", "ask me", "before quot", "पहले पूछ", "ಮೊದಲು ಕೇಳ"],
+  arrangements: ["arrangement", "kind of work", "kinds of work", "काम का तरीका", "ಕೆಲಸದ ರೀತಿ"],
   trade: ["work", "trade", "काम", "ಕೆಲಸ"],
   languages: ["language", "भाषा", "ಭಾಷೆ"],
   about: ["about", "बारे में", "ಬಗ್ಗೆ"],
@@ -125,6 +138,7 @@ const NO_FINDERS = finders(NO);
 const SKIP_FINDERS = finders(SKIP);
 const NONE_FINDERS = finders(NONE);
 const CHANGE_FINDERS = finders(CHANGE);
+const UNLIST_FINDERS = finders(UNLIST);
 
 /** The items whose words appear in the text, in the order they were said. */
 function named<V>(said: string, table: readonly (readonly [V, readonly Finder[]])[]): V[] {
@@ -196,9 +210,13 @@ export function fieldIn(text: string): Field | undefined {
   return FIELDS.find(([, list]) => firstIn(said, list) >= 0)?.[0];
 }
 
-/** The field a sentence asks to change ("मेरा रेट बदलो" → rate). Needs a change word and a field word together. */
+/**
+ * The field a sentence asks to change ("मेरा रेट बदलो" → rate). Needs a change word and a field word together; taking
+ * the card off the board is said whole, and asked again before anything happens.
+ */
 export function editIntent(text: string): Field | undefined {
-  return firstIn(normalize(text), CHANGE_FINDERS) >= 0 ? fieldIn(text) : undefined;
+  const said = normalize(text);
+  return firstIn(said, CHANGE_FINDERS) >= 0 || firstIn(said, UNLIST_FINDERS) >= 0 ? fieldIn(text) : undefined;
 }
 
 /** Names this short are matched exactly: one changed letter in "HSR" is another word. */

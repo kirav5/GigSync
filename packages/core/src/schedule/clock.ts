@@ -25,6 +25,8 @@ export interface ReadTime {
   /** Where the time was found in `said`, so the day and the note are read without it. */
   from: number;
   to: number;
+  /** Both ends were said; otherwise `end_min` is the length a booking has by default. */
+  ranged: boolean;
 }
 
 const Meridiem = { am: "am", pm: "pm" } as const;
@@ -108,18 +110,20 @@ export function timeIn(text: string): ReadTime | undefined {
   const ranges = [...said.matchAll(RANGE)].flatMap((m) => {
     const r = rangeOf(m, hint);
     const marked = Boolean(m[3] || m[6] || m[7]);
-    return r ? [{ start_min: r[0], end_min: r[1], from: m.index ?? 0, to: (m.index ?? 0) + m[0].length, marked }] : [];
+    if (!r) return [];
+    const at = m.index ?? 0;
+    return [{ start_min: r[0], end_min: r[1], from: at, to: at + m[0].length, ranged: true, marked }];
   });
   const single = (m: RegExpMatchArray, said_: Meridiem | undefined): ReadTime | undefined => {
     const start = minutesOf(Number(m[1]), Number(m[2] ?? 0), said_, said_ ? undefined : hint);
     if (start === undefined) return undefined;
     const end = Math.min(start + DEFAULT_BOOKING_MINUTES, MINUTES_PER_DAY);
-    return { start_min: start, end_min: end, from: m.index ?? 0, to: (m.index ?? 0) + m[0].length };
+    return { start_min: start, end_min: end, from: m.index ?? 0, to: (m.index ?? 0) + m[0].length, ranged: false };
   };
   const singles = [...said.matchAll(SINGLE)].map((m) => single(m, meridiemOf(m[3])));
   const colons = [...said.matchAll(COLON)].map((m) => single(m, undefined));
   const picked = ranges.find((r) => r.marked) ?? singles.find(Boolean) ?? ranges[0] ?? colons.find(Boolean);
   if (!picked) return undefined;
-  const { start_min, end_min, from, to } = picked;
-  return { start_min, end_min, from, to };
+  const { start_min, end_min, from, to, ranged } = picked;
+  return { start_min, end_min, from, to, ranged };
 }

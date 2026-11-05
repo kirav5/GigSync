@@ -14,7 +14,8 @@ const I = ChatIntent;
 
 /** What each intent means, as the model is told it. */
 const MEANING: Readonly<Record<ChatIntent, string>> = {
-  [I.editCard]: "change something on their own GigSync card: rate, area, work, languages (field: what to change)",
+  [I.editCard]:
+    "change something on their own GigSync card: rate, area, how far they go, work, hours, days, languages, or take it off the board (field: what to change)",
   [I.helpOffer]: "offer to help people who are new to their city, or to be a mentor",
   [I.helpStop]: "they want to stop helping newcomers or being a mentor, or be taken off that list",
   [I.moving]: "they themselves are moving or coming to another city for work, not someone else (city, if named)",

@@ -5,6 +5,7 @@ import {
   type Choice,
   draftOf,
   estimateRequest,
+  isLastSlot,
   type Line,
   log,
   type Ports,
@@ -21,9 +22,11 @@ import {
   interviewFailed,
   interviewPublished,
   pauseInterview,
+  placeInterview,
   tapInterview,
 } from "../card/interviewStore.js";
-import { AboutPrivateError, publishCard } from "../card/publish.js";
+import { AboutPrivateError, publishCard, unlistCard } from "../card/publish.js";
+import { type FoundPlace, pilotPlace, workPlace } from "../card/workPlace.js";
 import { fetchEstimate } from "../estimate/useEstimate.js";
 import { useI18n } from "../i18n.js";
 import { isMove } from "../talk/moveTurns.js";
@@ -33,6 +36,7 @@ import type { Moves } from "../talk/useMoves.js";
 import { C } from "../ui/cls.js";
 import { errorKey } from "../ui/errorKey.js";
 import { AREAS, PILOT_CITY } from "../ui/places.js";
+import { LocateStep } from "./address/LocateStep.js";
 import { MoveTurnView } from "./talk/AgentTurns.js";
 import { Ask, Own } from "./talk/Bubbles.js";
 import { Note } from "./talk/NoteView.js";
@@ -66,6 +70,22 @@ function Choices({ choices }: { choices: readonly Choice[] }) {
   );
 }
 
+/** "Use my location" under the area question: for a worker whose area is not a pilot one (ADR 0045). */
+function LocateArea({ session }: { session: Account["session"] }) {
+  const use = (found: FoundPlace | undefined) => {
+    if (found) placeInterview(found.area, found.place);
+    return found !== undefined;
+  };
+  return (
+    <LocateStep
+      session={session}
+      label="card.use_location"
+      onFound={(place, point) => use(workPlace(place, point))}
+      onPointOnly={(point) => use(pilotPlace(point))}
+    />
+  );
+}
+
 /**
  * Talk's conversation, in the order it happened: notes to the agent with its answers, the card interview, each
  * question with a replay button, read aloud once when it appears, the owner's answers opposite, and a move to a new
@@ -92,7 +112,7 @@ export function Interview({
   const { state, turns, paused } = useTalk();
   const active = state !== undefined && !paused;
   /** Choices are offered while a question is open, not once the owner has said yes and the card is being sent. */
-  const asking = active && state.slot !== Slot.done;
+  const asking = active && !isLastSlot(state.slot);
   const newest = [...turns].reverse().find((turn) => turn.who === Speaker.app);
   // A trade and area named: the usual range for it at its default scope in the worker's area, for the rate questions
   // (ADR 0030, ADR 0039). Asked once, when both are known, never once per answer (ADR 0041).
@@ -124,9 +144,20 @@ export function Interview({
   );
 
   useEffect(() => {
-    if (state?.slot !== Slot.done) return;
+    if (!state || !isLastSlot(state.slot)) return;
     const claim = claimPublish();
     if (claim === undefined) return;
+    if (state.slot === Slot.unlisted) {
+      unlistCard(ports, account)
+        .then((saved) => {
+          if (interviewPublished(claim, { key: "card.off_board" })) onSaved(saved);
+        })
+        .catch((err: unknown) => {
+          log.warn("card interview unlist failed", { error: err instanceof Error ? err.message : String(err) });
+          interviewFailed(claim, { key: errorKey(err) });
+        });
+      return;
+    }
     const draft = draftOf(state);
     // Requests start to come once the card is listed: the browser may ask about notifications, if the last answer was
     // a tap a moment ago (it asks only then).
@@ -134,7 +165,9 @@ export function Interview({
     publishCard(ports, account, draft, lang)
       .then((saved) => {
         const area = AREAS.find((a) => a.key === draft.area);
-        const where = area ? { names: { area: [`area.${area.key}` as const] } } : { params: { area: "" } };
+        const named = draft.place?.name;
+        const where =
+          area && !named ? { names: { area: [`area.${area.key}` as const] } } : { params: { area: named ?? "" } };
         const line: Line = { key: "iv.published", ...where };
         // Signed out while the card was on its way: the next owner hears nothing of it.
         if (!interviewPublished(claim, line)) return;
@@ -166,6 +199,7 @@ export function Interview({
     return (
       <Ask key={turn.id} lines={turn.lines}>
         {asking && turn.id === newest?.id && <Choices choices={turn.choices} />}
+        {asking && turn.id === newest?.id && state.slot === Slot.area && <LocateArea session={session} />}
       </Ask>
     );
   };

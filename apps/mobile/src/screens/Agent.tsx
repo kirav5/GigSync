@@ -2,6 +2,7 @@ import {
   type Agent as CoreAgent,
   edit,
   type GigDevice,
+  isLastSlot,
   movingIntent,
   type Ports,
   prompt,
@@ -76,7 +77,7 @@ export function AgentScreen(props: TalkProps) {
   useEffect(() => {
     if (opened.current || !wanted || !ready) return;
     opened.current = true;
-    if (!interviewIn) beginInterview(start(interviewConfig(lang), accountDraft(account)));
+    if (!interviewIn) beginInterview(start(interviewConfig(lang), accountDraft(account), account.listed === false));
     else if (interviewIn !== open) openChat(interviewIn);
   }, [wanted, ready, interviewIn, open, lang, account]);
 
@@ -90,7 +91,7 @@ export function AgentScreen(props: TalkProps) {
     if (turns.length > 0) end.current?.scrollIntoView({ block: "end" });
   }, [turns]);
 
-  const fresh = () => start(interviewConfig(lang), accountDraft(account));
+  const fresh = () => start(interviewConfig(lang), accountDraft(account), account.listed === false);
   const { busy, sendNote, choose, answerEarnings } = useNotes({
     agent,
     ports,
@@ -161,7 +162,7 @@ export function AgentScreen(props: TalkProps) {
           label={t("nav.talk")}
           placeholder={t("agent.placeholder")}
           onSend={send}
-          busy={busy || moves.busy || !ready || state?.slot === Slot.done}
+          busy={busy || moves.busy || !ready || (state !== undefined && isLastSlot(state.slot))}
           hints={current?.hints ?? []}
           numeric={current?.numeric ?? false}
           onDeviceOnly={current?.secret ?? false}

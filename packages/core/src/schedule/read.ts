@@ -78,6 +78,9 @@ export function soundsLikeSchedule(text: string): boolean {
   return booking && (firstIn(said, CANCEL) >= 0 || (ASKS.test(said) && MINE.test(said)));
 }
 
+/** The words name a booking: "change my booking time" is about that booking, not the card's hours. */
+export const namesBooking = (text: string): boolean => firstIn(normalize(text), BOOKING) >= 0;
+
 /** The next `weekday` (0 Sunday) from `today` on, today included: "on Saturday" said on a Saturday is today. */
 function nextWeekday(today: string, weekday: number): string {
   const from = new Date(today).getUTCDay();

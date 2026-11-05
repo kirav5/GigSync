@@ -1,20 +1,9 @@
-import { FIRST_HOUR, hourText, LAST_HOUR, range, type TermPrefs } from "@gigsync/core";
+import { FIRST_HOUR, hourText, LAST_END, LAST_HOUR, range, type TermPrefs, withClock } from "@gigsync/core";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 
-/** The latest a worker's day ends: one hour after the last start hour a household can pick. */
-const LAST_END = LAST_HOUR + 1;
 /** The select's value for no hours of their own: any time. */
 const ANY = "";
-
-/**
- * The preferences with the worker's hours on the clock set, or both cleared (any time). The parts of the day go: with
- * hours set they are derived from them (`workHoursOf`), and cleared the worker has said any time.
- */
-function withClock(prefs: TermPrefs, from?: number, to?: number): TermPrefs {
-  const { from: _from, to: _to, windows: _windows, ...rest } = prefs;
-  return from === undefined || to === undefined ? rest : { ...rest, from, to };
-}
 
 /** One select of hours on the clock, in the owner's words ("9 am"). */
 function HourSelect(p: {

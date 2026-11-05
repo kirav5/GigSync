@@ -1,4 +1,4 @@
-import type { MessageKey, TermPrefs } from "@gigsync/core";
+import { type MessageKey, MOST_HOURS, type TermPrefs, withTerm } from "@gigsync/core";
 import {
   ISO_WEEKDAYS,
   type IsoWeekday,
@@ -12,8 +12,6 @@ import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { WorkHoursField } from "./WorkHoursField.js";
 
-/** The most-hours choices a worker taps; "Any" leaves it unset. */
-const HOURS = [4, 6, 8, 10] as const;
 /** Who buys the materials, as the worker picks it; "Either" leaves it unset. */
 const MATERIALS: readonly { value: MaterialsBy; label: MessageKey }[] = [
   { value: MaterialsBy.enum.worker, label: "terms.card_mine" },
@@ -53,12 +51,6 @@ function OneOf<V extends string | number>(p: {
 /** A list with nothing in it is no preference: left out. */
 const orNone = <T,>(list: T[]): T[] | undefined => (list.length > 0 ? list : undefined);
 
-/** The preferences with one field set, or left out when `value` is undefined. */
-function withField<K extends keyof TermPrefs>(prefs: TermPrefs, key: K, value: TermPrefs[K] | undefined): TermPrefs {
-  const rest = Object.fromEntries(Object.entries(prefs).filter(([k]) => k !== key));
-  return value === undefined ? rest : { ...rest, [key]: value };
-}
-
 /**
  * A worker's own preferences for the terms besides the price (ADR 0033 §3), on their card: the hours they work, from–to
  * on the clock (ADR 0053 §1), else the parts of the day they take work (none ticked means any), the days, who buys the
@@ -83,7 +75,7 @@ export function TermPrefsField({
   const days = prefs.days ?? [];
   /** A day on or off; none ticked means every day, as before. */
   const toggleDay = (d: IsoWeekday) =>
-    onChange(withField(prefs, "days", days.includes(d) ? orNone(days.filter((x) => x !== d)) : [...days, d].sort()));
+    onChange(withTerm(prefs, "days", days.includes(d) ? orNone(days.filter((x) => x !== d)) : [...days, d].sort()));
 
   if (trades.length === 0) return null;
   return (
@@ -114,16 +106,16 @@ export function TermPrefsField({
           none={t("terms.card_either")}
           options={MATERIALS.map((m) => ({ value: m.value, label: t(m.label) }))}
           value={prefs.materials}
-          onPick={(v) => onChange(withField(prefs, TermKey.enum.materials, v))}
+          onPick={(v) => onChange(withTerm(prefs, TermKey.enum.materials, v))}
         />
       )}
       {negotiates(TermKey.enum.hours) && (
         <OneOf
           title={t("terms.card_hours")}
           none={t("terms.card_any")}
-          options={HOURS.map((h) => ({ value: h, label: String(h) }))}
+          options={MOST_HOURS.map((h) => ({ value: h, label: String(h) }))}
           value={prefs.max_hours}
-          onPick={(v) => onChange(withField(prefs, "max_hours", v))}
+          onPick={(v) => onChange(withTerm(prefs, "max_hours", v))}
         />
       )}
     </fieldset>

@@ -73,12 +73,19 @@ export async function publishCard(ports: Ports, account: Account, draft: CardDra
       : {}),
     rates: CITY_RATES,
     ask_me: draft.ask_me ?? [],
-    // The card interview does not ask them: keep what the form set.
     ...withPrefs(draft.terms ?? account.worker?.terms),
   };
   // No record and no "show my record": the server computes the one and keeps the other as the worker last set it.
   await apiClient(account.session).publishProfile(card);
   const next: Account = { ...account, worker, languages, autoConfirm: draft.auto ?? false, about, listed: true };
+  await saveAccount(ports, next);
+  return next;
+}
+
+/** Takes the card off the board, for the interview and the My card form alike; the card stays on this phone. */
+export async function unlistCard(ports: Ports, account: Account): Promise<Account> {
+  await apiClient(account.session).removeProfile();
+  const next: Account = { ...account, listed: false };
   await saveAccount(ports, next);
   return next;
 }

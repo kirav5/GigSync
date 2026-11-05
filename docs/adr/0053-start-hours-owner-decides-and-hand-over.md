@@ -48,6 +48,12 @@ people booking an hour, and My card's form too long to read.
    one rate takes its unit from the work (a repair's is a visit), so cards already on the board read right without being
    published again. The form stays behind "Edit my card" until the chat can change every field on it.
 
+   The chat now changes all of it: the work, the kinds of work and each rate, the area (by name or the phone's location)
+   and how far they go, the hours and days, what to see first, who buys materials, a day's most hours, signing, and
+   taking the card off the board, which is asked once more. A value said with the change ("change my rate to 500")
+   answers its question at once and is checked like any other answer; nothing reaches the board before a yes to the
+   summary. These questions are asked only when the owner wants them changed: a first card stays as short as it was.
+
 ## Consequences
 
 - Two protocol bumps: `OWNER_OFFERS_PROTOCOL` (8) for the owners' own offers, then `HOURS_PROTOCOL` (9). Older phones

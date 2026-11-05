@@ -1,4 +1,4 @@
-import { type Chat, ChatShelf, type InterviewState, Slot, type Storage } from "@gigsync/core";
+import { type Chat, ChatShelf, type InterviewState, isLastSlot, Slot, type Storage } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { interviewConfig } from "../card/choices.js";
 import { keepChats } from "../chats/keep.js";
@@ -73,8 +73,8 @@ export function readChat(record: Chat<unknown>): {
   const { v, id, title, started_at, updated_at } = record;
   const chat: Chat<Turn> = { v, id, title, started_at, updated_at, turns: record.turns.filter(isTurn) };
   if (!isHeld(held)) return { chat };
-  // Said yes and closed before the card was on the board: back at confirm, so a yes sends it.
-  const kept = held.state.slot === Slot.done ? held.before : held.state;
+  // Said yes and closed before the card was sent: back at the question, so a yes sends it.
+  const kept = isLastSlot(held.state.slot) ? held.before : held.state;
   if (!kept) return { chat };
   return { chat, interview: { state: { ...kept, config: interviewConfig(held.own) }, paused: held.paused } };
 }

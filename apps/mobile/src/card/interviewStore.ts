@@ -6,6 +6,8 @@ import {
   hear,
   type InterviewConfig,
   type InterviewState,
+  isLastSlot,
+  keepPlace,
   type Line,
   prompt,
   Slot,
@@ -33,7 +35,7 @@ import { appTurn, noteTurn, ownerTurn, Speaker, type Turn } from "../talk/turns.
 
 /** The question a state asks, as a turn; none once the owner has said yes to publishing. */
 const asked = (state: InterviewState): Turn[] => {
-  if (state.slot === Slot.done) return [];
+  if (isLastSlot(state.slot)) return [];
   const p = prompt(state);
   return [appTurn(p.lines, p.choices ?? [])];
 };
@@ -118,7 +120,7 @@ function answered(next: (state: InterviewState) => InterviewState, label: string
   inOpen((t, live) => {
     const state = next(live.state);
     if (state === live.state) return t;
-    const beforeDone = state.slot === Slot.done ? live.state : live.beforeDone;
+    const beforeDone = isLastSlot(state.slot) ? live.state : live.beforeDone;
     return { ...adding(t, live.chat, ownerTurn(label), ...asked(state)), live: { ...live, state, beforeDone } };
   });
 }
@@ -131,6 +133,11 @@ export function answerInterview(text: string, aloud: boolean): void {
 /** An answer by tapping a choice; `label` is the choice as the owner read it. */
 export function tapInterview(value: string, label: string): void {
   answered((state) => choose(state, value), label);
+}
+
+/** The area question answered with the phone's location. */
+export function placeInterview(area: string, place: { name: string; lat: number; lon: number }): void {
+  answered((state) => keepPlace(state, area, place), place.name);
 }
 
 export function pauseInterview(): void {
@@ -193,12 +200,12 @@ export function closeInterview(): void {
 }
 
 /**
- * For the one caller that may publish the card the owner just said yes to: a claim to hand back with the outcome.
+ * For the one caller that may send what the owner just said yes to: a claim to hand back with the outcome.
  * Undefined while a publish is under way or before the yes.
  */
 export function claimPublish(): number | undefined {
   const live = currentTalk().live;
-  if (!live || live.sending || live.state.slot !== Slot.done) return undefined;
+  if (!live || live.sending || !isLastSlot(live.state.slot)) return undefined;
   updateTalk((t) => ({ ...t, live: { ...live, sending: true } }));
   return live.id;
 }
@@ -214,7 +221,7 @@ export function interviewPublished(claim: number, line: Line): boolean {
   return true;
 }
 
-/** Publishing failed: say so, and stand at confirm again so a yes can retry. */
+/** Publishing failed: say so, and stand at the question again so a yes can retry. */
 export function interviewFailed(claim: number, line: Line): void {
   updateTalk((t) => {
     const live = t.live;
