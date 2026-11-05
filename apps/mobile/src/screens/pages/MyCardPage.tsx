@@ -14,7 +14,9 @@ interface Props {
   account: Account;
   /** When this phone last synced: the served record is read again after syncs. */
   syncedAt: Date | undefined;
-  /** Opens the My card form, to make or change the card. */
+  /** Opens the chat, to make or change the card by talking. */
+  onTalk: () => void;
+  /** Opens the My card form, until the chat can change every field on it. */
   onCardForm: () => void;
   /** A GigSync QR was scanned here: open whoever it finds. */
   onScanned: (code: QrCode) => void;
@@ -26,9 +28,9 @@ const NO_JOBS: WorkerRecord = { jobs: 0, rated: 0 };
 /**
  * My card, as collab's: one card, centred, with who the owner is as others see them (for a worker, their card and
  * their record as GigSync keeps it; for a household, the first name a scanning worker sees), their QR and its
- * buttons. A worker changes their card with the one Edit my card; changing it by talking stays in the chat.
+ * buttons. A worker changes their card by talking (ADR 0053 §7).
  */
-export function MyCardPage({ ports, account, syncedAt, onCardForm, onScanned }: Props) {
+export function MyCardPage({ ports, account, syncedAt, onTalk, onCardForm, onScanned }: Props) {
   const { t } = useI18n();
   const isWorker = account.role === AccountRole.worker;
   const first = qrOwner(account.contact.name, isWorker ? QrRole.enum.worker : QrRole.enum.household).first_name;
@@ -65,7 +67,10 @@ export function MyCardPage({ ports, account, syncedAt, onCardForm, onScanned }: 
       </MyQr>
       {isWorker && (
         <div className={C.actions}>
-          <button type={C.button} className={C.accent} onClick={onCardForm}>
+          <button type={C.button} className={C.accent} onClick={onTalk}>
+            {t("card.change_by_talking")}
+          </button>
+          <button type={C.button} className={C.quiet} onClick={onCardForm}>
             {t("shell.edit_card")}
           </button>
         </div>

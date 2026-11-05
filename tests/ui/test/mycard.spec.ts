@@ -91,8 +91,11 @@ test("a worker's My card shows their card, their record, the QR and one Edit my 
   await open(page, "nav.card");
   const mine = card(page, "page.card_seen");
   await expect(mine).toContainText(name);
-  await expect(mine).toContainText("Cook · Jayanagar");
-  await expect(mine).toContainText(say("find.from", { price: "₹11,000" }));
+  // Only the work she chose, as chips, and her rate in its unit (ADR 0053 §7).
+  await expect(mine.getByRole("list", { name: say("card.what") }).getByRole("listitem")).toHaveText(["Cook"]);
+  await expect(mine).toContainText("Jayanagar");
+  await expect(mine).toContainText(say("price.per", { price: "₹11,000", unit: say("unit.month") }));
+  await expect(mine).not.toContainText(say("find.from", { price: "₹11,000" }));
   await expect(mine).toContainText(ABOUT);
   // GigSync's record of her jobs: jobs done, and the average of 5, 4, 5, 5 to one decimal, over four ratings.
   await expect(stats(mine)).toHaveText(["5", "★ 4.8"]);
@@ -105,7 +108,7 @@ test("a worker's My card shows their card, their record, the QR and one Edit my 
     await expect(mine.getByRole("button", { name: say(key), exact: true })).toBeVisible();
   await expect(mine.getByRole("link", { name: say("qr.download") })).toBeVisible();
   await expect(page.getByRole("button", { name: say("shell.edit_card"), exact: true })).toHaveCount(1);
-  await expect(page.getByRole("button", { name: /talking|households do/i })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: say("card.change_by_talking"), exact: true })).toHaveCount(1);
   await shots(page, "worker-record");
 
   // Privacy: the record off. The card goes to the board again saying so, and My card says households do not see it.
@@ -192,4 +195,12 @@ test("a household scanning a worker sees the record GigSync keeps, and none once
   await household.goto(`${APP}/?to=${qr}`);
   await expect(household.getByRole("region", { name: "Kavya" })).toContainText(ABOUT);
   await expect(stats(household.getByRole("region", { name: "Kavya" }))).toHaveCount(0);
+});
+
+test("Change by talking opens the chat on the card, asking what to change", async ({ browser }) => {
+  const page = await phone(browser);
+  await cook(page, `Meena ${RUN}`, newPhone());
+  await open(page, "nav.card");
+  await page.getByRole("button", { name: say("card.change_by_talking"), exact: true }).click();
+  await expect(page.getByRole("log")).toContainText(say("iv.what_change"));
 });

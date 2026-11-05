@@ -128,6 +128,7 @@ export function ScreenView({ screen, d, m }: { screen: Screen; d: ScreenData; m:
           ports={ports}
           account={account}
           syncedAt={view.syncedAt}
+          onTalk={m.talkCard}
           onCardForm={() => m.go(Screen.cardEdit)}
           onScanned={m.showPerson}
         />
