@@ -13,7 +13,7 @@ eval scores one message; this scores the whole chat, on what went wrong in Find'
 
 A conversation is what a person says first, what they answer the model's own questions with, the work they want, and
 optionally other work they name part-way. Everything else has a fixed answer: chips are tapped, the day is tomorrow, the
-budget is ₹2,500, and one address is saved in HSR Layout. There are 24 conversations in each of five sets: English,
+budget is ₹2,500, and one address is saved in HSR Layout. There are 22 conversations in each of five sets: English,
 Hindi, Kannada, Hinglish and Kanglish.
 
 To run it against GigSync's model through its tunnel:
