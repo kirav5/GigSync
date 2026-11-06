@@ -6,7 +6,7 @@ import {
   type ChatRoute,
   type Agent as CoreAgent,
   clarifyCard,
-  edit,
+  editSaid,
   type InterviewState,
   log,
   type Ports,
@@ -105,7 +105,7 @@ export function useNotes({ agent, ports, account, view, i18n, turns, moves, fres
     const { intent, slots } = route;
     if (intent === ChatIntent.editCard)
       return handOver(note, () =>
-        beginInterview(account.worker && slots.field ? edit(fresh(), slots.field) : fresh(), own),
+        beginInterview(account.worker && slots.field ? editSaid(fresh(), slots.field, own) : fresh(), own),
       );
     if (intent === ChatIntent.helpOffer) return handOver(note, () => moves.offer(own));
     if (intent === ChatIntent.helpStop) return handOver(note, () => moves.stop(own));

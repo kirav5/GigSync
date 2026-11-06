@@ -65,7 +65,7 @@ export function missingRate(d: CardDraft): Arrangement | undefined {
 
 /** The arrangement an estimate is wanted for now: the one whose rate is being asked. */
 export function askingArrangement(s: InterviewState): Arrangement | undefined {
-  return s.slot === Slot.more_rates ? (missingRate(s.draft) ?? mainOf(s.draft)) : mainOf(s.draft);
+  return s.slot === Slot.more_rates ? (s.rateFor ?? missingRate(s.draft) ?? mainOf(s.draft)) : mainOf(s.draft);
 }
 
 /** The rates the card shows, the main one's from the usual rate; empty for a card not priced by arrangement. */
@@ -120,18 +120,19 @@ export function hearArrangements(s: InterviewState, text: string): InterviewStat
 
 /** The rate for the next other arrangement. */
 export function moreRatePrompt(s: InterviewState): Prompt {
-  const a = missingRate(s.draft) ?? A.monthly;
+  const a = s.rateFor ?? missingRate(s.draft) ?? A.monthly;
   return { lines: [{ key: RATE_QUESTION[a] }], numeric: true, hints: [] };
 }
 
-/** An amount for the arrangement asked; asked again until it is one. */
-export function hearMoreRate(s: InterviewState, text: string): InterviewState {
-  const a = missingRate(s.draft);
-  const paise = parseAmount(text);
+/** An amount for the arrangement asked, said or tapped; asked again until it is one. */
+export function keepMoreRate(s: InterviewState, paise: number | undefined): InterviewState {
+  const a = s.rateFor ?? missingRate(s.draft);
   if (!a || paise === undefined || paise <= 0) return retry(s, { key: "iv.again.amount" });
   const draft = { ...s.draft, other_rates: { ...s.draft.other_rates, [a]: paise } };
   return advance(s, draft, [{ key: "iv.got_rate", prices: { price: paise } }]);
 }
+
+export const hearMoreRate = (s: InterviewState, text: string): InterviewState => keepMoreRate(s, parseAmount(text));
 
 /** The card's rates in the summary, one line each, after the main rate the summary already gives. */
 export const ratesSummary = (d: CardDraft): Line[] =>

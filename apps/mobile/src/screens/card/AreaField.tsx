@@ -1,13 +1,11 @@
-import { localitySlug, nearestPilotArea } from "@gigsync/core";
-import { coarsePoint, type GeoPlace, type Place, type Session } from "@gigsync/protocol";
+import { RADII_KM } from "@gigsync/core";
+import type { GeoPlace, Place, Session } from "@gigsync/protocol";
+import { pilotPlace, workPlace } from "../../card/workPlace.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { PlaceMap } from "../../ui/PlaceMap.js";
 import { AREAS } from "../../ui/places.js";
 import { LocateStep } from "../address/LocateStep.js";
-
-/** How far a worker may say they go, in km (ADR 0045). */
-export const RADII_KM = [3, 5, 10, 25] as const;
 
 /** The worker's area: a pilot area's key, or a place they found with their location (its name and coarse point). */
 export interface WorkArea {
@@ -31,15 +29,14 @@ export function AreaField({
   onChange: (next: WorkArea) => void;
 }) {
   const { t } = useI18n();
-  const found = (place: GeoPlace, point: Place) => {
-    const at = coarsePoint(point);
-    const key = localitySlug(place.locality);
-    if (key) onChange({ ...value, area: key, place: { name: place.locality, ...at } });
+  const located = (place: GeoPlace, point: Place) => {
+    const found = workPlace(place, point);
+    if (found) onChange({ ...value, ...found });
   };
   /** No place names from the server: the pilot area the phone is in, at the phone's own coarse point. */
   const nearby = (point: Place): boolean => {
-    const pilot = nearestPilotArea(point);
-    if (pilot) onChange({ ...value, area: pilot.key, place: { name: pilot.name, ...coarsePoint(point) } });
+    const pilot = pilotPlace(point);
+    if (pilot) onChange({ ...value, ...pilot });
     return pilot !== undefined;
   };
   return (
@@ -64,7 +61,7 @@ export function AreaField({
           ))}
         </select>
       </label>
-      <LocateStep session={session} onFound={found} onPointOnly={nearby} label="card.use_location" />
+      <LocateStep session={session} onFound={located} onPointOnly={nearby} label="card.use_location" />
       {value.place && (
         <p className={C.muted} role="status">
           {t("card.area_found", { area: value.place.name })}

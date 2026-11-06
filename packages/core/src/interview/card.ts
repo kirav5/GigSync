@@ -1,11 +1,13 @@
 import type { Arrangement, Lang, QuestionKey, RateCard, Skill, Trade } from "@gigsync/protocol";
-import type { MessageKey } from "../i18n/t.js";
 import { ASK_FIRST_DETAILS } from "../job/details.js";
 import { QUESTIONS } from "../job/worker.js";
 import type { TermPrefs } from "../job/worker-stance.js";
 import { arranged, missingRate } from "./card-arrangements.js";
+import type { Line } from "./card-lines.js";
 import type { FoundEstimate } from "./estimate-lines.js";
 import type { Field } from "./lexicon.js";
+
+export type { Choice, Line, Prompt } from "./card-lines.js";
 
 /**
  * The card interview's shape and how it moves: what it gathers, the order of the questions, and where an answer or
@@ -25,7 +27,7 @@ export interface CardDraft {
   arrangements?: Arrangement[];
   /** ADR 0046: the usual rate for each other arrangement picked. */
   other_rates?: Partial<Record<Arrangement, number>>;
-  /** ADR 0045: how far from their area they go, in km; the card form sets it, the interview keeps it. */
+  /** ADR 0045: how far from their area they go, in km. */
   radius_km?: number;
   rate_paise?: number;
   limit_paise?: number;
@@ -65,45 +67,23 @@ export const Slot = {
   about: "about",
   ask_first: "ask_first",
   auto: "auto",
+  /** Asked only when the owner wants them changed: a first card stays as short as it was (ADR 0053 §7). */
+  hours: "hours",
+  hours_to: "hours_to",
+  days: "days",
+  radius: "radius",
+  materials: "materials",
+  max_hours: "max_hours",
+  /** Which of several rates to change. */
+  which_rate: "which_rate",
+  /** "Take your card off the board?" */
+  unlist: "unlist",
   confirm: "confirm",
   done: "done",
+  /** Said yes to taking the card off the board. */
+  unlisted: "unlisted",
 } as const;
 export type Slot = (typeof Slot)[keyof typeof Slot];
-
-/**
- * One line the app shows (and reads aloud unless `silent`). `prices` are paise, formatted by the app with `money()`.
- * `names` are catalog keys (trades, an area, a language), put in whatever language the reader has when the line is
- * shown, several joined with commas: a line stays in one language even if the owner switches mid-interview.
- */
-export interface Line {
-  key: MessageKey;
-  params?: Record<string, string | number>;
-  prices?: Record<string, number>;
-  names?: Readonly<Record<string, readonly MessageKey[]>>;
-  /** Days as "YYYY-MM-DD", written as a date in the reader's language when shown. */
-  dates?: Readonly<Record<string, string>>;
-  silent?: true;
-}
-
-/** A tap answer: the value `choose()` takes, and the label shown. */
-export interface Choice {
-  value: string;
-  key: MessageKey;
-  params?: Record<string, string | number>;
-}
-
-/** What to show now: lines, the tap choices, whether the answer is an amount, and words the recognizer should expect. */
-export interface Prompt {
-  lines: Line[];
-  choices?: readonly Choice[];
-  numeric?: boolean;
-  hints: string[];
-  /**
-   * The answer is private (the lowest rate): only a recognizer on the phone itself may hear it, never a company's,
-   * whatever the owner allowed for the other questions. Typing and the tap choices still work.
-   */
-  secret?: true;
-}
 
 /** The interview between turns. Treat as opaque outside this module. */
 export interface InterviewState {
@@ -128,20 +108,36 @@ export interface InterviewState {
   readonly fresh: boolean;
   /** The rate estimate the app found for the worker's first trade (`card-estimate.ts`), if any. */
   readonly estimate?: FoundEstimate | undefined;
+  /** The card is off the board, so a whole card opens on putting it back, and there is nothing to take off. */
+  readonly offBoard?: boolean | undefined;
+  /** The other arrangement whose rate is being changed; none asks for the next one missing. */
+  readonly rateFor?: Arrangement | undefined;
+  /** The start hour said, while the question is until when. */
+  readonly from?: number | undefined;
+  /** The words that asked for a change and named its value, kept while the question is which rate it is for. */
+  readonly heard?: string | undefined;
 }
 
 /** The values tap choices carry besides trades, areas, languages and fields. */
-export const Pick = { yes: "yes", no: "no", none: "none", skip: "skip", suggested: "suggested" } as const;
+export const Pick = { yes: "yes", no: "no", none: "none", skip: "skip", suggested: "suggested", any: "any" } as const;
 
 /** The fields an owner can change from confirm, in the order the chips show them. */
 export const FIELDS: readonly Field[] = [
   Slot.trade,
+  Slot.arrangements,
   Slot.area,
+  Slot.radius,
   Slot.rate,
   Slot.min,
+  Slot.hours,
+  Slot.days,
   Slot.languages,
   Slot.about,
+  Slot.ask_first,
+  Slot.materials,
+  Slot.max_hours,
   Slot.auto,
+  Slot.unlist,
 ];
 const ORDER: readonly Slot[] = [
   Slot.trade,
@@ -162,6 +158,9 @@ export const askable = (trades: readonly Trade[]): QuestionKey[] =>
   [...ASK_FIRST_DETAILS].filter((k) => trades.some((tr) => QUESTIONS[tr].includes(k)));
 
 /** The card names some work: a trade, or a skill of the worker's own. */
+/** The interview has been answered for good: the card is being sent, or taken off the board. */
+export const isLastSlot = (slot: Slot): boolean => slot === Slot.done || slot === Slot.unlisted;
+
 export const hasWork = (d: CardDraft): boolean => !!d.trades?.length || !!d.skills?.length;
 
 const complete = (d: CardDraft): boolean =>
@@ -182,7 +181,7 @@ function firstMissing(d: CardDraft): Slot {
 }
 
 /** A new interview, at the first field, or pre-filled from the card the owner already has. */
-export function start(config: InterviewConfig, existing: CardDraft = {}): InterviewState {
+export function start(config: InterviewConfig, existing: CardDraft = {}, offBoard = false): InterviewState {
   const draft = { ...existing };
   const ready = complete(draft);
   return {
@@ -193,9 +192,10 @@ export function start(config: InterviewConfig, existing: CardDraft = {}): Interv
     misses: 0,
     ask: 0,
     editing: false,
-    // A whole card goes straight to what to change: that is why the owner is here.
-    changing: ready,
+    // A whole card goes straight to what to change: that is why the owner is here. Off the board, it is to put it back.
+    changing: ready && !offBoard,
     fresh: true,
+    offBoard,
   };
 }
 
@@ -221,6 +221,18 @@ function nextSlot(s: InterviewState, draft: CardDraft): Slot {
   return ORDER[i] ?? Slot.confirm;
 }
 
+/** What no question carries over to the next. */
+const BETWEEN_QUESTIONS = {
+  pending: undefined,
+  pendingAloud: undefined,
+  misses: 0,
+  ask: 0,
+  fresh: false,
+  rateFor: undefined,
+  from: undefined,
+  heard: undefined,
+} as const;
+
 /** The current field answered: on to the next one, with an optional readback. */
 export function advance(s: InterviewState, draft: CardDraft, notes: Line[] = []): InterviewState {
   const slot = nextSlot(s, draft);
@@ -230,27 +242,14 @@ export function advance(s: InterviewState, draft: CardDraft, notes: Line[] = [])
     draft,
     slot,
     notes,
-    pending: undefined,
-    pendingAloud: undefined,
-    misses: 0,
-    ask: 0,
-    fresh: false,
+    ...BETWEEN_QUESTIONS,
     editing: !back && s.editing,
   };
 }
 
-/** Jumps to one field; after it is answered the interview returns to confirm. */
-export function edit(state: InterviewState, slot: Slot): InterviewState {
-  const base = {
-    ...state,
-    notes: [],
-    pending: undefined,
-    pendingAloud: undefined,
-    misses: 0,
-    ask: 0,
-    fresh: false,
-    changing: false,
-  };
+/** Opens one slot; after it is answered the interview returns to confirm. `edit` is the way in for an owner's choice. */
+export function openSlot(state: InterviewState, slot: Slot): InterviewState {
+  const base = { ...state, ...BETWEEN_QUESTIONS, notes: [], changing: false };
   if (slot === Slot.confirm || slot === Slot.done) return { ...base, slot: Slot.confirm, editing: false };
   return { ...base, slot, editing: true };
 }

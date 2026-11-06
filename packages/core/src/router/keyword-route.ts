@@ -1,7 +1,7 @@
 import { PILOT_AREA_CHOICES } from "../estimate/area-names.js";
 import { editIntent } from "../interview/lexicon.js";
 import { asksGuide } from "../moving/guide-replies.js";
-import { hasScheduleCue, soundsLikeSchedule } from "../schedule/read.js";
+import { hasScheduleCue, namesBooking, soundsLikeSchedule } from "../schedule/read.js";
 import { earningsIntent } from "./earnings.js";
 import { ChatIntent, ChatRole, type ChatRoute, type ChatSlots, type IntentContext, RouteVia } from "./intent.js";
 import { Expert, namedContact, routeByKeywords } from "./keyword.js";
@@ -47,7 +47,7 @@ function expertRoute(text: string, ctx: IntentContext): ChatRoute {
 /** A worker's Talk, in the order its lists were always checked. */
 function workerRoute(text: string, ctx: IntentContext): ChatRoute {
   const field = editIntent(text);
-  if (field) return route(ChatIntent.editCard, { field });
+  if (field && !namesBooking(text)) return route(ChatIntent.editCard, { field });
   const help = helpIntent(text, ctx.lang);
   if (help) return route(help === HelpIntent.offer ? ChatIntent.helpOffer : ChatIntent.helpStop);
   const moving = movingIntent(text, ctx.lang);

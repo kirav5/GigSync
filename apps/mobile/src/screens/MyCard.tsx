@@ -1,10 +1,10 @@
 import { askable, type CardDraft, cardArrangements, log, type Ports, parseAmount, type TermPrefs } from "@gigsync/core";
 import { Arrangement, Lang, mainArrangement, type Skill, Trade } from "@gigsync/protocol";
 import { type FormEvent, useRef, useState } from "react";
-import { type Account, apiClient, saveAccount } from "../adapters/account.js";
+import type { Account } from "../adapters/account.js";
 import { offerAlerts } from "../adapters/push.js";
 import { closeInterview } from "../card/interviewStore.js";
-import { AboutPrivateError, accountDraft, DEFAULT_RADIUS_KM, publishCard } from "../card/publish.js";
+import { AboutPrivateError, accountDraft, DEFAULT_RADIUS_KM, publishCard, unlistCard } from "../card/publish.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
@@ -132,9 +132,7 @@ export function MyCard({
     if (busy) return;
     setBusy(true);
     try {
-      await apiClient(account.session).removeProfile();
-      const next: Account = { ...account, listed: false };
-      await saveAccount(ports, next);
+      const next = await unlistCard(ports, account);
       setError(undefined);
       setStatus(t("card.off_board"));
       closeInterview();

@@ -3,10 +3,12 @@ import type { MessageKey } from "../i18n/t.js";
 import { asciiDigits } from "../job/details.js";
 import { readSkill, spokenSkill } from "../skills/read.js";
 import { parseAmount } from "./amount.js";
-import { advance, askable, edit, FIELDS, type InterviewState, Pick, retry, Slot } from "./card.js";
-import { chooseArrangements, hearArrangements, hearMoreRate, mainOf } from "./card-arrangements.js";
+import { advance, askable, type CardDraft, FIELDS, type InterviewState, Pick, retry, Slot } from "./card.js";
+import { chooseArrangements, hearArrangements, hearMoreRate, keepMoreRate, mainOf } from "./card-arrangements.js";
+import { chooseWhichRate, edit, editSaid, hearWhichRate, onUnlist } from "./card-edit.js";
 import { cardEstimate, suggestedAmount } from "./card-estimate.js";
-import { areaIn, editIntent, type Field, fieldIn, isNone, isSkip, languagesIn, tradesIn, yesNo } from "./lexicon.js";
+import { chooseTerms, hearTerms } from "./card-terms.js";
+import { areaIn, editIntent, fieldIn, isNone, isSkip, languagesIn, tradesIn, yesNo } from "./lexicon.js";
 
 /**
  * Turning an answer, said, typed or tapped, into the interview's next state: each field's checks, the amount check and
@@ -69,8 +71,15 @@ function onWork(s: InterviewState, text: string): InterviewState {
 }
 
 function onArea(s: InterviewState, area: string | undefined): InterviewState {
-  return area === undefined ? retry(s, { key: "iv.again.area" }) : advance(s, { ...s.draft, area });
+  if (area === undefined) return retry(s, { key: "iv.again.area" });
+  // The point found with their location goes with the old area: left in, publishing would keep that place (`baseOf`).
+  const { place: _old, ...rest } = s.draft;
+  return advance(s, { ...rest, area });
 }
+
+/** The area found with the phone's location: its key, with the place it named (ADR 0045). */
+export const keepPlace = (s: InterviewState, area: string, place: NonNullable<CardDraft["place"]>): InterviewState =>
+  advance(s, { ...s.draft, area, place });
 
 /**
  * Whether an amount sits within the usual range for the worker's first trade (the estimate's, else the city band's),
@@ -159,17 +168,22 @@ function onYesNo(s: InterviewState, yes: boolean | undefined): InterviewState {
   return advance(s, draft);
 }
 
-function onConfirm(s: InterviewState, yes: boolean | undefined, field: Field | undefined): InterviewState {
-  if (field) return edit(s, field);
-  if (yes === true) return { ...s, slot: Slot.done, notes: [], fresh: false };
-  if (yes === false) return { ...s, changing: true, notes: [], fresh: false };
-  return retry(s, { key: Say.againYesNo });
+function onConfirm(s: InterviewState, text: string, aloud: boolean): InterviewState {
+  const field = editIntent(text);
+  if (field) return editSaid(s, field, text, aloud);
+  const yes = yesNo(text);
+  return yes === undefined ? retry(s, { key: Say.againYesNo }) : onConfirmTap(s, yes);
 }
 
+/** Yes to the summary sends the card; no asks what to change. */
+const onConfirmTap = (s: InterviewState, yes: boolean): InterviewState =>
+  yes ? { ...s, slot: Slot.done, notes: [], fresh: false } : { ...s, changing: true, notes: [], fresh: false };
+
 /** Which field to change; a no or "nothing" goes back to the summary and its question. */
-function onChange(s: InterviewState, field: Field | undefined, yes: boolean | undefined): InterviewState {
-  if (field) return edit(s, field);
-  return { ...s, changing: yes !== false, notes: [], fresh: false };
+function onChange(s: InterviewState, text: string, aloud: boolean): InterviewState {
+  const field = fieldIn(text);
+  if (field) return editSaid(s, field, text, aloud);
+  return { ...s, changing: yesNo(text) !== false, notes: [], fresh: false };
 }
 
 /** Languages named, none (an empty list), or undefined when the answer is neither. */
@@ -206,11 +220,13 @@ export function hear(state: InterviewState, text: string, aloud = false): Interv
     case Slot.auto:
       return onYesNo(state, yesNo(text));
     case Slot.confirm:
-      return state.changing
-        ? onChange(state, fieldIn(text), yesNo(text))
-        : onConfirm(state, yesNo(text), editIntent(text));
+      return state.changing ? onChange(state, text, aloud) : onConfirm(state, text, aloud);
+    case Slot.which_rate:
+      return hearWhichRate(state, text);
+    case Slot.unlist:
+      return onUnlist(state, yesNo(text));
     default:
-      return state;
+      return hearTerms(state, text);
   }
 }
 
@@ -245,11 +261,19 @@ export function choose(state: InterviewState, value: string): InterviewState {
     case Slot.auto:
       return flag(value) === undefined ? state : onYesNo(state, flag(value));
     case Slot.confirm: {
-      if (!state.changing) return flag(value) === undefined ? state : onConfirm(state, flag(value), undefined);
+      if (!state.changing) return flag(value) === undefined ? state : onConfirmTap(state, value === Pick.yes);
       const field = FIELDS.find((f) => f === value);
       return field ? edit(state, field) : state;
     }
+    case Slot.more_rates: {
+      const suggested = value === Pick.suggested ? suggestedAmount(state, false) : undefined;
+      return suggested === undefined ? state : keepMoreRate(state, suggested);
+    }
+    case Slot.which_rate:
+      return chooseWhichRate(state, value);
+    case Slot.unlist:
+      return flag(value) === undefined ? state : onUnlist(state, flag(value));
     default:
-      return state;
+      return chooseTerms(state, value);
   }
 }
