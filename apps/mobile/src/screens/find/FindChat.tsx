@@ -90,7 +90,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   const { inUse } = useAddressBook(ports.storage);
   const inUseId = inUse?.id;
   const [adding, setAdding] = useState(false);
-  // The address at the top of the screen is where a need goes: nothing to ask unless the owner names another place.
+  // The address at the top of the screen comes first at the "where" question, a tap away.
   useEffect(() => {
     if (state && state.config.inUse !== inUseId) addressInUseNeed(open, inUseId);
   }, [state, open, inUseId]);
