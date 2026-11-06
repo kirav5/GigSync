@@ -15,7 +15,11 @@ const Conversation = z.object({
   answers: z.array(z.string().min(1)),
   /** Other work named part-way: the chat should offer to switch, not say "Sorry". */
   later: z.string().optional(),
-  want: z.union([z.object({ trade: z.string() }), z.object({ outside: z.literal(true) })]),
+  want: z.union([
+    z.object({ trade: z.string() }),
+    z.object({ skill: z.string() }),
+    z.object({ outside: z.literal(true) }),
+  ]),
 });
 
 export function loadConversations(sets = SETS) {

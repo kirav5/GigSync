@@ -68,9 +68,10 @@ export async function readFirst(m: Message): Promise<void> {
   const trade = heard ?? state.draft.trade;
   const problemKind = trade && meaning ? await problemByMeaning(meaning.problems, trade, text) : undefined;
   if (problemKind) hint.problemKind = problemKind;
-  // Outside the trades: a skill workers list, matched on this phone (ADR 0047); else the model names the work.
-  const skill = trade ? undefined : await skillAsked(ports, session, text, state.to?.skills);
-  if (skill) return skillNeed(chat, skill, text);
+  // Outside the trades: a skill workers list (ADR 0047), by name or by what the words mean; else the model names the work.
+  const asked = (words: string) => skillAsked(ports, session, words, state.to?.skills);
+  const skill = trade ? undefined : ((await asked(text)) ?? (read?.jobType ? await asked(read.jobType) : undefined));
+  if (skill) return skillNeed(chat, skill, text, Boolean(read?.problem || read?.jobType));
   const jobType =
     trade || !state.draft.modelAsk ? undefined : (read?.jobType ?? (await modelJobType(ports.model, text, lang)));
   if (jobType) return jobTypeNeed(chat, jobType, text);

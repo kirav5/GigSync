@@ -69,49 +69,49 @@
     "id": "hinglish-tv",
     "says": ["mera tv nahi chal raha"],
     "answers": ["bas ek", "kal se"],
-    "want": { "outside": true }
+    "want": { "skill": "TV repair" }
   },
   {
     "id": "hinglish-tvoff",
     "says": ["tv on nahi ho raha"],
     "answers": ["bas ek", "kal se"],
-    "want": { "outside": true }
+    "want": { "skill": "TV repair" }
   },
   {
     "id": "hinglish-fridge",
     "says": ["fridge thanda nahi kar raha"],
     "answers": ["bas ek", "kal se"],
-    "want": { "outside": true }
+    "want": { "skill": "Fridge repair" }
   },
   {
     "id": "hinglish-pest",
     "says": ["kitchen mein bahut cockroach hain"],
     "answers": ["bas ek", "kal se"],
-    "want": { "outside": true }
+    "want": { "skill": "Pest control" }
   },
   {
     "id": "hinglish-tutor",
     "says": ["bete ke liye maths tutor chahiye"],
     "answers": ["bas ek", "kal se"],
-    "want": { "outside": true }
+    "want": { "skill": "Maths tutor" }
   },
   {
     "id": "hinglish-tailor",
     "says": ["blouse silwana hai"],
     "answers": ["bas ek", "kal se"],
-    "want": { "outside": true }
+    "want": { "skill": "Tailor" }
   },
   {
     "id": "hinglish-laptop",
     "says": ["laptop ki screen toot gayi hai"],
     "answers": ["bas ek", "kal se"],
-    "want": { "outside": true }
+    "want": { "skill": "Laptop repair" }
   },
   {
     "id": "hinglish-hello",
     "says": ["hello ji", "mera tv nahi chal raha"],
     "answers": ["bas ek", "kal se"],
-    "want": { "outside": true }
+    "want": { "skill": "TV repair" }
   },
   {
     "id": "hinglish-hellotap",
@@ -132,5 +132,6 @@
     "answers": ["bas ek"],
     "later": "mujhe ek cook bhi chahiye",
     "want": { "trade": "plumber" }
-  }
+  },
+  { "id": "hinglish-nobody", "says": ["mujhe swimming coach chahiye"], "answers": ["x"], "want": { "outside": true } }
 ]

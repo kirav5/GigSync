@@ -7,6 +7,19 @@ const { NeedSlot } = core;
 export const Reader = { lists: "lists", turn: "turn" };
 const AREAS = core.PILOT_AREA_CHOICES;
 const HOME = { id: "adr_01JC0000000000000000000001", label: "home", areaName: "HSR Layout", area: "hsr_layout" };
+/** What workers list on the board in these conversations: the skills a phone would fetch. */
+const LISTED = [
+  "TV repair",
+  "Fridge repair",
+  "Laptop repair",
+  "Tailor",
+  "Pest control",
+  "Maths tutor",
+  "Gardener",
+  "Mehendi artist",
+  "Yoga teacher",
+  "Car wash",
+].map((text) => ({ text, key: text.toLowerCase(), lang: "en", workers: 3 }));
 const TODAY = "2026-11-10";
 /** A long way past any real chat: a conversation still going is stuck. */
 const MAX_TURNS = 14;
@@ -57,6 +70,10 @@ async function firstTurn(model, s, text, lang) {
   if (!read) return firstWords(model, s, text, lang);
   if (read.kind === core.TurnKind.enum.greeting) return s;
   const trade = read.trade ?? (read.jobType ? undefined : core.parseNeed(text, { areas: AREAS, today: TODAY }).trade);
+  const asked = async (words) =>
+    (await core.listedSkill(words, LISTED)) ?? (await core.pickSkill(model, words, LISTED, WAIT_MS));
+  const skill = trade ? undefined : ((await asked(text)) ?? (read.jobType ? await asked(read.jobType) : undefined));
+  if (skill) return core.withSkill(s, skill, text, Boolean(read.problem || read.jobType));
   const jobType = trade ? undefined : (read.jobType ?? (await core.modelJobType(model, text, lang, WAIT_MS)));
   if (jobType) return core.withJobType(s, jobType, text);
   const scope = trade ? await core.readScope(model, text, { trade, lang, waitMs: WAIT_MS }) : [];
@@ -126,6 +143,7 @@ export async function runConversation(model, conversation, lang, reader = Reader
     const backAgain = log.switched && log.asked.at(-1) === wordsOf(s, lang);
     if ((s.slot === NeedSlot.driver || s.slot === NeedSlot.detail) && !backAgain) log.asked.push(wordsOf(s, lang));
   }
-  log.job = s.draft.trade ? { trade: s.draft.trade } : s.draft.jobType ? { outside: s.draft.jobType } : undefined;
+  const { trade, skill, jobType } = s.draft;
+  log.job = trade ? { trade } : skill ? { skill: skill.text } : jobType ? { outside: jobType } : undefined;
   return log;
 }

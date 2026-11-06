@@ -13,11 +13,14 @@ import { normalize, SPACE } from "./normalize.js";
 /** Words this many or more say what the work is, so the first question ("What exactly is the work?") is answered. */
 const SAYS_THE_WORK = 6;
 
-/** The need as one for a listed skill, unless it already has a trade; the owner's words are on screen already. */
-export function withSkill(s: NeedState, skill: BoardSkill, words: string): NeedState {
+/**
+ * The need as one for a listed skill, unless it already has a trade; the owner's words are on screen already.
+ * `saysWhat`: a model read the words as saying what is wanted, however few ("my tv not working").
+ */
+export function withSkill(s: NeedState, skill: BoardSkill, words: string, saysWhat = false): NeedState {
   const at = s.slot === NeedSlot.outside ? afterOutside(s) : s;
   if (at.draft.trade) return s;
-  const said = normalize(words).split(SPACE).length >= SAYS_THE_WORK;
+  const said = saysWhat || normalize(words).split(SPACE).length >= SAYS_THE_WORK;
   const found = { ...at.draft, skill, jobType: undefined, need: undefined, ...(said ? { detail: words.trim() } : {}) };
   const draft = withSaidArrangement(found, arrangementSaid(words));
   return moveOn(at, draft, [{ key: "need.skill_found", params: { skill: skill.text } }]);

@@ -25,8 +25,12 @@ export function repeatsIn(asked) {
   return count;
 }
 
-/** Right work: the trade wanted, or, for work outside the trades, some job named and no trade forced on it. */
-export const rightJob = (want, job) => ("trade" in want ? job?.trade === want.trade : Boolean(job && "outside" in job));
+/** Right work: the trade or listed skill wanted; or, for work nobody lists, a job named and no trade or skill forced. */
+export function rightJob(want, job) {
+  if ("trade" in want) return job?.trade === want.trade;
+  if ("skill" in want) return job?.skill === want.skill;
+  return Boolean(job && "outside" in job);
+}
 
 const percent = (part, whole) => (whole === 0 ? "-" : `${Math.round((part / whole) * 100)}%`);
 
@@ -36,8 +40,9 @@ export function line(label, runs) {
   const right = runs.filter((r) => rightJob(r.want, r.job)).length;
   const clean = runs.filter((r) => repeatsIn(r.asked) === 0).length;
   const noSorry = runs.filter((r) => r.sorries === 0).length;
-  const ended = runs.filter((r) => r.end === "ready").length;
-  const dead = runs.filter((r) => r.end !== "ready").length;
+  const honest = (r) => r.end === "outside" && "outside" in r.want;
+  const ended = runs.filter((r) => r.end === "ready" || honest(r)).length;
+  const dead = runs.filter((r) => r.end !== "ready" && !honest(r)).length;
   const offered = runs.filter((r) => r.later && r.switched).length;
   const later = runs.filter((r) => r.later).length;
   const questions = runs.reduce((sum, r) => sum + r.asked.length, 0) / (n || 1);

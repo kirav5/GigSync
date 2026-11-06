@@ -106,8 +106,8 @@ export function jobTypeNeed(chat: string, jobType: string, words: string): void 
 }
 
 /** A need for a skill workers list (ADR 0047), matched on this phone; the owner's words are on screen already. */
-export function skillNeed(chat: string, skill: BoardSkill, words: string): void {
-  moved(chat, (state) => withSkill(state, skill, words), []);
+export function skillNeed(chat: string, skill: BoardSkill, words: string, saysWhat = false): void {
+  moved(chat, (state) => withSkill(state, skill, words, saysWhat), []);
 }
 
 /** A date picked on the calendar at the When question; `label` is the date as the owner reads it. */

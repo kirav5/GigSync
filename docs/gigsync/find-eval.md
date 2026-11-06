@@ -76,3 +76,22 @@ All 110, by set:
 
 471 model calls, median 1.3 s, slowest 3.2 s. The conversations were tuned against as the prompt was written, so these
 are better than a fresh set would score.
+
+## Finding listed work (ADR 0057)
+
+With ten skills listed on the board, the conversations for work outside the trades want a listed skill, and one more
+in each set wants work nobody lists, 115 in all. "Reached the readback" now also counts a chat for work nobody lists that
+says so honestly.
+
+| Set      | Right job | No repeats | No "Sorry" | Reached the readback | Questions |
+| -------- | --------- | ---------- | ---------- | -------------------- | --------- |
+| en       | 100%      | 96%        | 100%       | 100%                 | 1.7       |
+| hi       | 100%      | 96%        | 100%       | 100%                 | 1.5       |
+| kn       | 91%       | 100%       | 100%       | 100%                 | 1.7       |
+| Hinglish | 96%       | 96%        | 96%        | 96%                  | 1.8       |
+| Kanglish | 87%       | 96%        | 100%       | 91%                  | 1.8       |
+| **All**  | **95%**   | **97%**    | **99%**    | **97%**              | **1.7**   |
+
+36 of the 40 conversations wanting a listed skill found it, and no conversation was matched to a skill it did not want.
+What it misses is the tailor and pest control in Kannada and in romanised Hindi and Kannada. A romanised sentence is what
+the model reads worst, as ADR 0052 found.

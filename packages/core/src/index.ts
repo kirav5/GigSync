@@ -181,5 +181,6 @@ export * from "./router/route-chat.js";
 export * from "./schedule/index.js";
 export { listedSkill, SKILL_MEANING_MAX, skillIndex, skillNamedIn } from "./skills/match.js";
 export { workName } from "./skills/name.js";
+export { pickSkill } from "./skills/pick.js";
 export { readSkill, type SkillRead, spokenSkill } from "./skills/read.js";
 export * from "./transfer/index.js";

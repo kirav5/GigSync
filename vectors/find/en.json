@@ -69,49 +69,49 @@
     "id": "en-tv",
     "says": ["my tv not working"],
     "answers": ["just the one", "it started yesterday"],
-    "want": { "outside": true }
+    "want": { "skill": "TV repair" }
   },
   {
     "id": "en-tvoff",
     "says": ["I can't turn on the TV"],
     "answers": ["just the one", "it started yesterday"],
-    "want": { "outside": true }
+    "want": { "skill": "TV repair" }
   },
   {
     "id": "en-fridge",
     "says": ["my fridge stopped cooling"],
     "answers": ["just the one", "it started yesterday"],
-    "want": { "outside": true }
+    "want": { "skill": "Fridge repair" }
   },
   {
     "id": "en-pest",
     "says": ["there are cockroaches all over my kitchen"],
     "answers": ["just the one", "it started yesterday"],
-    "want": { "outside": true }
+    "want": { "skill": "Pest control" }
   },
   {
     "id": "en-tutor",
     "says": ["I need a maths tutor for my son"],
     "answers": ["just the one", "it started yesterday"],
-    "want": { "outside": true }
+    "want": { "skill": "Maths tutor" }
   },
   {
     "id": "en-tailor",
     "says": ["I need a blouse stitched"],
     "answers": ["just the one", "it started yesterday"],
-    "want": { "outside": true }
+    "want": { "skill": "Tailor" }
   },
   {
     "id": "en-laptop",
     "says": ["my laptop screen is broken"],
     "answers": ["just the one", "it started yesterday"],
-    "want": { "outside": true }
+    "want": { "skill": "Laptop repair" }
   },
   {
     "id": "en-hello",
     "says": ["hey", "my tv not working"],
     "answers": ["just the one", "it started yesterday"],
-    "want": { "outside": true }
+    "want": { "skill": "TV repair" }
   },
   {
     "id": "en-hellotap",
@@ -132,5 +132,6 @@
     "answers": ["just the one"],
     "later": "I also need a cook",
     "want": { "trade": "plumber" }
-  }
+  },
+  { "id": "en-nobody", "says": ["I need a swimming coach"], "answers": ["x"], "want": { "outside": true } }
 ]
