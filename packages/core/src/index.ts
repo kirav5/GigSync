@@ -30,7 +30,6 @@ export {
   draftDrivers,
   driverToAsk,
   priceOpen,
-  topDriver,
   WORTH_ASKING,
 } from "./interview/driver-ask.js";
 export { type DriverAnswer, driverAnswer, driversIn, saysDontKnow } from "./interview/driver-parse.js";

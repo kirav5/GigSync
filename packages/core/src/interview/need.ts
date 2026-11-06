@@ -129,7 +129,7 @@ export function withTrade(d: NeedDraft, trade: Trade): NeedDraft {
 export function startNeed(config: NeedConfig, to?: NeedTo): NeedState {
   const work = [...(to?.trades ?? []), ...(to?.skills ?? [])];
   const [only] = work;
-  const empty: NeedDraft = config.modelQuestions ? { seen: {}, modelAsk: { said: [], covered: [] } } : { seen: {} };
+  const empty: NeedDraft = config.modelQuestions ? { seen: {}, modelAsk: { said: [] } } : { seen: {} };
   const one = work.length === 1 ? only : undefined;
   const draft: NeedDraft =
     one === undefined ? empty : typeof one === "string" ? withTrade(empty, one) : { ...empty, skill: one };
@@ -224,7 +224,7 @@ export function editNeed(s: NeedState, field: NeedField): NeedState {
 /** Past a need outside the trades: the interview starts over, knowing the first words were not the end of it. */
 export const afterOutside = (s: NeedState): NeedState => ({
   ...s,
-  draft: s.config.modelQuestions ? { seen: {}, modelAsk: { said: [], covered: [] } } : { seen: {} },
+  draft: s.config.modelQuestions ? { seen: {}, modelAsk: { said: [] } } : { seen: {} },
   slot: NeedSlot.trade,
   notes: [],
 });
