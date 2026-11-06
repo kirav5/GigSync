@@ -67,6 +67,7 @@ export function MyCard({
   const [status, setStatus] = useState<string>();
   /** A publish or unlist is on its way: a second tap must not send the card twice. */
   const [busy, setBusy] = useState(false);
+  const [unlisting, setUnlisting] = useState(false);
   const rateField = useRef<HTMLInputElement>(null);
   const minField = useRef<HTMLInputElement>(null);
   /** A suggested amount, tapped: put in the field for the worker to keep or change. */
@@ -131,6 +132,7 @@ export function MyCard({
   async function unlist() {
     if (busy) return;
     setBusy(true);
+    setUnlisting(true);
     try {
       const next = await unlistCard(ports, account);
       setError(undefined);
@@ -142,6 +144,7 @@ export function MyCard({
       setError(t(errorKey(err)));
     } finally {
       setBusy(false);
+      setUnlisting(false);
     }
   }
 
@@ -252,7 +255,13 @@ export function MyCard({
       </form>
       {account.worker && account.listed !== false && (
         <div className={C.row}>
-          <button type={C.button} className={C.quiet} disabled={busy} onClick={() => void unlist()}>
+          <button
+            type={C.button}
+            className={C.quiet}
+            disabled={busy}
+            aria-busy={unlisting}
+            onClick={() => void unlist()}
+          >
             {t("card.unlist")}
           </button>
         </div>
@@ -261,7 +270,7 @@ export function MyCard({
         <p role="status" aria-live="polite" className={error ? C.dockError : C.dockStatus}>
           {error ?? status}
         </p>
-        <button type={C.submit} form={FORM_ID} className={C.wide} disabled={busy} aria-busy={busy}>
+        <button type={C.submit} form={FORM_ID} className={C.wide} disabled={busy} aria-busy={busy && !unlisting}>
           {t("card.publish")}
         </button>
       </Dock>

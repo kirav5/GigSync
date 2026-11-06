@@ -53,7 +53,13 @@ export function PlaceSearch({ session, onPick }: { session: Session; onPick: (pl
             void search();
           }}
         />
-        <button type={C.button} className={C.secondaryCompact} disabled={busy} onClick={() => void search()}>
+        <button
+          type={C.button}
+          className={C.secondaryCompact}
+          disabled={busy}
+          aria-busy={busy}
+          onClick={() => void search()}
+        >
           {t("addr.find")}
         </button>
       </search>

@@ -105,6 +105,7 @@ function Found({
           type={C.button}
           className={C.wide}
           disabled={busy || turn.picked.length === 0}
+          aria-busy={busy}
           onClick={() => onAsk(turn)}
         >
           {plural("find.ask", turn.picked.length)}

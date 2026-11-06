@@ -1,0 +1,149 @@
+/* Motion: a tap answers at once, whatever waits says so, and what arrives eases in. Short, and only transform and
+   opacity, which a cheap phone's GPU moves without laying the page out again. Reduce Motion zeroes the distances
+   below: the movement goes, and the feedback stays, fades included. That setting exists to stop movement, not all
+   change, as on the website's scroll scenes. */
+:root {
+  /* In fast and out slower: a quick tap is over in under 100ms, and has to show on the way back. */
+  --press-ms: 80ms;
+  --release-ms: 160ms;
+  --enter-ms: 180ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --press-scale: 0.97;
+  --rise: 8px;
+  --slide: -100%;
+  --pulse-scale: 0.8;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --press-scale: 1;
+    --rise: 0px;
+    --slide: 0px;
+    --pulse-scale: 1;
+  }
+}
+
+/* Everything a thumb can press, however a screen draws it. :where keeps this under any screen's own rule. The page
+   draws its own press, so the phone's grey flash goes. */
+:where(button, a[href], summary, .chip, .check-row, label.card) {
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--release-ms) var(--ease-out),
+    opacity var(--release-ms) var(--ease-out);
+}
+:where(button, a[href], summary, .chip, .check-row, label.card):not(:disabled):active {
+  transform: scale(var(--press-scale));
+  opacity: 0.75;
+  transition-duration: var(--press-ms);
+}
+
+/* A button whose tap is under way: a ring beside its words, in the words' own colour, so it reads on every button in
+   both looks. The dimming of :disabled is eased off so the ring stays easy to see. */
+button[aria-busy="true"]:disabled {
+  opacity: 0.8;
+}
+button[aria-busy="true"]::after {
+  content: "";
+  flex: none;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-inline-start: 8px;
+  vertical-align: -0.15em;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  animation: busy-spin 700ms linear infinite;
+}
+.btn[aria-busy="true"]::after {
+  margin-inline-start: 0;
+}
+@keyframes busy-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* No spin with Reduce Motion: the ring fades in and out instead, so a wait still looks alive. */
+@keyframes busy-fade {
+  50% {
+    opacity: 0.3;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  button[aria-busy="true"]::after {
+    animation: busy-fade 1.2s ease-in-out infinite;
+  }
+}
+
+/* Controls that wait together (ui/BusyGroup.tsx): a fieldset for its `disabled`, with no box of its own. */
+.busy-group {
+  display: contents;
+}
+/* The dots and the word for a wait. Empty it takes no room and adds no gap, and it is out of the flow rather than
+   display: none, which would hide it from a screen reader, so a reader hears it fill. */
+.working {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+.working:empty {
+  position: absolute;
+}
+.thinking-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+.thinking-dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text2);
+  animation: thinking-pulse 1.2s ease-in-out infinite;
+}
+.thinking-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.thinking-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes thinking-pulse {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: scale(var(--pulse-scale));
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* What arrives eases in: a screen (Shell keys .content by screen), the newest turns of a chat, and what opens in
+   place. Only the end of a chat, and only the first cards of a list: opening a long chat or list must not make a
+   layer for each of its rows on a cheap phone. */
+.content > .inner,
+.iv > :nth-last-child(-n + 2),
+.card:nth-child(-n + 8),
+.composer-sheet,
+[role="dialog"],
+.toast {
+  animation: arrive var(--enter-ms) var(--ease-out);
+}
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(var(--rise));
+  }
+}
+@keyframes slide-in {
+  from {
+    transform: translateX(var(--slide));
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}

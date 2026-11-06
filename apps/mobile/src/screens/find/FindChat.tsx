@@ -56,6 +56,7 @@ import { AddressDesk } from "./AddressDesk.js";
 import { type FoundTurn, NeedTurns } from "./NeedTurns.js";
 import { needMemory, withMemory } from "./remembered.js";
 import "../talk.css";
+import { Working } from "../../ui/Working.js";
 
 interface Props {
   ports: Ports;
@@ -259,11 +260,8 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       {conversation}
       {desk}
       {form}
-      {reading && (
-        <p className={C.muted} role="status">
-          {t("need.reading")}
-        </p>
-      )}
+      <Working on={reading} words={t("need.reading")} />
+      <Working on={state?.slot === NeedSlot.done} />
       <div ref={end} />
       <Dock>
         <Composer

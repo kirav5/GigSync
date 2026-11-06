@@ -49,6 +49,7 @@ export function AlertsSettings({ session }: { session: Session }) {
             type={C.button}
             className={state === AlertState.on ? C.secondary : C.accent}
             disabled={busy}
+            aria-busy={busy}
             onClick={() => void flip(state === AlertState.off)}
           >
             {t(state === AlertState.on ? "alerts.turn_off" : "alerts.turn_on")}

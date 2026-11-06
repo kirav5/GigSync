@@ -65,7 +65,7 @@ export function RequestSheet({
       </label>
       {problem && <p className={C.error}>{t(problem, { count: MAX_LANDING_REQUESTS, name: "" })}</p>}
       <div className={C.actions}>
-        <button type={C.submit} className={C.accent} disabled={busy || !arrival}>
+        <button type={C.submit} className={C.accent} disabled={busy || !arrival} aria-busy={busy}>
           {t("mentor.send")}
         </button>
       </div>

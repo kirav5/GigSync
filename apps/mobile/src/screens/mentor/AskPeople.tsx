@@ -2,7 +2,9 @@ import type { GigDevice, KnownPerson, MessageKey } from "@gigsync/core";
 import type { City } from "@gigsync/protocol";
 import { useEffect, useState } from "react";
 import { useI18n } from "../../i18n.js";
+import { BusyGroup } from "../../ui/BusyGroup.js";
 import { C } from "../../ui/cls.js";
+import { useBusy } from "../../ui/useBusy.js";
 import { mentorProblem } from "./problems.js";
 
 interface Props {
@@ -18,6 +20,7 @@ interface Props {
  */
 export function AskPeople({ device, run, city }: Props) {
   const { t } = useI18n();
+  const { busy, guard } = useBusy();
   const [people, setPeople] = useState<KnownPerson[]>();
   const [said, setSaid] = useState<{ key: MessageKey; name: string }>();
 
@@ -37,7 +40,7 @@ export function AskPeople({ device, run, city }: Props) {
   async function ask(p: KnownPerson) {
     const name = p.card.name;
     try {
-      await run(() => device.mentors.askAround(p.user, city));
+      await guard(() => run(() => device.mentors.askAround(p.user, city)));
       setSaid({ key: "mentor.intro_asked", name });
     } catch (err) {
       setSaid({ key: mentorProblem("asking around failed", err), name });
@@ -48,13 +51,15 @@ export function AskPeople({ device, run, city }: Props) {
   return (
     <div className={C.stack}>
       {people.length === 0 && <span className={C.muted}>{t("mentor.no_people")}</span>}
-      <div className={C.row}>
-        {people.map((p) => (
-          <button key={p.user} type={C.button} className={C.secondary} onClick={() => void ask(p)}>
-            {t("mentor.ask_person", { name: p.card.name })}
-          </button>
-        ))}
-      </div>
+      <BusyGroup busy={busy}>
+        <div className={C.row}>
+          {people.map((p) => (
+            <button key={p.user} type={C.button} className={C.secondary} onClick={() => void ask(p)}>
+              {t("mentor.ask_person", { name: p.card.name })}
+            </button>
+          ))}
+        </div>
+      </BusyGroup>
       {said && <p role="status">{t(said.key, { name: said.name })}</p>}
     </div>
   );

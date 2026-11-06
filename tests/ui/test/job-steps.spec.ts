@@ -1,9 +1,10 @@
-import { type MessageKey, type Params, plural, questionText, t } from "@gigsync/core";
+import { type MessageKey, type Params, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Locator, type Page, test } from "@playwright/test";
-import { newPhone, open, progressStep, Role, RUN, shoot, signIn, statusTag } from "./helpers.js";
+import { open, progressStep, shoot, statusTag } from "./helpers.js";
 import { expand } from "./jobs.js";
-import { fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
+import { unlistCards } from "./journey.js";
+import { signedJob } from "./signed-job.js";
 
 /**
  * A signed job's moves: the worker takes one step at a time (on the way, then arrived and started, then done), each
@@ -30,48 +31,11 @@ async function pages(browser: { newContext: () => Promise<BrowserContext> }): Pr
   return (await Promise.all(contexts.map((c) => c.newPage()))) as [Page, Page];
 }
 
-/** A carpenter in Jayanagar and a household there, both signed on one job; their names. */
-async function signedJob(workerPage: Page, householdPage: Page, tag: string) {
-  const worker: Phone = { page: workerPage, lang: en };
-  const household: Phone = { page: householdPage, lang: en };
-  const names = { worker: `Ganesh ${tag} ${RUN}`, household: `Lakshmi ${tag} ${RUN}` };
-  await signIn(workerPage, { role: Role.worker, name: names.worker, phone: newPhone() });
-  await publishCard(worker, {
-    trade: t(en, "trade.carpenter"),
-    area: "jayanagar",
-    rate: "800",
-    min: "600",
-    about: "Doors and cupboards",
-  });
-  await open(workerPage, "nav.activity");
-  await signIn(householdPage, {
-    role: Role.consumer,
-    name: names.household,
-    phone: newPhone(),
-    address: `No. 9, 4th Block (${tag} ${RUN})`,
-    area: "Jayanagar",
-  });
-  await fillAsk(household, {
-    trade: "carpenter",
-    area: "Jayanagar",
-    worker: names.worker,
-    need: "Need a carpenter",
-    when: "when.today",
-    budget: "750",
-  });
-  await householdPage.getByRole("button", { name: plural(en, "find.ask", 1) }).click();
-  const answer = householdPage.getByRole("form", { name: say("a11y.answer") });
-  await answer.getByLabel(questionText(en, "problem")).fill("Cupboard door hangs loose");
-  await answer.getByRole("button", { name: say("job.send_answers") }).click();
-  await signBoth({ worker, household }, FOLDER);
-  return names;
-}
-
 const jobWith = (page: Page, name: string) => page.getByRole("article", { name: say("a11y.job_with", { name }) });
 
 test("the worker moves a signed job on one step at a time, and both progress lines follow", async ({ browser }) => {
   const [workerPage, householdPage] = await pages(browser);
-  const names = await signedJob(workerPage, householdPage, "steps");
+  const names = await signedJob(workerPage, householdPage, "steps", FOLDER);
   const job = jobWith(workerPage, names.household);
 
   // Agreed: only "On my way" is offered, beside Cancel.
@@ -106,7 +70,7 @@ test("the worker moves a signed job on one step at a time, and both progress lin
 
 test("the household cancels a signed job after a second tap, and it ends on both phones", async ({ browser }) => {
   const [workerPage, householdPage] = await pages(browser);
-  const names = await signedJob(workerPage, householdPage, "cancel");
+  const names = await signedJob(workerPage, householdPage, "cancel", FOLDER);
   await open(householdPage, "nav.activity");
   const hers = jobWith(householdPage, names.worker);
   await expect(button(hers, "update.on_my_way")).toHaveCount(0);

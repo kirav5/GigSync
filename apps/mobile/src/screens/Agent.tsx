@@ -32,6 +32,7 @@ import { Dock } from "../ui/Dock.js";
 import type { GigView } from "../useGig.js";
 import { Interview } from "./Interview.js";
 import { ModelNotice } from "./model/ModelNotice.js";
+import { Thinking } from "./talk/NoteView.js";
 import { type Suggestion, Suggestions } from "./talk/TalkStart.js";
 import "./talk.css";
 
@@ -148,6 +149,7 @@ export function AgentScreen(props: TalkProps) {
           onChoose={(asked, intent) => void choose(asked, intent)}
         />
       )}
+      {(moves.busy || (active && state.slot === Slot.done)) && <Thinking />}
       {paused && (
         <div className={C.row}>
           <button type={C.button} className={C.chipOn} onClick={resumeInterview}>

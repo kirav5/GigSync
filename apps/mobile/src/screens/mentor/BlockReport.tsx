@@ -2,7 +2,9 @@ import type { GigDevice, MessageKey } from "@gigsync/core";
 import { ReportReason, type UserId } from "@gigsync/protocol";
 import { useState } from "react";
 import { useI18n } from "../../i18n.js";
+import { BusyGroup } from "../../ui/BusyGroup.js";
 import { C } from "../../ui/cls.js";
+import { useBusy } from "../../ui/useBusy.js";
 import { mentorProblem } from "./problems.js";
 
 /** Which of the two the owner opened. */
@@ -24,6 +26,7 @@ interface Props {
  */
 export function BlockReport({ device, user, name, run, onBlocked }: Props) {
   const { t } = useI18n();
+  const { busy, guard } = useBusy();
   const [open, setOpen] = useState<Open>(Open.none);
   const [reason, setReason] = useState<ReportReason>();
   const [said, setSaid] = useState<MessageKey>();
@@ -32,7 +35,7 @@ export function BlockReport({ device, user, name, run, onBlocked }: Props) {
 
   async function act(what: string, work: () => Promise<unknown>, done: MessageKey) {
     try {
-      await run(work);
+      await guard(() => run(work));
       setSaid(done);
       setOpen(Open.none);
       return true;
@@ -57,48 +60,52 @@ export function BlockReport({ device, user, name, run, onBlocked }: Props) {
       {open === Open.block && (
         <div className={C.cardWait} role="dialog" aria-label={block}>
           <p>{t("mentor.block_confirm", { name })}</p>
-          <div className={C.actions}>
-            <button
-              type={C.button}
-              className={C.danger}
-              onClick={() =>
-                void act("blocking failed", () => device.mentors.block(user), "mentor.blocked").then(
-                  (ok) => ok && onBlocked(),
-                )
-              }
-            >
-              {block}
-            </button>
-            <button type={C.button} className={C.secondary} onClick={() => setOpen(Open.none)}>
-              {t("mentor.cancel")}
-            </button>
-          </div>
+          <BusyGroup busy={busy}>
+            <div className={C.actions}>
+              <button
+                type={C.button}
+                className={C.danger}
+                onClick={() =>
+                  void act("blocking failed", () => device.mentors.block(user), "mentor.blocked").then(
+                    (ok) => ok && onBlocked(),
+                  )
+                }
+              >
+                {block}
+              </button>
+              <button type={C.button} className={C.secondary} onClick={() => setOpen(Open.none)}>
+                {t("mentor.cancel")}
+              </button>
+            </div>
+          </BusyGroup>
         </div>
       )}
       {open === Open.report && (
         <fieldset className={C.cardWait} aria-label={reportTitle}>
           <span className={C.label}>{reportTitle}</span>
-          {ReportReason.options.map((r) => (
-            <label key={r} className={C.checkRow}>
-              <input type="radio" name={`report-${user}`} checked={reason === r} onChange={() => setReason(r)} />
-              {t(`mentor.reason.${r}`)}
-            </label>
-          ))}
-          <div className={C.actions}>
-            <button
-              type={C.button}
-              className={C.danger}
-              disabled={!reason}
-              onClick={() =>
-                reason && void act("reporting failed", () => device.mentors.report(user, reason), "mentor.reported")
-              }
-            >
-              {t("mentor.report_send")}
-            </button>
-            <button type={C.button} className={C.secondary} onClick={() => setOpen(Open.none)}>
-              {t("mentor.cancel")}
-            </button>
-          </div>
+          <BusyGroup busy={busy}>
+            {ReportReason.options.map((r) => (
+              <label key={r} className={C.checkRow}>
+                <input type="radio" name={`report-${user}`} checked={reason === r} onChange={() => setReason(r)} />
+                {t(`mentor.reason.${r}`)}
+              </label>
+            ))}
+            <div className={C.actions}>
+              <button
+                type={C.button}
+                className={C.danger}
+                disabled={!reason}
+                onClick={() =>
+                  reason && void act("reporting failed", () => device.mentors.report(user, reason), "mentor.reported")
+                }
+              >
+                {t("mentor.report_send")}
+              </button>
+              <button type={C.button} className={C.secondary} onClick={() => setOpen(Open.none)}>
+                {t("mentor.cancel")}
+              </button>
+            </div>
+          </BusyGroup>
         </fieldset>
       )}
       {said && <p role="status">{t(said, { name })}</p>}

@@ -11,6 +11,7 @@ import {
 import { EngagementStatus, Role, UPI_MAX_PAISE } from "@gigsync/protocol";
 import { useState } from "react";
 import { useI18n } from "../../i18n.js";
+import type { Step } from "../../payments/useStep.js";
 import { C } from "../../ui/cls.js";
 import { jobPrice } from "../../ui/places.js";
 import type { GigView } from "../../useGig.js";
@@ -33,19 +34,19 @@ interface Props {
   job: JobRecord;
   view: GigView;
   device: GigDevice;
-  run: (work: () => Promise<unknown>) => Promise<unknown>;
+  step: Step;
   them: string;
 }
 
 /** The decisions about the talk itself, on a job still being talked about. */
-export function TalkDecide({ job, view, device, run, them }: Props) {
+export function TalkDecide({ job, view, device, step, them }: Props) {
   const { lang, t } = useI18n();
   const id = job.engagement.id;
   const task = (kind: TaskKind) => view.tasks.find((k) => k.kind === kind && k.engagement === id);
   const time = task(TaskKind.newTime);
   const takeOver = task(TaskKind.takeOver);
   if (time && job.engagement.role === Role.enum.requester)
-    return <TimeCard job={job} ask={time.detail as TimeAsk} device={device} run={run} them={them} />;
+    return <TimeCard job={job} ask={time.detail as TimeAsk} device={device} step={step} them={them} />;
   if (!TALKING.has(job.engagement.status)) return null;
   // Both agents out of offers and the other owner's turn: this one may still take their latest offer, or end it.
   const waiting = (takeOver?.detail as TakeOver | undefined)?.waiting === true;
@@ -70,21 +71,23 @@ export function TalkDecide({ job, view, device, run, them }: Props) {
       {!takeOver && <span className={C.muted}>{t("talks.take_over")}</span>}
       <div className={C.actions}>
         {last && price && (
-          <button type={C.button} className={C.accent} onClick={() => void run(() => device.talks.acceptTheirs(id))}>
+          <button type={C.button} className={C.accent} onClick={() => step(() => device.talks.acceptTheirs(id))}>
             {t("decide.accept_theirs", { price })}
           </button>
         )}
-        <button type={C.button} className={C.secondary} onClick={() => void run(() => device.talks.end(id))}>
+        <button type={C.button} className={C.secondary} onClick={() => step(() => device.talks.end(id))}>
           {t("decide.end")}
         </button>
       </div>
-      {!signing && canOffer(job) && <OwnOffer onSend={(paise) => run(() => device.talks.offer(id, paise))} />}
+      {!signing && canOffer(job) && (
+        <OwnOffer onSend={(paise, sent) => step(() => device.talks.offer(id, paise), sent)} />
+      )}
     </fieldset>
   );
 }
 
 /** One offer of the owner's own, in whole rupees. */
-function OwnOffer({ onSend }: { onSend: (paise: number) => Promise<unknown> }) {
+function OwnOffer({ onSend }: { onSend: (paise: number, sent: () => void) => void }) {
   const { t } = useI18n();
   const [rupees, setRupees] = useState("");
   const amount = Number.parseInt(rupees, 10);
@@ -102,7 +105,7 @@ function OwnOffer({ onSend }: { onSend: (paise: number) => Promise<unknown> }) {
         type={C.button}
         className={C.secondary}
         disabled={!(amount > 0 && amount * RUPEE <= UPI_MAX_PAISE)}
-        onClick={() => void onSend(amount * RUPEE).then(() => setRupees(""))}
+        onClick={() => onSend(amount * RUPEE, () => setRupees(""))}
       >
         {t("decide.send_offer")}
       </button>

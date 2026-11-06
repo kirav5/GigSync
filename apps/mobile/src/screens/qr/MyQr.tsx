@@ -43,6 +43,7 @@ function NewQr({ busy, onRenew }: { busy: boolean; onRenew: () => Promise<boolea
           type={C.button}
           className={C.accent}
           disabled={busy}
+          aria-busy={busy}
           onClick={() => void onRenew().then((made) => made && setConfirming(false))}
         >
           {label}

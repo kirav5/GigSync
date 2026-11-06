@@ -2,10 +2,13 @@ import { type GigDevice, type LinkNote, log, type MentorLink, type MessageKey, N
 import { COLLEAGUE_NOTE_MAX, ColleagueNote } from "@gigsync/protocol";
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "../../i18n.js";
+import { BusyGroup } from "../../ui/BusyGroup.js";
 import { Composer } from "../../ui/Composer.js";
 import { C } from "../../ui/cls.js";
 import { Dock } from "../../ui/Dock.js";
 import { Said } from "../../ui/Said.js";
+import { useBusy } from "../../ui/useBusy.js";
+import { Working } from "../../ui/Working.js";
 import { IntroActions } from "./IntroActions.js";
 import { useLinks } from "./links.js";
 import { MentorLinkBar } from "./MentorLinkBar.js";
@@ -39,6 +42,7 @@ export function LinkThread({ device, link, run, syncedAt, onGone }: Props) {
   const [notes, setNotes] = useState<LinkNote[]>([]);
   const [sent, setSent] = useState(0);
   const [busy, setBusy] = useState(false);
+  const ender = useBusy();
   const [ending, setEnding] = useState(false);
   const [problem, setProblem] = useState<MessageKey>();
   const end = useRef<HTMLDivElement>(null);
@@ -83,7 +87,7 @@ export function LinkThread({ device, link, run, syncedAt, onGone }: Props) {
 
   async function endLink() {
     try {
-      await run(() => device.mentors.end(user));
+      await ender.guard(() => run(() => device.mentors.end(user)));
       refresh();
       onGone();
     } catch (err) {
@@ -109,14 +113,16 @@ export function LinkThread({ device, link, run, syncedAt, onGone }: Props) {
       {ending ? (
         <div className={C.cardWait} role="dialog" aria-label={endLabel}>
           <p>{t("mentor.end_confirm", { name })}</p>
-          <div className={C.actions}>
-            <button type={C.button} className={C.danger} onClick={() => void endLink()}>
-              {endLabel}
-            </button>
-            <button type={C.button} className={C.secondary} onClick={() => setEnding(false)}>
-              {t("mentor.cancel")}
-            </button>
-          </div>
+          <BusyGroup busy={ender.busy}>
+            <div className={C.actions}>
+              <button type={C.button} className={C.danger} onClick={() => void endLink()}>
+                {endLabel}
+              </button>
+              <button type={C.button} className={C.secondary} onClick={() => setEnding(false)}>
+                {t("mentor.cancel")}
+              </button>
+            </div>
+          </BusyGroup>
         </div>
       ) : (
         <div className={C.actions}>
@@ -144,6 +150,7 @@ export function LinkThread({ device, link, run, syncedAt, onGone }: Props) {
           )}
         </ul>
       )}
+      <Working on={busy} words={t("busy.sending")} />
       <div ref={end} />
       {problem && (
         <p className={C.error} role="status">

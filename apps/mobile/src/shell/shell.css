@@ -107,9 +107,6 @@
   border-color: transparent;
   color: var(--text2);
 }
-.side-btn:active {
-  opacity: 0.78;
-}
 .needs {
   position: sticky;
   top: 0;
@@ -166,10 +163,6 @@
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
-}
-.nav button:active,
-.session:active {
-  opacity: 0.78;
 }
 
 /* The chats kept on this phone: one row each, its title opening it, the trash beside it. */
@@ -361,9 +354,10 @@
     padding-left: env(safe-area-inset-left);
     visibility: hidden;
   }
-  /* As in collab (data-motion="off"), the menu appears in place: no slide to wait for, and focus can move in at once. */
+  /* It slides in, and focus can still move in at once: the slide only draws, and nothing waits for it. */
   .nav-open .sidebar {
     visibility: visible;
+    animation: slide-in var(--enter-ms) var(--ease-out);
   }
   /* The shade behind the open menu covers the whole screen; a tap on it closes the menu and presses nothing else. */
   .shade {
@@ -371,5 +365,6 @@
     inset: 0;
     z-index: 9;
     background: rgb(0 0 0 / 45%);
+    animation: fade-in var(--enter-ms) var(--ease-out);
   }
 }

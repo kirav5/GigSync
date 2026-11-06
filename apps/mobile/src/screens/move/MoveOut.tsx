@@ -114,7 +114,13 @@ export function MoveOut({ ports, account, sync, onSignOut }: Props) {
       {problem && <StatusLine className={C.error} text={t(problem)} />}
       {stage !== Stage.showing && (
         <div className={C.actions}>
-          <button type={C.button} className={C.accent} disabled={stage === Stage.making} onClick={() => void start()}>
+          <button
+            type={C.button}
+            className={C.accent}
+            disabled={stage === Stage.making}
+            aria-busy={stage === Stage.making}
+            onClick={() => void start()}
+          >
             {t(stageButton(stage))}
           </button>
         </div>

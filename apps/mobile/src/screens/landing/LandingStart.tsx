@@ -3,6 +3,7 @@ import { City, Trade } from "@gigsync/protocol";
 import { type FormEvent, useState } from "react";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
+import { useBusy } from "../../ui/useBusy.js";
 import type { MovePicks } from "./useLanding.js";
 
 interface Props {
@@ -22,13 +23,14 @@ export function LandingStart({ city, trade, onStart }: Props) {
     city ?? (City.options.length === 1 ? City.options[0] : undefined),
   );
   const [chosenTrade, setTrade] = useState<Trade | undefined>(trade);
+  const { busy, guard } = useBusy();
   const [problem, setProblem] = useState<StartProblem>();
   const title = t("landing.start_title");
 
   async function start(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const arrival = String(new FormData(e.currentTarget).get(ARRIVAL) ?? "");
-    setProblem(await onStart({ city: chosenCity ?? "", arrival, trade: chosenTrade ?? "" }));
+    await guard(async () => setProblem(await onStart({ city: chosenCity ?? "", arrival, trade: chosenTrade ?? "" })));
   }
 
   return (
@@ -67,7 +69,7 @@ export function LandingStart({ city, trade, onStart }: Props) {
         ))}
       </fieldset>
       <div className={C.actions}>
-        <button type={C.submit} className={C.accent}>
+        <button type={C.submit} className={C.accent} disabled={busy} aria-busy={busy}>
           {t("landing.start")}
         </button>
       </div>

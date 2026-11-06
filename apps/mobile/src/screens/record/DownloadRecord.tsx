@@ -64,6 +64,7 @@ export function DownloadRecord({ account }: { account: Account }) {
         className={C.quiet}
         aria-describedby={about}
         disabled={loading}
+        aria-busy={loading}
         onClick={() => void download()}
       >
         {t(loading ? "records.export_loading" : "records.download_title")}

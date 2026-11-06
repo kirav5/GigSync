@@ -272,9 +272,6 @@ ol {
   opacity: 0.45;
   cursor: default;
 }
-.btn:not(:disabled):active {
-  opacity: 0.75;
-}
 .field {
   width: 100%;
   min-height: var(--tap);
@@ -831,13 +828,6 @@ html[data-keyboard="open"] .dock {
   font-family: var(--sans);
   letter-spacing: normal;
   text-transform: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * {
-    transition: none !important;
-    animation: none !important;
-  }
 }
 
 /* People and jobs */

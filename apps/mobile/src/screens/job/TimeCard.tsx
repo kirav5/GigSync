@@ -18,6 +18,7 @@ import { EVERY_DAY, TermKey, type TermWhen, TimeWindow } from "@gigsync/protocol
 import { useState } from "react";
 import { dayLabel } from "../../find/ask.js";
 import { useI18n } from "../../i18n.js";
+import type { Step } from "../../payments/useStep.js";
 import { C } from "../../ui/cls.js";
 
 const MS_PER_DAY = 86_400_000;
@@ -30,7 +31,7 @@ interface Props {
   job: JobRecord;
   ask: TimeAsk;
   device: GigDevice;
-  run: (work: () => Promise<unknown>) => Promise<unknown>;
+  step: Step;
   them: string;
 }
 
@@ -137,7 +138,7 @@ function TimePicker({ job, onSend }: { job: JobRecord; onSend: (when: TermWhen) 
  * The household decides the time (ADR 0053 §3): the worker's other one, a time of its own, or no deal. Between phones
  * that understand hours, a day and then a start hour (for work every day, the hour alone); else a part of the day.
  */
-export function TimeCard({ job, ask, device, run, them }: Props) {
+export function TimeCard({ job, ask, device, step, them }: Props) {
   const { lang, t } = useI18n();
   const id = job.engagement.id;
   const [picking, setPicking] = useState(false);
@@ -153,18 +154,18 @@ export function TimeCard({ job, ask, device, run, them }: Props) {
       <span>{line}</span>
       <div className={C.actions}>
         {theirs && (
-          <button type={C.button} className={C.accent} onClick={() => void run(() => device.talks.acceptTime(id))}>
+          <button type={C.button} className={C.accent} onClick={() => step(() => device.talks.acceptTime(id))}>
             {t("decide.accept_time", { when: theirs })}
           </button>
         )}
         <button type={C.button} className={C.secondary} onClick={() => setPicking(true)}>
           {t("decide.pick_time")}
         </button>
-        <button type={C.button} className={C.secondary} onClick={() => void run(() => device.talks.end(id))}>
+        <button type={C.button} className={C.secondary} onClick={() => step(() => device.talks.end(id))}>
           {t("decide.end")}
         </button>
       </div>
-      {picking && <TimePicker job={job} onSend={(when) => void run(() => device.talks.pickTime(id, when))} />}
+      {picking && <TimePicker job={job} onSend={(when) => step(() => device.talks.pickTime(id, when))} />}
     </fieldset>
   );
 }
