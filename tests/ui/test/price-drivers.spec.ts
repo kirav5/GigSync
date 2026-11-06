@@ -47,6 +47,7 @@ async function villaAsked(page: Page) {
   await say(page, VILLA);
   // A long description is read into chips to confirm first (ADR 0033 §5): "4 rooms".
   await tap(page, t(en, "terms.scope_ok"));
+  await tap(page, t(en, "area.hsr_layout"));
   await expect(line(page, "driver.ask.paint_by")).toBeVisible();
 }
 

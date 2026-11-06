@@ -68,10 +68,15 @@ describe("the address in use", () => {
   const at = (inUse: string, words: string) =>
     hearNeed(startNeed(config({ addresses: [HOME, OFFICE], inUse })), words, false, AC);
 
-  it("is where a need goes, with no question, as the top of the screen says", () => {
+  it("is never taken unasked: where is still the owner's to say", () => {
     const s = at(HOME.id, "my ac is not working");
-    expect(s.draft.address).toBe(HOME.id);
-    expect(s.slot).not.toBe(NeedSlot.area);
+    expect(s.draft.address).toBeUndefined();
+    expect(s.slot).toBe(NeedSlot.area);
+  });
+
+  it("is the first chip at the question", () => {
+    const chips = needPrompt(at(OFFICE.id, "my ac is not working")).choices?.map((c) => c.value);
+    expect(chips?.slice(0, 2)).toEqual([OFFICE.id, HOME.id]);
   });
 
   it("gives way to a place the owner names", () => {
