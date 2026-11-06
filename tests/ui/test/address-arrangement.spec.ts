@@ -91,7 +91,10 @@ test("a household saves its home from its location and asks for a maid by the ho
   await expect(chip(page, en, "need.arr.hourly")).toBeVisible();
   await shoot("how-long", { household: page }, FOLDER);
   await chip(page, en, "need.arr.hourly").click();
-  // The address saved is the one in use, so nothing asks where.
+  const home = chip(page, en, "addr.chip", { label: t(en, "addr.label.home"), area: LOCALITY });
+  await expect(home).toBeVisible();
+  await shoot("where", { household: page }, FOLDER);
+  await home.click();
   await chip(page, en, "when.today").click();
   await chip(page, en, "when.any_time").click();
   // The budget is per hour, beside the estimate for an hour.
