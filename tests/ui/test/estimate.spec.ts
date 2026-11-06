@@ -70,6 +70,7 @@ async function askToPaint(page: Page, budget: "suggested" | string) {
   await open(page, "nav.find");
   await expect(page.getByRole("log")).toContainText(t(en, "need.start"));
   await say(page, "paint my 2BHK");
+  await tap(page, t(en, "area.hsr_layout"));
   // What moves the price (ADR 0041): the household buys the paint, and "I don't know" to the next ends the questions.
   await tap(page, t(en, "driver.value.paint_by.household"));
   await tap(page, t(en, "driver.dont_know"));

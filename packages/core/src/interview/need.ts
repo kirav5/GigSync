@@ -170,25 +170,17 @@ export const offered = (s: NeedState): Recalled | undefined =>
 const withRecalled = (d: NeedDraft, field: NeedSlot, value: string): NeedDraft =>
   field === NeedSlot.area ? { ...d, area: value } : { ...d, detail: value };
 
-/**
- * The address a need takes without asking: the one in use while no place was named, as the top of the screen says,
- * else the household's one saved address in the area named; else the draft as it is.
- */
-function withKnownAddress(config: NeedConfig, d: NeedDraft): NeedDraft {
-  if (!config.addresses || d.address !== undefined) return d;
+/** The household's one saved address in the area the need is in, taken without asking; else the draft as it is. */
+function withOnlyAddress(config: NeedConfig, d: NeedDraft): NeedDraft {
+  if (!config.addresses || d.area === undefined || d.address !== undefined) return d;
   const inArea = config.addresses.filter((a) => a.area === d.area);
-  const found =
-    d.area === undefined
-      ? config.addresses.find((a) => a.id === config.inUse)
-      : inArea.length === 1
-        ? inArea[0]
-        : undefined;
-  return found ? { ...d, area: found.area, areaName: found.areaName, address: found.id } : d;
+  const only = inArea.length === 1 ? inArea[0] : undefined;
+  return only ? { ...d, area: only.area, areaName: only.areaName, address: only.id } : d;
 }
 
 /** Where a need goes next: the household's address settled if it can be, then whatever is still missing. */
 function nextSlot(config: NeedConfig, d: NeedDraft): { draft: NeedDraft; slot: NeedSlot } {
-  const draft = withKnownAddress(config, d);
+  const draft = withOnlyAddress(config, d);
   return { draft, slot: firstMissing(draft, config.addresses !== undefined) };
 }
 
