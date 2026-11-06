@@ -14,6 +14,18 @@ import { Reader, runConversation } from "./eval-find/flow.mjs";
 import { line, repeatsIn, rightJob } from "./eval-find/score.mjs";
 import { OLLAMA_MODEL, OLLAMA_URL, ollamaReady, RecordingModel } from "./eval-intent/ollama.mjs";
 
+/** Each prompt by the words it opens with, so the calls of a chat can be counted by kind. */
+const PROMPT_OF = {
+  read: "You read one message",
+  price: "You help a household",
+  pick: "A household asks for help",
+  check: "Would a worker who does",
+  scope: "Read this request for a",
+  jobType: "Is this request for one of",
+  need: "",
+};
+const kindOf = (prompt) => Object.keys(PROMPT_OF).find((k) => prompt.startsWith(PROMPT_OF[k]));
+
 const { values } = parseArgs({
   options: { reader: { type: "string" }, set: { type: "string" }, limit: { type: "string" }, json: { type: "string" } },
 });
@@ -29,7 +41,12 @@ for (const set of sets) {
     const model = new RecordingModel();
     const record = await runConversation(model, conversation, LANG_OF[set], values.reader ?? Reader.lists);
     await model.settled();
-    runs.push({ ...conversation, ...record, ms: model.calls.map((c) => Math.round(c.ms)) });
+    runs.push({
+      ...conversation,
+      ...record,
+      ms: model.calls.map((c) => Math.round(c.ms)),
+      kinds: model.calls.map((c) => kindOf(c.prompt)),
+    });
     process.stdout.write(rightJob(conversation.want, record.job) && record.end === "ready" ? "." : "x");
   }
 }
@@ -44,6 +61,13 @@ for (const set of sets)
 console.log(line("all", runs));
 const times = runs.flatMap((r) => r.ms).sort((a, b) => a - b);
 console.log(`\n${times.length} model calls, median ${times[times.length >> 1]} ms, slowest ${times.at(-1)} ms`);
+const chats = runs.length;
+console.log(`${(times.length / chats).toFixed(1)} calls a chat, ${Math.max(...runs.map((r) => r.ms.length))} at most`);
+for (const kind of Object.keys(PROMPT_OF)) {
+  const used = runs.flatMap((r) => r.ms.filter((_, i) => r.kinds[i] === kind)).sort((a, b) => a - b);
+  if (used.length > 0)
+    console.log(`  ${kind}: ${(used.length / chats).toFixed(2)} a chat, median ${used[used.length >> 1]} ms`);
+}
 const worst = runs.filter(
   (r) => !rightJob(r.want, r.job) || r.end !== "ready" || repeatsIn(r.asked) > 0 || r.sorries > 0,
 );

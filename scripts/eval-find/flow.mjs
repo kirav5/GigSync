@@ -84,7 +84,7 @@ async function firstTurn(model, s, text, lang) {
 async function laterTurn(model, s, text, reader, log) {
   const heard = core.hearNeed(s, text);
   if (reader !== Reader.turn || !core.worthReading(s, heard) || s.slot === NeedSlot.budget) return heard;
-  const read = await core.readTurn(model, core.turnContext(s, text, core.needPrompt(s).lines[0]?.key), WAIT_MS);
+  const read = await core.readTurn(model, core.turnContext(s, text), WAIT_MS);
   if (!read || !core.namesOtherWork(s, read)) return heard;
   log.switched = true;
   return core.chooseNeed(core.offerSwitch(s, read, text), "no");
