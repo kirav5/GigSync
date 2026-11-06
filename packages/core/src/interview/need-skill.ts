@@ -1,6 +1,6 @@
 import type { BoardSkill } from "@gigsync/protocol";
 import { arrangementSaid } from "./arrangement-words.js";
-import { moveOn, type NeedState } from "./need.js";
+import { afterOutside, moveOn, NeedSlot, type NeedState } from "./need.js";
 import { withSaidArrangement } from "./need-arrangement.js";
 import { normalize, SPACE } from "./normalize.js";
 
@@ -15,9 +15,10 @@ const SAYS_THE_WORK = 6;
 
 /** The need as one for a listed skill, unless it already has a trade; the owner's words are on screen already. */
 export function withSkill(s: NeedState, skill: BoardSkill, words: string): NeedState {
-  if (s.draft.trade) return s;
+  const at = s.slot === NeedSlot.outside ? afterOutside(s) : s;
+  if (at.draft.trade) return s;
   const said = normalize(words).split(SPACE).length >= SAYS_THE_WORK;
-  const found = { ...s.draft, skill, jobType: undefined, need: undefined, ...(said ? { detail: words.trim() } : {}) };
+  const found = { ...at.draft, skill, jobType: undefined, need: undefined, ...(said ? { detail: words.trim() } : {}) };
   const draft = withSaidArrangement(found, arrangementSaid(words));
-  return moveOn(s, draft, [{ key: "need.skill_found", params: { skill: skill.text } }]);
+  return moveOn(at, draft, [{ key: "need.skill_found", params: { skill: skill.text } }]);
 }

@@ -177,8 +177,6 @@ test("a household's Find chats are kept: a sent need stays to read, new chats ke
 
     await test.step("a need sent to workers stays in the menu; back on Find, the next need starts afresh", async () => {
       await tell(page, FAN);
-      await expect(talkLog(page)).toContainText(say("need.ask.address"));
-      await tell(page, "HSR");
       await skipPriceQuestions({ page, lang: en });
       // A part of the day is not an hour (ADR 0053 §1): any time.
       await talkLog(page)

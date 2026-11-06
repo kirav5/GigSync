@@ -46,8 +46,6 @@ for (const lang of [en, hi, kn]) {
 
     // One meal is on one day: the day question offers no "Every day".
     await chip(page, lang, "need.arr.meal").click();
-    await expect(log(page)).toContainText(t(lang, "need.ask.address"));
-    await say(page, lang, "HSR");
     await expect(log(page)).toContainText(t(lang, "need.ask.when"));
     await expect(chip(page, lang, "when.today")).toBeVisible();
     await expect(chip(page, lang, "when.daily")).toHaveCount(0);

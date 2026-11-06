@@ -86,8 +86,6 @@ test("a worker lists her own skill and a household who asks for it finds and ask
   // Work of a worker's own may be done any way, so how long is asked, with no model here to narrow it (ADR 0051).
   await expect(log(meena)).toContainText(t(en, "need.ask.arrangement"));
   await tap(meena, t(en, "need.arr.visit"));
-  await expect(log(meena)).toContainText(t(en, "need.ask.address"));
-  await tap(meena, t(en, "addr.chip", { label: t(en, "addr.label.home"), area: "Koramangala" }));
   await tap(meena, t(en, "when.tomorrow"));
   await tap(meena, t(en, "when.any_time"));
   // No estimate for work GigSync has no prices for: the budget is hers alone, and the chat says why.

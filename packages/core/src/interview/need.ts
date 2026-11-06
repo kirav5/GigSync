@@ -167,17 +167,25 @@ export const offered = (s: NeedState): Recalled | undefined =>
 const withRecalled = (d: NeedDraft, field: NeedSlot, value: string): NeedDraft =>
   field === NeedSlot.area ? { ...d, area: value } : { ...d, detail: value };
 
-/** The household's one saved address in the area the need is in, taken without asking; else the draft as it is. */
-function withOnlyAddress(config: NeedConfig, d: NeedDraft): NeedDraft {
-  if (!config.addresses || d.area === undefined || d.address !== undefined) return d;
+/**
+ * The address a need takes without asking: the one in use while no place was named, as the top of the screen says,
+ * else the household's one saved address in the area named; else the draft as it is.
+ */
+function withKnownAddress(config: NeedConfig, d: NeedDraft): NeedDraft {
+  if (!config.addresses || d.address !== undefined) return d;
   const inArea = config.addresses.filter((a) => a.area === d.area);
-  const only = inArea.length === 1 ? inArea[0] : undefined;
-  return only ? { ...d, area: only.area, areaName: only.areaName, address: only.id } : d;
+  const found =
+    d.area === undefined
+      ? config.addresses.find((a) => a.id === config.inUse)
+      : inArea.length === 1
+        ? inArea[0]
+        : undefined;
+  return found ? { ...d, area: found.area, areaName: found.areaName, address: found.id } : d;
 }
 
 /** Where a need goes next: the household's address settled if it can be, then whatever is still missing. */
 function nextSlot(config: NeedConfig, d: NeedDraft): { draft: NeedDraft; slot: NeedSlot } {
-  const draft = withOnlyAddress(config, d);
+  const draft = withKnownAddress(config, d);
   return { draft, slot: firstMissing(draft, config.addresses !== undefined) };
 }
 
@@ -215,6 +223,14 @@ export function editNeed(s: NeedState, field: NeedField): NeedState {
   const slot = usable ? field : NeedSlot.confirm;
   return { ...s, slot, notes: [], changing: !usable, fresh: false, ownAnswer, filled: [] };
 }
+
+/** Past a need outside the trades: the interview starts over, knowing the first words were not the end of it. */
+export const afterOutside = (s: NeedState): NeedState => ({
+  ...s,
+  draft: s.config.modelQuestions ? { seen: {}, modelAsk: { said: [], covered: [] } } : { seen: {} },
+  slot: NeedSlot.trade,
+  notes: [],
+});
 
 /** What the board search found: workers to pick from, or nobody, with ways to look further. */
 export const searchedNeed = (s: NeedState, count: number): NeedState => ({

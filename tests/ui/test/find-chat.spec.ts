@@ -63,13 +63,12 @@ test("a household says what they need in one sentence and is asked only for the 
   await expect(log).toContainText(t(en, "need.start"));
   await say(page, en, "Bedroom fan not working, need an electrician tomorrow morning, up to 700");
 
-  // Only where is missing: no question about the problem, the day or the budget. She has a saved address (ADR 0045).
-  await expect(log).toContainText(t(en, "need.ask.address"));
-  for (const asked of ["question.problem", "need.ask.when", "need.ask.budget"] as const)
-    await expect(log).not.toContainText(t(en, asked));
-  await say(page, en, "HSR");
+  // Nothing already said is asked: not the problem, the day or the budget, and not where, since the address at the top
+  // of the screen says it (ADR 0045).
   // What moves the price that the words did not say (ADR 0041): how many points; "I don't know" ends it.
   await expect(log).toContainText(t(en, "driver.ask.points.electrician"));
+  for (const asked of ["need.ask.address", "question.problem", "need.ask.when", "need.ask.budget"] as const)
+    await expect(log).not.toContainText(t(en, asked));
   await tap(page, t(en, "driver.dont_know"));
   // A part of the day is not an hour (ADR 0053 §1): she is asked it, and takes any time.
   await expect(log).toContainText(t(en, "need.ask.hour"));
@@ -116,7 +115,6 @@ test("a Hindi household finds an electrician by tapping the choices", async ({ b
   await tap(page, t(hi, "trade.electrician"));
   await expect(log).toContainText(t(hi, "question.problem"));
   await tap(page, t(hi, "iv.skip"));
-  await tap(page, t(hi, "area.koramangala"));
   // The skipped clarifying question settles what the job is (ADR 0042 §7), so the price questions go straight on to
   // how many fittings, worded for an electrician.
   await expect(log).toContainText(t(hi, "driver.ask.points.electrician"));

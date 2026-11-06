@@ -47,7 +47,7 @@ describe("GigSync's model through the API", () => {
     const [url, init] = fetched.mock.calls[0] ?? [];
     expect(String(url)).toBe(`${ORIGIN}/api/generate`);
     const sent = JSON.parse(String(init?.body));
-    expect(sent).toMatchObject({ model: NAME, stream: false, think: false, format: SCHEMA });
+    expect(sent).toMatchObject({ model: NAME, stream: false, think: false, format: SCHEMA, keep_alive: "24h" });
     expect(sent.options).toEqual({ num_predict: 64, temperature: 0 });
     expect(new Headers(init?.headers).get("CF-Access-Client-Id")).toBe("access-id");
   });

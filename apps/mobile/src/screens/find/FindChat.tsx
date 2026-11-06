@@ -1,8 +1,10 @@
 import {
   addressAsked,
   addressChoice,
+  askingModel,
   ChatIntent,
   type GigDevice,
+  isGreeting,
   log,
   modelJobType,
   NeedSlot,
@@ -29,6 +31,7 @@ import { openAddressDesk } from "../../find/addressDesk.js";
 import { askWorkers, needOf } from "../../find/ask.js";
 import { startFindChat, useNeed } from "../../find/findChats.js";
 import {
+  addressInUseNeed,
   answerNeed,
   beginNeed,
   jobTypeNeed,
@@ -41,6 +44,7 @@ import {
 } from "../../find/needStore.js";
 import { findRoute } from "../../find/route.js";
 import { skillAsked } from "../../find/skills.js";
+import { useAddressBook } from "../../find/useAddressBook.js";
 import { useAddresses } from "../../find/useAddresses.js";
 import { ASKED, useNeedSearch } from "../../find/useNeedSearch.js";
 import { usePriceQuestions } from "../../find/usePriceQuestions.js";
@@ -89,7 +93,13 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   // from past jobs comes along, with the owner's setting: offered first ("Use it?"), or filled in and said.
   const empty = ready && !state && turns.length === 0;
   const { saved, added } = useAddresses(ports, open, state?.config.addresses);
+  const { inUse } = useAddressBook(ports.storage);
+  const inUseId = inUse?.id;
   const [adding, setAdding] = useState(false);
+  // The address at the top of the screen is where a need goes: nothing to ask unless the owner names another place.
+  useEffect(() => {
+    if (state && state.config.inUse !== inUseId) addressInUseNeed(open, inUseId);
+  }, [state, open, inUseId]);
   useEffect(() => {
     if (!empty || !saved) return;
     const now = ports.clock.now();
@@ -145,12 +155,17 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       return openAddressDesk();
     }
     const aloud = via === Via.voice;
-    const first = state.slot === NeedSlot.trade;
+    // At a need outside the list, new words start over: they are read like the first sentence.
+    const first = state.slot === NeedSlot.trade || state.slot === NeedSlot.outside;
+    if (first && isGreeting(text)) {
+      showOwner(chat, text);
+      return needSay(chat, { key: "need.greeting" });
+    }
     if (first) {
       showOwner(chat, text);
       setReading(true);
     }
-    const route = await findRoute(ports, lang, text, state.slot);
+    const route = await findRoute(ports, lang, text, first ? NeedSlot.trade : state.slot);
     // "What do painters charge?" is answered in the chat from the estimate route (ADR 0039 §2); the need waits.
     const market = route.intent === ChatIntent.market ? routedMarket(text, route.slots) : undefined;
     if (market) {
@@ -253,14 +268,15 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
         </Dock>
       </>
     );
-  const waiting =
-    !state || state.slot === NeedSlot.done || state.slot === NeedSlot.found || state.slot === NeedSlot.outside;
+  const thinking = state !== undefined && askingModel(state);
+  const waiting = !state || state.slot === NeedSlot.done || state.slot === NeedSlot.found || thinking;
   return (
     <>
       {conversation}
       {desk}
       {form}
       <Working on={reading} words={t("need.reading")} />
+      <Working on={thinking} words={t("driver.thinking")} />
       <Working on={state?.slot === NeedSlot.done} />
       <div ref={end} />
       <Dock>

@@ -4,7 +4,7 @@ import type { Choice, Line, Prompt } from "./card.js";
 import { awaitingModel, currentQuestion, draftDrivers, topDriver } from "./driver-ask.js";
 import { driverAnswer, saysDontKnow } from "./driver-parse.js";
 import { isSkip, yesNo } from "./lexicon.js";
-import { moveOn, type NeedDraft, type NeedState, retryNeed } from "./need.js";
+import { moveOn, type NeedDraft, NeedSlot, type NeedState, retryNeed } from "./need.js";
 import { DETAIL_MAX } from "./need-parse.js";
 import { MAX_PRICE_QUESTIONS, type PriceContext, type PriceQuestion, type PriceStep } from "./price-model.js";
 
@@ -44,6 +44,8 @@ const AREA_LABEL: MessageKey = "driver.n.area_sqft";
 const AGAIN: MessageKey = "need.again";
 /** A line of the model's own words. */
 const WORDS: MessageKey = "estimate.answer";
+/** Enough of the owner's own words for the model to know the job. */
+const WORDS_MAX = 500;
 const DONT_KNOW: Choice = { value: DriverPick.dontKnow, key: "driver.dont_know" };
 
 /** The count question is worded per repair trade: an electrician's points are switches, a carpenter's are doors. */
@@ -81,6 +83,13 @@ function choicesOf(s: NeedState, q: PriceQuestion): Choice[] {
   const values = spec?.kind === DriverKind.choice ? spec.values : (COUNT_CHOICES[name] ?? []);
   return [...values.map((v) => driverChoice(s.config.own, name, v)), DONT_KNOW];
 }
+
+/**
+ * The model is to be asked now: the price question is the one open. Open price questions come after the address, so
+ * asking earlier wrote a question nobody could see yet and put the address question on screen a second time.
+ */
+export const askingModel = (s: Pick<NeedState, "slot" | "draft">): boolean =>
+  s.slot === NeedSlot.driver && awaitingModel(s.draft);
 
 /** The question now: the model's words, or the catalog's for a fixed driver; a wait line while the model thinks. */
 export function driverQuestion(s: NeedState): Prompt {
@@ -161,6 +170,7 @@ export function priceContext(s: NeedState): PriceContext {
     lang: s.config.own,
     trade: d.trade,
     jobType: d.jobType,
+    words: [d.need, typeof d.detail === "string" ? d.detail : undefined].filter(Boolean).join(" ").slice(0, WORDS_MAX),
     drivers: draftDrivers(d),
     notKnown: d.notKnown ?? [],
     said: d.modelAsk?.said ?? [],

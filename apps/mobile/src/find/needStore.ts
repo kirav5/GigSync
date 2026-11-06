@@ -1,5 +1,6 @@
 import {
   type AddressChoice,
+  askingModel,
   chooseNeed,
   chooseNeedDate,
   type FoundEstimate,
@@ -22,7 +23,7 @@ import {
   withPriceStep,
   withSkill,
 } from "@gigsync/core";
-import type { BoardSkill, BoardWorker } from "@gigsync/protocol";
+import type { AddressId, BoardSkill, BoardWorker } from "@gigsync/protocol";
 import { changeChat, type FindChat, movedOnFrom, type SearchClaim, settleSearch, withNeedTurns } from "./findChats.js";
 import { appSaid, foundSaid, NeedSpeaker, type NeedTurn, ownerSaid } from "./needTurns.js";
 
@@ -33,9 +34,12 @@ import { appSaid, foundSaid, NeedSpeaker, type NeedTurn, ownerSaid } from "./nee
  * was asked.
  */
 
-/** The question a state asks, as a turn; none while the found workers are on screen. */
+/**
+ * The question a state asks, as a turn; none while the found workers are on screen, or while the model thinks of the
+ * next one, which shows beside the chat (FindChat) and leaves no line in it.
+ */
 function asked(state: NeedState): NeedTurn[] {
-  if (state.slot === NeedSlot.found) return [];
+  if (state.slot === NeedSlot.found || askingModel(state)) return [];
   const p = needPrompt(state);
   return [appSaid(p.lines, p.choices ?? [])];
 }
@@ -105,6 +109,11 @@ export function relanguageNeed(chat: string, config: NeedConfig): void {
 /** The household saved a new address part-way (ADR 0045): the "where" question offers it from now on. */
 export function addressesNeed(chat: string, addresses: readonly AddressChoice[]): void {
   changeChat(chat, (c) => (c.need ? { ...c, need: needWithConfig(c.need, { ...c.need.config, addresses }) } : c));
+}
+
+/** The address at the top of Find changed: a need with no place yet goes there. */
+export function addressInUseNeed(chat: string, inUse: AddressId | undefined): void {
+  changeChat(chat, (c) => (c.need ? { ...c, need: needWithConfig(c.need, { ...c.need.config, inUse }) } : c));
 }
 
 /** The budget question, with nothing said after it, shown again in place with the estimate that arrived. */

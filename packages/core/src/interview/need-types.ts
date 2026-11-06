@@ -91,6 +91,8 @@ export interface NeedConfig {
   areas: readonly AreaChoice[];
   /** The household's saved addresses, offered at the "where" question (ADR 0045); none on a worker hiring. */
   addresses?: readonly AddressChoice[];
+  /** The address at the top of Find, the one in use: a need goes there unless the owner names another place. */
+  inUse?: AddressId | undefined;
   /** The city's going rates, shown as a hint beside the budget question. */
   rates: RateCard;
   /** The phone's calendar day when the interview started, "YYYY-MM-DD", for dates said without a year. */

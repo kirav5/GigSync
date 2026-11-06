@@ -7,6 +7,7 @@ import { minAloud } from "./card-parse.js";
 import { withWordDrivers } from "./driver-ask.js";
 import { areaIn, yesNo } from "./lexicon.js";
 import {
+  afterOutside,
   answerMyself,
   DayWord,
   editNeed,
@@ -195,8 +196,9 @@ export function hearNeed(s: NeedState, text: string, aloud = false, hint: NeedHi
       return onNobody(s, text);
     case NeedSlot.done:
     case NeedSlot.found:
-    case NeedSlot.outside:
       return s;
+    case NeedSlot.outside:
+      return onAnswer(afterOutside(s), text, aloud, hint);
     default:
       return onAnswer(s, text, aloud, hint);
   }
@@ -219,6 +221,7 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
   const d = s.draft;
   const memory = onMemoryPick(s, value);
   if (memory) return memory;
+  if (s.slot === NeedSlot.outside) return value === NeedPick.list ? afterOutside(s) : s;
   if (s.slot === NeedSlot.scope) return chooseScope(s, value) ?? s;
   if (s.slot === NeedSlot.driver) return chooseDriver(s, value) ?? s;
   switch (s.slot) {

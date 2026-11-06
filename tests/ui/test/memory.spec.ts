@@ -89,7 +89,6 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await expect(log.getByRole("button", { name: t(en, "memory.use"), exact: true })).toHaveCount(0);
   // A maid: how long first (ADR 0046).
   await tap(priyaPage, t(en, "need.arr.monthly"));
-  await tap(priyaPage, t(en, "area.hsr_layout"));
   await skipPriceQuestions(priya);
   // Every day, at an hour (ADR 0050 §1): any time.
   await tap(priyaPage, t(en, "when.any_time"));
@@ -138,9 +137,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await shoot("ask-first", { household: priyaPage }, FOLDER);
   await tap(priyaPage, t(en, "memory.use"));
   await tap(priyaPage, t(en, "need.arr.monthly"));
-  await expect(log).toContainText(t(en, "need.ask.address"));
   await expect(log).not.toContainText(t(en, "memory.offer_area", { area: t(en, "area.hsr_layout") }));
-  await tap(priyaPage, t(en, "area.hsr_layout"));
   await skipPriceQuestions(priya);
   // Every day, at an hour (ADR 0050 §1): any time.
   await tap(priyaPage, t(en, "when.any_time"));

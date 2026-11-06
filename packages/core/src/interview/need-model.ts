@@ -1,6 +1,7 @@
 import { Arrangement, Lang, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
 import { z } from "zod";
 import { asciiDigits, numbersIn } from "../job/details.js";
+import { log } from "../log.js";
 import type { Model } from "../ports.js";
 import { parseAmount } from "./amount.js";
 import type { AreaChoice } from "./card.js";
@@ -139,7 +140,10 @@ function checked(reply: Reply, text: string, areas: readonly AreaChoice[]): Need
 export async function within(answer: Promise<string | null>, ms: number): Promise<string | null> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const late = new Promise<null>((resolve) => {
-    timer = setTimeout(() => resolve(null), ms);
+    timer = setTimeout(() => {
+      log.warn("model gave no answer in time", { ms });
+      resolve(null);
+    }, ms);
   });
   try {
     return await Promise.race([answer, late]);

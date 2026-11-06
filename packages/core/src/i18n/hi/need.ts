@@ -5,6 +5,7 @@ export const need: Readonly<Record<keyof typeof en, string>> = {
   "need.start": "आपको क्या काम करवाना है? अपने शब्दों में बताइए।",
   "need.ask.trade": "आपको किस तरह का कामगार चाहिए?",
   "need.again": "माफ़ कीजिए, मैं समझ नहीं पाया।",
+  "need.greeting": "नमस्ते! बताइए, आपको कौन सा काम करवाना है।",
   "need.ask.area": "काम किस इलाक़े में है?",
   "need.ask.when": "किसी को कब बुलाना है? समय भी बता सकते हैं, जैसे कल सुबह 10 बजे।",
   "need.ask.hour": "उन्हें किस समय आना चाहिए?",

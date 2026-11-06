@@ -55,13 +55,14 @@ export {
 } from "./interview/need.js";
 export { ADD_ADDRESS, atAddress } from "./interview/need-address.js";
 export { boardArrangement } from "./interview/need-arrangement.js";
-export { DriverPick, priceContext, withPriceStep } from "./interview/need-drivers.js";
+export { askingModel, DriverPick, priceContext, withPriceStep } from "./interview/need-drivers.js";
 export {
   needDetails,
   needEstimate,
   needRequest,
   needWithEstimate,
 } from "./interview/need-estimate.js";
+export { isGreeting } from "./interview/need-greeting.js";
 export { chooseNeed, chooseNeedDate, hearNeed, NeedPick } from "./interview/need-hear.js";
 export { type NeedHint, understandNeed } from "./interview/need-model.js";
 export { type NeedFill, parseNeed, TIME_MAX } from "./interview/need-parse.js";

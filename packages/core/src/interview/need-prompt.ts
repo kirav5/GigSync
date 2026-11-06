@@ -221,7 +221,11 @@ function question(s: NeedState): Prompt {
     case NeedSlot.confirm:
       return confirmPrompt(s);
     case NeedSlot.outside:
-      return { lines: jobTypeLines(s.draft.jobType ?? ""), hints: [] };
+      return {
+        lines: jobTypeLines(s.draft.jobType ?? ""),
+        choices: [{ value: NeedPick.list, key: "need.pick_work" }],
+        hints: [],
+      };
     case NeedSlot.done: {
       if (s.to) return { lines: [{ key: "need.asking_to", params: { name: s.to.name } }], hints: [] };
       return { lines: [{ key: "need.searching", ...areaParts(s.draft) }], hints: [] };

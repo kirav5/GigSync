@@ -1,4 +1,4 @@
-import { awaitingModel, modelPriceStep, type NeedState, type Ports, priceContext } from "@gigsync/core";
+import { askingModel, modelPriceStep, type NeedState, type Ports, priceContext } from "@gigsync/core";
 import { useEffect, useRef } from "react";
 import { stepNeed } from "./needStore.js";
 
@@ -9,7 +9,7 @@ import { stepNeed } from "./needStore.js";
  */
 export function usePriceQuestions(ports: Ports, chat: string, state: NeedState | undefined): void {
   const asking = useRef<string | undefined>(undefined);
-  const waiting = state !== undefined && awaitingModel(state.draft);
+  const waiting = state !== undefined && askingModel(state);
   const turn = `${chat}:${state?.draft.askedDrivers ?? 0}`;
   // biome-ignore lint/correctness/useExhaustiveDependencies: one model call per question, keyed on the chat and count
   useEffect(() => {
