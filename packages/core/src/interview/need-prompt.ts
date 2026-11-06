@@ -26,6 +26,7 @@ import { NeedPick } from "./need-hear.js";
 import { OFFER_CHOICES, recalledLine, redoChoice } from "./need-memory.js";
 import { needWords } from "./need-request.js";
 import { scopeQuestion } from "./need-scope.js";
+import { switchPrompt } from "./need-switch.js";
 import { hourPrompt, needsHour } from "./need-time.js";
 
 /**
@@ -178,6 +179,7 @@ const redoChoices = (s: NeedState): Choice[] =>
   );
 
 function question(s: NeedState): Prompt {
+  if (s.switching) return switchPrompt(s);
   const own = s.config.own;
   const offer = offerPrompt(s);
   if (offer) return offer;

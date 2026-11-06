@@ -56,8 +56,9 @@ async function firstTurn(model, s, text, lang) {
   const read = await core.readTurn(model, core.turnContext(s, text), WAIT_MS);
   if (!read) return firstWords(model, s, text, lang);
   if (read.kind === core.TurnKind.enum.greeting) return s;
-  if (read.jobType) return core.withJobType(s, read.jobType, text);
-  const trade = read.trade ?? core.parseNeed(text, { areas: AREAS, today: TODAY }).trade;
+  const trade = read.trade ?? (read.jobType ? undefined : core.parseNeed(text, { areas: AREAS, today: TODAY }).trade);
+  const jobType = trade ? undefined : (read.jobType ?? (await core.modelJobType(model, text, lang, WAIT_MS)));
+  if (jobType) return core.withJobType(s, jobType, text);
   const scope = trade ? await core.readScope(model, text, { trade, lang, waitMs: WAIT_MS }) : [];
   return core.hearNeed(s, text, false, { ...core.hintOf(read), scope });
 }
@@ -65,7 +66,7 @@ async function firstTurn(model, s, text, lang) {
 /** Words at a later question: the interview's, and when it did not understand them, the one reader's. */
 async function laterTurn(model, s, text, reader, log) {
   const heard = core.hearNeed(s, text);
-  if (reader !== Reader.turn || !core.notHeard(heard) || s.slot === NeedSlot.budget) return heard;
+  if (reader !== Reader.turn || !core.worthReading(s, heard) || s.slot === NeedSlot.budget) return heard;
   const read = await core.readTurn(model, core.turnContext(s, text, core.needPrompt(s).lines[0]?.key), WAIT_MS);
   if (!read || !core.namesOtherWork(s, read)) return heard;
   log.switched = true;
@@ -121,7 +122,9 @@ export async function runConversation(model, conversation, lang, reader = Reader
     }
     s = await modelAsks(model, s);
     if (sorry(s)) log.sorries++;
-    if (s.slot === NeedSlot.driver || s.slot === NeedSlot.detail) log.asked.push(wordsOf(s, lang));
+    // After a no to switching the same question comes back: that is no repeat.
+    const backAgain = log.switched && log.asked.at(-1) === wordsOf(s, lang);
+    if ((s.slot === NeedSlot.driver || s.slot === NeedSlot.detail) && !backAgain) log.asked.push(wordsOf(s, lang));
   }
   log.job = s.draft.trade ? { trade: s.draft.trade } : s.draft.jobType ? { outside: s.draft.jobType } : undefined;
   return log;

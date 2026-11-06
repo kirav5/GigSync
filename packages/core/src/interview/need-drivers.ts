@@ -4,9 +4,15 @@ import type { Choice, Line, Prompt } from "./card.js";
 import { awaitingModel, currentQuestion, draftDrivers, topDriver } from "./driver-ask.js";
 import { driverAnswer, saysDontKnow } from "./driver-parse.js";
 import { isSkip, yesNo } from "./lexicon.js";
-import { moveOn, type NeedDraft, NeedSlot, type NeedState, retryNeed } from "./need.js";
+import { firstQuestion, moveOn, type NeedDraft, NeedSlot, type NeedState, retryNeed } from "./need.js";
 import { DETAIL_MAX } from "./need-parse.js";
-import { MAX_PRICE_QUESTIONS, type PriceContext, type PriceQuestion, type PriceStep } from "./price-model.js";
+import {
+  MAX_PRICE_QUESTIONS,
+  type PriceContext,
+  type PriceQA,
+  type PriceQuestion,
+  type PriceStep,
+} from "./price-model.js";
 
 /**
  * The need interview's price questions (ADR 0041 §2): the model's, checked, or the fixed drivers', worded from the
@@ -163,6 +169,13 @@ export function hearDriver(s: NeedState, text: string, draft: NeedDraft = s.draf
   return isSkip(text) ? moveOn(s, ended(draft, q)) : { ...retryNeed(s, { key: AGAIN }), draft };
 }
 
+/** The trade's fixed first question and its answer: the model does not write it, and must not ask it again. */
+function firstAsked(s: NeedState): PriceQA[] {
+  const first = firstQuestion(s.draft.trade);
+  const { detail } = s.draft;
+  return first && typeof detail === "string" ? [{ q: t(s.config.own, `question.${first}`), a: detail }] : [];
+}
+
 /** What the phone's model is told for the next step. */
 export function priceContext(s: NeedState): PriceContext {
   const d = s.draft;
@@ -173,7 +186,7 @@ export function priceContext(s: NeedState): PriceContext {
     words: [d.need, typeof d.detail === "string" ? d.detail : undefined].filter(Boolean).join(" ").slice(0, WORDS_MAX),
     drivers: draftDrivers(d),
     notKnown: d.notKnown ?? [],
-    said: d.modelAsk?.said ?? [],
+    said: [...firstAsked(s), ...(d.modelAsk?.said ?? [])],
     asked: d.askedDrivers ?? 0,
   };
 }

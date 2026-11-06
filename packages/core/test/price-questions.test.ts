@@ -102,13 +102,11 @@ describe("lite mode: the fixed driver questions", () => {
 describe("with a phone model: the model decides the questions", () => {
   const atQuestions = (text = VILLA, own: Lang = "en") => run(startNeed(config(own, true)), [text, "HSR"]);
 
-  it("asks five questions, then the facts come with done", async () => {
+  it("asks three questions at most, then the facts come with done", async () => {
     const model = new ScriptModel([
       step({ text: "Will you buy the paint yourself?", fills: "paint_by" }),
       step({ text: "Any damp patches or cracks?", fills: "Wall condition", choices: ["Fine", "Damp patches"] }),
       step({ text: "Plain paint or texture?", fills: "finish" }),
-      step({ text: "Are the ceilings high?", fills: "Ceiling height" }),
-      step({ text: "Any wooden doors to polish?", fills: "Door polish" }),
       step({ done: true, facts: [{ label: "Wall condition", value: "damp patches" }] }),
     ]);
     let s = await think(atQuestions(), model);
@@ -116,8 +114,7 @@ describe("with a phone model: the model decides the questions", () => {
       key: "estimate.answer",
       params: { text: "Will you buy the paint yourself?" },
     });
-    for (const answer of ["yes", "Damp patches", "plain", "normal height", "no doors"])
-      s = await think(hearNeed(s, answer), model);
+    for (const answer of ["yes", "Damp patches", "plain"]) s = await think(hearNeed(s, answer), model);
     expect(s.draft.askedDrivers).toBe(MAX_PRICE_QUESTIONS);
     expect(s.slot).toBe(NeedSlot.when);
     // The facts stay on the phone for the owner's agent; the request carries the drivers only.

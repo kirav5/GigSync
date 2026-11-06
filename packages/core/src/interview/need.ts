@@ -6,6 +6,7 @@ import { priceOpen } from "./driver-ask.js";
 import type { FoundEstimate } from "./estimate-lines.js";
 import { arrangedWork, needsArrangement } from "./need-arrangement.js";
 import type { Recalled } from "./need-memory.js";
+import type { WorkSwitch } from "./need-switch.js";
 import { needsHour } from "./need-terms.js";
 import type { NeedConfig, NeedDraft, NeedTo } from "./need-types.js";
 
@@ -80,6 +81,8 @@ export interface NeedState {
   readonly estimate?: FoundEstimate | undefined;
   /** The worker the need is addressed to; undefined when the board is searched. */
   readonly to?: NeedTo | undefined;
+  /** Other work the owner named part-way: asked about before anything else (`need-switch.ts`). */
+  readonly switching?: WorkSwitch | undefined;
 }
 
 /** The trade's first question, which the request answers up front so the worker's agent need not ask it. */

@@ -47,3 +47,32 @@ fixed (`--reader lists`):
 What is wrong in it: most chats that do not reach the readback are work outside the eight trades, which ends the chat.
 The word lists take a Hindi or Kannada "kitchen tap" for a cook, and the need reader forces other work into the nearest
 trade (a fridge is an AC technician's, cockroaches a maid's).
+
+## One reader for every message (ADR 0056)
+
+The same 100 conversations, the same day, with `--reader turn`:
+
+| Measure              | Baseline | One reader |
+| -------------------- | -------- | ---------- |
+| Right job            | 81%      | **96%**    |
+| No repeats           | 95%      | **96%**    |
+| No "Sorry"           | 97%      | **99%**    |
+| Reached the readback | 66%      | 61%        |
+| Questions a chat     | 2.3      | 2.4        |
+
+Fewer chats reached the readback because the reader says work is outside the trades instead of forcing it into one, and
+such a chat still ended there. The 10 conversations that name other work part-way were offered a switch 9 times; the
+word lists offer none.
+
+All 110, by set:
+
+| Set      | Right job | No repeats | No "Sorry" | Reached the readback | Offered a switch |
+| -------- | --------- | ---------- | ---------- | -------------------- | ---------------- |
+| en       | 100%      | 91%        | 100%       | 64%                  | 2 of 2           |
+| hi       | 100%      | 100%       | 100%       | 64%                  | 2 of 2           |
+| kn       | 95%       | 100%       | 100%       | 68%                  | 2 of 2           |
+| Hinglish | 95%       | 91%        | 95%        | 64%                  | 2 of 2           |
+| Kanglish | 91%       | 100%       | 100%       | 64%                  | 1 of 2           |
+
+471 model calls, median 1.3 s, slowest 3.2 s. The conversations were tuned against as the prompt was written, so these
+are better than a fresh set would score.

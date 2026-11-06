@@ -16,9 +16,11 @@ import {
   needPrompt,
   needWithConfig,
   needWithEstimate,
+  offerSwitch,
   type PriceStep,
   searchedNeed,
   searchFailed,
+  type TurnRead,
   withJobType,
   withPriceStep,
   withSkill,
@@ -39,7 +41,7 @@ import { appSaid, foundSaid, NeedSpeaker, type NeedTurn, ownerSaid } from "./nee
  * next one, which shows beside the chat (FindChat) and leaves no line in it.
  */
 function asked(state: NeedState): NeedTurn[] {
-  if (state.slot === NeedSlot.found || askingModel(state)) return [];
+  if (state.slot === NeedSlot.found || askingModel(state) || state.switching?.accepted) return [];
   const p = needPrompt(state);
   return [appSaid(p.lines, p.choices ?? [])];
 }
@@ -77,6 +79,20 @@ export function answerNeed(chat: string, text: string, aloud: boolean, hint: Nee
 /** An answer by tapping a choice; `label` is the choice as the owner read it. */
 export function tapNeed(chat: string, value: string, label: string): void {
   moved(chat, (state) => chooseNeed(state, value), [ownerSaid(label)]);
+}
+
+/** Other work named part-way: asked about first; the owner's words go in the chat. */
+export function switchNeed(chat: string, read: TurnRead, text: string): void {
+  moved(chat, (state) => offerSwitch(state, read, text), [ownerSaid(text)]);
+}
+
+/** The owner said yes to the switch: this chat stays as it was, and the new work opens in its own. */
+export function leaveSwitch(chat: string): void {
+  changeChat(chat, (c) => {
+    if (!c.need) return c;
+    const { switching: _, ...need } = c.need;
+    return { ...c, need };
+  });
 }
 
 /** The phone's model's next price question (or that it is done), taken into the need; nothing was said. */

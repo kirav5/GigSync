@@ -1,5 +1,4 @@
 import { DetailFlag, Trade } from "@gigsync/protocol";
-import type { MessageKey } from "../i18n/t.js";
 import { countIn } from "../job/details.js";
 import { EVERY_DAY } from "../job/when.js";
 import { type Line, Pick } from "./card.js";
@@ -33,7 +32,9 @@ import { fillEmpty, fillFromHint } from "./need-fill.js";
 import { MemoryPick } from "./need-memory.js";
 import type { NeedHint } from "./need-model.js";
 import { amountIn, DETAIL_MAX, type NeedFill, parseNeed } from "./need-parse.js";
+import { Say } from "./need-say.js";
 import { chooseScope, hearScope } from "./need-scope.js";
+import { chooseSwitch, hearSwitch } from "./need-switch.js";
 import { chooseHour, needsHour } from "./need-time.js";
 import { NEED_FIELD_WORDS } from "./need-words.js";
 import { finder, firstIn, normalize } from "./normalize.js";
@@ -54,12 +55,6 @@ const REDO = new Map<string, NeedField>([
 const WHEN_VALUES: readonly string[] = [DayWord.today, DayWord.tomorrow, EVERY_DAY];
 /** What `JobRequest.need` holds. */
 const NEED_MAX = 1000;
-const Say = {
-  again: "need.again",
-  againBudget: "need.again_budget",
-  againYesNo: "iv.again.yes_no",
-  long: "need.err_long",
-} as const satisfies Record<string, MessageKey>;
 const FIELD_FINDERS = NEED_FIELDS.map((f) => [f, NEED_FIELD_WORDS[f].map(finder)] as const);
 
 /** The field an answer names ("बजट" is the budget). */
@@ -135,7 +130,9 @@ function onOffer(s: NeedState, text: string): NeedState | undefined {
 function onAnswer(s: NeedState, text: string, aloud: boolean, hint: NeedHint): NeedState {
   const offer = onOffer(s, text);
   if (offer) return offer;
-  const fill = parseNeed(text, options(s));
+  const parsed = parseNeed(text, options(s));
+  // A model's trade goes before the lists': "kitchen" is a cook's word in the lists, and a kitchen tap is a plumber's.
+  const fill = hint.trade ? { ...parsed, trade: hint.trade } : parsed;
   const draft = withWordDrivers(fillFromHint(fillEmpty(s.draft, fill), hint, fill.words), fill.words);
   const answered = onSlot(s, draft, text, fill, aloud);
   if (answered) return answered;
@@ -185,6 +182,7 @@ function onNobody(s: NeedState, text: string): NeedState {
  * model read from the same words, already checked; it fills only what the word lists left empty.
  */
 export function hearNeed(s: NeedState, text: string, aloud = false, hint: NeedHint = {}): NeedState {
+  if (s.switching) return hearSwitch(s, text);
   switch (s.slot) {
     case NeedSlot.confirm:
       return onConfirm(s, text);
@@ -218,6 +216,7 @@ function onMemoryPick(s: NeedState, value: string): NeedState | undefined {
 
 /** A tap on one of the prompt's choices. A value the prompt did not offer changes nothing. */
 export function chooseNeed(s: NeedState, value: string): NeedState {
+  if (s.switching) return chooseSwitch(s, value);
   const d = s.draft;
   const memory = onMemoryPick(s, value);
   if (memory) return memory;

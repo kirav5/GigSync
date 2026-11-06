@@ -77,10 +77,13 @@ export {
   OPENING_SHARE,
   resolveDay,
 } from "./interview/need-request.js";
+export { Say as NeedSay } from "./interview/need-say.js";
 export { chipChoice, ScopePick, scopeDetails } from "./interview/need-scope.js";
 export { withSkill } from "./interview/need-skill.js";
+export { namesOtherWork, offerSwitch, type WorkSwitch } from "./interview/need-switch.js";
 export { hourOf, needTerms, windowOf } from "./interview/need-terms.js";
 export { ANY_TIME, ANY_TIME_PICK, hoursOpen } from "./interview/need-time.js";
+export { hintOf, notHeard, turnContext, worthReading } from "./interview/need-turn.js";
 export type { AddressChoice } from "./interview/need-types.js";
 export {
   checkPriceStep,
@@ -93,6 +96,7 @@ export {
   pricePrompt,
 } from "./interview/price-model.js";
 export { PROBLEM_MIN_SIMILARITY, problemByMeaning, problemIndex } from "./interview/problem-meaning.js";
+export { readTurn, type TurnContext, TurnKind, type TurnRead } from "./interview/read-turn.js";
 export { readScope, SCOPE_READ, type ScopeChip, ScopeKey, scopeFromWords } from "./interview/scope-read.js";
 export { TRADE_MIN_SIMILARITY, tradeByMeaning, tradeIndex } from "./interview/trade-meaning.js";
 export * from "./job/activity.js";
