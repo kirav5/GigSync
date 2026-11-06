@@ -21,7 +21,7 @@ import {
 import { areaParts, wherePrompt } from "./need-address.js";
 import { arrangedWork, arrangementLines, arrangementPrompt, budgetUnitLines, oneOffNeed } from "./need-arrangement.js";
 import { driverQuestion } from "./need-drivers.js";
-import { budgetEstimate } from "./need-estimate.js";
+import { budgetEstimate, listedLine } from "./need-estimate.js";
 import { NeedPick } from "./need-hear.js";
 import { OFFER_CHOICES, recalledLine, redoChoice } from "./need-memory.js";
 import { needWords } from "./need-request.js";
@@ -216,8 +216,15 @@ function question(s: NeedState): Prompt {
       // The estimate, when there is one for this job, in place of the city band; the budget itself stays secret.
       const estimate = budgetEstimate(s);
       const shown = estimate ?? { lines: bandLine(s) };
-      const noRate = !estimate && noGoingRate(s) ? [{ key: "need.skill_no_rate" } as const] : [];
-      const lines = [{ key: "need.ask.budget" } as const, ...budgetUnitLines(s.draft), ...noRate, ...shown.lines];
+      const listed = listedLine(s);
+      const noRate = !estimate && !listed && noGoingRate(s) ? [{ key: "need.skill_no_rate" } as const] : [];
+      const lines = [
+        { key: "need.ask.budget" } as const,
+        ...budgetUnitLines(s.draft),
+        ...(listed ? [listed] : []),
+        ...noRate,
+        ...shown.lines,
+      ];
       return { ...shown, lines, numeric: true, hints: [], secret: true };
     }
     case NeedSlot.confirm:

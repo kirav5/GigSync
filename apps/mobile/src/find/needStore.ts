@@ -16,6 +16,7 @@ import {
   needPrompt,
   needWithConfig,
   needWithEstimate,
+  needWithListed,
   offerSwitch,
   type PriceStep,
   searchedNeed,
@@ -25,7 +26,7 @@ import {
   withPriceStep,
   withSkill,
 } from "@gigsync/core";
-import type { AddressId, BoardSkill, BoardWorker } from "@gigsync/protocol";
+import type { AddressId, BoardSkill, BoardWorker, ListedRates } from "@gigsync/protocol";
 import { changeChat, type FindChat, movedOnFrom, type SearchClaim, settleSearch, withNeedTurns } from "./findChats.js";
 import { appSaid, foundSaid, NeedSpeaker, type NeedTurn, ownerSaid } from "./needTurns.js";
 
@@ -150,6 +151,18 @@ export function needEstimateFound(chat: string, found: FoundEstimate | undefined
   changeChat(chat, (c) =>
     !c.need || c.need.estimate === found ? c : withEstimateShown(c, c.need, needWithEstimate(c.need, found)),
   );
+}
+
+/** What workers nearby list for the skill arrived: a budget question on screen shows it in place, as an estimate does. */
+export function needListedFound(chat: string, listed: ListedRates): void {
+  changeChat(chat, (c) => {
+    if (!c.need) return c;
+    const next = needWithListed(c.need, listed);
+    const last = c.turns.at(-1);
+    if (next.slot !== NeedSlot.budget || last?.who !== NeedSpeaker.app) return { ...c, need: next };
+    const p = needPrompt(next);
+    return { ...withNeedTurns(c, [...c.turns.slice(0, -1), { ...last, lines: p.lines }]), need: next };
+  });
 }
 
 /** What the search found: the workers to pick from, the nearest picked, or nobody and ways to look further. */

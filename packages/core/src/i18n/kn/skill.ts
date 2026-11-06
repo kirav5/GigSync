@@ -21,4 +21,6 @@ export const skill: Readonly<Record<keyof typeof en, string>> = {
   "need.skill_found": "ನಿಮ್ಮ ಹತ್ತಿರದ ಕೆಲಸಗಾರರು “{skill}” ಕೆಲಸ ಮಾಡುತ್ತಾರೆ.",
   "need.pick_work": "ಪಟ್ಟಿಯಿಂದ ಆರಿಸಿ",
   "need.skill_no_rate": "GigSync ನಲ್ಲಿ ಈ ಕೆಲಸಕ್ಕೆ ಇನ್ನೂ ಚಾಲ್ತಿ ದರ ಇಲ್ಲ. ನೀವು ಎಷ್ಟು ಕೊಡುತ್ತೀರಿ ಹೇಳಿ.",
+  "need.listed_rates":
+    "ನಿಮ್ಮ ಹತ್ತಿರದ ಕೆಲಸಗಾರರು ಈ ಕೆಲಸಕ್ಕೆ ಸುಮಾರು {low} ರಿಂದ {high} ಹೇಳುತ್ತಾರೆ ({count} ಕೆಲಸಗಾರರು). ನೀವು ಎಷ್ಟು ಕೊಡುತ್ತೀರಿ ಎಂದು ಹೇಳಿ.",
 };

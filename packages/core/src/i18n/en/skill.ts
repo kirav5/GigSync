@@ -22,4 +22,6 @@ export const skill = {
   "need.skill_found": "Workers near you list “{skill}”.",
   "need.pick_work": "Pick from a list",
   "need.skill_no_rate": "There is no going rate for this work on GigSync yet. Say what you would pay.",
+  "need.listed_rates":
+    "Workers near you list about {low} to {high} for this work ({count} workers). Say what you would pay.",
 } as const;

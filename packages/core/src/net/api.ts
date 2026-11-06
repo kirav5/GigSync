@@ -20,6 +20,8 @@ import {
   EstimateResponse,
   type GeoPlace,
   GeoResult,
+  ListedRates,
+  type ListedRatesQueryInput,
   type MatchRequestInput,
   MatchResponse,
   type MentorListingInput,
@@ -165,6 +167,12 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
         .map(([k, v]) => [k, String(v)]),
     );
     return BoardResult.parse(await this.call(HttpMethod.get, `${ApiPath.boardWorkers}?${params}`)).workers;
+  }
+
+  /** What workers near a place list for a skill: a range from three workers up (ADR 0057). */
+  async listedRates(query: ListedRatesQueryInput): Promise<ListedRates> {
+    const params = new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)]));
+    return ListedRates.parse(await this.call(HttpMethod.get, `${ApiPath.boardRates}?${params}`));
   }
 
   async boardSkills(): Promise<BoardSkill[]> {

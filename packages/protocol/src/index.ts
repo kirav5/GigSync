@@ -22,6 +22,7 @@ export * from "./job-quantities.js";
 export * from "./job-record.js";
 export * from "./job-record-export.js";
 export * from "./lang.js";
+export * from "./listed-rates.js";
 export * from "./mentor.js";
 export * from "./mentor-envelopes.js";
 export * from "./payment.js";

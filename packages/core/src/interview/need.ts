@@ -1,4 +1,4 @@
-import { AnswerFromMemory, JobTrade, type QuestionKey, type Trade } from "@gigsync/protocol";
+import { AnswerFromMemory, JobTrade, type ListedRates, type QuestionKey, type Trade } from "@gigsync/protocol";
 import { EVERY_DAY, isMonthly } from "../job/when.js";
 import { QUESTIONS } from "../job/worker.js";
 import type { Line } from "./card.js";
@@ -79,6 +79,8 @@ export interface NeedState {
   readonly filled: readonly NeedSlot[];
   /** The rate estimate the app found for the job as described (`need-estimate.ts`), if any. */
   readonly estimate?: FoundEstimate | undefined;
+  /** What workers nearby list for a skill, for the budget question (ADR 0057); never a model's figure. */
+  readonly listed?: ListedRates | undefined;
   /** The worker the need is addressed to; undefined when the board is searched. */
   readonly to?: NeedTo | undefined;
   /** Other work the owner named part-way: asked about before anything else (`need-switch.ts`). */

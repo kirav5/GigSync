@@ -20,8 +20,15 @@ writes differs between runs ("tv repair", "electronics repair", "TV not turning 
    label, a new skill is found the day it is listed, and the list needs no upkeep, no migration and no new table. The name
    in the words and the embedding pack still go first.
 2. **"Nobody lists this" is only said after looking**, and the chat offers the trades and takes new words.
-3. A household's words about a skill now reach GigSync's model, as all chat has since ADR 0052. A search still sends only
+3. **Prices for such work come from what workers list, never from a model.** At the budget question for a listed skill,
+   `GET /v1/board/rates` gives the middle half of the usual rates active workers within 10 km list for it, rounded to ₹50.
+   Under three workers there is no range, so nobody's own rate can be read off it, and the chat says plainly there is no
+   going rate. A skill's key and a coarse point are all it sends; the budget stays on the phone.
+4. A household's words about a skill now reach GigSync's model, as all chat has since ADR 0052. A search still sends only
    a skill's key, and the server keeps nothing the words said.
+
+The founders asked for the model to suggest the price. It does not: a figure a model makes up, shown as advice, is the
+most damaging mistake it could make, and ADR 0041 rules it out. The range is real rates, so it needs real workers.
 
 ## Consequences
 
@@ -32,3 +39,6 @@ writes differs between runs ("tv repair", "electronics repair", "TV not turning 
   says nobody lists the work when somebody does; the owner can say it another way or pick from the list.
 - With no model, skills are found by name, as before.
 - Past 100 listed skills, the rest are not offered to the model.
+- A listed rate is what a worker says, not what a job paid, and it is per visit whatever the arrangement. It is a guide to
+  set a budget by, shown as what workers list, and it can stand apart from the going rate once GigSync has jobs.
+- A new skill with one or two workers gets no range. Most skills will be there at first.
