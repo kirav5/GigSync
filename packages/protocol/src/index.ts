@@ -30,6 +30,7 @@ export * from "./problem.js";
 export * from "./push.js";
 export * from "./qr.js";
 export * from "./rates.js";
+export * from "./recommend.js";
 export * from "./records.js";
 export * from "./server-model.js";
 export * from "./skill.js";

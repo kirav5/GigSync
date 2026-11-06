@@ -1,8 +1,7 @@
 import {
-  bothSigned,
+  canRecommend,
   dayOf,
   EVERY_DAY,
-  FINISHED_WORK,
   type JobRecord,
   NUMBER_ONLY,
   noteShown,
@@ -23,8 +22,8 @@ import { PlanCard } from "./JobDecide.js";
 import { JobProgress } from "./JobProgress.js";
 import { RemovedLine, RestoredLine } from "./JobSettled.js";
 import { dayDate } from "./jobGroups.js";
-import { IntroActions } from "./mentor/IntroActions.js";
 import { ProblemCard } from "./ProblemCard.js";
+import { RecommendWorker } from "./qr/RecommendWorker.js";
 import { RestoredActions } from "./RestoredActions.js";
 import { TermsList } from "./terms/TermsList.js";
 import "./jobs.css";
@@ -78,11 +77,6 @@ export function JobThread(props: JobActionProps) {
   // The signed slot is a copy of the request's `when`; with a structured day, the When line below says it in this
   // phone's own words, so the slot's machine-translated copy is left out. Older requests have only the slot.
   const slot = terms && dayOf(job.request) === undefined ? terms.slot : undefined;
-  // Finished work both signed makes them someone this owner knows: a household may introduce the worker who did the
-  // job. (Asking around for a newcomer stays on mentor links; on a job card it read as noise.) A name kept after the
-  // card was removed still counts: an introduction needs no phone number.
-  const knownName = job.contact?.name ?? job.their_name;
-  const known = !isWorker && knownName && bothSigned(job) && FINISHED_WORK.has(e.status) ? knownName : undefined;
   // The request's words, unless they only repeat the trade or are a bare count (older requests used the first answer).
   const need = job.request.need.trim();
   const tradeName = job.request.skill?.text ?? say(job.request.lang, `trade.${job.request.trade}`);
@@ -149,7 +143,9 @@ export function JobThread(props: JobActionProps) {
           )}
         </fieldset>
       )}
-      {known && <IntroActions device={device} person={{ user: e.counterpart, name: known }} run={run} introduce />}
+      {canRecommend(job) && (
+        <RecommendWorker device={device} run={run} job={job} name={them} work={requestWork(t, job.request)} />
+      )}
       <RemovedLine job={job} />
       <ProblemCard job={job} them={them} device={device} run={run} />
       {notes.length > 0 && (

@@ -28,7 +28,7 @@ export const mentor: Readonly<Record<keyof typeof en, string>> = {
   "mentor.max": "ಒಮ್ಮೆಗೆ {count} ಜನರನ್ನು ಕೇಳಬಹುದು.",
   "mentor.none": "ಇನ್ನೂ ಮಾರ್ಗದರ್ಶಕರಿಲ್ಲ",
   "mentor.none_women": "{city}ನಲ್ಲಿ ಇನ್ನೂ ಮಹಿಳಾ ಮಾರ್ಗದರ್ಶಕರಿಲ್ಲ. “ಮಹಿಳಾ ಮಾರ್ಗದರ್ಶಕರು ಮಾತ್ರ” ಆಫ್ ಮಾಡಬಹುದು.",
-  "mentor.none_intro": "ನಿಮಗೆ ಗೊತ್ತಿರುವವರನ್ನು — ನೀವು ಕೆಲಸ ಮಾಡಿದ ಮನೆಯವರನ್ನು, ಅಥವಾ ನಿಮ್ಮ ಮಾರ್ಗದರ್ಶಕರನ್ನು — {city}ನಲ್ಲಿ ಯಾರಾದರೂ ಗೊತ್ತೇ ಎಂದು ಕೇಳಿ.",
+  "mentor.none_intro": "{city}ನಲ್ಲಿ ಯಾರಾದರೂ ಗೊತ್ತೇ ಎಂದು ನಿಮ್ಮ ಮಾರ್ಗದರ್ಶಕರನ್ನು ಕೇಳಿ.",
   "mentor.helplines": "ಉಳಿಸಿಕೊಳ್ಳಬೇಕಾದ ನಂಬರ್‌ಗಳು",
   "mentor.ask.one": "{count} ಮಾರ್ಗದರ್ಶಕರನ್ನು ಕೇಳಿ",
   "mentor.ask.other": "{count} ಮಾರ್ಗದರ್ಶಕರನ್ನು ಕೇಳಿ",
@@ -96,5 +96,5 @@ export const mentor: Readonly<Record<keyof typeof en, string>> = {
   "mentor.end": "ಜೋಡಣೆ ಮುಗಿಸಿ",
   "mentor.end_confirm": "{name} ಅವರೊಂದಿಗಿನ ಜೋಡಣೆ ಮುಗಿಸಲೇ? ಅವರೊಂದಿಗಿನ ಸಂದೇಶಗಳು ಈ ಫೋನ್‌ನಿಂದ ಅಳಿಸಿಹೋಗುತ್ತವೆ.",
   "mentor.ask_person": "{name} ಅವರನ್ನು ಕೇಳಿ",
-  "mentor.no_people": "ಇನ್ನೂ ಯಾರೂ ಇಲ್ಲ. ನೀವು ಕೆಲಸಕ್ಕೆ ಸಹಿ ಮಾಡಿದವರು, ಅಥವಾ ಮಾರ್ಗದರ್ಶಕರಾಗಿ ಜೋಡಿಸಿದವರು ಇಲ್ಲಿ ಕಾಣುತ್ತಾರೆ.",
+  "mentor.no_people": "ಇನ್ನೂ ಯಾರೂ ಇಲ್ಲ. ನೀವು ಮಾರ್ಗದರ್ಶಕರಾಗಿ ಜೋಡಿಸಿದವರು ಇಲ್ಲಿ ಕಾಣುತ್ತಾರೆ.",
 };

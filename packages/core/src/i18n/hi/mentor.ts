@@ -28,8 +28,7 @@ export const mentor: Readonly<Record<keyof typeof en, string>> = {
   "mentor.max": "आप एक साथ {count} लोगों से पूछ सकते हैं।",
   "mentor.none": "अभी कोई मेंटर नहीं",
   "mentor.none_women": "{city} में अभी कोई महिला मेंटर नहीं। आप “सिर्फ़ महिला मेंटर” बंद कर सकती हैं।",
-  "mentor.none_intro":
-    "किसी जान-पहचान वाले से पूछें — जिस घर में आपने काम किया, या अपने मेंटर से — कि क्या वे {city} में किसी को जानते हैं।",
+  "mentor.none_intro": "अपने मेंटर से पूछें कि क्या वे {city} में किसी को जानते हैं।",
   "mentor.helplines": "सेव करने के लिए नंबर",
   "mentor.ask.one": "{count} मेंटर से पूछें",
   "mentor.ask.other": "{count} मेंटर से पूछें",
@@ -97,5 +96,5 @@ export const mentor: Readonly<Record<keyof typeof en, string>> = {
   "mentor.end": "जुड़ाव ख़त्म करें",
   "mentor.end_confirm": "{name} से जुड़ाव ख़त्म करें? उनके साथ के संदेश इस फ़ोन से मिट जाएँगे।",
   "mentor.ask_person": "{name} से पूछें",
-  "mentor.no_people": "अभी कोई नहीं। जिनके साथ आप किसी काम पर दस्तख़त करें, या मेंटर के रूप में जुड़ें, वे यहाँ दिखेंगे।",
+  "mentor.no_people": "अभी कोई नहीं। जिनसे आप मेंटर के रूप में जुड़ें, वे यहाँ दिखेंगे।",
 };

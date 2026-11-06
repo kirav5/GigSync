@@ -14,6 +14,8 @@ const LINE: Readonly<Record<QrProblem, MessageKey>> = {
   [QrProblem.ended]: "qr.ended",
   [QrProblem.too_many]: "qr.too_many",
   [QrProblem.not_found]: "qr.not_found",
+  [QrProblem.no_job_record]: "qr.recommend_no_record",
+  [QrProblem.not_listed]: "qr.recommend_not_listed",
 };
 
 /** What to tell the owner when a QR step failed: why it was refused, or why the call did not get through. */

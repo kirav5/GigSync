@@ -8,6 +8,7 @@ import type { GigView } from "../useGig.js";
 import { ActivityFrame } from "./activity/ActivityFrame.js";
 import { MentorToday } from "./mentor/MentorToday.js";
 import { FloorAsk } from "./move/FloorAsk.js";
+import { RecommendedNotes } from "./qr/RecommendedNotes.js";
 import { TodayBookings } from "./schedule/TodayBookings.js";
 
 interface Props {
@@ -31,8 +32,8 @@ interface Props {
 
 /**
  * A worker's Activity: the shared frame (Awaiting you, In talks, Agreed by day, Closed into Records), with the
- * worker's own nudges above the counters: the lowest price after a move, the UPI ID, a mentor's note, their own
- * bookings (ADR 0048), and making or listing their card. Each job card carries its own actions, so the screen has no dock.
+ * worker's own nudges above the counters: the lowest price after a move, the UPI ID, a mentor's note, a household's
+ * recommendation, their own bookings (ADR 0048), and making or listing their card. Each job card carries its own actions, so the screen has no dock.
  */
 export function Today(props: Props) {
   const { ports, view, device, run, card, onMakeCard, onOpenCard, onAddPayee, onRecords, account, onSaved } = props;
@@ -42,6 +43,7 @@ export function Today(props: Props) {
       <FloorAsk ports={ports} account={account} onSaved={onSaved} />
       <PayeeNudge ports={ports} view={view} onAdd={onAddPayee} />
       <MentorToday account={account} device={device} run={run} syncedAt={view.syncedAt} />
+      <RecommendedNotes view={view} device={device} run={run} />
       <TodayBookings ports={ports} />
       {card === CardState.none && (
         <div className={C.card}>

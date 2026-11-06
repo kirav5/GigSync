@@ -28,6 +28,7 @@ import { log } from "../log.js";
 import type { Received } from "../mail/transport.js";
 import type { Mentors } from "../mentor/mentors.js";
 import type { WorkOffers } from "../qr/offers.js";
+import type { Recommendations } from "../qr/recommend.js";
 import * as after from "./aftercare.js";
 import { mirror } from "./claim.js";
 import * as consumer from "./consumer.js";
@@ -53,6 +54,7 @@ const RECEIVES: Readonly<Record<Role, ReadonlySet<EnvelopeKind>>> = {
     K.payment_record,
     K.review,
     K.problem,
+    K.recommended,
   ]),
   [R.requester]: new Set([
     K.clarify,
@@ -83,6 +85,8 @@ export interface SideInboxes {
   offers: Pick<WorkOffers, "receive">;
   /** Problems reported on a signed job, which hold its contacts (ADR 0039 §3). */
   contacts: Pick<ContactKeeper, "receive">;
+  /** A household telling its worker it recommended them to someone (ADR 0055). */
+  recommendations: Pick<Recommendations, "receive">;
 }
 
 /**
@@ -132,6 +136,7 @@ export async function dispatch(
   }
   await ctx.store.saveJob(moved);
   if (e.kind === K.problem) return side.contacts.receive(moved, body as JobProblem);
+  if (e.kind === K.recommended) return side.recommendations.receive(moved);
   await react(ctx, rules, moved, e.kind, body, e.from.device);
 }
 

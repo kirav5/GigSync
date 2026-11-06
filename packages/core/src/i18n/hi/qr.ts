@@ -52,4 +52,16 @@ export const qr: Readonly<Record<keyof typeof en, string>> = {
   "qr.offer_line": "{name} ({trade}) आपके लिए काम करना चाहते हैं",
   "qr.offer_ask": "पूछें",
   "qr.offer_not_now": "अभी नहीं",
+  "qr.recommend": "{name} की सिफ़ारिश करें",
+  "qr.recommend_about":
+    "{name} का कार्ड अपने किसी जानने वाले को भेजें, WhatsApp या अपने कॉन्टैक्ट से। उन्हें कार्ड दिखेगा, {name} का नंबर कभी नहीं, और वे काम के लिए पूछ सकते हैं। आपने किसे चुना, यह GigSync को नहीं दिखता।",
+  "qr.recommend_words": "मेरी सिफ़ारिश: {name} ({work})। GigSync पर उनका कार्ड देखिए और काम के लिए पूछिए:",
+  "qr.recommend_whatsapp": "व्हाट्सऐप",
+  "qr.recommend_told": "भेज दिया। {name} को दिखेगा कि आपने उनकी सिफ़ारिश की।",
+  "qr.recommend_no_record": "GigSync के पास इस काम का रिकॉर्ड नहीं है, इसलिए यहाँ से {name} की सिफ़ारिश नहीं हो सकती।",
+  "qr.recommend_not_listed": "{name} का कार्ड अभी बोर्ड पर नहीं है, इसलिए भेजने को कुछ नहीं है।",
+  "qr.recommended": "{name} ने अपने किसी जानने वाले से आपकी सिफ़ारिश की",
+  "qr.recommended_about":
+    "अगर वे आपसे काम के लिए पूछते हैं, तो यह आम अनुरोध की तरह आएगा, जिसे आप मना कर सकते हैं। दोनों के दस्तख़त तक आपका नंबर निजी रहता है।",
+  "qr.recommended_ok": "ठीक है",
 };
