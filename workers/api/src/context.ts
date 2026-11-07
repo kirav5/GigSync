@@ -45,6 +45,7 @@ export const ApiError = {
   offerNotTaken: "offer not taken",
   recipientNotFound: "recipient not found",
   tooLarge: "too large",
+  noSealedDevice: "sealed to no current device",
   tooManyAttempts: "too many attempts",
   unauthorized: "unauthorized",
   wrongCode: "wrong code",
