@@ -2,6 +2,7 @@ import {
   addressAsked,
   addressChoice,
   askingModel,
+  findEventOf,
   type GigDevice,
   hearNeed,
   isGreeting,
@@ -14,6 +15,7 @@ import {
   problemByMeaning,
   startNeed,
 } from "@gigsync/core";
+import { FindEvent } from "@gigsync/protocol";
 import { useEffect, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
 import { meaningFor } from "../../adapters/meaning.js";
@@ -24,6 +26,7 @@ import { needConfig } from "../../card/choices.js";
 import { fetchEstimate } from "../../estimate/useEstimate.js";
 import { openAddressDesk } from "../../find/addressDesk.js";
 import { askWorkers, needOf } from "../../find/ask.js";
+import { countFind } from "../../find/counts.js";
 import { startFindChat, useNeed } from "../../find/findChats.js";
 import {
   addressInUseNeed,
@@ -39,6 +42,7 @@ import {
 import { readFirst, readLater } from "../../find/readNeed.js";
 import { useAddressBook } from "../../find/useAddressBook.js";
 import { useAddresses } from "../../find/useAddresses.js";
+import { useListedRates } from "../../find/useListedRates.js";
 import { ASKED, useNeedSearch } from "../../find/useNeedSearch.js";
 import { usePriceQuestions } from "../../find/usePriceQuestions.js";
 import { useI18n } from "../../i18n.js";
@@ -138,6 +142,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   const requestKey = request && JSON.stringify(request);
   const session = account.session;
   usePriceQuestions(ports, open, state);
+  useListedRates(session, open, state, saved);
   // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the request's JSON, not its identity
   useEffect(() => {
     if (request) void fetchEstimate(session, request).then((found) => needEstimateFound(open, found));
@@ -162,6 +167,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     if (first) {
       showOwner(chat, text);
       if (isGreeting(text)) return needSay(chat, { key: NeedSay.greeting });
+      countFind(account.session, FindEvent.enum.typed);
       setReading(true);
       return void (await readFirst(message).finally(() => setReading(false)));
     }
@@ -216,6 +222,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       busy={busy}
       onAsk={(turn) => void ask(turn)}
       onAddAddress={() => setAdding(true)}
+      onTap={(value) => state && countFind(account.session, findEventOf(state, value))}
     />
   );
   const desk = (

@@ -69,49 +69,49 @@
     "id": "kanglish-tv",
     "says": ["nanna tv work aagta illa"],
     "answers": ["ondu matra", "ninne inda"],
-    "want": { "outside": true }
+    "want": { "skill": "TV repair" }
   },
   {
     "id": "kanglish-tvoff",
     "says": ["tv on aagta illa"],
     "answers": ["ondu matra", "ninne inda"],
-    "want": { "outside": true }
+    "want": { "skill": "TV repair" }
   },
   {
     "id": "kanglish-fridge",
     "says": ["fridge cool aagta illa"],
     "answers": ["ondu matra", "ninne inda"],
-    "want": { "outside": true }
+    "want": { "skill": "Fridge repair" }
   },
   {
     "id": "kanglish-pest",
     "says": ["kitchen alli tumba cockroach ide"],
     "answers": ["ondu matra", "ninne inda"],
-    "want": { "outside": true }
+    "want": { "skill": "Pest control" }
   },
   {
     "id": "kanglish-tutor",
     "says": ["nanna maganige maths tutor beku"],
     "answers": ["ondu matra", "ninne inda"],
-    "want": { "outside": true }
+    "want": { "skill": "School tutor" }
   },
   {
     "id": "kanglish-tailor",
     "says": ["blouse holisbeku"],
     "answers": ["ondu matra", "ninne inda"],
-    "want": { "outside": true }
+    "want": { "skill": "Tailor" }
   },
   {
     "id": "kanglish-laptop",
     "says": ["laptop screen odedide"],
     "answers": ["ondu matra", "ninne inda"],
-    "want": { "outside": true }
+    "want": { "skill": "Laptop and computer repair" }
   },
   {
     "id": "kanglish-hello",
     "says": ["namaskara", "nanna tv work aagta illa"],
     "answers": ["ondu matra", "ninne inda"],
-    "want": { "outside": true }
+    "want": { "skill": "TV repair" }
   },
   {
     "id": "kanglish-hellotap",
@@ -132,5 +132,12 @@
     "answers": ["ondu matra"],
     "later": "nange cook kooda beku",
     "want": { "trade": "plumber" }
+  },
+  { "id": "kanglish-nobody", "says": ["nange swimming coach beku"], "answers": ["x"], "want": { "outside": true } },
+  {
+    "id": "kanglish-fish",
+    "says": ["nanna fish tank clean madbeku"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "skill": "Aquarium cleaning" }
   }
 ]

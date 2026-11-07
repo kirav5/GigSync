@@ -13,6 +13,7 @@ export const skill: Readonly<Record<keyof typeof en, string>> = {
   "skill.err.blocked": "यह काम GigSync पर नहीं लिखा जा सकता।",
   "skill.err.too_many": "एक कार्ड पर ज़्यादा से ज़्यादा {max} तरह के काम हो सकते हैं।",
   "skill.is_trade": "यह {trade} है: यह सूची में है, अपने दामों के साथ।",
+  "skill.is_work": "क्या यह {work} है?",
   "card.skill_label": "दूसरा काम, अपने शब्दों में",
   "card.skill_example": "दर्ज़ी",
   "card.skill_add": "जोड़ें",
@@ -20,5 +21,8 @@ export const skill: Readonly<Record<keyof typeof en, string>> = {
   "iv.skill_kept": "मैं इसे “{skill}” लिखूँगा।",
   "need.skill_found": "आपके पास के कामगार “{skill}” का काम करते हैं।",
   "need.pick_work": "सूची में से चुनें",
+  "need.for": "काम: {work}",
+  "need.not_this": "यह नहीं",
   "need.skill_no_rate": "GigSync पर इस काम का अभी कोई चालू दाम नहीं है। बताइए आप कितना देंगे।",
+  "need.listed_rates": "आपके पास के वर्कर इस काम के लिए लगभग {low} से {high} बताते हैं ({count} वर्कर)। बताइए, आप कितना देंगे।",
 };

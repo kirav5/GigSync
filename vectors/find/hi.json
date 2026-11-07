@@ -60,28 +60,38 @@
     "answers": ["बस एक", "कल से"],
     "want": { "trade": "ac_technician" }
   },
-  { "id": "hi-tv", "says": ["मेरा टीवी नहीं चल रहा"], "answers": ["बस एक", "कल से"], "want": { "outside": true } },
-  { "id": "hi-tvoff", "says": ["टीवी चालू नहीं हो रहा"], "answers": ["बस एक", "कल से"], "want": { "outside": true } },
-  { "id": "hi-fridge", "says": ["मेरा फ्रिज ठंडा नहीं कर रहा"], "answers": ["बस एक", "कल से"], "want": { "outside": true } },
-  { "id": "hi-pest", "says": ["रसोई में बहुत कॉकरोच हैं"], "answers": ["बस एक", "कल से"], "want": { "outside": true } },
+  { "id": "hi-tv", "says": ["मेरा टीवी नहीं चल रहा"], "answers": ["बस एक", "कल से"], "want": { "skill": "TV repair" } },
+  { "id": "hi-tvoff", "says": ["टीवी चालू नहीं हो रहा"], "answers": ["बस एक", "कल से"], "want": { "skill": "TV repair" } },
+  {
+    "id": "hi-fridge",
+    "says": ["मेरा फ्रिज ठंडा नहीं कर रहा"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "skill": "Fridge repair" }
+  },
+  {
+    "id": "hi-pest",
+    "says": ["रसोई में बहुत कॉकरोच हैं"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "skill": "Pest control" }
+  },
   {
     "id": "hi-tutor",
     "says": ["मेरे बेटे के लिए गणित के ट्यूटर चाहिए"],
     "answers": ["बस एक", "कल से"],
-    "want": { "outside": true }
+    "want": { "skill": "School tutor" }
   },
-  { "id": "hi-tailor", "says": ["मुझे ब्लाउज़ सिलवाना है"], "answers": ["बस एक", "कल से"], "want": { "outside": true } },
+  { "id": "hi-tailor", "says": ["मुझे ब्लाउज़ सिलवाना है"], "answers": ["बस एक", "कल से"], "want": { "skill": "Tailor" } },
   {
     "id": "hi-laptop",
     "says": ["मेरे लैपटॉप की स्क्रीन टूट गई है"],
     "answers": ["बस एक", "कल से"],
-    "want": { "outside": true }
+    "want": { "skill": "Laptop and computer repair" }
   },
   {
     "id": "hi-hello",
     "says": ["नमस्ते", "मेरा टीवी नहीं चल रहा"],
     "answers": ["बस एक", "कल से"],
-    "want": { "outside": true }
+    "want": { "skill": "TV repair" }
   },
   {
     "id": "hi-hellotap",
@@ -102,5 +112,12 @@
     "answers": ["बस एक"],
     "later": "मुझे एक कुक भी चाहिए",
     "want": { "trade": "plumber" }
+  },
+  { "id": "hi-nobody", "says": ["मुझे तैराकी सिखाने वाला चाहिए"], "answers": ["x"], "want": { "outside": true } },
+  {
+    "id": "hi-fish",
+    "says": ["मेरा मछली घर साफ़ करना है"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "skill": "Aquarium cleaning" }
   }
 ]

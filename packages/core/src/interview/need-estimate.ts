@@ -1,8 +1,8 @@
-import type { City, EstimateRequest } from "@gigsync/protocol";
+import type { City, EstimateRequest, ListedRates } from "@gigsync/protocol";
 import { areaSlug } from "../estimate/areas.js";
 import { estimateRequest, sameRequest } from "../estimate/scope.js";
 import { suggestForHousehold } from "../estimate/suggest.js";
-import type { Prompt } from "./card.js";
+import type { Line, Prompt } from "./card.js";
 import { draftDrivers, priceOpen } from "./driver-ask.js";
 import { estimateLines, type FoundEstimate, suggestion } from "./estimate-lines.js";
 import type { NeedDraft, NeedState } from "./need.js";
@@ -34,6 +34,20 @@ export const needWithEstimate = (s: NeedState, found: FoundEstimate | undefined)
   ...s,
   estimate: found,
 });
+
+/** The need with what workers nearby list for its skill. */
+export const needWithListed = (s: NeedState, listed: ListedRates): NeedState => ({ ...s, listed });
+
+/** Workers nearby list this much for the skill, as a line for the budget question; none under three workers. */
+export function listedLine(s: NeedState): Line | undefined {
+  const { listed } = s;
+  if (!s.draft.skill || !listed?.low_paise || !listed.high_paise) return undefined;
+  return {
+    key: "need.listed_rates",
+    prices: { low: listed.low_paise, high: listed.high_paise },
+    params: { count: listed.workers },
+  };
+}
 
 /** The estimate, only while it is for the job as now described: a changed trade or detail has none until it comes. */
 export function needEstimate(s: NeedState): FoundEstimate | undefined {

@@ -7,13 +7,36 @@ const { NeedSlot } = core;
 export const Reader = { lists: "lists", turn: "turn" };
 const AREAS = core.PILOT_AREA_CHOICES;
 const HOME = { id: "adr_01JC0000000000000000000001", label: "home", areaName: "HSR Layout", area: "hsr_layout" };
+/** What workers list on the board in these conversations, by kind of work where it has one, some in two wordings. */
+const LISTED = [
+  ["TV repair", "tv_repair", 3],
+  ["TV mechanic", "tv_repair", 2],
+  ["Fridge repair", "fridge_repair", 3],
+  ["Laptop service", "computer_repair", 3],
+  ["Tailor", "tailor", 3],
+  ["Pest control", "pest_control", 3],
+  ["Maths tutor", "school_tutor", 3],
+  ["Gardener", "gardener", 3],
+  ["Mehendi artist", "mehendi_artist", 3],
+  ["Yoga teacher", "yoga_teacher", 3],
+  ["Car wash", "car_wash", 3],
+  ["Aquarium cleaning", undefined, 2],
+  ["Kite making", undefined, 1],
+].map(([text, category, workers]) => ({
+  text,
+  key: text.toLowerCase(),
+  lang: "en",
+  workers,
+  ...(category ? { category } : {}),
+}));
+const OPTIONS = core.workOptions(LISTED);
 const TODAY = "2026-11-10";
 /** A long way past any real chat: a conversation still going is stuck. */
 const MAX_TURNS = 14;
 const BUDGET = "2500";
 const DONT_KNOW = "I don't know";
 /** Chips that say nothing about the job: taken only when there is nothing else. */
-const NOT_ANSWERS = new Set(["iv.skip", "driver.dont_know"]);
+const NOT_ANSWERS = new Set(["iv.skip", "driver.dont_know", "need.not_this"]);
 const SORRY_KEYS = new Set(["need.again", "need.again_budget"]);
 /** How long one model call may take here: long enough to measure, not the phone's limit. */
 const WAIT_MS = 20_000;
@@ -53,21 +76,27 @@ async function firstWords(model, s, text, lang) {
 
 /** The first sentence as the one reader takes it (read-turn.ts), and as the word lists do when it gives nothing. */
 async function firstTurn(model, s, text, lang) {
-  const read = await core.readTurn(model, core.turnContext(s, text), WAIT_MS);
+  const read = await core.readTurn(model, core.turnContext(s, text, OPTIONS), WAIT_MS);
   if (!read) return firstWords(model, s, text, lang);
   if (read.kind === core.TurnKind.enum.greeting) return s;
-  const trade = read.trade ?? (read.jobType ? undefined : core.parseNeed(text, { areas: AREAS, today: TODAY }).trade);
-  const jobType = trade ? undefined : (read.jobType ?? (await core.modelJobType(model, text, lang, WAIT_MS)));
-  if (jobType) return core.withJobType(s, jobType, text);
+  const titled = core.tradeTitled(text);
+  const found = titled ? undefined : read.category ? core.categorySkill(read.category, LISTED, lang) : read.skill;
+  const named = titled ? undefined : read.jobType || found;
+  const lists = named ? undefined : core.parseNeed(text, { areas: AREAS, today: TODAY }).trade;
+  const trade = titled ?? read.trade ?? lists;
+  if (!trade && read.category && !found) return core.withNobody(s, core.t(lang, `category.${read.category}`), text);
+  const skill = trade ? undefined : (found ?? (await core.listedSkill(text, LISTED)));
+  if (skill) return core.withSkill(s, skill, text, Boolean(read.problem || read.jobType || found));
+  if (!trade && read.jobType) return core.withJobType(s, read.jobType, text);
   const scope = trade ? await core.readScope(model, text, { trade, lang, waitMs: WAIT_MS }) : [];
-  return core.hearNeed(s, text, false, { ...core.hintOf(read), scope });
+  return core.hearNeed(s, text, false, { ...core.hintOf(read), ...(titled ? { trade: titled } : {}), scope });
 }
 
 /** Words at a later question: the interview's, and when it did not understand them, the one reader's. */
 async function laterTurn(model, s, text, reader, log) {
   const heard = core.hearNeed(s, text);
   if (reader !== Reader.turn || !core.worthReading(s, heard) || s.slot === NeedSlot.budget) return heard;
-  const read = await core.readTurn(model, core.turnContext(s, text, core.needPrompt(s).lines[0]?.key), WAIT_MS);
+  const read = await core.readTurn(model, core.turnContext(s, text, OPTIONS), WAIT_MS);
   if (!read || !core.namesOtherWork(s, read)) return heard;
   log.switched = true;
   return core.chooseNeed(core.offerSwitch(s, read, text), "no");
@@ -126,6 +155,8 @@ export async function runConversation(model, conversation, lang, reader = Reader
     const backAgain = log.switched && log.asked.at(-1) === wordsOf(s, lang);
     if ((s.slot === NeedSlot.driver || s.slot === NeedSlot.detail) && !backAgain) log.asked.push(wordsOf(s, lang));
   }
-  log.job = s.draft.trade ? { trade: s.draft.trade } : s.draft.jobType ? { outside: s.draft.jobType } : undefined;
+  const { trade, skill, jobType } = s.draft;
+  const named = skill?.category ? core.t("en", `category.${skill.category}`) : skill?.text;
+  log.job = trade ? { trade } : skill ? { skill: named } : jobType ? { outside: jobType } : undefined;
   return log;
 }

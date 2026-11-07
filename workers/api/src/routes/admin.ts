@@ -1,8 +1,9 @@
 import { log } from "@gigsync/core/log";
-import { EarningsQuery, type EarningsReport } from "@gigsync/protocol";
+import { EarningsQuery, type EarningsReport, type FindCounts, FindCountsQuery } from "@gigsync/protocol";
 import { Hono } from "hono";
 import { ApiError, type AppEnv, Var } from "../context.js";
 import { monthlyEarnings } from "../db/analytics.js";
+import { findCounts } from "../db/find-counts.js";
 import { requireAdmin } from "../middleware/admin.js";
 
 /**
@@ -19,4 +20,10 @@ admin.get("/analytics/earnings", async (c) => {
   const rows = await monthlyEarnings(c.get(Var.db), q.data);
   log.info("earnings analytics read", { requestId: c.get(Var.requestId), user: c.get(Var.user), rows: rows.length });
   return c.json({ rows } satisfies EarningsReport);
+});
+
+admin.get("/analytics/find", async (c) => {
+  const q = FindCountsQuery.safeParse(c.req.query());
+  if (!q.success) return c.json({ error: ApiError.badRequest }, 400);
+  return c.json({ rows: await findCounts(c.get(Var.db), q.data) } satisfies FindCounts);
 });

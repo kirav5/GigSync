@@ -21,7 +21,7 @@ import {
 import { areaParts, wherePrompt } from "./need-address.js";
 import { arrangedWork, arrangementLines, arrangementPrompt, budgetUnitLines, oneOffNeed } from "./need-arrangement.js";
 import { driverQuestion } from "./need-drivers.js";
-import { budgetEstimate } from "./need-estimate.js";
+import { budgetEstimate, listedLine } from "./need-estimate.js";
 import { NeedPick } from "./need-hear.js";
 import { OFFER_CHOICES, recalledLine, redoChoice } from "./need-memory.js";
 import { needWords } from "./need-request.js";
@@ -216,8 +216,15 @@ function question(s: NeedState): Prompt {
       // The estimate, when there is one for this job, in place of the city band; the budget itself stays secret.
       const estimate = budgetEstimate(s);
       const shown = estimate ?? { lines: bandLine(s) };
-      const noRate = !estimate && noGoingRate(s) ? [{ key: "need.skill_no_rate" } as const] : [];
-      const lines = [{ key: "need.ask.budget" } as const, ...budgetUnitLines(s.draft), ...noRate, ...shown.lines];
+      const listed = listedLine(s);
+      const noRate = !estimate && !listed && noGoingRate(s) ? [{ key: "need.skill_no_rate" } as const] : [];
+      const lines = [
+        { key: "need.ask.budget" } as const,
+        ...budgetUnitLines(s.draft),
+        ...(listed ? [listed] : []),
+        ...noRate,
+        ...shown.lines,
+      ];
       return { ...shown, lines, numeric: true, hints: [], secret: true };
     }
     case NeedSlot.confirm:
@@ -249,9 +256,24 @@ function question(s: NeedState): Prompt {
 }
 
 /** Whatever is current: the notes (a retry, a readback, what memory filled in), then the question. */
+const NOT_THIS: Choice = { value: NeedPick.notThis, key: "need.not_this" };
+
+/** A model chose the work and the owner is still at a question: one tap takes it back, at no cost to anyone who is happy. */
+const correctable = (s: NeedState): boolean =>
+  s.guessed === true && !s.switching && s.slot !== NeedSlot.confirm && s.slot !== NeedSlot.outside;
+
 export function needPrompt(s: NeedState): Prompt {
   const ask = question(s);
   const redo = redoChoices(s);
-  const choices = redo.length > 0 ? { choices: [...redo, ...(ask.choices ?? [])] } : {};
-  return { ...ask, lines: [...s.notes, ...filledLines(s), ...ask.lines], ...choices };
+  const correct = correctable(s);
+  const chips = [...redo, ...(ask.choices ?? []), ...(correct ? [NOT_THIS] : [])];
+  const said =
+    correct && s.draft.trade
+      ? [{ key: "need.for", params: { work: t(s.config.own, `trade.${s.draft.trade}`) } } as const]
+      : [];
+  return {
+    ...ask,
+    lines: [...s.notes, ...said, ...filledLines(s), ...ask.lines],
+    ...(chips.length > 0 ? { choices: chips } : {}),
+  };
 }

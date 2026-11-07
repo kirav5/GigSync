@@ -1,5 +1,5 @@
 import { HttpMethod } from "@gigsync/core";
-import type { BoardProfileInput, BoardSkills, Skill, Trade } from "@gigsync/protocol";
+import type { BoardProfileInput, BoardResult, BoardSkills, ListedRates, Skill, Trade } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import { call } from "./mentor-helpers.js";
 import { signIn } from "./people.js";
@@ -69,5 +69,75 @@ describe("skills on the board (ADR 0047)", () => {
 
   it("needs a session for the skill list", async () => {
     expect((await call(undefined, HttpMethod.get, "/board/skills")).status).toBe(401);
+  });
+});
+
+describe("kinds of work (ADR 0059)", () => {
+  /** Vijayapura, away from every other test file's workers. */
+  const THERE = { lat: 16.83, lon: 75.71 };
+  const near = `lat=${THERE.lat}&lon=${THERE.lon}&radius_km=5`;
+  const worker = (name: string, skills: Skill[]): BoardProfileInput => ({
+    display_name: name,
+    trades: [],
+    skills,
+    area: THERE,
+    area_name: "Vijayapura",
+    rate_paise: 40000,
+    languages: ["en"],
+  });
+  const tv = (text: string): Skill => ({ text, lang: "en", category: "tv_repair" });
+  const names = async (viewer: Awaited<ReturnType<typeof signIn>>, query: string) => {
+    const res = await call(viewer, HttpMethod.get, `/board/workers?${query}&${near}`);
+    const { workers } = (await res.json()) as BoardResult;
+    return workers.map((w) => w.display_name).sort();
+  };
+
+  it("finds every wording together, one worker once, and keeps each worker's own words", async () => {
+    await (await signIn("+919822400001")).api.publishProfile(worker("Ravi", [tv("TV mechanic")]));
+    await (await signIn("+919822400002")).api.publishProfile(worker("Sunil", [tv("टीवी ठीक करना"), tv("TV man")]));
+    await (await signIn("+919822400003")).api.publishProfile(worker("Meena", [{ text: "Quilt making", lang: "en" }]));
+    const viewer = await signIn("+919822400004");
+    expect(await names(viewer, "category=tv_repair")).toEqual(["Ravi", "Sunil"]);
+    expect(await names(viewer, "skill=quilt%20making")).toEqual(["Meena"]);
+    const res = await call(viewer, HttpMethod.get, `/board/workers?category=tv_repair&${near}`);
+    const { workers } = (await res.json()) as BoardResult;
+    expect(workers.find((w) => w.display_name === "Ravi")?.skills).toEqual([tv("TV mechanic")]);
+    expect(workers.find((w) => w.display_name === "Sunil")?.skills).toHaveLength(2);
+  });
+
+  it("names the kind on the skill list, and none on a skill with no kind", async () => {
+    const viewer = await signIn("+919822400005");
+    const res = await call(viewer, HttpMethod.get, "/board/skills");
+    const { skills } = (await res.json()) as BoardSkills;
+    expect(skills.find((s) => s.key === "tv mechanic")?.category).toBe("tv_repair");
+    const quilt = skills.find((s) => s.key === "quilt making");
+    expect(quilt).toBeDefined();
+    expect(quilt).not.toHaveProperty("category");
+  });
+
+  it("keeps a kind set here when a phone sends its older copy of the card", async () => {
+    const owner = await signIn("+919822400006");
+    await owner.api.publishProfile(worker("Kumar", [tv("Television repair")]));
+    await owner.api.publishProfile(worker("Kumar", [{ text: "Television repair", lang: "en" }]));
+    expect(await names(owner, "category=tv_repair")).toContain("Kumar");
+  });
+
+  it("counts a worker once towards the rates, whatever wordings they list", async () => {
+    const viewer = await signIn("+919822400007");
+    const res = await call(viewer, HttpMethod.get, `/board/rates?category=tv_repair&${near}`);
+    expect((await res.json()) as ListedRates).toEqual({
+      workers: 3,
+      low_paise: 40000,
+      high_paise: 40000,
+    });
+  });
+
+  it("refuses a kind that is not on the list, or two ways of searching at once", async () => {
+    const viewer = await signIn("+919822400008");
+    const search = (query: string) => call(viewer, HttpMethod.get, `/board/workers?${query}&${near}`);
+    expect((await search("category=rocket_repair")).status).toBe(400);
+    expect((await search("category=tv_repair&trade=plumber")).status).toBe(400);
+    const rates = await call(viewer, HttpMethod.get, `/board/rates?category=tv_repair&skill=tv%20man&${near}`);
+    expect(rates.status).toBe(400);
   });
 });

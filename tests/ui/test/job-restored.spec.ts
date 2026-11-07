@@ -135,7 +135,12 @@ test("a rebuilt job can still be finished, both phones agree on its progress, an
   await showTab(again, "activity.tab_awaiting");
   const check = again.getByRole("group", { name: say("a11y.approve") });
   await check.getByRole("button", { name: textOf(en, "approve.yes") }).click({ timeout: 60_000 });
-  // His agent took it up: its offers reach her, and she is asked to sign.
-  await expect(household.getByRole("button", { name: /^Sign deal for/ })).toBeVisible({ timeout: 90_000 });
+  // His agent took it up: its offers reach her, whatever the two agents then come to (ADR 0053).
+  await expect(
+    household
+      .getByRole("list", { name: say("talk.title") })
+      .getByRole("listitem")
+      .nth(1),
+  ).toContainText(workerName, { timeout: 90_000 });
   await shoot("asked-again", { worker: again, household }, FOLDER);
 });

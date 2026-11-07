@@ -40,18 +40,38 @@
     "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"],
     "want": { "trade": "ac_technician" }
   },
-  { "id": "kn-tv", "says": ["ನನ್ನ ಟಿವಿ ಕೆಲಸ ಮಾಡುತ್ತಿಲ್ಲ"], "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"], "want": { "outside": true } },
-  { "id": "kn-tvoff", "says": ["ಟಿವಿ ಆನ್ ಆಗುತ್ತಿಲ್ಲ"], "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"], "want": { "outside": true } },
-  { "id": "kn-fridge", "says": ["ನನ್ನ ಫ್ರಿಜ್ ತಣ್ಣಗೆ ಮಾಡುತ್ತಿಲ್ಲ"], "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"], "want": { "outside": true } },
-  { "id": "kn-pest", "says": ["ಅಡುಗೆಮನೆಯಲ್ಲಿ ಜಿರಳೆ ತುಂಬಾ ಇವೆ"], "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"], "want": { "outside": true } },
-  { "id": "kn-tutor", "says": ["ನನ್ನ ಮಗನಿಗೆ ಗಣಿತ ಟ್ಯೂಟರ್ ಬೇಕು"], "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"], "want": { "outside": true } },
-  { "id": "kn-tailor", "says": ["ನನಗೆ ಬ್ಲೌಸ್ ಹೊಲಿಸಬೇಕು"], "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"], "want": { "outside": true } },
-  { "id": "kn-laptop", "says": ["ನನ್ನ ಲ್ಯಾಪ್‌ಟಾಪ್ ಸ್ಕ್ರೀನ್ ಒಡೆದಿದೆ"], "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"], "want": { "outside": true } },
+  { "id": "kn-tv", "says": ["ನನ್ನ ಟಿವಿ ಕೆಲಸ ಮಾಡುತ್ತಿಲ್ಲ"], "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"], "want": { "skill": "TV repair" } },
+  { "id": "kn-tvoff", "says": ["ಟಿವಿ ಆನ್ ಆಗುತ್ತಿಲ್ಲ"], "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"], "want": { "skill": "TV repair" } },
+  {
+    "id": "kn-fridge",
+    "says": ["ನನ್ನ ಫ್ರಿಜ್ ತಣ್ಣಗೆ ಮಾಡುತ್ತಿಲ್ಲ"],
+    "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"],
+    "want": { "skill": "Fridge repair" }
+  },
+  {
+    "id": "kn-pest",
+    "says": ["ಅಡುಗೆಮನೆಯಲ್ಲಿ ಜಿರಳೆ ತುಂಬಾ ಇವೆ"],
+    "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"],
+    "want": { "skill": "Pest control" }
+  },
+  {
+    "id": "kn-tutor",
+    "says": ["ನನ್ನ ಮಗನಿಗೆ ಗಣಿತ ಟ್ಯೂಟರ್ ಬೇಕು"],
+    "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"],
+    "want": { "skill": "School tutor" }
+  },
+  { "id": "kn-tailor", "says": ["ನನಗೆ ಬ್ಲೌಸ್ ಹೊಲಿಸಬೇಕು"], "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"], "want": { "skill": "Tailor" } },
+  {
+    "id": "kn-laptop",
+    "says": ["ನನ್ನ ಲ್ಯಾಪ್‌ಟಾಪ್ ಸ್ಕ್ರೀನ್ ಒಡೆದಿದೆ"],
+    "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"],
+    "want": { "skill": "Laptop and computer repair" }
+  },
   {
     "id": "kn-hello",
     "says": ["ನಮಸ್ಕಾರ", "ನನ್ನ ಟಿವಿ ಕೆಲಸ ಮಾಡುತ್ತಿಲ್ಲ"],
     "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"],
-    "want": { "outside": true }
+    "want": { "skill": "TV repair" }
   },
   {
     "id": "kn-hellotap",
@@ -72,5 +92,12 @@
     "answers": ["ಒಂದೇ"],
     "later": "ನನಗೆ ಅಡುಗೆಯವರೂ ಬೇಕು",
     "want": { "trade": "plumber" }
+  },
+  { "id": "kn-nobody", "says": ["ನನಗೆ ಈಜು ಕಲಿಸುವವರು ಬೇಕು"], "answers": ["x"], "want": { "outside": true } },
+  {
+    "id": "kn-fish",
+    "says": ["ನನ್ನ ಮೀನಿನ ತೊಟ್ಟಿ ಸ್ವಚ್ಛ ಮಾಡಬೇಕು"],
+    "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"],
+    "want": { "skill": "Aquarium cleaning" }
   }
 ]

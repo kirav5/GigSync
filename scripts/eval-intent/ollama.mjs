@@ -48,7 +48,7 @@ export class RecordingModel {
 
   async generate(prompt, options) {
     const started = performance.now();
-    const call = { reply: null, ms: 0, error: undefined };
+    const call = { prompt, reply: null, ms: 0, error: undefined };
     this.calls.push(call);
     const work = this.ask(prompt, options, call).finally(() => {
       call.ms = performance.now() - started;
