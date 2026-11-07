@@ -5,17 +5,17 @@ import { ADMIN_HEADER, ADMIN_KEY, call } from "./mentor-helpers.js";
 import { signIn } from "./people.js";
 
 /** ADR 0061: the cities and areas served are data in the directory. */
-const KANPUR: CityUpsert = {
-  key: "kanpur",
-  names: { en: "Kanpur", hi: "कानपुर", kn: "ಕಾನ್ಪುರ" },
-  state: "uttar_pradesh",
-  centre: { lat: 26.4499, lon: 80.3319 },
-  radius_km: 25,
+const MYSURU: CityUpsert = {
+  key: "mysuru",
+  names: { en: "Mysuru", hi: "मैसूरु", kn: "ಮೈಸೂರು" },
+  state: "karnataka",
+  centre: { lat: 12.2958, lon: 76.6394 },
+  radius_km: 20,
   areas: [
     {
-      key: "kalyanpur",
-      names: { en: "Kalyanpur", hi: "कल्याणपुर", kn: "ಕಲ್ಯಾಣಪುರ" },
-      centre: { lat: 26.5113, lon: 80.2329 },
+      key: "gokulam",
+      names: { en: "Gokulam", hi: "गोकुलम", kn: "ಗೋಕುಲಂ" },
+      centre: { lat: 12.33, lon: 76.63 },
     },
   ],
   live: true,
@@ -38,18 +38,28 @@ describe("served cities", () => {
 
   it("take a new city from an admin, and can take it off again without deleting it", async () => {
     const p = await signIn("+919844900002");
-    expect((await call(p, HttpMethod.put, "/admin/cities", KANPUR, admin)).status).toBe(204);
+    expect((await call(p, HttpMethod.put, "/admin/cities", MYSURU, admin)).status).toBe(204);
     let { cities } = (await (await call(p, HttpMethod.get, "/cities")).json()) as ServedCities;
-    expect(cities.find((c) => c.key === "kanpur")?.areas.map((a) => a.key)).toEqual(["kalyanpur"]);
-    expect((await call(p, HttpMethod.put, "/admin/cities", { ...KANPUR, live: false }, admin)).status).toBe(204);
+    expect(cities.find((c) => c.key === "mysuru")?.areas.map((a) => a.key)).toEqual(["gokulam"]);
+    expect((await call(p, HttpMethod.put, "/admin/cities", { ...MYSURU, live: false }, admin)).status).toBe(204);
     ({ cities } = (await (await call(p, HttpMethod.get, "/cities")).json()) as ServedCities);
-    expect(cities.map((c) => c.key)).not.toContain("kanpur");
+    expect(cities.map((c) => c.key)).not.toContain("mysuru");
   });
 
   it("refuse a change without the admin key, or with a bad key or radius", async () => {
     const p = await signIn("+919844900003");
-    expect((await call(p, HttpMethod.put, "/admin/cities", KANPUR)).status).toBe(403);
-    expect((await call(p, HttpMethod.put, "/admin/cities", { ...KANPUR, key: "Kan Pur" }, admin)).status).toBe(400);
-    expect((await call(p, HttpMethod.put, "/admin/cities", { ...KANPUR, radius_km: 500 }, admin)).status).toBe(400);
+    expect((await call(p, HttpMethod.put, "/admin/cities", MYSURU)).status).toBe(403);
+    expect((await call(p, HttpMethod.put, "/admin/cities", { ...MYSURU, key: "Kan Pur" }, admin)).status).toBe(400);
+    expect((await call(p, HttpMethod.put, "/admin/cities", { ...MYSURU, radius_km: 500 }, admin)).status).toBe(400);
+  });
+});
+
+describe("Kanpur", () => {
+  it("is served from the start, with Kalyanpur", async () => {
+    const p = await signIn("+919844900004");
+    const { cities } = (await (await call(p, HttpMethod.get, "/cities")).json()) as ServedCities;
+    const kanpur = cities.find((c) => c.key === "kanpur");
+    expect(kanpur).toMatchObject({ state: "uttar_pradesh", radius_km: 25 });
+    expect(kanpur?.areas.map((a) => a.key)).toEqual(["kalyanpur"]);
   });
 });
