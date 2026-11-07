@@ -20,10 +20,16 @@ const SCRIPT: Readonly<Record<Lang, RegExp>> = {
 export const isMessageKey = (key: string): key is MessageKey => key in en;
 
 /** A chip for each area the catalog names. */
-export const areaChoices = (areas: readonly AreaChoice[]): Choice[] =>
-  areas.flatMap((a) => {
+/** A line of a name given as data, not from the catalog. */
+const AREA_NAME = "estimate.answer";
+
+export const areaChoices = (areas: readonly AreaChoice[], own?: Lang): Choice[] =>
+  areas.flatMap((a): Choice[] => {
     const key = `area.${a.key}`;
-    return isMessageKey(key) ? [{ value: a.key, key }] : [];
+    if (isMessageKey(key)) return [{ value: a.key, key }];
+    // An area added in the directory (ADR 0061): its own name, in the owner's language.
+    const name = own && a.label?.[own];
+    return name ? [{ value: a.key, key: AREA_NAME, params: { text: name } }] : [];
   });
 
 /** The areas' names written in the owner's script, for the recognizer. */

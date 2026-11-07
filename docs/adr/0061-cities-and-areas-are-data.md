@@ -25,7 +25,10 @@ circle and the pilot's five areas were constants, and the rate card was Bengalur
 
 ## Consequences
 
+5. **Every price asks the right city:** Find by the chosen address, the worker's card by where they work, the agent by
+   the job's place, and Talk's price answers by where the owner is. The directory's areas are offered as chips in Find
+   and the card interview, named in the owner's language.
+
 - Adding Kanpur is one admin call. Its households get no estimate until ten agreed jobs pass the 10/10/10 rule, unless
-  a rate card for Uttar Pradesh is added. Its areas are not yet offered as Find's chips, and the worker's card and
-  Talk's market answers still ask for Bengaluru's prices: those follow.
+  a rate card for Uttar Pradesh is added.
 - City guides and moving advice stay Bengaluru-only: they are written content, not data.

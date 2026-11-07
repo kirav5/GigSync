@@ -3,6 +3,7 @@ import {
   type EstimateRequest,
   type EstimateResponse,
   isEstimate,
+  type Place,
   type PlaceKey,
 } from "@gigsync/protocol";
 import { log } from "../log.js";
@@ -15,7 +16,8 @@ export interface EstimateApi {
 /** What a phone needs to ask for estimates: the route and its city. */
 export interface EstimateOptions {
   api: EstimateApi;
-  city: PlaceKey;
+  /** The city a job's place is in (ADR 0061); its own jobs and card price it. */
+  cityOf: (point: Place | undefined) => PlaceKey;
 }
 
 /**

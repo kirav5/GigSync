@@ -24,8 +24,8 @@ import {
   type UserId,
   Vpa,
 } from "@gigsync/protocol";
-import { PILOT_CITY } from "../ui/places.js";
 import { API_BASE } from "./api.js";
+import { cityOf } from "./cities.js";
 import { cryptoRandom } from "./random.js";
 import { recordsClient } from "./records.js";
 import { watchedFetch } from "./session-end.js";
@@ -217,7 +217,7 @@ export function deviceFor(ports: Ports, account: Account, lang: Lang): GigDevice
     ...(account.worker ? { worker: account.worker } : {}),
     ...(account.autoConfirm ? { autoConfirm: true } : {}),
     model: ports.model,
-    estimates: { api, city: PILOT_CITY },
+    estimates: { api, cityOf },
     qrApi: api,
     records: recordsClient(account.session),
     lang,

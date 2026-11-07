@@ -14,6 +14,7 @@ import {
 import { QuestionKey } from "@gigsync/protocol";
 import { useEffect } from "react";
 import type { Account } from "../adapters/account.js";
+import { cityOf } from "../adapters/cities.js";
 import { offerAlerts } from "../adapters/push.js";
 import { stopSpeaking } from "../adapters/speech.js";
 import {
@@ -35,7 +36,7 @@ import { Speaker, type Turn } from "../talk/turns.js";
 import type { Moves } from "../talk/useMoves.js";
 import { C } from "../ui/cls.js";
 import { errorKey } from "../ui/errorKey.js";
-import { AREAS, PILOT_CITY } from "../ui/places.js";
+import { AREAS } from "../ui/places.js";
 import { LocateStep } from "./address/LocateStep.js";
 import { MoveTurnView } from "./talk/AgentTurns.js";
 import { Ask, Own } from "./talk/Bubbles.js";
@@ -121,9 +122,10 @@ export function Interview({
   // ADR 0046: the arrangement whose rate is asked now, so the estimate is in its unit.
   const arrangement = state ? askingArrangement(state) : undefined;
   const session = account.session;
+  const city = cityOf(state?.draft.place);
   useEffect(() => {
     const details = arrangement ? { [QuestionKey.enum.arrangement]: arrangement } : {};
-    const request = trade && area ? estimateRequest(PILOT_CITY, trade, details, areaSlug(area)) : undefined;
+    const request = trade && area ? estimateRequest(city, trade, details, areaSlug(area)) : undefined;
     if (!request) return;
     // Only the newest request's answer counts: the city's range must not land after the area's.
     let live = true;
@@ -133,7 +135,7 @@ export function Interview({
     return () => {
       live = false;
     };
-  }, [trade, area, arrangement, session]);
+  }, [trade, area, arrangement, session, city]);
 
   // Leaving Talk (another screen, Back) ends a question the owner asked to hear again.
   useEffect(

@@ -26,7 +26,7 @@ const inUseFirst = (saved: readonly AddressChoice[], inUse: string | undefined):
 /** The "where" question: saved addresses for a household, the pilot areas for everyone. */
 export function wherePrompt(s: NeedState): Prompt {
   const own = s.config.own;
-  const areas = { choices: areaChoices(s.config.areas), hints: areaHints(s.config.areas, own) };
+  const areas = { choices: areaChoices(s.config.areas, own), hints: areaHints(s.config.areas, own) };
   const saved = s.config.addresses;
   if (!saved) return { lines: [{ key: "need.ask.area" }], ...areas };
   const chips = [
