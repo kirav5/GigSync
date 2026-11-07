@@ -55,10 +55,21 @@ export async function upsertProfile(db: Db, user: UserId, p: BoardProfile, at: D
   await db.query("DELETE FROM worker_languages WHERE user_id = $1", [user]);
   await db.query("INSERT INTO worker_languages (user_id, language) SELECT $1, unnest($2::text[])", [user, p.languages]);
   const skills = p.skills ?? [];
-  await db.query("DELETE FROM worker_skills WHERE user_id = $1", [user]);
+  const { rows: before } = await db.query<{ skill_key: string; category: string | null }>(
+    "DELETE FROM worker_skills WHERE user_id = $1 RETURNING skill_key, category",
+    [user],
+  );
+  // A phone's copy of the card may predate a category set here: a card sent again must not lose it.
+  const kept = new Map(before.map((row) => [row.skill_key, row.category]));
   await db.query(
-    "INSERT INTO worker_skills (user_id, skill_key, text, lang) SELECT $1, unnest($2::text[]), unnest($3::text[]), unnest($4::text[])",
-    [user, skills.map((k) => skillKey(k.text)), skills.map((k) => k.text), skills.map((k) => k.lang)],
+    "INSERT INTO worker_skills (user_id, skill_key, text, lang, category) SELECT $1, unnest($2::text[]), unnest($3::text[]), unnest($4::text[]), unnest($5::text[])",
+    [
+      user,
+      skills.map((k) => skillKey(k.text)),
+      skills.map((k) => k.text),
+      skills.map((k) => k.lang),
+      skills.map((k) => k.category ?? kept.get(skillKey(k.text)) ?? null),
+    ],
   );
   const arrangements = p.arrangements ?? [];
   await db.query("DELETE FROM worker_arrangements WHERE user_id = $1", [user]);
@@ -81,7 +92,7 @@ export async function removeProfile(db: Db, user: UserId): Promise<boolean> {
 export const CARD_COLUMNS = `p.display_name, p.area_lat, p.area_lon, p.area_name, p.rate_paise, p.about,
   p.work_days, p.work_windows, p.work_from, p.work_to,
   ARRAY(SELECT t.trade FROM worker_trades t WHERE t.user_id = p.user_id ORDER BY t.trade) AS trades,
-  ARRAY(SELECT json_build_object('text', s.text, 'lang', s.lang)
+  ARRAY(SELECT json_strip_nulls(json_build_object('text', s.text, 'lang', s.lang, 'category', s.category))
     FROM worker_skills s WHERE s.user_id = p.user_id ORDER BY s.skill_key) AS skills,
   ARRAY(SELECT l.language FROM worker_languages l WHERE l.user_id = p.user_id ORDER BY l.language) AS languages,
   ARRAY(SELECT json_build_object('arrangement', a.arrangement, 'rate_paise', a.rate_paise)

@@ -1,4 +1,13 @@
-import { askable, type CardDraft, cardArrangements, log, type Ports, parseAmount, type TermPrefs } from "@gigsync/core";
+import {
+  askable,
+  type CardDraft,
+  cardArrangements,
+  log,
+  type Ports,
+  parseAmount,
+  suggestWork,
+  type TermPrefs,
+} from "@gigsync/core";
 import { Arrangement, Lang, mainArrangement, type Skill, Trade } from "@gigsync/protocol";
 import { type FormEvent, useRef, useState } from "react";
 import type { Account } from "../adapters/account.js";
@@ -177,6 +186,7 @@ export function MyCard({
           ))}
         </div>
         <SkillsField
+          suggest={(words) => suggestWork(ports.model, words)}
           skills={skills}
           trades={trades}
           onChange={setSkills}

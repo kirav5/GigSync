@@ -21,9 +21,11 @@ interface BoardRow extends CardRow {
   distance_km: number;
 }
 
-/** Where a search starts: the workers of one trade, or the workers who list one skill (ADR 0047), as `w`. */
+/** Where a search starts: the workers of one trade, of one kind of work (ADR 0059) or one skill (ADR 0047), as `w`. */
 const BY_TRADE = "SELECT user_id FROM worker_trades WHERE trade = $1";
 const BY_SKILL = "SELECT user_id FROM worker_skills WHERE skill_key = $1";
+// Distinct: a worker may list a kind of work in two wordings.
+const BY_CATEGORY = "SELECT DISTINCT user_id FROM worker_skills WHERE category = $1";
 
 /**
  * The search over the workers in `from`. $11 date, $12 its weekday, $13 window, $14 every day, $15 hour, $16 the
@@ -68,8 +70,9 @@ const searchSql = (from: string) => `SELECT p.user_id, ${CARD_COLUMNS}, d.km AS 
  */
 export async function searchWorkers(db: Db, q: BoardQuery): Promise<BoardWorker[]> {
   const date = q.day !== undefined && q.day !== EVERY_DAY ? q.day : null;
-  const { rows } = await db.query<BoardRow>(searchSql(q.skill === undefined ? BY_TRADE : BY_SKILL), [
-    q.skill ?? q.trade,
+  const from = q.category ? BY_CATEGORY : q.skill ? BY_SKILL : BY_TRADE;
+  const { rows } = await db.query<BoardRow>(searchSql(from), [
+    q.category ?? q.skill ?? q.trade,
     q.lat,
     q.lon,
     q.radius_km,

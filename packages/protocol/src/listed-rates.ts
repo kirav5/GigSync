@@ -2,6 +2,7 @@ import { z } from "zod";
 import { DEFAULT_RADIUS_KM, MAX_RADIUS_KM } from "./board.js";
 import { Paise } from "./payment.js";
 import { SkillKey } from "./skill.js";
+import { WorkCategory } from "./work-category.js";
 
 /**
  * What workers near a household list for a skill (ADR 0057): work with no rate card or GigSync jobs behind it still gets
@@ -12,12 +13,16 @@ import { SkillKey } from "./skill.js";
 export const MIN_LISTED_RATES = 3;
 
 /** `GET /v1/board/rates`. */
-export const ListedRatesQuery = z.object({
-  skill: SkillKey,
-  lat: z.coerce.number().min(-90).max(90),
-  lon: z.coerce.number().min(-180).max(180),
-  radius_km: z.coerce.number().positive().max(MAX_RADIUS_KM).default(DEFAULT_RADIUS_KM),
-});
+export const ListedRatesQuery = z
+  .object({
+    skill: SkillKey.optional(),
+    /** The kind of work, so every worker's wording counts towards the three (ADR 0059). */
+    category: WorkCategory.optional(),
+    lat: z.coerce.number().min(-90).max(90),
+    lon: z.coerce.number().min(-180).max(180),
+    radius_km: z.coerce.number().positive().max(MAX_RADIUS_KM).default(DEFAULT_RADIUS_KM),
+  })
+  .refine((q) => (q.skill === undefined) !== (q.category === undefined), "a skill or a category");
 export type ListedRatesQuery = z.infer<typeof ListedRatesQuery>;
 export type ListedRatesQueryInput = z.input<typeof ListedRatesQuery>;
 

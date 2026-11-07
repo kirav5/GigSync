@@ -45,7 +45,7 @@ import { finder, firstIn, normalize } from "./normalize.js";
  */
 
 /** What the tap choices carry besides trades, areas, days, radii and fields; `list` opens the trades (ADR 0051). */
-export const NeedPick = { date: "date", change: "change", list: "list" } as const;
+export const NeedPick = { date: "date", change: "change", list: "list", notThis: "not_this" } as const;
 /** The Change chips under a question, by the field the agent filled in from memory. */
 const REDO = new Map<string, NeedField>([
   [MemoryPick.redoDetail, NeedSlot.detail],
@@ -217,6 +217,7 @@ function onMemoryPick(s: NeedState, value: string): NeedState | undefined {
 /** A tap on one of the prompt's choices. A value the prompt did not offer changes nothing. */
 export function chooseNeed(s: NeedState, value: string): NeedState {
   if (s.switching) return chooseSwitch(s, value);
+  if (value === NeedPick.notThis) return { ...afterOutside(s), guessed: false };
   const d = s.draft;
   const memory = onMemoryPick(s, value);
   if (memory) return memory;
