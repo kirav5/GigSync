@@ -120,7 +120,7 @@ function question(state: InterviewState): Prompt {
     case Slot.area:
       return {
         lines: [{ key: "iv.ask.area" }],
-        choices: areaChoices(config.areas),
+        choices: areaChoices(config.areas, own),
         hints: areaHints(config.areas, own),
       };
     case Slot.rate:

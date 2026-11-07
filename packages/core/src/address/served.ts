@@ -1,5 +1,6 @@
 import type { Place, ServedCity } from "@gigsync/protocol";
 import { kmBetween } from "../estimate/areas.js";
+import type { AreaChoice } from "../interview/card.js";
 import { finder, firstIn, normalize } from "../interview/normalize.js";
 import { CITY_AREA } from "../landing/cities.js";
 import { Collection, type Storage } from "../ports.js";
@@ -25,6 +26,12 @@ export function cityAt(point: Place, cities: readonly ServedCity[]): ServedCity[
     .sort((a, b) => a.km - b.km);
   return inside[0]?.city.key;
 }
+
+/** The served cities' areas as the interviews offer them: every name, and each language's for the chip (ADR 0061). */
+export const areasOf = (cities: readonly ServedCity[]): AreaChoice[] =>
+  cities.flatMap((c) =>
+    c.areas.map((a) => ({ key: a.key, names: [...new Set(Object.values(a.names))], label: a.names })),
+  );
 
 /** Words for an address, and for doing something to one, in each language and as Indians type them. */
 const ADDRESS_WORDS = ["address", "location", "pata", "पता", "एड्रेस", "लोकेशन", "ವಿಳಾಸ", "ಅಡ್ರೆಸ್", "ಲೊಕೇಶನ್"];

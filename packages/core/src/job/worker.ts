@@ -138,7 +138,7 @@ async function jobEstimate(ctx: JobContext, r: JobRecord, trade: Trade): Promise
   const { details, area, locality } = r.request;
   // A pilot area by its point, else the locality the household's phone named (ADR 0045).
   const key = areaKeyOf(area) ?? (locality ? localitySlug(locality) : undefined);
-  const request = ctx.estimates && estimateRequest(ctx.estimates.city, trade, details, key);
+  const request = ctx.estimates && estimateRequest(ctx.estimates.cityOf(area), trade, details, key);
   if (!ctx.estimates || !request) return undefined;
   const found = await lookupEstimate(ctx.estimates.api, request);
   return found && perJob(found, details);

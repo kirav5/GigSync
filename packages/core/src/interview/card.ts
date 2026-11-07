@@ -44,6 +44,8 @@ export interface CardDraft {
 export interface AreaChoice {
   key: string;
   names: readonly string[];
+  /** The area's name in each language, for an area the app has no catalog name for (ADR 0061: kept in the directory). */
+  label?: Readonly<Record<Lang, string>>;
 }
 
 export interface InterviewConfig {

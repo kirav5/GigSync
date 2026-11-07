@@ -198,6 +198,7 @@ export function MyCard({
         <CardRates
           trades={trades}
           area={draft.area}
+          place={draft.place}
           session={account.session}
           onRate={fill(rateField)}
           onMin={fill(minField)}

@@ -81,4 +81,4 @@ export class FakeEstimateApi implements EstimateApi {
   }
 }
 
-export const estimateOptions = (api: EstimateApi): EstimateOptions => ({ api, city: City.enum.bengaluru });
+export const estimateOptions = (api: EstimateApi): EstimateOptions => ({ api, cityOf: () => City.enum.bengaluru });

@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { addressAsked, MemoryStorage, selectAddress, selectedAddressId, served } from "../src/index.js";
+import {
+  addressAsked,
+  areasOf,
+  cityAt,
+  MemoryStorage,
+  selectAddress,
+  selectedAddressId,
+  served,
+} from "../src/index.js";
+import { areaChoices } from "../src/interview/choices.js";
 
 /** Addresses by chat (ADR 0050 §6): where GigSync serves, the words that ask about an address, the one in use. */
 
@@ -45,5 +54,35 @@ describe("addresses by chat", () => {
     expect(await selectedAddressId(storage)).toBeUndefined();
     await selectAddress(storage, "adr_1");
     expect(await selectedAddressId(storage)).toBe("adr_1");
+  });
+});
+
+describe("areas from the directory (ADR 0061)", () => {
+  const kanpur = {
+    key: "kanpur",
+    names: { en: "Kanpur", hi: "कानपुर", kn: "ಕಾನ್ಪುರ" },
+    state: "uttar_pradesh",
+    centre: { lat: 26.4499, lon: 80.3319 },
+    radius_km: 25,
+    areas: [
+      {
+        key: "kalyanpur",
+        names: { en: "Kalyanpur", hi: "कल्याणपुर", kn: "ಕಲ್ಯಾಣಪುರ" },
+        centre: { lat: 26.51, lon: 80.23 },
+      },
+    ],
+  };
+
+  it("are offered as chips in the owner's language, with every name heard", () => {
+    const areas = areasOf([kanpur]);
+    expect(areas[0]?.names).toEqual(["Kalyanpur", "कल्याणपुर", "ಕಲ್ಯಾಣಪುರ"]);
+    expect(areaChoices(areas, "hi")).toEqual([
+      { value: "kalyanpur", key: "estimate.answer", params: { text: "कल्याणपुर" } },
+    ]);
+  });
+
+  it("name the city a place is in", () => {
+    expect(cityAt({ lat: 26.51, lon: 80.23 }, [kanpur])).toBe("kanpur");
+    expect(cityAt({ lat: 12.93, lon: 77.62 }, [kanpur])).toBeUndefined();
   });
 });
