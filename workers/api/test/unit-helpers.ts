@@ -13,6 +13,8 @@ export interface UnitJob {
   trade: string;
   price: number;
   area?: string;
+  /** The job's city (ADR 0061); Bengaluru when absent, as every record before was. */
+  city?: string;
   agreedAt?: Date;
   scope?: { people?: string; meals?: string; rooms?: string; labour_only?: boolean };
   qty?: { people?: number; days_week?: number; area_band?: string; surface?: string; floors?: number };
@@ -32,8 +34,8 @@ export async function seedUnitJobs(jobs: readonly UnitJob[], now: Date, onePair 
     await sql(
       `INSERT INTO job_records (engagement_id, worker_id, household_id, trade, scope_people, scope_meals, scope_rooms,
          scope_labour_only, price_paise, terms_hash, status, agreed_at, attested, area_key, qty_people, qty_days_week,
-         qty_area_band, qty_surface, qty_floors)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'done', $11, true, $12, $13, $14, $15, $16, $17)`,
+         qty_area_band, qty_surface, qty_floors, city)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'done', $11, true, $12, $13, $14, $15, $16, $17, $18)`,
       [
         `eng_${ulid()}`,
         worker,
@@ -52,6 +54,7 @@ export async function seedUnitJobs(jobs: readonly UnitJob[], now: Date, onePair 
         j.qty?.area_band ?? null,
         j.qty?.surface ?? null,
         j.qty?.floors ?? null,
+        j.city ?? "bengaluru",
       ],
     );
   }

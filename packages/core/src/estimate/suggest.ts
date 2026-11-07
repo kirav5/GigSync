@@ -1,4 +1,4 @@
-import { type City, type Estimate, RateUnit, Role, type Trade } from "@gigsync/protocol";
+import { type Estimate, type PlaceKey, RateUnit, Role, type Trade } from "@gigsync/protocol";
 import { LEGAL_MINIMUM, type LegalMinimum } from "../job/city-rates.js";
 import { PRICE_STEP_PAISE } from "../job/negotiate.js";
 import { MONTHLY_TRADES } from "../job/when.js";
@@ -26,7 +26,7 @@ export interface HouseholdSuggestion {
 export interface EstimatedJob {
   estimate: Estimate;
   trade: Trade;
-  city: City;
+  city: PlaceKey;
 }
 
 const roundUp = (paise: number) => Math.ceil(Math.round(paise) / PRICE_STEP_PAISE) * PRICE_STEP_PAISE;

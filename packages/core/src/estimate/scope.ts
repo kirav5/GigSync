@@ -3,7 +3,6 @@ import {
   type AreaKey,
   Arrangement,
   CarpenterProblem,
-  type City,
   DEFAULT_SCOPE,
   DetailFlag,
   type DriverValues,
@@ -16,6 +15,7 @@ import {
   type JobTrade,
   MaidFrequency,
   mealsBucket,
+  type PlaceKey,
   PlumberProblem,
   peopleBand,
   QuestionKey,
@@ -102,7 +102,7 @@ export function tradeScope(trade: Trade, details: Details = {}): object {
  * is in one, so GigSync's prices there can answer first (ADR 0039 §1); undefined only if it fails the schema.
  */
 export function estimateRequest(
-  city: City,
+  city: PlaceKey,
   trade: Trade,
   details: Details = {},
   area?: AreaKey,

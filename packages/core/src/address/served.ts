@@ -17,6 +17,15 @@ import { Collection, type Storage } from "../ports.js";
 export const served = (point: Place, cities?: readonly ServedCity[]): boolean =>
   (cities ?? Object.values(CITY_AREA)).some((city) => kmBetween(point, city.centre) <= city.radius_km);
 
+/** The served city a place is in, nearest first; undefined outside every one (ADR 0061). */
+export function cityAt(point: Place, cities: readonly ServedCity[]): ServedCity["key"] | undefined {
+  const inside = cities
+    .map((city) => ({ city, km: kmBetween(point, city.centre) }))
+    .filter(({ city, km }) => km <= city.radius_km)
+    .sort((a, b) => a.km - b.km);
+  return inside[0]?.city.key;
+}
+
 /** Words for an address, and for doing something to one, in each language and as Indians type them. */
 const ADDRESS_WORDS = ["address", "location", "pata", "पता", "एड्रेस", "लोकेशन", "ವಿಳಾಸ", "ಅಡ್ರೆಸ್", "ಲೊಕೇಶನ್"];
 const CHANGE_WORDS = [

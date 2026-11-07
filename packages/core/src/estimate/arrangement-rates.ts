@@ -4,6 +4,7 @@ import {
   City,
   DEFAULT_ARRANGEMENT,
   hasArrangements,
+  type PlaceKey,
   type PriceUnit,
   Trade,
 } from "@gigsync/protocol";
@@ -34,7 +35,7 @@ type OtherArrangement = Exclude<Arrangement, typeof DEFAULT_ARRANGEMENT>;
  * (as the monthly figure is). Every figure a seed until GigSync's own jobs of the arrangement pass the 10/10/10 rule.
  */
 const OTHER_RATES: Readonly<
-  Partial<Record<City, Partial<Record<Trade, Readonly<Record<OtherArrangement, RateCardEntry>>>>>>
+  Partial<Record<PlaceKey, Partial<Record<Trade, Readonly<Record<OtherArrangement, RateCardEntry>>>>>>
 > = {
   [City.enum.bengaluru]: {
     [T.maid]: {
@@ -55,7 +56,7 @@ export const arrangementOf = (trade: Trade, asked: Arrangement | undefined): Arr
   asked && hasArrangements(trade) ? asked : DEFAULT_ARRANGEMENT;
 
 /** A city's card entry for a trade in an arrangement; monthly is the city card's own entry. */
-export function arrangementEntry(city: City, trade: Trade, asked?: Arrangement): RateCardEntry | undefined {
+export function arrangementEntry(city: PlaceKey, trade: Trade, asked?: Arrangement): RateCardEntry | undefined {
   const arrangement = arrangementOf(trade, asked);
   if (arrangement === DEFAULT_ARRANGEMENT) return rateCardEntry(city, trade);
   return OTHER_RATES[city]?.[trade]?.[arrangement];

@@ -1,4 +1,4 @@
-import type { City, EstimateRequest, ListedRates } from "@gigsync/protocol";
+import type { EstimateRequest, ListedRates, PlaceKey } from "@gigsync/protocol";
 import { areaSlug } from "../estimate/areas.js";
 import { estimateRequest, sameRequest } from "../estimate/scope.js";
 import { suggestForHousehold } from "../estimate/suggest.js";
@@ -23,7 +23,7 @@ export const needDetails = (d: NeedDraft): Record<string, string> => ({ ...d.see
  * the scope confirmed, the driver questions done and the area answered. Not before, so a job sends one estimate
  * request, after the last answer, never one per answer (the server may ask a model for it).
  */
-export function needRequest(city: City, d: NeedDraft): EstimateRequest | undefined {
+export function needRequest(city: PlaceKey, d: NeedDraft): EstimateRequest | undefined {
   if (!d.trade || (d.scope && !d.scope.confirmed) || d.area === undefined || priceOpen(d)) return undefined;
   // Structured drivers only: facts the phone's model gathered stay on the phone (founders, 2026-10-31).
   return estimateRequest(city, d.trade, needDetails(d), areaSlug(d.area), draftDrivers(d));
