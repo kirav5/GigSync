@@ -4,6 +4,7 @@ export const need = {
   "need.ask.trade": "Which kind of worker do you need?",
   "need.again": "Sorry, I didn't catch that.",
   "need.greeting": "Hello! Tell me what work you need done, in your own words.",
+  "need.switch_ask": "Do you want to ask about {work} instead? This chat stays in your list.",
   "need.ask.area": "Which area is the work in?",
   "need.ask.when": "When do you need someone? You can add a time, like tomorrow 10 am.",
   "need.ask.hour": "What time should they come?",

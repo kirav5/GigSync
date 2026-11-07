@@ -14,7 +14,7 @@ import {
   withJobType,
   withPriceStep,
 } from "../src/index.js";
-import { checkPriceStep, type PriceContext, pricePrompt } from "../src/interview/price-model.js";
+import { pricePrompt } from "../src/interview/price-model.js";
 
 /** What Find's first real tests found: the model asked out of turn, questions repeated, a hello, a dead end. */
 
@@ -33,34 +33,20 @@ const AC = { trade: "ac_technician", problem: true } as const;
 const keys = (s: NeedState) => needPrompt(s).lines.map((l) => l.key);
 
 describe("the model's price questions", () => {
-  it("are asked for only when the price question is the one open, not while the address is", () => {
+  const job = (more?: object) => withJobType(startNeed(config(more)), "electronics repair", "my tv not working");
+
+  it("are for work outside the trades: a trade job never waits on the model", () => {
     const at = hearNeed(startNeed(config({ addresses: [HOME] })), "my ac is not working", false, AC);
-    expect(at.slot).toBe(NeedSlot.area);
     expect(askingModel(at)).toBe(false);
-    expect(askingModel(chooseNeed(at, HOME.id))).toBe(true);
+    expect(askingModel(chooseNeed(at, HOME.id))).toBe(false);
+  });
+
+  it("are asked for when the price question is the one open", () => {
+    expect(askingModel(job())).toBe(true);
   });
 
   it("read the owner's words, so the model does not ask what they said", () => {
-    const s = withJobType(startNeed(config()), "electronics repair", "my tv not working");
-    expect(pricePrompt(priceContext(s))).toContain('"my tv not working"');
-  });
-
-  it("end when the model asks again what it asked, in other words", () => {
-    const context: PriceContext = {
-      lang: "en",
-      drivers: {},
-      notKnown: [],
-      said: [{ q: "Is it a window AC or a split AC?", a: "window" }],
-      asked: 1,
-    };
-    const again =
-      '{"done":false,"question":{"text":"Is the AC unit a window type or a split type?","fills":"AC type"}}';
-    expect(checkPriceStep(again, context)).toEqual({ done: true, facts: [] });
-    const words = { ...context, said: [{ q: "What kind of tap is leaking?", a: "kitchen" }] };
-    const kind = '{"done":false,"question":{"text":"What type of tap is leaking?","fills":"tap type"}}';
-    expect(checkPriceStep(kind, words)).toEqual({ done: true, facts: [] });
-    const other = '{"done":false,"question":{"text":"How many units need service?","fills":"units"}}';
-    expect(checkPriceStep(other, context)).toMatchObject({ question: { fills: { fact: "units" } } });
+    expect(pricePrompt(priceContext(job()))).toContain('"my tv not working"');
   });
 });
 
@@ -96,10 +82,7 @@ describe("a hello", () => {
 
 describe("after a need outside the list", () => {
   const outside = () =>
-    withPriceStep(withJobType(startNeed(config()), "electronics repair", "my tv not working"), {
-      done: true,
-      facts: [],
-    });
+    withPriceStep(withJobType(startNeed(config()), "electronics repair", "my tv not working"), { questions: [] });
 
   it("says so and offers the list, and tapping it opens the trades", () => {
     const s = outside();

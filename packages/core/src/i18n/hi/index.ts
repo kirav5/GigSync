@@ -4,6 +4,7 @@ import { agent } from "./agent.js";
 import { arrangement } from "./arrangement.js";
 import { ask } from "./ask.js";
 import { bargain } from "./bargain.js";
+import { category } from "./category.js";
 import { chats } from "./chats.js";
 import { contacts } from "./contacts.js";
 import { drivers } from "./drivers.js";
@@ -39,6 +40,7 @@ import { worker } from "./worker.js";
 /** Hindi. Written by the team, to be checked by a native-speaking organiser before the pilot (docs/gigsync/i18n-review.md). */
 export const hi: Strings = {
   ...job,
+  ...category,
   ...screens,
   ...worker,
   ...model,

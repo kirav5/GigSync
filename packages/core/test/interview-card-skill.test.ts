@@ -8,7 +8,7 @@ const config = (own: Lang) => ({ own, areas: AREAS, rates: CITY_RATES });
 describe("the card interview, for work outside the trades (ADR 0047)", () => {
   it("keeps the worker's own words for work that is no trade, and says so", () => {
     const s = hear(start(config("en")), "I am a tailor");
-    expect(s.draft.skills).toEqual([{ text: "tailor", lang: "en" }]);
+    expect(s.draft.skills).toEqual([{ text: "tailor", lang: "en", category: "tailor" }]);
     expect(s.draft.trades).toEqual([]);
     // ADR 0051: work of their own may be taken any way, so the card asks which, before the area.
     expect(s.slot).toBe(Slot.arrangements);
@@ -21,7 +21,7 @@ describe("the card interview, for work outside the trades (ADR 0047)", () => {
 
   it("takes a trade by its words as before, dropping a skill said earlier", () => {
     const said = hear(start(config("hi")), "मैं दर्ज़ी हूँ");
-    expect(said.draft.skills).toEqual([{ text: "दर्ज़ी", lang: "hi" }]);
+    expect(said.draft.skills).toEqual([{ text: "दर्ज़ी", lang: "hi", category: "tailor" }]);
     const s = hear(edit(said, Slot.trade), "मैं खाना बनाती हूँ");
     expect(s.draft.trades).toEqual(["cook"]);
     expect(s.draft.skills).toBeUndefined();

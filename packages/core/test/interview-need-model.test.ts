@@ -122,11 +122,13 @@ describe("the interview with a model's hint", () => {
     expect(s.slot).toBe(NeedSlot.area);
   });
 
-  it("never overrides what the owner's words said", () => {
-    const s = hearNeed(startNeed(config), "plumber in Koramangala", false, {
-      trade: T.electrician,
-      area: "hsr_layout",
-    });
+  it("never overrides a place the owner's words said", () => {
+    const s = hearNeed(startNeed(config), "plumber in Koramangala", false, { trade: T.plumber, area: "hsr_layout" });
     expect(s.draft).toMatchObject({ trade: T.plumber, area: "koramangala" });
+  });
+
+  it("names the work before the word lists, which take a kitchen tap for a cook's", () => {
+    const s = hearNeed(startNeed(config), "रसोई का नल टपक रहा है", false, { trade: T.plumber, problem: true });
+    expect(s.draft.trade).toBe(T.plumber);
   });
 });

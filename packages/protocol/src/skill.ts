@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Lang } from "./lang.js";
+import { WorkCategory } from "./work-category.js";
 
 /**
  * A worker's own skill (ADR 0047): work outside the trades, in the worker's words ("Tailor", "मेहंदी", "ತೋಟಗಾರ"). The
@@ -101,8 +102,11 @@ export const SkillText = z
   .trim()
   .refine((text) => skillProblem(text) === undefined, "not a skill a card may list");
 
-/** A skill as a card lists it and a request asks for it: the worker's words and the language they are in. */
-export const Skill = z.object({ text: SkillText, lang: Lang });
+/**
+ * A skill as a card lists it and a request asks for it: the worker's words, the language they are in, and the kind of
+ * work the worker confirmed they are (ADR 0059), if any.
+ */
+export const Skill = z.object({ text: SkillText, lang: Lang, category: WorkCategory.optional() });
 export type Skill = z.infer<typeof Skill>;
 
 /** A skill's search key, as the board's list gives it and a search sends it back. */
@@ -117,8 +121,14 @@ export type SkillKey = z.infer<typeof SkillKey>;
 export const distinctSkills = (skills: readonly Skill[]): boolean =>
   new Set(skills.map((s) => skillKey(s.text))).size === skills.length;
 
-/** One listed skill on `GET /v1/board/skills`: a worker's words for it, its key, and how many workers list it. */
-export const BoardSkill = z.object({ key: SkillKey, text: SkillText, lang: Lang, workers: z.number().int().min(1) });
+/** One listed skill on `GET /v1/board/skills`: a worker's words for it, its key, its kind, and how many list it. */
+export const BoardSkill = z.object({
+  key: SkillKey,
+  text: SkillText,
+  lang: Lang,
+  category: WorkCategory.optional(),
+  workers: z.number().int().min(1),
+});
 export type BoardSkill = z.infer<typeof BoardSkill>;
 
 export const BoardSkills = z.object({ skills: z.array(BoardSkill).max(MAX_SKILL_LIST) });
