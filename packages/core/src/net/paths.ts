@@ -14,6 +14,7 @@ export const ApiPath = {
   boardSkills: "/v1/board/skills",
   /** What workers near a place list for a skill (ADR 0057): `GET /v1/board/rates`. */
   boardRates: "/v1/board/rates",
+  findCount: "/v1/find/count",
   mentorMe: "/v1/mentors/me",
   mentorMatch: "/v1/mentors/match",
   mentorReport: "/v1/mentors/report",

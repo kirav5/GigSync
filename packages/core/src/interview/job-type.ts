@@ -67,3 +67,9 @@ export function withJobType(s: NeedState, jobType: string, words: string): NeedS
   if (at.draft.trade || !at.draft.modelAsk) return s;
   return moveOn(at, { ...at.draft, jobType, need: at.draft.need ?? words });
 }
+
+/** Work on the list that no worker lists yet: there is nobody to send it to, so no price questions either. */
+export function withNobody(s: NeedState, jobType: string, words: string): NeedState {
+  const at = withJobType(s, jobType, words);
+  return at === s ? s : moveOn(at, { ...at.draft, priceDone: true });
+}

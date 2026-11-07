@@ -93,7 +93,7 @@
     "id": "kanglish-tutor",
     "says": ["nanna maganige maths tutor beku"],
     "answers": ["ondu matra", "ninne inda"],
-    "want": { "skill": "Maths tutor" }
+    "want": { "skill": "School tutor" }
   },
   {
     "id": "kanglish-tailor",
@@ -105,7 +105,7 @@
     "id": "kanglish-laptop",
     "says": ["laptop screen odedide"],
     "answers": ["ondu matra", "ninne inda"],
-    "want": { "skill": "Laptop repair" }
+    "want": { "skill": "Laptop and computer repair" }
   },
   {
     "id": "kanglish-hello",
@@ -133,5 +133,11 @@
     "later": "nange cook kooda beku",
     "want": { "trade": "plumber" }
   },
-  { "id": "kanglish-nobody", "says": ["nange swimming coach beku"], "answers": ["x"], "want": { "outside": true } }
+  { "id": "kanglish-nobody", "says": ["nange swimming coach beku"], "answers": ["x"], "want": { "outside": true } },
+  {
+    "id": "kanglish-fish",
+    "says": ["nanna fish tank clean madbeku"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "skill": "Aquarium cleaning" }
+  }
 ]

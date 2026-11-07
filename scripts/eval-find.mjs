@@ -18,8 +18,6 @@ import { OLLAMA_MODEL, OLLAMA_URL, ollamaReady, RecordingModel } from "./eval-in
 const PROMPT_OF = {
   read: "You read one message",
   price: "A household in India wants",
-  pick: "A household asks for help",
-  check: "Would a worker who does",
   scope: "Read this request for a",
   jobType: "Is this request for one of",
   need: "",

@@ -1,4 +1,5 @@
 import { t } from "../i18n/t.js";
+import type { WorkPick } from "../skills/work-list.js";
 import { NeedSlot, type NeedState } from "./need.js";
 import type { NeedHint } from "./need-model.js";
 import { NOT_HEARD } from "./need-say.js";
@@ -20,16 +21,19 @@ function workOfNeed(s: NeedState): string | undefined {
 /** The chat so far, as far as the need has it. */
 function chatSoFar(s: NeedState): string[] {
   const { need, detail, modelAsk } = s.draft;
-  return [
-    ...(need ? [need] : []),
-    ...(typeof detail === "string" ? [detail] : []),
-    ...(modelAsk?.said ?? []).map((qa) => `${qa.q} ${qa.a}`),
-  ];
+  const said = typeof detail === "string" && detail !== need ? [detail] : [];
+  return [...(need ? [need] : []), ...said, ...(modelAsk?.said ?? []).map((qa) => `${qa.q} ${qa.a}`)];
 }
 
-export const turnContext = (s: NeedState, text: string, question?: string): TurnContext => ({
+export const turnContext = (
+  s: NeedState,
+  text: string,
+  options: readonly WorkPick[],
+  question?: string,
+): TurnContext => ({
   lang: s.config.own,
   text,
+  options,
   work: workOfNeed(s),
   question,
   recent: chatSoFar(s),

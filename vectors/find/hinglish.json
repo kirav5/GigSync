@@ -93,7 +93,7 @@
     "id": "hinglish-tutor",
     "says": ["bete ke liye maths tutor chahiye"],
     "answers": ["bas ek", "kal se"],
-    "want": { "skill": "Maths tutor" }
+    "want": { "skill": "School tutor" }
   },
   {
     "id": "hinglish-tailor",
@@ -105,7 +105,7 @@
     "id": "hinglish-laptop",
     "says": ["laptop ki screen toot gayi hai"],
     "answers": ["bas ek", "kal se"],
-    "want": { "skill": "Laptop repair" }
+    "want": { "skill": "Laptop and computer repair" }
   },
   {
     "id": "hinglish-hello",
@@ -133,5 +133,11 @@
     "later": "mujhe ek cook bhi chahiye",
     "want": { "trade": "plumber" }
   },
-  { "id": "hinglish-nobody", "says": ["mujhe swimming coach chahiye"], "answers": ["x"], "want": { "outside": true } }
+  { "id": "hinglish-nobody", "says": ["mujhe swimming coach chahiye"], "answers": ["x"], "want": { "outside": true } },
+  {
+    "id": "hinglish-fish",
+    "says": ["fish tank saaf karwana hai"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "skill": "Aquarium cleaning" }
+  }
 ]

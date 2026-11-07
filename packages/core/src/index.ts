@@ -35,9 +35,10 @@ export {
 export { type DriverAnswer, driverAnswer, driversIn, saysDontKnow } from "./interview/driver-parse.js";
 export { looksLikeAddress, scrubFacts, scrubJobType, scrubText } from "./interview/fact-scrub.js";
 export * from "./interview/index.js";
-export { checkJobType, jobTypePrompt, modelJobType, withJobType } from "./interview/job-type.js";
+export { checkJobType, jobTypePrompt, modelJobType, withJobType, withNobody } from "./interview/job-type.js";
 export {
   DayWord,
+  guessedNeed,
   type NeedConfig,
   type NeedDraft,
   type NeedField,
@@ -54,6 +55,7 @@ export {
 } from "./interview/need.js";
 export { ADD_ADDRESS, atAddress } from "./interview/need-address.js";
 export { boardArrangement } from "./interview/need-arrangement.js";
+export { findEventOf } from "./interview/need-counts.js";
 export { askingModel, DriverPick, priceContext, withPriceStep } from "./interview/need-drivers.js";
 export {
   needDetails,
@@ -99,6 +101,7 @@ export { PROBLEM_MIN_SIMILARITY, problemByMeaning, problemIndex } from "./interv
 export { readTurn, type TurnContext, TurnKind, type TurnRead } from "./interview/read-turn.js";
 export { readScope, SCOPE_READ, type ScopeChip, ScopeKey, scopeFromWords } from "./interview/scope-read.js";
 export { TRADE_MIN_SIMILARITY, tradeByMeaning, tradeIndex } from "./interview/trade-meaning.js";
+export { tradeTitled } from "./interview/trade-titled.js";
 export * from "./job/activity.js";
 export * from "./job/advice.js";
 export * from "./job/aftercare.js";
@@ -181,7 +184,6 @@ export * from "./router/route-chat.js";
 export * from "./schedule/index.js";
 export { listedSkill, SKILL_MEANING_MAX, skillIndex, skillNamedIn } from "./skills/match.js";
 export { workName } from "./skills/name.js";
-export { pickSkill } from "./skills/pick.js";
 export { readSkill, type SkillRead, spokenSkill } from "./skills/read.js";
 export {
   categoryNamed,
@@ -191,4 +193,5 @@ export {
   type WorkMatch,
   workMatchName,
 } from "./skills/suggest.js";
+export { categorySkill, type WorkPick, workOptions } from "./skills/work-list.js";
 export * from "./transfer/index.js";

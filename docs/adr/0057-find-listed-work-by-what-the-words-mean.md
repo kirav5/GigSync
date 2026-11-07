@@ -1,6 +1,7 @@
 # ADR 0057: Find listed work by what the words mean, and price it from what workers list
 
-Date: 2026-11-06. Status: accepted by the founders, who asked that a person can ask for any work. Amends
+Date: 2026-11-06. Status: accepted by the founders, who asked that a person can ask for any work; §1 superseded by
+[ADR 0059](0059-kinds-of-work-behind-a-workers-own-words.md). Amends
 [ADR 0047](0047-open-skills.md) §4 (the words stayed on the phone when matching a skill) and §6 (no price for a skill),
 and [ADR 0041](0041-prices-from-drivers.md) (where a range may come from).
 

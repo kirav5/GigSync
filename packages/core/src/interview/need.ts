@@ -85,6 +85,8 @@ export interface NeedState {
   readonly to?: NeedTo | undefined;
   /** Other work the owner named part-way: asked about before anything else (`need-switch.ts`). */
   readonly switching?: WorkSwitch | undefined;
+  /** A model chose the work: until the next answer the chat says so, and "Not this" undoes it. */
+  readonly guessed?: boolean | undefined;
 }
 
 /** The trade's first question, which the request answers up front so the worker's agent need not ask it. */
@@ -199,7 +201,15 @@ function autoFilled(s: NeedState): NeedState {
 
 /** An answer taken: on to whatever is still missing (filling what memory may), or the readback. */
 export const moveOn = (s: NeedState, draft: NeedDraft, notes: Line[] = []): NeedState =>
-  autoFilled({ ...s, ...nextSlot(s.config, draft), notes, changing: false, fresh: false, filled: [] });
+  autoFilled({
+    ...s,
+    ...nextSlot(s.config, draft),
+    notes,
+    changing: false,
+    fresh: false,
+    filled: [],
+    guessed: false,
+  });
 
 /** "Use it": the remembered answer offered for the question now asked; anything else changes nothing. */
 export function takeRecalled(s: NeedState): NeedState {
@@ -228,6 +238,9 @@ export const afterOutside = (s: NeedState): NeedState => ({
   slot: NeedSlot.trade,
   notes: [],
 });
+
+/** A model chose the work this need is on. */
+export const guessedNeed = (s: NeedState): NeedState => ({ ...s, guessed: true });
 
 /** What the board search found: workers to pick from, or nobody, with ways to look further. */
 export const searchedNeed = (s: NeedState, count: number): NeedState => ({
