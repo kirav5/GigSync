@@ -39,6 +39,11 @@ exact words picked the trade, and a search for the trade would never find them.
    the one it meant: "swimming coach" came back as Yoga teacher in all five sets.
 9. **A kind of work nobody lists is said plainly**, with no price questions, since there is nobody to send it to. If the
    word lists see a trade in the words, the trade goes first, so a wrong guess at an empty kind does not end the chat.
+10. **A trade named outright stands.** "I need a plumber" is a plumber whatever a model reads; the rule is for a trade's
+    names only, not the lists' words that merely suggest one, such as "kitchen", which is why the model went first.
+11. **A guess is shown, and one tap takes it back.** When a model chose the work, the next question says "For: AC
+    technician" with a "Not this" chip. It costs no tap when the guess is right, so it is not a confirm step, and it
+    comes before anyone answers questions about the wrong work.
 
 ## Consequences
 

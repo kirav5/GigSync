@@ -16,6 +16,7 @@ import {
   TurnKind,
   t,
   tradeByMeaning,
+  tradeTitled,
   turnContext,
   understandNeed,
   workOptions,
@@ -67,10 +68,12 @@ export async function readFirst(m: Message): Promise<void> {
   const hint = read ? hintOf(read) : await understandNeed(ports.model, text, { areas, lang });
   const meaning = meaningFor(ports);
   const lists = parseNeed(text, { areas, today }).trade;
-  const found = read?.category ? categorySkill(read.category, list, lang) : read?.skill;
+  // A trade named outright stands, whatever a model reads: "I need a plumber" is a plumber.
+  const titled = tradeTitled(text);
+  const found = titled ? undefined : read?.category ? categorySkill(read.category, list, lang) : read?.skill;
   // A kind of work nobody lists does not end the chat when the word lists see a trade in the words: "पुताई" is painting.
-  const named = read?.jobType || found;
-  const said = read ? (read.trade ?? (named ? undefined : lists)) : (lists ?? hint.trade);
+  const named = titled ? undefined : read?.jobType || found;
+  const said = titled ?? (read ? (read.trade ?? (named ? undefined : lists)) : (lists ?? hint.trade));
   const heard = said ?? (!named && meaning ? await tradeByMeaning(meaning.trades, text) : undefined);
   if (heard) hint.trade = heard;
   const trade = heard ?? state.draft.trade;
@@ -80,11 +83,11 @@ export async function readFirst(m: Message): Promise<void> {
   if (!trade && read?.category && !found && !state.to)
     return nobodyNeed(chat, t(lang, `category.${read.category}`), text);
   const skill = trade ? undefined : (found ?? (await listedSkill(text, list, index)));
-  if (skill) return skillNeed(chat, skill, text, Boolean(read?.problem || read?.jobType || found));
+  if (skill) return skillNeed(chat, skill, text, Boolean(read?.problem || read?.jobType || found), Boolean(found));
   const jobType = trade || !state.draft.modelAsk ? undefined : read ? read.jobType : await nameOf(m);
   if (jobType) return jobTypeNeed(chat, jobType, text);
   const scope = trade ? await readScope(ports.model, text, { trade, lang }) : [];
-  answerNeed(chat, text, aloud, { ...hint, scope }, true);
+  answerNeed(chat, text, aloud, { ...hint, scope }, true, !titled && trade === read?.trade && trade !== undefined);
 }
 
 /** The model's name for the work when the one read gave no answer at all. */

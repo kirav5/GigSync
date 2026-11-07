@@ -4,6 +4,7 @@ import {
   chooseNeed,
   chooseNeedDate,
   type FoundEstimate,
+  guessedNeed,
   hearNeed,
   type Line,
   MAX_ASK,
@@ -74,8 +75,16 @@ export function showOwner(chat: string, text: string): void {
  * An answer in words: `aloud` when spoken (a typed budget is never read back aloud); `hint` what a model read from
  * them, already checked; `shown` when `showOwner` put the words on screen already.
  */
-export function answerNeed(chat: string, text: string, aloud: boolean, hint: NeedHint = {}, shown = false): void {
-  moved(chat, (state) => hearNeed(state, text, aloud, hint), shown ? [] : [ownerSaid(text)]);
+export function answerNeed(
+  chat: string,
+  text: string,
+  aloud: boolean,
+  hint: NeedHint = {},
+  shown = false,
+  guessed = false,
+): void {
+  const heard = (state: NeedState) => hearNeed(state, text, aloud, hint);
+  moved(chat, (state) => (guessed ? guessedNeed(heard(state)) : heard(state)), shown ? [] : [ownerSaid(text)]);
 }
 
 /** An answer by tapping a choice; `label` is the choice as the owner read it. */
@@ -113,8 +122,9 @@ export function nobodyNeed(chat: string, jobType: string, words: string): void {
 }
 
 /** A need for a skill workers list (ADR 0047), matched on this phone; the owner's words are on screen already. */
-export function skillNeed(chat: string, skill: BoardSkill, words: string, saysWhat = false): void {
-  moved(chat, (state) => withSkill(state, skill, words, saysWhat), []);
+export function skillNeed(chat: string, skill: BoardSkill, words: string, saysWhat = false, guessed = false): void {
+  const found = (state: NeedState) => withSkill(state, skill, words, saysWhat);
+  moved(chat, (state) => (guessed ? guessedNeed(found(state)) : found(state)), []);
 }
 
 /** A date picked on the calendar at the When question; `label` is the date as the owner reads it. */

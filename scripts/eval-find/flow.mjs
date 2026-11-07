@@ -36,7 +36,7 @@ const MAX_TURNS = 14;
 const BUDGET = "2500";
 const DONT_KNOW = "I don't know";
 /** Chips that say nothing about the job: taken only when there is nothing else. */
-const NOT_ANSWERS = new Set(["iv.skip", "driver.dont_know"]);
+const NOT_ANSWERS = new Set(["iv.skip", "driver.dont_know", "need.not_this"]);
 const SORRY_KEYS = new Set(["need.again", "need.again_budget"]);
 /** How long one model call may take here: long enough to measure, not the phone's limit. */
 const WAIT_MS = 20_000;
@@ -79,15 +79,17 @@ async function firstTurn(model, s, text, lang) {
   const read = await core.readTurn(model, core.turnContext(s, text, OPTIONS), WAIT_MS);
   if (!read) return firstWords(model, s, text, lang);
   if (read.kind === core.TurnKind.enum.greeting) return s;
-  const found = read.category ? core.categorySkill(read.category, LISTED, lang) : read.skill;
-  const named = read.jobType || found;
-  const trade = read.trade ?? (named ? undefined : core.parseNeed(text, { areas: AREAS, today: TODAY }).trade);
+  const titled = core.tradeTitled(text);
+  const found = titled ? undefined : read.category ? core.categorySkill(read.category, LISTED, lang) : read.skill;
+  const named = titled ? undefined : read.jobType || found;
+  const lists = named ? undefined : core.parseNeed(text, { areas: AREAS, today: TODAY }).trade;
+  const trade = titled ?? read.trade ?? lists;
   if (!trade && read.category && !found) return core.withNobody(s, core.t(lang, `category.${read.category}`), text);
   const skill = trade ? undefined : (found ?? (await core.listedSkill(text, LISTED)));
   if (skill) return core.withSkill(s, skill, text, Boolean(read.problem || read.jobType || found));
   if (!trade && read.jobType) return core.withJobType(s, read.jobType, text);
   const scope = trade ? await core.readScope(model, text, { trade, lang, waitMs: WAIT_MS }) : [];
-  return core.hearNeed(s, text, false, { ...core.hintOf(read), scope });
+  return core.hearNeed(s, text, false, { ...core.hintOf(read), ...(titled ? { trade: titled } : {}), scope });
 }
 
 /** Words at a later question: the interview's, and when it did not understand them, the one reader's. */

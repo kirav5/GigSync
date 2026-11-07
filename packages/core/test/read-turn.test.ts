@@ -3,8 +3,10 @@ import {
   CITY_RATES,
   categorySkill,
   chooseNeed,
+  guessedNeed,
   hearNeed,
   hintOf,
+  NeedPick,
   NeedSlot,
   namesOtherWork,
   needPrompt,
@@ -12,6 +14,7 @@ import {
   offerSwitch,
   readTurn,
   startNeed,
+  tradeTitled,
   withNobody,
   withSkill,
   workOptions,
@@ -147,5 +150,51 @@ describe("work the owner names", () => {
     const s = withNobody(startNeed(config), "Swimming teacher", "I need a swimming coach");
     expect(s.slot).toBe(NeedSlot.outside);
     expect(needPrompt(s).lines[0]?.params).toEqual({ job: "Swimming teacher" });
+  });
+});
+
+describe("a trade named outright", () => {
+  it.each([
+    ["I need a plumber", "plumber"],
+    ["kitchen me plumber chahiye", "plumber"],
+    ["AC mechanic chahiye", "ac_technician"],
+    ["मुझे इलेक्ट्रीशियन चाहिए", "electrician"],
+  ] as const)("%s is that trade", (words, trade) => {
+    expect(tradeTitled(words)).toBe(trade);
+  });
+
+  it("is not a word that only suggests a trade, part of another word, or two trades at once", () => {
+    for (const words of ["my kitchen tap is leaking", "I lost my screwdriver", "a cook and a driver"])
+      expect(tradeTitled(words)).toBeUndefined();
+  });
+});
+
+describe("work a model chose", () => {
+  const at = (trade = "ac_technician") =>
+    guessedNeed(hearNeed(startNeed(config), "the room is too hot", false, { trade } as never));
+
+  it("is said with the next question, with one tap to take it back", () => {
+    const prompt = needPrompt(at());
+    expect(prompt.lines[0]).toEqual({ key: "need.for", params: { work: "AC technician" } });
+    expect(prompt.choices?.at(-1)).toEqual({ value: NeedPick.notThis, key: "need.not_this" });
+  });
+
+  it("is undone by that tap, back to the trades, and the owner can say it again", () => {
+    const back = chooseNeed(at(), NeedPick.notThis);
+    expect(back.slot).toBe(NeedSlot.trade);
+    expect(back.draft.trade).toBeUndefined();
+    expect(needPrompt(back).choices?.map((c) => c.value)).toContain("plumber");
+    expect(needPrompt(back).choices?.map((c) => c.value)).not.toContain(NeedPick.notThis);
+  });
+
+  it("stops being said once the owner answers", () => {
+    const answered = hearNeed(at(), "2");
+    expect(needPrompt(answered).lines.map((l) => l.key)).not.toContain("need.for");
+    expect(needPrompt(answered).choices?.map((c) => c.value) ?? []).not.toContain(NeedPick.notThis);
+  });
+
+  it("is not said for work the owner named", () => {
+    const named = hearNeed(startNeed(config), "I need a plumber");
+    expect(needPrompt(named).lines.map((l) => l.key)).not.toContain("need.for");
   });
 });
