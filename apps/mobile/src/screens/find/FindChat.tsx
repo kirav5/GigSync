@@ -2,6 +2,7 @@ import {
   addressAsked,
   addressChoice,
   askingModel,
+  findEventOf,
   type GigDevice,
   hearNeed,
   isGreeting,
@@ -14,6 +15,7 @@ import {
   problemByMeaning,
   startNeed,
 } from "@gigsync/core";
+import { FindEvent } from "@gigsync/protocol";
 import { useEffect, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
 import { meaningFor } from "../../adapters/meaning.js";
@@ -24,6 +26,7 @@ import { needConfig } from "../../card/choices.js";
 import { fetchEstimate } from "../../estimate/useEstimate.js";
 import { openAddressDesk } from "../../find/addressDesk.js";
 import { askWorkers, needOf } from "../../find/ask.js";
+import { countFind } from "../../find/counts.js";
 import { startFindChat, useNeed } from "../../find/findChats.js";
 import {
   addressInUseNeed,
@@ -164,6 +167,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     if (first) {
       showOwner(chat, text);
       if (isGreeting(text)) return needSay(chat, { key: NeedSay.greeting });
+      countFind(account.session, FindEvent.enum.typed);
       setReading(true);
       return void (await readFirst(message).finally(() => setReading(false)));
     }
@@ -218,6 +222,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       busy={busy}
       onAsk={(turn) => void ask(turn)}
       onAddAddress={() => setAdding(true)}
+      onTap={(value) => state && countFind(account.session, findEventOf(state, value))}
     />
   );
   const desk = (

@@ -38,6 +38,7 @@ export * from "./interview/index.js";
 export { checkJobType, jobTypePrompt, modelJobType, withJobType, withNobody } from "./interview/job-type.js";
 export {
   DayWord,
+  guessedNeed,
   type NeedConfig,
   type NeedDraft,
   type NeedField,
@@ -54,6 +55,7 @@ export {
 } from "./interview/need.js";
 export { ADD_ADDRESS, atAddress } from "./interview/need-address.js";
 export { boardArrangement } from "./interview/need-arrangement.js";
+export { findEventOf } from "./interview/need-counts.js";
 export { askingModel, DriverPick, priceContext, withPriceStep } from "./interview/need-drivers.js";
 export {
   needDetails,
@@ -99,6 +101,7 @@ export { PROBLEM_MIN_SIMILARITY, problemByMeaning, problemIndex } from "./interv
 export { readTurn, type TurnContext, TurnKind, type TurnRead } from "./interview/read-turn.js";
 export { readScope, SCOPE_READ, type ScopeChip, ScopeKey, scopeFromWords } from "./interview/scope-read.js";
 export { TRADE_MIN_SIMILARITY, tradeByMeaning, tradeIndex } from "./interview/trade-meaning.js";
+export { tradeTitled } from "./interview/trade-titled.js";
 export * from "./job/activity.js";
 export * from "./job/advice.js";
 export * from "./job/aftercare.js";
