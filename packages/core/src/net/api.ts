@@ -66,7 +66,7 @@ export interface Relay {
   claim(engagement: EngagementId): Promise<DeviceId>;
 }
 
-type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
+export type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 const ErrorBody = z.object({ error: z.string() });
 const Removed = z.object({ removed: z.boolean() });
 /** Just enough of an envelope this phone cannot read to acknowledge it. */
@@ -91,6 +91,11 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
 
   async verifyOtp(phone: string, code: string, device: DeviceRegistration): Promise<Session> {
     return Session.parse(await this.call(HttpMethod.post, ApiPath.otpVerify, { phone, code, device }));
+  }
+
+  /** Revokes this device and its session on the server: messages stop being sealed to it. */
+  async signOut(): Promise<void> {
+    await this.call(HttpMethod.post, ApiPath.signOut);
   }
 
   async directory(user: UserId): Promise<DirectoryEntry> {
