@@ -11,6 +11,7 @@ import {
   type Line,
   prompt,
   Slot,
+  type WorkMatch,
   withConfig,
   withEstimate,
 } from "@gigsync/core";
@@ -125,14 +126,29 @@ function answered(next: (state: InterviewState) => InterviewState, label: string
   });
 }
 
-/** An answer in words: `aloud` when spoken, false when typed (a typed lowest rate is never read back aloud). */
-export function answerInterview(text: string, aloud: boolean): void {
-  answered((state) => hear(state, text, aloud), text);
+/**
+ * An answer in words: `aloud` when spoken, false when typed (a typed lowest rate is never read back aloud). `kind` is
+ * what the model suggests a worker's own words for their work are, asked next as yes or no (ADR 0059).
+ */
+export function answerInterview(text: string, aloud: boolean, kind?: WorkMatch): void {
+  answered((state) => hear(state, text, aloud, kind), text);
 }
 
 /** An answer by tapping a choice; `label` is the choice as the owner read it. */
 export function tapInterview(value: string, label: string): void {
   answered((state) => choose(state, value), label);
+}
+
+/**
+ * A choice that toggles (which kinds of work the worker takes): turned on or off where it stands, so the question is
+ * not asked again for every tap. Done answers it as any tap does.
+ */
+export function toggleInterview(value: string): void {
+  // Only the interview moves: what is on screen stays, and the chips read which are on from it.
+  inOpen((t, live) => {
+    const state = choose(live.state, value);
+    return state === live.state ? t : { ...t, live: { ...live, state } };
+  });
 }
 
 /** The area question answered with the phone's location. */

@@ -22,6 +22,8 @@ const LISTED = [
   ["Car wash", "car_wash", 3],
   ["Aquarium cleaning", undefined, 2],
   ["Kite making", undefined, 1],
+  // Air cooler repair has no worker filed under it; this one never said what kind of work it is.
+  ["Cooler fixing", undefined, 2],
 ].map(([text, category, workers]) => ({
   text,
   key: text.toLowerCase(),
@@ -80,9 +82,12 @@ async function firstTurn(model, s, text, lang) {
   if (!read) return firstWords(model, s, text, lang);
   if (read.kind === core.TurnKind.enum.greeting) return s;
   const titled = core.tradeTitled(text);
-  const found = titled ? undefined : read.category ? core.categorySkill(read.category, LISTED, lang) : read.skill;
+  const said = core.parseNeed(text, { areas: AREAS, today: TODAY }).trade;
+  const filed = async (c) =>
+    core.categorySkill(c, LISTED, lang) ?? (said ? undefined : await core.sameWork(model, c, LISTED, WAIT_MS));
+  const found = titled ? undefined : read.category ? await filed(read.category) : read.skill;
   const named = titled ? undefined : read.jobType || found;
-  const lists = named ? undefined : core.parseNeed(text, { areas: AREAS, today: TODAY }).trade;
+  const lists = named ? undefined : said;
   const trade = titled ?? read.trade ?? lists;
   if (!trade && read.category && !found) return core.withNobody(s, core.t(lang, `category.${read.category}`), text);
   const skill = trade ? undefined : (found ?? (await core.listedSkill(text, LISTED)));
