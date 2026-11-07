@@ -33,9 +33,11 @@ describe("estimate requests", () => {
     expect(EstimateRequest.safeParse(cook).success).toBe(true);
   });
 
-  it("refuse another trade's scope, an unknown city and free text", () => {
+  it("refuse another trade's scope, a malformed city and free text", () => {
     expect(EstimateRequest.safeParse({ ...painter, trade: "cook" }).success).toBe(false);
-    expect(EstimateRequest.safeParse({ ...painter, city: "mumbai" }).success).toBe(false);
+    // Any well-formed city key is taken (ADR 0061): a city GigSync does not serve gets no estimate, not a refusal.
+    expect(EstimateRequest.safeParse({ ...painter, city: "Mumbai City" }).success).toBe(false);
+    expect(EstimateRequest.safeParse({ ...painter, city: "kanpur" }).success).toBe(true);
     expect(EstimateRequest.safeParse({ ...painter, scope: { rooms: "bhk2" } }).success).toBe(false);
     const electrician = { city: "bengaluru", trade: "electrician", scope: { problem: "the fan in my bedroom" } };
     expect(EstimateRequest.safeParse(electrician).success).toBe(false);

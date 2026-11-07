@@ -1,4 +1,4 @@
-import type { City, EstimateRequest, Lang } from "@gigsync/protocol";
+import type { EstimateRequest, Lang, PlaceKey } from "@gigsync/protocol";
 import { priceText } from "../i18n/reasons.js";
 import { dateText, type MessageKey, t } from "../i18n/t.js";
 import type { Line } from "../interview/card.js";
@@ -27,17 +27,17 @@ const NAME_LIST = ", ";
 const DAY_START = "T00:00:00";
 
 /** The estimate request a market question asks: its trade and size, in its area when it names one, in `city`. */
-export const marketRequest = (city: City, q: MarketQuestion): EstimateRequest | undefined =>
+export const marketRequest = (city: PlaceKey, q: MarketQuestion): EstimateRequest | undefined =>
   estimateRequest(city, q.trade, q.details, q.area ? areaSlug(q.area) : undefined);
 
 /** The area the question named, else the city: where "no estimate" says it looked. */
-function placeKey(city: City, q: MarketQuestion): MessageKey[] {
+function placeKey(city: PlaceKey, q: MarketQuestion): MessageKey[] {
   const key = q.area ? `area.${q.area}` : `city.${city}`;
   return isMessageKey(key) ? [key] : [];
 }
 
 /** The answer's facts as lines: the estimate's own, or that there is none yet for that trade and place. */
-export function marketLines(own: Lang, city: City, q: MarketQuestion, found: FoundEstimate | undefined): Line[] {
+export function marketLines(own: Lang, city: PlaceKey, q: MarketQuestion, found: FoundEstimate | undefined): Line[] {
   if (found) return estimateLines(own, found);
   return [{ key: "estimate.market_none", names: { trade: [`trade.${q.trade}`], place: placeKey(city, q) } }];
 }
@@ -105,7 +105,7 @@ export async function wordMarket(
 export async function marketAnswer(
   model: Model | undefined,
   own: Lang,
-  city: City,
+  city: PlaceKey,
   q: MarketQuestion,
   found: FoundEstimate | undefined,
 ): Promise<Explanation> {

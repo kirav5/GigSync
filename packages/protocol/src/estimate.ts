@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { AreaKey } from "./area-key.js";
 import { Arrangement, fitsWork } from "./arrangement.js";
-import { City } from "./content.js";
+import { PlaceKey } from "./cities.js";
 import {
   AcDrivers,
   CarpenterDrivers,
@@ -53,7 +53,8 @@ const scoped = <K extends Trade, S extends z.ZodType<TradeScope[K]>, D extends z
   drivers: D,
 ) =>
   z.object({
-    city: City,
+    /** A served city's key (ADR 0061): its own jobs and, where it has one, its rate card. */
+    city: PlaceKey,
     area: AreaKey.optional(),
     trade: z.literal(trade),
     scope,

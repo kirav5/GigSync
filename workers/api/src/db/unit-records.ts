@@ -34,19 +34,25 @@ export interface UnitRow
 export const MAX_UNIT_ROWS = 2000;
 
 /**
- * One trade's jobs of one arrangement (ADR 0046; a record without one was monthly) agreed on or after `since`,
+ * One city's jobs (ADR 0061) of one trade and arrangement (ADR 0046; a record without one was monthly) agreed on or after `since`,
  * attested and one-sided alike, never cancelled, newest first.
  */
-export async function unitRows(db: Db, trade: Trade, arrangement: Arrangement, since: Date): Promise<UnitRow[]> {
+export async function unitRows(
+  db: Db,
+  city: string,
+  trade: Trade,
+  arrangement: Arrangement,
+  since: Date,
+): Promise<UnitRow[]> {
   const { rows } = await db.query<UnitRow>(
     `SELECT price_paise, agreed_at, area_key, worker_id, coalesce(household_id, engagement_id) AS household,
        scope_problem, scope_rooms, scope_frequency, scope_people, scope_meals, scope_hours_band, scope_labour_only,
        qty_area_band, qty_rooms, qty_surface, qty_floors, qty_house_type, qty_finish, qty_people, qty_days_week,
        qty_tasks, qty_hours, qty_vehicle, qty_points, qty_arrangement
      FROM job_records
-     WHERE trade = $1 AND status <> $2 AND agreed_at >= $3 AND coalesce(qty_arrangement, $5) = $6
+     WHERE trade = $1 AND city = $7 AND status <> $2 AND agreed_at >= $3 AND coalesce(qty_arrangement, $5) = $6
      ORDER BY agreed_at DESC LIMIT $4`,
-    [trade, CANCELLED, since, MAX_UNIT_ROWS, DEFAULT_ARRANGEMENT, arrangement],
+    [trade, CANCELLED, since, MAX_UNIT_ROWS, DEFAULT_ARRANGEMENT, arrangement, city],
   );
   return rows;
 }

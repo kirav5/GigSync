@@ -17,11 +17,15 @@ circle and the pilot's five areas were constants, and the rate card was Bengalur
    admin key, adds or changes a city and its areas. Taking one off sets `live = false`; nothing is deleted.
 3. **"Not in your area yet" follows the directory.** Until the phone has the list, the city it shipped with stands in,
    so the check never blocks anyone.
-4. **Prices, in the steps that follow:** job records carry their city, and an estimate tries the area's jobs, then the
-   city's, then the city's rate card. A city with none of these gets no estimate and learns from its own jobs.
+4. **Prices by city.** Every job record carries its city (migration 0020; all earlier records are Bengaluru's), taken
+   from the live city whose circle holds the worker's card. An estimate reads only its city's jobs, by area then city,
+   with the city's rate card where it has one and the state's legal minimum only where it is known. A city with
+   neither jobs nor a card gets no estimate, and learns from its own jobs as they are agreed. Find asks for the city of
+   the household's chosen address.
 
 ## Consequences
 
-- Adding Kanpur is one admin call. Until the later steps land, Kanpur's addresses are served but its estimates still
-  read Bengaluru's card, and its areas are not yet offered as Find's chips.
+- Adding Kanpur is one admin call. Its households get no estimate until ten agreed jobs pass the 10/10/10 rule, unless
+  a rate card for Uttar Pradesh is added. Its areas are not yet offered as Find's chips, and the worker's card and
+  Talk's market answers still ask for Bengaluru's prices: those follow.
 - City guides and moving advice stay Bengaluru-only: they are written content, not data.

@@ -2,6 +2,7 @@ import {
   addressAsked,
   addressChoice,
   askingModel,
+  cityAt,
   findEventOf,
   type GigDevice,
   hearNeed,
@@ -18,6 +19,7 @@ import {
 import { FindEvent } from "@gigsync/protocol";
 import { useEffect, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
+import { useServedCities } from "../../adapters/cities.js";
 import { meaningFor } from "../../adapters/meaning.js";
 import { chosenModel, ModelChoice } from "../../adapters/model.js";
 import { offerAlerts } from "../../adapters/push.js";
@@ -25,7 +27,7 @@ import { stopSpeaking } from "../../adapters/speech.js";
 import { needConfig } from "../../card/choices.js";
 import { fetchEstimate } from "../../estimate/useEstimate.js";
 import { openAddressDesk } from "../../find/addressDesk.js";
-import { askWorkers, needOf } from "../../find/ask.js";
+import { askWorkers, needOf, whereOf } from "../../find/ask.js";
 import { countFind } from "../../find/counts.js";
 import { startFindChat, useNeed } from "../../find/findChats.js";
 import {
@@ -138,7 +140,11 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   );
 
   // The job as described so far, once the trade is known: the usual range for it, shown beside the budget question.
-  const request = state ? needRequest(PILOT_CITY, state.draft) : undefined;
+  // The city is the chosen address's (ADR 0061): its own jobs and rate card, Bengaluru's only in Bengaluru.
+  const cities = useServedCities(account.session);
+  const at = state && whereOf(state.draft, saved ?? [])?.area;
+  const city = (at && cities && cityAt(at, cities)) || PILOT_CITY;
+  const request = state ? needRequest(city, state.draft) : undefined;
   const requestKey = request && JSON.stringify(request);
   const session = account.session;
   usePriceQuestions(ports, open, state);
