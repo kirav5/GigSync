@@ -14,6 +14,7 @@ export const skill = {
   "skill.err.blocked": "That work cannot be listed on GigSync.",
   "skill.err.too_many": "A card lists up to {max} kinds of work.",
   "skill.is_trade": "That is {trade}: it is on the list, with its prices.",
+  "skill.is_work": "Is this {work}?",
   "card.skill_label": "Other work, in your own words",
   "card.skill_example": "Tailor",
   "card.skill_add": "Add",
@@ -21,5 +22,9 @@ export const skill = {
   "iv.skill_kept": "I will list it as “{skill}”.",
   "need.skill_found": "Workers near you list “{skill}”.",
   "need.pick_work": "Pick from a list",
+  "need.for": "For: {work}",
+  "need.not_this": "Not this",
   "need.skill_no_rate": "There is no going rate for this work on GigSync yet. Say what you would pay.",
+  "need.listed_rates":
+    "Workers near you list about {low} to {high} for this work ({count} workers). Say what you would pay.",
 } as const;

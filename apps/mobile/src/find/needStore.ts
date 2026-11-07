@@ -4,6 +4,7 @@ import {
   chooseNeed,
   chooseNeedDate,
   type FoundEstimate,
+  guessedNeed,
   hearNeed,
   type Line,
   MAX_ASK,
@@ -16,14 +17,18 @@ import {
   needPrompt,
   needWithConfig,
   needWithEstimate,
+  needWithListed,
+  offerSwitch,
   type PriceStep,
   searchedNeed,
   searchFailed,
+  type TurnRead,
   withJobType,
+  withNobody,
   withPriceStep,
   withSkill,
 } from "@gigsync/core";
-import type { AddressId, BoardSkill, BoardWorker } from "@gigsync/protocol";
+import type { AddressId, BoardSkill, BoardWorker, ListedRates } from "@gigsync/protocol";
 import { changeChat, type FindChat, movedOnFrom, type SearchClaim, settleSearch, withNeedTurns } from "./findChats.js";
 import { appSaid, foundSaid, NeedSpeaker, type NeedTurn, ownerSaid } from "./needTurns.js";
 
@@ -39,7 +44,7 @@ import { appSaid, foundSaid, NeedSpeaker, type NeedTurn, ownerSaid } from "./nee
  * next one, which shows beside the chat (FindChat) and leaves no line in it.
  */
 function asked(state: NeedState): NeedTurn[] {
-  if (state.slot === NeedSlot.found || askingModel(state)) return [];
+  if (state.slot === NeedSlot.found || askingModel(state) || state.switching?.accepted) return [];
   const p = needPrompt(state);
   return [appSaid(p.lines, p.choices ?? [])];
 }
@@ -70,13 +75,35 @@ export function showOwner(chat: string, text: string): void {
  * An answer in words: `aloud` when spoken (a typed budget is never read back aloud); `hint` what a model read from
  * them, already checked; `shown` when `showOwner` put the words on screen already.
  */
-export function answerNeed(chat: string, text: string, aloud: boolean, hint: NeedHint = {}, shown = false): void {
-  moved(chat, (state) => hearNeed(state, text, aloud, hint), shown ? [] : [ownerSaid(text)]);
+export function answerNeed(
+  chat: string,
+  text: string,
+  aloud: boolean,
+  hint: NeedHint = {},
+  shown = false,
+  guessed = false,
+): void {
+  const heard = (state: NeedState) => hearNeed(state, text, aloud, hint);
+  moved(chat, (state) => (guessed ? guessedNeed(heard(state)) : heard(state)), shown ? [] : [ownerSaid(text)]);
 }
 
 /** An answer by tapping a choice; `label` is the choice as the owner read it. */
 export function tapNeed(chat: string, value: string, label: string): void {
   moved(chat, (state) => chooseNeed(state, value), [ownerSaid(label)]);
+}
+
+/** Other work named part-way: asked about first; the owner's words go in the chat. */
+export function switchNeed(chat: string, read: TurnRead, text: string): void {
+  moved(chat, (state) => offerSwitch(state, read, text), [ownerSaid(text)]);
+}
+
+/** The owner said yes to the switch: this chat stays as it was, and the new work opens in its own. */
+export function leaveSwitch(chat: string): void {
+  changeChat(chat, (c) => {
+    if (!c.need) return c;
+    const { switching: _, ...need } = c.need;
+    return { ...c, need };
+  });
 }
 
 /** The phone's model's next price question (or that it is done), taken into the need; nothing was said. */
@@ -89,9 +116,15 @@ export function jobTypeNeed(chat: string, jobType: string, words: string): void 
   moved(chat, (state) => withJobType(state, jobType, words), []);
 }
 
+/** Work on the list that no worker lists yet; the owner's words are on screen already. */
+export function nobodyNeed(chat: string, jobType: string, words: string): void {
+  moved(chat, (state) => withNobody(state, jobType, words), []);
+}
+
 /** A need for a skill workers list (ADR 0047), matched on this phone; the owner's words are on screen already. */
-export function skillNeed(chat: string, skill: BoardSkill, words: string): void {
-  moved(chat, (state) => withSkill(state, skill, words), []);
+export function skillNeed(chat: string, skill: BoardSkill, words: string, saysWhat = false, guessed = false): void {
+  const found = (state: NeedState) => withSkill(state, skill, words, saysWhat);
+  moved(chat, (state) => (guessed ? guessedNeed(found(state)) : found(state)), []);
 }
 
 /** A date picked on the calendar at the When question; `label` is the date as the owner reads it. */
@@ -134,6 +167,18 @@ export function needEstimateFound(chat: string, found: FoundEstimate | undefined
   changeChat(chat, (c) =>
     !c.need || c.need.estimate === found ? c : withEstimateShown(c, c.need, needWithEstimate(c.need, found)),
   );
+}
+
+/** What workers nearby list for the skill arrived: a budget question on screen shows it in place, as an estimate does. */
+export function needListedFound(chat: string, listed: ListedRates): void {
+  changeChat(chat, (c) => {
+    if (!c.need) return c;
+    const next = needWithListed(c.need, listed);
+    const last = c.turns.at(-1);
+    if (next.slot !== NeedSlot.budget || last?.who !== NeedSpeaker.app) return { ...c, need: next };
+    const p = needPrompt(next);
+    return { ...withNeedTurns(c, [...c.turns.slice(0, -1), { ...last, lines: p.lines }]), need: next };
+  });
 }
 
 /** What the search found: the workers to pick from, the nearest picked, or nobody and ways to look further. */

@@ -43,7 +43,7 @@ describe("reading a skill a worker typed (ADR 0047)", () => {
   it("keeps words that only contain a trade's word as the worker's own skill", () => {
     expect(readSkill("Car cleaning", "en")).toEqual({ skill: { text: "Car cleaning", lang: "en" } });
     expect(readSkill("  Painting   classes ", "en")).toEqual({ skill: { text: "Painting classes", lang: "en" } });
-    expect(readSkill("ದರ್ಜಿ", "kn")).toEqual({ skill: { text: "ದರ್ಜಿ", lang: "kn" } });
+    expect(readSkill("ಹೂಗಾರ", "kn")).toEqual({ skill: { text: "ಹೂಗಾರ", lang: "kn" } });
   });
 
   it("says why words cannot be listed", () => {

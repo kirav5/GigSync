@@ -1,17 +1,19 @@
 import { DriverKind, DriverName, driverSpec, type Lang, Trade } from "@gigsync/protocol";
 import { type MessageKey, type PluralKey, pluralKey, t } from "../i18n/t.js";
 import type { Choice, Line, Prompt } from "./card.js";
-import { awaitingModel, currentQuestion, draftDrivers, topDriver } from "./driver-ask.js";
+import { awaitingModel, currentQuestion, modelLed } from "./driver-ask.js";
 import { driverAnswer, saysDontKnow } from "./driver-parse.js";
+import { scrubFacts } from "./fact-scrub.js";
 import { isSkip, yesNo } from "./lexicon.js";
 import { moveOn, type NeedDraft, NeedSlot, type NeedState, retryNeed } from "./need.js";
 import { DETAIL_MAX } from "./need-parse.js";
-import { MAX_PRICE_QUESTIONS, type PriceContext, type PriceQuestion, type PriceStep } from "./price-model.js";
+import type { PriceContext, PriceQuestion, PriceStep } from "./price-model.js";
 
 /**
- * The need interview's price questions (ADR 0041 §2): the model's, checked, or the fixed drivers', worded from the
- * catalog; a driver's answer chips always come from code, and "I don't know" is always one of them. An answer is read
- * on the phone; only structured values and scrubbed facts leave it. "I don't know" or skip ends the questions.
+ * The need interview's price questions (ADR 0041 §2, ADR 0058): the fixed drivers', worded from the catalog, or for
+ * work outside the trades the model's, checked; a driver's answer chips always come from code, and "I don't know" is
+ * always one of them. An answer is read on the phone; only structured values and scrubbed facts leave it. "I don't
+ * know" or skip ends the questions.
  */
 
 /** What a question fills, as `PriceFill` names it. */
@@ -91,7 +93,7 @@ function choicesOf(s: NeedState, q: PriceQuestion): Choice[] {
 export const askingModel = (s: Pick<NeedState, "slot" | "draft">): boolean =>
   s.slot === NeedSlot.driver && awaitingModel(s.draft);
 
-/** The question now: the model's words, or the catalog's for a fixed driver; a wait line while the model thinks. */
+/** The question now: the catalog's for a fixed driver, or the model's words; a wait line while the model thinks. */
 export function driverQuestion(s: NeedState): Prompt {
   if (awaitingModel(s.draft)) return { lines: [{ key: "driver.thinking" }], hints: [] };
   const q = currentQuestion(s.draft);
@@ -109,23 +111,37 @@ export function driverQuestion(s: NeedState): Prompt {
 const questionText = (s: NeedState, q: PriceQuestion): string =>
   q.text ?? (Fill.driver in q.fills ? t(s.config.own, askKey(q.fills.driver, s.draft.trade)) : q.fills.fact);
 
-/** The draft after an answer: a value or a fact's words, one more question asked; the model asked next if it leads. */
+/** The facts with one more answer, under the question's label: code keeps it, so no second model call is needed. */
+const factsWith = (d: NeedDraft, q: PriceQuestion, value: string | number) =>
+  Fill.fact in q.fills ? scrubFacts([...(d.facts ?? []), { label: q.fills.fact, value: String(value) }]) : d.facts;
+
+/** The draft after an answer: a value or a fact's words, one more question asked; the model's next one if it wrote any. */
 function answered(s: NeedState, q: PriceQuestion, value: string | number): NeedDraft {
   const d = s.draft;
   const asked = (d.askedDrivers ?? 0) + 1;
   const drivers = Fill.driver in q.fills ? { ...d.drivers, [q.fills.driver]: value } : d.drivers;
+  const [current, ...next] = d.modelAsk?.next ?? [];
   const modelAsk = d.modelAsk && {
     ...d.modelAsk,
-    current: undefined,
+    current,
+    next,
     said: [...d.modelAsk.said, { q: questionText(s, q), a: String(value) }],
   };
-  return { ...d, drivers, askedDrivers: asked, modelAsk };
+  const done = modelLed(d) && !current;
+  return {
+    ...d,
+    drivers,
+    facts: factsWith(d, q, value),
+    askedDrivers: asked,
+    modelAsk,
+    priceDone: d.priceDone || done,
+  };
 }
 
 /** "I don't know" or skip: the questions end; a driver asked about is assumed. */
 function ended(d: NeedDraft, q: PriceQuestion): NeedDraft {
   const notKnown = Fill.driver in q.fills ? [...(d.notKnown ?? []), q.fills.driver] : d.notKnown;
-  return { ...d, notKnown, priceDone: true, modelAsk: d.modelAsk && { ...d.modelAsk, current: undefined } };
+  return { ...d, notKnown, priceDone: true, modelAsk: d.modelAsk && { ...d.modelAsk, current: undefined, next: [] } };
 }
 
 /** A tap at a price question; undefined for a value it did not offer. */
@@ -163,49 +179,22 @@ export function hearDriver(s: NeedState, text: string, draft: NeedDraft = s.draf
   return isSkip(text) ? moveOn(s, ended(draft, q)) : { ...retryNeed(s, { key: AGAIN }), draft };
 }
 
-/** What the phone's model is told for the next step. */
+/** What the model is told when it writes the questions. */
 export function priceContext(s: NeedState): PriceContext {
   const d = s.draft;
   return {
     lang: s.config.own,
-    trade: d.trade,
     jobType: d.jobType,
     words: [d.need, typeof d.detail === "string" ? d.detail : undefined].filter(Boolean).join(" ").slice(0, WORDS_MAX),
-    drivers: draftDrivers(d),
-    notKnown: d.notKnown ?? [],
-    said: d.modelAsk?.said ?? [],
-    asked: d.askedDrivers ?? 0,
   };
 }
 
-/** The safeguard: the job's top driver as a fixed question, when the model has not covered it and there is room. */
-function safeguard(d: NeedDraft, top: DriverName | undefined): PriceQuestion | undefined {
-  const covered = d.modelAsk?.covered ?? [];
-  const open = top !== undefined && draftDrivers(d)[top] === undefined && !(d.notKnown ?? []).includes(top);
-  return open && !covered.includes(top) && (d.askedDrivers ?? 0) < MAX_PRICE_QUESTIONS
-    ? { fills: { driver: top } }
-    : undefined;
-}
-
-/**
- * The model's step taken: its question (or, as the last one, the job's top driver if it was never asked), done
- * (unless the top driver still needs asking), or failed, which hands the rest to the fixed questions. The top driver is
- * the one ranked first when the model began, so the guarantee is one driver per job, not a moving target. Facts
- * replace those before.
- */
+/** The model's questions taken: the first one open and the rest waiting; none ends them, and a failure goes without. */
 export function withPriceStep(s: NeedState, step: PriceStep): NeedState {
   const d = s.draft;
   if (!d.modelAsk || !awaitingModel(d)) return s;
   if ("failed" in step) return moveOn(s, { ...d, modelAsk: undefined });
-  const top = d.modelAsk.top ?? topDriver(d);
-  const ask = { ...d.modelAsk, top };
-  const facts = step.facts.length > 0 ? step.facts : d.facts;
-  const last = (d.askedDrivers ?? 0) === MAX_PRICE_QUESTIONS - 1;
-  const guard = safeguard(d, top);
-  const fromModel = "question" in step ? step.question : undefined;
-  const coversTop = fromModel && Fill.driver in fromModel.fills && fromModel.fills.driver === top;
-  const current = fromModel && (!last || coversTop || !guard) ? fromModel : guard;
-  if (!current) return moveOn(s, { ...d, facts, priceDone: true, modelAsk: { ...ask, current: undefined } });
-  const covered = Fill.driver in current.fills ? [...ask.covered, current.fills.driver] : ask.covered;
-  return moveOn(s, { ...d, facts, modelAsk: { ...ask, current, covered } });
+  const [current, ...next] = step.questions;
+  if (!current) return moveOn(s, { ...d, priceDone: true });
+  return moveOn(s, { ...d, modelAsk: { ...d.modelAsk, current, next } });
 }

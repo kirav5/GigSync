@@ -248,14 +248,6 @@ export const typicalFactor = (
   arrangement: Arrangement = DEFAULT_ARRANGEMENT,
 ): number => jobFactor(trade, axesOf(trade, known, arrangement).typical, arrangement);
 
-/** The unknown drivers worth asking, widest first, leaving out any the owner already said they do not know. */
-export const rankUnknown = (
-  trade: Trade,
-  known: DriverValues,
-  notKnown: readonly DriverName[] = [],
-  arrangement: Arrangement = DEFAULT_ARRANGEMENT,
-): DriverName[] => driverSpread(trade, known, arrangement).assumed.filter((name) => !notKnown.includes(name));
-
 /** A per-unit range as the job's range: low × least factor, typical × typical, high × most, in order. */
 export function jobRange(rate: PaiseRange, spread: Pick<DriverSpread, "min" | "typical" | "max">): PaiseRange {
   const low = rate.low * spread.min;
