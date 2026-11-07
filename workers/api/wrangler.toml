@@ -51,7 +51,8 @@ LOG_PII = "false"
 # Who may call the API from a browser: the website, then the iOS and Android webviews (capacitor://localhost,
 # https://localhost). Local dev overrides this in .dev.vars.
 ALLOWED_ORIGINS = "https://gigsync.network,https://www.gigsync.network,capacitor://localhost,https://localhost"
-# DEV_OTP is a secret, not a var: the code that always verifies until the SMS gateway exists.
+# DEV_OTP is a secret, not a var: a code that verifies for every number, for local work and tests. Production deletes
+# it once MSG91_AUTH_KEY and MSG91_OTP_TEMPLATE_ID are set (`wrangler secret put`), and sign-in codes go by SMS.
 # Local dev reads it from .dev.vars (see .dev.vars.example); the deployed Worker from `wrangler secret put DEV_OTP`.
 # Job alerts (ADR 0043): the public half of the VAPID pair, which every phone subscribes with, and the contact the
 # push services may write to. The private half is `wrangler secret put VAPID_PRIVATE_KEY`; without it, no alerts.

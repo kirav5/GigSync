@@ -16,6 +16,10 @@ export interface Env {
   ALLOWED_ORIGINS?: string;
   /** Secret: a code that verifies for every number, for local work and tests. Unset means real codes by SMS. */
   DEV_OTP?: string;
+  /** Secret: MSG91's authkey, for sign-in codes by SMS. Unset (or no template) means no texts are sent. */
+  MSG91_AUTH_KEY?: string;
+  /** Secret: the MSG91 OTP template's id, DLT-registered, with `##OTP##` in it. */
+  MSG91_OTP_TEMPLATE_ID?: string;
   /** Secret: HMAC key for phone-number hashes. `wrangler secret put PHONE_HMAC_KEY`. */
   PHONE_HMAC_KEY?: string;
   /** Secret: the key admin-only routes (setting a mentor's vouched badge) expect. Unset means nobody is admin. */
