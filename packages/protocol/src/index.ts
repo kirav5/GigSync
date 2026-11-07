@@ -3,6 +3,7 @@ export * from "./arrangement.js";
 export * from "./auth.js";
 export * from "./board.js";
 export * from "./booking.js";
+export * from "./cities.js";
 export * from "./claim.js";
 export * from "./colleague.js";
 export * from "./content.js";

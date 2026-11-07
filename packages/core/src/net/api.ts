@@ -39,6 +39,8 @@ import {
   QrPerson,
   RecommendLink,
   type RecommendRequest,
+  ServedCities,
+  type ServedCity,
   Session,
   type UserId,
 } from "@gigsync/protocol";
@@ -96,6 +98,11 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
   /** Revokes this device and its session on the server: messages stop being sealed to it. */
   async signOut(): Promise<void> {
     await this.call(HttpMethod.post, ApiPath.signOut);
+  }
+
+  /** The cities and areas GigSync serves (ADR 0061). */
+  async cities(): Promise<ServedCity[]> {
+    return ServedCities.parse(await this.call(HttpMethod.get, ApiPath.cities)).cities;
   }
 
   async directory(user: UserId): Promise<DirectoryEntry> {

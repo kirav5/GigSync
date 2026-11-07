@@ -2,6 +2,7 @@
 export const ApiPath = {
   otpRequest: "/v1/auth/otp/request",
   otpVerify: "/v1/auth/otp/verify",
+  cities: "/v1/cities",
   signOut: "/v1/me/signout",
   directory: "/v1/directory/",
   mailbox: "/v1/mailbox/",
