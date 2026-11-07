@@ -1,6 +1,7 @@
 import {
   areaSlug,
   askingArrangement,
+  CardPick,
   type ChatIntent,
   type Choice,
   draftOf,
@@ -9,6 +10,7 @@ import {
   type Line,
   log,
   type Ports,
+  prompt,
   Slot,
 } from "@gigsync/core";
 import { QuestionKey } from "@gigsync/protocol";
@@ -25,6 +27,7 @@ import {
   pauseInterview,
   placeInterview,
   tapInterview,
+  toggleInterview,
 } from "../card/interviewStore.js";
 import { AboutPrivateError, publishCard, unlistCard } from "../card/publish.js";
 import { type FoundPlace, pilotPlace, workPlace } from "../card/workPlace.js";
@@ -43,23 +46,37 @@ import { Ask, Own } from "./talk/Bubbles.js";
 import { Note } from "./talk/NoteView.js";
 import "./talk.css";
 
+/** Between the kinds of work picked, as the owner's answer reads. */
+const LIST_JOINER = ", ";
+
 /** "Later": the voice stops with the questions, so a summary half read out does not carry on over the next screen. */
 function later() {
   void stopSpeaking();
   pauseInterview();
 }
 
-/** The tap answers under the newest question, and "Later", which pauses the interview. */
-function Choices({ choices }: { choices: readonly Choice[] }) {
+/**
+ * The tap answers under the newest question, and "Later", which pauses the interview. Where the choices toggle
+ * (`picked`), a tap turns one on or off in place, and Done answers with all of them at once.
+ */
+function Choices({ choices, picked }: { choices: readonly Choice[]; picked?: readonly string[] | undefined }) {
   const { t } = useI18n();
+  const toggles = picked !== undefined;
+  const on = (c: Choice) => picked?.includes(c.value) ?? false;
+  const done = choices.filter(on).map((c) => t(c.key, c.params));
+  const tap = (c: Choice) => {
+    if (toggles && c.value !== CardPick.yes) return toggleInterview(c.value);
+    tapInterview(c.value, toggles && done.length > 0 ? done.join(LIST_JOINER) : t(c.key, c.params));
+  };
   return (
     <div className={`${C.row} iv-choices`}>
       {choices.map((c) => (
         <button
           key={c.value}
           type={C.button}
-          className={C.chip}
-          onClick={() => tapInterview(c.value, t(c.key, c.params))}
+          aria-pressed={toggles && c.value !== CardPick.yes ? on(c) : undefined}
+          className={on(c) ? C.chipOn : C.chip}
+          onClick={() => tap(c)}
         >
           {t(c.key, c.params)}
         </button>
@@ -200,7 +217,7 @@ export function Interview({
     }
     return (
       <Ask key={turn.id} lines={turn.lines}>
-        {asking && turn.id === newest?.id && <Choices choices={turn.choices} />}
+        {asking && turn.id === newest?.id && <Choices choices={turn.choices} picked={state && prompt(state).picked} />}
         {asking && turn.id === newest?.id && state.slot === Slot.area && <LocateArea session={session} />}
       </Ask>
     );

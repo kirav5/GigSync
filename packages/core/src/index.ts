@@ -185,6 +185,7 @@ export * from "./schedule/index.js";
 export { listedSkill, SKILL_MEANING_MAX, skillIndex, skillNamedIn } from "./skills/match.js";
 export { workName } from "./skills/name.js";
 export { readSkill, type SkillRead, spokenSkill } from "./skills/read.js";
+export { sameWork, sameWorkPrompt } from "./skills/same-work.js";
 export {
   categoryNamed,
   checkSuggestion,

@@ -119,5 +119,11 @@
     "says": ["मेरा मछली घर साफ़ करना है"],
     "answers": ["बस एक", "कल से"],
     "want": { "skill": "Aquarium cleaning" }
+  },
+  {
+    "id": "hi-cooler",
+    "says": ["मेरा कूलर काम नहीं कर रहा"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "skill": "Cooler fixing" }
   }
 ]

@@ -35,4 +35,9 @@ export interface Prompt {
    * whatever the owner allowed for the other questions. Typing and the tap choices still work.
    */
   secret?: true;
+  /**
+   * The choices toggle: tapping one turns it on or off in place, and only the choice that says Done answers. These are
+   * the values on now.
+   */
+  picked?: readonly string[];
 }

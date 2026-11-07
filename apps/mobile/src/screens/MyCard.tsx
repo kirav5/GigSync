@@ -14,6 +14,7 @@ import type { Account } from "../adapters/account.js";
 import { offerAlerts } from "../adapters/push.js";
 import { closeInterview } from "../card/interviewStore.js";
 import { AboutPrivateError, accountDraft, DEFAULT_RADIUS_KM, publishCard, unlistCard } from "../card/publish.js";
+import { useFileWork } from "../card/useFileWork.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
@@ -54,6 +55,7 @@ export function MyCard({
   const i18n = useI18n();
   const { lang, t } = i18n;
   const draft = accountDraft(account);
+  const fileWork = useFileWork(ports, account, lang, onSaved);
   const [trades, setTrades] = useState<Trade[]>(draft.trades ?? []);
   const [skills, setSkills] = useState<Skill[]>(draft.skills ?? []);
   const [spoken, setSpoken] = useState<Lang[]>(account.languages ?? [lang]);
@@ -191,6 +193,7 @@ export function MyCard({
           trades={trades}
           onChange={setSkills}
           onTrade={(tr) => setTrades((ts) => [...ts, tr])}
+          onFiled={fileWork}
         />
         <CardRates
           trades={trades}

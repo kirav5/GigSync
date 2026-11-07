@@ -62,6 +62,8 @@ export interface NoteDeps {
   moves: Moves;
   /** A card interview from the owner's card as it is now. */
   fresh: () => InterviewState;
+  /** Words about the card while its interview waits at its first question: they answer it; false when none waits. */
+  carryOn: (said: string) => boolean;
 }
 
 export interface Notes {
@@ -71,7 +73,7 @@ export interface Notes {
   answerEarnings: (note: NoteRef) => void;
 }
 
-export function useNotes({ agent, ports, account, view, i18n, turns, moves, fresh }: NoteDeps): Notes {
+export function useNotes({ agent, ports, account, view, i18n, turns, moves, fresh, carryOn }: NoteDeps): Notes {
   const { lang } = i18n;
   const [busy, setBusy] = useState(false);
   const isWorker = account.role === AccountRole.worker;
@@ -104,8 +106,11 @@ export function useNotes({ agent, ports, account, view, i18n, turns, moves, fres
   async function follow(route: ChatRoute, own: string, note: NoteRef): Promise<void> {
     const { intent, slots } = route;
     if (intent === ChatIntent.editCard)
-      return handOver(note, () =>
-        beginInterview(account.worker && slots.field ? editSaid(fresh(), slots.field, own) : fresh(), own),
+      return handOver(
+        note,
+        () =>
+          carryOn(own) ||
+          beginInterview(account.worker && slots.field ? editSaid(fresh(), slots.field, own) : fresh(), own),
       );
     if (intent === ChatIntent.helpOffer) return handOver(note, () => moves.offer(own));
     if (intent === ChatIntent.helpStop) return handOver(note, () => moves.stop(own));

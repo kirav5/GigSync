@@ -68,7 +68,7 @@ export const interview: Readonly<Record<keyof typeof en, string>> = {
   "iv.ask.unlist": "अपना कार्ड बोर्ड से हटाएँ? जब तक वापस नहीं लगाएँगे, नए ग्राहक आपको नहीं ढूँढ पाएँगे। आपके काम जैसे हैं वैसे रहेंगे।",
   "iv.skip": "छोड़ें",
   "iv.none": "और कोई नहीं",
-  "iv.later": "बाद में",
+  "iv.later": "बाद में पूरा करूँगा",
   "iv.resume": "कार्ड बनाना जारी रखें",
   "card.change_by_talking": "बोलकर बदलें",
   "iv.by_voice": "बोलकर भरें",
