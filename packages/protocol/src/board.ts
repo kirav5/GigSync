@@ -6,6 +6,7 @@ import { Place } from "./place.js";
 import { distinctSkills, MAX_SKILLS, Skill, SkillKey } from "./skill.js";
 import { StartHour, TimeWindow } from "./terms.js";
 import { Trade } from "./trade.js";
+import { WorkCategory } from "./work-category.js";
 import { SearchDay, WorkHours } from "./work-hours.js";
 import { WorkerRecord } from "./worker-record.js";
 
@@ -77,8 +78,9 @@ export type MyBoardProfile = z.infer<typeof MyBoardProfile>;
 /** `GET /v1/board/workers?...`: query-string values arrive as text, hence the coercion. */
 export const BoardQuery = z
   .object({
-    /** One of the trades, or else `skill`: a key from `GET /v1/board/skills` (ADR 0047), never the household's words. */
+    /** One of the trades, a kind of work (ADR 0059), or a key from `GET /v1/board/skills`: never the household's words. */
     trade: Trade.optional(),
+    category: WorkCategory.optional(),
     skill: SkillKey.optional(),
     lat: z.coerce.number().min(-90).max(90),
     lon: z.coerce.number().min(-180).max(180),
@@ -96,7 +98,7 @@ export const BoardQuery = z
     hour: z.coerce.number().pipe(StartHour).optional(),
     limit: z.coerce.number().int().min(1).max(MAX_RESULTS).default(DEFAULT_RESULTS),
   })
-  .refine((q) => (q.trade === undefined) !== (q.skill === undefined), "a trade or a skill");
+  .refine((q) => [q.trade, q.category, q.skill].filter(Boolean).length === 1, "a trade, a category or a skill");
 export type BoardQuery = z.infer<typeof BoardQuery>;
 export type BoardQueryInput = z.input<typeof BoardQuery>;
 
