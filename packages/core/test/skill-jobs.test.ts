@@ -31,6 +31,14 @@ describe("a job for a skill outside the trades", () => {
     expect(doesWork({ trades: ["cook"] }, { trade: "other", skill: tailor })).toBe(false);
   });
 
+  it("takes a request for the kind of work a skill is filed under, whatever words each side used (ADR 0059)", () => {
+    const mechanic = { trades: [], skills: [{ text: "TV mechanic", lang: "en", category: "tv_repair" }] } as const;
+    const asked = { trade: "other", skill: { text: "टीवी मरम्मत", lang: "hi", category: "tv_repair" } } as const;
+    expect(doesWork(mechanic, asked)).toBe(true);
+    expect(doesWork(mechanic, { ...asked, skill: { ...asked.skill, category: "fridge_repair" } })).toBe(false);
+    expect(doesWork({ trades: [], skills: [{ text: "TV mechanic", lang: "en" }] }, asked)).toBe(false);
+  });
+
   it("asks how long, quotes from the worker's own rates, and is recorded without words", async () => {
     const relay = new MemoryRelay();
     const worker = await phone(relay, RAVI, { worker: tailoring() });

@@ -24,6 +24,7 @@ import { areaKeyOf } from "../estimate/areas.js";
 import { estimateBand } from "../estimate/band.js";
 import { lookupEstimate } from "../estimate/lookup.js";
 import { basisCount, estimateRequest, perJob } from "../estimate/scope.js";
+import { log } from "../log.js";
 import { pastPrices, proposeMandate } from "./advice.js";
 import { type ArrangementMandate, arrangementMandate, askedArrangement, rateFor } from "./arrangement-rules.js";
 import { questionsFor } from "./ask.js";
@@ -86,19 +87,32 @@ export function distanceKm(a: Place, b: Place): number {
   return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(h));
 }
 
-/** The worker does this work: one of their trades, or a skill on their card by its key (ADR 0047 §5). */
+/**
+ * The worker does this work: one of their trades, or a skill on their card by its key (ADR 0047 §5) or by its kind
+ * (ADR 0059). A household found "TV mechanic" by asking for TV repair: the request names the kind, not those words.
+ */
 export function doesWork(rules: Pick<WorkerRules, "trades" | "skills">, req: Pick<JobRequest, "trade" | "skill">) {
   if (isTrade(req.trade)) return rules.trades.includes(req.trade);
-  const asked = req.skill && skillKey(req.skill.text);
-  return (rules.skills ?? []).some((s) => skillKey(s.text) === asked);
+  const asked = req.skill;
+  if (!asked) return false;
+  const key = skillKey(asked.text);
+  const kind = asked.category;
+  return (rules.skills ?? []).some((s) => skillKey(s.text) === key || (kind !== undefined && s.category === kind));
 }
 
 /** A new request: decline what this worker does not do, ask what is missing, otherwise quote. */
 export async function onRequest(ctx: JobContext, rules: WorkerRules, r: JobRecord): Promise<JobRecord> {
   const req = r.request;
-  const takes = arrangementMandate(rules, req) !== undefined;
-  if (!doesWork(rules, req) || distanceKm(rules.base, req.area) > rules.radius_km || !takes)
+  const fit = {
+    work: doesWork(rules, req),
+    near: distanceKm(rules.base, req.area) <= rules.radius_km,
+    takes: arrangementMandate(rules, req) !== undefined,
+  };
+  if (!fit.work || !fit.near || !fit.takes) {
+    // Which of the three it was, so a decline can be explained; nothing about the place or the words.
+    log.info("request declined", { engagement: r.engagement, ...fit });
     return cancel(ctx, r, { reason: CancelReason.enum.no_match });
+  }
   // The household's terms answer the details they decide (who buys the paint): its agent need not ask them.
   const told = withTermDetails(r, req.terms);
   if (!told.asked) {
