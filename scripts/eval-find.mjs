@@ -20,6 +20,7 @@ const PROMPT_OF = {
   price: "A household in India wants",
   scope: "Read this request for a",
   jobType: "Is this request for one of",
+  sameWork: "Which of these names that workers",
   need: "",
 };
 const kindOf = (prompt) => Object.keys(PROMPT_OF).find((k) => prompt.startsWith(PROMPT_OF[k]));

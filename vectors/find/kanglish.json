@@ -139,5 +139,11 @@
     "says": ["nanna fish tank clean madbeku"],
     "answers": ["ondu matra", "ninne inda"],
     "want": { "skill": "Aquarium cleaning" }
+  },
+  {
+    "id": "kanglish-cooler",
+    "says": ["nanna cooler work aagta illa"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "skill": "Cooler fixing" }
   }
 ]

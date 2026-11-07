@@ -67,7 +67,7 @@ export const interview = {
     "Take your card off the board? New customers won't find you until you put it back. Your jobs stay as they are.",
   "iv.skip": "Skip",
   "iv.none": "No other language",
-  "iv.later": "Later",
+  "iv.later": "Finish later",
   "iv.resume": "Carry on making my card",
   "card.change_by_talking": "Change by talking",
   "iv.by_voice": "Fill in by talking",

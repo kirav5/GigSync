@@ -99,5 +99,11 @@
     "says": ["ನನ್ನ ಮೀನಿನ ತೊಟ್ಟಿ ಸ್ವಚ್ಛ ಮಾಡಬೇಕು"],
     "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"],
     "want": { "skill": "Aquarium cleaning" }
+  },
+  {
+    "id": "kn-cooler",
+    "says": ["ನನ್ನ ಕೂಲರ್ ಕೆಲಸ ಮಾಡುತ್ತಿಲ್ಲ"],
+    "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"],
+    "want": { "skill": "Cooler fixing" }
   }
 ]

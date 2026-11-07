@@ -139,5 +139,11 @@
     "says": ["my fish tank needs cleaning"],
     "answers": ["just the one", "it started yesterday"],
     "want": { "skill": "Aquarium cleaning" }
+  },
+  {
+    "id": "en-cooler",
+    "says": ["my cooler is not working"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "skill": "Cooler fixing" }
   }
 ]

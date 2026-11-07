@@ -5,6 +5,7 @@ import { askable, type InterviewState, type Line, Pick, type Prompt, Slot } from
 import { arrangementsPrompt, mainOf, moreRatePrompt, RATE_QUESTION, ratesSummary } from "./card-arrangements.js";
 import { fieldsFor, unlistPrompt, whichRatePrompt } from "./card-edit.js";
 import { estimatePrompt } from "./card-estimate.js";
+import { kindPrompt } from "./card-kind.js";
 import { minAloud } from "./card-parse.js";
 import { rateLines } from "./card-rates.js";
 import { termsPrompt, termsSummary } from "./card-terms.js";
@@ -28,6 +29,7 @@ export {
   type InterviewState,
   isLastSlot,
   type Line,
+  Pick as CardPick,
   type Prompt,
   Slot,
   start,
@@ -40,7 +42,7 @@ export { aboutIsPrivate, choose, hear, keepPlace } from "./card-parse.js";
 export { legalLines, legalMonthly, rateHint, rateNote } from "./card-rates.js";
 export { LAST_END, MOST_HOURS, RADII_KM, withClock, withTerm } from "./card-terms.js";
 export { estimateLines, type FoundEstimate } from "./estimate-lines.js";
-export { editIntent, type Field } from "./lexicon.js";
+export { editIntent, type Field, tradesIn } from "./lexicon.js";
 
 /** The chip for each field the owner can change from confirm, labelled as on the My card form. */
 const FIELD_LABEL: Readonly<Record<Field, MessageKey>> = {
@@ -109,6 +111,7 @@ function question(state: InterviewState): Prompt {
   const own = config.own;
   switch (state.slot) {
     case Slot.trade:
+      if (state.kind) return kindPrompt(state);
       return {
         lines: [{ key: "iv.ask.trade" }],
         choices: Trade.options.map((tr) => ({ value: tr, key: `trade.${tr}` as const })),
