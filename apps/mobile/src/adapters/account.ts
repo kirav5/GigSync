@@ -124,6 +124,11 @@ export function saveAccount(ports: Ports, account: Account): Promise<void> {
  */
 export async function signOut(ports: Ports): Promise<void> {
   const account = await ports.storage.get<Account>(Collection.settings, ACCOUNT_KEY);
+  // The server stops sealing to this phone. Offline, sign-out still happens here; the next sign-in reuses the row.
+  if (account)
+    await apiClient(account.session)
+      .signOut()
+      .catch((err: unknown) => log.warn("sign-out not sent", { error: err instanceof Error ? err.name : typeof err }));
   if (account) await keepProfile(ownerPorts(ports, account.session.user).storage, account);
   await ports.storage.delete(Collection.settings, ACCOUNT_KEY);
 }

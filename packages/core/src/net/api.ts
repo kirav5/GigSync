@@ -90,6 +90,11 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
     return Session.parse(await this.call(HttpMethod.post, ApiPath.otpVerify, { phone, code, device }));
   }
 
+  /** Revokes this device and its session on the server: messages stop being sealed to it. */
+  async signOut(): Promise<void> {
+    await this.call(HttpMethod.post, ApiPath.signOut);
+  }
+
   async directory(user: UserId): Promise<DirectoryEntry> {
     return DirectoryEntry.parse(await this.call(HttpMethod.get, `${ApiPath.directory}${user}`));
   }
