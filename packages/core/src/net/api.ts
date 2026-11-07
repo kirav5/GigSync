@@ -18,6 +18,7 @@ import {
   Envelope,
   type EstimateRequest,
   EstimateResponse,
+  type FindEvent,
   type GeoPlace,
   GeoResult,
   ListedRates,
@@ -173,6 +174,11 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
   async listedRates(query: ListedRatesQueryInput): Promise<ListedRates> {
     const params = new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)]));
     return ListedRates.parse(await this.call(HttpMethod.get, `${ApiPath.boardRates}?${params}`));
+  }
+
+  /** One more of an event in Find's daily counts (ADR 0060): no user, no words. */
+  async countFind(event: FindEvent): Promise<void> {
+    await this.call(HttpMethod.post, ApiPath.findCount, { event });
   }
 
   async boardSkills(): Promise<BoardSkill[]> {

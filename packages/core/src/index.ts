@@ -55,6 +55,7 @@ export {
 } from "./interview/need.js";
 export { ADD_ADDRESS, atAddress } from "./interview/need-address.js";
 export { boardArrangement } from "./interview/need-arrangement.js";
+export { findEventOf } from "./interview/need-counts.js";
 export { askingModel, DriverPick, priceContext, withPriceStep } from "./interview/need-drivers.js";
 export {
   needDetails,
