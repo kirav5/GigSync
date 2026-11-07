@@ -63,7 +63,7 @@ export interface Relay {
   claim(engagement: EngagementId): Promise<DeviceId>;
 }
 
-type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
+export type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 const ErrorBody = z.object({ error: z.string() });
 const Removed = z.object({ removed: z.boolean() });
 /** Just enough of an envelope this phone cannot read to acknowledge it. */

@@ -8,6 +8,7 @@ import { loadLang, saveLang, suggestedLang } from "./adapters/lang.js";
 import { setMapSession } from "./adapters/map.js";
 import { chosenModel } from "./adapters/model.js";
 import { createPorts } from "./adapters/ports.js";
+import { onSessionEnded } from "./adapters/session-end.js";
 import { prepareListening } from "./adapters/speech.js";
 import { forgetCloudConsent } from "./adapters/speech-settings.js";
 import { fetchPacksOnTap, prepareLanguage } from "./adapters/translate.js";
@@ -87,6 +88,23 @@ export function App() {
     if (!account) keepBackInApp(false);
   }, [account]);
 
+  const signOutNow = useCallback(
+    () =>
+      // Their records stay on the phone under their name, for when they sign in again.
+      void signOut(ports).then(() => {
+        // Talk's and Find's chats stay on the phone under their name, off the screen. The companies they let hear
+        // them were theirs alone.
+        forgetTalk();
+        forgetFind();
+        forgetCloudConsent();
+        setDrawer(false);
+        setAccount(null);
+      }),
+    [ports],
+  );
+  // A session the server no longer takes (expired, retired, frozen) returns the phone to sign-in, once.
+  useEffect(() => (account ? onSessionEnded(signOutNow) : undefined), [account, signOutNow]);
+
   if (account === undefined || lang === undefined) return null;
   if (lang === null || account === null || !device) {
     return (
@@ -102,17 +120,6 @@ export function App() {
     );
   }
 
-  const signOutNow = () =>
-    // Their records stay on the phone under their name, for when they sign in again.
-    void signOut(ports).then(() => {
-      // Talk's and Find's chats stay on the phone under their name, off the screen. The companies they let hear
-      // them were theirs alone.
-      forgetTalk();
-      forgetFind();
-      forgetCloudConsent();
-      setDrawer(false);
-      setAccount(null);
-    });
   return (
     <I18nProvider lang={lang} setLang={setLang}>
       <SignedIn
