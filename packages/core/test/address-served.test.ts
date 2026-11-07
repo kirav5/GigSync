@@ -11,6 +11,21 @@ describe("addresses by chat", () => {
     expect(served({ lat: 19.07, lon: 72.88 })).toBe(false); // Mumbai
   });
 
+  it("follows the cities the directory serves, once the phone has them (ADR 0061)", () => {
+    const kanpur = {
+      key: "kanpur",
+      names: { en: "Kanpur", hi: "कानपुर", kn: "ಕಾನ್ಪುರ" },
+      state: "uttar_pradesh",
+      centre: { lat: 26.4499, lon: 80.3319 },
+      radius_km: 25,
+      areas: [],
+    };
+    const kalyanpur = { lat: 26.5113, lon: 80.2329 };
+    expect(served(kalyanpur)).toBe(false);
+    expect(served(kalyanpur, [kanpur])).toBe(true);
+    expect(served({ lat: 12.93, lon: 77.62 }, [kanpur])).toBe(false);
+  });
+
   it("hears a request to add, change or pick an address, in each language", () => {
     for (const said of [
       "change my address",

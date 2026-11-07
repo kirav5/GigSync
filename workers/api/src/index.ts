@@ -15,6 +15,7 @@ import { requestLog } from "./log.js";
 import { admin } from "./routes/admin.js";
 import { auth } from "./routes/auth.js";
 import { board } from "./routes/board.js";
+import { cities } from "./routes/cities.js";
 import { consent } from "./routes/consent.js";
 import { content } from "./routes/content.js";
 import { devices } from "./routes/devices.js";
@@ -104,6 +105,7 @@ app.get(`${V1}/directory/:${USER_PARAM}`, async (c) => {
 app.route(V1, mail);
 app.route(`${V1}/board`, board);
 app.route(`${V1}/mentors`, mentors);
+app.route(`${V1}/cities`, cities);
 app.route(`${V1}/content`, content);
 app.route(`${V1}/devices`, devices);
 app.route(`${V1}/estimates`, estimates);
