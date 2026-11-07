@@ -11,6 +11,7 @@ import {
   type Trade,
 } from "@gigsync/protocol";
 import { asciiDigits, countIn } from "../job/details.js";
+import { statedNumbers } from "./amount.js";
 import {
   type ChoiceWords,
   DAYS_WEEK_PATTERNS,
@@ -153,7 +154,7 @@ export function driverAnswer(trade: Trade, name: DriverName, text: string): Driv
 }
 
 const bareCount = (trade: Trade, name: DriverName, said: string): number | undefined =>
-  driverSpec(trade, name)?.kind === DriverKind.count ? bounded(trade, name, countIn(said)) : undefined;
+  driverSpec(trade, name)?.kind === DriverKind.count ? bounded(trade, name, statedNumbers(said)[0]) : undefined;
 
 function paintByYesNo(name: DriverName, text: string): string | undefined {
   if (name !== D.paint_by) return undefined;

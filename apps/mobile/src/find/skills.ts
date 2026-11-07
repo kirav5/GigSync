@@ -1,11 +1,11 @@
-import { type Embedder, listedSkill, log, type Ports, pickSkill, skillIndex } from "@gigsync/core";
+import { type Embedder, log, type Ports, skillIndex } from "@gigsync/core";
 import type { BoardSkill, Session } from "@gigsync/protocol";
 import { apiClient } from "../adapters/account.js";
 
 /**
- * The board's skill list for Find (ADR 0047 §4, ADR 0057): fetched whole, kept a few minutes, and matched against the
- * owner's words by name, by meaning on this phone, then by the model; a search sends only a key from the list. A failed
- * fetch matches nothing; the need then goes on as one outside the list, as before.
+ * The board's skill list for Find (ADR 0047 §4, ADR 0059): fetched whole and kept a few minutes. The model reads it with
+ * the owner's words; a search sends only a key or a kind of work. A failed fetch matches nothing, and the need goes on
+ * as one outside the list, as before.
  */
 
 /** How long a fetched list is used before it is fetched again. */
@@ -26,18 +26,11 @@ async function boardSkills(session: Session, embedder: Embedder | undefined, now
   return kept;
 }
 
-/**
- * The skill the owner's words ask for: among the one worker's skills when the need is addressed to them, else the
- * board's list; by its name in the words, then by what the words mean to the model, so "my tv not working" finds a
- * worker's "TV repair". Undefined when none would do the job.
- */
-export async function skillAsked(
+/** What the owner's words may be matched against: one worker's skills when the need is addressed to them, else the board's. */
+export async function listedWork(
   ports: Ports,
   session: Session,
-  words: string,
   only?: readonly BoardSkill[],
-): Promise<BoardSkill | undefined> {
-  if (only) return (await listedSkill(words, only)) ?? pickSkill(ports.model, words, only);
-  const { list, index } = await boardSkills(session, ports.embedder, ports.clock.now().getTime());
-  return (await listedSkill(words, list, index)) ?? pickSkill(ports.model, words, list);
+): Promise<{ list: readonly BoardSkill[]; index?: ReturnType<typeof skillIndex> }> {
+  return only ? { list: only } : boardSkills(session, ports.embedder, ports.clock.now().getTime());
 }

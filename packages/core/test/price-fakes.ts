@@ -11,24 +11,11 @@ export class ScriptModel implements Model {
   }
 }
 
-/** One step of the price questions as the model writes it. */
-export const step = (o: {
-  done?: boolean;
-  text?: string;
-  fills?: string;
-  choices?: string[];
-  facts?: { label: string; value: string }[];
-}) =>
-  JSON.stringify({
-    done: o.done ?? false,
-    reason: "test",
-    ...(o.text
-      ? { question: { text: o.text, fills: o.fills ?? "", ...(o.choices ? { choices: o.choices } : {}) } }
-      : {}),
-    facts: o.facts ?? [],
-  });
+/** The model's reply: its questions, each with a label and any choices. */
+export const questions = (...list: { text: string; label: string; choices?: string[] }[]) =>
+  JSON.stringify({ questions: list });
 
-/** Asks the model while the interview waits on it, as the app does after each answer. */
+/** Asks the model while the interview waits on it, as the app does. */
 export async function think(s: NeedState, model: Model): Promise<NeedState> {
   let at = s;
   while (awaitingModel(at.draft)) at = withPriceStep(at, await modelPriceStep(model, priceContext(at)));

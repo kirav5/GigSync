@@ -1,4 +1,4 @@
-import { readSkill } from "@gigsync/core";
+import { readSkill, type WorkMatch, workMatchName } from "@gigsync/core";
 import { MAX_SKILLS, MAX_TRADES, SKILL_MAX, type Skill, skillKey, type Trade } from "@gigsync/protocol";
 import { type KeyboardEvent, useState } from "react";
 import { useI18n } from "../../i18n.js";
@@ -9,14 +9,18 @@ const ENTER = "Enter";
 /**
  * Work outside the trades, in the worker's own words (ADR 0047): typed, checked on the phone with the board's own
  * rules, and listed as chips to remove. Words that are clearly a trade ("bijli ka kaam") pick that trade instead, so
- * the card keeps its prices and questions.
+ * the card keeps its prices and questions. A skill that is neither is asked about once (ADR 0059): the model suggests a
+ * trade or a kind of work, and only the worker's yes sets it.
  */
 export function SkillsField({
+  suggest,
   skills,
   trades,
   onChange,
   onTrade,
 }: {
+  /** What the words might be, from the model; undefined with none, or when nothing fits. */
+  suggest: (words: string) => Promise<WorkMatch | undefined>;
   skills: readonly Skill[];
   trades: readonly Trade[];
   onChange: (skills: Skill[]) => void;
@@ -26,6 +30,23 @@ export function SkillsField({
   const { lang, t } = useI18n();
   const [typed, setTyped] = useState("");
   const [note, setNote] = useState<string>();
+  const [asking, setAsking] = useState<{ skill: Skill; match: WorkMatch }>();
+
+  async function ask(skill: Skill) {
+    const match = await suggest(skill.text);
+    if (match) setAsking({ skill, match });
+  }
+
+  function answer(yes: boolean) {
+    if (!asking) return;
+    const { skill, match } = asking;
+    setAsking(undefined);
+    if (!yes) return;
+    const others = skills.filter((s) => s.text !== skill.text);
+    if ("category" in match) return onChange([...others, { ...skill, category: match.category }]);
+    onChange(others);
+    if (!trades.includes(match.trade)) onTrade(match.trade);
+  }
 
   function add() {
     if (!typed.trim()) return;
@@ -42,6 +63,7 @@ export function SkillsField({
       return setNote(t("skill.err.too_many", { max: MAX_SKILLS }));
     setNote(undefined);
     onChange([...skills, read.skill]);
+    if (!read.skill.category) void ask(read.skill);
   }
 
   // Enter adds the skill; it must not submit (publish) the card around it.
@@ -82,6 +104,19 @@ export function SkillsField({
           </button>
         ))}
       </div>
+      {asking && skills.some((s) => s.text === asking.skill.text) && (
+        <>
+          <p role="status">{t("skill.is_work", { work: workMatchName(lang, asking.match) })}</p>
+          <div className={C.row}>
+            <button type={C.button} className={C.secondary} onClick={() => answer(true)}>
+              {t("flag.yes")}
+            </button>
+            <button type={C.button} className={C.secondary} onClick={() => answer(false)}>
+              {t("flag.no")}
+            </button>
+          </div>
+        </>
+      )}
       {note && (
         <p className={C.muted} role="status">
           {note}

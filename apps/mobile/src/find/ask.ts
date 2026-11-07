@@ -86,7 +86,8 @@ export async function searchBoard(
   now = new Date(),
 ): Promise<BoardWorker[]> {
   const near = coarsePoint(at);
-  const what = work.skill ? { skill: work.skill.key } : { trade: work.trade };
+  const { skill, trade } = work;
+  const what = skill ? (skill.category ? { category: skill.category } : { skill: skill.key }) : { trade };
   const day = work.day && resolveDay(work.day, now, -now.getTimezoneOffset());
   const hour = hourOf(work.time);
   const window = hour !== undefined ? windowAt(hour) : windowOf(work.time);

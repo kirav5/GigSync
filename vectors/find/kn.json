@@ -58,14 +58,14 @@
     "id": "kn-tutor",
     "says": ["ನನ್ನ ಮಗನಿಗೆ ಗಣಿತ ಟ್ಯೂಟರ್ ಬೇಕು"],
     "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"],
-    "want": { "skill": "Maths tutor" }
+    "want": { "skill": "School tutor" }
   },
   { "id": "kn-tailor", "says": ["ನನಗೆ ಬ್ಲೌಸ್ ಹೊಲಿಸಬೇಕು"], "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"], "want": { "skill": "Tailor" } },
   {
     "id": "kn-laptop",
     "says": ["ನನ್ನ ಲ್ಯಾಪ್‌ಟಾಪ್ ಸ್ಕ್ರೀನ್ ಒಡೆದಿದೆ"],
     "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"],
-    "want": { "skill": "Laptop repair" }
+    "want": { "skill": "Laptop and computer repair" }
   },
   {
     "id": "kn-hello",
@@ -93,5 +93,11 @@
     "later": "ನನಗೆ ಅಡುಗೆಯವರೂ ಬೇಕು",
     "want": { "trade": "plumber" }
   },
-  { "id": "kn-nobody", "says": ["ನನಗೆ ಈಜು ಕಲಿಸುವವರು ಬೇಕು"], "answers": ["x"], "want": { "outside": true } }
+  { "id": "kn-nobody", "says": ["ನನಗೆ ಈಜು ಕಲಿಸುವವರು ಬೇಕು"], "answers": ["x"], "want": { "outside": true } },
+  {
+    "id": "kn-fish",
+    "says": ["ನನ್ನ ಮೀನಿನ ತೊಟ್ಟಿ ಸ್ವಚ್ಛ ಮಾಡಬೇಕು"],
+    "answers": ["ಒಂದೇ", "ನಿನ್ನೆಯಿಂದ"],
+    "want": { "skill": "Aquarium cleaning" }
+  }
 ]
