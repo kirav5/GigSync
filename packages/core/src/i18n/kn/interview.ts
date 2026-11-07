@@ -68,7 +68,7 @@ export const interview: Readonly<Record<keyof typeof en, string>> = {
   "iv.ask.unlist": "ನಿಮ್ಮ ಕಾರ್ಡ್ ಬೋರ್ಡ್‌ನಿಂದ ತೆಗೆಯಬೇಕೇ? ಮತ್ತೆ ಹಾಕುವವರೆಗೆ ಹೊಸ ಗ್ರಾಹಕರು ನಿಮ್ಮನ್ನು ಹುಡುಕಲಾರರು. ನಿಮ್ಮ ಕೆಲಸಗಳು ಹಾಗೆಯೇ ಇರುತ್ತವೆ.",
   "iv.skip": "ಬಿಡಿ",
   "iv.none": "ಬೇರೆ ಯಾವುದೂ ಇಲ್ಲ",
-  "iv.later": "ನಂತರ",
+  "iv.later": "ನಂತರ ಮುಗಿಸುತ್ತೇನೆ",
   "iv.resume": "ಕಾರ್ಡ್ ಮಾಡುವುದನ್ನು ಮುಂದುವರಿಸಿ",
   "card.change_by_talking": "ಮಾತಾಡಿ ಬದಲಿಸಿ",
   "iv.by_voice": "ಮಾತಾಡಿ ತುಂಬಿಸಿ",

@@ -13,9 +13,9 @@ import type { City } from "@gigsync/protocol";
 import { useEffect, useRef } from "react";
 import { type Account, AccountRole } from "../adapters/account.js";
 import { interviewConfig } from "../card/choices.js";
+import { answerCard } from "../card/interviewKind.js";
 import {
   addNote,
-  answerInterview,
   beginInterview,
   pauseInterview,
   relanguageInterview,
@@ -93,6 +93,16 @@ export function AgentScreen(props: TalkProps) {
   }, [turns]);
 
   const fresh = () => start(interviewConfig(lang), accountDraft(account), account.listed === false);
+  /**
+   * A first card's interview paused at "What work do you do?" ("Finish later"), and then the work said to the agent
+   * ("I am a TV mechanic"): it answers the question, instead of the interview starting over and asking it again.
+   */
+  const carryOn = (said: string) => {
+    if (!state || !paused || state.slot !== Slot.trade || account.worker) return false;
+    resumeInterview();
+    void answerCard(ports, state, said, false);
+    return true;
+  };
   const { busy, sendNote, choose, answerEarnings } = useNotes({
     agent,
     ports,
@@ -102,6 +112,7 @@ export function AgentScreen(props: TalkProps) {
     turns,
     moves,
     fresh,
+    carryOn,
   });
 
   const isWorker = account.role === AccountRole.worker;
@@ -126,7 +137,7 @@ export function AgentScreen(props: TalkProps) {
   function send(text: string, via: Via) {
     if (!active) return void sendNote(text);
     const moving = movingIntent(text, lang);
-    if (!moving?.certain) return answerInterview(text, via === Via.voice);
+    if (!moving?.certain) return void answerCard(ports, state, text, via === Via.voice);
     pauseInterview();
     moves.start(text, moving.city);
   }

@@ -1,6 +1,6 @@
 import { readSkill, type WorkMatch, workMatchName } from "@gigsync/core";
 import { MAX_SKILLS, MAX_TRADES, SKILL_MAX, type Skill, skillKey, type Trade } from "@gigsync/protocol";
-import { type KeyboardEvent, useState } from "react";
+import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 
@@ -18,6 +18,7 @@ export function SkillsField({
   trades,
   onChange,
   onTrade,
+  onFiled,
 }: {
   /** What the words might be, from the model; undefined with none, or when nothing fits. */
   suggest: (words: string) => Promise<WorkMatch | undefined>;
@@ -26,16 +27,30 @@ export function SkillsField({
   onChange: (skills: Skill[]) => void;
   /** The words named a trade: it is picked on the card. */
   onTrade: (trade: Trade) => void;
+  /** A yes filed a skill already on the card: the card's work as it now is, to save at once. */
+  onFiled?: (work: { trades: Trade[]; skills: Skill[] }) => void;
 }) {
   const { lang, t } = useI18n();
   const [typed, setTyped] = useState("");
   const [note, setNote] = useState<string>();
   const [asking, setAsking] = useState<{ skill: Skill; match: WorkMatch }>();
 
+  /** Skills asked about while this screen is open: one answered no is not asked again until the next visit. */
+  const asked = useRef(new Set<string>());
+
   async function ask(skill: Skill) {
+    asked.current.add(skillKey(skill.text));
     const match = await suggest(skill.text);
     if (match) setAsking({ skill, match });
   }
+
+  // A skill on the card from before kinds of work (ADR 0059), or said in the interview, is asked about here too.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: one question at a time, as the skills change
+  useEffect(() => {
+    if (asking) return;
+    const next = skills.find((s) => !s.category && !asked.current.has(skillKey(s.text)));
+    if (next) void ask(next);
+  }, [skills, asking]);
 
   function answer(yes: boolean) {
     if (!asking) return;
@@ -43,9 +58,13 @@ export function SkillsField({
     setAsking(undefined);
     if (!yes) return;
     const others = skills.filter((s) => s.text !== skill.text);
-    if ("category" in match) return onChange([...others, { ...skill, category: match.category }]);
-    onChange(others);
-    if (!trades.includes(match.trade)) onTrade(match.trade);
+    const filed =
+      "category" in match
+        ? { trades: [...trades], skills: [...others, { ...skill, category: match.category }] }
+        : { trades: trades.includes(match.trade) ? [...trades] : [...trades, match.trade], skills: others };
+    onChange(filed.skills);
+    if ("trade" in match && !trades.includes(match.trade)) onTrade(match.trade);
+    onFiled?.(filed);
   }
 
   function add() {

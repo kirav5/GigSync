@@ -2,6 +2,7 @@ import type { Arrangement, Lang, QuestionKey, RateCard, Skill, Trade } from "@gi
 import { ASK_FIRST_DETAILS } from "../job/details.js";
 import { QUESTIONS } from "../job/worker.js";
 import type { TermPrefs } from "../job/worker-stance.js";
+import type { WorkMatch } from "../skills/suggest.js";
 import { arranged, missingRate } from "./card-arrangements.js";
 import type { Line } from "./card-lines.js";
 import type { FoundEstimate } from "./estimate-lines.js";
@@ -116,6 +117,8 @@ export interface InterviewState {
   readonly from?: number | undefined;
   /** The words that asked for a change and named its value, kept while the question is which rate it is for. */
   readonly heard?: string | undefined;
+  /** At the work question: the trade or kind of work the worker's own words may be, asked as yes or no (ADR 0059). */
+  readonly kind?: WorkMatch | undefined;
 }
 
 /** The values tap choices carry besides trades, areas, languages and fields. */
@@ -231,6 +234,7 @@ const BETWEEN_QUESTIONS = {
   rateFor: undefined,
   from: undefined,
   heard: undefined,
+  kind: undefined,
 } as const;
 
 /** The current field answered: on to the next one, with an optional readback. */

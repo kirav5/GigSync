@@ -13,6 +13,7 @@ import {
   problemByMeaning,
   readScope,
   readTurn,
+  sameWork,
   TurnKind,
   t,
   tradeByMeaning,
@@ -22,7 +23,7 @@ import {
   workOptions,
   worthReading,
 } from "@gigsync/core";
-import type { Lang, Session } from "@gigsync/protocol";
+import type { Lang, Session, WorkCategory } from "@gigsync/protocol";
 import { meaningFor } from "../adapters/meaning.js";
 import { answerMarket, routedMarket } from "../estimate/market.js";
 import { answerNeed, jobTypeNeed, needSay, nobodyNeed, showOwner, skillNeed, switchNeed } from "./needStore.js";
@@ -70,7 +71,11 @@ export async function readFirst(m: Message): Promise<void> {
   const lists = parseNeed(text, { areas, today }).trade;
   // A trade named outright stands, whatever a model reads: "I need a plumber" is a plumber.
   const titled = tradeTitled(text);
-  const found = titled ? undefined : read?.category ? categorySkill(read.category, list, lang) : read?.skill;
+  // A kind of work no worker filed under yet may still be a worker's own words: "TV mechanic" for TV repair. Asked only
+  // when the word lists see no trade in the words, which goes first: "पुताई" is painting, whatever the kind.
+  const filed = (c: WorkCategory) =>
+    categorySkill(c, list, lang) ?? (lists ? undefined : sameWork(ports.model, c, list));
+  const found = titled ? undefined : read?.category ? await filed(read.category) : read?.skill;
   // A kind of work nobody lists does not end the chat when the word lists see a trade in the words: "पुताई" is painting.
   const named = titled ? undefined : read?.jobType || found;
   const said = titled ?? (read ? (read.trade ?? (named ? undefined : lists)) : (lists ?? hint.trade));

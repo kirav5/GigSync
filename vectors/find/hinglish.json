@@ -139,5 +139,11 @@
     "says": ["fish tank saaf karwana hai"],
     "answers": ["bas ek", "kal se"],
     "want": { "skill": "Aquarium cleaning" }
+  },
+  {
+    "id": "hinglish-cooler",
+    "says": ["mera cooler kharab ho gaya"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "skill": "Cooler fixing" }
   }
 ]
