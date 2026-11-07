@@ -35,7 +35,7 @@ export {
 export { type DriverAnswer, driverAnswer, driversIn, saysDontKnow } from "./interview/driver-parse.js";
 export { looksLikeAddress, scrubFacts, scrubJobType, scrubText } from "./interview/fact-scrub.js";
 export * from "./interview/index.js";
-export { checkJobType, jobTypePrompt, modelJobType, withJobType } from "./interview/job-type.js";
+export { checkJobType, jobTypePrompt, modelJobType, withJobType, withNobody } from "./interview/job-type.js";
 export {
   DayWord,
   type NeedConfig,
@@ -181,7 +181,6 @@ export * from "./router/route-chat.js";
 export * from "./schedule/index.js";
 export { listedSkill, SKILL_MEANING_MAX, skillIndex, skillNamedIn } from "./skills/match.js";
 export { workName } from "./skills/name.js";
-export { pickSkill } from "./skills/pick.js";
 export { readSkill, type SkillRead, spokenSkill } from "./skills/read.js";
 export {
   categoryNamed,
@@ -191,4 +190,5 @@ export {
   type WorkMatch,
   workMatchName,
 } from "./skills/suggest.js";
+export { categorySkill, type WorkPick, workOptions } from "./skills/work-list.js";
 export * from "./transfer/index.js";

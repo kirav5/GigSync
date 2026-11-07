@@ -23,6 +23,7 @@ import {
   searchFailed,
   type TurnRead,
   withJobType,
+  withNobody,
   withPriceStep,
   withSkill,
 } from "@gigsync/core";
@@ -104,6 +105,11 @@ export function stepNeed(chat: string, step: PriceStep): void {
 /** A need outside the trades, named by the phone's model; the owner's words are on screen already. */
 export function jobTypeNeed(chat: string, jobType: string, words: string): void {
   moved(chat, (state) => withJobType(state, jobType, words), []);
+}
+
+/** Work on the list that no worker lists yet; the owner's words are on screen already. */
+export function nobodyNeed(chat: string, jobType: string, words: string): void {
+  moved(chat, (state) => withNobody(state, jobType, words), []);
 }
 
 /** A need for a skill workers list (ADR 0047), matched on this phone; the owner's words are on screen already. */

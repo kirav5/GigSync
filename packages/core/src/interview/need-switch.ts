@@ -1,4 +1,4 @@
-import type { Trade } from "@gigsync/protocol";
+import type { Trade, WorkCategory } from "@gigsync/protocol";
 import { t } from "../i18n/t.js";
 import { Pick, type Prompt } from "./card.js";
 import { YES_NO } from "./choices.js";
@@ -15,6 +15,8 @@ import { TurnKind, type TurnRead } from "./read-turn.js";
 /** The other work the owner's words named. */
 export interface WorkSwitch {
   trade?: Trade;
+  category?: WorkCategory;
+  /** The work in words: a listed skill's, or the model's. */
   jobType?: string;
   /** The words, to start the new chat with. */
   words: string;
@@ -25,9 +27,11 @@ export interface WorkSwitch {
 /** The words name work that is not the need's own. */
 export function namesOtherWork(s: NeedState, read: TurnRead): boolean {
   if (read.kind !== TurnKind.enum.need) return false;
-  const { trade, jobType } = s.draft;
+  const { trade, skill, jobType } = s.draft;
   if (read.trade) return read.trade !== trade;
-  return read.jobType !== undefined && read.jobType !== jobType && trade !== undefined;
+  if (read.category) return read.category !== skill?.category;
+  if (read.skill) return read.skill.key !== skill?.key;
+  return read.jobType !== undefined && read.jobType !== jobType && (trade !== undefined || skill !== undefined);
 }
 
 export const offerSwitch = (s: NeedState, read: TurnRead, words: string): NeedState => ({
@@ -35,16 +39,18 @@ export const offerSwitch = (s: NeedState, read: TurnRead, words: string): NeedSt
   notes: [],
   switching: {
     ...(read.trade ? { trade: read.trade } : {}),
-    ...(read.jobType ? { jobType: read.jobType } : {}),
+    ...(read.category ? { category: read.category } : {}),
+    ...(read.skill || read.jobType ? { jobType: read.skill?.text ?? read.jobType } : {}),
     words,
   },
 });
 
-/** "Switch to …?" in the owner's language, the work named as a trade or in the model's words. */
+/** "Switch to …?" in the owner's language, the work named as a trade, a kind of work, or in words. */
 export function switchPrompt(s: NeedState): Prompt {
   const to = s.switching;
   const own = s.config.own;
-  const work = to?.trade ? t(own, `trade.${to.trade}`) : (to?.jobType ?? "");
+  const named = to?.trade ? t(own, `trade.${to.trade}`) : to?.category && t(own, `category.${to.category}`);
+  const work = named ?? to?.jobType ?? "";
   return {
     lines: [{ key: Say.switchAsk, params: { work } }],
     choices: YES_NO,
