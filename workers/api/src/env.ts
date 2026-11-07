@@ -14,7 +14,7 @@ export interface Env {
   LOG_PII?: string;
   /** Comma-separated origins allowed to call the API from a browser or webview (the website and the phone apps). */
   ALLOWED_ORIGINS?: string;
-  /** Secret: the code that always verifies until the SMS gateway exists. Unset means nobody can sign in. */
+  /** Secret: a code that verifies for every number, for local work and tests. Unset means real codes by SMS. */
   DEV_OTP?: string;
   /** Secret: HMAC key for phone-number hashes. `wrangler secret put PHONE_HMAC_KEY`. */
   PHONE_HMAC_KEY?: string;

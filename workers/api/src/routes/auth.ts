@@ -3,12 +3,17 @@ import { LOCAL_ENVIRONMENT, log, pii, traced } from "@gigsync/core/log";
 import { OtpRequest, OtpVerify } from "@gigsync/protocol";
 import { Hono } from "hono";
 import { isLocked, recordFailure } from "../auth/attempts.js";
+import { dropCode, newCode, saveCode, takeCode } from "../auth/codes.js";
 import { completeSignIn } from "../auth/signin.js";
+import { smsGateway } from "../auth/sms.js";
 import { ApiError, type AppEnv, Var } from "../context.js";
 import { hmacHex, sameSecret } from "../crypto.js";
 import { requireSecret } from "../env.js";
 
-/** Sign-in by one-time code. Dev accepts DEV_OTP; the SMS gateway arrives in M0 hardening. */
+/**
+ * Sign-in by one-time code. With DEV_OTP set (local, tests, and the pilot until SMS is live) that code verifies for
+ * every number, as before. Without it, a real code is made, kept hashed for five minutes, sent by SMS and works once.
+ */
 export const auth = new Hono<AppEnv>();
 
 /** Rate-limit key when Cloudflare gives no client IP (only in local tests). */
@@ -32,9 +37,32 @@ const signIn = traced("auth.completeSignIn", completeSignIn);
 auth.post("/otp/request", async (c) => {
   const body = OtpRequest.safeParse(await c.req.json().catch(() => null));
   if (!body.success) return c.json({ error: ApiError.badPhone }, 400);
-  log.info("otp requested", { requestId: c.get(Var.requestId), phone: pii(body.data.phone) });
-  // TODO(M0): send through the DLT-registered SMS gateway; store a hashed code with a 5-minute expiry.
-  return c.json({ sent: true, channel: c.env.DEV_OTP ? OtpChannel.dev : OtpChannel.sms });
+  const who = { requestId: c.get(Var.requestId), phone: pii(body.data.phone) };
+  log.info("otp requested", who);
+  if (c.env.DEV_OTP) return c.json({ sent: true, channel: OtpChannel.dev });
+  // Each text costs money and lands on someone's phone: capped per client IP here, and per number by `saveCode`.
+  const local = c.env.ENVIRONMENT === LOCAL_ENVIRONMENT;
+  const ip = clientIp(c.req.header(Header.cfConnectingIp), local);
+  if (!(await c.env.OTP_RATE_LIMIT.limit({ key: ip ?? `${LOCAL_PHONE_KEY}${body.data.phone}` })).success)
+    return c.json({ error: ApiError.tooManyAttempts }, 429);
+  const sms = smsGateway(c.env);
+  if (!sms) {
+    log.warn("otp not sent: no sms gateway", who);
+    return c.json({ error: ApiError.smsUnavailable }, 503);
+  }
+  const key = requireSecret(c.env.PHONE_HMAC_KEY, "PHONE_HMAC_KEY");
+  const phoneHmac = await hmacHex(key, body.data.phone);
+  const code = newCode();
+  const db = c.get(Var.db);
+  if (!(await saveCode(db, key, phoneHmac, code, new Date()))) return c.json({ error: ApiError.tooSoon }, 429);
+  try {
+    await sms.sendCode(body.data.phone, code);
+  } catch (err) {
+    await dropCode(db, phoneHmac);
+    log.error("otp send failed", { ...who, error: err instanceof Error ? err.name : typeof err });
+    return c.json({ error: ApiError.smsUnavailable }, 503);
+  }
+  return c.json({ sent: true, channel: OtpChannel.sms });
 });
 
 auth.post("/otp/verify", async (c) => {
@@ -51,14 +79,18 @@ auth.post("/otp/verify", async (c) => {
 
   const db = c.get(Var.db);
   const now = new Date();
-  const phoneHmac = await hmacHex(requireSecret(c.env.PHONE_HMAC_KEY, "PHONE_HMAC_KEY"), body.data.phone);
+  const secret = requireSecret(c.env.PHONE_HMAC_KEY, "PHONE_HMAC_KEY");
+  const phoneHmac = await hmacHex(secret, body.data.phone);
   const who = { requestId: c.get(Var.requestId), phone: pii(body.data.phone) };
   if (await locked(db, phoneHmac, now)) {
     log.warn("sign-in locked", who);
     return c.json({ error: ApiError.tooManyAttempts }, 429);
   }
 
-  if (!c.env.DEV_OTP || !(await sameSecret(body.data.code, c.env.DEV_OTP))) {
+  const right = c.env.DEV_OTP
+    ? await sameSecret(body.data.code, c.env.DEV_OTP)
+    : await takeCode(db, secret, phoneHmac, body.data.code, now);
+  if (!right) {
     await failed(db, phoneHmac, now);
     log.warn("sign-in wrong code", { ...who, code: pii(body.data.code) });
     return c.json({ error: ApiError.wrongCode }, 401);

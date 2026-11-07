@@ -48,4 +48,6 @@ export const ApiError = {
   tooManyAttempts: "too many attempts",
   unauthorized: "unauthorized",
   wrongCode: "wrong code",
+  smsUnavailable: "sign-in by text is not available yet",
+  tooSoon: "a code was sent a moment ago",
 } as const;
