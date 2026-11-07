@@ -122,7 +122,16 @@ export function needOf(
   const found = needEstimate(state);
   return needToSend({
     trade,
-    ...(d.skill ? { skill: { text: d.skill.text, lang: d.skill.lang } } : {}),
+    // The kind of work goes with the words, so a worker found by it recognises the job as theirs (ADR 0059).
+    ...(d.skill
+      ? {
+          skill: {
+            text: d.skill.text,
+            lang: d.skill.lang,
+            ...(d.skill.category ? { category: d.skill.category } : {}),
+          },
+        }
+      : {}),
     need: needWords(d, state.config.own),
     day,
     label: dayLabel(i18n, day),
