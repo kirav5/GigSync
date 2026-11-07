@@ -115,5 +115,6 @@ export const drivers: Readonly<Record<keyof typeof en, string>> = {
   "driver.basis.gigsync.other": "GigSync ನ {count} ಕೆಲಸಗಳು",
   "driver.basis.rate_card": "{city} ದರ ಪಟ್ಟಿ: {sources}",
   "driver.basis_line": "ಆಧಾರ: {parts}.",
-  "driver.no_trade": "GigSync ನಲ್ಲಿ {job} ಕೆಲಸದ ದರಗಳು ಇನ್ನೂ ಇಲ್ಲ, ಮತ್ತು GigSync ನಲ್ಲಿ ಯಾರೂ ಈ ಕೆಲಸ ಮಾಡುವುದಿಲ್ಲ.",
+  "driver.no_trade":
+    "GigSync ನಲ್ಲಿ {job} ಕೆಲಸದ ದರಗಳು ಇನ್ನೂ ಇಲ್ಲ, ಮತ್ತು ಇನ್ನೂ ಯಾವ ಕೆಲಸಗಾರರೂ ಈ ಕೆಲಸವನ್ನು ಸೇರಿಸಿಲ್ಲ. ಕೆಲಸವನ್ನು ಬೇರೆ ಪದಗಳಲ್ಲಿ ಹೇಳಿ, ಅಥವಾ ಪಟ್ಟಿಯಿಂದ ಆರಿಸಿ.",
 };

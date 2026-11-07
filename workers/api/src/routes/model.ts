@@ -19,6 +19,11 @@ const OLLAMA_GENERATE = "/api/generate";
 const JSON_FORMAT = "json";
 /** Longer than any answer the agent waits for; the phone gives up sooner and falls back. */
 const MODEL_TIMEOUT_MS = 15_000;
+/**
+ * How long Ollama keeps the model loaded after a call. Its default is five minutes, and loading it again takes longer
+ * than a phone waits (about 9 s against 4 s), so the first message after a quiet spell was read by no model at all.
+ */
+const MODEL_KEEP_ALIVE = "24h";
 /** Cloudflare Access service-token headers, for the tunnel in front of the model. */
 const AccessHeader = { id: "CF-Access-Client-Id", secret: "CF-Access-Client-Secret" } as const;
 
@@ -34,6 +39,7 @@ const ollamaBody = (name: string, r: ModelGenerateRequest) => ({
   prompt: r.prompt,
   stream: false,
   think: false,
+  keep_alive: MODEL_KEEP_ALIVE,
   ...(r.json ? { format: r.schema ?? JSON_FORMAT } : {}),
   options: {
     ...(r.max_tokens === undefined ? {} : { num_predict: r.max_tokens }),

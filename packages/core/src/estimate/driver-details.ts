@@ -11,7 +11,7 @@ import {
   type Trade,
   type TradeDrivers,
 } from "@gigsync/protocol";
-import { countIn } from "../job/details.js";
+import { statedNumbers } from "../interview/amount.js";
 
 /**
  * A job's drivers (ADR 0041) and its details (the keyed answers a request carries to workers) are one set of facts in
@@ -53,7 +53,7 @@ function driverValueOf(trade: Trade, name: DriverName, detail: string | undefine
     return detail === DetailFlag.enum.no ? MaterialsBy.enum.worker : undefined;
   }
   if (spec.kind === DriverKind.choice) return spec.values.find((v) => v === detail);
-  const n = countIn(detail);
+  const n = statedNumbers(detail)[0];
   return n !== undefined && n >= spec.min && n <= spec.max ? n : undefined;
 }
 

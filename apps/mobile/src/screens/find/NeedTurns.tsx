@@ -38,17 +38,20 @@ function Choices({
   choices,
   today,
   onAddAddress,
+  onTap,
 }: {
   chat: string;
   choices: readonly Choice[];
   today: string;
   onAddAddress: () => void;
+  onTap: (value: string) => void;
 }) {
   const { t } = useI18n();
   const [picking, setPicking] = useState(false);
   const tap = (c: Choice) => {
     if (c.value === NeedPick.date) return setPicking(true);
     if (c.value === ADD_ADDRESS) return onAddAddress();
+    onTap(c.value);
     tapNeed(chat, c.value, t(c.key, c.params));
   };
   return (
@@ -126,6 +129,7 @@ export function NeedTurns({
   busy,
   onAsk,
   onAddAddress,
+  onTap,
 }: {
   /** The chat these turns are in, which every answer here names. */
   chat: string;
@@ -135,6 +139,7 @@ export function NeedTurns({
   onAsk: (turn: FoundTurn) => void;
   /** "Add an address" at the "where" question: the app opens the address form (ADR 0045). */
   onAddAddress: () => void;
+  onTap: (value: string) => void;
 }) {
   const newest = (who: NeedTurn["who"]) => [...turns].reverse().find((turn) => turn.who === who)?.id;
   const lastQuestion = newest(NeedSpeaker.app);
@@ -159,7 +164,13 @@ export function NeedTurns({
     return (
       <Ask key={turn.id} lines={turn.lines}>
         {asking && turn.id === lastQuestion && turn.choices.length > 0 && (
-          <Choices chat={chat} choices={turn.choices} today={state.config.today} onAddAddress={onAddAddress} />
+          <Choices
+            chat={chat}
+            choices={turn.choices}
+            today={state.config.today}
+            onAddAddress={onAddAddress}
+            onTap={onTap}
+          />
         )}
       </Ask>
     );

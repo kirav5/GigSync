@@ -27,12 +27,15 @@ const GENERATE_PATH = "/v1/model/generate";
 const STATUS_PATH = "/v1/model/status";
 /** Long enough for the server's model at its slowest seen (about 2.5 s), short enough to fall back in time. */
 const WAIT_MS = 4_000;
-/** After a failure, the phone stops asking for this long, so a model that is down does not slow every message. */
+/** After failures in a row, the phone stops asking for this long, so a model that is down does not slow every message. */
 const PAUSE_MS = 60_000;
+/** One slow answer is not a model that is down: it is usually the model loading, and the next call is fast. */
+const FAILURES_TO_PAUSE = 2;
 
 export class ServerModel implements Model {
   private session: Session | undefined;
   private pausedUntil = 0;
+  private failures = 0;
   /** The API says a model is set up there; until it does, nothing is sent. */
   private on = false;
 
@@ -89,16 +92,23 @@ export class ServerModel implements Model {
       });
       if (!res.ok) return this.failed(res.status);
       const reply = ModelGenerateReply.safeParse(await res.json());
-      return reply.success ? reply.data.text : this.failed(res.status);
+      if (!reply.success) return this.failed(res.status);
+      this.failures = 0;
+      return reply.data.text;
     } catch (err) {
       return this.failed(err instanceof Error ? err.name : typeof err);
     }
   }
 
   private failed(why: number | string): null {
-    log.debug("server model: no answer, pausing", { why });
-    this.pausedUntil = this.now() + PAUSE_MS;
-    this.changed();
+    this.failures += 1;
+    const pausing = this.failures >= FAILURES_TO_PAUSE;
+    log.warn("server model gave no answer", { why, failures: this.failures, pausing });
+    if (pausing) {
+      this.pausedUntil = this.now() + PAUSE_MS;
+      this.failures = 0;
+      this.changed();
+    }
     return null;
   }
 }
