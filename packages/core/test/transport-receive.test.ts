@@ -70,4 +70,18 @@ describe("receiving", () => {
     await receiver().receive(async (r) => void got.push(r));
     expect(texts(got)).toEqual([FIRST, SECOND]);
   });
+
+  it("gives up a message that fails every time, after three tries, so the rest are not held back", async () => {
+    const { relay, worker, receiver } = await twoPhones();
+    const transport = receiver();
+    const got: Received[] = [];
+    const poisoned = async (r: Received) => {
+      if (texts([r])[0] === FIRST) throw new Error("a bug in the handler");
+      got.push(r);
+    };
+    for (let i = 0; i < 2; i++) await expect(transport.receive(poisoned)).rejects.toThrow("a bug");
+    expect(await transport.receive(poisoned)).toBe(1);
+    expect(texts(got)).toEqual([SECOND]);
+    expect(await relay.for(worker).inbox()).toEqual([]);
+  });
 });
