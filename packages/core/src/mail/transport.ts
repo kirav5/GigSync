@@ -6,6 +6,7 @@ import {
   type EngagementId,
   type Envelope,
   EnvelopeKind,
+  type MessageId,
   PROTOCOL_VERSION,
   type UserId,
 } from "@gigsync/protocol";
@@ -30,6 +31,8 @@ const MS_PER_SECOND = 1000;
  * dropped it unread (a household's second request to the same worker never reached him).
  */
 const DEVICE_LIST_MS = 60 * MS_PER_SECOND;
+/** Tries at handing one message over before it is given up, so one bad message cannot hold the inbox back forever. */
+const MAX_HANDLE_ATTEMPTS = 3;
 /**
  * A request opens a job, so it is sealed to the devices the directory lists right now: a list read a moment before
  * the worker signed in on a new phone would miss it, and requests are few.
@@ -49,6 +52,8 @@ export class MailTransport {
   private readonly outbox: Outbox;
   private readonly inbox: Inbox;
   private readonly devices = new Map<UserId, { list: DeviceKeys[]; at: number }>();
+  /** Failed hand-overs per message, while the app runs. */
+  private readonly attempts = new Map<MessageId, number>();
 
   constructor(
     private readonly relay: Relay,
@@ -103,22 +108,47 @@ export class MailTransport {
     return delivered;
   }
 
-  /** Fetches, verifies and opens what the mailbox holds, then acknowledges it. */
-  async receive(): Promise<Received[]> {
+  /**
+   * Fetches, verifies and opens what the mailbox holds, hands each to `handle` in order, and acknowledges only once all
+   * were handled. An envelope counts as delivered only after `handle` finished with it (or it can never be opened), so a
+   * crash, a directory timeout or a failing handler leaves it to come again on the next sync. Returns how many were
+   * handled.
+   */
+  async receive(handle: (r: Received) => Promise<void>): Promise<number> {
     const fetched = await this.relay.inbox();
-    if (fetched.length === 0) return [];
-    const out: Received[] = [];
+    if (fetched.length === 0) return 0;
+    let handled = 0;
     const ordered = [...fetched].sort((a, b) => a.seq - b.seq);
     for (const e of ordered) {
-      const accepted = await this.inbox.accept(e, this.clock.now());
+      const accepted = await this.inbox.offer(e, this.clock.now());
       if (accepted.outcome !== Outcome.new) continue;
       for (const ready of accepted.deliver) {
         const body = await this.tryOpen(ready);
-        if (body !== undefined) out.push({ envelope: ready, body });
+        if (body !== undefined && (await this.handled(ready, body, handle))) handled += 1;
+        await this.inbox.delivered(ready, this.clock.now());
       }
     }
     await this.relay.ack(fetched.map((e) => e.id));
-    return out;
+    return handled;
+  }
+
+  /**
+   * One message handed over. A failure stops the sync, so the message comes again; one that fails every time would
+   * hold the whole inbox back, so after `MAX_HANDLE_ATTEMPTS` it is dropped, loudly, and the rest go on.
+   */
+  private async handled(e: Envelope, body: unknown, handle: (r: Received) => Promise<void>): Promise<boolean> {
+    try {
+      await handle({ envelope: e, body });
+      this.attempts.delete(e.id);
+      return true;
+    } catch (err) {
+      const tries = (this.attempts.get(e.id) ?? 0) + 1;
+      this.attempts.set(e.id, tries);
+      if (tries < MAX_HANDLE_ATTEMPTS) throw err;
+      this.attempts.delete(e.id);
+      log.error("envelope given up", { messageId: e.id, kind: e.kind, from: e.from.user, tries });
+      return false;
+    }
   }
 
   private async tryOpen(e: Envelope): Promise<unknown> {

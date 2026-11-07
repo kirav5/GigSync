@@ -1,7 +1,16 @@
 import { log } from "@gigsync/core/log";
 import { verify } from "@gigsync/crypto";
-import { ClaimRequest, Envelope, MessageId, QR_KINDS, signingBytes, UserId } from "@gigsync/protocol";
+import {
+  ClaimRequest,
+  Envelope,
+  MAX_CIPHERTEXT_CHARS,
+  MessageId,
+  QR_KINDS,
+  signingBytes,
+  UserId,
+} from "@gigsync/protocol";
 import { Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { z } from "zod";
 import { ApiError, type AppEnv, USER_PARAM, Var } from "../context.js";
 import { activeDeviceIds, deviceSigningKey, pushAddresses } from "../db/devices.js";
@@ -12,12 +21,20 @@ import { noteDeliveredAgree } from "../records/one-sided.js";
 
 /** Largest batch one ack may clear. */
 const MAX_ACK = 500;
+/** Room for an envelope's header, signature and up to ten wrapped keys around its ciphertext, in bytes. */
+const ENVELOPE_OVERHEAD_BYTES = 16 * 1024;
+
+/** Refuses an oversized envelope before reading it, not after parsing it. */
+const envelopeLimit = bodyLimit({
+  maxSize: MAX_CIPHERTEXT_CHARS + ENVELOPE_OVERHEAD_BYTES,
+  onError: (c) => c.json({ error: ApiError.tooLarge }, 413),
+});
 
 /** Mailbox and inbox, behind the session middleware. The server routes sealed envelopes; it never reads them. */
 export const mail = new Hono<AppEnv>();
 
 // ── Deliver to someone else's mailbox ────────────────────────────────────────────────────────────────────────────
-mail.post(`/mailbox/:${USER_PARAM}`, async (c) => {
+mail.post(`/mailbox/:${USER_PARAM}`, envelopeLimit, async (c) => {
   const to = UserId.safeParse(c.req.param(USER_PARAM));
   const env = Envelope.safeParse(await c.req.json().catch(() => null));
   if (!to.success || !env.success) return c.json({ error: ApiError.badEnvelope }, 400);
@@ -44,8 +61,14 @@ mail.post(`/mailbox/:${USER_PARAM}`, async (c) => {
     log.info("delivery to unknown user", { requestId: c.get(Var.requestId), to: to.data });
     return c.json({ error: ApiError.recipientNotFound }, 404);
   }
+  // Only the devices it was sealed for get a copy: a device added since the sender looked could not open it anyway.
+  const sealed = devices.filter((d) => Object.hasOwn(e.keys, d));
+  if (sealed.length === 0) {
+    log.warn("envelope sealed to no current device", { requestId: c.get(Var.requestId), messageId: e.id });
+    return c.json({ error: ApiError.noSealedDevice }, 409);
+  }
   const box = c.env.MAILBOX.get(c.env.MAILBOX.idFromName(to.data));
-  const out = await box.deliver({ envelope: e, devices });
+  const out = await box.deliver({ envelope: e, devices: sealed });
   await noteDeliveredAgree(db, e, c.get(Var.requestId));
   log.info("envelope delivered", {
     requestId: c.get(Var.requestId),
