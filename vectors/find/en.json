@@ -93,7 +93,7 @@
     "id": "en-tutor",
     "says": ["I need a maths tutor for my son"],
     "answers": ["just the one", "it started yesterday"],
-    "want": { "skill": "Maths tutor" }
+    "want": { "skill": "School tutor" }
   },
   {
     "id": "en-tailor",
@@ -105,7 +105,7 @@
     "id": "en-laptop",
     "says": ["my laptop screen is broken"],
     "answers": ["just the one", "it started yesterday"],
-    "want": { "skill": "Laptop repair" }
+    "want": { "skill": "Laptop and computer repair" }
   },
   {
     "id": "en-hello",
@@ -133,5 +133,11 @@
     "later": "I also need a cook",
     "want": { "trade": "plumber" }
   },
-  { "id": "en-nobody", "says": ["I need a swimming coach"], "answers": ["x"], "want": { "outside": true } }
+  { "id": "en-nobody", "says": ["I need a swimming coach"], "answers": ["x"], "want": { "outside": true } },
+  {
+    "id": "en-fish",
+    "says": ["my fish tank needs cleaning"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "skill": "Aquarium cleaning" }
+  }
 ]

@@ -78,14 +78,14 @@
     "id": "hi-tutor",
     "says": ["मेरे बेटे के लिए गणित के ट्यूटर चाहिए"],
     "answers": ["बस एक", "कल से"],
-    "want": { "skill": "Maths tutor" }
+    "want": { "skill": "School tutor" }
   },
   { "id": "hi-tailor", "says": ["मुझे ब्लाउज़ सिलवाना है"], "answers": ["बस एक", "कल से"], "want": { "skill": "Tailor" } },
   {
     "id": "hi-laptop",
     "says": ["मेरे लैपटॉप की स्क्रीन टूट गई है"],
     "answers": ["बस एक", "कल से"],
-    "want": { "skill": "Laptop repair" }
+    "want": { "skill": "Laptop and computer repair" }
   },
   {
     "id": "hi-hello",
@@ -113,5 +113,11 @@
     "later": "मुझे एक कुक भी चाहिए",
     "want": { "trade": "plumber" }
   },
-  { "id": "hi-nobody", "says": ["मुझे तैराकी सिखाने वाला चाहिए"], "answers": ["x"], "want": { "outside": true } }
+  { "id": "hi-nobody", "says": ["मुझे तैराकी सिखाने वाला चाहिए"], "answers": ["x"], "want": { "outside": true } },
+  {
+    "id": "hi-fish",
+    "says": ["मेरा मछली घर साफ़ करना है"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "skill": "Aquarium cleaning" }
+  }
 ]
