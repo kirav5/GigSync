@@ -100,11 +100,10 @@ export class GigDevice {
 
   /** Takes in what arrived, lets the agent answer it, and sends what is queued. */
   async sync(): Promise<{ received: number; sent: number }> {
-    const received = await this.transport.receive();
     const { mentors, offers, contacts, recommendations } = this;
     const side = { mentors, offers, contacts, recommendations };
-    // In order on purpose: each envelope may depend on the one before it.
-    for (const item of received) await dispatch(this.ctx, this.o.worker, item, side);
+    // In order on purpose: each envelope may depend on the one before it. Each is acknowledged only once handled.
+    const received = await this.transport.receive((item) => dispatch(this.ctx, this.o.worker, item, side));
     // A time given to one household is never signed for another (ADR 0048 §5).
     if (this.o.worker) await reofferTaken(this.ctx, this.o.worker);
     // A time that passed while nobody wrote goes to the household (ADR 0053 §2).
@@ -112,7 +111,7 @@ export class GigDevice {
     await this.contacts.sweep();
     const sent = await this.transport.flush();
     await this.records?.run();
-    return { received: received.length, sent };
+    return { received, sent };
   }
 
   // ── Consumer ──────────────────────────────────────────────────────────────────────────────────────────────────────

@@ -103,22 +103,31 @@ export class MailTransport {
     return delivered;
   }
 
-  /** Fetches, verifies and opens what the mailbox holds, then acknowledges it. */
-  async receive(): Promise<Received[]> {
+  /**
+   * Fetches, verifies and opens what the mailbox holds, hands each to `handle` in order, and acknowledges only once all
+   * were handled. An envelope counts as delivered only after `handle` finished with it (or it can never be opened), so a
+   * crash, a directory timeout or a failing handler leaves it to come again on the next sync. Returns how many were
+   * handled.
+   */
+  async receive(handle: (r: Received) => Promise<void>): Promise<number> {
     const fetched = await this.relay.inbox();
-    if (fetched.length === 0) return [];
-    const out: Received[] = [];
+    if (fetched.length === 0) return 0;
+    let handled = 0;
     const ordered = [...fetched].sort((a, b) => a.seq - b.seq);
     for (const e of ordered) {
-      const accepted = await this.inbox.accept(e, this.clock.now());
+      const accepted = await this.inbox.offer(e, this.clock.now());
       if (accepted.outcome !== Outcome.new) continue;
       for (const ready of accepted.deliver) {
         const body = await this.tryOpen(ready);
-        if (body !== undefined) out.push({ envelope: ready, body });
+        if (body !== undefined) {
+          await handle({ envelope: ready, body });
+          handled += 1;
+        }
+        await this.inbox.delivered(ready, this.clock.now());
       }
     }
     await this.relay.ack(fetched.map((e) => e.id));
-    return out;
+    return handled;
   }
 
   private async tryOpen(e: Envelope): Promise<unknown> {
