@@ -13,6 +13,7 @@ export const skill: Readonly<Record<keyof typeof en, string>> = {
   "skill.err.blocked": "यह काम GigSync पर नहीं लिखा जा सकता।",
   "skill.err.too_many": "एक कार्ड पर ज़्यादा से ज़्यादा {max} तरह के काम हो सकते हैं।",
   "skill.is_trade": "यह {trade} है: यह सूची में है, अपने दामों के साथ।",
+  "skill.is_work": "क्या यह {work} है?",
   "card.skill_label": "दूसरा काम, अपने शब्दों में",
   "card.skill_example": "दर्ज़ी",
   "card.skill_add": "जोड़ें",

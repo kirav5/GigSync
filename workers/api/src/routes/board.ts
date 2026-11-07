@@ -67,7 +67,7 @@ board.get(Path.workers, async (c) => {
     requestId: c.get(Var.requestId),
     // A skill's key is not logged: it says what one household looked for (ADR 0047).
     trade: query.data.trade,
-    bySkill: query.data.skill !== undefined,
+    bySkill: query.data.skill !== undefined || query.data.category !== undefined,
     radiusKm: query.data.radius_km,
     found: workers.length,
   });

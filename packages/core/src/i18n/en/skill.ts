@@ -14,6 +14,7 @@ export const skill = {
   "skill.err.blocked": "That work cannot be listed on GigSync.",
   "skill.err.too_many": "A card lists up to {max} kinds of work.",
   "skill.is_trade": "That is {trade}: it is on the list, with its prices.",
+  "skill.is_work": "Is this {work}?",
   "card.skill_label": "Other work, in your own words",
   "card.skill_example": "Tailor",
   "card.skill_add": "Add",

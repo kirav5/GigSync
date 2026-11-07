@@ -183,4 +183,12 @@ export { listedSkill, SKILL_MEANING_MAX, skillIndex, skillNamedIn } from "./skil
 export { workName } from "./skills/name.js";
 export { pickSkill } from "./skills/pick.js";
 export { readSkill, type SkillRead, spokenSkill } from "./skills/read.js";
+export {
+  categoryNamed,
+  checkSuggestion,
+  suggestPrompt,
+  suggestWork,
+  type WorkMatch,
+  workMatchName,
+} from "./skills/suggest.js";
 export * from "./transfer/index.js";

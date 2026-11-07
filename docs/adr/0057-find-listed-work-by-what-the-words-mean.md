@@ -8,7 +8,7 @@ and [ADR 0041](0041-prices-from-drivers.md) (where a range may come from).
 
 A worker can list any skill, but a household finds one only by naming it: "my tv not working" does not contain "TV
 repair". Matching by meaning needs the 129 MB pack on the phone, so most phones had none, and Find said "nobody offers
-this work" without looking. A category list was considered: forty to sixty kinds of work, a column on `worker_skills`
+this work" without looking. A category list was considered (and later adopted, see [ADR 0059](0059-kinds-of-work-behind-a-workers-own-words.md)): forty to sixty kinds of work, a column on `worker_skills`
 and a migration. It would need keeping up by hand, it would lag behind what workers list, and every label a model
 writes differs between runs ("tv repair", "electronics repair", "TV not turning on"), so labels cannot be matched.
 

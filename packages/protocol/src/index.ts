@@ -37,5 +37,6 @@ export * from "./server-model.js";
 export * from "./skill.js";
 export * from "./terms.js";
 export * from "./transfer.js";
+export * from "./work-category.js";
 export * from "./work-hours.js";
 export * from "./worker-record.js";
