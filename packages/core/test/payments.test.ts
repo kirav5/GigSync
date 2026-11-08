@@ -8,7 +8,9 @@ import {
   PaymentBook,
   PaymentError,
   rupees,
+  UpiApp,
   UpiError,
+  upiAppLink,
 } from "../src/index.js";
 
 const now = new Date("2026-10-25T18:00:00+05:30");
@@ -58,6 +60,23 @@ describe("buildUpiUri", () => {
   it("keeps Hindi names", () => {
     const q = new URLSearchParams(buildUpiUri({ ...base, name: "सीता देवी" }).split("?")[1]);
     expect(q.get("pn")).toBe("सीता देवी");
+  });
+});
+
+describe("upiAppLink", () => {
+  const base = { vpa: "sita.devi@okaxis", name: "Sita Devi", amountPaise: 45_000, note: "Cleaning", ref: "pay_X" };
+
+  it("opens the same payment in the one app named, so Android's default app is not the only way", () => {
+    const link = buildUpiUri(base);
+    const intent = upiAppLink(link, "phonepe");
+    expect(intent).toBe(
+      `intent://pay${link.slice("upi://pay".length)}#Intent;scheme=upi;package=${UpiApp.phonepe};end`,
+    );
+    expect(intent).toContain("pa=sita.devi@okaxis&");
+  });
+
+  it("refuses anything but a UPI payment link", () => {
+    expect(() => upiAppLink("https://example.com/?pa=x", "gpay")).toThrow(UpiError);
   });
 });
 

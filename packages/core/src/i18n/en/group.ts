@@ -6,7 +6,7 @@ export const group = {
   "group.electronics": "Electronics",
   "group.cleaning": "Cleaning",
   "group.care": "Care",
-  "group.personal": "Personal",
+  "group.personal": "Beauty and tailoring",
   "group.vehicles": "Vehicles",
   "group.outdoor": "Outdoor and moving",
   "group.teaching": "Teaching",

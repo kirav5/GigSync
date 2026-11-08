@@ -79,7 +79,7 @@ export function factText(lang: Lang, fact: Fact, name: string): string {
     }
     case FactKind.limit: {
       const params = { limit: priceText(fact.limit_paise), gap: priceText(fact.gap_paise) };
-      return t(lang, fact.within ? "explain.limit_within" : "explain.limit_outside", params);
+      return t(lang, `explain.limit.${fact.owner}.${fact.side}`, params);
     }
   }
 }

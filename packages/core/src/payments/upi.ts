@@ -64,3 +64,31 @@ export function buildUpiUri(p: UpiPayment): string {
   // decode in the payee address. NPCI's examples use %20 and a literal "@".
   return `${UPI_SCHEME}?${params.toString().replace(/\+/g, "%20").replace(/%40/g, "@")}`;
 }
+
+/**
+ * The UPI apps most households use, by their Android package. A web page cannot list the apps on a phone, and a bare
+ * `upi://` link goes to whichever app Android was once told to always use; an intent link naming the package opens
+ * that app, so the household picks theirs. Brand names, never logos.
+ */
+export const UpiApp = {
+  phonepe: "com.phonepe.app",
+  gpay: "com.google.android.apps.nbu.paisa.user",
+  paytm: "net.one97.paytm",
+  bhim: "in.org.npci.upiapp",
+} as const;
+export type UpiApp = keyof typeof UpiApp;
+
+/** What each app is called on its button. */
+export const UPI_APP_NAME: Readonly<Record<UpiApp, string>> = {
+  phonepe: "PhonePe",
+  gpay: "Google Pay",
+  paytm: "Paytm",
+  bhim: "BHIM",
+};
+
+/** Chrome's intent link for a UPI link in one app; Chrome opens the Play Store when the app is not installed. */
+export function upiAppLink(link: string, app: UpiApp): string {
+  if (!link.startsWith(`${UPI_SCHEME}?`)) throw new UpiError("not a UPI payment link");
+  const query = link.slice(UPI_SCHEME.length);
+  return `intent://pay${query}#Intent;scheme=upi;package=${UpiApp[app]};end`;
+}
