@@ -11,11 +11,13 @@ import { C } from "../../ui/cls.js";
 export function AllWork({
   trades,
   skills,
-  onChange,
+  onTrades,
+  onSkills,
 }: {
   trades: readonly Trade[];
   skills: readonly Skill[];
-  onChange: (work: { trades: Trade[]; skills: Skill[] }) => void;
+  onTrades: (trades: Trade[]) => void;
+  onSkills: (skills: Skill[]) => void;
 }) {
   const { lang, t } = useI18n();
   const on = cardKinds({ trades, skills });
@@ -32,7 +34,11 @@ export function AllWork({
                 type={C.button}
                 aria-pressed={on.includes(kind)}
                 className={on.includes(kind) ? C.chipOn : C.chip}
-                onClick={() => onChange(toggleKind(lang, { trades, skills }, kind))}
+                onClick={() => {
+                  const work = toggleKind(lang, { trades, skills }, kind);
+                  onTrades(work.trades);
+                  onSkills(work.skills);
+                }}
               >
                 {t(kindKey(kind))}
               </button>

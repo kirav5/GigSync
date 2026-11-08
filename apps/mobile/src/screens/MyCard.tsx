@@ -196,11 +196,7 @@ export function MyCard({
           onTrade={(tr) => setTrades((ts) => [...ts, tr])}
           onFiled={fileWork}
         />
-        <AllWork
-          trades={trades}
-          skills={skills}
-          onChange={(work) => (setTrades(work.trades), setSkills(work.skills))}
-        />
+        <AllWork trades={trades} skills={skills} onTrades={setTrades} onSkills={setSkills} />
         <CardRates
           trades={trades}
           area={draft.area}

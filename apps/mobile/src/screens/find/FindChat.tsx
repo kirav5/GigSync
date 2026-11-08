@@ -53,7 +53,6 @@ import { Composer, Via } from "../../ui/Composer.js";
 import { C } from "../../ui/cls.js";
 import { Dock } from "../../ui/Dock.js";
 import { errorKey } from "../../ui/errorKey.js";
-import { PILOT_CITY } from "../../ui/places.js";
 import { phoneDay } from "../jobGroups.js";
 import { AddAddress } from "./AddAddress.js";
 import { AddressDesk } from "./AddressDesk.js";
