@@ -1,4 +1,13 @@
-import { type Booking, type Engagement, Lang, Role, type TermWhen, Trade, type UserId } from "@gigsync/protocol";
+import {
+  type Booking,
+  type Engagement,
+  Lang,
+  ModelPurpose,
+  Role,
+  type TermWhen,
+  Trade,
+  type UserId,
+} from "@gigsync/protocol";
 import { ulid } from "ulid";
 import { newEngagement } from "./engagement/machine.js";
 import type { MessageKey, Params } from "./i18n/t.js";
@@ -8,6 +17,8 @@ import { choicesOf } from "./router/clarify.js";
 import type { ChatIntent, ChatLine } from "./router/intent.js";
 import { Expert, type Route } from "./router/keyword.js";
 import { recentLines } from "./router/model-prompt.js";
+
+const Purpose = ModelPurpose.enum;
 
 export const CardKind = {
   text: "text",
@@ -95,7 +106,10 @@ export async function runExpert(
       const episodes = await ports.storage.list<Episode>(Collection.episodes);
       const hits = search(route.text, episodes).slice(0, 3);
       if (hits.length === 0) return { kind: CardKind.answer, say: { key: "agent.nothing" }, sources: [] };
-      const answered = await ports.model.generate(answerPrompt(route.text, hits), { maxTokens: REPLY_MAX_TOKENS });
+      const answered = await ports.model.generate(answerPrompt(route.text, hits), {
+        maxTokens: REPLY_MAX_TOKENS,
+        purpose: Purpose.expert_answer,
+      });
       const draft = answered && plainReply(answered);
       // Grounding rule: with no model we quote the notes; with one we still show which notes it used.
       const words: Words = draft
@@ -127,7 +141,10 @@ export async function runExpert(
     case Expert.find:
       return { kind: CardKind.text, say: { key: "agent.market_later", params: { text: route.text } } };
     default: {
-      const answered = await ports.model.generate(chatPrompt(route.text, recent), { maxTokens: REPLY_MAX_TOKENS });
+      const answered = await ports.model.generate(chatPrompt(route.text, recent), {
+        maxTokens: REPLY_MAX_TOKENS,
+        purpose: Purpose.expert_chat,
+      });
       const reply = answered && plainReply(answered);
       return reply
         ? { kind: CardKind.text, words: { text: reply, lang: MODEL_LANG } }

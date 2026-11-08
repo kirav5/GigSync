@@ -1,4 +1,4 @@
-import { Arrangement, Lang, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
+import { Arrangement, Lang, ModelPurpose, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
 import { z } from "zod";
 import { asciiDigits, numbersIn } from "../job/details.js";
 import { log } from "../log.js";
@@ -9,6 +9,8 @@ import { areaIn } from "./lexicon.js";
 import { DETAIL_MAX, TIME_MAX, timeIn } from "./need-parse.js";
 import { normalize } from "./normalize.js";
 import type { ScopeChip } from "./scope-read.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * A model's help reading a need ("models propose, code decides"): when the phone has one and the owner writes in
@@ -163,7 +165,10 @@ export async function understandNeed(
 ): Promise<NeedHint> {
   if (lang !== MODEL_LANG || !text.trim()) return {};
   try {
-    const reply = await within(model.generate(needModelPrompt(text, areas), { maxTokens: MAX_TOKENS }), waitMs);
+    const reply = await within(
+      model.generate(needModelPrompt(text, areas), { maxTokens: MAX_TOKENS, purpose: Purpose.need }),
+      waitMs,
+    );
     const parsed = reply ? parseReply(reply) : undefined;
     return parsed ? checked(parsed, text, areas) : {};
   } catch {

@@ -1,14 +1,20 @@
 import { ContentType, Header, HttpMethod } from "@gigsync/core";
 import { log } from "@gigsync/core/log";
-import { type ModelGenerateReply, ModelGenerateRequest, type ServerModelStatus } from "@gigsync/protocol";
+import {
+  type ModelGenerateReply,
+  ModelGenerateRequest,
+  type ModelUsage,
+  type ServerModelStatus,
+} from "@gigsync/protocol";
 import { Hono } from "hono";
+import { z } from "zod";
 import { ApiError, type AppEnv, Var } from "../context.js";
 import type { Env } from "../env.js";
 
 /**
  * GigSync's own model (ADR 0052): the phone's prompt, answered by the model on GigSync's computer (Ollama on the Mac
  * Studio, behind a Cloudflare Tunnel). The model is the server's (`MODEL_NAME`), never the caller's, and what was said
- * is never logged or kept: only how long it took and whether it answered. Unset `MODEL_ORIGIN` answers 503, and the
+ * is never logged or kept: only what it was for, how long it took, the model's token counts and whether it answered. Unset `MODEL_ORIGIN` answers 503, and the
  * phone falls back to its own model or lite mode.
  */
 export const model = new Hono<AppEnv>();
@@ -47,6 +53,24 @@ const ollamaBody = (name: string, r: ModelGenerateRequest) => ({
   },
 });
 
+/** What Ollama's reply carries that the API reads: the answer, and its own counts (durations in nanoseconds). */
+const OllamaReply = z.object({
+  response: z.string().optional(),
+  load_duration: z.number().nonnegative().optional(),
+  prompt_eval_count: z.number().int().nonnegative().optional(),
+  eval_count: z.number().int().nonnegative().optional(),
+});
+type OllamaReply = z.infer<typeof OllamaReply>;
+const NS_PER_MS = 1_000_000;
+
+/** The call's usage as the phone and the logs read it. */
+const usageOf = (r: OllamaReply, ms: number): ModelUsage => ({
+  ms,
+  ...(r.load_duration === undefined ? {} : { load_ms: Math.round(r.load_duration / NS_PER_MS) }),
+  ...(r.prompt_eval_count === undefined ? {} : { prompt_tokens: r.prompt_eval_count }),
+  ...(r.eval_count === undefined ? {} : { reply_tokens: r.eval_count }),
+});
+
 /** Whether a model is set up here, so a phone knows to ask: its words go nowhere when none is. */
 model.get(Path.status, (c) =>
   c.json({ on: Boolean(c.env.MODEL_ORIGIN && c.env.MODEL_NAME) } satisfies ServerModelStatus),
@@ -69,16 +93,26 @@ model.post(Path.generate, async (c) => {
       signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
     });
     if (!res.ok) {
-      log.warn("model failed", { requestId, status: res.status, ms: Date.now() - start });
+      log.warn("model failed", { requestId, purpose: parsed.data.purpose, status: res.status, ms: Date.now() - start });
       return c.json({ error: ApiError.modelFailed }, 502);
     }
-    const { response } = (await res.json()) as { response?: string };
-    log.info("model answered", { requestId, ms: Date.now() - start });
-    return c.json({ text: response?.trim() || null } satisfies ModelGenerateReply);
+    const answer = OllamaReply.safeParse(await res.json()).data ?? {};
+    const usage = usageOf(answer, Date.now() - start);
+    const text = answer.response?.trim() || null;
+    // By purpose, with the model's own counts, for tuning: never the prompt or the reply.
+    const sizes = { prompt_chars: parsed.data.prompt.length, reply_chars: text?.length ?? 0 };
+    log.info("model answered", {
+      requestId,
+      purpose: parsed.data.purpose,
+      ...usage,
+      ...sizes,
+      answered: text !== null,
+    });
+    return c.json({ text, usage } satisfies ModelGenerateReply);
   } catch (err) {
     // A fetch failure's message names the host or the reason, never what was said.
     const error = err instanceof Error ? `${err.name}: ${err.message}` : typeof err;
-    log.warn("model unreachable", { requestId, error });
+    log.warn("model unreachable", { requestId, purpose: parsed.data.purpose, error, ms: Date.now() - start });
     return c.json({ error: ApiError.modelFailed }, 502);
   }
 });

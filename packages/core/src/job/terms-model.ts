@@ -1,9 +1,11 @@
-import { TermKey, type TermWhen } from "@gigsync/protocol";
+import { ModelPurpose, TermKey, type TermWhen } from "@gigsync/protocol";
 import { z } from "zod";
 import { firstObject, MODEL_WAIT_MS, within } from "../interview/need-model.js";
 import { log } from "../log.js";
 import type { Model } from "../ports.js";
 import type { TermValue } from "./terms.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * A model chooses one counter-proposal for a term from the list code generated (ADR 0033 §3): it answers with the
@@ -60,7 +62,10 @@ export async function chooseTerm<T extends TermKey>(
 ): Promise<number> {
   if (!model || choice.options.length <= 1) return FIRST;
   try {
-    const reply = await within(model.generate(termPrompt(choice), { maxTokens: MAX_TOKENS }), waitMs);
+    const reply = await within(
+      model.generate(termPrompt(choice), { maxTokens: MAX_TOKENS, purpose: Purpose.terms }),
+      waitMs,
+    );
     const pick = reply ? parsePick(reply, choice.options.length) : FIRST;
     log.debug("term chosen", { key: choice.key, pick, of: choice.options.length });
     return pick;

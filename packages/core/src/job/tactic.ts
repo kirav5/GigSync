@@ -1,10 +1,12 @@
-import { Lang } from "@gigsync/protocol";
+import { Lang, ModelPurpose } from "@gigsync/protocol";
 import { z } from "zod";
 import { firstObject, MODEL_WAIT_MS, within } from "../interview/need-model.js";
 import { log } from "../log.js";
 import { Collection, type Model, type Storage } from "../ports.js";
 import { asciiDigits } from "./details.js";
 import { DEFAULT_TACTIC, TACTICS, Tactic } from "./strategy.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * Which tactic the agent bargains with (ADR 0033 §2): the owner's usual one from Settings, or, when the owner's own
@@ -88,7 +90,10 @@ export async function chooseTactic(
   const words = input.words.trim();
   if (!model || input.lang !== MODEL_LANG || !words) return input.usual;
   try {
-    const reply = await within(model.generate(tacticPrompt(words), { maxTokens: MAX_TOKENS }), waitMs);
+    const reply = await within(
+      model.generate(tacticPrompt(words), { maxTokens: MAX_TOKENS, purpose: Purpose.tactic }),
+      waitMs,
+    );
     const tactic = reply ? parseReply(reply) : undefined;
     log.debug("model tactic", { tactic: tactic ?? UNCLEAR });
     return tactic ?? input.usual;

@@ -1,9 +1,11 @@
 import {
   Collection,
   type GenerateOptions,
+  log,
   type MessageKey,
   type Model,
   type Params,
+  pii,
   type Storage,
   withoutReasoning,
 } from "@gigsync/core";
@@ -106,10 +108,21 @@ export class ChosenModel implements Model {
     this.notify();
   }
 
-  /** The answer without the model's reasoning (model-reply.ts), whichever engine gave it; null when there is none. */
+  /**
+   * The answer without the model's reasoning (model-reply.ts), whichever engine gave it; null when there is none. Each
+   * call is logged by purpose with the engine, how long it took, whether it answered and the sizes; the words only
+   * through `pii()`, which prints on a developer's machine and nowhere else.
+   */
   async generate(prompt: string, options?: GenerateOptions): Promise<string | null> {
-    const reply = await this.ask(prompt, options);
-    return reply === null ? null : withoutReasoning(reply) || null;
+    const engine = this.answering();
+    const started = performance.now();
+    const raw = await this.ask(prompt, options);
+    const reply = raw === null ? null : withoutReasoning(raw) || null;
+    const ms = Math.round(performance.now() - started);
+    const call = { purpose: options?.purpose, engine, ms, answered: reply !== null };
+    log.info("model call", { ...call, prompt_chars: prompt.length, reply_chars: reply?.length ?? 0 });
+    log.debug("model call words", { purpose: options?.purpose, prompt: pii(prompt), reply: pii(reply ?? "") });
+    return reply;
   }
 
   private async ask(prompt: string, options?: GenerateOptions): Promise<string | null> {

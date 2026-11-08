@@ -1,10 +1,13 @@
 import type { Lang, QuestionKey } from "@gigsync/protocol";
+import { ModelPurpose } from "@gigsync/protocol";
 import { z } from "zod";
 import { t } from "../i18n/t.js";
 import { langOf, questionProblem } from "../job/guard.js";
 import type { Model } from "../ports.js";
 import { NeedSlot, type NeedState } from "./need.js";
 import { firstObject, MODEL_WAIT_MS, within } from "./need-model.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * The first question after a kind of work is picked from the list (ADR 0061): with no words to read, the model words
@@ -50,7 +53,10 @@ export async function modelFirstQuestion(
 ): Promise<string | undefined> {
   try {
     const options = { maxTokens: MAX_TOKENS, temperature: 0, json: true, schema: SCHEMA };
-    const reply = await within(model.generate(firstQuestionPrompt(work, key, lang), options), waitMs);
+    const reply = await within(
+      model.generate(firstQuestionPrompt(work, key, lang), { ...options, purpose: Purpose.first_question }),
+      waitMs,
+    );
     return reply ? checkFirstQuestion(reply, lang) : undefined;
   } catch {
     return undefined;

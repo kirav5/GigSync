@@ -1,4 +1,4 @@
-import { type Lang, Trade, type WorkCategory, type WorkKind } from "@gigsync/protocol";
+import { type Lang, ModelPurpose, Trade, type WorkCategory, type WorkKind } from "@gigsync/protocol";
 import { numbersIn } from "../job/details.js";
 import { langOf } from "../job/guard.js";
 import type { Model } from "../ports.js";
@@ -6,6 +6,8 @@ import { scrubJobType } from "./fact-scrub.js";
 import { afterOutside, moveOn, NeedSlot, type NeedState } from "./need.js";
 import { firstObject, MODEL_WAIT_MS, within } from "./need-model.js";
 import { normalize } from "./normalize.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * A need outside GigSync's trades (ADR 0041, extended 2026-10-31): the phone's model may name it with a short job type
@@ -54,7 +56,10 @@ export async function modelJobType(
   waitMs = MODEL_WAIT_MS,
 ): Promise<string | undefined> {
   try {
-    const reply = await within(model.generate(jobTypePrompt(text, lang), { maxTokens: MAX_TOKENS }), waitMs);
+    const reply = await within(
+      model.generate(jobTypePrompt(text, lang), { maxTokens: MAX_TOKENS, purpose: Purpose.job_type }),
+      waitMs,
+    );
     return reply ? checkJobType(reply, text, lang) : undefined;
   } catch {
     return undefined;
