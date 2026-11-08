@@ -1,6 +1,6 @@
 import { type EngagementId, FREE_QUESTIONS_PROTOCOL, type Question } from "@gigsync/protocol";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { settle, TaskKind } from "../src/index.js";
+import { settle, TaskKind, type WorkerRules } from "../src/index.js";
 import { MODEL_WAIT_MS } from "../src/interview/need-model.js";
 import { askModel, questionPrompt } from "../src/job/question-model.js";
 import { FakeModel, Hang, questionsReply } from "./model-fakes.js";
@@ -89,7 +89,15 @@ describe("the worker's agent asks what its model wrote, within the guards", () =
 });
 
 describe("askModel", () => {
-  const input = { trade: "plumber", need: "sink blocked", details: {}, memory: "", known: [], max: 3 } as const;
+  const input = {
+    work: "plumber",
+    need: "sink blocked",
+    details: {},
+    memory: "",
+    known: [],
+    max: 3,
+    worker: { works: ["plumber"] },
+  } as const;
 
   it("returns nothing in time from a model that hangs", async () => {
     expect((await askModel(new FakeModel(Hang), input, 5)).kept).toEqual([]);
@@ -111,6 +119,63 @@ describe("askModel", () => {
     expect(prompt).toContain("From past jobs: One job before.");
     expect(prompt).toContain('"yes_no" | "number" | "text"');
   });
+
+  it("asks for this worker: their work, their line about it and what they need to know, all quoted", () => {
+    const prompt = questionPrompt({
+      ...input,
+      work: "Fridge repair",
+      worker: {
+        works: ["electrician", "Fridge repair"],
+        about: "Fridges and washing machines, all brands",
+        asks: ["brand of the fridge", "single or double door"],
+      },
+    });
+    expect(prompt).toContain('who does: "electrician", "Fridge repair"');
+    expect(prompt).toContain(JSON.stringify("Fridges and washing machines, all brands"));
+    expect(prompt).toContain('"brand of the fridge"; "single or double door"');
+    expect(prompt).toContain('A household asks for "Fridge repair"');
+    expect(prompt).toMatch(/never how long it will take/);
+  });
+});
+
+describe("work outside the trades (ADR 0063)", () => {
+  const FRIDGE = { text: "Fridge repair", lang: "en", category: "fridge_repair" } as const;
+  const fixer = (): WorkerRules => ({
+    ...electrician(),
+    skills: [FRIDGE],
+    about: "Fridges, all brands",
+    asks: ["brand of the fridge"],
+  });
+  const fridgeNeed = () => ({
+    ...fanNeed(),
+    trade: "other" as const,
+    skill: FRIDGE,
+    need: "Fridge not cooling",
+    details: { job: "Fridge not cooling" },
+  });
+
+  it("asks the model too, with the worker's context, instead of how long it takes", async () => {
+    const relay = new MemoryRelay();
+    const priya = await phone(relay, PRIYA, NEW);
+    const model = new FakeModel(questionsReply({ text: "Which brand is the fridge?", kind: "text" }));
+    const ravi = await phone(relay, RAVI, { worker: fixer(), model });
+    const [job] = await priya.device.request(fridgeNeed(), [ravi.user]);
+    await settle([priya.device, ravi.device]);
+    const questions = (await ravi.device.job(job?.engagement.id as EngagementId)).questions as Question[];
+    expect(questions.map((q) => ("text" in q ? q.text : q.key))).toEqual(["Which brand is the fridge?"]);
+    expect(model.prompts[0]).toContain('A household asks for "Fridge repair"');
+    expect(model.prompts[0]).toContain('"brand of the fridge"');
+    expect(model.prompts[0]).toContain("Fridges, all brands");
+  });
+
+  it("drops a model question asking the household how long the work will take", async () => {
+    const guarded = await askModel(
+      new FakeModel(questionsReply({ text: "How long will the repair take?", kind: "text" })),
+      { work: "Fridge repair", need: "not cooling", details: {}, memory: "", known: [], max: 3, worker: { works: [] } },
+    );
+    expect(guarded.kept).toEqual([]);
+    expect(guarded.dropped.map((d) => d.reason)).toEqual(["worker_call"]);
+  });
 });
 
 describe("tasks for written questions", () => {
@@ -123,5 +188,22 @@ describe("tasks for written questions", () => {
     const [task] = await priya.device.tasks();
     expect(task?.kind).toBe(TaskKind.answerQuestions);
     expect(task?.detail).toMatchObject([{ key: "ask_a" }, { key: "ask_b" }]);
+  });
+});
+
+describe("a door is not an address", () => {
+  it("keeps a question about a fridge's or wardrobe's doors, and drops one about the door number", async () => {
+    const ask = (text: string) =>
+      askModel(new FakeModel(questionsReply({ text, kind: "text" })), {
+        work: "Fridge repair",
+        need: "not cooling",
+        details: {},
+        memory: "",
+        known: [],
+        max: 3,
+        worker: { works: ["Fridge repair"] },
+      });
+    expect((await ask("Is it a single door or double door fridge?")).kept).toHaveLength(1);
+    expect((await ask("What is your door number?")).kept).toEqual([]);
   });
 });

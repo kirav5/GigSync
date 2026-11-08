@@ -4,6 +4,7 @@ import { isMonthly } from "../job/when.js";
 import { askable, type InterviewState, type Line, Pick, type Prompt, Slot } from "./card.js";
 import { alsoPrompt } from "./card-also.js";
 import { arrangementsPrompt, mainOf, moreRatePrompt, RATE_QUESTION, ratesSummary } from "./card-arrangements.js";
+import { asksSummary } from "./card-asks.js";
 import { fieldsFor, unlistPrompt, whichRatePrompt } from "./card-edit.js";
 import { estimatePrompt } from "./card-estimate.js";
 import { kindPrompt } from "./card-kind.js";
@@ -39,6 +40,7 @@ export {
 } from "./card.js";
 export { alsoSaid } from "./card-adding.js";
 export { arrangementRates, askingArrangement, cardArrangements, mainOf, pickedOf } from "./card-arrangements.js";
+export { ASKS_MAX, asksIn } from "./card-asks.js";
 export { edit, editSaid, fieldsFor } from "./card-edit.js";
 export { cardEstimate, withEstimate } from "./card-estimate.js";
 export { aboutIsPrivate, choose, hear, keepPlace } from "./card-parse.js";
@@ -65,6 +67,7 @@ const FIELD_LABEL: Readonly<Record<Field, MessageKey>> = {
   max_hours: "terms.card_hours",
   unlist: "card.unlist",
   same_rate: "card.work_rates",
+  asks: "card.asks",
 };
 
 /** An area: the place they found, else its catalog name, put in the reader's language when shown, else as the app named it. */
@@ -99,6 +102,7 @@ function summary(state: InterviewState): Line[] {
     ...workRatesSummary(draft),
     ...termsSummary(state),
     ...about,
+    ...asksSummary(draft),
     { key: draft.auto ? "iv.summary_auto_on" : "iv.summary_auto_off" },
     { key: "iv.summary_min", prices: { min: draft.limit_paise ?? 0 }, silent: true },
   ];

@@ -41,7 +41,7 @@ describe("a job for a skill outside the trades", () => {
     expect(doesWork(mechanic, { trade: "other", skill: { text: "TV repair", lang: "en" } })).toBe(true);
   });
 
-  it("asks how long, quotes from the worker's own rates, and is recorded without words", async () => {
+  it("asks nothing it was told, quotes from the worker's own rates, and is recorded without words", async () => {
     const relay = new MemoryRelay();
     const worker = await phone(relay, RAVI, { worker: tailoring() });
     const household = await phone(relay, PRIYA);
@@ -49,12 +49,11 @@ describe("a job for a skill outside the trades", () => {
     const id = job?.engagement.id as never;
 
     await settle([household.device, worker.device]);
-    // The household said what the work is; the worker's agent asks only the other generic question.
+    // The household said what the work is, and without a model there is nothing else to ask: never how long it takes,
+    // which is the worker's to say (ADR 0063).
     const asked = await household.device.job(id);
-    expect(asked.questions?.map((q) => q.key)).toEqual(["duration"]);
+    expect(asked.questions ?? []).toEqual([]);
     expect(asked.estimate).toBeUndefined();
-    await household.device.answer(id, { duration: "Two days" });
-    await settle([household.device, worker.device]);
 
     const tasks = [...(await household.device.tasks()), ...(await worker.device.tasks())];
     expect(tasks.map((t) => t.kind)).toEqual([TaskKind.confirmDeal]);

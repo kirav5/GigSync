@@ -41,7 +41,9 @@ const HINDI: readonly (readonly [said: string, next: MessageKey])[] = [
   ["कोई नहीं", "iv.ask.about"],
   ["छोड़ो", "iv.ask.ask_first"],
   // "ना" here only stresses the yes: she wants to be asked first when there are pets.
-  ["हाँ ना", "iv.ask.auto"],
+  ["हाँ ना", "iv.ask.asks"],
+  // What she needs to know before quoting (ADR 0063): nothing she wants to list.
+  ["छोड़ो", "iv.ask.auto"],
   ["नहीं", "iv.confirm"],
   ["हाँ", "iv.published"],
 ];
@@ -174,7 +176,8 @@ test("a Kannada electrician types and taps, says no at the summary, and changes 
   await nextTurn(page, kn, "iv.ask.min", () => type(page, kn, "೫೦೦"));
   await nextTurn(page, kn, "iv.ask.languages", () => type(page, kn, "400"));
   await nextTurn(page, kn, "iv.ask.about", () => type(page, kn, "ಯಾವುದೂ ಇಲ್ಲ"));
-  await nextTurn(page, kn, "iv.ask.auto", () => type(page, kn, "ಫ್ಯಾನ್, ಸ್ವಿಚ್ ಮತ್ತು ವೈರಿಂಗ್ ಕೆಲಸ"));
+  await nextTurn(page, kn, "iv.ask.asks", () => type(page, kn, "ಫ್ಯಾನ್, ಸ್ವಿಚ್ ಮತ್ತು ವೈರಿಂಗ್ ಕೆಲಸ"));
+  await nextTurn(page, kn, "iv.ask.auto", () => type(page, kn, "ಬಿಡಿ"));
   await nextTurn(page, kn, "iv.confirm", () => type(page, kn, "ಇಲ್ಲ"));
   await expect(page.getByText(textOf(kn, "iv.summary", { rate: "₹500" }))).toBeVisible();
 

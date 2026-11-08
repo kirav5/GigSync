@@ -2,6 +2,7 @@ import { t } from "../i18n/t.js";
 import { type WorkId, workName } from "../job/work-rates.js";
 import { parseAmount } from "./amount.js";
 import { advance, type CardDraft, type InterviewState, type Line, Pick, type Prompt, retry, Slot } from "./card.js";
+import { asksPrompt, chooseAsks, hearAsks } from "./card-asks.js";
 import { chooseTerms, hearTerms, termsPrompt } from "./card-terms.js";
 import { missingWorkRate, otherWorks } from "./card-work-list.js";
 import { YES_NO } from "./choices.js";
@@ -50,20 +51,26 @@ function keepWorkRate(s: InterviewState, paise: number | undefined): InterviewSt
   return advance(s, draft, [{ key: "iv.got_rate", prices: { price: paise } }]);
 }
 
-/** The questions past the rates, here or in the terms: what the interview asks after the core fields. */
+/**
+ * The questions the core fields leave: rates per kind here, what the worker needs to know (`card-asks.ts`), and the
+ * terms (`card-terms.ts`).
+ */
 export function restPrompt(s: InterviewState): Prompt {
+  if (s.slot === Slot.asks) return asksPrompt();
   if (s.slot === Slot.same_rate) return samePrompt(s);
   if (s.slot === Slot.work_rate) return workRatePrompt(s);
   return termsPrompt(s);
 }
 
 export function hearRest(s: InterviewState, text: string): InterviewState {
+  if (s.slot === Slot.asks) return hearAsks(s, text);
   if (s.slot === Slot.same_rate) return onSame(s, yesNo(text));
   if (s.slot === Slot.work_rate) return keepWorkRate(s, parseAmount(text));
   return hearTerms(s, text);
 }
 
 export function chooseRest(s: InterviewState, value: string): InterviewState {
+  if (s.slot === Slot.asks) return chooseAsks(s, value);
   if (s.slot === Slot.same_rate) return value === Pick.yes || value === Pick.no ? onSame(s, value === Pick.yes) : s;
   if (s.slot === Slot.work_rate) return s;
   return chooseTerms(s, value);

@@ -1,5 +1,6 @@
 import {
   askable,
+  asksIn,
   type CardDraft,
   cardArrangements,
   log,
@@ -32,7 +33,7 @@ import { CardRates } from "./estimate/CardRates.js";
 
 /** The form's id, so Publish can sit in the dock, outside it. */
 const FORM_ID = "my-card";
-const Field = { ...RateField, about: "about", auto: "auto" } as const;
+const Field = { ...RateField, about: "about", asks: "asks", auto: "auto" } as const;
 const ASK_FIELD = "ask.";
 /** What the board keeps of the line about their work. */
 const ABOUT_MAX = 300;
@@ -117,6 +118,7 @@ export function MyCard({
       ...kinds,
       languages: spoken,
       about: String(v.get(Field.about) ?? ""),
+      asks: asksIn(String(v.get(Field.asks) ?? "")),
       ask_me: askable(trades).filter((k) => v.has(ASK_FIELD + k)),
       auto: v.has(Field.auto),
       terms: prefs,
@@ -224,6 +226,10 @@ export function MyCard({
             placeholder={t("card.about_example")}
             defaultValue={draft.about}
           />
+        </label>
+        <label className={C.fieldLabel}>
+          <span className={C.muted}>{t("card.asks")}</span>
+          <textarea className={C.field} name={Field.asks} rows={3} defaultValue={draft.asks?.join("\n")} />
         </label>
         <span className={C.label}>{t("card.languages")}</span>
         <div className={C.row}>

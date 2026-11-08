@@ -105,6 +105,7 @@ const UNLIST = ["off the board", "remove my card", "hide my card", "delete my ca
 /** Words naming each field, most specific first ("minimum rate" is the minimum, not the rate; "work hours" the hours). */
 const FIELD_WORDS: Readonly<Record<Field, readonly string[]>> = {
   unlist: UNLIST,
+  asks: ["need to know", "before you quote", "what to ask", "मुझे जानना", "जानना है", "ತಿಳಿಯಬೇಕು", "ಏನು ಕೇಳಬೇಕು"],
   same_rate: ["each work", "each kind", "price for each", "हर काम का दाम", "हर काम का रेट", "ಪ್ರತಿ ಕೆಲಸದ ದರ", "ಪ್ರತಿ ಕೆಲಸಕ್ಕೆ"],
   min: ["minimum", "lowest", "least", "सबसे कम", "कम से कम", "ಕನಿಷ್ಠ"],
   rate: ["rate", "price", "दाम", "रेट", "पैसे", "ದರ", "ದರವನ್ನು", "ಬೆಲೆ"],

@@ -40,6 +40,7 @@ export function refillFromCard(card: BoardProfile, defaults: RefillDefaults): Re
       radius_km: defaults.radius_km,
       ...(defaults.rates ? { rates: defaults.rates } : {}),
       ask_me: [],
+      ...(card.about ? { about: card.about } : {}),
       floor_missing: true,
     },
     languages: card.languages.flatMap((l) => {
