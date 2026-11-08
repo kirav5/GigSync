@@ -108,6 +108,8 @@ export const job = {
   "job.not_received": "Not received",
   "job.pay_by_upi": "Pay {price} by UPI",
   "job.open_upi": "Open in a UPI app",
+  "job.upi_choose": "Pay with",
+  "job.upi_other": "Other UPI app",
   "job.utr_placeholder": "12-digit UPI reference",
   "job.paid": "I've paid",
   "job.review_placeholder": "How did it go?",

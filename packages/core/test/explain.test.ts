@@ -45,7 +45,7 @@ describe("the facts behind an offer", () => {
     expect(facts.map((f) => f.kind)).toEqual([FactKind.moved, FactKind.terms, FactKind.usual, FactKind.limit]);
     expect(template).toBe(
       "Ravi came down ₹1,250, to ₹17,000. Ravi proposed 2 Nov, afternoon. " +
-        "The usual rate is ₹16,000 (₹14,000–₹18,000, from 34 jobs on GigSync). That is inside your limit of ₹19,000.",
+        "The usual rate is ₹16,000 (₹14,000–₹18,000, from 34 jobs on GigSync). That is ₹2,000 under your budget of ₹19,000.",
     );
   });
 
