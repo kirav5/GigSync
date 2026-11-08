@@ -1,5 +1,4 @@
 import {
-  asciiDigits,
   type GigDevice,
   type JobRecord,
   type MessageKey,
@@ -14,23 +13,21 @@ import {
 import {
   EngagementStatus,
   type JobTerms,
-  type Payment,
   PaymentMethod,
   PaymentStatus,
   type Question,
   Role,
   UpdateCode,
 } from "@gigsync/protocol";
-import { type FormEvent, useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { useI18n } from "../i18n.js";
-import { qrDataUrl } from "../payments/qr.js";
-import { type Step, useStep } from "../payments/useStep.js";
+import { PayBox } from "../payments/PayBox.js";
+import { useStep } from "../payments/useStep.js";
 import { WorkerPay } from "../payments/WorkerPay.js";
 import { BusyGroup } from "../ui/BusyGroup.js";
 import { C } from "../ui/cls.js";
-import { jobPrice, money } from "../ui/places.js";
+import { jobPrice } from "../ui/places.js";
 import { useBusy } from "../ui/useBusy.js";
-import { Working } from "../ui/Working.js";
 import { requestWork } from "../ui/work.js";
 import type { GigView } from "../useGig.js";
 import { AnswerForm } from "./AnswerForm.js";
@@ -154,67 +151,6 @@ export function JobActions({ job, view, device, run, onAddPayee, onAgain, them }
       </BusyGroup>
       {isWorker && SIGNED.has(status) && <NoteBox onSend={(text) => run(() => device.update(id, text))} />}
     </div>
-  );
-}
-
-/**
- * The consumer pays in their own UPI app; GigSync only shows the QR and records the reference they paste back. When
- * the link cannot be built (this phone never got the worker's sealed payment request) it says so instead of a dead QR.
- */
-function PayBox({ payment, device, step }: { payment: Payment; device: GigDevice; step: Step }) {
-  const { t } = useI18n();
-  const [link, setLink] = useState<string>();
-  const [qr, setQr] = useState<string>();
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    let live = true;
-    setFailed(false);
-    void (async () => {
-      try {
-        const l = await device.upiLink(payment.id);
-        const image = await qrDataUrl(l);
-        if (!live) return;
-        setLink(l);
-        setQr(image);
-      } catch {
-        if (live) setFailed(true);
-      }
-    })();
-    return () => {
-      live = false;
-    };
-  }, [device, payment.id]);
-  function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const utr = asciiDigits(String(new FormData(e.currentTarget).get("utr") ?? "").trim());
-    step(() => device.markPaid(payment.id, utr || undefined));
-  }
-  return (
-    <form className={C.stack} onSubmit={submit} aria-label={t("a11y.pay")}>
-      <span className={C.label}>
-        {t(payment.advance ? "job.pay_advance" : "job.pay_by_upi", { price: money(payment.amount_paise) })}
-      </span>
-      {failed && <p className={C.error}>{t("error.generic")}</p>}
-      <Working on={!qr && !failed} />
-      {qr && <img src={qr} alt={t("a11y.qr")} width={160} height={160} />}
-      {link && (
-        <a className={C.secondary} href={link}>
-          {t("job.open_upi")}
-        </a>
-      )}
-      <input
-        className={C.field}
-        name="utr"
-        aria-label={t("a11y.utr")}
-        placeholder={t("job.utr_placeholder")}
-        inputMode="numeric"
-      />
-      <div className={C.actions}>
-        <button type={C.submit} className={C.accent}>
-          {t("job.paid")}
-        </button>
-      </div>
-    </form>
   );
 }
 
