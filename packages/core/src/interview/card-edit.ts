@@ -5,6 +5,7 @@ import { advance, askable, FIELDS, type InterviewState, openSlot, type Prompt, r
 import { arranged, arrangementRates, cardArrangements, mainOf } from "./card-arrangements.js";
 import { hear } from "./card-parse.js";
 import { anyHoursSaid, daysSaid, hoursSaid } from "./card-words.js";
+import { asksWorkRates } from "./card-work-list.js";
 import { YES_NO } from "./choices.js";
 import { areaNamedIn, type Field, languagesIn, tradesIn } from "./lexicon.js";
 
@@ -29,6 +30,7 @@ export function fieldsFor(s: InterviewState): Field[] {
     [Slot.materials]: negotiates(TermKey.enum.materials),
     [Slot.max_hours]: negotiates(TermKey.enum.hours),
     [Slot.unlist]: !s.offBoard,
+    [Slot.same_rate]: asksWorkRates(s.draft),
   };
   return FIELDS.filter((f) => fits[f] !== false);
 }

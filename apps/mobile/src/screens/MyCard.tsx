@@ -25,13 +25,14 @@ import { cardWork } from "../ui/work.js";
 import { AllWork } from "./card/AllWork.js";
 import { AreaField, type WorkArea } from "./card/AreaField.js";
 import { ArrangementsField, arrangementsValue, otherRates } from "./card/ArrangementsField.js";
+import { RateField, RatesField, workRatesIn } from "./card/RatesField.js";
 import { SkillsField } from "./card/SkillsField.js";
 import { TermPrefsField } from "./card/TermPrefsField.js";
 import { CardRates } from "./estimate/CardRates.js";
 
 /** The form's id, so Publish can sit in the dock, outside it. */
 const FORM_ID = "my-card";
-const Field = { rate: "rate", min: "min", about: "about", auto: "auto" } as const;
+const Field = { ...RateField, about: "about", auto: "auto" } as const;
 const ASK_FIELD = "ask.";
 /** What the board keeps of the line about their work. */
 const ABOUT_MAX = 300;
@@ -98,7 +99,9 @@ export function MyCard({
     const rate = parseAmount(String(v.get(Field.rate) ?? ""));
     const min = parseAmount(String(v.get(Field.min) ?? ""));
     if (trades.length + skills.length === 0) return setError(t("card.err_trade"));
-    if (rate === undefined || min === undefined || !(min > 0 && rate >= min)) return setError(t("card.err_rate"));
+    const kinds = workRatesIn(v, { trades, skills });
+    if (rate === undefined || min === undefined || !(min > 0 && rate >= min) || !kinds)
+      return setError(t("card.err_rate"));
     const others = arranged ? otherRates({ ...work, picked }) : {};
     if (!others || (arranged && picked.length === 0 && !ownWorkOnly)) return setError(t("card.err_arrangements"));
     if (busy) return;
@@ -111,6 +114,7 @@ export function MyCard({
       ...(arranged ? { arrangements: picked, other_rates: others } : {}),
       rate_paise: rate,
       limit_paise: min,
+      ...kinds,
       languages: spoken,
       about: String(v.get(Field.about) ?? ""),
       ask_me: askable(trades).filter((k) => v.has(ASK_FIELD + k)),
@@ -210,28 +214,7 @@ export function MyCard({
         />
         {arranged && <ArrangementsField offered={offered} value={{ ...work, picked }} onChange={setWork} />}
         <AreaField session={account.session} value={where} onChange={setWhere} />
-        <label className={C.fieldLabel}>
-          <span className={C.muted}>{t(main ? `card.rate.${main}` : "card.rate")}</span>
-          <input
-            className={C.field}
-            name={Field.rate}
-            ref={rateField}
-            inputMode="numeric"
-            required
-            defaultValue={rupeesOf(draft.rate_paise)}
-          />
-        </label>
-        <label className={C.fieldLabel}>
-          <span className={C.muted}>{t("card.min")}</span>
-          <input
-            className={C.field}
-            name={Field.min}
-            ref={minField}
-            inputMode="numeric"
-            required
-            defaultValue={rupeesOf(draft.limit_paise)}
-          />
-        </label>
+        <RatesField draft={draft} work={{ trades, skills }} main={main} rateRef={rateField} minRef={minField} />
         <label className={C.fieldLabel}>
           <span className={C.muted}>{t("card.about")}</span>
           <input

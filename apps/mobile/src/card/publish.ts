@@ -2,16 +2,21 @@ import {
   aboutIsPrivate,
   arrangementMandates,
   arrangementRates,
+  atShare,
   type CardDraft,
   CITY_RATES,
+  cardWorks,
   localitySlug,
+  type Mandate,
   mainOf,
   nearestPilotArea,
   type OwnCard,
   type Ports,
+  publicWorkRates,
   refreshOwnCard,
   type TermPrefs,
   type WorkerRules,
+  type WorkMandate,
   workHoursOf,
 } from "@gigsync/core";
 import { type BoardProfile, coarsePoint, type Lang, type WorkHours } from "@gigsync/protocol";
@@ -43,6 +48,7 @@ export async function publishCard(ports: Ports, account: Account, draft: CardDra
     throw new CardIncompleteError("card draft is incomplete");
   const main = mainOf(draft);
   const rates = arrangementRates(draft);
+  const workRates = workMandates(draft, { opening_paise: rate, limit_paise: limit });
   // The owner's own language first: it is the one their card's free text is written in.
   const languages = [lang, ...(draft.languages ?? []).filter((l) => l !== lang)];
   const about = draft.about?.trim() ?? "";
@@ -58,6 +64,7 @@ export async function publishCard(ports: Ports, account: Account, draft: CardDra
     languages,
     about,
     ...(rates.length > 0 ? { arrangements: rates } : {}),
+    ...(workRates.length > 0 ? { work_rates: publicWorkRates(workRates) } : {}),
     ...withHours(draft.terms ?? account.worker?.terms),
   };
   const worker: WorkerRules = {
@@ -71,6 +78,7 @@ export async function publishCard(ports: Ports, account: Account, draft: CardDra
     ...(main && rates.length > 0
       ? { arrangements: arrangementMandates(rates, { opening_paise: rate, limit_paise: limit }, main) }
       : {}),
+    ...(workRates.length > 0 ? { work_rates: workRates } : {}),
     rates: CITY_RATES,
     ask_me: draft.ask_me ?? [],
     ...withPrefs(draft.terms ?? account.worker?.terms),
@@ -100,6 +108,34 @@ function baseOf(draft: CardDraft): { name: string; lat: number; lon: number } | 
   return AREAS.find((a) => a.key === draft.area);
 }
 
+/**
+ * The plans for the kinds with a rate of their own (ADR 0062): each kind on the card besides the first that the worker
+ * priced apart, with its lowest as they set it, else at the share of the card's.
+ */
+function workMandates(draft: CardDraft, main: Mandate): WorkMandate[] {
+  if (draft.same_rate !== false) return [];
+  return cardWorks(draft)
+    .slice(1)
+    .flatMap((work) => {
+      const usual = draft.work_rates?.[work];
+      if (usual === undefined) return [];
+      const lowest = draft.work_limits?.[work];
+      const rate =
+        lowest !== undefined && lowest <= usual ? { opening_paise: usual, limit_paise: lowest } : atShare(usual, main);
+      return [{ work, rate }];
+    });
+}
+
+/** The kinds' own rates back as a draft's. */
+function workDraft(rules: WorkerRules): Pick<CardDraft, "same_rate" | "work_rates" | "work_limits"> {
+  if (!rules.work_rates?.length) return {};
+  return {
+    same_rate: false,
+    work_rates: Object.fromEntries(rules.work_rates.map((w) => [w.work, w.rate.opening_paise])),
+    work_limits: Object.fromEntries(rules.work_rates.map((w) => [w.work, w.rate.limit_paise])),
+  };
+}
+
 /** The card's arrangements and their rates back as a draft's: the main one's is the usual rate. */
 function arrangementDraft(rules: WorkerRules): Pick<CardDraft, "arrangements" | "other_rates"> {
   if (!rules.arrangements?.length) return {};
@@ -122,6 +158,7 @@ export function accountDraft(account: Account): CardDraft {
     ...(place && custom ? { area: custom, place } : {}),
     radius_km: rules.radius_km,
     ...arrangementDraft(rules),
+    ...workDraft(rules),
     rate_paise: rules.rate.opening_paise,
     limit_paise: rules.rate.limit_paise,
     ...(account.languages ? { languages: account.languages } : {}),
@@ -154,6 +191,7 @@ export function publicCard(account: Account): BoardProfile | undefined {
     area_name: name,
     ...(rates?.length ? { arrangements: rates } : {}),
     rate_paise: rules.rate.opening_paise,
+    ...(rules.work_rates?.length ? { work_rates: publicWorkRates(rules.work_rates) } : {}),
     languages: account.languages ?? [],
     about: account.about ?? "",
     ...withHours(rules.terms),
