@@ -43,6 +43,7 @@ export const screens = {
   "card.work_limit": "{work}: lowest, ₹ (private)",
   "card.min": "Lowest I will take, ₹ (private)",
   "card.about": "About my work",
+  "card.asks": "What I need to know before I quote, one per line (private)",
   "card.about_example": "10 years, wiring and fans",
   "card.languages": "Languages I speak",
   "card.ask_first": "Ask me before quoting when there are {item}",

@@ -46,6 +46,8 @@ export interface CardDraft {
   languages?: Lang[];
   about?: string;
   ask_me?: QuestionKey[];
+  /** ADR 0063: what they need to know before quoting, in their own words; private. */
+  asks?: string[];
   auto?: boolean;
   /** When they take work, who buys materials, a day's hours: what their agent agrees besides the price. */
   terms?: TermPrefs;
@@ -70,6 +72,8 @@ export const Slot = {
   languages: "languages",
   about: "about",
   ask_first: "ask_first",
+  /** What the worker needs to know before quoting (ADR 0063). */
+  asks: "asks",
   auto: "auto",
   /** Asked only when the owner wants them changed: a first card stays as short as it was (ADR 0053 §7). */
   hours: "hours",
@@ -143,6 +147,7 @@ export const FIELDS: readonly Field[] = [
   Slot.languages,
   Slot.about,
   Slot.ask_first,
+  Slot.asks,
   Slot.materials,
   Slot.max_hours,
   Slot.auto,
@@ -161,6 +166,7 @@ const ORDER: readonly Slot[] = [
   Slot.languages,
   Slot.about,
   Slot.ask_first,
+  Slot.asks,
   Slot.auto,
   Slot.confirm,
 ];

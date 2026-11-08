@@ -81,6 +81,9 @@ export async function publishCard(ports: Ports, account: Account, draft: CardDra
     ...(workRates.length > 0 ? { work_rates: workRates } : {}),
     rates: CITY_RATES,
     ask_me: draft.ask_me ?? [],
+    // ADR 0063: what the agent's questions are written from, on this phone only.
+    ...(about ? { about } : {}),
+    ...(draft.asks?.length ? { asks: draft.asks } : {}),
     ...withPrefs(draft.terms ?? account.worker?.terms),
   };
   // No record and no "show my record": the server computes the one and keeps the other as the worker last set it.
@@ -164,6 +167,7 @@ export function accountDraft(account: Account): CardDraft {
     ...(account.languages ? { languages: account.languages } : {}),
     ...(account.about ? { about: account.about } : {}),
     ask_me: rules.ask_me ?? [],
+    ...(rules.asks?.length ? { asks: rules.asks } : {}),
     auto: account.autoConfirm ?? false,
     ...withPrefs(rules.terms),
   };

@@ -8,7 +8,7 @@ import { cleanUpLater, unlistCards } from "./journey.js";
 
 /**
  * Work outside the trades (ADR 0047): a worker lists a skill in her own words on My card, and a household who asks for
- * that work in Find's chat finds her on the board, is asked only the generic questions with no estimate, and asks her.
+ * that work in Find's chat finds her on the board, with no estimate, and asks her; her agent asks nothing it was told.
  * The household's words are matched on the phone against the board's skill list; only the skill's key is searched.
  */
 
@@ -106,7 +106,12 @@ test("a worker lists her own skill and a household who asks for it finds and ask
   await reveal(meena, meena.getByRole("main").getByText(SKILL, { exact: true }).first(), en);
   await open(lakshmi, "nav.activity", en);
   await reveal(lakshmi, lakshmi.getByRole("main").getByText(SKILL, { exact: true }).first(), en);
-  // Lakshmi's agent asks the one generic question Meena's words did not answer.
-  await expect(meena.getByRole("form", { name: t(en, "a11y.answer") })).toContainText(t(en, "question.duration"));
+  // Meena's words said what the work is, so Lakshmi's agent asks nothing more (never how long it takes, ADR 0063):
+  // the agents agree, and one of them is asked to sign.
+  const sign = (page: Page) => page.getByRole("button", { name: textOf(en, "job.sign") });
+  await expect
+    .poll(async () => (await sign(meena).isVisible()) || (await sign(lakshmi).isVisible()), { timeout: 60_000 })
+    .toBe(true);
+  await expect(meena.getByRole("form", { name: t(en, "a11y.answer") })).toHaveCount(0);
   await shoot("asked", { household: meena, worker: lakshmi }, FOLDER);
 });

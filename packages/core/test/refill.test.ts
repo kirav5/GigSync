@@ -35,6 +35,8 @@ describe("refilling the card on a new phone", () => {
       radius_km: 10,
       rates: BENGALURU_RATES,
       ask_me: [],
+      // ADR 0063: the line about the work, which the agent's questions are written from.
+      about: "Fans and wiring",
       floor_missing: true,
     });
     expect(refilled.languages).toEqual(["kn", "en"]);

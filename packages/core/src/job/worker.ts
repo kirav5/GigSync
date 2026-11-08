@@ -79,6 +79,10 @@ export interface WorkerRules {
   arrangements?: ArrangementMandate[];
   /** ADR 0062: kinds of work besides the first with a plan of their own; any other kind is at `rate`. */
   work_rates?: WorkMandate[];
+  /** ADR 0063: the line about their work, as on their card, so their agent asks as they would. */
+  about?: string;
+  /** ADR 0063: what they need to know before quoting, in their own words; never leaves the phone. */
+  asks?: string[];
 }
 
 const EARTH_RADIUS_KM = 6371;

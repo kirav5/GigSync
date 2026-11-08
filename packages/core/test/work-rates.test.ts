@@ -121,3 +121,23 @@ describe("the card interview", () => {
     expect(changed.slot).toBe(Slot.confirm);
   });
 });
+
+describe("what the worker needs to know (ADR 0063)", () => {
+  const config = { own: "en" as const, areas: [{ key: "koramangala", names: ["Koramangala"] }], rates: CITY_RATES };
+  const whole = { trades: ["electrician" as const], area: "koramangala", rate_paise: 30000, limit_paise: 25000 };
+
+  it("is asked from the summary too, kept as a list in the worker's words, and read back", () => {
+    const s = hear(edit(start(config, whole), Slot.asks), "Which floor? Is there a lift, the brand of the fan");
+    expect(s.draft.asks).toEqual(["Which floor", "Is there a lift", "the brand of the fan"]);
+    expect(s.slot).toBe(Slot.confirm);
+    expect(prompt(s).lines).toContainEqual({
+      key: "iv.summary_asks",
+      params: { list: "Which floor, Is there a lift, the brand of the fan" },
+    });
+  });
+
+  it("skip leaves the list empty", () => {
+    const s = hear(edit(start(config, { ...whole, asks: ["Which floor"] }), Slot.asks), "skip");
+    expect(s.draft.asks).toBeUndefined();
+  });
+});

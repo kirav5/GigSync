@@ -45,6 +45,7 @@ export const screens: Readonly<Record<keyof typeof en, string>> = {
   "card.work_limit": "{work}: ಕನಿಷ್ಠ ಬೆಲೆ, ₹ (ಖಾಸಗಿ)",
   "card.min": "ನಾನು ಒಪ್ಪುವ ಕನಿಷ್ಠ ಬೆಲೆ, ₹ (ಖಾಸಗಿ)",
   "card.about": "ನನ್ನ ಕೆಲಸದ ಬಗ್ಗೆ",
+  "card.asks": "ಬೆಲೆ ಹೇಳುವ ಮೊದಲು ನಾನು ತಿಳಿಯಬೇಕಾದ್ದು, ಸಾಲಿಗೆ ಒಂದು (ಖಾಸಗಿ)",
   "card.about_example": "10 ವರ್ಷ, ವೈರಿಂಗ್ ಮತ್ತು ಫ್ಯಾನ್",
   "card.languages": "ನಾನು ಮಾತನಾಡುವ ಭಾಷೆಗಳು",
   "card.ask_first": "{item} ಇದ್ದರೆ ಬೆಲೆ ಹೇಳುವ ಮೊದಲು ನನ್ನನ್ನು ಕೇಳಿ",
