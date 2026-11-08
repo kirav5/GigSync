@@ -1,14 +1,18 @@
 import type { Arrangement, Lang, QuestionKey, RateCard, Skill, Trade } from "@gigsync/protocol";
 import { ASK_FIRST_DETAILS } from "../job/details.js";
+import type { WorkId } from "../job/work-rates.js";
 import { QUESTIONS } from "../job/worker.js";
 import type { TermPrefs } from "../job/worker-stance.js";
 import type { WorkMatch } from "../skills/suggest.js";
 import { alsoKinds } from "./card-also.js";
 import { arranged, missingRate } from "./card-arrangements.js";
+import type { InterviewConfig } from "./card-config.js";
 import type { Line } from "./card-lines.js";
+import { asksWorkRates, missingWorkRate } from "./card-work-list.js";
 import type { FoundEstimate } from "./estimate-lines.js";
 import type { Field } from "./lexicon.js";
 
+export type { AreaChoice, InterviewConfig } from "./card-config.js";
 export type { Choice, Line, Prompt } from "./card-lines.js";
 
 /**
@@ -33,28 +37,18 @@ export interface CardDraft {
   radius_km?: number;
   rate_paise?: number;
   limit_paise?: number;
+  /** ADR 0062: false when the worker charges differently for each kind; the card's rate is for its first kind. */
+  same_rate?: boolean;
+  /** ADR 0062: the usual rate for each kind besides the first, by kind. */
+  work_rates?: Partial<Record<WorkId, number>>;
+  /** ADR 0062: a kind's lowest, when set apart from the share of the card's own (My card). */
+  work_limits?: Partial<Record<WorkId, number>>;
   languages?: Lang[];
   about?: string;
   ask_me?: QuestionKey[];
   auto?: boolean;
   /** When they take work, who buys materials, a day's hours: what their agent agrees besides the price. */
   terms?: TermPrefs;
-}
-
-/** A pilot area by key, with every name it may be spoken or typed as, in each script and in English. */
-export interface AreaChoice {
-  key: string;
-  names: readonly string[];
-  /** The area's name in each language, for an area the app has no catalog name for (ADR 0061: kept in the directory). */
-  label?: Readonly<Record<Lang, string>>;
-}
-
-export interface InterviewConfig {
-  /** The owner's language: asked first among the languages, and the one questions are read in. */
-  own: Lang;
-  areas: readonly AreaChoice[];
-  /** The city's going rates, for the amount check. */
-  rates: RateCard;
 }
 
 /** Where the interview is: the field being asked, then confirm, then done. */
@@ -69,6 +63,10 @@ export const Slot = {
   min: "min",
   /** The usual rate for each other arrangement picked. */
   more_rates: "more_rates",
+  /** "The same price for all your work?" for a card with more than one kind (ADR 0062). */
+  same_rate: "same_rate",
+  /** The usual rate for each other kind, after a no to that. */
+  work_rate: "work_rate",
   languages: "languages",
   about: "about",
   ask_first: "ask_first",
@@ -139,6 +137,7 @@ export const FIELDS: readonly Field[] = [
   Slot.radius,
   Slot.rate,
   Slot.min,
+  Slot.same_rate,
   Slot.hours,
   Slot.days,
   Slot.languages,
@@ -157,6 +156,8 @@ const ORDER: readonly Slot[] = [
   Slot.rate,
   Slot.min,
   Slot.more_rates,
+  Slot.same_rate,
+  Slot.work_rate,
   Slot.languages,
   Slot.about,
   Slot.ask_first,
@@ -180,7 +181,8 @@ const complete = (d: CardDraft): boolean =>
   d.rate_paise !== undefined &&
   d.limit_paise !== undefined &&
   d.limit_paise <= d.rate_paise &&
-  missingRate(d) === undefined;
+  missingRate(d) === undefined &&
+  missingWorkRate(d) === undefined;
 
 function firstMissing(d: CardDraft): Slot {
   if (!hasWork(d)) return Slot.trade;
@@ -188,7 +190,8 @@ function firstMissing(d: CardDraft): Slot {
   if (d.area === undefined) return Slot.area;
   if (d.rate_paise === undefined) return Slot.rate;
   if (d.limit_paise === undefined || d.limit_paise > d.rate_paise) return Slot.min;
-  return complete(d) ? Slot.confirm : Slot.more_rates;
+  if (complete(d)) return Slot.confirm;
+  return missingRate(d) ? Slot.more_rates : Slot.work_rate;
 }
 
 /** A new interview, at the first field, or pre-filled from the card the owner already has. */
@@ -222,12 +225,15 @@ function nextSlot(s: InterviewState, draft: CardDraft): Slot {
   if (s.editing && s.slot === Slot.arrangements) return Slot.rate;
   if (s.editing && s.slot === Slot.rate && !complete(draft)) return Slot.min;
   if (s.slot === Slot.more_rates && missingRate(draft)) return Slot.more_rates;
+  if ((s.slot === Slot.same_rate || s.slot === Slot.work_rate) && missingWorkRate(draft)) return Slot.work_rate;
   if (s.editing) return complete(draft) ? Slot.confirm : firstMissing(draft);
   const skipped = (slot: Slot | undefined) =>
     (slot === Slot.also && alsoKinds(draft).length === 0) ||
     (slot === Slot.ask_first && !asks) ||
     (slot === Slot.arrangements && !arranged(draft)) ||
-    (slot === Slot.more_rates && !missingRate(draft));
+    (slot === Slot.more_rates && !missingRate(draft)) ||
+    (slot === Slot.same_rate && !asksWorkRates(draft)) ||
+    (slot === Slot.work_rate && !missingWorkRate(draft));
   let i = ORDER.indexOf(s.slot) + 1;
   while (skipped(ORDER[i])) i++;
   return ORDER[i] ?? Slot.confirm;

@@ -12,7 +12,7 @@ import { chooseWhichRate, edit, editSaid, hearWhichRate, onUnlist } from "./card
 import { cardEstimate, suggestedAmount } from "./card-estimate.js";
 import { askKind, chooseKind, hearKind } from "./card-kind.js";
 import type { Line } from "./card-lines.js";
-import { chooseTerms, hearTerms } from "./card-terms.js";
+import { chooseRest, hearRest } from "./card-work-rates.js";
 import { areaIn, editIntent, fieldIn, isNone, isSkip, languagesIn, tradesIn, yesNo } from "./lexicon.js";
 import { isGreeting } from "./need-greeting.js";
 
@@ -243,7 +243,7 @@ export function hear(state: InterviewState, text: string, aloud = false, kind?: 
     case Slot.unlist:
       return onUnlist(state, yesNo(text));
     default:
-      return hearTerms(state, text);
+      return hearRest(state, text);
   }
 }
 
@@ -294,6 +294,6 @@ export function choose(state: InterviewState, value: string): InterviewState {
     case Slot.unlist:
       return flag(value) === undefined ? state : onUnlist(state, flag(value));
     default:
-      return chooseTerms(state, value);
+      return chooseRest(state, value);
   }
 }

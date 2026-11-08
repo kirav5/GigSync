@@ -14,6 +14,7 @@ export const arrangement = {
   "unit.week": "a week",
   "unit.month": "a month",
   "price.per": "{price} {unit}",
+  "price.for_work": "{work}: {price}",
   "estimate.range_week": "{trade} in {city}{scope}: usually {low}–{high} a week.",
   "need.ask.arrangement": "How long do you need them for?",
   "need.arr.hourly": "A few hours",

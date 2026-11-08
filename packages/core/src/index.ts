@@ -142,6 +142,20 @@ export { canOffer, TalkError, Talks, theirLast, theirLatest } from "./job/talks.
 export * from "./job/terms.js";
 export { type TermsTrack, type TimeAsk, termDetails } from "./job/terms-flow.js";
 export * from "./job/when.js";
+export {
+  atShare,
+  cardWorks,
+  publicWorkRates,
+  requestWork,
+  skillWork,
+  tradeWork,
+  type WorkId,
+  type WorkMandate,
+  type WorkName,
+  workMandate,
+  workName as workNameOf,
+  workOfRate,
+} from "./job/work-rates.js";
 export { doesWork, type WorkerRules } from "./job/worker.js";
 export * from "./job/worker-stance.js";
 export * from "./keys.js";

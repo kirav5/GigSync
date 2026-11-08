@@ -9,7 +9,8 @@ import { estimatePrompt } from "./card-estimate.js";
 import { kindPrompt } from "./card-kind.js";
 import { minAloud } from "./card-parse.js";
 import { rateLines } from "./card-rates.js";
-import { termsPrompt, termsSummary } from "./card-terms.js";
+import { termsSummary } from "./card-terms.js";
+import { restPrompt, workRatesSummary } from "./card-work-rates.js";
 import { areaChoices, areaHints, isMessageKey, YES_NO } from "./choices.js";
 import type { Field } from "./lexicon.js";
 
@@ -63,6 +64,7 @@ const FIELD_LABEL: Readonly<Record<Field, MessageKey>> = {
   materials: "terms.card_materials",
   max_hours: "terms.card_hours",
   unlist: "card.unlist",
+  same_rate: "card.work_rates",
 };
 
 /** An area: the place they found, else its catalog name, put in the reader's language when shown, else as the app named it. */
@@ -94,6 +96,7 @@ function summary(state: InterviewState): Line[] {
       prices: { rate: draft.rate_paise ?? 0 },
     },
     ...ratesSummary(draft),
+    ...workRatesSummary(draft),
     ...termsSummary(state),
     ...about,
     { key: draft.auto ? "iv.summary_auto_on" : "iv.summary_auto_off" },
@@ -188,7 +191,7 @@ function question(state: InterviewState): Prompt {
     case Slot.unlist:
       return unlistPrompt();
     default:
-      return termsPrompt(state);
+      return restPrompt(state);
   }
 }
 
