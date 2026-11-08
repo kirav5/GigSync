@@ -8,6 +8,7 @@ import {
   NeedSlot,
   type NeedState,
   namesOtherWork,
+  othersInGroup,
   type Ports,
   parseNeed,
   problemByMeaning,
@@ -26,7 +27,16 @@ import {
 import type { Lang, Session, WorkCategory } from "@gigsync/protocol";
 import { meaningFor } from "../adapters/meaning.js";
 import { answerMarket, routedMarket } from "../estimate/market.js";
-import { answerNeed, jobTypeNeed, needSay, nobodyNeed, showOwner, skillNeed, switchNeed } from "./needStore.js";
+import {
+  answerNeed,
+  jobTypeNeed,
+  kindNeed,
+  needSay,
+  nobodyNeed,
+  showOwner,
+  skillNeed,
+  switchNeed,
+} from "./needStore.js";
 import { findRoute } from "./route.js";
 import { listedWork } from "./skills.js";
 
@@ -61,8 +71,11 @@ async function marketAnswer(m: Message, slot: NeedSlot, shown: boolean): Promise
 /** The first message: the need in the owner's words, read into its work, its scope and the kind of job. */
 export async function readFirst(m: Message): Promise<void> {
   const { ports, session, state, chat, text, aloud, lang } = m;
-  const { list, index } = await listedWork(ports, session, state.to?.skills);
-  const read = await readTurn(ports.model, turnContext(state, text, workOptions(list)));
+  const { list: kept, index } = await listedWork(ports, session, state.to?.skills);
+  const read = await readTurn(ports.model, turnContext(state, text, workOptions(kept)));
+  // A kind with nobody on a list a few minutes old is looked up again: someone may have just listed it.
+  const stale = read?.category && !kept.some((s) => s.category === read.category);
+  const list = stale ? (await listedWork(ports, session, state.to?.skills, true)).list : kept;
   if (read?.kind === TurnKind.enum.greeting) return needSay(chat, { key: NeedSay.greeting });
   if ((!read || read.kind === TurnKind.enum.market) && (await marketAnswer(m, NeedSlot.trade, true))) return;
   const { areas, today } = state.config;
@@ -85,8 +98,10 @@ export async function readFirst(m: Message): Promise<void> {
   const problemKind = trade && meaning ? await problemByMeaning(meaning.problems, trade, text) : undefined;
   if (problemKind) hint.problemKind = problemKind;
   // A kind of work no worker lists yet is said plainly: there is nobody to ask, and no nearest skill to force it into.
-  if (!trade && read?.category && !found && !state.to)
-    return nobodyNeed(chat, t(lang, `category.${read.category}`), text);
+  if (!trade && read?.category && !found && !state.to) {
+    const empty = { kind: read.category, others: othersInGroup(read.category, list) };
+    return nobodyNeed(chat, t(lang, `category.${read.category}`), text, empty);
+  }
   const skill = trade ? undefined : (found ?? (await listedSkill(text, list, index)));
   if (skill) return skillNeed(chat, skill, text, Boolean(read?.problem || read?.jobType || found), Boolean(found));
   const jobType = trade || !state.draft.modelAsk ? undefined : read ? read.jobType : await nameOf(m);
@@ -111,4 +126,17 @@ export async function readLater(m: Message, secret: boolean, heard: NeedState): 
   if (!read || !namesOtherWork(state, read)) return false;
   switchNeed(chat, read, text);
   return true;
+}
+
+/**
+ * A kind of work outside the trades tapped on the list (ADR 0061): its workers' skill, looked up fresh, and the model
+ * words the first question; with nobody listing it, the others in its group that have workers.
+ */
+export async function pickKind(m: Message, category: WorkCategory, label: string): Promise<void> {
+  const { ports, session, state, chat, lang } = m;
+  const { list } = await listedWork(ports, session, state.to?.skills, true);
+  const skill = categorySkill(category, list, lang) ?? (await sameWork(ports.model, category, list));
+  if (skill) return kindNeed(chat, skill, label);
+  const empty = { kind: category, others: othersInGroup(category, list) };
+  nobodyNeed(chat, t(lang, `category.${category}`), label, empty, label);
 }

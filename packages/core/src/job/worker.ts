@@ -25,6 +25,7 @@ import { estimateBand } from "../estimate/band.js";
 import { lookupEstimate } from "../estimate/lookup.js";
 import { basisCount, estimateRequest, perJob } from "../estimate/scope.js";
 import { log } from "../log.js";
+import { categoryNamed } from "../skills/suggest.js";
 import { pastPrices, proposeMandate } from "./advice.js";
 import { type ArrangementMandate, arrangementMandate, askedArrangement, rateFor } from "./arrangement-rules.js";
 import { questionsFor } from "./ask.js";
@@ -96,7 +97,8 @@ export function doesWork(rules: Pick<WorkerRules, "trades" | "skills">, req: Pic
   const asked = req.skill;
   if (!asked) return false;
   const key = skillKey(asked.text);
-  const kind = asked.category;
+  // A request from an app older than kinds of work names the kind only in its words: "Pet care" is pet care.
+  const kind = asked.category ?? categoryNamed(asked.text);
   return (rules.skills ?? []).some((s) => skillKey(s.text) === key || (kind !== undefined && s.category === kind));
 }
 

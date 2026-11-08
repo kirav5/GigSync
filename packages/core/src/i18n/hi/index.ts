@@ -10,6 +10,7 @@ import { contacts } from "./contacts.js";
 import { drivers } from "./drivers.js";
 import { estimate } from "./estimate.js";
 import { explain } from "./explain.js";
+import { group } from "./group.js";
 import { home } from "./home.js";
 import { install } from "./install.js";
 import { interview } from "./interview.js";
@@ -41,6 +42,7 @@ import { worker } from "./worker.js";
 export const hi: Strings = {
   ...job,
   ...category,
+  ...group,
   ...screens,
   ...worker,
   ...model,

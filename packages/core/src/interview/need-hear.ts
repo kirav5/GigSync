@@ -29,6 +29,7 @@ import { detailAnswer, settledProblem } from "./need-detail.js";
 import { chooseDriver, hearDriver } from "./need-drivers.js";
 import { suggestedBudget } from "./need-estimate.js";
 import { fillEmpty, fillFromHint } from "./need-fill.js";
+import { chooseKindPick } from "./need-kinds.js";
 import { MemoryPick } from "./need-memory.js";
 import type { NeedHint } from "./need-model.js";
 import { amountIn, DETAIL_MAX, type NeedFill, parseNeed } from "./need-parse.js";
@@ -45,7 +46,13 @@ import { finder, firstIn, normalize } from "./normalize.js";
  */
 
 /** What the tap choices carry besides trades, areas, days, radii and fields; `list` opens the trades (ADR 0051). */
-export const NeedPick = { date: "date", change: "change", list: "list", notThis: "not_this" } as const;
+export const NeedPick = {
+  date: "date",
+  change: "change",
+  list: "list",
+  notThis: "not_this",
+  groups: "groups",
+} as const;
 /** The Change chips under a question, by the field the agent filled in from memory. */
 const REDO = new Map<string, NeedField>([
   [MemoryPick.redoDetail, NeedSlot.detail],
@@ -221,14 +228,18 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
   const d = s.draft;
   const memory = onMemoryPick(s, value);
   if (memory) return memory;
-  if (s.slot === NeedSlot.outside) return value === NeedPick.list ? afterOutside(s) : s;
+  // At work nobody lists yet: the list, or one of the others in its group that have workers (ADR 0061).
+  if (s.slot === NeedSlot.outside)
+    return value === NeedPick.list ? afterOutside(s) : chooseNeed(afterOutside(s), value);
   if (s.slot === NeedSlot.scope) return chooseScope(s, value) ?? s;
   if (s.slot === NeedSlot.driver) return chooseDriver(s, value) ?? s;
   switch (s.slot) {
     case NeedSlot.trade: {
       if (value === NeedPick.list) return { ...s, fresh: false, notes: [] };
+      const browsed = chooseKindPick(s, value);
+      if (browsed) return browsed;
       const trade = Trade.options.find((tr) => tr === value);
-      return tradeFor(s, trade) ? moveOn(s, withTrade(d, trade)) : s;
+      return tradeFor(s, trade) ? moveOn(s, { ...withTrade(d, trade), tapped: true }) : s;
     }
     case NeedSlot.detail: {
       if (value === Pick.skip) return moveOn(s, settledProblem({ ...d, detail: null }));

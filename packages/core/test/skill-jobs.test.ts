@@ -37,6 +37,8 @@ describe("a job for a skill outside the trades", () => {
     expect(doesWork(mechanic, asked)).toBe(true);
     expect(doesWork(mechanic, { ...asked, skill: { ...asked.skill, category: "fridge_repair" } })).toBe(false);
     expect(doesWork({ trades: [], skills: [{ text: "TV mechanic", lang: "en" }] }, asked)).toBe(false);
+    // A household on an older app sends the kind's name only, which still names the kind.
+    expect(doesWork(mechanic, { trade: "other", skill: { text: "TV repair", lang: "en" } })).toBe(true);
   });
 
   it("asks how long, quotes from the worker's own rates, and is recorded without words", async () => {

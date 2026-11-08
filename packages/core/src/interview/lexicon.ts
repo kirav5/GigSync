@@ -92,7 +92,7 @@ const LANG_WORDS: Readonly<Record<Lang, readonly string[]>> = {
 };
 
 /** A field of the card an owner can ask to change, by voice or a chip. */
-export type Field = Exclude<Slot, "confirm" | "done" | "unlisted" | "more_rates" | "hours_to" | "which_rate">;
+export type Field = Exclude<Slot, "confirm" | "done" | "unlisted" | "more_rates" | "hours_to" | "which_rate" | "also">;
 
 /** Taking the card off the board: said as a whole, so no change word is needed. */
 const UNLIST = ["off the board", "remove my card", "hide my card", "delete my card", "take down my card", "unlist"]

@@ -1,5 +1,5 @@
 import { type MessageKey, t } from "@gigsync/core";
-import type { Lang } from "@gigsync/protocol";
+import { groupOf, type Lang, type WorkKind } from "@gigsync/protocol";
 import { expect, type Locator, type Page } from "@playwright/test";
 import { fillAddressForm } from "./address.js";
 
@@ -104,7 +104,8 @@ async function answer(phone: Phone, ask: NeedAnswers): Promise<boolean> {
   const taps = [
     "memory.use",
     "terms.scope_ok",
-    ...(ask.trade ? [`trade.${ask.trade}` as MessageKey] : []),
+    // The list opens on groups (ADR 0061): the trade's group, then the trade.
+    ...(ask.trade ? [`trade.${ask.trade}` as MessageKey, `group.${groupOf(ask.trade as WorkKind)}` as MessageKey] : []),
     `need.arr.${ask.arrangement ?? "monthly"}` as MessageKey,
     areaKey(ask.area),
     // A price question (ADR 0041): the journeys leave it to the estimate to assume.

@@ -1,4 +1,13 @@
-import { type BoardSkill, type Lang, Trade, WorkCategory } from "@gigsync/protocol";
+import {
+  type BoardSkill,
+  GROUP_KINDS,
+  groupOf,
+  isTradeKind,
+  type Lang,
+  Trade,
+  WorkCategory,
+  type WorkKind,
+} from "@gigsync/protocol";
 import { t } from "../i18n/t.js";
 
 /**
@@ -35,3 +44,12 @@ export function categorySkill(
   const workers = wordings.reduce((sum, s) => sum + s.workers, 0);
   return { key: first.key, text: t(own, `category.${category}`), lang: own, category, workers };
 }
+
+/**
+ * The others in a kind's group a household could ask instead (ADR 0061): the trades, and the kinds someone lists. Each
+ * keeps its own price; the group only says they are the same sort of work.
+ */
+export const othersInGroup = (category: WorkCategory, listed: readonly BoardSkill[]): WorkKind[] =>
+  GROUP_KINDS[groupOf(category)].filter(
+    (k) => k !== category && (isTradeKind(k) || listed.some((s) => s.category === k)),
+  );

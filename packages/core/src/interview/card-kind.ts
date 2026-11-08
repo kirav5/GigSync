@@ -1,7 +1,7 @@
-import type { Skill } from "@gigsync/protocol";
+import { type Skill, skillKey } from "@gigsync/protocol";
 import { t } from "../i18n/t.js";
 import { type WorkMatch, workMatchName } from "../skills/suggest.js";
-import { advance, type InterviewState, Pick, retry } from "./card.js";
+import { advance, type CardDraft, type InterviewState, Pick, retry } from "./card.js";
 import type { Line, Prompt } from "./card-lines.js";
 import { YES_NO } from "./choices.js";
 import { yesNo } from "./lexicon.js";
@@ -14,15 +14,17 @@ import { yesNo } from "./lexicon.js";
 
 const MAX_MISSES = 2;
 
-/** The work kept in the worker's words, and the question whether it is the trade or kind of work the model named. */
-export const askKind = (s: InterviewState, skill: Skill, kind: WorkMatch, notes: Line[]): InterviewState => ({
-  ...s,
-  draft: { ...s.draft, trades: [], skills: [skill], ask_me: [] },
-  kind,
-  notes,
-  misses: 0,
-  fresh: false,
-});
+/**
+ * The work kept in the worker's words (`draft` holds it, alone or beside what the card had), and the question whether
+ * it is the trade or kind of work the model named. `asked` is the skill the question is about.
+ */
+export const askKind = (
+  s: InterviewState,
+  draft: CardDraft,
+  asked: Skill,
+  kind: WorkMatch,
+  notes: Line[],
+): InterviewState => ({ ...s, draft, asking: asked, kind, notes, misses: 0, fresh: false });
 
 export function kindPrompt(s: InterviewState): Prompt {
   const work = s.kind ? workMatchName(s.config.own, s.kind) : "";
@@ -35,15 +37,19 @@ export function kindPrompt(s: InterviewState): Prompt {
 
 /** A yes files the work; a no keeps the words; anything else asks again, then keeps them. */
 export function answerKind(s: InterviewState, yes: boolean | undefined): InterviewState {
-  const kind = s.kind;
-  const skill = s.draft.skills?.[0];
-  if (!kind || !skill) return { ...s, kind: undefined };
+  const { kind, asking } = s;
+  if (!kind || !asking) return { ...s, kind: undefined, asking: undefined };
   if (yes === undefined && s.misses + 1 < MAX_MISSES)
     return { ...retry(s, { key: "iv.again.yes_no" }), misses: s.misses + 1 };
-  const at = { ...s, kind: undefined };
+  const at = { ...s, kind: undefined, asking: undefined };
   if (!yes) return advance(at, s.draft);
-  if ("trade" in kind) return advance(at, { ...s.draft, trades: [kind.trade], skills: [] });
-  return advance(at, { ...s.draft, skills: [{ ...skill, category: kind.category }] });
+  const key = skillKey(asking.text);
+  const others = (s.draft.skills ?? []).filter((sk) => skillKey(sk.text) !== key);
+  if ("trade" in kind) {
+    const trades = [...(s.draft.trades ?? []).filter((tr) => tr !== kind.trade), kind.trade];
+    return advance(at, { ...s.draft, trades, skills: others });
+  }
+  return advance(at, { ...s.draft, skills: [...others, { ...asking, category: kind.category }] });
 }
 
 export const hearKind = (s: InterviewState, text: string): InterviewState => answerKind(s, yesNo(text));

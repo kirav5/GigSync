@@ -24,6 +24,11 @@ export function readSkill(text: string, lang: Lang): SkillRead {
 /** Words around a spoken skill that only say "I am" or "I do" ("I am a tailor", "मैं दर्ज़ी हूँ"), in any of the scripts. */
 const FILLER = new Set([
   "i",
+  "also",
+  "too",
+  "bhi",
+  "भी",
+  "ಕೂಡ",
   "im",
   "i'm",
   "am",

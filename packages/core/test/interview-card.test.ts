@@ -28,6 +28,7 @@ const config = (own: Lang) => ({ own, areas: AREAS, rates: CITY_RATES });
 const run = (state: InterviewState, answers: readonly string[], aloud = false) =>
   answers.reduce((s, answer) => hear(s, answer, aloud), state);
 const keys = (state: InterviewState) => prompt(state).lines.map((l) => l.key);
+// Each walk answers "Do you also do any of these?" (ADR 0061), asked right after the work, with a no.
 /** What a cook is shown under each rate question: the city's range, the legal minimum, and that it is unchecked. */
 const COOK_HINT = ["iv.band_month", "iv.legal_min", "iv.band_seed"];
 const FULL: CardDraft = {
@@ -46,7 +47,7 @@ describe("the card interview, start to finish", () => {
     expect(keys(first)).toEqual(["iv.start", "iv.ask.trade"]);
     const atConfirm = run(
       first,
-      ["मैं खाना बनाती हूँ", "हर महीने", "कोरमंगला", "नौ हज़ार", "साढ़े सात हज़ार", "कोई नहीं", "छोड़ो", "हाँ ना", "नहीं"],
+      ["मैं खाना बनाती हूँ", "नहीं", "हर महीने", "कोरमंगला", "नौ हज़ार", "साढ़े सात हज़ार", "कोई नहीं", "छोड़ो", "हाँ ना", "नहीं"],
       true,
     );
     expect(atConfirm.slot).toBe(Slot.confirm);
@@ -74,7 +75,9 @@ describe("the card interview, start to finish", () => {
   });
 
   it("runs in Kannada, typed and tapped, changing the rate after a no at confirm", () => {
-    let s = run(start(config("kn")), ["ಅಡುಗೆ", "ತಿಂಗಳಿಗೆ"]);
+    let s = run(start(config("kn")), ["ಅಡುಗೆ"]);
+    expect(s.slot).toBe(Slot.also);
+    s = run(s, ["ಇಲ್ಲ", "ತಿಂಗಳಿಗೆ"]);
     expect(prompt(s).choices?.map((c) => c.value)).toEqual(["koramangala", "hsr_layout", "jayanagar"]);
     s = choose(s, "jayanagar");
     s = run(s, ["ಎಂಟು ಸಾವಿರ", "ಏಳು ಸಾವಿರ", "ಹಿಂದಿ", "ಹತ್ತು ವರ್ಷದ ಅನುಭವ", "ಇಲ್ಲ", "ಹೌದು", "ಇಲ್ಲ"]);
@@ -101,6 +104,7 @@ describe("the card interview, start to finish", () => {
   it("runs in English, typed, skipping the ask-first question for a trade without one", () => {
     const s = run(start(config("en")), [
       "electrician",
+      "no",
       "HSR",
       "500",
       "400",
@@ -123,7 +127,7 @@ describe("the card interview, start to finish", () => {
 });
 
 describe("the card interview's checks", () => {
-  const atRate = run(start(config("hi")), ["कुक", "महीने का", "कोरमंगला"]);
+  const atRate = run(start(config("hi")), ["कुक", "नहीं", "महीने का", "कोरमंगला"]);
 
   it("asks a monthly trade for its monthly rate, and needs an amount", () => {
     expect(keys(atRate)).toEqual(["iv.ask.rate_month", ...COOK_HINT]);
@@ -221,7 +225,7 @@ describe("the card interview's checks", () => {
   });
 
   it("follows a change of language part-way, keeping the answers", () => {
-    const atLanguages = run(start(config("en")), ["cook", "monthly", "Koramangala", "9000", "7000"]);
+    const atLanguages = run(start(config("en")), ["cook", "no", "monthly", "Koramangala", "9000", "7000"]);
     const switched = withConfig(atLanguages, config("hi"));
     expect(draftOf(switched)).toEqual(draftOf(atLanguages));
     const ask = prompt(switched);

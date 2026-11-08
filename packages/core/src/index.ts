@@ -34,10 +34,19 @@ export {
 } from "./interview/driver-ask.js";
 export { type DriverAnswer, driverAnswer, driversIn, saysDontKnow } from "./interview/driver-parse.js";
 export { looksLikeAddress, scrubFacts, scrubJobType, scrubText } from "./interview/fact-scrub.js";
+export {
+  askingFirst,
+  checkFirstQuestion,
+  firstQuestionPrompt,
+  modelFirstQuestion,
+  tappedNeed,
+  withFirstQuestion,
+} from "./interview/first-question.js";
 export * from "./interview/index.js";
 export { checkJobType, jobTypePrompt, modelJobType, withJobType, withNobody } from "./interview/job-type.js";
 export {
   DayWord,
+  firstQuestion,
   guessedNeed,
   type NeedConfig,
   type NeedDraft,
@@ -182,6 +191,16 @@ export * from "./router/newcomers.js";
 export * from "./router/reply-schema.js";
 export * from "./router/route-chat.js";
 export * from "./schedule/index.js";
+export {
+  cardKinds,
+  categoryPicked,
+  GROUP_PICK,
+  KIND_PICK,
+  kindKey,
+  kindSkill,
+  kindValue,
+  toggleKind,
+} from "./skills/kinds.js";
 export { listedSkill, SKILL_MEANING_MAX, skillIndex, skillNamedIn } from "./skills/match.js";
 export { workName } from "./skills/name.js";
 export { readSkill, type SkillRead, spokenSkill } from "./skills/read.js";
@@ -194,5 +213,5 @@ export {
   type WorkMatch,
   workMatchName,
 } from "./skills/suggest.js";
-export { categorySkill, type WorkPick, workOptions } from "./skills/work-list.js";
+export { categorySkill, othersInGroup, type WorkPick, workOptions } from "./skills/work-list.js";
 export * from "./transfer/index.js";

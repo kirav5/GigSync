@@ -1,4 +1,5 @@
 import {
+  alsoSaid,
   type Agent as CoreAgent,
   edit,
   type GigDevice,
@@ -98,6 +99,13 @@ export function AgentScreen(props: TalkProps) {
    * ("I am a TV mechanic"): it answers the question, instead of the interview starting over and asking it again.
    */
   const carryOn = (said: string) => {
+    // "I also do cat care" with a card: the work question, answered with those words, adding to what is on the card.
+    if (account.worker && alsoSaid(said)) {
+      const at = edit(fresh(), Slot.trade);
+      beginInterview(at);
+      void answerCard(ports, at, said, false);
+      return true;
+    }
     if (!state || !paused || state.slot !== Slot.trade || account.worker) return false;
     resumeInterview();
     void answerCard(ports, state, said, false);

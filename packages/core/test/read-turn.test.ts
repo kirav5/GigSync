@@ -179,11 +179,11 @@ describe("work a model chose", () => {
     expect(prompt.choices?.at(-1)).toEqual({ value: NeedPick.notThis, key: "need.not_this" });
   });
 
-  it("is undone by that tap, back to the trades, and the owner can say it again", () => {
+  it("is undone by that tap, back to the list of work, and the owner can say it again", () => {
     const back = chooseNeed(at(), NeedPick.notThis);
     expect(back.slot).toBe(NeedSlot.trade);
     expect(back.draft.trade).toBeUndefined();
-    expect(needPrompt(back).choices?.map((c) => c.value)).toContain("plumber");
+    expect(needPrompt(back).choices?.map((c) => c.value)).toContain("group:home_repairs");
     expect(needPrompt(back).choices?.map((c) => c.value)).not.toContain(NeedPick.notThis);
   });
 

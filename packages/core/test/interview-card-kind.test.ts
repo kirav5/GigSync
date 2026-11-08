@@ -1,6 +1,17 @@
 import type { Lang } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import { CITY_RATES, choose, hear, prompt, Slot, sameWork, sameWorkPrompt, start } from "../src/index.js";
+import {
+  CITY_RATES,
+  choose,
+  hear,
+  type InterviewState,
+  prompt,
+  Slot,
+  sameWork,
+  sameWorkPrompt,
+  start,
+} from "../src/index.js";
+import { Pick } from "../src/interview/card.js";
 import { FakeModel } from "./model-fakes.js";
 
 /** ADR 0059: words said in the card interview are filed only on the worker's yes; a hello is not work. */
@@ -9,6 +20,11 @@ const AREAS = [{ key: "koramangala", names: ["Koramangala"] }];
 const config = (own: Lang = "en") => ({ own, areas: AREAS, rates: CITY_RATES });
 const TV = { category: "tv_repair" } as const;
 const said = (kind = TV as object) => hear(start(config()), "I am a TV mechanic", false, kind as never);
+/** Past "Do you also do any of these?" (ADR 0061), asked right after the work, with Done. */
+const pastAlso = (s: InterviewState) => {
+  expect(s.slot).toBe(Slot.also);
+  return choose(s, Pick.yes);
+};
 
 describe("the work question in the card interview", () => {
   it("takes no hello as work, and asks again", () => {
@@ -34,8 +50,8 @@ describe("the work question in the card interview", () => {
   it("files them on a yes, said or tapped, and moves on", () => {
     for (const yes of [hear(said(), "yes"), choose(said(), "yes")]) {
       expect(yes.draft.skills).toEqual([{ text: "TV mechanic", lang: "en", category: "tv_repair" }]);
-      expect(yes.slot).toBe(Slot.arrangements);
       expect(yes.kind).toBeUndefined();
+      expect(pastAlso(yes).slot).toBe(Slot.arrangements);
     }
   });
 
@@ -59,7 +75,8 @@ describe("the work question in the card interview", () => {
   });
 
   it("asks nothing when the words are a kind of work's own name, or with no suggestion", () => {
-    expect(hear(start(config()), "Tailor", false, TV as never).slot).toBe(Slot.arrangements);
+    expect(pastAlso(hear(start(config()), "Tailor", false, TV as never)).slot).toBe(Slot.arrangements);
+    // Words filed under no kind have no group, so nothing else is offered either.
     expect(hear(start(config()), "TV mechanic").slot).toBe(Slot.arrangements);
   });
 });

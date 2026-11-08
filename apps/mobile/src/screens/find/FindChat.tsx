@@ -1,7 +1,9 @@
 import {
   addressAsked,
   addressChoice,
+  askingFirst,
   askingModel,
+  categoryPicked,
   findEventOf,
   type GigDevice,
   hearNeed,
@@ -40,18 +42,17 @@ import {
   relanguageNeed,
   showOwner,
 } from "../../find/needStore.js";
-import { readFirst, readLater } from "../../find/readNeed.js";
+import { pickKind, readFirst, readLater } from "../../find/readNeed.js";
 import { useAddressBook } from "../../find/useAddressBook.js";
 import { useAddresses } from "../../find/useAddresses.js";
 import { useListedRates } from "../../find/useListedRates.js";
 import { ASKED, useNeedSearch } from "../../find/useNeedSearch.js";
-import { usePriceQuestions } from "../../find/usePriceQuestions.js";
+import { useFirstQuestion, usePriceQuestions } from "../../find/usePriceQuestions.js";
 import { useI18n } from "../../i18n.js";
 import { Composer, Via } from "../../ui/Composer.js";
 import { C } from "../../ui/cls.js";
 import { Dock } from "../../ui/Dock.js";
 import { errorKey } from "../../ui/errorKey.js";
-import { PILOT_CITY } from "../../ui/places.js";
 import { phoneDay } from "../jobGroups.js";
 import { AddAddress } from "./AddAddress.js";
 import { AddressDesk } from "./AddressDesk.js";
@@ -148,6 +149,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   const requestKey = request && JSON.stringify(request);
   const session = account.session;
   usePriceQuestions(ports, open, state);
+  useFirstQuestion(ports, open, state);
   useListedRates(session, open, state, saved);
   // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the request's JSON, not its identity
   useEffect(() => {
@@ -228,7 +230,17 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       busy={busy}
       onAsk={(turn) => void ask(turn)}
       onAddAddress={() => setAdding(true)}
-      onTap={(value) => state && countFind(account.session, findEventOf(state, value))}
+      onTap={(value, label) => {
+        if (state) countFind(account.session, findEventOf(state, value));
+        const kind = categoryPicked(value);
+        if (!kind || !state) return false;
+        void pickKind(
+          { ports, session: account.session, state, chat: open, text: label, aloud: false, lang },
+          kind,
+          label,
+        );
+        return true;
+      }}
     />
   );
   const desk = (
@@ -255,7 +267,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
         </Dock>
       </>
     );
-  const thinking = state !== undefined && askingModel(state);
+  const thinking = state !== undefined && (askingModel(state) || askingFirst(state));
   const waiting = !state || state.slot === NeedSlot.done || state.slot === NeedSlot.found || thinking;
   return (
     <>

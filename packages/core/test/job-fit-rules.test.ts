@@ -55,7 +55,10 @@ describe("each kind of work's arrangements", () => {
 
 describe("the card interview, by the job's nature", () => {
   it("offers a cook only what a cook takes, and ignores a tap of anything else", () => {
-    const s = hear(start(config()), "cook");
+    const said = hear(start(config()), "cook");
+    // "Do you also do any of these?" (ADR 0061) comes first; a no moves on.
+    expect(said.slot).toBe(Slot.also);
+    const s = hear(said, "no");
     expect(s.slot).toBe(Slot.arrangements);
     expect(prompt(s).choices?.map((c) => c.value)).toEqual([A.visit, A.weekly, A.monthly, "yes"]);
     expect(choose(s, A.hourly).draft.arrangements).toBeUndefined();
@@ -66,7 +69,9 @@ describe("the card interview, by the job's nature", () => {
   });
 
   it("asks an electrician nothing about arrangements", () => {
-    expect(hear(start(config()), "electrician").slot).toBe(Slot.area);
+    const said = hear(start(config()), "electrician");
+    expect(said.slot).toBe(Slot.also);
+    expect(hear(said, "no").slot).toBe(Slot.area);
     expect(cardArrangements({ trades: [T.electrician] })).toEqual([A.visit]);
   });
 
