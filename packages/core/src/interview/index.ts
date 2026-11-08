@@ -2,6 +2,7 @@ import { DEFAULT_ARRANGEMENT, Lang, Trade } from "@gigsync/protocol";
 import { type MessageKey, t } from "../i18n/t.js";
 import { isMonthly } from "../job/when.js";
 import { askable, type InterviewState, type Line, Pick, type Prompt, Slot } from "./card.js";
+import { alsoPrompt } from "./card-also.js";
 import { arrangementsPrompt, mainOf, moreRatePrompt, RATE_QUESTION, ratesSummary } from "./card-arrangements.js";
 import { fieldsFor, unlistPrompt, whichRatePrompt } from "./card-edit.js";
 import { estimatePrompt } from "./card-estimate.js";
@@ -35,6 +36,7 @@ export {
   start,
   withConfig,
 } from "./card.js";
+export { alsoSaid } from "./card-adding.js";
 export { arrangementRates, askingArrangement, cardArrangements, mainOf, pickedOf } from "./card-arrangements.js";
 export { edit, editSaid, fieldsFor } from "./card-edit.js";
 export { cardEstimate, withEstimate } from "./card-estimate.js";
@@ -117,6 +119,8 @@ function question(state: InterviewState): Prompt {
         choices: Trade.options.map((tr) => ({ value: tr, key: `trade.${tr}` as const })),
         hints: Trade.options.map((tr) => t(own, `trade.${tr}`)),
       };
+    case Slot.also:
+      return alsoPrompt(state);
     case Slot.area:
       return {
         lines: [{ key: "iv.ask.area" }],

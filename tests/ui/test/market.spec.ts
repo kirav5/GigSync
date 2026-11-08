@@ -88,6 +88,8 @@ test("a worker's rate question shows the range from jobs on GigSync, and Talk an
   await signIn(page, { role: Role.worker, name: `Asha ${RUN}`, phone: newPhone(), lang: en });
   await expect(page.getByText(textOf(en, "iv.ask.trade"))).toBeVisible();
   await tap(page, t(en, "trade.cook"));
+  // None of the rest of house help (ADR 0061).
+  await tap(page, t(en, "iv.done"));
   // A cook says which work she takes (ADR 0051): by the month, as the range below is.
   await tap(page, t(en, "arrangement.monthly"));
   await tap(page, t(en, "iv.done"));

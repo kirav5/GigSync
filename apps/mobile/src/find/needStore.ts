@@ -1,5 +1,6 @@
 import {
   type AddressChoice,
+  askingFirst,
   askingModel,
   chooseNeed,
   chooseNeedDate,
@@ -23,12 +24,14 @@ import {
   searchedNeed,
   searchFailed,
   type TurnRead,
+  tappedNeed,
+  withFirstQuestion,
   withJobType,
   withNobody,
   withPriceStep,
   withSkill,
 } from "@gigsync/core";
-import type { AddressId, BoardSkill, BoardWorker, ListedRates } from "@gigsync/protocol";
+import type { AddressId, BoardSkill, BoardWorker, ListedRates, WorkCategory, WorkKind } from "@gigsync/protocol";
 import { changeChat, type FindChat, movedOnFrom, type SearchClaim, settleSearch, withNeedTurns } from "./findChats.js";
 import { appSaid, foundSaid, NeedSpeaker, type NeedTurn, ownerSaid } from "./needTurns.js";
 
@@ -44,7 +47,7 @@ import { appSaid, foundSaid, NeedSpeaker, type NeedTurn, ownerSaid } from "./nee
  * next one, which shows beside the chat (FindChat) and leaves no line in it.
  */
 function asked(state: NeedState): NeedTurn[] {
-  if (state.slot === NeedSlot.found || askingModel(state) || state.switching?.accepted) return [];
+  if (state.slot === NeedSlot.found || askingModel(state) || askingFirst(state) || state.switching?.accepted) return [];
   const p = needPrompt(state);
   return [appSaid(p.lines, p.choices ?? [])];
 }
@@ -117,8 +120,24 @@ export function jobTypeNeed(chat: string, jobType: string, words: string): void 
 }
 
 /** Work on the list that no worker lists yet; the owner's words are on screen already. */
-export function nobodyNeed(chat: string, jobType: string, words: string): void {
-  moved(chat, (state) => withNobody(state, jobType, words), []);
+export function nobodyNeed(
+  chat: string,
+  jobType: string,
+  words: string,
+  empty?: { kind: WorkCategory; others: readonly WorkKind[] },
+  label?: string,
+): void {
+  moved(chat, (state) => withNobody(state, jobType, words, empty), label ? [ownerSaid(label)] : []);
+}
+
+/** A kind of work outside the trades, picked from the list: its workers' skill, the tap shown as the owner's. */
+export function kindNeed(chat: string, skill: BoardSkill, label: string): void {
+  moved(chat, (state) => tappedNeed(withSkill(state, skill, label)), [ownerSaid(label)]);
+}
+
+/** The model's words for the first question after a tap, or none. */
+export function firstNeed(chat: string, text: string | undefined): void {
+  moved(chat, (state) => withFirstQuestion(state, text), []);
 }
 
 /** A need for a skill workers list (ADR 0047), matched on this phone; the owner's words are on screen already. */

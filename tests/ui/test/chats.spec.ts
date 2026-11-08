@@ -52,7 +52,8 @@ test("chats are kept: a new chat keeps the last, a past one reopens and carries 
   const asha = { role: Role.worker, name: `Asha ${RUN}`, phone: newPhone(), lang: en };
   await signIn(page, asha);
   await expect(page.getByText(textOf(en, "iv.ask.trade"))).toBeVisible();
-  await nextTurn(page, en, "iv.ask.area", () => type(page, en, TRADE));
+  await nextTurn(page, en, "iv.ask.also", () => type(page, en, TRADE));
+  await nextTurn(page, en, "iv.ask.area", () => type(page, en, "no"));
 
   await test.step("New chat opens an empty chat with the suggestions; the card waits in the first", async () => {
     await openDrawer(page);

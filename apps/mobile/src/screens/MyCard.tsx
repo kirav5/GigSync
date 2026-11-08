@@ -22,6 +22,7 @@ import { errorKey } from "../ui/errorKey.js";
 import { Icon } from "../ui/Icon.js";
 import { AREAS, money, rupeesOf } from "../ui/places.js";
 import { cardWork } from "../ui/work.js";
+import { AllWork } from "./card/AllWork.js";
 import { AreaField, type WorkArea } from "./card/AreaField.js";
 import { ArrangementsField, arrangementsValue, otherRates } from "./card/ArrangementsField.js";
 import { SkillsField } from "./card/SkillsField.js";
@@ -194,6 +195,11 @@ export function MyCard({
           onChange={setSkills}
           onTrade={(tr) => setTrades((ts) => [...ts, tr])}
           onFiled={fileWork}
+        />
+        <AllWork
+          trades={trades}
+          skills={skills}
+          onChange={(work) => (setTrades(work.trades), setSkills(work.skills))}
         />
         <CardRates
           trades={trades}

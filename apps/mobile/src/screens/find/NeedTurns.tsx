@@ -44,14 +44,15 @@ function Choices({
   choices: readonly Choice[];
   today: string;
   onAddAddress: () => void;
-  onTap: (value: string) => void;
+  /** Every tap, first: true when it was taken elsewhere (a kind of work outside the trades), so it goes no further. */
+  onTap: (value: string, label: string) => boolean;
 }) {
   const { t } = useI18n();
   const [picking, setPicking] = useState(false);
   const tap = (c: Choice) => {
     if (c.value === NeedPick.date) return setPicking(true);
     if (c.value === ADD_ADDRESS) return onAddAddress();
-    onTap(c.value);
+    if (onTap(c.value, t(c.key, c.params))) return;
     tapNeed(chat, c.value, t(c.key, c.params));
   };
   return (
@@ -139,7 +140,7 @@ export function NeedTurns({
   onAsk: (turn: FoundTurn) => void;
   /** "Add an address" at the "where" question: the app opens the address form (ADR 0045). */
   onAddAddress: () => void;
-  onTap: (value: string) => void;
+  onTap: (value: string, label: string) => boolean;
 }) {
   const newest = (who: NeedTurn["who"]) => [...turns].reverse().find((turn) => turn.who === who)?.id;
   const lastQuestion = newest(NeedSpeaker.app);

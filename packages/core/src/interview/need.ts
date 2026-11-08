@@ -1,4 +1,11 @@
-import { AnswerFromMemory, JobTrade, type ListedRates, type QuestionKey, type Trade } from "@gigsync/protocol";
+import {
+  AnswerFromMemory,
+  JobTrade,
+  type ListedRates,
+  type QuestionKey,
+  type Trade,
+  type WorkGroup,
+} from "@gigsync/protocol";
 import { EVERY_DAY, isMonthly } from "../job/when.js";
 import { QUESTIONS } from "../job/worker.js";
 import type { Line } from "./card.js";
@@ -87,6 +94,8 @@ export interface NeedState {
   readonly switching?: WorkSwitch | undefined;
   /** A model chose the work: until the next answer the chat says so, and "Not this" undoes it. */
   readonly guessed?: boolean | undefined;
+  /** Picking from the list: the group open, its kinds on screen (ADR 0061). */
+  readonly browsing?: WorkGroup | undefined;
 }
 
 /** The trade's first question, which the request answers up front so the worker's agent need not ask it. */
@@ -209,6 +218,7 @@ export const moveOn = (s: NeedState, draft: NeedDraft, notes: Line[] = []): Need
     fresh: false,
     filled: [],
     guessed: false,
+    browsing: undefined,
   });
 
 /** "Use it": the remembered answer offered for the question now asked; anything else changes nothing. */
@@ -234,6 +244,7 @@ export function editNeed(s: NeedState, field: NeedField): NeedState {
 /** Past a need outside the trades: the interview starts over, knowing the first words were not the end of it. */
 export const afterOutside = (s: NeedState): NeedState => ({
   ...s,
+  browsing: undefined,
   draft: s.config.modelQuestions ? { seen: {}, modelAsk: { said: [] } } : { seen: {} },
   slot: NeedSlot.trade,
   notes: [],

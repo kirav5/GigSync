@@ -1,4 +1,4 @@
-import { type Lang, Trade } from "@gigsync/protocol";
+import { type Lang, Trade, WorkGroup } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import {
   ANY_TIME,
@@ -10,6 +10,7 @@ import {
   draftDetails,
   EVERY_DAY,
   FIRST_HOUR,
+  GROUP_PICK,
   hearNeed,
   hourOf,
   LAST_HOUR,
@@ -37,16 +38,18 @@ const run = (s: NeedState, answers: readonly string[]) => answers.reduce((at, a)
 const tap = (s: NeedState, values: readonly string[]) => values.reduce((at, v) => chooseNeed(at, v), s);
 
 describe("the need interview", () => {
-  it("opens on the need in the owner's own words, and shows trade chips only when the words named no work", () => {
+  it("opens on the need in the owner's own words, and shows the groups of work only when the words named none", () => {
     const first = startNeed(config("en"));
     expect(keys(first)).toEqual(["need.start"]);
     // ADR 0051: no grid of trades before the owner has said anything, only a way to it; the hints still help the
     // recognizer. The grid comes on that tap, or once the words named no work.
     expect(needPrompt(first).choices?.map((c) => c.value)).toEqual([NeedPick.list]);
     expect(needPrompt(first).hints).toHaveLength(Trade.options.length);
-    expect(needPrompt(chooseNeed(first, NeedPick.list)).choices?.map((c) => c.value)).toEqual(Trade.options);
+    // ADR 0061: the groups first, every kind of work in one, each group a tap away.
+    const groups = WorkGroup.options.map((g) => `${GROUP_PICK}${g}`);
+    expect(needPrompt(chooseNeed(first, NeedPick.list)).choices?.map((c) => c.value)).toEqual(groups);
     const unclear = hearNeed(first, "hello there");
-    expect(needPrompt(unclear).choices?.map((c) => c.value)).toEqual(Trade.options);
+    expect(needPrompt(unclear).choices?.map((c) => c.value)).toEqual(groups);
   });
 
   it("asks only what one sentence left out", () => {

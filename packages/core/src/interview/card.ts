@@ -3,6 +3,7 @@ import { ASK_FIRST_DETAILS } from "../job/details.js";
 import { QUESTIONS } from "../job/worker.js";
 import type { TermPrefs } from "../job/worker-stance.js";
 import type { WorkMatch } from "../skills/suggest.js";
+import { alsoKinds } from "./card-also.js";
 import { arranged, missingRate } from "./card-arrangements.js";
 import type { Line } from "./card-lines.js";
 import type { FoundEstimate } from "./estimate-lines.js";
@@ -59,6 +60,8 @@ export interface InterviewConfig {
 /** Where the interview is: the field being asked, then confirm, then done. */
 export const Slot = {
   trade: "trade",
+  /** The other kinds of work in the same group, to tick (ADR 0061). */
+  also: "also",
   /** Which arrangements a maid or driver takes (ADR 0046). */
   arrangements: "arrangements",
   area: "area",
@@ -121,6 +124,8 @@ export interface InterviewState {
   readonly heard?: string | undefined;
   /** At the work question: the trade or kind of work the worker's own words may be, asked as yes or no (ADR 0059). */
   readonly kind?: WorkMatch | undefined;
+  /** The skill that question is about. */
+  readonly asking?: Skill | undefined;
 }
 
 /** The values tap choices carry besides trades, areas, languages and fields. */
@@ -146,6 +151,7 @@ export const FIELDS: readonly Field[] = [
 ];
 const ORDER: readonly Slot[] = [
   Slot.trade,
+  Slot.also,
   Slot.arrangements,
   Slot.area,
   Slot.rate,
@@ -218,6 +224,7 @@ function nextSlot(s: InterviewState, draft: CardDraft): Slot {
   if (s.slot === Slot.more_rates && missingRate(draft)) return Slot.more_rates;
   if (s.editing) return complete(draft) ? Slot.confirm : firstMissing(draft);
   const skipped = (slot: Slot | undefined) =>
+    (slot === Slot.also && alsoKinds(draft).length === 0) ||
     (slot === Slot.ask_first && !asks) ||
     (slot === Slot.arrangements && !arranged(draft)) ||
     (slot === Slot.more_rates && !missingRate(draft));
@@ -237,6 +244,7 @@ const BETWEEN_QUESTIONS = {
   from: undefined,
   heard: undefined,
   kind: undefined,
+  asking: undefined,
 } as const;
 
 /** The current field answered: on to the next one, with an optional readback. */

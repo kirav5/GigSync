@@ -6,6 +6,7 @@ import { EVERY_DAY, isMonthly } from "../job/when.js";
 import { Pick as CardPick, type Choice, type Line, type Prompt } from "./card.js";
 import { YES_NO } from "./choices.js";
 import { jobTypeLines } from "./estimate-drivers.js";
+import { askingFirst } from "./first-question.js";
 import {
   DayWord,
   firstQuestion,
@@ -23,6 +24,7 @@ import { arrangedWork, arrangementLines, arrangementPrompt, budgetUnitLines, one
 import { driverQuestion } from "./need-drivers.js";
 import { budgetEstimate, listedLine } from "./need-estimate.js";
 import { NeedPick } from "./need-hear.js";
+import { kindsPrompt, othersOf } from "./need-kinds.js";
 import { OFFER_CHOICES, recalledLine, redoChoice } from "./need-memory.js";
 import { needWords } from "./need-request.js";
 import { scopeQuestion } from "./need-scope.js";
@@ -151,9 +153,11 @@ function confirmPrompt(s: NeedState): Prompt {
 function detailPrompt(s: NeedState): Prompt {
   const first = firstQuestion(workOf(s.draft));
   if (!first) return { lines: [], hints: [] };
+  if (askingFirst(s)) return { lines: [{ key: "driver.thinking" }], hints: [] };
   const yesNo = YES_NO_QUESTIONS.has(first);
+  const asked = s.draft.detailAsk;
   return {
-    lines: [{ key: `question.${first}` }],
+    lines: [asked ? { key: "estimate.answer", params: { text: asked } } : { key: `question.${first}` }],
     choices: yesNo ? YES_NO : [{ value: CardPick.skip, key: "iv.skip" }],
     hints: yesNo ? yesNoHints(s) : [],
   };
@@ -190,6 +194,7 @@ function question(s: NeedState): Prompt {
       // ADR 0051: the first turn invites the need in the owner's words, with one chip to the trades for whoever cannot
       // say or type it; the grid of trades comes on that tap, or when the words named no work.
       const opening = s.fresh && !s.to;
+      if (!opening && !s.to) return kindsPrompt(s);
       const chips: Choice[] = trades.map((tr) => ({ value: tr, key: `trade.${tr}` as const }));
       return {
         lines: [s.fresh ? startLine(s) : { key: "need.ask.trade" }],
@@ -229,12 +234,14 @@ function question(s: NeedState): Prompt {
     }
     case NeedSlot.confirm:
       return confirmPrompt(s);
-    case NeedSlot.outside:
+    case NeedSlot.outside: {
+      const others = othersOf(s);
       return {
-        lines: jobTypeLines(s.draft.jobType ?? ""),
-        choices: [{ value: NeedPick.list, key: "need.pick_work" }],
+        lines: [...jobTypeLines(s.draft.jobType ?? ""), ...others.lines],
+        choices: [...others.choices, { value: NeedPick.list, key: "need.pick_work" }],
         hints: [],
       };
+    }
     case NeedSlot.done: {
       if (s.to) return { lines: [{ key: "need.asking_to", params: { name: s.to.name } }], hints: [] };
       return { lines: [{ key: "need.searching", ...areaParts(s.draft) }], hints: [] };

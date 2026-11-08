@@ -4,7 +4,9 @@ import { asciiDigits } from "../job/details.js";
 import { readSkill, spokenSkill } from "../skills/read.js";
 import type { WorkMatch } from "../skills/suggest.js";
 import { parseAmount } from "./amount.js";
-import { advance, askable, type CardDraft, FIELDS, type InterviewState, Pick, retry, Slot } from "./card.js";
+import { advance, askable, type CardDraft, FIELDS, hasWork, type InterviewState, Pick, retry, Slot } from "./card.js";
+import { alsoSaid, withSkillToo, withTradesToo } from "./card-adding.js";
+import { chooseAlso, hearAlso } from "./card-also.js";
 import { chooseArrangements, hearArrangements, hearMoreRate, keepMoreRate, mainOf } from "./card-arrangements.js";
 import { chooseWhichRate, edit, editSaid, hearWhichRate, onUnlist } from "./card-edit.js";
 import { cardEstimate, suggestedAmount } from "./card-estimate.js";
@@ -69,14 +71,17 @@ function onTrades(s: InterviewState, trades: Trade[]): InterviewState {
  */
 function onWork(s: InterviewState, text: string, kind?: WorkMatch): InterviewState {
   if (isGreeting(text)) return retry(s, { key: "iv.again.trade" });
+  const adding = alsoSaid(text) && hasWork(s.draft);
   const trades = tradesIn(text);
-  if (trades.length > 0) return onTrades(s, trades);
+  if (trades.length > 0) return adding ? advance(s, withTradesToo(s.draft, trades)) : onTrades(s, trades);
   const read = readSkill(spokenSkill(text), s.config.own);
-  if ("trade" in read) return onTrades(s, [read.trade]);
+  if ("trade" in read) return adding ? advance(s, withTradesToo(s.draft, [read.trade])) : onTrades(s, [read.trade]);
   if ("problem" in read) return retry(s, { key: `skill.err.${read.problem}` });
   const kept: Line[] = [{ key: "iv.skill_kept", params: { skill: read.skill.text } }];
-  if (kind && !read.skill.category) return askKind(s, read.skill, kind, kept);
-  const draft = { ...s.draft, trades: [], skills: [read.skill], ask_me: [] };
+  const draft = adding
+    ? withSkillToo(s.draft, read.skill)
+    : { ...s.draft, trades: [], skills: [read.skill], ask_me: [] };
+  if (kind && !read.skill.category) return askKind(s, draft, read.skill, kind, kept);
   return advance(s, draft, kept);
 }
 
@@ -211,6 +216,8 @@ export function hear(state: InterviewState, text: string, aloud = false, kind?: 
   switch (state.slot) {
     case Slot.trade:
       return state.kind ? hearKind(state, text) : onWork(state, text, kind);
+    case Slot.also:
+      return hearAlso(state, text);
     case Slot.arrangements:
       return hearArrangements(state, text);
     case Slot.more_rates:
@@ -251,6 +258,8 @@ export function choose(state: InterviewState, value: string): InterviewState {
       const trade = Trade.options.find((tr) => tr === value);
       return trade ? onTrades(state, [trade]) : state;
     }
+    case Slot.also:
+      return chooseAlso(state, value);
     case Slot.arrangements:
       return chooseArrangements(state, value);
     case Slot.area:

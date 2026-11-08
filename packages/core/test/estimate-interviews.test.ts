@@ -36,11 +36,16 @@ const keys = (lines: readonly { key: string }[]) => lines.map((l) => l.key);
 describe("the estimate under the card's rate questions", () => {
   /** A cook's card is for monthly work here, so its estimate is asked for that arrangement (ADR 0051). */
   const MONTHLY = { arrangement: "monthly" };
+  /** Past "Do you also do any of these?" (ADR 0061), asked right after the work, with Done. */
+  const pastAlso = (s: InterviewState): InterviewState => {
+    expect(s.slot).toBe(Slot.also);
+    return choose(s, Pick.yes);
+  };
   const atRate = (trade: string, own: Lang = "en"): InterviewState =>
     // A cook says which work they take first (ADR 0051): monthly, as every cook's card before.
     [...(trade === T.cook ? ["monthly"] : []), "Koramangala"].reduce(
       (s, a) => hear(s, a),
-      hear(start({ own, areas: AREAS, rates: CITY_RATES }), trade),
+      pastAlso(hear(start({ own, areas: AREAS, rates: CITY_RATES }), trade)),
     );
 
   it("keeps the suggested amount when it is tapped under another arrangement's rate", () => {

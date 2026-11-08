@@ -31,7 +31,9 @@ const { en, hi, kn } = Lang.enum;
 /** A Hindi cook's answers, as she would say them, and what the app asks after each. */
 const HINDI: readonly (readonly [said: string, next: MessageKey])[] = [
   // A cook says which work she takes (ADR 0051): every month.
-  ["मैं खाना बनाती हूँ", "iv.ask.arrangements"],
+  ["मैं खाना बनाती हूँ", "iv.ask.also"],
+  // The rest of house help (ADR 0061): she does none of it.
+  ["नहीं", "iv.ask.arrangements"],
   ["हर महीने", "iv.ask.area"],
   ["कोरमंगला", "iv.ask.rate_month"],
   ["नौ हज़ार", "iv.ask.min"],
@@ -60,7 +62,7 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
   await onScreen(page, "nav.talk", hi);
   await expect(page.getByText(textOf(hi, "iv.ask.trade"))).toBeVisible();
 
-  const [head, tail] = [HINDI.slice(0, 3), HINDI.slice(3)];
+  const [head, tail] = [HINDI.slice(0, 4), HINDI.slice(4)];
   for (const [, next] of head) await nextTurn(page, hi, next, () => mic(page, hi).click());
 
   await test.step("under the rate question, the estimate for a cook in Bengaluru, what it rests on and the legal minimum", async () => {
@@ -160,7 +162,8 @@ test("a Kannada electrician types and taps, says no at the summary, and changes 
   await signIn(page, { role: Role.worker, name: `Ravi ${RUN}`, phone: newPhone(), lang: kn });
   cleanUpLater({ page, lang: kn });
   await expect(page.getByText(textOf(kn, "iv.ask.trade"))).toBeVisible();
-  await nextTurn(page, kn, "iv.ask.area", () => type(page, kn, "ನಾನು ಎಲೆಕ್ಟ್ರಿಷಿಯನ್"));
+  await nextTurn(page, kn, "iv.ask.also", () => type(page, kn, "ನಾನು ಎಲೆಕ್ಟ್ರಿಷಿಯನ್"));
+  await nextTurn(page, kn, "iv.ask.area", () => type(page, kn, "ಇಲ್ಲ"));
   const hsr = page.getByRole("button", { name: t(kn, "area.hsr_layout"), exact: true });
   await nextTurn(page, kn, "iv.ask.rate_visit", () => hsr.last().click());
   // No band for electricians yet: the app says so rather than guess, and shows no monthly number under a visit's rate.
@@ -189,7 +192,8 @@ test("a worker who switches to Hindi part-way gets the rest of the interview, an
 }) => {
   await signIn(page, { role: Role.worker, name: `Divya ${RUN}`, phone: newPhone() });
   for (const [answer, next] of [
-    ["cook", "iv.ask.arrangements"],
+    ["cook", "iv.ask.also"],
+    ["no", "iv.ask.arrangements"],
     ["monthly", "iv.ask.area"],
     ["Koramangala", "iv.ask.rate_month"],
     ["9000", "iv.ask.min"],
@@ -229,13 +233,14 @@ test("with only a cloud recognizer, the mic asks before her voice leaves the pho
   await typeInstead.click();
   await expect(ask).toBeHidden();
   await expect(field(page, hi)).toBeFocused();
-  await expect(page.getByText(textOf(hi, "iv.ask.arrangements"))).toHaveCount(0);
+  await expect(page.getByText(textOf(hi, "iv.ask.also"))).toHaveCount(0);
 
   // Asked again, she allows it once: that answer is heard, and so is the next, with no second question.
   await mic(page, hi).click();
   await expect(ask).toBeVisible();
   // A cook is asked which work she takes (ADR 0051), then her area.
-  await nextTurn(page, hi, "iv.ask.arrangements", () => allow.click());
+  await nextTurn(page, hi, "iv.ask.also", () => allow.click());
+  await nextTurn(page, hi, "iv.ask.arrangements", () => type(page, hi, "नहीं"));
   await nextTurn(page, hi, "iv.ask.area", () => mic(page, hi).click());
   await nextTurn(page, hi, "iv.ask.rate_month", () => type(page, hi, "कोरमंगला"));
 

@@ -1,4 +1,4 @@
-import { type Lang, Trade } from "@gigsync/protocol";
+import { type Lang, Trade, type WorkCategory, type WorkKind } from "@gigsync/protocol";
 import { numbersIn } from "../job/details.js";
 import { langOf } from "../job/guard.js";
 import type { Model } from "../ports.js";
@@ -68,8 +68,17 @@ export function withJobType(s: NeedState, jobType: string, words: string): NeedS
   return moveOn(at, { ...at.draft, jobType, need: at.draft.need ?? words });
 }
 
-/** Work on the list that no worker lists yet: there is nobody to send it to, so no price questions either. */
-export function withNobody(s: NeedState, jobType: string, words: string): NeedState {
+/**
+ * Work on the list that no worker lists yet: there is nobody to send it to, so no price questions either. `empty` is
+ * the kind asked for and the others in its group that have workers, offered instead (ADR 0061).
+ */
+export function withNobody(
+  s: NeedState,
+  jobType: string,
+  words: string,
+  empty?: { kind: WorkCategory; others: readonly WorkKind[] },
+): NeedState {
   const at = withJobType(s, jobType, words);
-  return at === s ? s : moveOn(at, { ...at.draft, priceDone: true });
+  const offered = empty ? { emptyKind: empty.kind, others: empty.others } : {};
+  return at === s ? s : moveOn(at, { ...at.draft, priceDone: true, ...offered });
 }
