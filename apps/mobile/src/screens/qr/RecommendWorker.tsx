@@ -5,7 +5,9 @@ import { myQrLink } from "../../adapters/links.js";
 import { ShareResult, shareLink, whatsAppLink } from "../../adapters/share.js";
 import { useI18n } from "../../i18n.js";
 import { qrErrorKey } from "../../qr/problems.js";
+import { BusyGroup } from "../../ui/BusyGroup.js";
 import { C } from "../../ui/cls.js";
+import { useBusy } from "../../ui/useBusy.js";
 import "./qr.css";
 
 interface Props {
@@ -25,6 +27,7 @@ interface Props {
  */
 export function RecommendWorker({ device, run, job, name, work }: Props) {
   const { t } = useI18n();
+  const { busy, guard } = useBusy();
   const id = job.engagement.id;
   const [link, setLink] = useState<string>();
   const [status, setStatus] = useState<MessageKey>();
@@ -64,33 +67,35 @@ export function RecommendWorker({ device, run, job, name, work }: Props) {
 
   return (
     <div className={C.stack}>
-      {!link && (
-        <button type={C.button} className={C.quiet} onClick={() => void open()}>
-          {t("qr.recommend", { name })}
-        </button>
-      )}
-      {link && (
-        <fieldset className={C.cardWait} aria-label={t("qr.recommend", { name })}>
-          <span className={C.muted}>{t("qr.recommend_about", { name })}</span>
-          <div className="share-grid roomy">
-            <button type={C.button} className={C.accent} onClick={() => void share()}>
-              {t("qr.share")}
-            </button>
-            <a
-              className={C.secondary}
-              href={whatsAppLink(`${words} ${link}`)}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => void sent("qr.shared")}
-            >
-              {t("qr.recommend_whatsapp")}
-            </a>
-            <button type={C.button} className={C.secondary} onClick={() => void copy()}>
-              {t("qr.copy")}
-            </button>
-          </div>
-        </fieldset>
-      )}
+      <BusyGroup busy={busy}>
+        {!link && (
+          <button type={C.button} className={C.quiet} onClick={() => void guard(open)}>
+            {t("qr.recommend", { name })}
+          </button>
+        )}
+        {link && (
+          <fieldset className={C.cardWait} aria-label={t("qr.recommend", { name })}>
+            <span className={C.muted}>{t("qr.recommend_about", { name })}</span>
+            <div className="share-grid roomy">
+              <button type={C.button} className={C.accent} onClick={() => void guard(share)}>
+                {t("qr.share")}
+              </button>
+              <a
+                className={C.secondary}
+                href={whatsAppLink(`${words} ${link}`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => void guard(() => sent("qr.shared"))}
+              >
+                {t("qr.recommend_whatsapp")}
+              </a>
+              <button type={C.button} className={C.secondary} onClick={() => void guard(copy)}>
+                {t("qr.copy")}
+              </button>
+            </div>
+          </fieldset>
+        )}
+      </BusyGroup>
       <span className={C.muted} role="status" aria-live="polite">
         {status && t(status, { name })}
       </span>
