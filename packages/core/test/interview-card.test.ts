@@ -43,21 +43,11 @@ describe("the card interview, start to finish", () => {
   it("runs in Hindi, by voice", () => {
     const first = start(config("hi"));
     expect(keys(first)).toEqual(["iv.start", "iv.ask.trade"]);
+    // The work as the app hears it: the model reads it as a cook's, and the word lists agree, so nothing is asked.
+    const cook = hear(first, "मैं खाना बनाती हूँ", true, { trade: T.cook });
     const atConfirm = run(
-      first,
-      [
-        "मैं खाना बनाती हूँ",
-        "नहीं",
-        "हर महीने",
-        "कोरमंगला",
-        "नौ हज़ार",
-        "साढ़े सात हज़ार",
-        "कोई नहीं",
-        "छोड़ो",
-        "हाँ ना",
-        "छोड़ो",
-        "नहीं",
-      ],
+      cook,
+      ["नहीं", "हर महीने", "कोरमंगला", "नौ हज़ार", "साढ़े सात हज़ार", "कोई नहीं", "छोड़ो", "हाँ ना", "छोड़ो", "नहीं"],
       true,
     );
     expect(atConfirm.slot).toBe(Slot.confirm);

@@ -14,16 +14,16 @@ export const MAX_SKILLS = 3;
 export const MAX_SKILL_LIST = 500;
 export const SKILL_MIN = 2;
 export const SKILL_MAX = 40;
-/** A name for work, not a sentence. */
-export const SKILL_MAX_WORDS = 4;
+/** A name for work, not a sentence: the longest kind of work's name ("Mixer and small appliance repair") fits. */
+export const SKILL_MAX_WORDS = 5;
 
 /**
- * Letters and combining marks in any script, spaces, and `- ' & / .`: no digits (phone numbers, prices), no `@` or
+ * Letters and combining marks in any script, spaces, and `- ' & / . ,`: no digits (phone numbers, prices), no `@` or
  * `:` (emails, links). The joiners Indic keyboards type are allowed too; they are taken out before this check.
  */
-const SKILL_CHARS = /^[\p{L}\p{M}\s\-'’&/.]+$/u;
+const SKILL_CHARS = /^[\p{L}\p{M}\s\-'’&/.,]+$/u;
 const JOINERS = /\u200c|\u200d/gu;
-const PUNCTUATION = /[-'’&/.]/g;
+const PUNCTUATION = /[-'’&/.,]/g;
 const SPACES = /\s+/u;
 /** The one space `skillKey` leaves between words. */
 const SPACE = " ";

@@ -32,7 +32,6 @@ const TRADE_WORDS: Readonly<Record<Trade, readonly string[]>> = {
     "maid",
     "housework",
     "house work",
-    "cleaning",
     "jhadu",
     "pocha",
     "bartan",

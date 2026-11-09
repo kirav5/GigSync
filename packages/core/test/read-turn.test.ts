@@ -46,6 +46,19 @@ describe("reading one message", () => {
     expect(checkTurn(reply({ work: "Aquarium cleaning" }), context)).toEqual({ kind: "need", skill: AQUARIUM });
   });
 
+  it("takes how the work is hired when the model says so, and nothing it may not say", () => {
+    expect(checkTurn(reply({ work: "Priest", hired: "once" }), context)).toEqual({
+      kind: "need",
+      category: "priest",
+      arrangement: "visit",
+    });
+    expect(checkTurn(reply({ work: "Cook", hired: "every_day_or_month" }), context)).toMatchObject({
+      arrangement: "monthly",
+    });
+    expect(checkTurn(reply({ work: "Plumber", hired: "yearly" }), context)).not.toHaveProperty("arrangement");
+    expect(turnPrompt(context)).toContain("A date or how long one job lasts is not how it is paid for.");
+  });
+
   it("names work on no list in the owner's script", () => {
     expect(checkTurn(reply({ name: "drone repair" }), context)).toEqual({ kind: "need", jobType: "drone repair" });
   });

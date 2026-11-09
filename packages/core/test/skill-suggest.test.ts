@@ -1,12 +1,12 @@
-import { Trade, WorkCategory } from "@gigsync/protocol";
+import { WorkCategory } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import { categoryNamed, checkSuggestion, readSkill, suggestPrompt, suggestWork, t } from "../src/index.js";
+import { categoryNamed, checkSuggestion, readSkill, readWork, suggestPrompt, suggestWork, t } from "../src/index.js";
+import { NONE_OF_THEM } from "../src/skills/same-work.js";
 import { FakeModel } from "./model-fakes.js";
 
 /** ADR 0059: a worker's own words filed under a trade or a kind of work, only on their say-so. */
 
-const at = (n: number) => JSON.stringify({ choice: n });
-const firstCategory = Trade.options.length + 1;
+const named = (work: string) => JSON.stringify({ work });
 
 describe("the kinds of work", () => {
   it("each has a name of its own, in every language", () => {
@@ -45,18 +45,27 @@ describe("suggesting what a worker's words are", () => {
     expect(prompt).toContain('"AC mechanic"');
   });
 
-  it("reads a number as a place on the list", () => {
-    expect(checkSuggestion(at(1))).toEqual({ trade: Trade.options[0] });
-    expect(checkSuggestion(at(firstCategory))).toEqual({ category: WorkCategory.options[0] });
+  it("reads a name on the list as that trade or kind of work, and none as null", () => {
+    expect(checkSuggestion(named("Electrician"))).toEqual({ trade: "electrician" });
+    expect(checkSuggestion(named("Water tank cleaning"))).toEqual({ category: "water_tank_cleaning" });
+    expect(checkSuggestion(named(NONE_OF_THEM))).toBeNull();
+    expect(checkSuggestion(named("Rocket repair"))).toBeNull();
   });
 
-  it("gives nothing for none, a number off the list, or anything malformed", () => {
-    for (const reply of ['{"choice":null}', at(0), at(9999), "not json", '{"choice":"tv"}'])
-      expect(checkSuggestion(reply)).toBeUndefined();
+  it("gives nothing for anything malformed", () => {
+    for (const reply of ["not json", '{"choice":3}', '{"work":3}']) expect(checkSuggestion(reply)).toBeUndefined();
   });
 
-  it("gives nothing when the model has no answer", async () => {
+  it("names the kinds a small model confuses by what they cover", () => {
+    expect(suggestPrompt("tank safai")).toContain(
+      "- Water tank cleaning: cleaning drinking-water tanks and sumps; an aquarium is not one",
+    );
+    expect(suggestPrompt("tank safai")).toContain(`- ${NONE_OF_THEM}`);
+  });
+
+  it("gives nothing when the model has no answer, and the kind when it names one", async () => {
     expect(await suggestWork(new FakeModel(null), "TV mechanic")).toBeUndefined();
-    expect(await suggestWork(new FakeModel(at(firstCategory)), "TV mechanic")).toEqual({ category: "tv_repair" });
+    expect(await suggestWork(new FakeModel(named("TV repair")), "TV mechanic")).toEqual({ category: "tv_repair" });
+    expect(await readWork(new FakeModel(named(NONE_OF_THEM)), "kite flying")).toBeNull();
   });
 });

@@ -97,6 +97,18 @@ describe("a model words the explanation, or the template stands", () => {
     expect(model.prompts[0]).toContain(template);
   });
 
+  it("words each note once: drawn again, the same note is not asked again, and a fallback is", async () => {
+    const model = new FakeModel('{"text": "Ravi came down ₹1,250 to ₹17,000 and asks for the afternoon."}');
+    const [first, again] = await Promise.all([explainOffer(model, input), explainOffer(model, input)]);
+    expect(again).toEqual(first);
+    expect(await explainOffer(model, input)).toEqual(first);
+    expect(model.prompts).toHaveLength(1);
+    const silent = new FakeModel(null);
+    await explainOffer(silent, input);
+    await explainOffer(silent, input);
+    expect(silent.prompts).toHaveLength(2);
+  });
+
   it.each([
     ["garbage", new FakeModel("Sure! Here is a summary.")],
     ["a wrong number", new FakeModel('{"text": "Ravi came down to ₹15,000."}')],

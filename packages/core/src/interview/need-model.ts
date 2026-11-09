@@ -38,6 +38,13 @@ export interface NeedHint {
   scope?: readonly ScopeChip[];
   /** ADR 0051: the ways such work is usually hired, each an arrangement; a suggestion for the chips, never an answer. */
   fits?: readonly Arrangement[];
+  /** How the words say the work is hired, as a model read them (`readTurn`). */
+  arrangement?: Arrangement;
+  /**
+   * The words' work was decided already, by a model's reading or by finding none: the word lists then set neither the
+   * trade nor the arrangement from them, so "car cleaning" is not a maid's and "next month" is not monthly work.
+   */
+  decided?: true;
 }
 
 /** The on-device models read and answer English only today (HLD 7.6). */

@@ -1,0 +1,65 @@
+[
+  {
+    "id": "run-tank",
+    "says": ["1000 litre overhead Sintex tank needs cleaning"],
+    "answers": ["just the one", "it is very dirty"],
+    "want": { "skill": "Water tank cleaning" }
+  },
+  {
+    "id": "run-carwash",
+    "says": ["Daily car cleaning in my apartment parking"],
+    "answers": ["one hatchback", "every morning"],
+    "want": { "skill": "Car wash" }
+  },
+  {
+    "id": "run-plaster",
+    "says": ["Wall plaster is cracking near the balcony door"],
+    "answers": ["about 4 feet", "it started last month"],
+    "want": { "skill": "Mason" }
+  },
+  {
+    "id": "run-seepage",
+    "says": ["Ceiling seepage in the bedroom from the terrace during rain"],
+    "answers": ["one room", "every monsoon"],
+    "want": { "skill": "Waterproofing" }
+  },
+  {
+    "id": "run-sofa",
+    "says": ["Want my 5 seater fabric sofa cleaned"],
+    "answers": ["one sofa", "it has stains"],
+    "want": { "outside": true }
+  },
+  {
+    "id": "run-gasstove",
+    "says": ["One burner on my gas stove gives a weak flame"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "outside": true }
+  },
+  {
+    "id": "run-pandit",
+    "says": ["Need a pandit for griha pravesh next month"],
+    "answers": ["griha pravesh", "in Kannada"],
+    "want": { "skill": "Priest" },
+    "hired": "visit"
+  },
+  {
+    "id": "run-nurse",
+    "says": ["Need a nurse to change a wound dressing daily for a week"],
+    "answers": ["one wound on the leg", "after surgery"],
+    "want": { "skill": "Home nurse" }
+  },
+  {
+    "id": "run-maidhours",
+    "says": ["need a maid for 3 hours on Saturday"],
+    "answers": ["sweeping and mopping", "2BHK"],
+    "want": { "trade": "maid" },
+    "hired": "hourly"
+  },
+  {
+    "id": "run-cookmonth",
+    "says": ["Looking for a cook for lunch and dinner every day, family of four"],
+    "answers": ["four people", "veg"],
+    "want": { "trade": "cook" },
+    "hired": "monthly"
+  }
+]

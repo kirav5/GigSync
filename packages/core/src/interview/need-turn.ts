@@ -39,10 +39,12 @@ export const turnContext = (
   recent: chatSoFar(s),
 });
 
-/** The read as the interview's hint: the model's trade, which goes before the word lists. */
+/** The read as the interview's hint: the model's trade and how the work is hired, which the word lists never override. */
 export const hintOf = (read: TurnRead): NeedHint => ({
+  decided: true,
   ...(read.trade ? { trade: read.trade } : {}),
   ...(read.problem ? { problem: true as const } : {}),
+  ...(read.arrangement ? { arrangement: read.arrangement } : {}),
 });
 
 /**
