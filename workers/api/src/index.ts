@@ -1,5 +1,5 @@
-import { BEARER_PREFIX, Header, HttpMethod } from "@gigsync/core/http";
-import { log, pii } from "@gigsync/core/log";
+import { Header, HttpMethod } from "@gigsync/core/http";
+import { log } from "@gigsync/core/log";
 import { UserId } from "@gigsync/protocol";
 import { Mailbox } from "@gigsync/worker-mailbox";
 import { Hono } from "hono";
@@ -9,9 +9,9 @@ import { routePath } from "hono/route";
 import { ApiError, type AppEnv, USER_PARAM, V1, V1_AUTH, Var } from "./context.js";
 import { openDirectory } from "./db/client.js";
 import { activeDevices } from "./db/devices.js";
-import { sessionOwner } from "./db/sessions.js";
 import type { Env } from "./env.js";
 import { requestLog } from "./log.js";
+import { requireSession } from "./middleware/session.js";
 import { admin } from "./routes/admin.js";
 import { auth } from "./routes/auth.js";
 import { board } from "./routes/board.js";
@@ -70,27 +70,14 @@ app.onError((err, c) => {
 
 app.get("/health", (c) => c.json({ ok: true, env: c.env.ENVIRONMENT, protocol: 1 }));
 
-// ── One directory connection per /v1 request, before anything that queries it ─────────────────────────────────────
+// ── One directory connection per /v1 request, opened by the first query: a request that asks nothing opens none ───
 app.use(`${V1}/*`, openDirectory);
 
 // ── Sign-in (OTP), before the session middleware ─────────────────────────────────────────────────────────────────
 app.route(V1_AUTH, auth);
 
 // ── Auth middleware for everything below ──────────────────────────────────────────────────────────────────────────
-app.use(`${V1}/*`, async (c, next) => {
-  if (c.req.path.startsWith(`${V1_AUTH}/`)) return next();
-  const header = c.req.header(Header.authorization);
-  const token = header?.startsWith(BEARER_PREFIX) ? header.slice(BEARER_PREFIX.length) : undefined;
-  if (!token) return c.json({ error: ApiError.unauthorized }, 401);
-  const row = await sessionOwner(c.get(Var.db), token);
-  if (!row) {
-    log.warn("session rejected", { requestId: c.get(Var.requestId), token: pii(token) });
-    return c.json({ error: ApiError.unauthorized }, 401);
-  }
-  c.set(Var.user, row.user_id);
-  c.set(Var.device, row.device_id);
-  await next();
-});
+app.use(`${V1}/*`, requireSession);
 
 // ── Directory ─────────────────────────────────────────────────────────────────────────────────────────────────────
 app.get(`${V1}/directory/:${USER_PARAM}`, async (c) => {

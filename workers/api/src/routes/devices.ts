@@ -1,6 +1,7 @@
 import { log } from "@gigsync/core/log";
 import { DeviceId, DeviceProtocol, type PushKey, PushSubscribe } from "@gigsync/protocol";
 import { Hono } from "hono";
+import { sessionCache } from "../auth/session-cache.js";
 import { ApiError, type AppEnv, DEVICE_PARAM, Var } from "../context.js";
 import { transaction } from "../db/client.js";
 import { raiseProtocol, revokeDevice, setPushAddress } from "../db/devices.js";
@@ -70,8 +71,10 @@ devices.delete(Path.device, async (c) => {
   if (device.data === c.get(Var.device)) return c.json({ error: ApiError.callingDevice }, 409);
   const db = c.get(Var.db);
   const user = c.get(Var.user);
-  const revoked = await transaction(db, () => revokeDevice(db, user, device.data, new Date()));
+  const now = new Date();
+  const revoked = await transaction(db, () => revokeDevice(db, user, device.data, now));
   if (!revoked) return c.json({ error: ApiError.notFound }, 404);
+  sessionCache.forgetDevices([device.data], now.getTime());
   log.info("device revoked", { requestId: c.get(Var.requestId), user, device: device.data });
   return c.body(null, 204);
 });

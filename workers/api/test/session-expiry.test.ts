@@ -1,5 +1,6 @@
 import { HttpMethod } from "@gigsync/core";
 import { describe, expect, it } from "vitest";
+import { sessionCache } from "../src/auth/session-cache.js";
 import { SESSION_DAYS } from "../src/db/sessions.js";
 import { call } from "./mentor-helpers.js";
 import { signIn } from "./people.js";
@@ -14,6 +15,8 @@ describe("a session", () => {
       p.session.token,
       SESSION_DAYS + 1,
     ]);
+    // Backdating the row stands in for 180 days passing, by when the minute this isolate remembers it is long over.
+    sessionCache.clear();
     expect((await call(p, HttpMethod.get, "/inbox")).status).toBe(401);
   });
 

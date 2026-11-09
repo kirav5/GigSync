@@ -71,19 +71,19 @@ async function revoke(db: Db, devices: readonly DeviceId[], at: Date): Promise<v
   await db.query("UPDATE sessions SET revoked_at = $2 WHERE device_id = ANY($1) AND revoked_at IS NULL", [devices, at]);
 }
 
-/** Room for one more device: the oldest are retired, so a person never has more than an envelope can reach. */
-export async function makeRoomForDevice(db: Db, user: UserId, at: Date): Promise<number> {
+/**
+ * Room for one more device: the oldest are retired, so a person never has more than an envelope can reach. Returns
+ * the retired devices, for the caller to forget their sessions.
+ */
+export async function makeRoomForDevice(db: Db, user: UserId, at: Date): Promise<DeviceId[]> {
   const { rows } = await db.query<{ device_id: DeviceId }>(
     `SELECT device_id FROM devices WHERE user_id = $1 AND revoked_at IS NULL
      ORDER BY created_at DESC, device_id DESC OFFSET $2`,
     [user, MAX_RECIPIENT_DEVICES - 1],
   );
-  await revoke(
-    db,
-    rows.map((r) => r.device_id),
-    at,
-  );
-  return rows.length;
+  const retired = rows.map((r) => r.device_id);
+  await revoke(db, retired, at);
+  return retired;
 }
 
 export async function insertDevice(

@@ -23,8 +23,11 @@ const Path = { generate: "/generate", status: "/status" } as const;
 const OLLAMA_GENERATE = "/api/generate";
 /** Ollama's `format` for any JSON object. */
 const JSON_FORMAT = "json";
-/** Longer than any answer the agent waits for; the phone gives up sooner and falls back. */
-const MODEL_TIMEOUT_MS = 15_000;
+/**
+ * Just past the phone's own wait (WAIT_MS = 4_000 in apps/mobile/src/adapters/server-model.ts), and to be changed
+ * with it: the phone has fallen back by then, so waiting longer only holds the model for an answer nobody reads.
+ */
+const MODEL_TIMEOUT_MS = 4_500;
 /**
  * How long Ollama keeps the model loaded after a call. Its default is five minutes, and loading it again takes longer
  * than a phone waits (about 9 s against 4 s), so the first message after a quiet spell was read by no model at all.
