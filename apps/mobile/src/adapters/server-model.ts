@@ -29,6 +29,8 @@ const STATUS_PATH = "/v1/model/status";
 const WAIT_MS = 4_000;
 /** After failures in a row, the phone stops asking for this long, so a model that is down does not slow every message. */
 const PAUSE_MS = 60_000;
+/** A timer may fire a moment early: the screens are told the pause is over just after it is. */
+const PAUSE_END_SLACK_MS = 100;
 /** One slow answer is not a model that is down: it is usually the model loading, and the next call is fast. */
 const FAILURES_TO_PAUSE = 2;
 
@@ -41,7 +43,7 @@ export class ServerModel implements Model {
   /** The question to the API about its model, while it is on the way. */
   private checking: Promise<void> | undefined;
 
-  /** `changed` is told when the model pauses, so the screens can say what answers now. */
+  /** `changed` is told when the model pauses and when the pause ends, so the screens can say what answers now. */
   constructor(
     private readonly changed: () => void = () => {},
     private readonly now: () => number = Date.now,
@@ -122,6 +124,8 @@ export class ServerModel implements Model {
       this.pausedUntil = this.now() + PAUSE_MS;
       this.failures = 0;
       this.changed();
+      // The pause ends by the clock alone: the screens are told then too, so typing comes back by itself.
+      setTimeout(this.changed, PAUSE_MS + PAUSE_END_SLACK_MS);
     }
     return null;
   }

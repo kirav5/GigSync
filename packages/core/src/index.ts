@@ -75,6 +75,7 @@ export {
 } from "./interview/need-estimate.js";
 export { isGreeting } from "./interview/need-greeting.js";
 export { chooseNeed, chooseNeedDate, hearNeed, NeedPick } from "./interview/need-hear.js";
+export { chipsOnlyNeed, NeedInput, needInput } from "./interview/need-input.js";
 export { type NeedHint, understandNeed } from "./interview/need-model.js";
 export { type NeedFill, parseNeed, TIME_MAX } from "./interview/need-parse.js";
 export { needPrompt } from "./interview/need-prompt.js";

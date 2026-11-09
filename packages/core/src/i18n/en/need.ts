@@ -41,4 +41,7 @@ export const need = {
   "need.placeholder": "Type what you need…",
   "need.reading": "Reading what you said…",
   "need.date_ok": "Use this date",
+  "need.typing_off": "Typing is off for a moment; pick from the options.",
+  "need.typing_number": "Typing is off for a moment; type a number or pick from the options.",
+  "need.number_placeholder": "Type a number…",
 } as const;

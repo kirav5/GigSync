@@ -4,6 +4,7 @@ import {
   askingFirst,
   askingModel,
   categoryPicked,
+  chipsOnlyNeed,
   findEventOf,
   type GigDevice,
   hearNeed,
@@ -22,7 +23,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
 import { cityOf, rememberHome, useServedCities } from "../../adapters/cities.js";
 import { meaningFor } from "../../adapters/meaning.js";
-import { chosenModel, ModelChoice } from "../../adapters/model.js";
+import { chosenModel } from "../../adapters/model.js";
 import { offerAlerts } from "../../adapters/push.js";
 import { stopSpeaking } from "../../adapters/speech.js";
 import { needConfig } from "../../card/choices.js";
@@ -46,16 +47,18 @@ import { pickKind, readFirst, readLater } from "../../find/readNeed.js";
 import { useAddressBook } from "../../find/useAddressBook.js";
 import { useAddresses } from "../../find/useAddresses.js";
 import { useListedRates } from "../../find/useListedRates.js";
+import { useNeedInput } from "../../find/useNeedInput.js";
 import { ASKED, useNeedSearch } from "../../find/useNeedSearch.js";
 import { useFirstQuestion, usePriceQuestions } from "../../find/usePriceQuestions.js";
 import { useI18n } from "../../i18n.js";
-import { Composer, Via } from "../../ui/Composer.js";
+import { Via } from "../../ui/Composer.js";
 import { C } from "../../ui/cls.js";
 import { Dock } from "../../ui/Dock.js";
 import { errorKey } from "../../ui/errorKey.js";
 import { phoneDay } from "../jobGroups.js";
 import { AddAddress } from "./AddAddress.js";
 import { AddressDesk } from "./AddressDesk.js";
+import { NeedDock } from "./NeedDock.js";
 import { type FoundTurn, NeedTurns } from "./NeedTurns.js";
 import { needMemory, withMemory } from "./remembered.js";
 import "../talk.css";
@@ -68,8 +71,6 @@ interface Props {
   onAsked: () => void;
 }
 
-/** The phone has a usable model now: it decides the price questions (ADR 0041 §2); lite mode asks the fixed ones. */
-const modelOn = () => chosenModel.answering() !== ModelChoice.lite;
 const failure = (err: unknown) => ({ error: err instanceof Error ? err.message : String(err) });
 
 /**
@@ -87,6 +88,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   const [reading, setReading] = useState(false);
   const end = useRef<HTMLDivElement>(null);
   const current = state ? needPrompt(state) : undefined;
+  const input = useNeedInput(open, state, reading);
 
   // A chat with nothing in it starts a new need; one under way carries on where it was. What the agent remembers
   // from past jobs comes along, with the owner's setting: offered first ("Use it?"), or filled in and said.
@@ -111,9 +113,12 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     if (!empty || !saved) return;
     const now = ports.clock.now();
     const config = { ...needConfig(lang, phoneDay(now)), hour: now.getHours(), addresses: saved.map(addressChoice) };
-    void needMemory(ports, account).then((remembered) =>
-      beginNeed(open, startNeed({ ...withMemory(config, remembered), modelQuestions: modelOn() }, to)),
-    );
+    // Whether GigSync's model is there is known first: with no model to read words, the need opens on the list.
+    void Promise.all([needMemory(ports, account), chosenModel.server.ready()]).then(([remembered]) => {
+      const reads = chosenModel.reads();
+      const need = startNeed({ ...withMemory(config, remembered), modelQuestions: reads }, to);
+      beginNeed(open, reads ? need : chipsOnlyNeed(need));
+    });
   }, [empty, open, to, lang, ports, account, saved]);
 
   // A language picked in About me part-way: the questions from here on, and what the mic listens for, follow it.
@@ -278,17 +283,13 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       <Working on={thinking} words={t("driver.thinking")} />
       <Working on={state?.slot === NeedSlot.done} />
       <div ref={end} />
-      <Dock>
-        <Composer
-          label={t("need.composer")}
-          placeholder={t("need.placeholder")}
-          onSend={(text, via) => void send(text, via)}
-          busy={busy || reading || waiting}
-          hints={current?.hints ?? []}
-          numeric={current?.numeric ?? false}
-          onDeviceOnly={current?.secret ?? false}
-        />
-      </Dock>
+      <NeedDock
+        input={input}
+        prompt={current}
+        busy={busy || reading || waiting}
+        onSend={(text, via) => void send(text, via)}
+        onNumber={(digits) => answerNeed(open, digits, false)}
+      />
     </>
   );
 }

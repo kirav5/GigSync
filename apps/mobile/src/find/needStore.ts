@@ -2,6 +2,7 @@ import {
   type AddressChoice,
   askingFirst,
   askingModel,
+  chipsOnlyNeed,
   chooseNeed,
   chooseNeedDate,
   type FoundEstimate,
@@ -94,6 +95,11 @@ export function answerNeed(
 /** An answer by tapping a choice; `label` is the choice as the owner read it. */
 export function tapNeed(chat: string, value: string, label: string): void {
   moved(chat, (state) => chooseNeed(state, value), [ownerSaid(label)]);
+}
+
+/** No model reads words now: an opening that invited a sentence shows the list instead, as the next question. */
+export function chipsOnlyIn(chat: string): void {
+  moved(chat, chipsOnlyNeed, []);
 }
 
 /** Other work named part-way: asked about first; the owner's words go in the chat. */
