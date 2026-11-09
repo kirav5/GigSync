@@ -123,18 +123,16 @@ describe("a session ended outside this isolate", () => {
 });
 
 describe("a session's expiry", () => {
-  const owner = (p: Person, now: number, fresh: boolean) =>
-    withDirectory(env.DIRECTORY.connectionString, undefined, (db) => sessionOwner(db, p.session.token, now, fresh));
+  const owner = (p: Person, now: number) =>
+    withDirectory(env.DIRECTORY.connectionString, undefined, (db) => sessionOwner(db, p.session.token, now));
 
-  it("is judged by the clock it is given, whichever way the directory is asked", async () => {
+  it("is judged by the clock it is given", async () => {
     const p = await signIn("+919844710010");
     const now = Date.now();
     const late = now + SESSION_DAYS * DAY_MS;
-    for (const fresh of [true, false]) {
-      expect((await owner(p, now, fresh))?.owner.device_id).toBe(p.session.device);
-      expect(await owner(p, late - DAY_MS, fresh)).toBeDefined();
-      expect(await owner(p, late + DAY_MS, fresh)).toBeUndefined();
-    }
+    expect((await owner(p, now))?.owner.device_id).toBe(p.session.device);
+    expect(await owner(p, late - DAY_MS)).toBeDefined();
+    expect(await owner(p, late + DAY_MS)).toBeUndefined();
   });
 
   it("ends a remembered session too, before the TTL when it comes first", () => {

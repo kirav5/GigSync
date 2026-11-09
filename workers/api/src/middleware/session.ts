@@ -24,8 +24,8 @@ export const mayUseSessionCache = (method: string, path: string) =>
   under(path, CACHED_ROUTES) || (method === HttpMethod.get && under(path, CACHED_READS));
 
 /** Asks the directory, and brings this isolate's memory in line with its answer: a yes is remembered, a no forgotten. */
-async function askDirectory(db: Db, token: string, now: number, fresh: boolean): Promise<SessionOwner | undefined> {
-  const session = await sessionOwner(db, token, now, fresh);
+async function askDirectory(db: Db, token: string, now: number): Promise<SessionOwner | undefined> {
+  const session = await sessionOwner(db, token, now);
   if (session) sessionCache.remember(token, session, now);
   else sessionCache.forget(token);
   return session?.owner;
@@ -40,8 +40,7 @@ export const requireSession: MiddlewareHandler<AppEnv> = async (c, next) => {
   // One clock for the whole check: the cache's TTL and the session's expiry are judged at the same instant.
   const now = Date.now();
   const cached = mayUseSessionCache(c.req.method, c.req.path);
-  const owner =
-    (cached ? sessionCache.get(token, now) : undefined) ?? (await askDirectory(c.get(Var.db), token, now, !cached));
+  const owner = (cached ? sessionCache.get(token, now) : undefined) ?? (await askDirectory(c.get(Var.db), token, now));
   if (!owner) {
     log.warn("session rejected", { requestId: c.get(Var.requestId), token: pii(token) });
     return c.json({ error: ApiError.unauthorized }, 401);
