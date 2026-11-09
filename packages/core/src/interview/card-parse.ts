@@ -1,20 +1,19 @@
 import { DEFAULT_ARRANGEMENT, Lang, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
 import type { MessageKey } from "../i18n/t.js";
 import { asciiDigits } from "../job/details.js";
-import { readSkill, spokenSkill } from "../skills/read.js";
 import type { WorkMatch } from "../skills/suggest.js";
 import { parseAmount } from "./amount.js";
 import { advance, askable, type CardDraft, FIELDS, hasWork, type InterviewState, Pick, retry, Slot } from "./card.js";
-import { alsoSaid, withSkillToo, withTradesToo } from "./card-adding.js";
 import { chooseAlso, hearAlso } from "./card-also.js";
 import { chooseArrangements, hearArrangements, hearMoreRate, keepMoreRate, mainOf } from "./card-arrangements.js";
 import { chooseWhichRate, edit, editSaid, hearWhichRate, onUnlist } from "./card-edit.js";
 import { cardEstimate, suggestedAmount } from "./card-estimate.js";
-import { askKind, chooseKind, hearKind } from "./card-kind.js";
+import { chooseKind, hearKind } from "./card-kind.js";
 import type { Line } from "./card-lines.js";
+import { onTrades, onWork } from "./card-work.js";
 import { chooseRest, hearRest } from "./card-work-rates.js";
 import { areaIn, editIntent, fieldIn, isNone, isSkip, languagesIn, tradesIn, yesNo } from "./lexicon.js";
-import { isGreeting } from "./need-greeting.js";
+import { tradeTitled } from "./trade-titled.js";
 
 /**
  * Turning an answer, said, typed or tapped, into the interview's next state: each field's checks, the amount check and
@@ -55,34 +54,6 @@ export function aboutIsPrivate(text: string): boolean {
 function aboutProblem(text: string): AboutProblem | undefined {
   if (aboutIsPrivate(text)) return AboutProblem.private;
   return text.trim().length > ABOUT_MAX ? AboutProblem.long : undefined;
-}
-
-function onTrades(s: InterviewState, trades: Trade[]): InterviewState {
-  if (trades.length === 0) return retry(s, { key: "iv.again.trade" });
-  const keep = askable(trades);
-  const ask_me = (s.draft.ask_me ?? []).filter((k) => keep.includes(k));
-  const { skills: _replaced, ...rest } = s.draft;
-  return advance(s, { ...rest, trades, ask_me });
-}
-
-/**
- * The work, said: the trades it names, else the worker's own skill in a few words (ADR 0047), else ask again. A hello
- * is not work. `kind` is what the model suggests the skill is: asked next, as yes or no (`card-kind.ts`).
- */
-function onWork(s: InterviewState, text: string, kind?: WorkMatch): InterviewState {
-  if (isGreeting(text)) return retry(s, { key: "iv.again.trade" });
-  const adding = alsoSaid(text) && hasWork(s.draft);
-  const trades = tradesIn(text);
-  if (trades.length > 0) return adding ? advance(s, withTradesToo(s.draft, trades)) : onTrades(s, trades);
-  const read = readSkill(spokenSkill(text), s.config.own);
-  if ("trade" in read) return adding ? advance(s, withTradesToo(s.draft, [read.trade])) : onTrades(s, [read.trade]);
-  if ("problem" in read) return retry(s, { key: `skill.err.${read.problem}` });
-  const kept: Line[] = [{ key: "iv.skill_kept", params: { skill: read.skill.text } }];
-  const draft = adding
-    ? withSkillToo(s.draft, read.skill)
-    : { ...s.draft, trades: [], skills: [read.skill], ask_me: [] };
-  if (kind && !read.skill.category) return askKind(s, draft, read.skill, kind, kept);
-  return advance(s, draft, kept);
 }
 
 function onArea(s: InterviewState, area: string | undefined): InterviewState {
@@ -212,7 +183,7 @@ function heardLanguages(text: string): Lang[] | undefined {
  * An answer in words: `aloud` when the owner said it, false when they typed it. It decides only whether the lowest
  * rate is read back aloud; leaving it out keeps that readback quiet.
  */
-export function hear(state: InterviewState, text: string, aloud = false, kind?: WorkMatch): InterviewState {
+export function hear(state: InterviewState, text: string, aloud = false, kind?: WorkMatch | null): InterviewState {
   switch (state.slot) {
     case Slot.trade:
       return state.kind ? hearKind(state, text) : onWork(state, text, kind);

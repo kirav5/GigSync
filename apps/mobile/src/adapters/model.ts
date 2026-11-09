@@ -114,6 +114,7 @@ export class ChosenModel implements Model {
    * through `pii()`, which prints on a developer's machine and nowhere else.
    */
   async generate(prompt: string, options?: GenerateOptions): Promise<string | null> {
+    await this.server.ready();
     const engine = this.answering();
     const started = performance.now();
     const raw = await this.ask(prompt, options);

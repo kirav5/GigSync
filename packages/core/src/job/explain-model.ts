@@ -106,28 +106,59 @@ export interface ExplainInput {
   audience?: Audience;
 }
 
+/** Worded notes kept, newest last: far more than one phone's open jobs show at once. */
+const KEPT_MAX = 200;
+/**
+ * Each note as the model worded it, by what it was asked: a job's card is drawn again on every sync and every step,
+ * and its notes stay the same, so each is worded once, not on every draw (in the run of all kinds, half of the model's
+ * calls reworded a note already worded). Asked twice at once, both wait on the one call. Kept per model, as each
+ * model words them its own way.
+ */
+const wordedBy = new WeakMap<Model, Map<string, Promise<Explanation>>>();
+
+function keep(worded: Map<string, Promise<Explanation>>, key: string, explanation: Promise<Explanation>) {
+  worded.set(key, explanation);
+  if (worded.size > KEPT_MAX) worded.delete(worded.keys().next().value ?? key);
+  // Only the model's words are kept: the template came of no answer in time, and the next draw may get one.
+  void explanation.then((e) => {
+    if (e.by !== ExplainedBy.model) worded.delete(key);
+  });
+  return explanation;
+}
+
 /**
  * The explanation of one offer: the model's wording when it passes the checker, else the template. For anyone but
  * the owner the limit is left out of the facts and its number is forbidden in the text.
  */
-export async function explainOffer(
-  model: Model | undefined,
-  i: ExplainInput,
-  waitMs = MODEL_WAIT_MS,
-): Promise<Explanation> {
+export function explainOffer(model: Model | undefined, i: ExplainInput, waitMs = MODEL_WAIT_MS): Promise<Explanation> {
   const forOwner = (i.audience ?? Audience.owner) === Audience.owner;
   const facts = forOwner ? i.facts : i.facts.filter((f) => f.kind !== FactKind.limit);
   const template = factsText(i.lang, facts, i.name);
   const fallback: Explanation = { text: template, by: ExplainedBy.template };
-  if (!model || facts.length === 0) return fallback;
+  if (!model || facts.length === 0) return Promise.resolve(fallback);
+  const forbidden = forOwner ? [] : limitRupees(i.facts);
+  const key = JSON.stringify([i.lang, template, forbidden]);
+  const worded = wordedBy.get(model) ?? new Map<string, Promise<Explanation>>();
+  wordedBy.set(model, worded);
+  return (
+    worded.get(key) ?? keep(worded, key, wordOffer(model, { template, lang: i.lang, forbidden }, fallback, waitMs))
+  );
+}
+
+/** One call for the model's wording, checked; the template on anything else. */
+async function wordOffer(
+  model: Model,
+  asked: { template: string; lang: Lang; forbidden: readonly number[] },
+  fallback: Explanation,
+  waitMs: number,
+): Promise<Explanation> {
   try {
     const reply = await within(
-      model.generate(explainPrompt(template, i.lang), { maxTokens: MAX_TOKENS, purpose: Purpose.explain }),
+      model.generate(explainPrompt(asked.template, asked.lang), { maxTokens: MAX_TOKENS, purpose: Purpose.explain }),
       waitMs,
     );
     const text = reply ? replyText(reply) : undefined;
-    const forbidden = forOwner ? [] : limitRupees(i.facts);
-    if (!text || !checkExplanation(text, { template, lang: i.lang, forbidden })) return fallback;
+    if (!text || !checkExplanation(text, asked)) return fallback;
     return { text, by: ExplainedBy.model } satisfies Explanation;
   } catch (err) {
     log.warn("explanation failed", { error: (err as Error).name });

@@ -3,11 +3,11 @@
 import { readFileSync } from "node:fs";
 import { z } from "./core.mjs";
 
-export const SETS = ["en", "hi", "kn", "hinglish", "kanglish"];
+export const SETS = ["en", "hi", "kn", "hinglish", "kanglish", "run"];
 const VECTORS = new URL("../../vectors/find/", import.meta.url);
 
 /** The app's language for each set: Hinglish and Kanglish are typed by people whose app is in English. */
-export const LANG_OF = { en: "en", hi: "hi", kn: "kn", hinglish: "en", kanglish: "en" };
+export const LANG_OF = { en: "en", hi: "hi", kn: "kn", hinglish: "en", kanglish: "en", run: "en" };
 
 const Conversation = z.object({
   id: z.string(),
@@ -15,6 +15,8 @@ const Conversation = z.object({
   answers: z.array(z.string().min(1)),
   /** Other work named part-way: the chat should offer to switch, not say "Sorry". */
   later: z.string().optional(),
+  /** How the work is hired, when the first words say it: read for its meaning ("next month" is a date). */
+  hired: z.enum(["hourly", "visit", "weekly", "monthly"]).optional(),
   want: z.union([
     z.object({ trade: z.string() }),
     z.object({ skill: z.string() }),

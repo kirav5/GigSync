@@ -12,7 +12,8 @@ import {
   start,
 } from "../src/index.js";
 import { Pick } from "../src/interview/card.js";
-import { FakeModel } from "./model-fakes.js";
+import { NONE_OF_THEM } from "../src/skills/same-work.js";
+import { FakeModel, ScriptedModel } from "./model-fakes.js";
 
 /** ADR 0059: words said in the card interview are filed only on the worker's yes; a hello is not work. */
 
@@ -85,11 +86,21 @@ describe("a kind of work nobody filed under yet", () => {
   const TV_MAN = { key: "tv mechanic", text: "TV mechanic", lang: "en", workers: 1 } as const;
   const FILED = { key: "fridge man", text: "Fridge man", lang: "en", category: "fridge_repair", workers: 1 } as const;
 
-  it("finds the worker's own words for it among the unfiled skills, by name", async () => {
-    const model = new FakeModel('{"work":"TV mechanic"}');
+  it("finds the worker's own words for it among the unfiled skills, by name, and checks the name on its own", async () => {
+    const model = new ScriptedModel(['{"work":"TV mechanic"}', '{"same":true}']);
     expect(await sameWork(model, "tv_repair", [FILED, TV_MAN])).toEqual(TV_MAN);
     expect(model.prompts[0]).toContain('"TV repair"');
     expect(model.prompts[0]).not.toContain("Fridge man");
+    expect(model.prompts[1]).toContain('A worker calls their work "TV mechanic".');
+  });
+
+  it("drops the name the list call picked when the check says it is other work", async () => {
+    const GEYSER = { key: "geyser repair", text: "geyser repair", lang: "en", workers: 1 } as const;
+    const model = new ScriptedModel(['{"work":"geyser repair"}', '{"same":false}']);
+    expect(await sameWork(model, "gas_stove_repair", [GEYSER])).toBeUndefined();
+    expect(
+      await sameWork(new ScriptedModel(['{"work":"geyser repair"}']), "gas_stove_repair", [GEYSER]),
+    ).toBeUndefined();
   });
 
   it("finds none for no, a name off the list, or no answer, and asks nothing with no unfiled skills", async () => {
@@ -100,5 +111,16 @@ describe("a kind of work nobody filed under yet", () => {
     expect(await sameWork(idle, "tv_repair", [FILED])).toBeUndefined();
     expect(idle.prompts).toEqual([]);
     expect(sameWorkPrompt("TV repair", ["TV mechanic"])).toContain("- TV mechanic");
+  });
+
+  it("offers none of them as a line of its own, and takes it as none", async () => {
+    const GEYSER = { key: "geyser repair", text: "geyser repair", lang: "en", workers: 1 } as const;
+    const model = new FakeModel(`{"work":"${NONE_OF_THEM}"}`);
+    expect(await sameWork(model, "water_tank_cleaning", [GEYSER])).toBeUndefined();
+    expect(model.prompts[0]).toContain(`- ${NONE_OF_THEM}\n- geyser repair`);
+    // What the kind covers goes with its name, so a small model can tell a tank from a geyser.
+    expect(model.prompts[0]).toContain(
+      '"Water tank cleaning" (cleaning drinking-water tanks and sumps; an aquarium is not one)',
+    );
   });
 });

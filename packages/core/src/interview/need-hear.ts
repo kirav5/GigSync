@@ -28,7 +28,7 @@ import { chooseArrangement, hearArrangement } from "./need-arrangement.js";
 import { detailAnswer, settledProblem } from "./need-detail.js";
 import { chooseDriver, hearDriver } from "./need-drivers.js";
 import { suggestedBudget } from "./need-estimate.js";
-import { fillEmpty, fillFromHint } from "./need-fill.js";
+import { changedBy, decidedFill, fillEmpty, fillFromHint } from "./need-fill.js";
 import { chooseKindPick } from "./need-kinds.js";
 import { MemoryPick } from "./need-memory.js";
 import type { NeedHint } from "./need-model.js";
@@ -139,7 +139,7 @@ function onAnswer(s: NeedState, text: string, aloud: boolean, hint: NeedHint): N
   if (offer) return offer;
   const parsed = parseNeed(text, options(s));
   // A model's trade goes before the lists': "kitchen" is a cook's word in the lists, and a kitchen tap is a plumber's.
-  const fill = hint.trade ? { ...parsed, trade: hint.trade } : parsed;
+  const fill = hint.decided ? decidedFill(parsed, hint) : hint.trade ? { ...parsed, trade: hint.trade } : parsed;
   const draft = withWordDrivers(fillFromHint(fillEmpty(s.draft, fill), hint, fill.words), fill.words);
   const answered = onSlot(s, draft, text, fill, aloud);
   if (answered) return answered;
@@ -147,21 +147,8 @@ function onAnswer(s: NeedState, text: string, aloud: boolean, hint: NeedHint): N
   return { ...retryNeed(s, { key: s.slot === NeedSlot.budget ? Say.againBudget : Say.again }), draft };
 }
 
-/** The values a sentence at the readback changes: "make it tomorrow", "Koramangala instead". */
-function changedBy(d: NeedDraft, fill: NeedFill): NeedDraft | undefined {
-  const next: NeedDraft = {
-    ...(fill.trade ? withTrade(d, fill.trade) : d),
-    ...(fill.area ? { area: fill.area } : {}),
-    // A new day said alone keeps the hour already given; the hour is asked only when there is none.
-    ...(fill.day ? { day: fill.day, time: fill.time ?? d.time } : fill.time ? { time: fill.time } : {}),
-    ...(fill.budget_paise ? { budget_paise: fill.budget_paise } : {}),
-  };
-  const same = (Object.keys(next) as (keyof NeedDraft)[]).every((k) => next[k] === d[k]);
-  return same ? undefined : next;
-}
-
 function onConfirm(s: NeedState, text: string): NeedState {
-  const changed = changedBy(s.draft, parseNeed(text, options(s)));
+  const changed = changedBy(s.draft, parseNeed(text, options(s)), text);
   if (changed) return moveOn(s, changed);
   const yes = yesNo(text);
   const field = needFieldIn(text);

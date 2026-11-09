@@ -108,8 +108,10 @@ describe("Find for a listed skill", () => {
   });
 
   it("takes a long first sentence as the answer to what the work is", () => {
-    const s = withSkill(startNeed(config("en")), tailor, "I need a tailor to stitch two blouses, just once");
-    // "Just once" said it is one visit, so how long is not asked either.
+    const s = withSkill(startNeed(config("en")), tailor, "I need a tailor to stitch two blouses, just once", {
+      arrangement: "visit",
+    });
+    // The model read "just once" as one visit, so how long is not asked either.
     expect(s.draft.arrangement).toBe("visit");
     expect(s.slot).toBe(NeedSlot.area);
     expect(s.draft.detail).toBe("I need a tailor to stitch two blouses, just once");
@@ -136,8 +138,14 @@ describe("Find for a listed skill", () => {
     expect(s.draft.skill?.key).toBe("tailor");
   });
 
-  it("leaves a need that already has a trade alone", () => {
+  it("leaves a need that already has a trade alone, unless the owner picked the kind from the list", () => {
     const cook = chooseNeed(startNeed(config("en")), "cook");
     expect(withSkill(cook, tailor, "tailor")).toBe(cook);
+    // A tap says what they want: the trade an earlier reading set gives way, and where and when stay.
+    const placed = { ...cook, draft: { ...cook.draft, area: "koramangala" } };
+    const picked = withSkill(placed, tailor, "Tailor", { picked: true });
+    expect(picked.draft.trade).toBeUndefined();
+    expect(picked.draft.skill?.key).toBe("tailor");
+    expect(picked.draft.area).toBe("koramangala");
   });
 });

@@ -21,6 +21,7 @@ import {
   needWithListed,
   offerSwitch,
   type PriceStep,
+  type SkillHow,
   searchedNeed,
   searchFailed,
   type TurnRead,
@@ -130,9 +131,12 @@ export function nobodyNeed(
   moved(chat, (state) => withNobody(state, jobType, words, empty), label ? [ownerSaid(label)] : []);
 }
 
-/** A kind of work outside the trades, picked from the list: its workers' skill, the tap shown as the owner's. */
+/**
+ * A kind of work outside the trades, picked from the list: its workers' skill, the tap shown as the owner's. The pick
+ * replaces any work an earlier reading of their words set: a tap says what they want.
+ */
 export function kindNeed(chat: string, skill: BoardSkill, label: string): void {
-  moved(chat, (state) => tappedNeed(withSkill(state, skill, label)), [ownerSaid(label)]);
+  moved(chat, (state) => tappedNeed(withSkill(state, skill, label, { picked: true })), [ownerSaid(label)]);
 }
 
 /** The model's words for the first question after a tap, or none. */
@@ -141,8 +145,8 @@ export function firstNeed(chat: string, text: string | undefined): void {
 }
 
 /** A need for a skill workers list (ADR 0047), matched on this phone; the owner's words are on screen already. */
-export function skillNeed(chat: string, skill: BoardSkill, words: string, saysWhat = false, guessed = false): void {
-  const found = (state: NeedState) => withSkill(state, skill, words, saysWhat);
+export function skillNeed(chat: string, skill: BoardSkill, words: string, how: SkillHow = {}, guessed = false): void {
+  const found = (state: NeedState) => withSkill(state, skill, words, how);
   moved(chat, (state) => (guessed ? guessedNeed(found(state)) : found(state)), []);
 }
 

@@ -1,7 +1,7 @@
-import { type Skill, skillKey } from "@gigsync/protocol";
+import { type Lang, type Skill, skillKey } from "@gigsync/protocol";
 import { t } from "../i18n/t.js";
 import { type WorkMatch, workMatchName } from "../skills/suggest.js";
-import { advance, type CardDraft, type InterviewState, Pick, retry } from "./card.js";
+import { advance, type CardDraft, hasWork, type InterviewState, Pick, retry } from "./card.js";
 import type { Line, Prompt } from "./card-lines.js";
 import { YES_NO } from "./choices.js";
 import { yesNo } from "./lexicon.js";
@@ -26,6 +26,16 @@ export const askKind = (
   notes: Line[],
 ): InterviewState => ({ ...s, draft, asking: asked, kind, notes, misses: 0, fresh: false });
 
+/**
+ * The kind of work as a skill under its own name, in the worker's language: what the card keeps when their words could
+ * not go on it as they were. A trade's stands in only to be replaced by the trade itself.
+ */
+export const kindSkill = (kind: WorkMatch, own: Lang): Skill => ({
+  text: workMatchName(own, kind),
+  lang: own,
+  ...("category" in kind ? { category: kind.category } : {}),
+});
+
 export function kindPrompt(s: InterviewState): Prompt {
   const work = s.kind ? workMatchName(s.config.own, s.kind) : "";
   return {
@@ -42,7 +52,8 @@ export function answerKind(s: InterviewState, yes: boolean | undefined): Intervi
   if (yes === undefined && s.misses + 1 < MAX_MISSES)
     return { ...retry(s, { key: "iv.again.yes_no" }), misses: s.misses + 1 };
   const at = { ...s, kind: undefined, asking: undefined };
-  if (!yes) return advance(at, s.draft);
+  // A no keeps their words, when the card could hold them; else the work is asked again.
+  if (!yes) return hasWork(s.draft) ? advance(at, s.draft) : retry(at, { key: "iv.again.trade" });
   const key = skillKey(asking.text);
   const others = (s.draft.skills ?? []).filter((sk) => skillKey(sk.text) !== key);
   if ("trade" in kind) {

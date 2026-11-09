@@ -38,6 +38,8 @@ export class ServerModel implements Model {
   private failures = 0;
   /** The API says a model is set up there; until it does, nothing is sent. */
   private on = false;
+  /** The question to the API about its model, while it is on the way. */
+  private checking: Promise<void> | undefined;
 
   /** `changed` is told when the model pauses, so the screens can say what answers now. */
   constructor(
@@ -49,7 +51,15 @@ export class ServerModel implements Model {
   setSession(session: Session | undefined): void {
     this.session = session;
     this.on = false;
-    if (session && API_BASE) void this.check(session);
+    this.checking = session && API_BASE ? this.check(session) : undefined;
+  }
+
+  /**
+   * Resolves once the API has said whether it has a model, or at once when it has. A worker who answers the first
+   * question seconds after signing up is otherwise read as if there were no model at all.
+   */
+  async ready(): Promise<void> {
+    await this.checking;
   }
 
   /** Worth asking now: signed in, a model set up on the API, and no failure in the last minute. */
@@ -61,6 +71,7 @@ export class ServerModel implements Model {
     try {
       const res = await fetch(`${API_BASE}${STATUS_PATH}`, {
         headers: { [Header.authorization]: `${BEARER_PREFIX}${session.token}` },
+        signal: AbortSignal.timeout(WAIT_MS),
       });
       const status = res.ok ? ServerModelStatus.safeParse(await res.json()) : undefined;
       this.on = this.session === session && status?.success === true && status.data.on;

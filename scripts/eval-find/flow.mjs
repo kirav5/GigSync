@@ -20,8 +20,16 @@ const LISTED = [
   ["Mehendi artist", "mehendi_artist", 3],
   ["Yoga teacher", "yoga_teacher", 3],
   ["Car wash", "car_wash", 3],
+  ["Water tank cleaning", "water_tank_cleaning", 2],
+  ["Mason", "mason", 2],
+  ["Waterproofing", "waterproofing", 1],
+  ["Priest", "priest", 2],
+  ["Home nurse", "home_nurse", 2],
   ["Aquarium cleaning", undefined, 2],
   ["Kite making", undefined, 1],
+  // Unfiled names of other work, as the live board held after the run of all kinds: never a stand-in for a kind.
+  ["geyser repair and installation", undefined, 1],
+  ["CCTV camera installation", undefined, 1],
   // Air cooler repair has no worker filed under it; this one never said what kind of work it is.
   ["Cooler fixing", undefined, 2],
 ].map(([text, category, workers]) => ({
@@ -76,25 +84,27 @@ async function firstWords(model, s, text, lang) {
   return core.hearNeed(s, text, false, { ...hint, scope });
 }
 
-/** The first sentence as the one reader takes it (read-turn.ts), and as the word lists do when it gives nothing. */
+/**
+ * The first sentence as the one reader takes it (read-turn.ts, `readFirst` in readNeed.ts): its reading decides the
+ * work and how it is hired, and with none, nothing is guessed.
+ */
 async function firstTurn(model, s, text, lang) {
-  const read = await core.readTurn(model, core.turnContext(s, text, OPTIONS), WAIT_MS);
-  if (!read) return firstWords(model, s, text, lang);
-  if (read.kind === core.TurnKind.enum.greeting) return s;
+  const read =
+    (await core.readTurn(model, core.turnContext(s, text, OPTIONS), WAIT_MS)) ??
+    (await core.readTurn(model, core.turnContext(s, text, OPTIONS), WAIT_MS));
+  if (read?.kind === core.TurnKind.enum.greeting) return s;
   const titled = core.tradeTitled(text);
-  const said = core.parseNeed(text, { areas: AREAS, today: TODAY }).trade;
-  const filed = async (c) =>
-    core.categorySkill(c, LISTED, lang) ?? (said ? undefined : await core.sameWork(model, c, LISTED, WAIT_MS));
-  const found = titled ? undefined : read.category ? await filed(read.category) : read.skill;
-  const named = titled ? undefined : read.jobType || found;
-  const lists = named ? undefined : said;
-  const trade = titled ?? read.trade ?? lists;
-  if (!trade && read.category && !found) return core.withNobody(s, core.t(lang, `category.${read.category}`), text);
-  const skill = trade ? undefined : (found ?? (await core.listedSkill(text, LISTED)));
-  if (skill) return core.withSkill(s, skill, text, Boolean(read.problem || read.jobType || found));
-  if (!trade && read.jobType) return core.withJobType(s, read.jobType, text);
+  const filed = async (c) => core.categorySkill(c, LISTED, lang) ?? (await core.sameWork(model, c, LISTED, WAIT_MS));
+  const found = titled ? undefined : read?.category ? await filed(read.category) : read?.skill;
+  const trade = titled ?? read?.trade;
+  if (!trade && read?.category && !found) return core.withNobody(s, core.t(lang, `category.${read.category}`), text);
+  const skill = trade || !read ? undefined : (found ?? (await core.listedSkill(text, LISTED)));
+  const how = { saysWhat: Boolean(read?.problem || read?.jobType || found), arrangement: read?.arrangement };
+  if (skill) return core.withSkill(s, skill, text, how);
+  if (!trade && read?.jobType) return core.withJobType(s, read.jobType, text);
   const scope = trade ? await core.readScope(model, text, { trade, lang, waitMs: WAIT_MS }) : [];
-  return core.hearNeed(s, text, false, { ...core.hintOf(read), ...(titled ? { trade: titled } : {}), scope });
+  const hint = read ? core.hintOf(read) : { decided: true };
+  return core.hearNeed(s, text, false, { ...hint, ...(trade ? { trade } : {}), scope });
 }
 
 /** Words at a later question: the interview's, and when it did not understand them, the one reader's. */
@@ -163,5 +173,6 @@ export async function runConversation(model, conversation, lang, reader = Reader
   const { trade, skill, jobType } = s.draft;
   const named = skill?.category ? core.t("en", `category.${skill.category}`) : skill?.text;
   log.job = trade ? { trade } : skill ? { skill: named } : jobType ? { outside: jobType } : undefined;
+  log.hiredRead = s.draft.arrangement;
   return log;
 }

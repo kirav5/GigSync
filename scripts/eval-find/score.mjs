@@ -46,5 +46,7 @@ export function line(label, runs) {
   const offered = runs.filter((r) => r.later && r.switched).length;
   const later = runs.filter((r) => r.later).length;
   const questions = runs.reduce((sum, r) => sum + r.asked.length, 0) / (n || 1);
-  return `${label.padEnd(10)} n=${String(n).padEnd(4)} right job ${percent(right, n).padStart(4)} | no repeats ${percent(clean, n).padStart(4)} | no "Sorry" ${percent(noSorry, n).padStart(4)} | reached the readback ${percent(ended, n).padStart(4)} (${dead} did not) | questions ${questions.toFixed(1)}${later ? ` | offered a switch ${percent(offered, later)}` : ""}`;
+  const hiredSaid = runs.filter((r) => r.hired);
+  const hiredRight = hiredSaid.filter((r) => r.hired === r.hiredRead).length;
+  return `${label.padEnd(10)} n=${String(n).padEnd(4)} right job ${percent(right, n).padStart(4)} | no repeats ${percent(clean, n).padStart(4)} | no "Sorry" ${percent(noSorry, n).padStart(4)} | reached the readback ${percent(ended, n).padStart(4)} (${dead} did not) | questions ${questions.toFixed(1)}${later ? ` | offered a switch ${percent(offered, later)}` : ""}${hiredSaid.length ? ` | hired as said ${percent(hiredRight, hiredSaid.length)}` : ""}`;
 }

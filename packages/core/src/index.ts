@@ -90,7 +90,7 @@ export {
 } from "./interview/need-request.js";
 export { Say as NeedSay } from "./interview/need-say.js";
 export { chipChoice, ScopePick, scopeDetails } from "./interview/need-scope.js";
-export { withSkill } from "./interview/need-skill.js";
+export { type SkillHow, withSkill } from "./interview/need-skill.js";
 export { namesOtherWork, offerSwitch, type WorkSwitch } from "./interview/need-switch.js";
 export { hourOf, needTerms, windowOf } from "./interview/need-terms.js";
 export { ANY_TIME, ANY_TIME_PICK, hoursOpen } from "./interview/need-time.js";
@@ -222,6 +222,7 @@ export { sameWork, sameWorkPrompt } from "./skills/same-work.js";
 export {
   categoryNamed,
   checkSuggestion,
+  readWork,
   suggestPrompt,
   suggestWork,
   type WorkMatch,

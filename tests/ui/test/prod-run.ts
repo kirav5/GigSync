@@ -11,6 +11,7 @@ import { en } from "../../../packages/core/dist/i18n/en/index.js";
 export const RUN_ID = process.env.PROD_RUN_ID ?? new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "");
 export const RUN_DIR = new URL(`../prod-runs/${RUN_ID}/`, import.meta.url).pathname;
 const MODEL_LOG = `${RUN_DIR}model-calls.jsonl`;
+const CONSOLE_LOG = `${RUN_DIR}console.jsonl`;
 const GENERATE = "/v1/model/generate";
 
 /** Each prompt by the words it opens with, for calls from an app that sends no purpose. */
@@ -29,6 +30,11 @@ export type Side = "worker" | "customer";
 /** Records every model call `page` makes, as one JSON line each, until the page closes. */
 export function recordModel(page: Page, kind: string, side: Side): void {
   mkdirSync(RUN_DIR, { recursive: true });
+  // The phone's own log lines (model calls, warnings, errors) beside the network's view, for when the two disagree.
+  page.on("console", (msg) => {
+    if (msg.type() === "debug") return;
+    appendFileSync(CONSOLE_LOG, `${JSON.stringify({ kind, side, at: new Date().toISOString(), text: msg.text() })}\n`);
+  });
   page.on("requestfinished", (req) => void logCall(req, kind, side));
   page.on("requestfailed", (req) => {
     if (req.url().endsWith(GENERATE))
