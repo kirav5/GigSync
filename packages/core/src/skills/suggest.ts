@@ -1,9 +1,11 @@
-import { Lang, Trade, WorkCategory } from "@gigsync/protocol";
+import { Lang, ModelPurpose, Trade, WorkCategory } from "@gigsync/protocol";
 import { z } from "zod";
 import { t } from "../i18n/t.js";
 import { firstObject, MODEL_WAIT_MS, within } from "../interview/need-model.js";
 import { normalize } from "../interview/normalize.js";
 import type { Model } from "../ports.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * Which trade or kind of work a worker's own words are (ADR 0059). Their words stay on the card; this files them, so
@@ -69,7 +71,10 @@ export function checkSuggestion(reply: string): WorkMatch | undefined {
 export async function suggestWork(model: Model, words: string, waitMs = MODEL_WAIT_MS): Promise<WorkMatch | undefined> {
   try {
     const options = { maxTokens: MAX_TOKENS, temperature: 0, json: true, schema: SCHEMA };
-    const reply = await within(model.generate(suggestPrompt(words), options), waitMs);
+    const reply = await within(
+      model.generate(suggestPrompt(words), { ...options, purpose: Purpose.suggest_work }),
+      waitMs,
+    );
     return reply ? checkSuggestion(reply) : undefined;
   } catch {
     return undefined;

@@ -1,4 +1,4 @@
-import { Lang, PAISE_PER_RUPEE } from "@gigsync/protocol";
+import { Lang, ModelPurpose, PAISE_PER_RUPEE } from "@gigsync/protocol";
 import { z } from "zod";
 import { factsText } from "../i18n/terms-text.js";
 import { statedNumbers } from "../interview/amount.js";
@@ -6,6 +6,8 @@ import { firstObject, MODEL_WAIT_MS, within } from "../interview/need-model.js";
 import { log } from "../log.js";
 import type { Model } from "../ports.js";
 import { type Fact, FactKind } from "./explain.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * A model words an offer's facts for its owner, in their language (ADR 0033 §4). It gets the facts and the template
@@ -119,7 +121,10 @@ export async function explainOffer(
   const fallback: Explanation = { text: template, by: ExplainedBy.template };
   if (!model || facts.length === 0) return fallback;
   try {
-    const reply = await within(model.generate(explainPrompt(template, i.lang), { maxTokens: MAX_TOKENS }), waitMs);
+    const reply = await within(
+      model.generate(explainPrompt(template, i.lang), { maxTokens: MAX_TOKENS, purpose: Purpose.explain }),
+      waitMs,
+    );
     const text = reply ? replyText(reply) : undefined;
     const forbidden = forOwner ? [] : limitRupees(i.facts);
     if (!text || !checkExplanation(text, { template, lang: i.lang, forbidden })) return fallback;

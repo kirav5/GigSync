@@ -1,4 +1,5 @@
 import type { BoardSkill, Lang, Trade, WorkCategory } from "@gigsync/protocol";
+import { ModelPurpose } from "@gigsync/protocol";
 import { z } from "zod";
 import { t } from "../i18n/t.js";
 import { numbersIn } from "../job/details.js";
@@ -7,6 +8,8 @@ import type { Model } from "../ports.js";
 import type { WorkPick } from "../skills/work-list.js";
 import { scrubJobType } from "./fact-scrub.js";
 import { firstObject, MODEL_WAIT_MS, within } from "./need-model.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * What one message in Find says, read by one model call with the chat so far (ADR 0056): in every language, and able to
@@ -152,7 +155,7 @@ export async function readTurn(model: Model, c: TurnContext, waitMs = MODEL_WAIT
   if (!c.text.trim()) return undefined;
   try {
     const options = { maxTokens: MAX_TOKENS, temperature: 0, json: true, schema: replySchema(c.options) };
-    const reply = await within(model.generate(turnPrompt(c), options), waitMs);
+    const reply = await within(model.generate(turnPrompt(c), { ...options, purpose: Purpose.read_turn }), waitMs);
     return reply ? checkTurn(reply, c) : undefined;
   } catch {
     return undefined;

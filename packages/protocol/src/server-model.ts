@@ -13,6 +13,37 @@ export const MODEL_TOKENS_MAX = 1024;
 export const MODEL_SCHEMA_MAX = 8_000;
 const TEMPERATURE_MAX = 2;
 
+/**
+ * What a prompt is for, so each call's timing and outcome can be read by purpose in the logs, on the phone and on the
+ * API. Logs carry the purpose, never the words.
+ */
+export const ModelPurpose = z.enum([
+  /** Talk's router: which screen or answer a message is for. */
+  "route",
+  "expert_answer",
+  "expert_chat",
+  "landing",
+  "moving_outlook",
+  /** Find: the one reader of a household's message (ADR 0056). */
+  "read_turn",
+  "need",
+  "job_type",
+  "scope",
+  "first_question",
+  "price",
+  "market",
+  /** Kinds of work: the worker's words to a kind, and wordings of the same work. */
+  "suggest_work",
+  "same_work",
+  /** The worker's agent's questions to a household (ADR 0063), and the household's agent's answers. */
+  "worker_questions",
+  "household_answers",
+  "tactic",
+  "terms",
+  "explain",
+]);
+export type ModelPurpose = z.infer<typeof ModelPurpose>;
+
 /** `POST /v1/model/generate`. The model is the server's choice, never the caller's. */
 export const ModelGenerateRequest = z.object({
   prompt: z.string().min(1).max(MODEL_PROMPT_MAX),
@@ -25,6 +56,8 @@ export const ModelGenerateRequest = z.object({
     .record(z.string(), z.unknown())
     .refine((s) => JSON.stringify(s).length <= MODEL_SCHEMA_MAX)
     .optional(),
+  /** What the prompt is for, for the logs; absent from older phones. */
+  purpose: ModelPurpose.optional(),
 });
 export type ModelGenerateRequest = z.infer<typeof ModelGenerateRequest>;
 
@@ -32,6 +65,17 @@ export type ModelGenerateRequest = z.infer<typeof ModelGenerateRequest>;
 export const ServerModelStatus = z.object({ on: z.boolean() });
 export type ServerModelStatus = z.infer<typeof ServerModelStatus>;
 
+/** How a call went on GigSync's computer, as the model reports it: for the logs and for tuning, never the words. */
+export const ModelUsage = z.object({
+  /** The API's wait for the model, end to end. */
+  ms: z.number().nonnegative(),
+  /** Loading the model before it could answer; large after a quiet spell. */
+  load_ms: z.number().nonnegative().optional(),
+  prompt_tokens: z.number().int().nonnegative().optional(),
+  reply_tokens: z.number().int().nonnegative().optional(),
+});
+export type ModelUsage = z.infer<typeof ModelUsage>;
+
 /** The reply; null when the model gave nothing. */
-export const ModelGenerateReply = z.object({ text: z.string().nullable() });
+export const ModelGenerateReply = z.object({ text: z.string().nullable(), usage: ModelUsage.optional() });
 export type ModelGenerateReply = z.infer<typeof ModelGenerateReply>;

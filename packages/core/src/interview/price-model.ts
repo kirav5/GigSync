@@ -1,4 +1,4 @@
-import { type DriverName, type Lang, MAX_FACT_LABEL } from "@gigsync/protocol";
+import { type DriverName, type Lang, MAX_FACT_LABEL, ModelPurpose } from "@gigsync/protocol";
 import { z } from "zod";
 import { numbersIn } from "../job/details.js";
 import { langOf, questionProblem } from "../job/guard.js";
@@ -6,6 +6,8 @@ import type { Model } from "../ports.js";
 import { scrubText } from "./fact-scrub.js";
 import { firstObject, MODEL_WAIT_MS, within } from "./need-model.js";
 import { normalize, SPACE } from "./normalize.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * Price questions for work outside the trades (ADR 0058): one model call writes them all, in the owner's language, and
@@ -152,7 +154,7 @@ export function checkPriceStep(reply: string, c: PriceContext): PriceStep {
 export async function modelPriceStep(model: Model, c: PriceContext, waitMs = MODEL_WAIT_MS): Promise<PriceStep> {
   try {
     const options = { maxTokens: MAX_TOKENS, temperature: 0, json: true, schema: REPLY_SCHEMA };
-    const reply = await within(model.generate(pricePrompt(c), options), waitMs);
+    const reply = await within(model.generate(pricePrompt(c), { ...options, purpose: Purpose.price }), waitMs);
     return reply ? checkPriceStep(reply, c) : { failed: true };
   } catch {
     return { failed: true };

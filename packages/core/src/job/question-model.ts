@@ -1,8 +1,10 @@
-import { AskKind, type QuestionKey } from "@gigsync/protocol";
+import { AskKind, ModelPurpose, type QuestionKey } from "@gigsync/protocol";
 import { MODEL_WAIT_MS, within } from "../interview/need-model.js";
 import { log } from "../log.js";
 import type { Model } from "../ports.js";
 import { type Guarded, guardQuestions, MODEL_QUESTIONS_MAX } from "./guard.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * The worker's agent asks its model what to ask a household before quoting, from what the household wrote, the
@@ -77,7 +79,10 @@ const EMPTY: Guarded = { kept: [], dropped: [] };
 export async function askModel(model: Model, input: AskInput, waitMs = MODEL_WAIT_MS): Promise<Guarded> {
   if (input.max <= 0) return EMPTY;
   try {
-    const reply = await within(model.generate(questionPrompt(input), { maxTokens: MAX_TOKENS }), waitMs);
+    const reply = await within(
+      model.generate(questionPrompt(input), { maxTokens: MAX_TOKENS, purpose: Purpose.worker_questions }),
+      waitMs,
+    );
     if (!reply) return EMPTY;
     const guarded = guardQuestions(reply, { known: input.known, max: input.max, said: input.need });
     log.debug("model questions", { kept: guarded.kept.length, dropped: guarded.dropped.map((d) => d.reason) });

@@ -1,4 +1,5 @@
 import type { EstimateRequest, Lang, PlaceKey } from "@gigsync/protocol";
+import { ModelPurpose } from "@gigsync/protocol";
 import { priceText } from "../i18n/reasons.js";
 import { dateText, type MessageKey, t } from "../i18n/t.js";
 import type { Line } from "../interview/card.js";
@@ -11,6 +12,8 @@ import type { Model } from "../ports.js";
 import type { MarketQuestion } from "../router/market.js";
 import { areaSlug } from "./areas.js";
 import { estimateRequest } from "./scope.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * The answer to a market question in the chat (ADR 0039 §2). The facts are built by code from the server's estimate
@@ -87,7 +90,10 @@ export async function wordMarket(
   const fallback: Explanation = { text: template, by: ExplainedBy.template };
   if (!model) return fallback;
   try {
-    const reply = await within(model.generate(marketPrompt(template, own), { maxTokens: MAX_TOKENS }), waitMs);
+    const reply = await within(
+      model.generate(marketPrompt(template, own), { maxTokens: MAX_TOKENS, purpose: Purpose.market }),
+      waitMs,
+    );
     const text = reply ? replyText(reply) : undefined;
     if (!text || !checkExplanation(text, { template, lang: own })) return fallback;
     return { text, by: ExplainedBy.model };

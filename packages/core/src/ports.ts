@@ -5,7 +5,7 @@
  */
 
 import type { DevicePublicKeys, Sealed } from "@gigsync/crypto";
-import type { DeviceId } from "@gigsync/protocol";
+import type { DeviceId, ModelPurpose } from "@gigsync/protocol";
 
 /**
  * Every storage collection the agent uses. One name per kind of record, so two features never share one by accident.
@@ -113,6 +113,8 @@ export interface GenerateOptions {
   json?: boolean;
   /** A JSON Schema the reply must fit (router/reply-schema.ts); engines that can hold output to one do, others ignore it. */
   schema?: Readonly<Record<string, unknown>>;
+  /** What the prompt is for: logged with each call's timing and outcome, never the words. */
+  purpose?: ModelPurpose;
 }
 
 export interface Model {

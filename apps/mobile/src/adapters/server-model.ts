@@ -79,6 +79,7 @@ export class ServerModel implements Model {
       ...(options?.temperature === undefined ? {} : { temperature: options.temperature }),
       ...(options?.json ? { json: true } : {}),
       ...(options?.schema ? { schema: { ...options.schema } } : {}),
+      ...(options?.purpose ? { purpose: options.purpose } : {}),
     };
     try {
       const res = await fetch(`${API_BASE}${GENERATE_PATH}`, {
@@ -94,6 +95,8 @@ export class ServerModel implements Model {
       const reply = ModelGenerateReply.safeParse(await res.json());
       if (!reply.success) return this.failed(res.status);
       this.failures = 0;
+      // How GigSync's computer did, beside the phone's own timing (model.ts): for tuning, never the words.
+      if (reply.data.usage) log.info("server model usage", { purpose: options?.purpose, ...reply.data.usage });
       return reply.data.text;
     } catch (err) {
       return this.failed(err instanceof Error ? err.name : typeof err);

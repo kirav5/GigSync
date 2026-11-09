@@ -1,8 +1,11 @@
 import type { BoardSkill, WorkCategory } from "@gigsync/protocol";
+import { ModelPurpose } from "@gigsync/protocol";
 import { z } from "zod";
 import { t } from "../i18n/t.js";
 import { firstObject, MODEL_WAIT_MS, within } from "../interview/need-model.js";
 import type { Model } from "../ports.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * A kind of work nobody has filed under yet may still be listed in a worker's own words: "TV repair" has no worker,
@@ -45,7 +48,7 @@ export async function sameWork(
   try {
     const prompt = sameWorkPrompt(t(ENGLISH, `category.${category}`), names);
     const reply = await within(
-      model.generate(prompt, { maxTokens: MAX_TOKENS, temperature: 0, json: true, schema }),
+      model.generate(prompt, { maxTokens: MAX_TOKENS, temperature: 0, json: true, schema, purpose: Purpose.same_work }),
       waitMs,
     );
     const object = reply ? firstObject(reply) : undefined;
