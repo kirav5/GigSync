@@ -24,10 +24,11 @@ import {
   type UserId,
   Vpa,
 } from "@gigsync/protocol";
-import { PILOT_CITY } from "../ui/places.js";
 import { API_BASE } from "./api.js";
+import { cityOf } from "./cities.js";
 import { cryptoRandom } from "./random.js";
 import { recordsClient } from "./records.js";
+import { watchedFetch } from "./session-end.js";
 
 /** Which side of a job this phone's owner is on. One account, one role, in this first version. */
 export const AccountRole = { consumer: "consumer", worker: "worker" } as const;
@@ -74,8 +75,8 @@ export class AccountError extends Error {}
 
 export function apiClient(session?: Session): ApiClient {
   if (!API_BASE) throw new AccountError("No API address in this build");
-  const api = new ApiClient(API_BASE);
-  return session ? api.as(session) : api;
+  // Signed-in calls watch for a session the server no longer takes; sign-in itself has none to lose.
+  return session ? new ApiClient(API_BASE, watchedFetch, session) : new ApiClient(API_BASE);
 }
 
 /** Who is signed in on this phone, with the phone's records from before owners were kept apart made theirs. */
@@ -124,6 +125,11 @@ export function saveAccount(ports: Ports, account: Account): Promise<void> {
  */
 export async function signOut(ports: Ports): Promise<void> {
   const account = await ports.storage.get<Account>(Collection.settings, ACCOUNT_KEY);
+  // The server stops sealing to this phone. Offline, sign-out still happens here; the next sign-in reuses the row.
+  if (account)
+    await apiClient(account.session)
+      .signOut()
+      .catch((err: unknown) => log.warn("sign-out not sent", { error: err instanceof Error ? err.name : typeof err }));
   if (account) await keepProfile(ownerPorts(ports, account.session.user).storage, account);
   await ports.storage.delete(Collection.settings, ACCOUNT_KEY);
 }
@@ -211,7 +217,7 @@ export function deviceFor(ports: Ports, account: Account, lang: Lang): GigDevice
     ...(account.worker ? { worker: account.worker } : {}),
     ...(account.autoConfirm ? { autoConfirm: true } : {}),
     model: ports.model,
-    estimates: { api, city: PILOT_CITY },
+    estimates: { api, cityOf },
     qrApi: api,
     records: recordsClient(account.session),
     lang,

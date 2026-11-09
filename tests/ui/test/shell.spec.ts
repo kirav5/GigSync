@@ -144,6 +144,7 @@ test("a household reaches every screen from the menu, and New chat starts Find a
   await open(page, "nav.find");
   // ADR 0051: the opening has one chip to the list of work, not the trades themselves.
   await page.getByRole("button", { name: say("need.pick_work"), exact: true }).click();
+  await page.getByRole("button", { name: say("group.home_repairs"), exact: true }).click();
   await page.getByRole("button", { name: say("trade.plumber"), exact: true }).click();
   await expect(log).toContainText(say("question.problem"));
   await openDrawer(page);

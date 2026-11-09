@@ -19,13 +19,20 @@ const addressChip = (s: NeedState, a: AddressChoice): Choice => ({
   params: { label: t(s.config.own, `addr.label.${a.label}`), area: a.areaName },
 });
 
+/** The saved addresses with the one in use first: one tap for the usual answer, and it is still the owner's to give. */
+const inUseFirst = (saved: readonly AddressChoice[], inUse: string | undefined): AddressChoice[] =>
+  [...saved].sort((a, b) => Number(b.id === inUse) - Number(a.id === inUse));
+
 /** The "where" question: saved addresses for a household, the pilot areas for everyone. */
 export function wherePrompt(s: NeedState): Prompt {
   const own = s.config.own;
-  const areas = { choices: areaChoices(s.config.areas), hints: areaHints(s.config.areas, own) };
+  const areas = { choices: areaChoices(s.config.areas, own), hints: areaHints(s.config.areas, own) };
   const saved = s.config.addresses;
   if (!saved) return { lines: [{ key: "need.ask.area" }], ...areas };
-  const chips = [...saved.map((a) => addressChip(s, a)), { value: ADD_ADDRESS, key: "addr.add" } as const];
+  const chips = [
+    ...inUseFirst(saved, s.config.inUse).map((a) => addressChip(s, a)),
+    { value: ADD_ADDRESS, key: "addr.add" } as const,
+  ];
   // The area is known but not the door (no saved address there, or several): only an address answers now.
   if (s.draft.area !== undefined)
     return { lines: [{ key: "need.ask.address_in", ...areaParts(s.draft) }], choices: chips, hints: [] };

@@ -1,4 +1,4 @@
-import { City, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
+import { City, ModelPurpose, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
 import { z } from "zod";
 import { matchContact, namedIn } from "../contacts/names.js";
 import { PILOT_AREA_CHOICES } from "../estimate/area-names.js";
@@ -23,6 +23,8 @@ import {
 import { wordsBear } from "./keyword-route.js";
 import { routePrompt } from "./model-prompt.js";
 import { replySchema } from "./reply-schema.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * The phone's own model names a message's intent (ADR 0040): it never acts, it only names. Its reply is JSON checked
@@ -178,6 +180,7 @@ export async function modelRoute(
       temperature: ROUTING_TEMPERATURE,
       json: true,
       schema: replySchema(ctx),
+      purpose: Purpose.route,
     });
     const reply = await within(answer, opts?.timeoutMs ?? MODEL_ROUTE_TIMEOUT_MS);
     const route = reply ? checkedRoute(reply, text, ctx) : undefined;

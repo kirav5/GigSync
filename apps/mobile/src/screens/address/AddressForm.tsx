@@ -19,6 +19,7 @@ import {
 } from "@gigsync/protocol";
 import { type FormEvent, useState } from "react";
 import { ulid } from "ulid";
+import { useServedCities } from "../../adapters/cities.js";
 import { placesNamed } from "../../adapters/geo.js";
 import { mapsAvailable } from "../../adapters/map.js";
 import { useI18n } from "../../i18n.js";
@@ -115,6 +116,8 @@ export function AddressForm({
   locateFirst?: boolean;
 }) {
   const { t } = useI18n();
+  const cities = useServedCities(session);
+  const isServed = (at: Place) => served(at, cities);
   const [values, setValues] = useState<Values>({ ...EMPTY, city: PILOT_CITY_NAME });
   const [label, setLabel] = useState<AddressLabel>(AddressLabel.enum.home);
   const [point, setPoint] = useState<Place>();
@@ -129,7 +132,7 @@ export function AddressForm({
   const set = (name: FieldName, value: string) => setValues((v) => ({ ...v, [name]: value }));
   function fillFrom(place: GeoPlace, at: Place) {
     // Outside the cities GigSync serves (ADR 0050 §6): said at once, and nothing filled in.
-    if (!served(at)) return setProblem(NOT_SERVED);
+    if (!isServed(at)) return setProblem(NOT_SERVED);
     setProblem(undefined);
     setValues((v) => ({
       ...v,
@@ -150,7 +153,7 @@ export function AddressForm({
       const at = point ?? (await pointFor(session, values)) ?? pilotAreaOf(values);
       // Search off or nothing found, and no pilot area in the words: the owner says which area it is nearest to.
       if (!at) return setProblem("addr.near");
-      if (!served(at)) return setProblem(NOT_SERVED);
+      if (!isServed(at)) return setProblem(NOT_SERVED);
       // A typed address's point is its area's, never the door: with a map, the owner puts the pin on the door first.
       if (!point && (await mapsAvailable())) {
         setPoint(at);
@@ -212,7 +215,7 @@ export function AddressForm({
           label={t("map.of", { place: found ?? values.area })}
           onMove={(at) => {
             setPoint(at);
-            setProblem(served(at) ? undefined : NOT_SERVED);
+            setProblem(isServed(at) ? undefined : NOT_SERVED);
           }}
           onShown={() => setMapShown(true)}
         />

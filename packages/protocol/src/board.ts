@@ -3,9 +3,10 @@ import { Arrangement, ArrangementRates } from "./arrangement.js";
 import { UserId } from "./ids.js";
 import { Paise } from "./payment.js";
 import { Place } from "./place.js";
-import { distinctSkills, MAX_SKILLS, Skill, SkillKey } from "./skill.js";
+import { distinctSkills, MAX_SKILLS, Skill, SkillKey, skillKey } from "./skill.js";
 import { StartHour, TimeWindow } from "./terms.js";
 import { Trade } from "./trade.js";
+import { WorkCategory } from "./work-category.js";
 import { SearchDay, WorkHours } from "./work-hours.js";
 import { WorkerRecord } from "./worker-record.js";
 
@@ -23,6 +24,16 @@ export const MAX_TRADES = 5;
 const MAX_LANGUAGES = 5;
 
 /**
+ * ADR 0062: the usual rate for one kind of work on the card when it differs from the card's own rate, which is the
+ * rate for the card's first kind. A trade by its value, a skill by its key. The lowest rate stays on the phone.
+ */
+export const WorkRate = z.union([
+  z.object({ trade: Trade, rate_paise: Paise }).strict(),
+  z.object({ skill: SkillKey, rate_paise: Paise }).strict(),
+]);
+export type WorkRate = z.infer<typeof WorkRate>;
+
+/**
  * `PUT /v1/board/profile`: the worker's public card. Every card the server serves (search results, a scanned QR, a
  * worker's card by id) has the same shape, with `record` computed by the server from stored job records (ADR 0038)
  * unless the worker hid it, and no `show_record`. A `record` sent with the card is ignored.
@@ -38,8 +49,13 @@ const CardFields = z.object({
   area: Place,
   /** A neighbourhood name people recognise, e.g. "Indiranagar". */
   area_name: z.string().min(1).max(60),
-  /** The worker's usual rate for a visit; their private minimum stays on their phone. */
+  /**
+   * The worker's usual rate for a visit of their first kind of work; their private minimum stays on their phone. In a
+   * search result it is the rate for the work searched (ADR 0062).
+   */
   rate_paise: Paise,
+  /** ADR 0062: kinds of work with a rate of their own; every other kind is at `rate_paise`. */
+  work_rates: z.array(WorkRate).max(MAX_TRADES).optional(),
   languages: z
     .array(z.string().regex(/^[a-z]{2}$/, "ISO 639-1"))
     .max(MAX_LANGUAGES)
@@ -62,7 +78,20 @@ const someWork = (c: { trades: readonly unknown[]; skills?: readonly unknown[] |
 };
 const SOME_WORK = "one to five trades and skills";
 
-export const BoardProfile = CardFields.refine(someWork, SOME_WORK);
+/** Every rate of its own is for a trade or skill on the card, and each at most once. */
+const ratesOnCard = (c: {
+  trades: readonly Trade[];
+  skills?: readonly Skill[] | undefined;
+  work_rates?: readonly WorkRate[] | undefined;
+}): boolean => {
+  const keys = new Set((c.skills ?? []).map((s) => skillKey(s.text)));
+  const named = (c.work_rates ?? []).map((r) => ("trade" in r ? `t:${r.trade}` : `s:${r.skill}`));
+  const known = (c.work_rates ?? []).every((r) => ("trade" in r ? c.trades.includes(r.trade) : keys.has(r.skill)));
+  return known && new Set(named).size === named.length;
+};
+const RATES_ON_CARD = "a rate of its own for each kind on the card, at most once";
+
+export const BoardProfile = CardFields.refine(someWork, SOME_WORK).refine(ratesOnCard, RATES_ON_CARD);
 export type BoardProfile = z.infer<typeof BoardProfile>;
 /** A card as a phone sends it. */
 export type BoardProfileInput = z.input<typeof BoardProfile>;
@@ -71,14 +100,17 @@ export type BoardProfileInput = z.input<typeof BoardProfile>;
  * `GET /v1/board/profile`: the caller's own card for a new phone's refill (ADR 0037 §4), with their switch and their
  * record even while it is hidden from others.
  */
-export const MyBoardProfile = CardFields.extend({ show_record: z.boolean() }).refine(someWork, SOME_WORK);
+export const MyBoardProfile = CardFields.extend({ show_record: z.boolean() })
+  .refine(someWork, SOME_WORK)
+  .refine(ratesOnCard, RATES_ON_CARD);
 export type MyBoardProfile = z.infer<typeof MyBoardProfile>;
 
 /** `GET /v1/board/workers?...`: query-string values arrive as text, hence the coercion. */
 export const BoardQuery = z
   .object({
-    /** One of the trades, or else `skill`: a key from `GET /v1/board/skills` (ADR 0047), never the household's words. */
+    /** One of the trades, a kind of work (ADR 0059), or a key from `GET /v1/board/skills`: never the household's words. */
     trade: Trade.optional(),
+    category: WorkCategory.optional(),
     skill: SkillKey.optional(),
     lat: z.coerce.number().min(-90).max(90),
     lon: z.coerce.number().min(-180).max(180),
@@ -96,7 +128,7 @@ export const BoardQuery = z
     hour: z.coerce.number().pipe(StartHour).optional(),
     limit: z.coerce.number().int().min(1).max(MAX_RESULTS).default(DEFAULT_RESULTS),
   })
-  .refine((q) => (q.trade === undefined) !== (q.skill === undefined), "a trade or a skill");
+  .refine((q) => [q.trade, q.category, q.skill].filter(Boolean).length === 1, "a trade, a category or a skill");
 export type BoardQuery = z.infer<typeof BoardQuery>;
 export type BoardQueryInput = z.input<typeof BoardQuery>;
 

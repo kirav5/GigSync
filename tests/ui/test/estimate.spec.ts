@@ -112,6 +112,8 @@ test("a painter making a card in Talk sees the usual range, what it rests on and
   await signIn(page, { role: Role.worker, name: `Kiran ${RUN}`, phone: newPhone(), lang: en });
   await expect(page.getByText(textOf(en, "iv.ask.trade"))).toBeVisible();
   await tap(page, PAINTER);
+  // None of the rest of home repairs (ADR 0061).
+  await tap(page, t(en, "iv.done"));
   await tap(page, t(en, "area.koramangala"));
 
   await expect(line(page, "estimate.range_job", RANGE)).toBeVisible();

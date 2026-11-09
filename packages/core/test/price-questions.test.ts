@@ -1,9 +1,12 @@
 import { City, type EstimateRequest, type Lang } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import {
+  askingModel,
   CITY_RATES,
+  checkPriceStep,
   chooseNeed,
   DriverPick,
+  driverAnswer,
   hearNeed,
   MAX_PRICE_QUESTIONS,
   NeedSlot,
@@ -11,10 +14,11 @@ import {
   needPrompt,
   needRequest,
   startNeed,
+  withJobType,
 } from "../src/index.js";
-import { ScriptModel, step, think } from "./price-fakes.js";
+import { questions, ScriptModel, think } from "./price-fakes.js";
 
-/** ADR 0041 §2: which price questions are asked, by code in lite mode and by the phone's model otherwise. */
+/** ADR 0041 §2 and ADR 0058: which price questions are asked, by code for a trade and by one model call otherwise. */
 
 const city = City.enum.bengaluru;
 const AREAS = [{ key: "hsr_layout", names: ["HSR Layout", "HSR", "एचएसआर", "ಎಚ್ಎಸ್ಆರ್"] }];
@@ -99,83 +103,106 @@ describe("lite mode: the fixed driver questions", () => {
   });
 });
 
-describe("with a phone model: the model decides the questions", () => {
+describe("with a model: a trade asks its fixed questions, and the model writes nothing", () => {
   const atQuestions = (text = VILLA, own: Lang = "en") => run(startNeed(config(own, true)), [text, "HSR"]);
 
-  it("asks five questions, then the facts come with done", async () => {
-    const model = new ScriptModel([
-      step({ text: "Will you buy the paint yourself?", fills: "paint_by" }),
-      step({ text: "Any damp patches or cracks?", fills: "Wall condition", choices: ["Fine", "Damp patches"] }),
-      step({ text: "Plain paint or texture?", fills: "finish" }),
-      step({ text: "Are the ceilings high?", fills: "Ceiling height" }),
-      step({ text: "Any wooden doors to polish?", fills: "Door polish" }),
-      step({ done: true, facts: [{ label: "Wall condition", value: "damp patches" }] }),
-    ]);
+  it("never calls the model, and fills the drivers from the catalog's questions", async () => {
+    const model = new ScriptModel([]);
     let s = await think(atQuestions(), model);
-    expect(needPrompt(s).lines[0]).toEqual({
-      key: "estimate.answer",
-      params: { text: "Will you buy the paint yourself?" },
-    });
-    for (const answer of ["yes", "Damp patches", "plain", "normal height", "no doors"])
-      s = await think(hearNeed(s, answer), model);
-    expect(s.draft.askedDrivers).toBe(MAX_PRICE_QUESTIONS);
-    expect(s.slot).toBe(NeedSlot.when);
-    // The facts stay on the phone for the owner's agent; the request carries the drivers only.
-    expect(s.draft.facts).toEqual([{ label: "Wall condition", value: "damp patches" }]);
-    expect(needRequest(city, s.draft)).not.toHaveProperty("facts");
-    expect(needRequest(city, s.draft)?.drivers).toMatchObject({ paint_by: "household", finish: "plain" });
-  });
-
-  it("stops early when the model has enough", async () => {
-    const model = new ScriptModel([
-      step({ text: "Will you buy the paint yourself?", fills: "paint_by" }),
-      step({ text: "Plain paint or texture?", fills: "finish" }),
-      step({ done: true }),
-    ]);
-    let s = await think(atQuestions(), model);
-    s = await think(hearNeed(s, "no"), model);
-    s = await think(hearNeed(s, "texture"), model);
-    expect(s.draft.askedDrivers).toBe(2);
-    expect(s.slot).toBe(NeedSlot.when);
-  });
-
-  it("the safeguard asks the trade's top driver when the model never does", async () => {
-    const model = new ScriptModel([
-      step({ text: "How are the walls now?", fills: "Wall condition" }),
-      step({ done: true }),
-    ]);
-    let s = await think(atQuestions("I want my house painted"), model);
-    s = await think(hearNeed(s, "some cracks"), model);
-    expect(s.slot).toBe(NeedSlot.driver);
-    expect(keys(s)).toEqual(["driver.ask.area_sqft"]);
-    s = await think(hearNeed(s, "1500"), model);
-    expect(s.draft.drivers?.area_sqft).toBe(1500);
-  });
-
-  it("falls back to the fixed questions when the model's reply is malformed", async () => {
-    const s = await think(atQuestions(), new ScriptModel(["not json at all"]));
-    expect(s.draft.modelAsk).toBeUndefined();
     expect(keys(s)).toEqual(["driver.ask.paint_by"]);
+    s = await think(chooseNeed(s, "driver:household"), model);
+    expect(s.draft.drivers?.paint_by).toBe("household");
+    expect(s.draft.modelAsk?.said).toHaveLength(1);
+    expect(model.prompts).toEqual([]);
+    expect(askingModel(s)).toBe(false);
+  });
+
+  it.each(["four", "चार", "4 people", "just me"])("does not ask a cook's people again after %s", (said) => {
+    let s = hearNeed(hearNeed(startNeed(config("en", true)), "I need a cook"), said);
+    const asked: string[] = [];
+    while (s.slot !== NeedSlot.when && s.slot !== NeedSlot.budget && asked.length < 8) {
+      const next = needPrompt(s).choices?.[0]?.value;
+      if (s.slot === NeedSlot.driver) asked.push(keys(s)[0] ?? "");
+      s = next ? chooseNeed(s, next) : hearNeed(s, "HSR");
+    }
+    expect(asked).not.toContain("driver.ask.people");
+  });
+
+  it("reads a count said in words at a price question", () => {
+    expect(driverAnswer("painter", "rooms", "three")).toEqual({ value: 3 });
+  });
+
+  it("'I don't know' ends them", async () => {
+    const s = await think(hearNeed(atQuestions(), "don't know"), new ScriptModel([]));
+    expect(s.draft.priceDone).toBe(true);
+    expect(s.draft.notKnown).toEqual(["paint_by"]);
+  });
+});
+
+describe("with a model: work outside the trades takes one call for all its questions", () => {
+  const JOB = "TV repair";
+  const WORDS = "my tv is not working";
+  const atQuestions = (own: Lang = "en") => withJobType(startNeed(config(own, true)), JOB, WORDS);
+  const TWO = questions(
+    { text: "How big is the TV?", label: "Screen size", choices: ["32 inch", "43 inch"] },
+    { text: "Is it under warranty?", label: "Warranty" },
+  );
+
+  it("asks them in turn with no second call, and keeps each answer as a fact on the phone", async () => {
+    const model = new ScriptModel([TWO]);
+    let s = await think(atQuestions(), model);
+    expect(needPrompt(s).lines[0]).toEqual({ key: "estimate.answer", params: { text: "How big is the TV?" } });
+    expect(needPrompt(s).choices?.map((c) => c.value)).toEqual(["fact:0", "fact:1", DriverPick.dontKnow]);
+    s = await think(chooseNeed(s, "fact:1"), model);
+    expect(needPrompt(s).lines[0]).toEqual({ key: "estimate.answer", params: { text: "Is it under warranty?" } });
+    s = await think(hearNeed(s, "yes, one more year"), model);
+    expect(s.slot).toBe(NeedSlot.outside);
+    expect(s.draft.priceDone).toBe(true);
+    expect(s.draft.facts).toEqual([
+      { label: "Screen size", value: "43 inch" },
+      { label: "Warranty", value: "yes, one more year" },
+    ]);
+    expect(model.prompts).toHaveLength(1);
+  });
+
+  it("writes at most two, and a question twice in other words counts once", () => {
+    const context = { lang: "en", jobType: JOB, words: WORDS } as const;
+    const out = checkPriceStep(
+      questions(
+        { text: "Is it a window AC or a split AC?", label: "AC type" },
+        { text: "Is the AC unit a window type or a split type?", label: "Type" },
+        { text: "How many units need service?", label: "Units" },
+        { text: "How old is it?", label: "Age" },
+      ),
+      context,
+    );
+    expect("questions" in out && out.questions.map((q) => q.fills)).toEqual([{ fact: "AC type" }, { fact: "Units" }]);
+  });
+
+  it("goes on with no questions when the model has none, or its reply cannot be used", async () => {
+    const none = await think(atQuestions(), new ScriptModel([questions()]));
+    expect(none.slot).toBe(NeedSlot.outside);
+    const broken = await think(atQuestions(), new ScriptModel(["not json at all"]));
+    expect(broken.slot).toBe(NeedSlot.outside);
+    expect(broken.draft.modelAsk).toBeUndefined();
   });
 
   it("drops a question in another language than the owner's, or one about money", async () => {
     const english = await think(
-      atQuestions("4 बीएचके विला पेंट", "hi"),
-      new ScriptModel([step({ text: "Who buys the paint?", fills: "paint_by" })]),
+      atQuestions("hi"),
+      new ScriptModel([questions({ text: "How big is the TV?", label: "Size" })]),
     );
     expect(english.draft.modelAsk).toBeUndefined();
     const money = await think(
       atQuestions(),
-      new ScriptModel([step({ text: "What is your budget?", fills: "Budget" })]),
+      new ScriptModel([questions({ text: "What is your budget?", label: "Budget" })]),
     );
     expect(money.draft.modelAsk).toBeUndefined();
   });
 
-  it("'I don't know' ends the model's questions too", async () => {
-    const model = new ScriptModel([step({ text: "Plain paint or texture?", fills: "finish" })]);
-    const s = await think(hearNeed(await think(atQuestions(), model), "don't know"), model);
+  it("'I don't know' ends the rest of them", async () => {
+    const s = hearNeed(await think(atQuestions(), new ScriptModel([TWO])), "don't know");
     expect(s.draft.priceDone).toBe(true);
-    expect(s.draft.notKnown).toEqual(["finish"]);
-    expect(model.prompts).toHaveLength(1);
+    expect(s.slot).toBe(NeedSlot.outside);
   });
 });

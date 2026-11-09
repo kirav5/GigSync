@@ -88,7 +88,7 @@ test("choosing Hindi fetches its voice typing in that tap, not the voice, and th
   // Someone reads the first question before reaching the mic; a test that signs in faster than the fetch would tap
   // while voice typing is still on its way, which is the next test's case.
   await page.waitForTimeout(FETCH_MS);
-  await nextTurn(page, hi, "iv.ask.arrangements", () => mic(page, hi).click());
+  await nextTurn(page, hi, "iv.ask.also", () => mic(page, hi).click());
   // The voice can still come, by a tap on a speaker.
   await expect(speaker(page).first()).toBeVisible();
   await noDownloadLink(page);
@@ -109,7 +109,7 @@ test("a mic tap fetches voice typing still missing, says so with the cursor in t
   expect((await fetchesOf(page, Mode.listen)).at(-1)?.tapped).toBe(true);
 
   await expect(fetching(page)).toBeHidden({ timeout: ARRIVES_MS });
-  await nextTurn(page, hi, "iv.ask.arrangements", () => mic(page, hi).click());
+  await nextTurn(page, hi, "iv.ask.also", () => mic(page, hi).click());
   await noDownloadLink(page);
 });
 
@@ -159,5 +159,5 @@ test("voice installed while the app was away shows when it comes back: speakers 
   expect(await fakeSaid(page)).toHaveLength(0);
   await speaker(page).last().click();
   await expect.poll(async () => (await fakeSaid(page)).length).toBe(1);
-  await nextTurn(page, hi, "iv.ask.arrangements", () => mic(page, hi).click());
+  await nextTurn(page, hi, "iv.ask.also", () => mic(page, hi).click());
 });

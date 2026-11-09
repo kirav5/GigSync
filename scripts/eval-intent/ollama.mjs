@@ -12,11 +12,19 @@ const TAGS_PATH = "/api/tags";
 /** A request this slow is abandoned: far past any phone's time limit, so nothing is lost by stopping it. */
 const REQUEST_LIMIT_MS = 60_000;
 const TAGS_LIMIT_MS = 3_000;
+/** The Cloudflare Access service token, when `OLLAMA_URL` is the tunnel in front of the Mac Studio (ADR 0052). */
+const ACCESS_ID = process.env.MODEL_ACCESS_ID;
+const ACCESS_SECRET = process.env.MODEL_ACCESS_SECRET;
+const accessHeaders =
+  ACCESS_ID && ACCESS_SECRET ? { "CF-Access-Client-Id": ACCESS_ID, "CF-Access-Client-Secret": ACCESS_SECRET } : {};
 
 /** True when Ollama answers and has pulled the model. */
 export async function ollamaReady() {
   try {
-    const res = await fetch(`${OLLAMA_URL}${TAGS_PATH}`, { signal: AbortSignal.timeout(TAGS_LIMIT_MS) });
+    const res = await fetch(`${OLLAMA_URL}${TAGS_PATH}`, {
+      headers: accessHeaders,
+      signal: AbortSignal.timeout(TAGS_LIMIT_MS),
+    });
     if (!res.ok) return false;
     const { models } = await res.json();
     return (models ?? []).some((m) => m.name === OLLAMA_MODEL);
@@ -40,7 +48,7 @@ export class RecordingModel {
 
   async generate(prompt, options) {
     const started = performance.now();
-    const call = { reply: null, ms: 0, error: undefined };
+    const call = { prompt, reply: null, ms: 0, error: undefined };
     this.calls.push(call);
     const work = this.ask(prompt, options, call).finally(() => {
       call.ms = performance.now() - started;
@@ -62,6 +70,7 @@ export async function askOllama(prompt, options, call) {
   try {
     const res = await fetch(`${OLLAMA_URL}${GENERATE_PATH}`, {
       method: core.HttpMethod.post,
+      headers: accessHeaders,
       // No hidden reasoning first (Qwen3.5 and Qwen3 think by default): the router waits for one short JSON reply.
       // Held to the router's JSON Schema, as the phone's WebLLM holds it (apps/mobile/src/adapters/ollama.ts does too).
       body: JSON.stringify({

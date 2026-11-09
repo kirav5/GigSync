@@ -4,7 +4,7 @@ import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { areaLabel } from "../../ui/places.js";
 import { Said } from "../../ui/Said.js";
-import { cardHours, cardRateLine, cardWork } from "../../ui/work.js";
+import { cardHours, cardRateLine, cardWork, cardWorkRates } from "../../ui/work.js";
 import { cardLang, languageNames } from "./cardWords.js";
 import { RecordStats } from "./RecordStats.js";
 
@@ -31,6 +31,11 @@ export function WorkerCard({ card }: { card: BoardProfile }) {
         </div>
         <span className={`${C.money} end`}>{cardRateLine(t, card)}</span>
       </div>
+      {cardWorkRates(t, card).map((rate) => (
+        <span key={rate} className={C.faint}>
+          {rate}
+        </span>
+      ))}
       {record && <RecordStats record={record} compact />}
       {card.about && (
         <span className={C.faint}>

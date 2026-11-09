@@ -15,7 +15,11 @@ export const explain: Readonly<Record<keyof typeof en, string>> = {
   "explain.usual_jobs.one": "ಸಾಮಾನ್ಯ ದರ {typical} ({low}–{high}, GigSync ನ {count} ಕೆಲಸದಿಂದ).",
   "explain.usual_jobs.other": "ಸಾಮಾನ್ಯ ದರ {typical} ({low}–{high}, GigSync ನ {count} ಕೆಲಸಗಳಿಂದ).",
   "explain.usual_range": "ಸಾಮಾನ್ಯ ದರ {low}–{high}.",
-  "explain.limit_within": "ಇದು ನಿಮ್ಮ ಮಿತಿ {limit} ಒಳಗಿದೆ.",
-  "explain.limit_outside": "ಇದು ನಿಮ್ಮ ಮಿತಿ {limit} ಗಿಂತ {gap} ಹೊರಗಿದೆ.",
+  "explain.limit.provider.above": "ಇದು ನಿಮ್ಮ ಕನಿಷ್ಠ ಬೆಲೆ {limit} ಗಿಂತ {gap} ಹೆಚ್ಚು.",
+  "explain.limit.provider.below": "ಇದು ನಿಮ್ಮ ಕನಿಷ್ಠ ಬೆಲೆ {limit} ಗಿಂತ {gap} ಕಡಿಮೆ.",
+  "explain.limit.provider.at": "ಇದು ನಿಮ್ಮ ಕನಿಷ್ಠ ಬೆಲೆ {limit} ಗೆ ಸರಿಯಾಗಿ ಸಮ.",
+  "explain.limit.requester.above": "ಇದು ನಿಮ್ಮ ಬಜೆಟ್ {limit} ಗಿಂತ {gap} ಹೆಚ್ಚು.",
+  "explain.limit.requester.below": "ಇದು ನಿಮ್ಮ ಬಜೆಟ್ {limit} ಗಿಂತ {gap} ಕಡಿಮೆ.",
+  "explain.limit.requester.at": "ಇದು ನಿಮ್ಮ ಬಜೆಟ್ {limit} ಗೆ ಸರಿಯಾಗಿ ಸಮ.",
   "explain.label": "ಈ ಆಫರ್ ಏಕೆ",
 };

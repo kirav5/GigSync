@@ -1,6 +1,7 @@
-import { Arrangement, Lang, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
+import { Arrangement, Lang, ModelPurpose, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
 import { z } from "zod";
 import { asciiDigits, numbersIn } from "../job/details.js";
+import { log } from "../log.js";
 import type { Model } from "../ports.js";
 import { parseAmount } from "./amount.js";
 import type { AreaChoice } from "./card.js";
@@ -8,6 +9,8 @@ import { areaIn } from "./lexicon.js";
 import { DETAIL_MAX, TIME_MAX, timeIn } from "./need-parse.js";
 import { normalize } from "./normalize.js";
 import type { ScopeChip } from "./scope-read.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * A model's help reading a need ("models propose, code decides"): when the phone has one and the owner writes in
@@ -35,6 +38,13 @@ export interface NeedHint {
   scope?: readonly ScopeChip[];
   /** ADR 0051: the ways such work is usually hired, each an arrangement; a suggestion for the chips, never an answer. */
   fits?: readonly Arrangement[];
+  /** How the words say the work is hired, as a model read them (`readTurn`). */
+  arrangement?: Arrangement;
+  /**
+   * The words' work was decided already, by a model's reading or by finding none: the word lists then set neither the
+   * trade nor the arrangement from them, so "car cleaning" is not a maid's and "next month" is not monthly work.
+   */
+  decided?: true;
 }
 
 /** The on-device models read and answer English only today (HLD 7.6). */
@@ -139,7 +149,10 @@ function checked(reply: Reply, text: string, areas: readonly AreaChoice[]): Need
 export async function within(answer: Promise<string | null>, ms: number): Promise<string | null> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const late = new Promise<null>((resolve) => {
-    timer = setTimeout(() => resolve(null), ms);
+    timer = setTimeout(() => {
+      log.warn("model gave no answer in time", { ms });
+      resolve(null);
+    }, ms);
   });
   try {
     return await Promise.race([answer, late]);
@@ -159,7 +172,10 @@ export async function understandNeed(
 ): Promise<NeedHint> {
   if (lang !== MODEL_LANG || !text.trim()) return {};
   try {
-    const reply = await within(model.generate(needModelPrompt(text, areas), { maxTokens: MAX_TOKENS }), waitMs);
+    const reply = await within(
+      model.generate(needModelPrompt(text, areas), { maxTokens: MAX_TOKENS, purpose: Purpose.need }),
+      waitMs,
+    );
     const parsed = reply ? parseReply(reply) : undefined;
     return parsed ? checked(parsed, text, areas) : {};
   } catch {

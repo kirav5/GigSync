@@ -1,4 +1,11 @@
-import { AnswerFromMemory, JobTrade, type QuestionKey, type Trade } from "@gigsync/protocol";
+import {
+  AnswerFromMemory,
+  JobTrade,
+  type ListedRates,
+  type QuestionKey,
+  type Trade,
+  type WorkGroup,
+} from "@gigsync/protocol";
 import { EVERY_DAY, isMonthly } from "../job/when.js";
 import { QUESTIONS } from "../job/worker.js";
 import type { Line } from "./card.js";
@@ -6,6 +13,7 @@ import { priceOpen } from "./driver-ask.js";
 import type { FoundEstimate } from "./estimate-lines.js";
 import { arrangedWork, needsArrangement } from "./need-arrangement.js";
 import type { Recalled } from "./need-memory.js";
+import type { WorkSwitch } from "./need-switch.js";
 import { needsHour } from "./need-terms.js";
 import type { NeedConfig, NeedDraft, NeedTo } from "./need-types.js";
 
@@ -78,8 +86,16 @@ export interface NeedState {
   readonly filled: readonly NeedSlot[];
   /** The rate estimate the app found for the job as described (`need-estimate.ts`), if any. */
   readonly estimate?: FoundEstimate | undefined;
+  /** What workers nearby list for a skill, for the budget question (ADR 0057); never a model's figure. */
+  readonly listed?: ListedRates | undefined;
   /** The worker the need is addressed to; undefined when the board is searched. */
   readonly to?: NeedTo | undefined;
+  /** Other work the owner named part-way: asked about before anything else (`need-switch.ts`). */
+  readonly switching?: WorkSwitch | undefined;
+  /** A model chose the work: until the next answer the chat says so, and "Not this" undoes it. */
+  readonly guessed?: boolean | undefined;
+  /** Picking from the list: the group open, its kinds on screen (ADR 0061). */
+  readonly browsing?: WorkGroup | undefined;
 }
 
 /** The trade's first question, which the request answers up front so the worker's agent need not ask it. */
@@ -124,7 +140,7 @@ export function withTrade(d: NeedDraft, trade: Trade): NeedDraft {
 export function startNeed(config: NeedConfig, to?: NeedTo): NeedState {
   const work = [...(to?.trades ?? []), ...(to?.skills ?? [])];
   const [only] = work;
-  const empty: NeedDraft = config.modelQuestions ? { seen: {}, modelAsk: { said: [], covered: [] } } : { seen: {} };
+  const empty: NeedDraft = config.modelQuestions ? { seen: {}, modelAsk: { said: [] } } : { seen: {} };
   const one = work.length === 1 ? only : undefined;
   const draft: NeedDraft =
     one === undefined ? empty : typeof one === "string" ? withTrade(empty, one) : { ...empty, skill: one };
@@ -194,7 +210,16 @@ function autoFilled(s: NeedState): NeedState {
 
 /** An answer taken: on to whatever is still missing (filling what memory may), or the readback. */
 export const moveOn = (s: NeedState, draft: NeedDraft, notes: Line[] = []): NeedState =>
-  autoFilled({ ...s, ...nextSlot(s.config, draft), notes, changing: false, fresh: false, filled: [] });
+  autoFilled({
+    ...s,
+    ...nextSlot(s.config, draft),
+    notes,
+    changing: false,
+    fresh: false,
+    filled: [],
+    guessed: false,
+    browsing: undefined,
+  });
 
 /** "Use it": the remembered answer offered for the question now asked; anything else changes nothing. */
 export function takeRecalled(s: NeedState): NeedState {
@@ -215,6 +240,18 @@ export function editNeed(s: NeedState, field: NeedField): NeedState {
   const slot = usable ? field : NeedSlot.confirm;
   return { ...s, slot, notes: [], changing: !usable, fresh: false, ownAnswer, filled: [] };
 }
+
+/** Past a need outside the trades: the interview starts over, knowing the first words were not the end of it. */
+export const afterOutside = (s: NeedState): NeedState => ({
+  ...s,
+  browsing: undefined,
+  draft: s.config.modelQuestions ? { seen: {}, modelAsk: { said: [] } } : { seen: {} },
+  slot: NeedSlot.trade,
+  notes: [],
+});
+
+/** A model chose the work this need is on. */
+export const guessedNeed = (s: NeedState): NeedState => ({ ...s, guessed: true });
 
 /** What the board search found: workers to pick from, or nobody, with ways to look further. */
 export const searchedNeed = (s: NeedState, count: number): NeedState => ({

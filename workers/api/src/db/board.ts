@@ -8,6 +8,7 @@ import {
   type Trade,
   type UserId,
   type WorkHours,
+  type WorkRate,
 } from "@gigsync/protocol";
 import { recordOf } from "../records/serve.js";
 import type { Db } from "./client.js";
@@ -50,15 +51,31 @@ export async function upsertProfile(db: Db, user: UserId, p: BoardProfile, at: D
       p.work_hours?.to ?? null,
     ],
   );
+  const own = ownRates(p.work_rates);
   await db.query("DELETE FROM worker_trades WHERE user_id = $1", [user]);
-  await db.query("INSERT INTO worker_trades (user_id, trade) SELECT $1, unnest($2::text[])", [user, p.trades]);
+  await db.query(
+    "INSERT INTO worker_trades (user_id, trade, rate_paise) SELECT $1, unnest($2::text[]), unnest($3::int[])",
+    [user, p.trades, p.trades.map((tr) => own.trades.get(tr) ?? null)],
+  );
   await db.query("DELETE FROM worker_languages WHERE user_id = $1", [user]);
   await db.query("INSERT INTO worker_languages (user_id, language) SELECT $1, unnest($2::text[])", [user, p.languages]);
   const skills = p.skills ?? [];
-  await db.query("DELETE FROM worker_skills WHERE user_id = $1", [user]);
+  const { rows: before } = await db.query<{ skill_key: string; category: string | null }>(
+    "DELETE FROM worker_skills WHERE user_id = $1 RETURNING skill_key, category",
+    [user],
+  );
+  // A phone's copy of the card may predate a category set here: a card sent again must not lose it.
+  const kept = new Map(before.map((row) => [row.skill_key, row.category]));
   await db.query(
-    "INSERT INTO worker_skills (user_id, skill_key, text, lang) SELECT $1, unnest($2::text[]), unnest($3::text[]), unnest($4::text[])",
-    [user, skills.map((k) => skillKey(k.text)), skills.map((k) => k.text), skills.map((k) => k.lang)],
+    "INSERT INTO worker_skills (user_id, skill_key, text, lang, category, rate_paise) SELECT $1, unnest($2::text[]), unnest($3::text[]), unnest($4::text[]), unnest($5::text[]), unnest($6::int[])",
+    [
+      user,
+      skills.map((k) => skillKey(k.text)),
+      skills.map((k) => k.text),
+      skills.map((k) => k.lang),
+      skills.map((k) => k.category ?? kept.get(skillKey(k.text)) ?? null),
+      skills.map((k) => own.skills.get(skillKey(k.text)) ?? null),
+    ],
   );
   const arrangements = p.arrangements ?? [];
   await db.query("DELETE FROM worker_arrangements WHERE user_id = $1", [user]);
@@ -66,6 +83,17 @@ export async function upsertProfile(db: Db, user: UserId, p: BoardProfile, at: D
     "INSERT INTO worker_arrangements (user_id, arrangement, rate_paise) SELECT $1, unnest($2::text[]), unnest($3::int[])",
     [user, arrangements.map((a) => a.arrangement), arrangements.map((a) => a.rate_paise)],
   );
+}
+
+/** A card's rates of its own (ADR 0062), by trade and by skill key. */
+function ownRates(rates: readonly WorkRate[] = []): { trades: Map<Trade, number>; skills: Map<string, number> } {
+  const trades = new Map<Trade, number>();
+  const skills = new Map<string, number>();
+  for (const r of rates) {
+    if ("trade" in r) trades.set(r.trade, r.rate_paise);
+    else skills.set(r.skill, r.rate_paise);
+  }
+  return { trades, skills };
 }
 
 /** Takes a worker off the board. True when there was a card to remove; trades and languages go with it. */
@@ -81,8 +109,12 @@ export async function removeProfile(db: Db, user: UserId): Promise<boolean> {
 export const CARD_COLUMNS = `p.display_name, p.area_lat, p.area_lon, p.area_name, p.rate_paise, p.about,
   p.work_days, p.work_windows, p.work_from, p.work_to,
   ARRAY(SELECT t.trade FROM worker_trades t WHERE t.user_id = p.user_id ORDER BY t.trade) AS trades,
-  ARRAY(SELECT json_build_object('text', s.text, 'lang', s.lang)
+  ARRAY(SELECT json_strip_nulls(json_build_object('text', s.text, 'lang', s.lang, 'category', s.category))
     FROM worker_skills s WHERE s.user_id = p.user_id ORDER BY s.skill_key) AS skills,
+  ARRAY(SELECT json_build_object('trade', t.trade, 'rate_paise', t.rate_paise) FROM worker_trades t
+    WHERE t.user_id = p.user_id AND t.rate_paise IS NOT NULL ORDER BY t.trade) AS trade_rates,
+  ARRAY(SELECT json_build_object('skill', s.skill_key, 'rate_paise', s.rate_paise) FROM worker_skills s
+    WHERE s.user_id = p.user_id AND s.rate_paise IS NOT NULL ORDER BY s.skill_key) AS skill_rates,
   ARRAY(SELECT l.language FROM worker_languages l WHERE l.user_id = p.user_id ORDER BY l.language) AS languages,
   ARRAY(SELECT json_build_object('arrangement', a.arrangement, 'rate_paise', a.rate_paise)
     FROM worker_arrangements a WHERE a.user_id = p.user_id ORDER BY a.arrangement) AS arrangements,
@@ -108,11 +140,17 @@ export interface CardRow extends RecordRow {
   languages: string[];
   /** Empty for a card that takes monthly work only. */
   arrangements: ArrangementRate[];
+  /** ADR 0062: the trades and skills with a rate of their own; empty when every kind is at the card's rate. */
+  trade_rates: WorkRate[];
+  skill_rates: WorkRate[];
 }
 
 /** The card's working hours, with the hours on the clock when it has them. */
 const hoursOf = (r: CardRow, days: number[], windows: TimeWindow[]): WorkHours =>
   r.work_from !== null && r.work_to !== null ? { days, windows, from: r.work_from, to: r.work_to } : { days, windows };
+
+const withWorkRates = (rates: WorkRate[]): { work_rates?: WorkRate[] } =>
+  rates.length > 0 ? { work_rates: rates } : {};
 
 /** The card's own fields, without the record. */
 const fieldsOf = (r: CardRow): BoardProfile => ({
@@ -122,6 +160,7 @@ const fieldsOf = (r: CardRow): BoardProfile => ({
   area: { lat: r.area_lat, lon: r.area_lon },
   area_name: r.area_name,
   rate_paise: r.rate_paise,
+  ...withWorkRates([...r.trade_rates, ...r.skill_rates]),
   languages: r.languages,
   about: r.about,
   ...(r.arrangements.length > 0 ? { arrangements: r.arrangements } : {}),

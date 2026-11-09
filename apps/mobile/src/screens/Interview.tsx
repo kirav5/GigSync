@@ -1,6 +1,7 @@
 import {
   areaSlug,
   askingArrangement,
+  CardPick,
   type ChatIntent,
   type Choice,
   draftOf,
@@ -9,11 +10,13 @@ import {
   type Line,
   log,
   type Ports,
+  prompt,
   Slot,
 } from "@gigsync/core";
 import { QuestionKey } from "@gigsync/protocol";
 import { useEffect } from "react";
 import type { Account } from "../adapters/account.js";
+import { cityOf } from "../adapters/cities.js";
 import { offerAlerts } from "../adapters/push.js";
 import { stopSpeaking } from "../adapters/speech.js";
 import {
@@ -24,6 +27,7 @@ import {
   pauseInterview,
   placeInterview,
   tapInterview,
+  toggleInterview,
 } from "../card/interviewStore.js";
 import { AboutPrivateError, publishCard, unlistCard } from "../card/publish.js";
 import { type FoundPlace, pilotPlace, workPlace } from "../card/workPlace.js";
@@ -35,12 +39,15 @@ import { Speaker, type Turn } from "../talk/turns.js";
 import type { Moves } from "../talk/useMoves.js";
 import { C } from "../ui/cls.js";
 import { errorKey } from "../ui/errorKey.js";
-import { AREAS, PILOT_CITY } from "../ui/places.js";
+import { AREAS } from "../ui/places.js";
 import { LocateStep } from "./address/LocateStep.js";
 import { MoveTurnView } from "./talk/AgentTurns.js";
 import { Ask, Own } from "./talk/Bubbles.js";
 import { Note } from "./talk/NoteView.js";
 import "./talk.css";
+
+/** Between the kinds of work picked, as the owner's answer reads. */
+const LIST_JOINER = ", ";
 
 /** "Later": the voice stops with the questions, so a summary half read out does not carry on over the next screen. */
 function later() {
@@ -48,17 +55,28 @@ function later() {
   pauseInterview();
 }
 
-/** The tap answers under the newest question, and "Later", which pauses the interview. */
-function Choices({ choices }: { choices: readonly Choice[] }) {
+/**
+ * The tap answers under the newest question, and "Later", which pauses the interview. Where the choices toggle
+ * (`picked`), a tap turns one on or off in place, and Done answers with all of them at once.
+ */
+function Choices({ choices, picked }: { choices: readonly Choice[]; picked?: readonly string[] | undefined }) {
   const { t } = useI18n();
+  const toggles = picked !== undefined;
+  const on = (c: Choice) => picked?.includes(c.value) ?? false;
+  const done = choices.filter(on).map((c) => t(c.key, c.params));
+  const tap = (c: Choice) => {
+    if (toggles && c.value !== CardPick.yes) return toggleInterview(c.value);
+    tapInterview(c.value, toggles && done.length > 0 ? done.join(LIST_JOINER) : t(c.key, c.params));
+  };
   return (
     <div className={`${C.row} iv-choices`}>
       {choices.map((c) => (
         <button
           key={c.value}
           type={C.button}
-          className={C.chip}
-          onClick={() => tapInterview(c.value, t(c.key, c.params))}
+          aria-pressed={toggles && c.value !== CardPick.yes ? on(c) : undefined}
+          className={on(c) ? C.chipOn : C.chip}
+          onClick={() => tap(c)}
         >
           {t(c.key, c.params)}
         </button>
@@ -121,9 +139,10 @@ export function Interview({
   // ADR 0046: the arrangement whose rate is asked now, so the estimate is in its unit.
   const arrangement = state ? askingArrangement(state) : undefined;
   const session = account.session;
+  const city = cityOf(state?.draft.place);
   useEffect(() => {
     const details = arrangement ? { [QuestionKey.enum.arrangement]: arrangement } : {};
-    const request = trade && area ? estimateRequest(PILOT_CITY, trade, details, areaSlug(area)) : undefined;
+    const request = trade && area ? estimateRequest(city, trade, details, areaSlug(area)) : undefined;
     if (!request) return;
     // Only the newest request's answer counts: the city's range must not land after the area's.
     let live = true;
@@ -133,7 +152,7 @@ export function Interview({
     return () => {
       live = false;
     };
-  }, [trade, area, arrangement, session]);
+  }, [trade, area, arrangement, session, city]);
 
   // Leaving Talk (another screen, Back) ends a question the owner asked to hear again.
   useEffect(
@@ -198,7 +217,7 @@ export function Interview({
     }
     return (
       <Ask key={turn.id} lines={turn.lines}>
-        {asking && turn.id === newest?.id && <Choices choices={turn.choices} />}
+        {asking && turn.id === newest?.id && <Choices choices={turn.choices} picked={state && prompt(state).picked} />}
         {asking && turn.id === newest?.id && state.slot === Slot.area && <LocateArea session={session} />}
       </Ask>
     );

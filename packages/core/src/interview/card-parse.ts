@@ -1,14 +1,19 @@
 import { DEFAULT_ARRANGEMENT, Lang, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
 import type { MessageKey } from "../i18n/t.js";
 import { asciiDigits } from "../job/details.js";
-import { readSkill, spokenSkill } from "../skills/read.js";
+import type { WorkMatch } from "../skills/suggest.js";
 import { parseAmount } from "./amount.js";
-import { advance, askable, type CardDraft, FIELDS, type InterviewState, Pick, retry, Slot } from "./card.js";
+import { advance, askable, type CardDraft, FIELDS, hasWork, type InterviewState, Pick, retry, Slot } from "./card.js";
+import { chooseAlso, hearAlso } from "./card-also.js";
 import { chooseArrangements, hearArrangements, hearMoreRate, keepMoreRate, mainOf } from "./card-arrangements.js";
 import { chooseWhichRate, edit, editSaid, hearWhichRate, onUnlist } from "./card-edit.js";
 import { cardEstimate, suggestedAmount } from "./card-estimate.js";
-import { chooseTerms, hearTerms } from "./card-terms.js";
+import { chooseKind, hearKind } from "./card-kind.js";
+import type { Line } from "./card-lines.js";
+import { onTrades, onWork } from "./card-work.js";
+import { chooseRest, hearRest } from "./card-work-rates.js";
 import { areaIn, editIntent, fieldIn, isNone, isSkip, languagesIn, tradesIn, yesNo } from "./lexicon.js";
+import { tradeTitled } from "./trade-titled.js";
 
 /**
  * Turning an answer, said, typed or tapped, into the interview's next state: each field's checks, the amount check and
@@ -49,25 +54,6 @@ export function aboutIsPrivate(text: string): boolean {
 function aboutProblem(text: string): AboutProblem | undefined {
   if (aboutIsPrivate(text)) return AboutProblem.private;
   return text.trim().length > ABOUT_MAX ? AboutProblem.long : undefined;
-}
-
-function onTrades(s: InterviewState, trades: Trade[]): InterviewState {
-  if (trades.length === 0) return retry(s, { key: "iv.again.trade" });
-  const keep = askable(trades);
-  const ask_me = (s.draft.ask_me ?? []).filter((k) => keep.includes(k));
-  const { skills: _replaced, ...rest } = s.draft;
-  return advance(s, { ...rest, trades, ask_me });
-}
-
-/** The work, said: the trades it names, else the worker's own skill in a few words (ADR 0047), else ask again. */
-function onWork(s: InterviewState, text: string): InterviewState {
-  const trades = tradesIn(text);
-  if (trades.length > 0) return onTrades(s, trades);
-  const read = readSkill(spokenSkill(text), s.config.own);
-  if ("trade" in read) return onTrades(s, [read.trade]);
-  if ("problem" in read) return retry(s, { key: `skill.err.${read.problem}` });
-  const draft = { ...s.draft, trades: [], skills: [read.skill], ask_me: [] };
-  return advance(s, draft, [{ key: "iv.skill_kept", params: { skill: read.skill.text } }]);
 }
 
 function onArea(s: InterviewState, area: string | undefined): InterviewState {
@@ -197,10 +183,12 @@ function heardLanguages(text: string): Lang[] | undefined {
  * An answer in words: `aloud` when the owner said it, false when they typed it. It decides only whether the lowest
  * rate is read back aloud; leaving it out keeps that readback quiet.
  */
-export function hear(state: InterviewState, text: string, aloud = false): InterviewState {
+export function hear(state: InterviewState, text: string, aloud = false, kind?: WorkMatch | null): InterviewState {
   switch (state.slot) {
     case Slot.trade:
-      return onWork(state, text);
+      return state.kind ? hearKind(state, text) : onWork(state, text, kind);
+    case Slot.also:
+      return hearAlso(state, text);
     case Slot.arrangements:
       return hearArrangements(state, text);
     case Slot.more_rates:
@@ -226,7 +214,7 @@ export function hear(state: InterviewState, text: string, aloud = false): Interv
     case Slot.unlist:
       return onUnlist(state, yesNo(text));
     default:
-      return hearTerms(state, text);
+      return hearRest(state, text);
   }
 }
 
@@ -237,9 +225,12 @@ const flag = (value: string): boolean | undefined =>
 export function choose(state: InterviewState, value: string): InterviewState {
   switch (state.slot) {
     case Slot.trade: {
+      if (state.kind) return chooseKind(state, value);
       const trade = Trade.options.find((tr) => tr === value);
       return trade ? onTrades(state, [trade]) : state;
     }
+    case Slot.also:
+      return chooseAlso(state, value);
     case Slot.arrangements:
       return chooseArrangements(state, value);
     case Slot.area:
@@ -274,6 +265,6 @@ export function choose(state: InterviewState, value: string): InterviewState {
     case Slot.unlist:
       return flag(value) === undefined ? state : onUnlist(state, flag(value));
     default:
-      return chooseTerms(state, value);
+      return chooseRest(state, value);
   }
 }

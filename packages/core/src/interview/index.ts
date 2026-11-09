@@ -2,12 +2,16 @@ import { DEFAULT_ARRANGEMENT, Lang, Trade } from "@gigsync/protocol";
 import { type MessageKey, t } from "../i18n/t.js";
 import { isMonthly } from "../job/when.js";
 import { askable, type InterviewState, type Line, Pick, type Prompt, Slot } from "./card.js";
+import { alsoPrompt } from "./card-also.js";
 import { arrangementsPrompt, mainOf, moreRatePrompt, RATE_QUESTION, ratesSummary } from "./card-arrangements.js";
+import { asksSummary } from "./card-asks.js";
 import { fieldsFor, unlistPrompt, whichRatePrompt } from "./card-edit.js";
 import { estimatePrompt } from "./card-estimate.js";
+import { kindPrompt } from "./card-kind.js";
 import { minAloud } from "./card-parse.js";
 import { rateLines } from "./card-rates.js";
-import { termsPrompt, termsSummary } from "./card-terms.js";
+import { termsSummary } from "./card-terms.js";
+import { restPrompt, workRatesSummary } from "./card-work-rates.js";
 import { areaChoices, areaHints, isMessageKey, YES_NO } from "./choices.js";
 import type { Field } from "./lexicon.js";
 
@@ -28,19 +32,22 @@ export {
   type InterviewState,
   isLastSlot,
   type Line,
+  Pick as CardPick,
   type Prompt,
   Slot,
   start,
   withConfig,
 } from "./card.js";
+export { alsoSaid } from "./card-adding.js";
 export { arrangementRates, askingArrangement, cardArrangements, mainOf, pickedOf } from "./card-arrangements.js";
+export { ASKS_MAX, asksIn } from "./card-asks.js";
 export { edit, editSaid, fieldsFor } from "./card-edit.js";
 export { cardEstimate, withEstimate } from "./card-estimate.js";
 export { aboutIsPrivate, choose, hear, keepPlace } from "./card-parse.js";
 export { legalLines, legalMonthly, rateHint, rateNote } from "./card-rates.js";
 export { LAST_END, MOST_HOURS, RADII_KM, withClock, withTerm } from "./card-terms.js";
 export { estimateLines, type FoundEstimate } from "./estimate-lines.js";
-export { editIntent, type Field } from "./lexicon.js";
+export { editIntent, type Field, tradesIn } from "./lexicon.js";
 
 /** The chip for each field the owner can change from confirm, labelled as on the My card form. */
 const FIELD_LABEL: Readonly<Record<Field, MessageKey>> = {
@@ -59,6 +66,8 @@ const FIELD_LABEL: Readonly<Record<Field, MessageKey>> = {
   materials: "terms.card_materials",
   max_hours: "terms.card_hours",
   unlist: "card.unlist",
+  same_rate: "card.work_rates",
+  asks: "card.asks",
 };
 
 /** An area: the place they found, else its catalog name, put in the reader's language when shown, else as the app named it. */
@@ -90,8 +99,10 @@ function summary(state: InterviewState): Line[] {
       prices: { rate: draft.rate_paise ?? 0 },
     },
     ...ratesSummary(draft),
+    ...workRatesSummary(draft),
     ...termsSummary(state),
     ...about,
+    ...asksSummary(draft),
     { key: draft.auto ? "iv.summary_auto_on" : "iv.summary_auto_off" },
     { key: "iv.summary_min", prices: { min: draft.limit_paise ?? 0 }, silent: true },
   ];
@@ -109,15 +120,18 @@ function question(state: InterviewState): Prompt {
   const own = config.own;
   switch (state.slot) {
     case Slot.trade:
+      if (state.kind) return kindPrompt(state);
       return {
         lines: [{ key: "iv.ask.trade" }],
         choices: Trade.options.map((tr) => ({ value: tr, key: `trade.${tr}` as const })),
         hints: Trade.options.map((tr) => t(own, `trade.${tr}`)),
       };
+    case Slot.also:
+      return alsoPrompt(state);
     case Slot.area:
       return {
         lines: [{ key: "iv.ask.area" }],
-        choices: areaChoices(config.areas),
+        choices: areaChoices(config.areas, own),
         hints: areaHints(config.areas, own),
       };
     case Slot.rate:
@@ -181,7 +195,7 @@ function question(state: InterviewState): Prompt {
     case Slot.unlist:
       return unlistPrompt();
     default:
-      return termsPrompt(state);
+      return restPrompt(state);
   }
 }
 

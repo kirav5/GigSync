@@ -1,5 +1,6 @@
-import type { Place } from "@gigsync/protocol";
+import type { Place, ServedCity } from "@gigsync/protocol";
 import { kmBetween } from "../estimate/areas.js";
+import type { AreaChoice } from "../interview/card.js";
 import { finder, firstIn, normalize } from "../interview/normalize.js";
 import { CITY_AREA } from "../landing/cities.js";
 import { Collection, type Storage } from "../ports.js";
@@ -10,9 +11,27 @@ import { Collection, type Storage } from "../ports.js";
  * every phone understands them, model or not.
  */
 
-/** GigSync serves a place inside one of its cities' circles; anywhere else, "not in your area yet". */
-export const served = (point: Place): boolean =>
-  Object.values(CITY_AREA).some((city) => kmBetween(point, city.centre) <= city.radius_km);
+/**
+ * GigSync serves a place inside one of its cities' circles; anywhere else, "not in your area yet". The cities come
+ * from the directory (ADR 0061); before the phone has them, the city the app shipped with stands in.
+ */
+export const served = (point: Place, cities?: readonly ServedCity[]): boolean =>
+  (cities ?? Object.values(CITY_AREA)).some((city) => kmBetween(point, city.centre) <= city.radius_km);
+
+/** The served city a place is in, nearest first; undefined outside every one (ADR 0061). */
+export function cityAt(point: Place, cities: readonly ServedCity[]): ServedCity["key"] | undefined {
+  const inside = cities
+    .map((city) => ({ city, km: kmBetween(point, city.centre) }))
+    .filter(({ city, km }) => km <= city.radius_km)
+    .sort((a, b) => a.km - b.km);
+  return inside[0]?.city.key;
+}
+
+/** The served cities' areas as the interviews offer them: every name, and each language's for the chip (ADR 0061). */
+export const areasOf = (cities: readonly ServedCity[]): AreaChoice[] =>
+  cities.flatMap((c) =>
+    c.areas.map((a) => ({ key: a.key, names: [...new Set(Object.values(a.names))], label: a.names })),
+  );
 
 /** Words for an address, and for doing something to one, in each language and as Indians type them. */
 const ADDRESS_WORDS = ["address", "location", "pata", "पता", "एड्रेस", "लोकेशन", "ವಿಳಾಸ", "ಅಡ್ರೆಸ್", "ಲೊಕೇಶನ್"];

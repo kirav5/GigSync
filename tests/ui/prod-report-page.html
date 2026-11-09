@@ -1,0 +1,233 @@
+<title>GigSync All-Kinds Run</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  /* Layout: a run log. Summary first, then findings, model time, and every kind as a fold with both phones' chats. */
+  :root {
+    --bg: #f5f6f3;
+    --panel: #ffffff;
+    --ink: #1d2320;
+    --muted: #5d6762;
+    --line: #dde1dc;
+    --accent: #0f7a5c;
+    --worker: #2f5fa7;
+    --home: #9a4f1d;
+    --good: #1f7a3a;
+    --warn: #a86a00;
+    --bad: #b3261e;
+    --chip: #eef1ec;
+    --display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+    --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121614; --panel: #1a1f1c; --ink: #e6ebe7; --muted: #9aa59f; --line: #2c332f; --accent: #4cc39b;
+      --worker: #8fb2ea; --home: #e7a173; --good: #6fd08a; --warn: #f0b851; --bad: #f2877f; --chip: #232a26;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121614; --panel: #1a1f1c; --ink: #e6ebe7; --muted: #9aa59f; --line: #2c332f; --accent: #4cc39b;
+    --worker: #8fb2ea; --home: #e7a173; --good: #6fd08a; --warn: #f0b851; --bad: #f2877f; --chip: #232a26;
+    color-scheme: dark;
+  }
+  body { background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 32px 64px; display: grid; gap: 36px; }
+  h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(28px, 4vw, 40px); }
+  h2 { font-size: 22px; }
+  h3 { font-size: 17px; }
+  .meta { color: var(--muted); font-size: 14px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .tile b { display: block; font: 600 28px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+  .tile span { color: var(--muted); font-size: 13px; }
+  section { display: grid; gap: 14px; }
+  .findings { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+  .findings li { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: 8px;
+    padding: 12px 14px; display: grid; gap: 4px; }
+  .findings li.high { border-left-color: var(--bad); }
+  .findings li.low { border-left-color: var(--accent); }
+  .findings .what { font-weight: 600; }
+  .findings .detail { color: var(--muted); font-size: 15px; }
+  .scroll { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  td.num { text-align: right; }
+  .bar { height: 8px; background: var(--accent); border-radius: 4px; min-width: 2px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; border: 0; padding: 0; margin: 0; }
+  .filters button { font: 600 14px var(--body); border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+    border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+  .filters button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .filters button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .group { display: grid; gap: 8px; }
+  .group h3 { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .06em; font-family: var(--body); }
+  details.kind { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+  details.kind > summary { list-style: none; cursor: pointer; padding: 12px 14px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+  details.kind > summary::-webkit-details-marker { display: none; }
+  .name { font-weight: 600; min-width: 170px; }
+  .pill { font: 600 12px var(--mono); padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; }
+  .pill.signed { color: var(--good); }
+  .pill.talked { color: var(--warn); }
+  .pill.stopped { color: var(--bad); }
+  .times { color: var(--muted); font: 13px var(--mono); }
+  .body { padding: 0 14px 16px; display: grid; gap: 14px; }
+  .err { color: var(--bad); font: 13px var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .chats { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .chat { min-width: 0; display: grid; gap: 6px; align-content: start; }
+  .chat h4 { margin: 0; font-size: 14px; }
+  .chat.worker h4 { color: var(--worker); }
+  .chat.home h4 { color: var(--home); }
+  .turn { font-size: 14px; padding: 6px 10px; border-radius: 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .turn.agent { background: var(--chip); }
+  .turn.person { border: 1px solid var(--line); margin-left: 18%; }
+  .tag { font: 600 10px var(--mono); text-transform: uppercase; letter-spacing: .05em; margin-right: 6px; }
+  .tag.fixed { color: var(--muted); }
+  .tag.model { color: var(--accent); }
+  .qs { margin: 0; padding-left: 18px; font-size: 14px; }
+  .shots { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+  .shots figure { margin: 0; flex: 0 0 auto; width: 180px; }
+  .shots img { width: 180px; border: 1px solid var(--line); border-radius: 8px; display: block; }
+  .shots figcaption { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .purposes { font: 12px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+  a { color: var(--accent); }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:6px">
+    <h1>GigSync All-Kinds Run</h1>
+    <div class="meta" id="meta"></div>
+  </header>
+  <div class="tiles" id="tiles"></div>
+  <section>
+    <h2>What the run found</h2>
+    <ul class="findings" id="findings"></ul>
+  </section>
+  <section>
+    <h2>Where the model's time went</h2>
+    <p class="meta">Every call either phone made to the Mac Studio, by what it was for. The full log, with every prompt and reply, is <a href="model-calls.jsonl" target="_blank" rel="noopener">model-calls.jsonl</a> (one JSON line per call).</p>
+    <div class="scroll"><table id="purposes"></table></div>
+  </section>
+  <section>
+    <h2>Every kind of work</h2>
+    <fieldset class="filters" id="filters" aria-label="Show kinds"></fieldset>
+    <div id="kinds" style="display:grid;gap:22px"></div>
+  </section>
+</div>
+
+<script>
+  const DATA = __DATA__;
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, attrs = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "text") n.textContent = v;
+      else n.setAttribute(k, v);
+    }
+    for (const kid of kids) if (kid) n.append(kid);
+    return n;
+  };
+  const pretty = (kind) => kind.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase());
+  const outcomeClass = (o) => (o === "signed" ? "signed" : o === "stopped" ? "stopped" : "talked");
+  const SHOT = { "1-worker-card-chat": "Worker: card chat", "3-customer-find-chat": "Customer: Find chat",
+    "5-customer-job": "Customer: the job", "6-worker-job": "Worker: the job", "x-worker-at-stop": "Worker: where it stopped",
+    "x-customer-at-stop": "Customer: where it stopped" };
+
+  $("meta").textContent = `${DATA.kinds} kinds, one worker and one customer each, against Neon and the Mac Studio model. Run ${DATA.run}.`;
+  const tiles = [
+    [DATA.signed, "both signed"], [DATA.found, "customer found the worker"], [DATA.stopped, "stopped part-way"],
+    [`${DATA.median_s.card}s`, "median card by chat"], [`${DATA.median_s.find}s`, "median Find chat"],
+    [`${DATA.median_s.talk}s`, "median agents' talk"], [DATA.model_calls, "model calls"],
+    [`${DATA.agent_lines.model}/${DATA.agent_lines.fixed + DATA.agent_lines.model}`, "chat lines the model wrote"],
+  ];
+  for (const [n, label] of tiles) $("tiles").append(el("div", { class: "tile" }, el("b", { text: String(n) }), el("span", { text: label })));
+
+  for (const f of DATA.findings)
+    $("findings").append(el("li", { class: f.level ?? "" }, el("span", { class: "what", text: f.what }), el("span", { class: "detail", text: f.detail })));
+
+  const head = el("tr");
+  for (const h of ["Purpose", "Calls", "Share", "", "Median ms", "p90 ms", "Total s", "Prompt tok", "Reply tok", "Empty", "Failed"])
+    head.append(el("th", { text: h }));
+  $("purposes").append(el("thead", {}, head));
+  const tb = el("tbody");
+  const maxTotal = Math.max(1, ...DATA.by_purpose.map((p) => p.total_s));
+  for (const p of DATA.by_purpose) {
+    const bar = el("div", { class: "bar" });
+    bar.style.width = `${Math.round((p.total_s / maxTotal) * 120)}px`;
+    const row = el("tr");
+    row.append(el("td", { text: p.purpose }));
+    for (const v of [p.calls, `${p.share}%`]) row.append(el("td", { class: "num", text: String(v) }));
+    row.append(el("td", {}, bar));
+    for (const v of [p.median_ms, p.p90_ms, p.total_s, p.median_prompt_tokens, p.median_reply_tokens, p.empty, p.failed])
+      row.append(el("td", { class: "num", text: String(v) }));
+    tb.append(row);
+  }
+  $("purposes").append(tb);
+
+  function chat(title, cls, turns) {
+    const box = el("div", { class: `chat ${cls}` }, el("h4", { text: title }));
+    if (!turns.length) box.append(el("div", { class: "meta", text: "Not reached." }));
+    for (const t of turns) {
+      const line = el("div", { class: `turn ${t.who}` });
+      if (t.who === "agent") line.append(el("span", { class: `tag ${t.fixed?.length ? "fixed" : "model"}`, text: t.fixed?.length ? "fixed" : "model" }));
+      line.append(document.createTextNode(t.text));
+      box.append(line);
+    }
+    return box;
+  }
+
+  function kindCard(k) {
+    const d = el("details", { class: "kind", "data-outcome": outcomeClass(k.outcome), id: k.kind });
+    const s = el("summary");
+    s.append(el("span", { class: "name", text: pretty(k.kind) }), el("span", { class: `pill ${outcomeClass(k.outcome)}`, text: k.outcome ?? "?" }));
+    s.append(el("span", { class: "times", text: `card ${k.card_s}s · find ${k.find_s}s · talk ${k.talk_s}s · ${k.model_calls} model calls` }));
+    d.append(s);
+    const body = el("div", { class: "body" });
+    if (k.error) body.append(el("div", { class: "err", text: `Stopped at ${k.step}: ${k.error}` }));
+    if (k.questions?.length) {
+      const ul = el("ul", { class: "qs" });
+      for (const q of k.questions) ul.append(el("li", { text: q }));
+      body.append(el("div", {}, el("h4", { text: "What the worker's agent asked the customer" }), ul));
+    }
+    body.append(el("div", { class: "chats" }, chat("Worker builds the card", "worker", k.worker_chat), chat("Customer asks in Find", "home", k.customer_chat)));
+    if (k.images?.length) {
+      const row = el("div", { class: "shots" });
+      for (const im of k.images)
+        row.append(el("figure", {}, el("img", { src: im.file, alt: `${pretty(k.kind)}: ${SHOT[im.name] ?? im.name}`, loading: "lazy" }), el("figcaption", { text: SHOT[im.name] ?? im.name })));
+      body.append(row);
+    }
+    body.append(el("div", { class: "purposes", text: Object.entries(k.by_purpose).map(([p, n]) => `${p} ×${n}`).join(" · ") }));
+    d.append(body);
+    return d;
+  }
+
+  const groups = {};
+  for (const k of DATA.kinds_detail) {
+    groups[k.group] ??= [];
+    groups[k.group].push(k);
+  }
+  for (const [g, ks] of Object.entries(groups)) {
+    const box = el("div", { class: "group", "data-group": g }, el("h3", { text: g.replaceAll("_", " ") }));
+    for (const k of ks) box.append(kindCard(k));
+    $("kinds").append(box);
+  }
+
+  const FILTERS = [["all", "All"], ["signed", "Signed"], ["talked", "Talked, not signed"], ["stopped", "Stopped"]];
+  function show(which) {
+    for (const b of $("filters").children) b.setAttribute("aria-pressed", String(b.dataset.f === which));
+    for (const d of document.querySelectorAll("details.kind")) d.hidden = which !== "all" && d.dataset.outcome !== which;
+    for (const g of document.querySelectorAll(".group")) g.hidden = ![...g.querySelectorAll("details.kind")].some((d) => !d.hidden);
+  }
+  for (const [f, label] of FILTERS) {
+    const b = el("button", { type: "button", "data-f": f, text: label });
+    b.addEventListener("click", () => show(f));
+    $("filters").append(b);
+  }
+  show("all");
+  if (location.hash) document.getElementById(location.hash.slice(1))?.setAttribute("open", "");
+</script>

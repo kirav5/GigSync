@@ -1,4 +1,4 @@
-import { Lang } from "@gigsync/protocol";
+import { Lang, ModelPurpose } from "@gigsync/protocol";
 import { z } from "zod";
 import { priceText } from "../i18n/reasons.js";
 import { dateText, t } from "../i18n/t.js";
@@ -7,6 +7,8 @@ import { firstObject, MODEL_WAIT_MS, within } from "../interview/need-model.js";
 import { checkExplanation, EXPLAIN_MAX } from "../job/explain-model.js";
 import { log } from "../log.js";
 import type { Model } from "../ports.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * A model may word the work outlook for the owner (the facts are built by code, `outlook.ts`). Its text is kept only
@@ -73,7 +75,10 @@ export async function phraseOutlook(
   if (!model || !WORDED.has(lang) || lines.length === 0) return undefined;
   const template = outlookTemplate(lang, lines);
   try {
-    const reply = await within(model.generate(outlookPrompt(template), { maxTokens: MAX_TOKENS }), waitMs);
+    const reply = await within(
+      model.generate(outlookPrompt(template), { maxTokens: MAX_TOKENS, purpose: Purpose.moving_outlook }),
+      waitMs,
+    );
     const text = reply ? parseText(reply) : undefined;
     if (!text || !checkExplanation(text, { template, lang }) || !namesOnlyFrom(text, template)) return undefined;
     return text;

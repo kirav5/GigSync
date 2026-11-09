@@ -4,6 +4,18 @@ import { AGREED, DONE, Side } from "../records/sides.js";
 import type { Db } from "./client.js";
 import type { QuantityColumns } from "./record-quantities.js";
 
+/** The city records fall back to: every record before ADR 0061 was in it. */
+export const DEFAULT_CITY = "bengaluru";
+const KM_PER_DEGREE = 111;
+/**
+ * The job's city (ADR 0061): the nearest live city whose circle holds the worker's card ($2), else $25. Distance is
+ * flat-earth, exact enough across a city; the worker's area is rounded to a kilometre already.
+ */
+const CITY_OF_WORKER = `COALESCE((SELECT c.city_key FROM cities c JOIN worker_profiles p ON p.user_id = $2
+  CROSS JOIN LATERAL (SELECT $26::float8 * sqrt(power(c.lat - p.area_lat, 2)
+    + power((c.lon - p.area_lon) * cos(radians(c.lat)), 2)) AS km) d
+  WHERE c.live AND d.km <= c.radius_km ORDER BY d.km LIMIT 1), $25)`;
+
 /**
  * Stores a job as agreed: attested by both sides, or one-sided (the worker's side only). Over the same worker's
  * one-sided job it replaces the fields (her correction, or the household's match making it attested) and keeps the
@@ -14,9 +26,9 @@ export async function upsertRecord(db: Db, f: JobFields, c: JobColumns, attested
     `INSERT INTO job_records (engagement_id, worker_id, household_id, trade, scope_problem, scope_rooms,
        scope_frequency, scope_people, scope_meals, scope_hours_band, scope_labour_only, work_day, work_daily,
        work_window, materials_by, coats, hours_per_day, price_paise, terms_hash, status, agreed_at, attested, area_key,
-       work_hour)
+       work_hour, city)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23,
-       $24)
+       $24, ${CITY_OF_WORKER})
      ON CONFLICT (engagement_id) DO UPDATE SET household_id = excluded.household_id, trade = excluded.trade,
        scope_problem = excluded.scope_problem, scope_rooms = excluded.scope_rooms,
        scope_frequency = excluded.scope_frequency, scope_people = excluded.scope_people,
@@ -24,7 +36,8 @@ export async function upsertRecord(db: Db, f: JobFields, c: JobColumns, attested
        scope_labour_only = excluded.scope_labour_only, work_day = excluded.work_day, work_daily = excluded.work_daily,
        work_window = excluded.work_window, work_hour = excluded.work_hour, materials_by = excluded.materials_by,
        coats = excluded.coats, hours_per_day = excluded.hours_per_day, price_paise = excluded.price_paise,
-       terms_hash = excluded.terms_hash, attested = excluded.attested, area_key = excluded.area_key
+       terms_hash = excluded.terms_hash, attested = excluded.attested, area_key = excluded.area_key,
+       city = excluded.city
      WHERE job_records.worker_id = excluded.worker_id AND NOT job_records.attested`,
     [
       f.engagement,
@@ -51,6 +64,8 @@ export async function upsertRecord(db: Db, f: JobFields, c: JobColumns, attested
       attested,
       f.area ?? null,
       c.work_hour,
+      DEFAULT_CITY,
+      KM_PER_DEGREE,
     ],
   );
   return (rowCount ?? 0) > 0;

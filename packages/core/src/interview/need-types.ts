@@ -12,6 +12,8 @@ import type {
   RateCard,
   Trade,
   UserId,
+  WorkCategory,
+  WorkKind,
 } from "@gigsync/protocol";
 import type { Known } from "../memory/known.js";
 import type { AreaChoice } from "./card.js";
@@ -53,26 +55,30 @@ export interface NeedDraft {
   notKnown?: readonly DriverName[] | undefined;
   /** Price questions asked so far, at most `MAX_PRICE_QUESTIONS`. */
   askedDrivers?: number | undefined;
-  /** The price questions are over: the owner did not know or skipped one, the model was done, or none is worth it. */
+  /** The price questions are over: the owner did not know or skipped one, or the model's are answered. */
   priceDone?: boolean | undefined;
-  /** With a usable phone model: its questions (`price-model.ts`); absent in lite mode or once the model failed. */
+  /** With a usable model: its questions for work outside the trades (`price-model.ts`); absent in lite mode or on failure. */
   modelAsk?: ModelAsk | undefined;
-  /** Facts the phone's model wrote from the answers, scrubbed; kept on the phone for the owner's agent, never sent. */
+  /** The answers to the model's questions, scrubbed; kept on the phone for the owner's agent, never sent. */
   facts?: readonly EstimateFact[] | undefined;
   /** A need outside GigSync's trades, as a short label the phone's model gave ("wedding photographer"). */
   jobType?: string | undefined;
   /** ADR 0047: a skill workers here list, matched on the phone from the owner's words; set only without a trade. */
   skill?: BoardSkill | undefined;
+  /** ADR 0061: the work was picked by a tap, with no words to read; the model words the first question. */
+  tapped?: boolean | undefined;
+  /** The model's words for the first question after a tap; empty when it had none, and the fixed one is asked. */
+  detailAsk?: string | undefined;
+  /** A kind of work asked for that nobody lists yet, and the others in its group that have workers. */
+  emptyKind?: WorkCategory | undefined;
+  others?: readonly WorkKind[] | undefined;
 }
 
-/** The model's side of the price questions: the question waiting, what was asked and said, what it covered. */
+/** The model's side of the price questions: the question open, those after it, what was asked and said. */
 export interface ModelAsk {
   current?: PriceQuestion | undefined;
+  next?: readonly PriceQuestion[] | undefined;
   said: readonly PriceQA[];
-  /** Drivers the model's questions filled: the safeguard adds the top driver only when it is not among them. */
-  covered: readonly DriverName[];
-  /** The job's most price-moving unknown driver when the model began: the one question code guarantees. */
-  top?: DriverName | undefined;
 }
 
 /** A saved address as the interview offers it: its chip, and the area it is in. */
@@ -91,13 +97,15 @@ export interface NeedConfig {
   areas: readonly AreaChoice[];
   /** The household's saved addresses, offered at the "where" question (ADR 0045); none on a worker hiring. */
   addresses?: readonly AddressChoice[];
+  /** The address at the top of Find, the one in use: the first chip at the "where" question, never taken unasked. */
+  inUse?: AddressId | undefined;
   /** The city's going rates, shown as a hint beside the budget question. */
   rates: RateCard;
   /** The phone's calendar day when the interview started, "YYYY-MM-DD", for dates said without a year. */
   today: string;
   /** The phone's hour (0-23) when the interview started, so a job today is offered only hours still ahead. */
   hour?: number | undefined;
-  /** The phone has a usable model (ADR 0040): it decides the price questions; lite mode asks the fixed ones. */
+  /** A usable model (ADR 0040): it writes the price questions for work outside the trades (ADR 0058). */
   modelQuestions?: boolean;
   /** What the owner's agent remembers from past jobs, and whether to ask before using it; never the budget. */
   remembered?: NeedMemory;

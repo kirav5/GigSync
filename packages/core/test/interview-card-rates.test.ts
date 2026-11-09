@@ -20,8 +20,10 @@ const config = (own: Lang, rates: RateCard = CITY_RATES) => ({ own, areas: AREAS
 const run = (state: InterviewState, answers: readonly string[]) => answers.reduce((s, a) => hear(s, a), state);
 /** A maid, cook or driver says which work they take first (ADR 0046, 0051): monthly, as every card before arrangements. */
 const ARRANGED = new Set(["maid", "cook", "driver"]);
+/** "Do you also do any of these?" (ADR 0061) follows the work; "no" moves on with nothing added. */
+const NO_OTHER_WORK = "no";
 const atRate = (trade: string, rates?: RateCard) =>
-  run(start(config("en", rates)), [trade, ...(ARRANGED.has(trade) ? ["monthly"] : []), "Koramangala"]);
+  run(start(config("en", rates)), [trade, NO_OTHER_WORK, ...(ARRANGED.has(trade) ? ["monthly"] : []), "Koramangala"]);
 /** A union-signed card in another city, with a band for a per-visit trade. */
 const MYSURU = RateCard.parse({
   city: "Mysuru",

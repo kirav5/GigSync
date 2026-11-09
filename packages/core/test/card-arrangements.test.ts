@@ -22,10 +22,16 @@ const T = Trade.enum;
 const fresh = (own: "en" | "hi" | "kn" = "en") => start({ own, areas: PILOT_AREA_CHOICES, rates: CITY_RATES });
 const run = (s: InterviewState, answers: readonly string[]) => answers.reduce((x, a) => hear(x, a), s);
 const keys = (s: InterviewState) => prompt(s).lines.map((l) => l.key);
+/** Past "Do you also do any of these?" (ADR 0061), asked right after the work, with Done. */
+const pastAlso = (s: InterviewState) => {
+  expect(s.slot).toBe(Slot.also);
+  return choose(s, Pick.yes);
+};
+const chosen = (trade: string, own: "en" | "hi" | "kn" = "en") => pastAlso(choose(fresh(own), trade));
 
 describe("which work a maid takes", () => {
   it("is asked right after the trade, as chips toggled and Done", () => {
-    const s = choose(fresh(), T.maid);
+    const s = chosen(T.maid);
     expect(s.slot).toBe(Slot.arrangements);
     expect(prompt(s).choices?.map((c) => c.value)).toEqual([A.hourly, A.visit, A.weekly, A.monthly, Pick.yes]);
     expect(choose(s, Pick.yes).notes).toEqual([{ key: "iv.err_arrangements" }]);
@@ -36,22 +42,21 @@ describe("which work a maid takes", () => {
   });
 
   it("is never asked of an electrician", () => {
-    expect(choose(fresh(), T.electrician).slot).toBe(Slot.area);
+    expect(chosen(T.electrician).slot).toBe(Slot.area);
   });
 
   it("hears several said at once, in Hindi and Kannada too", () => {
-    expect(hear(choose(fresh(), T.maid), "hourly and monthly").draft.arrangements).toEqual([A.hourly, A.monthly]);
-    expect(hear(choose(fresh("hi"), T.maid), "घंटे के हिसाब से और महीने के हिसाब से").draft.arrangements).toEqual([
+    expect(hear(chosen(T.maid), "hourly and monthly").draft.arrangements).toEqual([A.hourly, A.monthly]);
+    expect(hear(chosen(T.maid, "hi"), "घंटे के हिसाब से और महीने के हिसाब से").draft.arrangements).toEqual([
       A.hourly,
       A.monthly,
     ]);
-    expect(hear(choose(fresh("kn"), T.driver), "ಒಂದು ಸಲ").draft.arrangements).toEqual([A.visit]);
+    expect(hear(chosen(T.driver, "kn"), "ಒಂದು ಸಲ").draft.arrangements).toEqual([A.visit]);
   });
 });
 
 describe("a rate for each", () => {
-  const picked = (arrangements: readonly string[]) =>
-    run(choose(fresh(), T.maid), [arrangements.join(" and "), "Koramangala"]);
+  const picked = (arrangements: readonly string[]) => run(chosen(T.maid), [arrangements.join(" and "), "Koramangala"]);
 
   it("asks the main rate in its unit, the lowest, then each other rate, and reads them back", () => {
     const atRate = picked(["hourly", "weekly"]);

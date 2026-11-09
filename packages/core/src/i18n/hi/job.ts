@@ -110,6 +110,8 @@ export const job: Readonly<Record<keyof typeof en, string>> = {
   "job.not_received": "नहीं मिले",
   "job.pay_by_upi": "{price} यूपीआई से दें",
   "job.open_upi": "यूपीआई ऐप में खोलें",
+  "job.upi_choose": "किस ऐप से पेमेंट करें",
+  "job.upi_other": "दूसरा यूपीआई ऐप",
   "job.utr_placeholder": "12 अंकों का यूपीआई रेफ़रेंस",
   "job.paid": "मैंने पैसे दे दिए",
   "job.review_placeholder": "काम कैसा रहा?",

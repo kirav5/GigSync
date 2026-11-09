@@ -16,7 +16,11 @@ export const explain = {
   "explain.usual_jobs.one": "The usual rate is {typical} ({low}–{high}, from {count} job on GigSync).",
   "explain.usual_jobs.other": "The usual rate is {typical} ({low}–{high}, from {count} jobs on GigSync).",
   "explain.usual_range": "The usual range is {low}–{high}.",
-  "explain.limit_within": "That is inside your limit of {limit}.",
-  "explain.limit_outside": "That is {gap} past your limit of {limit}.",
+  "explain.limit.provider.above": "That is {gap} above your lowest price of {limit}.",
+  "explain.limit.provider.below": "That is {gap} below your lowest price of {limit}.",
+  "explain.limit.provider.at": "That is exactly your lowest price of {limit}.",
+  "explain.limit.requester.above": "That is {gap} over your budget of {limit}.",
+  "explain.limit.requester.below": "That is {gap} under your budget of {limit}.",
+  "explain.limit.requester.at": "That is exactly your budget of {limit}.",
   "explain.label": "Why this offer",
 } as const;

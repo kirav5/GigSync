@@ -1,4 +1,13 @@
-import { DetailFlag, Lang, MAX_COATS, MAX_HOURS, MaidFrequency, QuestionKey, Trade } from "@gigsync/protocol";
+import {
+  DetailFlag,
+  Lang,
+  MAX_COATS,
+  MAX_HOURS,
+  MaidFrequency,
+  ModelPurpose,
+  QuestionKey,
+  Trade,
+} from "@gigsync/protocol";
 import { z } from "zod";
 import { asciiDigits } from "../job/details.js";
 import type { Model } from "../ports.js";
@@ -12,6 +21,8 @@ import {
   SCOPE_COUNT_WORDS,
   WITH_PAINT_WORDS,
 } from "./scope-words.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * Reading a household's long description into the job's scope (ADR 0033 §5): rooms, area, who buys the paint, coats,
@@ -139,7 +150,10 @@ function grounded(key: QuestionKey, raw: unknown, said: string): string | undefi
 }
 
 async function modelScope(model: Model, text: string, trade: Trade, waitMs: number): Promise<ScopeChip[]> {
-  const reply = await within(model.generate(scopePrompt(text, trade), { maxTokens: MAX_TOKENS }), waitMs);
+  const reply = await within(
+    model.generate(scopePrompt(text, trade), { maxTokens: MAX_TOKENS, purpose: Purpose.scope }),
+    waitMs,
+  );
   const object = reply ? firstObject(reply) : undefined;
   if (!object) return [];
   const fields = Fields.safeParse(JSON.parse(object));

@@ -130,7 +130,11 @@ test("a long description becomes confirmed chips, the agents settle the terms, a
   await expand(homePage, "talk.title");
   const why = homePage.getByRole("note", { name: t(en, "explain.label") });
   await expect(why.first()).toContainText(textOf(en, "explain.opened_theirs", { name }));
-  await expect(why.filter({ hasText: textOf(en, "explain.limit_within") }).first()).toBeVisible();
+  // An offer inside her budget says by how much it is under it (or that it is exactly it), never "past" it.
+  const inside = new RegExp(
+    `${textOf(en, "explain.limit.requester.below").source}|${textOf(en, "explain.limit.requester.at").source}`,
+  );
+  await expect(why.filter({ hasText: inside }).first()).toBeVisible();
   await expect(homePage.getByText(textOf(en, "terms.proposed")).first()).toBeVisible();
   await shoot("sign-terms", { household: homePage, worker: workerPage }, FOLDER);
 

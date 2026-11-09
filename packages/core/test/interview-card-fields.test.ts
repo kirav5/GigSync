@@ -49,7 +49,7 @@ const open = (field: Field, draft?: CardDraft) => choose(card(draft), field);
 
 describe("a first card", () => {
   it("asks none of the new questions", () => {
-    const answers = ["electrician", "Koramangala", "800", "600", "none", "skip"];
+    const answers = ["electrician", "no", "Koramangala", "800", "600", "none", "skip"];
     const asked = answers.reduce((s, a) => hear(s, a), start(config()));
     const seen = new Set<string>();
     let s = asked;

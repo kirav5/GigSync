@@ -18,8 +18,11 @@ import {
   Envelope,
   type EstimateRequest,
   EstimateResponse,
+  type FindEvent,
   type GeoPlace,
   GeoResult,
+  ListedRates,
+  type ListedRatesQueryInput,
   type MatchRequestInput,
   MatchResponse,
   type MentorListingInput,
@@ -36,6 +39,8 @@ import {
   QrPerson,
   RecommendLink,
   type RecommendRequest,
+  ServedCities,
+  type ServedCity,
   Session,
   type UserId,
 } from "@gigsync/protocol";
@@ -63,7 +68,7 @@ export interface Relay {
   claim(engagement: EngagementId): Promise<DeviceId>;
 }
 
-type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
+export type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 const ErrorBody = z.object({ error: z.string() });
 const Removed = z.object({ removed: z.boolean() });
 /** Just enough of an envelope this phone cannot read to acknowledge it. */
@@ -88,6 +93,16 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
 
   async verifyOtp(phone: string, code: string, device: DeviceRegistration): Promise<Session> {
     return Session.parse(await this.call(HttpMethod.post, ApiPath.otpVerify, { phone, code, device }));
+  }
+
+  /** Revokes this device and its session on the server: messages stop being sealed to it. */
+  async signOut(): Promise<void> {
+    await this.call(HttpMethod.post, ApiPath.signOut);
+  }
+
+  /** The cities and areas GigSync serves (ADR 0061). */
+  async cities(): Promise<ServedCity[]> {
+    return ServedCities.parse(await this.call(HttpMethod.get, ApiPath.cities)).cities;
   }
 
   async directory(user: UserId): Promise<DirectoryEntry> {
@@ -165,6 +180,17 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
         .map(([k, v]) => [k, String(v)]),
     );
     return BoardResult.parse(await this.call(HttpMethod.get, `${ApiPath.boardWorkers}?${params}`)).workers;
+  }
+
+  /** What workers near a place list for a skill: a range from three workers up (ADR 0057). */
+  async listedRates(query: ListedRatesQueryInput): Promise<ListedRates> {
+    const params = new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)]));
+    return ListedRates.parse(await this.call(HttpMethod.get, `${ApiPath.boardRates}?${params}`));
+  }
+
+  /** One more of an event in Find's daily counts (ADR 0060): no user, no words. */
+  async countFind(event: FindEvent): Promise<void> {
+    await this.call(HttpMethod.post, ApiPath.findCount, { event });
   }
 
   async boardSkills(): Promise<BoardSkill[]> {

@@ -17,5 +17,15 @@ export class FakeModel implements Model {
   }
 }
 
+/** A model that answers each call with the next of its replies, and with null once they run out. */
+export class ScriptedModel implements Model {
+  readonly prompts: string[] = [];
+  constructor(private readonly replies: readonly (string | null)[]) {}
+  generate(prompt: string): Promise<string | null> {
+    this.prompts.push(prompt);
+    return Promise.resolve(this.replies[this.prompts.length - 1] ?? null);
+  }
+}
+
 /** A model reply proposing these questions, as the worker's agent's prompt asks for them. */
 export const questionsReply = (...questions: { text: string; kind: string }[]) => JSON.stringify({ questions });
