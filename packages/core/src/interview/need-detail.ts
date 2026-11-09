@@ -1,8 +1,11 @@
-import { DetailFlag, DriverName, QuestionKey } from "@gigsync/protocol";
+import { DetailFlag, DriverKind, DriverName, driverSpec, QuestionKey } from "@gigsync/protocol";
+import { t } from "../i18n/t.js";
 import { YES_NO_QUESTIONS } from "../job/details.js";
+import type { Choice } from "./card.js";
 import { draftDrivers } from "./driver-ask.js";
 import { isSkip, yesNo } from "./lexicon.js";
-import { firstQuestion, type NeedDraft, type NeedState, workOf } from "./need.js";
+import { firstQuestion, moveOn, type NeedDraft, type NeedState, workOf } from "./need.js";
+import { DONT_KNOW, DriverPick, driverChoice } from "./need-drivers.js";
 import { withoutMoney } from "./need-parse.js";
 
 /**
@@ -30,4 +33,31 @@ export function detailAnswer(s: NeedState, text: string): string | null | undefi
     return yes === undefined ? undefined : yes ? DetailFlag.enum.yes : DetailFlag.enum.no;
   }
   return isSkip(text) ? null : withoutMoney(text) || undefined;
+}
+
+/**
+ * With no model reading, "What exactly isn't working?" cannot be answered in words: for the repair trades it is asked
+ * as the kinds of problem the estimate knows (a fan, a leak, "Something else"), then "I don't know". Undefined for any
+ * other question, and whenever words can be read.
+ */
+export function problemChoices(s: NeedState): Choice[] | undefined {
+  const trade = s.draft.trade;
+  const kind = DriverName.enum.problem;
+  if (!s.chipsOnly || !trade || firstQuestion(trade) !== QuestionKey.enum.problem) return undefined;
+  const spec = driverSpec(trade, kind);
+  if (spec?.kind !== DriverKind.choice) return undefined;
+  return [...spec.values.map((value) => driverChoice(s.config.own, kind, value)), DONT_KNOW];
+}
+
+/**
+ * A tap on one of those: the kind of problem is the estimate's driver, and its name, as the owner read it, is the
+ * answer the worker reads. "I don't know" is a skip. Undefined for a value the question did not offer.
+ */
+export function chooseProblem(s: NeedState, value: string): NeedState | undefined {
+  const chip = problemChoices(s)?.find((c) => c.value === value);
+  if (!chip) return undefined;
+  const d = s.draft;
+  if (value === DriverPick.dontKnow) return moveOn(s, settledProblem({ ...d, detail: null }));
+  const problem = value.slice(DriverPick.set.length);
+  return moveOn(s, { ...d, detail: t(s.config.own, chip.key, chip.params), drivers: { ...d.drivers, problem } });
 }

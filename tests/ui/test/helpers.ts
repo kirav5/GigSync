@@ -83,6 +83,18 @@ interface Person {
   elsewhere?: MovePrompt;
 }
 
+/**
+ * The test API has no model, and with none at all Find takes no sentence (ADR 0064: chips only). The journeys type
+ * their needs, so every household's phone that signs in is told GigSync's model is on, and it answers nothing: typing stays, and
+ * each reading falls back to what the app does when a model gives no answer, which is what these specs cover. Set on
+ * the browser context, so a spec's own `page.route` for the same paths wins (server-model.spec, find-chips.spec).
+ */
+async function silentModel(page: Page) {
+  const context = page.context();
+  await context.route(`${API}/v1/model/status`, (route) => route.fulfill({ json: { on: true } }));
+  await context.route(`${API}/v1/model/generate`, (route) => route.fulfill({ json: { text: null } }));
+}
+
 /** Signs in through the app's own screens, in the person's language: language first, then role, name, number, code. */
 export async function signIn(page: Page, who: Person) {
   await chooseLanguage(page, who.lang ?? DEFAULT_LANG);
@@ -94,6 +106,8 @@ export async function signIn(page: Page, who: Person) {
  * it, so they are found on the page.
  */
 export async function completeSignIn(page: Page, who: Person) {
+  // Households only: a worker's phone stays as the test stack is, with no model (the card, the on-device offer).
+  if (who.role === Role.consumer) await silentModel(page);
   const lang = who.lang ?? DEFAULT_LANG;
   const form = page.getByRole("form", { name: t(lang, "signin.label") });
   await form.getByRole("radio", { name: t(lang, `signin.${who.role}`) }).click();

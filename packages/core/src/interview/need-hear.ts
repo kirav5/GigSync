@@ -25,7 +25,7 @@ import {
 } from "./need.js";
 import { atArea, chooseAddress } from "./need-address.js";
 import { chooseArrangement, hearArrangement } from "./need-arrangement.js";
-import { detailAnswer, settledProblem } from "./need-detail.js";
+import { chooseProblem, detailAnswer, settledProblem } from "./need-detail.js";
 import { chooseDriver, hearDriver } from "./need-drivers.js";
 import { suggestedBudget } from "./need-estimate.js";
 import { changedBy, decidedFill, fillEmpty, fillFromHint } from "./need-fill.js";
@@ -230,6 +230,8 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
     }
     case NeedSlot.detail: {
       if (value === Pick.skip) return moveOn(s, settledProblem({ ...d, detail: null }));
+      const problem = chooseProblem(s, value);
+      if (problem) return problem;
       const yes = flag(value);
       return yes === undefined ? s : moveOn(s, { ...d, detail: yes ? DetailFlag.enum.yes : DetailFlag.enum.no });
     }

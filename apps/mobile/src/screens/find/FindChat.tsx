@@ -88,7 +88,6 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   const [reading, setReading] = useState(false);
   const end = useRef<HTMLDivElement>(null);
   const current = state ? needPrompt(state) : undefined;
-  const input = useNeedInput(open, state, reading);
 
   // A chat with nothing in it starts a new need; one under way carries on where it was. What the agent remembers
   // from past jobs comes along, with the owner's setting: offered first ("Use it?"), or filled in and said.
@@ -103,6 +102,8 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   }, [state, open, inUseId]);
   // A yes to other work part-way: this chat stays in the list, and the words open their own.
   const carried = useRef<string | undefined>(undefined);
+  // Words on their way to be read, typed or carried over, are read as they are even if the model has just gone.
+  const typing = useNeedInput(open, state, reading || carried.current !== undefined);
   useEffect(() => {
     if (!state?.switching?.accepted) return;
     carried.current = state.switching.words;
@@ -117,7 +118,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     void Promise.all([needMemory(ports, account), chosenModel.server.ready()]).then(([remembered]) => {
       const reads = chosenModel.reads();
       const need = startNeed({ ...withMemory(config, remembered), modelQuestions: reads }, to);
-      beginNeed(open, reads ? need : chipsOnlyNeed(need));
+      beginNeed(open, reads || carried.current ? need : chipsOnlyNeed(need));
     });
   }, [empty, open, to, lang, ports, account, saved]);
 
@@ -284,7 +285,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       <Working on={state?.slot === NeedSlot.done} />
       <div ref={end} />
       <NeedDock
-        input={input}
+        {...typing}
         prompt={current}
         busy={busy || reading || waiting}
         onSend={(text, via) => void send(text, via)}

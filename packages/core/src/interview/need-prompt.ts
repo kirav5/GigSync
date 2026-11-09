@@ -21,6 +21,7 @@ import {
 } from "./need.js";
 import { areaParts, wherePrompt } from "./need-address.js";
 import { arrangedWork, arrangementLines, arrangementPrompt, budgetUnitLines, oneOffNeed } from "./need-arrangement.js";
+import { problemChoices } from "./need-detail.js";
 import { driverQuestion } from "./need-drivers.js";
 import { budgetEstimate, listedLine } from "./need-estimate.js";
 import { NeedPick } from "./need-hear.js";
@@ -158,7 +159,7 @@ function detailPrompt(s: NeedState): Prompt {
   const asked = s.draft.detailAsk;
   return {
     lines: [asked ? { key: "estimate.answer", params: { text: asked } } : { key: `question.${first}` }],
-    choices: yesNo ? YES_NO : [{ value: CardPick.skip, key: "iv.skip" }],
+    choices: yesNo ? YES_NO : (problemChoices(s) ?? [{ value: CardPick.skip, key: "iv.skip" }]),
     hints: yesNo ? yesNoHints(s) : [],
   };
 }

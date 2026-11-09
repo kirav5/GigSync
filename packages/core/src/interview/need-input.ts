@@ -72,13 +72,18 @@ export function needInput(s: NeedState, reads: boolean): NeedInput {
 }
 
 /**
- * The need as it stands when no model reads. The opening invites the whole need in the owner's words, which nothing
- * could read: it shows the list instead (the groups, then the kinds in one). Addressed to a worker whose work is
- * already set, there is nothing to pick, so it goes to the first question still open. Any other state is returned as
- * it is, so calling this again changes nothing.
+ * The need as it stands when no model reads: marked so, which makes its questions ask in chips (the repair trades'
+ * "what is wrong?" as the kinds of problem, `need-detail.ts`). The opening invites the whole need in the owner's
+ * words, which nothing could read: it shows the list instead (the groups, then the kinds in one). Addressed to a
+ * worker whose work is already set, there is nothing to pick, so it goes to the first question still open. Calling
+ * this again changes nothing.
  */
 export function chipsOnlyNeed(s: NeedState): NeedState {
-  if (s.slot !== NeedSlot.trade || s.switching) return s;
-  if (s.to && workOf(s.draft) !== undefined) return moveOn(s, s.draft);
-  return s.fresh ? { ...s, fresh: false, notes: [] } : s;
+  const marked: NeedState = s.chipsOnly ? s : { ...s, chipsOnly: true };
+  if (marked.slot !== NeedSlot.trade || marked.switching) return marked;
+  if (marked.to && workOf(marked.draft) !== undefined) return moveOn(marked, marked.draft);
+  return marked.fresh ? { ...marked, fresh: false, notes: [] } : marked;
 }
+
+/** A model reads again: the questions from here on are asked as usual. Calling this again changes nothing. */
+export const typingNeed = (s: NeedState): NeedState => (s.chipsOnly ? { ...s, chipsOnly: false } : s);

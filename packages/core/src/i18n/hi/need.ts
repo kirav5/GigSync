@@ -45,5 +45,7 @@ export const need: Readonly<Record<keyof typeof en, string>> = {
   "need.date_ok": "यह तारीख़ रखें",
   "need.typing_off": "लिखना अभी थोड़ी देर के लिए बंद है; दिए गए विकल्पों में से चुनिए।",
   "need.typing_number": "लिखना अभी थोड़ी देर के लिए बंद है; संख्या लिखिए या दिए गए विकल्पों में से चुनिए।",
+  "need.no_typing": "लिखना बंद है; दिए गए विकल्पों में से चुनिए।",
+  "need.no_typing_number": "लिखना बंद है; संख्या लिखिए या दिए गए विकल्पों में से चुनिए।",
   "need.number_placeholder": "संख्या लिखिए…",
 };

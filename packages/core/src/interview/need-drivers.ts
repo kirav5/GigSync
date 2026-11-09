@@ -48,7 +48,7 @@ const AGAIN: MessageKey = "need.again";
 const WORDS: MessageKey = "estimate.answer";
 /** Enough of the owner's own words for the model to know the job. */
 const WORDS_MAX = 500;
-const DONT_KNOW: Choice = { value: DriverPick.dontKnow, key: "driver.dont_know" };
+export const DONT_KNOW: Choice = { value: DriverPick.dontKnow, key: "driver.dont_know" };
 
 /** The count question is worded per repair trade: an electrician's points are switches, a carpenter's are doors. */
 const POINTS_BY_TRADE: ReadonlySet<Trade> = new Set([

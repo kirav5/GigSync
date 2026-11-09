@@ -156,6 +156,11 @@ export class ChosenModel implements Model {
     return this.engine(false) !== ModelChoice.lite;
   }
 
+  /** Nothing reads now only because GigSync's model is paused after failing: it is asked again within the minute. */
+  pausedForNow(): boolean {
+    return this.settings.choice === ModelChoice.auto && this.server.paused && !this.reads();
+  }
+
   private engine(secret: boolean): ModelChoice {
     switch (this.settings.choice) {
       case ModelChoice.lite:

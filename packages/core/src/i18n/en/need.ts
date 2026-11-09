@@ -43,5 +43,7 @@ export const need = {
   "need.date_ok": "Use this date",
   "need.typing_off": "Typing is off for a moment; pick from the options.",
   "need.typing_number": "Typing is off for a moment; type a number or pick from the options.",
+  "need.no_typing": "Typing is off; pick from the options.",
+  "need.no_typing_number": "Typing is off; type a number or pick from the options.",
   "need.number_placeholder": "Type a number…",
 } as const;

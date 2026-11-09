@@ -1,4 +1,4 @@
-import { asciiDigits, NeedInput, type Prompt } from "@gigsync/core";
+import { asciiDigits, type MessageKey, NeedInput, type Prompt } from "@gigsync/core";
 import { type FormEvent, useState } from "react";
 import { useI18n } from "../../i18n.js";
 import { Composer, type Via } from "../../ui/Composer.js";
@@ -9,6 +9,13 @@ import "../../ui/composer.css";
 const NUMERIC = "numeric";
 const SEND = "send";
 const NOT_A_DIGIT = /\D/g;
+/** Why there is no field: no model at all (lite mode, or none to ask), so it is not said to be for a moment. */
+const WHY = { chips: "need.no_typing", number: "need.no_typing_number" } as const satisfies Record<string, MessageKey>;
+/** The same while GigSync's model is only paused, and asked again within the minute. */
+const WHY_FOR_NOW = {
+  chips: "need.typing_off",
+  number: "need.typing_number",
+} as const satisfies Record<string, MessageKey>;
 
 /** A number and nothing else: the phone's number pad, and any other character dropped as it is typed. */
 function NumberField({ busy, onSend }: { busy: boolean; onSend: (digits: string) => void }) {
@@ -44,6 +51,8 @@ function NumberField({ busy, onSend }: { busy: boolean; onSend: (digits: string)
 interface Props {
   /** How the question now asked may be answered (core's `needInput`). */
   input: NeedInput;
+  /** Typing is off only while GigSync's model is paused, so the line may say "for a moment". */
+  backSoon: boolean;
   /** The question now asked, for what the mic should expect and whether the answer is private. */
   prompt: Prompt | undefined;
   busy: boolean;
@@ -58,7 +67,7 @@ interface Props {
  * the word lists never guess what a sentence means): no sentence is offered, by typing or by voice, since speech
  * becomes words that need reading too; one line says why, and a question whose answer is a number keeps a number field.
  */
-export function NeedDock({ input, prompt, busy, onSend, onNumber }: Props) {
+export function NeedDock({ input, backSoon, prompt, busy, onSend, onNumber }: Props) {
   const { t } = useI18n();
   if (input === NeedInput.words)
     return (
@@ -75,10 +84,11 @@ export function NeedDock({ input, prompt, busy, onSend, onNumber }: Props) {
       </Dock>
     );
   const number = input === NeedInput.number;
+  const why = backSoon ? WHY_FOR_NOW : WHY;
   return (
     <Dock>
       <p className={C.dockStatus} role="status" aria-live="polite">
-        {t(number ? "need.typing_number" : "need.typing_off")}
+        {t(number ? why.number : why.chips)}
       </p>
       {number && <NumberField busy={busy} onSend={onNumber} />}
     </Dock>

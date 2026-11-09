@@ -69,6 +69,11 @@ export class ServerModel implements Model {
     return this.on && Boolean(API_BASE && this.session) && this.now() >= this.pausedUntil;
   }
 
+  /** Set up and signed in, but not asked for now: it failed in the last minute, and is tried again after it. */
+  get paused(): boolean {
+    return this.on && Boolean(API_BASE && this.session) && this.now() < this.pausedUntil;
+  }
+
   private async check(session: Session): Promise<void> {
     try {
       const res = await fetch(`${API_BASE}${STATUS_PATH}`, {

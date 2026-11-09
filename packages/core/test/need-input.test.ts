@@ -1,3 +1,4 @@
+import { City } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import {
   CITY_RATES,
@@ -10,7 +11,9 @@ import {
   type NeedState,
   needInput,
   needPrompt,
+  needRequest,
   startNeed,
+  typingNeed,
 } from "../src/index.js";
 
 /** With no model reading (ADR 0064), Find serves with chips: no sentence is offered, and a number keeps a field. */
@@ -26,6 +29,8 @@ const picked = (trade: string) => chooseNeed(chipsOnlyNeed(startNeed(config)), t
 /** The same need at another question. */
 const at = (s: NeedState, slot: NeedSlot): NeedState => ({ ...s, slot });
 const without = (s: NeedState) => needInput(s, false);
+const DONT_KNOW = "driver_dont_know";
+const REPAIRS = ["electrician", "plumber", "carpenter", "ac_technician"];
 
 describe("what a question takes", () => {
   it("takes words at every question while a model reads", () => {
@@ -54,15 +59,15 @@ describe("what a question takes", () => {
   });
 
   it("offers only Skip at a clarifying question that wants a description", () => {
-    const need = picked("electrician");
-    expect(lines(need)).toEqual(["question.problem"]);
+    const need = picked("driver");
+    expect(lines(need)).toEqual(["question.route"]);
     expect(without(need)).toBe(NeedInput.chips);
     expect(values(need)).toEqual(["skip"]);
-    expect(chooseNeed(need, "skip").slot).toBe(NeedSlot.area);
+    expect(chooseNeed(need, "skip").slot).toBe(NeedSlot.arrangement);
   });
 
   it("keeps a number field for a price question that is a count, and chips alone for one of a few values", () => {
-    const points = chooseNeed(chooseNeed(picked("electrician"), "skip"), AREA);
+    const points = chooseNeed(chooseNeed(picked("electrician"), DONT_KNOW), AREA);
     expect(lines(points)).toEqual(["driver.ask.points.electrician"]);
     expect(without(points)).toBe(NeedInput.number);
     const paintBy = chooseNeed(hearNeed(picked("painter"), "3"), AREA);
@@ -74,7 +79,7 @@ describe("what a question takes", () => {
     const rooms = hearNeed(picked("maid"), "3");
     expect(rooms.draft.detail).toBe("3");
     expect(rooms.draft.budget_paise).toBeUndefined();
-    const points = hearNeed(chooseNeed(chooseNeed(picked("electrician"), "skip"), AREA), "4");
+    const points = hearNeed(chooseNeed(chooseNeed(picked("electrician"), DONT_KNOW), AREA), "4");
     expect(points.draft.drivers).toEqual({ points: 4 });
     const budget = hearNeed(at(picked("plumber"), NeedSlot.budget), "700");
     expect(budget.draft.budget_paise).toBe(70_000);
@@ -95,6 +100,56 @@ describe("what a question takes", () => {
     expect(need.slot).toBe(NeedSlot.trade);
     expect(values(need)).toEqual([]);
     expect(without(need)).toBe(NeedInput.words);
+  });
+});
+
+describe("what is wrong, for a repair, with no model", () => {
+  it("is asked as the kinds of problem, then I don't know, for every repair trade", () => {
+    for (const trade of REPAIRS) {
+      const need = picked(trade);
+      expect(lines(need)).toEqual(["question.problem"]);
+      expect(without(need)).toBe(NeedInput.chips);
+      const chips = values(need);
+      expect(chips.length).toBeGreaterThan(2);
+      expect(chips.at(-1)).toBe(DONT_KNOW);
+      expect(chips.at(-2)).toBe("driver:other");
+      expect(chips).not.toContain("skip");
+    }
+    expect(values(picked("electrician")).slice(0, 2)).toEqual(["driver:fan", "driver:switch"]);
+  });
+
+  it("keeps the kind tapped as the estimate's driver and its name as what the worker reads", () => {
+    const need = chooseNeed(picked("electrician"), "driver:fan");
+    expect(need.slot).toBe(NeedSlot.area);
+    expect(need.draft.drivers).toEqual({ problem: "fan" });
+    expect(need.draft.detail).toBe("A fan");
+    expect(need.draft.notKnown).toBeUndefined();
+    // The kind is known, so it is not asked again as a price question: the next one is how many.
+    const points = chooseNeed(need, AREA);
+    expect(lines(points)).toEqual(["driver.ask.points.electrician"]);
+    const priced = hearNeed(points, "2");
+    expect(needRequest(City.enum.bengaluru, priced.draft)?.drivers).toMatchObject({ problem: "fan", points: 2 });
+  });
+
+  it("takes I don't know as a skip: the estimate assumes the kind", () => {
+    const need = chooseNeed(picked("plumber"), DONT_KNOW);
+    expect(need.slot).toBe(NeedSlot.area);
+    expect(need.draft.detail).toBeNull();
+    expect(need.draft.notKnown).toEqual(["problem"]);
+  });
+
+  it("changes nothing on a kind the trade does not have", () => {
+    const need = picked("plumber");
+    expect(chooseNeed(need, "driver:fan")).toBe(need);
+  });
+
+  it("asks in words again once a model reads, and never offers the kinds while one does", () => {
+    const need = picked("electrician");
+    const typed = typingNeed(need);
+    expect(values(typed)).toEqual(["skip"]);
+    expect(chooseNeed(typed, "driver:fan")).toBe(typed);
+    expect(typingNeed(typed)).toBe(typed);
+    expect(values(chooseNeed(startNeed(config), "electrician"))).toEqual(["skip"]);
   });
 });
 

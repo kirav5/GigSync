@@ -38,6 +38,8 @@ const household = (page: Page) =>
 
 const need = {
   need: "Need a plumber, the kitchen tap leaks",
+  // With no model nothing is typed: the plumber is picked from the list.
+  trade: "plumber",
   area: "HSR Layout",
   when: "when.tomorrow" as const,
   budget: BUDGET,
@@ -58,10 +60,11 @@ test("with a model on the API, Auto asks it, the Privacy page says so, and the b
   await shoot("privacy", { household: page }, FOLDER);
 });
 
-test("without a model on the API, nothing is sent and lite mode answers", async ({ page }) => {
+test("without a model on the API, nothing is sent and lite mode answers, by chips alone", async ({ page }) => {
   const prompts = await serverModel(page, false);
   await household(page);
   await expect(chip(page)).toContainText(t(en, "shell.model_lite"));
+  await expect(page.getByText(t(en, "need.no_typing"), { exact: true })).toBeVisible();
   await tellNeed({ page, lang: en }, need);
   expect(prompts).toEqual([]);
 });
