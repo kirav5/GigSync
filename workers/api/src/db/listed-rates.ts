@@ -1,8 +1,7 @@
 import { type ListedRates, type ListedRatesQuery, MIN_LISTED_RATES } from "@gigsync/protocol";
 import type { Db } from "./client.js";
+import { EARTH_RADIUS_KM, KM_PER_DEGREE, lonBand } from "./search-band.js";
 
-const EARTH_RADIUS_KM = 6371;
-const KM_PER_DEGREE = 111;
 /** Ranges are shown to ₹50: enough to set a budget by, too coarse to pick out one worker's rate. */
 const ROUND_PAISE = 5000;
 
@@ -20,6 +19,7 @@ const rounded = (paise: number) => Math.max(ROUND_PAISE, Math.round(paise / ROUN
  * work when they set one (ADR 0062), else their card's.
  */
 export async function listedRates(db: Db, q: ListedRatesQuery): Promise<ListedRates> {
+  const { west, east } = lonBand(q.lat, q.lon, q.radius_km);
   const { rows } = await db.query<RatesRow>(
     `SELECT count(*)::int AS workers,
        percentile_cont(0.25) WITHIN GROUP (ORDER BY COALESCE(s.rate_paise, p.rate_paise)) AS low,
@@ -29,10 +29,11 @@ export async function listedRates(db: Db, q: ListedRatesQuery): Promise<ListedRa
      JOIN worker_profiles p ON p.user_id = s.user_id
      JOIN users u ON u.user_id = p.user_id AND u.status = 'active'
      WHERE p.area_lat BETWEEN $2 - $4 / $6::float8 AND $2 + $4 / $6::float8
+       AND p.area_lon BETWEEN $7::float8 AND $8::float8
        AND 2 * $5::float8 * asin(sqrt(
          power(sin(radians(p.area_lat - $2) / 2), 2)
          + cos(radians($2)) * cos(radians(p.area_lat)) * power(sin(radians(p.area_lon - $3) / 2), 2))) <= $4`,
-    [q.category ?? q.skill, q.lat, q.lon, q.radius_km, EARTH_RADIUS_KM, KM_PER_DEGREE],
+    [q.category ?? q.skill, q.lat, q.lon, q.radius_km, EARTH_RADIUS_KM, KM_PER_DEGREE, west, east],
   );
   const { workers = 0, low = null, high = null } = rows[0] ?? {};
   if (workers < MIN_LISTED_RATES || low === null || high === null) return { workers };
