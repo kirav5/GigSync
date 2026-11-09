@@ -1,6 +1,14 @@
 import { type EngagementId, PROBLEM_HOLD_DAYS, PROBLEM_PROTOCOL } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import { type Clock, ProblemBy, ProblemError, REMOVED_MARK, SETTLE_CAP_DAYS, settle } from "../src/index.js";
+import {
+  type Clock,
+  ProblemBy,
+  ProblemError,
+  REMOVED_MARK,
+  SETTLE_CAP_DAYS,
+  SWEEP_EVERY_MS,
+  settle,
+} from "../src/index.js";
 import {
   ASHA,
   cook,
@@ -69,7 +77,7 @@ const job = (p: Phone, id: EngagementId) => p.device.job(id);
 
 describe("contact details of a one-time job", () => {
   it("go from both phones once it is done and the worker confirmed payment; the record stays", async () => {
-    const { worker, household, both } = await pair();
+    const { worker, household, clock, both } = await pair();
     const id = await signedFan(household, worker, both);
     expect((await job(worker, id)).contact).toMatchObject({ phone: PRIYA.phone, point: PRIYA_DOOR });
     await worker.device.deliver(id, "Done, call 98450 12345 if it stops");
@@ -95,12 +103,13 @@ describe("contact details of a one-time job", () => {
     expect(need?.door).toBeUndefined();
     expect(await household.device.payments.forEngagement(id)).toHaveLength(1);
 
-    // Words that reach the job later (a note that was on its way) are cleaned on the next sync too.
+    // Words that reach the job later are cleaned too, the next time a sync looks through the jobs.
     const later = await job(household, id);
     await household.device.store.saveJob({
       ...later,
       notes: [...(later.notes ?? []), { text: "or 9876543210", lang: "en" }],
     });
+    clock.at += SWEEP_EVERY_MS;
     await household.device.sync();
     expect((await job(household, id)).notes?.at(-1)?.text).toBe(`or ${REMOVED_MARK}`);
   });

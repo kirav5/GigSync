@@ -9,6 +9,7 @@ import {
   MemoryStorage,
   RECORDS_RETRY_MS,
   recordsAgreed,
+  SWEEP_EVERY_MS,
   SystemClock,
   settle,
 } from "../src/index.js";
@@ -82,10 +83,15 @@ describe("job records on GigSync", () => {
   });
 
   it("send nothing before the owner agreed to the notice, and all of it after", async () => {
-    const { worker, household, ravisApi, both } = await pair(false);
+    const clock = new MovableClock();
+    const { worker, household, ravisApi, both } = await pair(false, clock);
     await signedJob(household, worker, both);
     expect(ravisApi.taken).toEqual([]);
     await agreeToRecords(ravisApi, worker.storage);
+    // A sync that moves nothing looks at the records only once in a while.
+    await worker.device.sync();
+    expect(ravisApi.taken).toEqual([]);
+    clock.at += SWEEP_EVERY_MS;
     await worker.device.sync();
     expect(ravisApi.kinds()).toEqual(["job"]);
   });
@@ -99,7 +105,8 @@ describe("job records on GigSync", () => {
     ravisApi.failing = undefined;
     await worker.device.sync();
     expect(ravisApi.taken).toEqual([]);
-    clock.at += RECORDS_RETRY_MS;
+    // The wait is over, and so is the pause between two looks at the records on quiet syncs.
+    clock.at += Math.max(RECORDS_RETRY_MS, SWEEP_EVERY_MS);
     await worker.device.sync();
     await worker.device.sync();
     expect(ravisApi.kinds()).toEqual(["job"]);
@@ -137,7 +144,8 @@ describe("job records on GigSync", () => {
   });
 
   it("are deleted on request, and the phone stops sending until the owner agrees again", async () => {
-    const { worker, household, ravisApi, both } = await pair();
+    const clock = new MovableClock();
+    const { worker, household, ravisApi, both } = await pair(true, clock);
     const id = await signedJob(household, worker, both);
     await deleteMyRecords(ravisApi, worker.storage);
     expect(ravisApi.deleted).toBe(1);
@@ -147,6 +155,7 @@ describe("job records on GigSync", () => {
     await settle(both);
     expect(ravisApi.kinds()).toEqual(["job"]);
     await agreeToRecords(ravisApi, worker.storage);
+    clock.at += SWEEP_EVERY_MS;
     await worker.device.sync();
     expect(ravisApi.kinds()).toEqual(["job", "job", "status"]);
   });
