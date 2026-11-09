@@ -94,6 +94,8 @@ const LANG_KEY = scoped("__lang").href;
 const NAMES_KEY = scoped("__names").href;
 const SW_LANG = "gigsync-lang";
 const SW_NAMES = "gigsync-names";
+/** Told to every open page when a push lands, so it checks its mailbox now; the same value as in adapters/push.ts. */
+const SW_PUSHED = "gigsync-pushed";
 const ALERT_TAG = "gigsync-job";
 const ICON = scoped("icons/icon-192.png").href;
 const DEFAULT_LANG = "en";
@@ -188,6 +190,9 @@ function newsOf(event) {
 /** Who sent it and what came, in the owner's language; unless the app is on screen, which shows it itself. */
 async function alertOwner(news) {
   const windows = await self.clients.matchAll({ type: WINDOW, includeUncontrolled: true });
+  // An open app checks its mailbox seldom while nothing moves (useGig.ts): this tells it something has. Only that
+  // a push came, never what it carried.
+  for (const w of windows) w.postMessage({ type: SW_PUSHED });
   if (windows.some((w) => w.visibilityState === VISIBLE)) return;
   const lang = await kept(LANG_KEY, DEFAULT_LANG);
   const says = SAYS[lang] ?? SAYS[DEFAULT_LANG];

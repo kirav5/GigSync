@@ -16,7 +16,7 @@ import type { Payment } from "@gigsync/protocol";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { nameOf } from "./adapters/account.js";
 import { awake, onWake } from "./adapters/awake.js";
-import { offerAlerts } from "./adapters/push.js";
+import { offerAlerts, onPush } from "./adapters/push.js";
 import { syncPaused } from "./move/pause.js";
 
 /**
@@ -163,15 +163,19 @@ export function useGig(ports: Ports, device: GigDevice | undefined) {
       if (awake()) timer = setTimeout(check, next);
     };
     void run();
-    const stopWatching = onWake(() => {
+    // Back on screen or online, or a push landed while open: check now, and fast again from there.
+    const checkNow = () => {
       clearTimeout(timer);
       pace.current.delayMs = SYNC_FAST_MS;
       check();
-    });
+    };
+    const stopWake = onWake(checkNow);
+    const stopPush = onPush(checkNow);
     return () => {
       clearTimeout(timer);
       rearm.current = nothing;
-      stopWatching();
+      stopWake();
+      stopPush();
     };
   }, [device, run]);
 
