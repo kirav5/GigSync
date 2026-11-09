@@ -11,7 +11,7 @@ export const PHONE_COLLECTIONS: ReadonlySet<string> = new Set([Collection.settin
 export const OWNED_COLLECTIONS: readonly string[] = Object.values(Collection).filter((c) => !PHONE_COLLECTIONS.has(c));
 
 /** Between a collection's name and its owner's id; a user id (`usr_<ULID>`) never holds it. */
-const OWNER_SEP = "@";
+export const OWNER_SEP = "@";
 
 /** Where one owner's records of a collection are kept on the phone's storage. */
 export const ownedName = (collection: string, owner: UserId) => `${collection}${OWNER_SEP}${owner}`;

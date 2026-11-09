@@ -75,14 +75,18 @@ test("a move that failed says so and can be tapped again, and a note says it is 
   const job = jobWith(workerPage, names.household);
   await expect(button(job, "update.on_my_way")).toBeEnabled();
 
-  // A phone whose storage is full cannot keep the move: the card lets go and says so.
+  // A phone whose storage is full cannot keep the move: the card lets go and says so. Full is full for the encrypted
+  // store (IndexedDB) and for the old one a phone may still be on (localStorage) alike.
   const restore = await workerPage.evaluateHandle(() => {
-    const real = Storage.prototype.setItem;
-    Storage.prototype.setItem = () => {
+    const real = { set: Storage.prototype.setItem, put: IDBObjectStore.prototype.put };
+    const full = () => {
       throw new DOMException("no room", "QuotaExceededError");
     };
+    Storage.prototype.setItem = full;
+    IDBObjectStore.prototype.put = full;
     return () => {
-      Storage.prototype.setItem = real;
+      Storage.prototype.setItem = real.set;
+      IDBObjectStore.prototype.put = real.put;
     };
   });
   await button(job, "update.on_my_way").click();

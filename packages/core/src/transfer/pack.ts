@@ -10,9 +10,11 @@ export const MOVE_VERSION = 1;
 
 /**
  * Records that belong to this device rather than its owner: envelopes still queued are signed by the old phone's key,
- * which the directory forgets once that phone is signed out, so they could never be delivered from the new one.
+ * which the directory forgets once that phone is signed out, so they could never be delivered from the new one. When
+ * this phone last pruned its seen ids is its own housekeeping: two phones always differ on it, and moving it would
+ * ask the owner which to keep.
  */
-export const DEVICE_BOUND: ReadonlySet<string> = new Set([Collection.outbox]);
+export const DEVICE_BOUND: ReadonlySet<string> = new Set([Collection.outbox, Collection.inboxSweep]);
 
 /** Every collection that moves: all the owner's own, except what is bound to the device. */
 export const MOVED_COLLECTIONS: readonly string[] = OWNED_COLLECTIONS.filter((c) => !DEVICE_BOUND.has(c));

@@ -29,6 +29,8 @@ export const Collection = {
   episodes: "episodes",
   inboxCursor: "inbox_cursor",
   inboxSeen: "inbox_seen",
+  /** When this owner's `inbox_seen` was last pruned of ids too old to come again, one record (mail/inbox.ts). */
+  inboxSweep: "inbox_sweep",
   outbox: "outbox",
   outboxSeq: "outbox_seq",
   payments: "payments",

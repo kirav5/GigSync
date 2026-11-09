@@ -1,20 +1,21 @@
 import { readFileSync } from "node:fs";
-import { HttpMethod, RecordsAnswer, t } from "@gigsync/core";
+import { Collection, HttpMethod, ownedName, RecordsAnswer, t } from "@gigsync/core";
 import { DEFAULT_LANG } from "@gigsync/protocol";
 import { expect, type Page, type Response } from "@playwright/test";
 import { API } from "./helpers.js";
+import { signedIn, stored } from "./phone-store.js";
 
-/** The owner's stored answer, under any owner: the app writes it as `...owner_settings...:records_consent`. */
-const ANSWER_KEY = /owner_settings.*:records_consent$/;
+/** Where the app keeps the owner's answer, in their own settings. */
+const ANSWER_ID = "records_consent";
 const CONSENT_PATH = "/v1/consent";
 const ANSWER_MS = 60_000;
 
 /** What this phone keeps as the owner's answer to the Terms and Privacy Notice, if anything (ADR 0039 §4). */
 export async function storedAnswer(page: Page): Promise<string | undefined> {
-  return page.evaluate((pattern) => {
-    const key = Object.keys(localStorage).find((k) => new RegExp(pattern).test(k));
-    return key ? (JSON.parse(localStorage.getItem(key) ?? "{}") as { answer?: string }).answer : undefined;
-  }, ANSWER_KEY.source);
+  const owner = await signedIn(page);
+  if (!owner) return undefined;
+  const kept = await stored(page, ownedName(Collection.ownerSettings, owner), ANSWER_ID);
+  return (kept as { answer?: string } | undefined)?.answer;
 }
 
 /** Waits until the phone keeps the owner's agreement: the server took it first, so GigSync holds it too. */
