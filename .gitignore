@@ -26,3 +26,4 @@ tests/ui/screenshots
 # Gradle output of local Capacitor plugins
 plugins/*/android/build/
 tests/ui/prod-runs
+tests/load/runs

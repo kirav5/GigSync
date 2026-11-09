@@ -1,0 +1,25 @@
+{
+  "name": "@gigsync/load-tests",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Load tests: the model on GigSync's computer by itself, and the app's journeys through the API. Never against production without the owner's yes; see README.md.",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "load:model": "jiti model/run.ts",
+    "load:app": "jiti app/run.ts",
+    "load:report": "jiti report.ts"
+  },
+  "dependencies": {
+    "@gigsync/core": "workspace:*",
+    "@gigsync/crypto": "workspace:*",
+    "@gigsync/protocol": "workspace:*",
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "@types/pg": "8.23.1",
+    "jiti": "2.7.0",
+    "typescript": "5.9.3"
+  }
+}
