@@ -4,7 +4,8 @@ import { expect, type Page, test } from "@playwright/test";
 import { API, newPhone, open, Role, RUN, shoot, signIn, textOf } from "./helpers.js";
 
 /**
- * ADR 0041 through the real screens: a household types "4 BHK villa painting, outside too, 2 floors" in Find and is
+ * ADR 0041 through the real screens: a household types "Painter for a 4 BHK villa, outside too, 2 floors" in Find (the
+ * trade named, as the test stack's model reads nothing and the word lists never guess the work, ADR 0064) and is
  * asked only what still moves the price (who buys the paint, the area, the finish), then sees a range with how sure
  * it is and what it rests on. The test stack has no phone model (lite mode: the fixed questions), and estimates use
  * no cloud model: with no painting jobs on GigSync the range rests on the Bengaluru rate card alone, whose painting
@@ -14,7 +15,7 @@ import { API, newPhone, open, Role, RUN, shoot, signIn, textOf } from "./helpers
 
 const { en } = Lang.enum;
 const FOLDER = "price-drivers";
-const VILLA = "4 BHK villa painting, outside too, 2 floors";
+const VILLA = "Painter for a 4 BHK villa, outside too, 2 floors";
 const ESTIMATES = `${API}/v1/estimates`;
 const RUPEE = 100;
 

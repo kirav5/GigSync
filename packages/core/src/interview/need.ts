@@ -96,6 +96,8 @@ export interface NeedState {
   readonly guessed?: boolean | undefined;
   /** Picking from the list: the group open, its kinds on screen (ADR 0061). */
   readonly browsing?: WorkGroup | undefined;
+  /** No model reads words now, as the app last said (`need-input.ts`): questions are asked so that chips answer them. */
+  readonly chipsOnly?: boolean | undefined;
 }
 
 /** The trade's first question, which the request answers up front so the worker's agent need not ask it. */

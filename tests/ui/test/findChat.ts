@@ -133,11 +133,15 @@ export async function tellNeed(phone: Phone, ask: NeedAnswers) {
   const { page, lang } = phone;
   await expect(newest(page)).toBeVisible();
   let before = await agentTurns(page, lang).count();
-  await say(phone, ask.need);
+  // With no model to read words the chat takes no sentence (ADR 0064): the need is given by its chips, from the list
+  // of work on (`ask.trade`), and by the number field for the budget.
+  let said = await page.getByRole("button", { name: t(lang, "speech.listen"), exact: true }).isVisible();
+  if (said) await say(phone, ask.need);
   let timeSaid = !ask.time;
   for (let turn = 0; turn < TURNS_MAX; turn++) {
     // The agent has answered the last thing said: its newest turn is the one to answer.
-    await expect(agentTurns(page, lang)).not.toHaveCount(before);
+    if (said) await expect(agentTurns(page, lang)).not.toHaveCount(before);
+    said = true;
     before = await agentTurns(page, lang).count();
     const readback = await answer(phone, ask);
     if (readback && timeSaid) return chip(page, t(lang, "flag.yes")).click();

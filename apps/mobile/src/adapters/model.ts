@@ -145,6 +145,23 @@ export class ChosenModel implements Model {
 
   /** Which engine answers right now: the device's own model, Ollama, or none at all (lite mode). */
   answering(): ModelChoice {
+    return this.engine(this.secret);
+  }
+
+  /**
+   * Some model can read what the owner writes right now. The secret hold is left out: it only picks which model reads
+   * one answer, and the screens that offer typing must not change with it.
+   */
+  reads(): boolean {
+    return this.engine(false) !== ModelChoice.lite;
+  }
+
+  /** Nothing reads now only because GigSync's model is paused after failing: it is asked again within the minute. */
+  pausedForNow(): boolean {
+    return this.settings.choice === ModelChoice.auto && this.server.paused && !this.reads();
+  }
+
+  private engine(secret: boolean): ModelChoice {
     switch (this.settings.choice) {
       case ModelChoice.lite:
         return ModelChoice.lite;
@@ -153,7 +170,7 @@ export class ChosenModel implements Model {
       case ModelChoice.device:
         return this.device.status?.available ? ModelChoice.device : ModelChoice.lite;
       default:
-        if (!this.secret && this.server.available) return ModelChoice.server;
+        if (!secret && this.server.available) return ModelChoice.server;
         return this.device.usable() ? ModelChoice.device : ModelChoice.lite;
     }
   }

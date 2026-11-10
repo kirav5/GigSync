@@ -2,6 +2,7 @@ import {
   type AddressChoice,
   askingFirst,
   askingModel,
+  chipsOnlyNeed,
   chooseNeed,
   chooseNeedDate,
   type FoundEstimate,
@@ -26,6 +27,7 @@ import {
   searchFailed,
   type TurnRead,
   tappedNeed,
+  typingNeed,
   withFirstQuestion,
   withJobType,
   withNobody,
@@ -94,6 +96,20 @@ export function answerNeed(
 /** An answer by tapping a choice; `label` is the choice as the owner read it. */
 export function tapNeed(chat: string, value: string, label: string): void {
   moved(chat, (state) => chooseNeed(state, value), [ownerSaid(label)]);
+}
+
+/**
+ * Whether a model reads words changed. The need is told, and its question is asked again below only if it now reads
+ * differently: an opening that invited a sentence shows the list, a repair's "what is wrong?" its kinds of problem.
+ */
+export function typingIn(chat: string, reads: boolean): void {
+  changeChat(chat, (c) => {
+    if (!c.need) return c;
+    const next = reads ? typingNeed(c.need) : chipsOnlyNeed(c.need);
+    if (next === c.need) return c;
+    const same = JSON.stringify(needPrompt(next)) === JSON.stringify(needPrompt(c.need));
+    return { ...withNeedTurns(c, same ? c.turns : [...c.turns, ...asked(next)]), need: next };
+  });
 }
 
 /** Other work named part-way: asked about first; the owner's words go in the chat. */
