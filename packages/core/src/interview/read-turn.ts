@@ -1,5 +1,5 @@
 import type { BoardSkill, Lang, Trade, WorkCategory } from "@gigsync/protocol";
-import { Arrangement, ModelPurpose } from "@gigsync/protocol";
+import { Arrangement, ModelPurpose, TurnKind } from "@gigsync/protocol";
 import { z } from "zod";
 import { t } from "../i18n/t.js";
 import { numbersIn } from "../job/details.js";
@@ -26,9 +26,6 @@ const LANG_NAME: Readonly<Record<Lang, string>> = { en: "English", hi: "Hindi", 
 const RECENT_TURNS = 6;
 /** The list goes to the model in English, whatever the owner speaks: it reads every language against one list. */
 const ENGLISH = "en";
-
-export const TurnKind = z.enum(["greeting", "need", "answer", "market", "other"]);
-export type TurnKind = z.infer<typeof TurnKind>;
 
 const Reply = z.object({
   kind: TurnKind,

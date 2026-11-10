@@ -1,0 +1,74 @@
+import { z } from "zod";
+
+/**
+ * The phone's reader (ADR 0065): one message, and the question open, read into the kind of message and the spans of
+ * it that say each detail of a need. It marks positions in the owner's words and never writes words of its own, so code
+ * reads every span's meaning (areas, times, arrangements, kinds of work) as it reads the owner's words now. The same
+ * shapes carry the training data, the test set and the reader's answers on the phone.
+ */
+
+/** The longest message the reader takes, in characters: a chat message, not a letter. */
+export const READER_TEXT_MAX = 1000;
+/** More spans than this in one message is not a reading: one or two of each detail at most. */
+export const READER_SPANS_MAX = 12;
+
+/** What a message in Find is (ADR 0056), as GigSync's model and the phone's reader both name it. */
+export const TurnKind = z.enum(["greeting", "need", "answer", "market", "other"]);
+export type TurnKind = z.infer<typeof TurnKind>;
+
+/**
+ * The details of a need the reader marks, and the question sets ask for while one is missing: the kind of work in the
+ * owner's words, where, when, what (the scope, or what is wrong) and for how long (how the work is hired).
+ */
+export const ReaderSlot = z.enum(["kind", "where", "when", "what", "how_long"]);
+export type ReaderSlot = z.infer<typeof ReaderSlot>;
+
+/** How sure the reader is, from 0 to 1. */
+const Confidence = z.number().min(0).max(1);
+
+/** One detail's words: characters `start` up to, not including, `end` of the message. */
+const SpanFields = z.object({
+  slot: ReaderSlot,
+  start: z.number().int().nonnegative(),
+  end: z.number().int().positive().max(READER_TEXT_MAX),
+});
+type SpanFields = z.infer<typeof SpanFields>;
+
+const inOrder = (s: SpanFields) => s.end > s.start;
+const IN_ORDER = { message: "a span ends after it starts" };
+
+export const ReaderSpan = SpanFields.refine(inOrder, IN_ORDER);
+export type ReaderSpan = z.infer<typeof ReaderSpan>;
+
+/** A span as the reader gives it, with how sure it is of it. */
+export const ReadSpan = SpanFields.extend({ confidence: Confidence }).refine(inOrder, IN_ORDER);
+export type ReadSpan = z.infer<typeof ReadSpan>;
+
+/** What the reader is given: the message, and the detail the open question asks for ("mornings" answers `when`). */
+export const ReaderInput = z.object({
+  text: z.string().min(1).max(READER_TEXT_MAX),
+  asking: ReaderSlot.optional(),
+});
+export type ReaderInput = z.infer<typeof ReaderInput>;
+
+/** Spans that lie inside the message and do not overlap: one word is one detail at most. */
+function spansFit(text: string, spans: readonly SpanFields[]): boolean {
+  const sorted = [...spans].sort((a, b) => a.start - b.start);
+  return sorted.every((s, i) => s.end <= text.length && (i === 0 || (sorted[i - 1]?.end ?? 0) <= s.start));
+}
+const SPANS_FIT = { message: "spans lie inside the message and do not overlap", path: ["spans"] };
+
+/** One training or test message, labelled: what it is and where each detail it says stands. */
+export const ReaderExample = ReaderInput.extend({
+  turn: TurnKind,
+  spans: z.array(ReaderSpan).max(READER_SPANS_MAX),
+}).refine((e) => spansFit(e.text, e.spans), SPANS_FIT);
+export type ReaderExample = z.infer<typeof ReaderExample>;
+
+/** The reader's answer for one message; code checks the spans against the message it was given. */
+export const ReaderResult = z.object({
+  turn: TurnKind,
+  turn_confidence: Confidence,
+  spans: z.array(ReadSpan).max(READER_SPANS_MAX),
+});
+export type ReaderResult = z.infer<typeof ReaderResult>;

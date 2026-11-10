@@ -107,7 +107,7 @@ export {
   pricePrompt,
 } from "./interview/price-model.js";
 export { PROBLEM_MIN_SIMILARITY, problemByMeaning, problemIndex } from "./interview/problem-meaning.js";
-export { readTurn, type TurnContext, TurnKind, type TurnRead } from "./interview/read-turn.js";
+export { readTurn, type TurnContext, type TurnRead } from "./interview/read-turn.js";
 export { readScope, SCOPE_READ, type ScopeChip, ScopeKey, scopeFromWords } from "./interview/scope-read.js";
 export { TRADE_MIN_SIMILARITY, tradeByMeaning, tradeIndex } from "./interview/trade-meaning.js";
 export { tradeTitled } from "./interview/trade-titled.js";
