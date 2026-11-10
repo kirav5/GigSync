@@ -4,14 +4,14 @@
 // or the checks is a new data version: RECIPE_VERSION goes into every run's manifest.
 import { protocol } from "./core.mjs";
 
-export const RECIPE_VERSION = 4;
+export const RECIPE_VERSION = 5;
 
 const Turn = protocol.TurnKind.enum;
 const Slot = protocol.ReaderSlot.enum;
 const STRING = "string";
 const OR_NULL = [STRING, "null"];
 
-/** What each detail means, the same words for the writer and the labeller. */
+/** What each detail means, for the labeller, with examples of each. */
 const MEANING = {
   [Slot.kind]:
     'words in the message that name the kind of worker or service ("plumber", "house help", "AC repair"); null when it only describes the problem',
@@ -23,6 +23,16 @@ const MEANING = {
     'the words saying how the work is hired: how often or for how long ("monthly", "3 days a week", "for 2 hours", "just once")',
   [Slot.what]:
     'the words saying what the job is or what is wrong ("kitchen sink is blocked", "2bhk deep clean"), never words already marked as another detail',
+};
+
+/** The same meanings for the writer, without examples: a writer given an example copies it into its messages. */
+const PLAIN = {
+  [Slot.kind]: "words that name the kind of worker or service",
+  [Slot.where]: "words naming the area, locality or landmark, never home, a room or a part of the house",
+  [Slot.when]: "words saying when the work starts, which day or time, or how soon",
+  [Slot.how_long]: "words saying how the work is hired: how often or for how long",
+  [Slot.what]:
+    "words saying what this particular job is or what is wrong, never words already marked as another detail",
 };
 
 const TURN_ASK = {
@@ -41,9 +51,11 @@ const QUESTION = {
   [Slot.what]: "What exactly is the work?",
 };
 
+const JOB = "the work and the household";
+
 const detailLine = (slot, words) =>
   words === true
-    ? `- ${slot}: include words of your own for this: ${MEANING[slot]}.`
+    ? `- ${slot}: a short description of this particular job in your own words, with a specific detail that fits ${JOB}.`
     : `- ${slot}: include exactly ${JSON.stringify(words)}, letter for letter.`;
 
 export function writePrompt(target) {
@@ -59,7 +71,7 @@ export function writePrompt(target) {
     'It must not name any other kind of work, place, day, time or how long, and no urgency ("urgently", "asap").',
     `Style: ${target.style}. At most 25 words. English only. No names, phone numbers or prices.`,
     "Then mark your own message: for each detail, copy its exact words from the message, or null when it does not say it:",
-    ...protocol.ReaderSlot.options.map((s) => `- ${s}: ${MEANING[s]}.`),
+    ...protocol.ReaderSlot.options.map((s) => `- ${s}: ${PLAIN[s]}.`),
     `{"message": "...", ${protocol.ReaderSlot.options.map((s) => `"${s}": ...`).join(", ")}}`,
   ].join("\n");
 }

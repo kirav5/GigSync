@@ -16,6 +16,8 @@ export const Files = {
   train: "train.jsonl",
   dev: "dev.jsonl",
   manifest: "manifest.json",
+  /** What the run set out to do, written when it starts, for the dashboard. */
+  run: "run.json",
 };
 /** One example in this many goes to dev, by its number, so the split is the same on every run of the same targets. */
 const DEV_EVERY = 10;

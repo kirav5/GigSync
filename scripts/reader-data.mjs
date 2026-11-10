@@ -5,9 +5,10 @@
 //   --out DIR        where the run's files go (default data/reader/v1, git-ignored); a run there already resumes
 //   --concurrency C  targets in flight at once (default 4)
 // The teacher is Ollama at TEACHER_URL (default the SSH tunnel's end, http://localhost:11435) running TEACHER_MODEL.
-import { mkdirSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { doneIds, finish, makeOne, record } from "./reader-data/run.mjs";
+import { doneIds, Files, finish, makeOne, record } from "./reader-data/run.mjs";
 import { drawTarget } from "./reader-data/sample.mjs";
 import { ask, TEACHER_MODEL, TEACHER_URL, teacherReady } from "./reader-data/teacher.mjs";
 
@@ -35,6 +36,8 @@ if (!(await teacherReady())) {
   process.exit(EXIT_NO_TEACHER);
 }
 mkdirSync(dir, { recursive: true });
+const run = { seed, count, concurrency, teacher: TEACHER_MODEL, started_at: new Date().toISOString() };
+writeFileSync(join(dir, Files.run), `${JSON.stringify(run, null, 2)}\n`);
 const done = doneIds(dir);
 const todo = Array.from({ length: count }, (_, id) => id).filter((id) => !done.has(id));
 console.log(`${todo.length} of ${count} targets to write (${done.size} done already) into ${dir}`);

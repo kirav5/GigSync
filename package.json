@@ -26,7 +26,8 @@
     "eval:find": "pnpm --filter @gigsync/core build && node scripts/eval-find.mjs",
     "eval:questions": "pnpm --filter @gigsync/core build && node scripts/eval-questions.mjs",
     "eval:intent": "pnpm --filter @gigsync/core build && node scripts/eval-intent.mjs",
-    "reader:data": "pnpm --filter @gigsync/core build && node scripts/reader-data.mjs"
+    "reader:data": "pnpm --filter @gigsync/core build && node scripts/reader-data.mjs",
+    "reader:watch": "node scripts/reader-data/dashboard.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.2",
