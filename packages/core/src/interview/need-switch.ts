@@ -1,11 +1,11 @@
-import type { Trade, WorkCategory } from "@gigsync/protocol";
+import { type Trade, TurnKind, type WorkCategory } from "@gigsync/protocol";
 import { t } from "../i18n/t.js";
 import { Pick, type Prompt } from "./card.js";
 import { YES_NO } from "./choices.js";
 import { yesNo } from "./lexicon.js";
 import type { NeedState } from "./need.js";
 import { Say } from "./need-say.js";
-import { TurnKind, type TurnRead } from "./read-turn.js";
+import type { TurnRead } from "./read-turn.js";
 
 /**
  * The owner asks about other work part-way ("my tv not working" while an AC is being booked). Nothing is thrown away on

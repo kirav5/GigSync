@@ -14,7 +14,6 @@ import {
   readScope,
   readTurn,
   sameWork,
-  TurnKind,
   t,
   tradeByMeaning,
   tradeTitled,
@@ -22,7 +21,7 @@ import {
   workOptions,
   worthReading,
 } from "@gigsync/core";
-import type { BoardSkill, Lang, Session, WorkCategory } from "@gigsync/protocol";
+import { type BoardSkill, type Lang, type Session, TurnKind, type WorkCategory } from "@gigsync/protocol";
 import { meaningFor } from "../adapters/meaning.js";
 import { answerMarket, routedMarket } from "../estimate/market.js";
 import {

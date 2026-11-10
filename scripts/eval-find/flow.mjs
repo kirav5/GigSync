@@ -1,6 +1,6 @@
 // One person through Find, driven as FindChat.tsx drives it: `say` and `tap` move the real interview (core's functions)
 // and the model is asked when the app would ask it. What the person says back comes from their conversation file.
-import { core } from "./core.mjs";
+import { core, protocol } from "./core.mjs";
 
 const { NeedSlot } = core;
 /** What reads a message: the three prompts and the lists, or one reader for every message. */
@@ -92,7 +92,7 @@ async function firstTurn(model, s, text, lang) {
   const read =
     (await core.readTurn(model, core.turnContext(s, text, OPTIONS), WAIT_MS)) ??
     (await core.readTurn(model, core.turnContext(s, text, OPTIONS), WAIT_MS));
-  if (read?.kind === core.TurnKind.enum.greeting) return s;
+  if (read?.kind === protocol.TurnKind.enum.greeting) return s;
   const titled = core.tradeTitled(text);
   const filed = async (c) => core.categorySkill(c, LISTED, lang) ?? (await core.sameWork(model, c, LISTED, WAIT_MS));
   const found = titled ? undefined : read?.category ? await filed(read.category) : read?.skill;
