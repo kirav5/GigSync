@@ -26,3 +26,6 @@ tests/ui/screenshots
 # Gradle output of local Capacitor plugins
 plugins/*/android/build/
 tests/ui/prod-runs
+
+# The reader's generated training data (ADR 0065): kept on the machine that trains, out of git.
+data/reader/
