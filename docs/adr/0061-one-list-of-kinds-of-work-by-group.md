@@ -1,6 +1,8 @@
 # ADR 0061: One list of kinds of work, by group
 
 Date: 2026-11-08. Status: accepted. Builds on [ADR 0059](0059-kinds-of-work-behind-a-workers-own-words.md).
+Amended 2026-11-10 by [ADR 0065](0065-a-reader-on-every-phone.md) §3: §5's first question is written once per kind of
+work, in every language, and asked typed or tapped on every phone; no model words it.
 
 ## Context
 

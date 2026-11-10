@@ -226,7 +226,7 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
       const browsed = chooseKindPick(s, value);
       if (browsed) return browsed;
       const trade = Trade.options.find((tr) => tr === value);
-      return tradeFor(s, trade) ? moveOn(s, { ...withTrade(d, trade), tapped: true }) : s;
+      return tradeFor(s, trade) ? moveOn(s, withTrade(d, trade)) : s;
     }
     case NeedSlot.detail: {
       if (value === Pick.skip) return moveOn(s, settledProblem({ ...d, detail: null }));

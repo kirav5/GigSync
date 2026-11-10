@@ -10,6 +10,7 @@ import { home } from "../src/i18n/en/home.js";
 import { install } from "../src/i18n/en/install.js";
 import { interview } from "../src/i18n/en/interview.js";
 import { job } from "../src/i18n/en/job.js";
+import { kindAsk } from "../src/i18n/en/kind-ask.js";
 import { landing } from "../src/i18n/en/landing.js";
 import { memory } from "../src/i18n/en/memory.js";
 import { mentor } from "../src/i18n/en/mentor.js";
@@ -62,6 +63,7 @@ const AREAS: Readonly<Record<string, object>> = {
   records,
   contacts,
   schedule,
+  kindAsk,
 };
 
 describe("string areas", () => {

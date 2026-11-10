@@ -130,8 +130,8 @@ export async function readLater(m: Message, secret: boolean, heard: NeedState): 
 }
 
 /**
- * A kind of work outside the trades tapped on the list (ADR 0061): its workers' skill, looked up fresh, and the model
- * words the first question; with nobody filed under it, the others in its group that have workers.
+ * A kind of work outside the trades tapped on the list (ADR 0061): its workers' skill, looked up fresh, asked its own
+ * first question (ADR 0065); with nobody filed under it, the others in its group that have workers.
  */
 export async function pickKind(m: Message, category: WorkCategory, label: string): Promise<void> {
   const { ports, session, state, chat, lang } = m;

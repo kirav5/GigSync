@@ -6,7 +6,7 @@ import { EVERY_DAY, isMonthly } from "../job/when.js";
 import { Pick as CardPick, type Choice, type Line, type Prompt } from "./card.js";
 import { YES_NO } from "./choices.js";
 import { jobTypeLines } from "./estimate-drivers.js";
-import { askingFirst } from "./first-question.js";
+import { kindAsk } from "./kind-ask.js";
 import {
   DayWord,
   firstQuestion,
@@ -153,11 +153,9 @@ function confirmPrompt(s: NeedState): Prompt {
 function detailPrompt(s: NeedState): Prompt {
   const first = firstQuestion(workOf(s.draft));
   if (!first) return { lines: [], hints: [] };
-  if (askingFirst(s)) return { lines: [{ key: "driver.thinking" }], hints: [] };
   const yesNo = YES_NO_QUESTIONS.has(first);
-  const asked = s.draft.detailAsk;
   return {
-    lines: [asked ? { key: "estimate.answer", params: { text: asked } } : { key: `question.${first}` }],
+    lines: [{ key: kindAsk(s.draft) ?? `question.${first}` }],
     choices: yesNo ? YES_NO : [{ value: CardPick.skip, key: "iv.skip" }],
     hints: yesNo ? yesNoHints(s) : [],
   };

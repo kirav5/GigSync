@@ -146,13 +146,13 @@ test("a household reaches every screen from the menu, and New chat starts Find a
   await page.getByRole("button", { name: say("need.pick_work"), exact: true }).click();
   await page.getByRole("button", { name: say("group.home_repairs"), exact: true }).click();
   await page.getByRole("button", { name: say("trade.plumber"), exact: true }).click();
-  await expect(log).toContainText(say("question.problem"));
+  await expect(log).toContainText(say("kind_ask.plumber"));
   await openDrawer(page);
   await drawer(page)
     .getByRole("button", { name: say("chats.new"), exact: true })
     .click();
   await expect(log).toContainText(say("need.start"));
-  await expect(log).not.toContainText(say("question.problem"));
+  await expect(log).not.toContainText(say("kind_ask.plumber"));
   await expect(log.getByRole("button", { name: say("need.pick_work"), exact: true })).toBeVisible();
 });
 

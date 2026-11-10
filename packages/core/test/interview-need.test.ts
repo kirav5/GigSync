@@ -91,9 +91,9 @@ describe("the need interview", () => {
     expect(lines.find((l) => l.key === "need.summary_budget")?.silent).toBe(true);
   });
 
-  it("asks the trade's first question when the problem was not said", () => {
+  it("asks the trade's first question, in its own words, when the problem was not said", () => {
     const s = hearNeed(startNeed(config("en")), "I need an electrician");
-    expect(keys(s)).toEqual(["question.problem"]);
+    expect(keys(s)).toEqual(["kind_ask.electrician"]);
     expect(hearNeed(s, "skip").draft.detail).toBeNull();
     expect(hearNeed(s, "the geyser trips").draft.detail).toBe("the geyser trips");
   });
