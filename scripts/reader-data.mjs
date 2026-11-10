@@ -10,7 +10,7 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { doneIds, Files, finish, makeOne, record } from "./reader-data/run.mjs";
 import { drawTarget } from "./reader-data/sample.mjs";
-import { ask, TEACHER_MODEL, TEACHER_URL, teacherReady } from "./reader-data/teacher.mjs";
+import { ask, TEACHER_MODEL, TEACHER_URL, TeacherDown, teacherReady, untilTeacher } from "./reader-data/teacher.mjs";
 
 const DECIMAL = 10;
 const DEFAULTS = { count: "500", seed: "1", out: "data/reader/v1", concurrency: "4" };
@@ -42,12 +42,25 @@ const done = doneIds(dir);
 const todo = Array.from({ length: count }, (_, id) => id).filter((id) => !done.has(id));
 console.log(`${todo.length} of ${count} targets to write (${done.size} done already) into ${dir}`);
 
+/** One target, asked again for as long as the teacher is down: an outage is never a dropped target. */
+async function madeWhenUp(target) {
+  for (;;) {
+    try {
+      return await makeOne(target, ask);
+    } catch (err) {
+      if (!(err instanceof TeacherDown)) throw err;
+      console.log(`${new Date().toISOString()} teacher down (${err.message}); waiting to retry target ${target.id}`);
+      await untilTeacher();
+    }
+  }
+}
+
 let finished = 0;
 const started = Date.now();
 async function worker() {
   for (let id = todo.shift(); id !== undefined; id = todo.shift()) {
     const target = drawTarget(seed, id);
-    record(dir, target, await makeOne(target, ask));
+    record(dir, target, await madeWhenUp(target));
     finished += 1;
     if (finished % PROGRESS_EVERY === 0) {
       const perTarget = (Date.now() - started) / finished / 1000;

@@ -10,6 +10,7 @@ import { protocol } from "./core.mjs";
 import { labelPrompt, writePrompt } from "./prompts.mjs";
 import { doneIds, Files, finish, makeOne, record } from "./run.mjs";
 import { drawTarget } from "./sample.mjs";
+import { TeacherDown, untilTeacher } from "./teacher.mjs";
 
 const SEED = 7;
 const DRAWS = 2000;
@@ -113,6 +114,18 @@ describe("judging a message", () => {
     const target = { ...NEED, slots: { kind: "maid", what: true } };
     const both = { ...MARKS, when: null, what: "maid tomorrow" };
     assert.equal(judge(target, { ...WRITTEN, ...both }, { turn: Turn.need, ...both }).dropped, Dropped.invalid);
+  });
+});
+
+describe("a teacher that is down", () => {
+  it("is waited for, not taken as a dropped target", async () => {
+    const down = async () => {
+      throw new TeacherDown("fetch failed");
+    };
+    await assert.rejects(makeOne(NEED, down), TeacherDown);
+    let checks = 0;
+    await untilTeacher(async () => ++checks >= 3, 1);
+    assert.equal(checks, 3);
   });
 });
 

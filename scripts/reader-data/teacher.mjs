@@ -25,10 +25,28 @@ export async function teacherReady(url = TEACHER_URL, model = TEACHER_MODEL) {
   }
 }
 
-/** The teacher's reply to one prompt, as an object; null on any failure. */
+/**
+ * The teacher could not be reached or failed (the tunnel down, Ollama restarting): not the target's fault, so the run
+ * waits and asks again instead of dropping it.
+ */
+export class TeacherDown extends Error {}
+
+/** How long a run waits between checks while the teacher is down. */
+export const RETRY_EVERY_MS = 30_000;
+
+/** Resolves once the teacher answers again, checking every `RETRY_EVERY_MS`. */
+export async function untilTeacher(ready = teacherReady, wait = RETRY_EVERY_MS) {
+  while (!(await ready())) await new Promise((resolve) => setTimeout(resolve, wait));
+}
+
+/**
+ * The teacher's reply to one prompt, as an object; null when the reply is not the JSON asked for (the model's doing,
+ * and the target is dropped). Throws `TeacherDown` when the teacher cannot be reached or answers with an error.
+ */
 export async function ask(prompt, { schema, temperature, maxTokens }, url = TEACHER_URL, model = TEACHER_MODEL) {
+  let res;
   try {
-    const res = await fetch(`${url}${GENERATE_PATH}`, {
+    res = await fetch(`${url}${GENERATE_PATH}`, {
       method: core.HttpMethod.post,
       body: JSON.stringify({
         model,
@@ -41,7 +59,11 @@ export async function ask(prompt, { schema, temperature, maxTokens }, url = TEAC
       }),
       signal: AbortSignal.timeout(REQUEST_LIMIT_MS),
     });
-    if (!res.ok) return null;
+  } catch (err) {
+    throw new TeacherDown(err instanceof Error ? err.name : String(err));
+  }
+  if (!res.ok) throw new TeacherDown(`HTTP ${res.status}`);
+  try {
     const { response } = await res.json();
     const parsed = JSON.parse(response ?? "");
     return parsed && typeof parsed === "object" ? parsed : null;
