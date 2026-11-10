@@ -1,12 +1,10 @@
-import { City } from "@gigsync/protocol";
+import { City, Lang, WorkCategory } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
+import type { MessageKey } from "../src/i18n/t.js";
 import {
   alsoSaid,
-  askingFirst,
   CITY_RATES,
-  checkFirstQuestion,
   chooseNeed,
-  firstQuestionPrompt,
   hear,
   NeedPick,
   NeedSlot,
@@ -16,13 +14,13 @@ import {
   othersInGroup,
   start,
   startNeed,
-  tappedNeed,
-  withFirstQuestion,
+  t,
   withNobody,
   withSkill,
 } from "../src/index.js";
+import { langOf, questionProblem } from "../src/job/guard.js";
 
-/** ADR 0061: kinds of work found by group, a tap met by the model's question, and no kind priced as a trade. */
+/** ADR 0061: kinds of work found by group, each asked its own first question (ADR 0065), none priced as a trade. */
 
 const AREAS = [{ key: "hsr_layout", names: ["HSR"] }];
 const config = { own: "en", areas: AREAS, rates: CITY_RATES, today: "2026-11-08", modelQuestions: true } as never;
@@ -54,36 +52,50 @@ describe("picking the work from the list", () => {
   });
 });
 
-describe("a kind of work picked by a tap", () => {
-  const tapped = () => chooseNeed(chooseNeed(fresh(), "group:home_repairs"), "plumber");
+describe("the first question for the work", () => {
+  const tapped = (kind: string, c = config) =>
+    chooseNeed(chooseNeed(chooseNeed(startNeed(c), NeedPick.list), "group:home_repairs"), kind);
+  const firstKey = (s: NeedState) => needPrompt(s).lines.at(-1)?.key;
+  const pet = { key: "cat care", text: "Pet care", lang: "en", category: "pet_care", workers: 1 } as const;
+  const trades = ["electrician", "plumber", "carpenter", "ac_technician"];
+  const ALL_ASKS = [...WorkCategory.options, ...trades].map((k) => `kind_ask.${k}`) as MessageKey[];
 
-  it("waits for the model to word the first question, then asks it in its words", () => {
-    const s = tapped();
+  it("asks a tapped trade its own question at once, with no model to wait for", () => {
+    const s = tapped("plumber");
     expect(s.slot).toBe(NeedSlot.detail);
-    expect(askingFirst(s)).toBe(true);
-    const asked = withFirstQuestion(s, "Which tap or pipe is leaking?");
-    expect(askingFirst(asked)).toBe(false);
-    expect(needPrompt(asked).lines[0]).toEqual({
-      key: "estimate.answer",
-      params: { text: "Which tap or pipe is leaking?" },
-    });
+    expect(firstKey(s)).toBe("kind_ask.plumber");
   });
 
-  it("asks the fixed question when the model has none", () => {
-    expect(needPrompt(withFirstQuestion(tapped(), undefined)).lines[0]?.key).toMatch(/^question\./);
+  it("asks it on a phone with no model as well", () => {
+    expect(firstKey(tapped("electrician", { ...config, modelQuestions: false } as never))).toBe("kind_ask.electrician");
   });
 
-  it("keeps the model's question to the owner's language and away from money", () => {
-    expect(checkFirstQuestion('{"question":"What is wrong with your TV?"}', "en")).toBe("What is wrong with your TV?");
-    expect(checkFirstQuestion('{"question":"What is your budget?"}', "en")).toBeUndefined();
-    expect(checkFirstQuestion('{"question":"What is wrong with your TV?"}', "hi")).toBeUndefined();
-    expect(firstQuestionPrompt("TV repair", "job", "en")).toContain('"TV repair"');
+  it("keeps a trade's fixed question where it already names the work", () => {
+    const maid = chooseNeed(chooseNeed(fresh(), "group:house_help"), "maid");
+    expect(firstKey(maid)).toBe("question.rooms");
   });
 
-  it("works for a kind outside the trades too", () => {
-    const pet = { key: "cat care", text: "Pet care", lang: "en", category: "pet_care", workers: 1 } as const;
-    const s = tappedNeed(withSkill(fresh(), pet, "Pet care"));
-    expect(askingFirst(s)).toBe(true);
+  it("asks a kind outside the trades its own question, and other work the fixed one", () => {
+    expect(firstKey(withSkill(fresh(), pet, "Pet care"))).toBe("kind_ask.pet_care");
+    const own = { key: "aquarium cleaning", text: "Aquarium cleaning", lang: "en", workers: 1 } as const;
+    expect(firstKey(withSkill(fresh(), own, "Aquarium cleaning"))).toBe("question.job");
+  });
+
+  it("is written for every kind in every language, as one question in that language", () => {
+    for (const lang of Lang.options)
+      for (const key of ALL_ASKS) {
+        const text = t(lang, key);
+        expect(langOf(text), key).toBe(lang);
+        expect(text.endsWith("?") && text.split("?").length === 2, `${lang} ${key}`).toBe(true);
+      }
+  });
+
+  it("asks nothing about money, contacts, the address or who someone is", () => {
+    // The guard's English lists match whole words; its Hindi and Kannada ones match inside words on purpose (a model's
+    // question is better dropped), so they flag fair words here ("ತೊಂದರೆ" holds "ದರ", rate). These are reviewed, not
+    // generated: only English is checked, and the phone that is the work itself is not a phone number.
+    const allowed: Readonly<Record<string, string>> = { "kind_ask.mobile_repair": "contact" };
+    for (const key of ALL_ASKS) expect(questionProblem(t("en", key)), key).toBe(allowed[key]);
   });
 });
 

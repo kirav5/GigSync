@@ -15,6 +15,7 @@ import { home } from "./home.js";
 import { install } from "./install.js";
 import { interview } from "./interview.js";
 import { job } from "./job.js";
+import { kindAsk } from "./kind-ask.js";
 import { landing } from "./landing.js";
 import { memory } from "./memory.js";
 import { mentor } from "./mentor.js";
@@ -68,6 +69,7 @@ export const kn: Strings = {
   ...drivers,
   ...arrangement,
   ...skill,
+  ...kindAsk,
   ...address,
   ...bargain,
   ...terms,

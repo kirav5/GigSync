@@ -1,7 +1,6 @@
 import {
   addressAsked,
   addressChoice,
-  askingFirst,
   askingModel,
   categoryPicked,
   findEventOf,
@@ -47,7 +46,7 @@ import { useAddressBook } from "../../find/useAddressBook.js";
 import { useAddresses } from "../../find/useAddresses.js";
 import { useListedRates } from "../../find/useListedRates.js";
 import { ASKED, useNeedSearch } from "../../find/useNeedSearch.js";
-import { useFirstQuestion, usePriceQuestions } from "../../find/usePriceQuestions.js";
+import { usePriceQuestions } from "../../find/usePriceQuestions.js";
 import { useI18n } from "../../i18n.js";
 import { Composer, Via } from "../../ui/Composer.js";
 import { C } from "../../ui/cls.js";
@@ -149,7 +148,6 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   const requestKey = request && JSON.stringify(request);
   const session = account.session;
   usePriceQuestions(ports, open, state);
-  useFirstQuestion(ports, open, state);
   useListedRates(session, open, state, saved);
   // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the request's JSON, not its identity
   useEffect(() => {
@@ -267,7 +265,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
         </Dock>
       </>
     );
-  const thinking = state !== undefined && (askingModel(state) || askingFirst(state));
+  const thinking = state !== undefined && askingModel(state);
   const waiting = !state || state.slot === NeedSlot.done || state.slot === NeedSlot.found || thinking;
   return (
     <>

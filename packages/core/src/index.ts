@@ -34,14 +34,6 @@ export {
 } from "./interview/driver-ask.js";
 export { type DriverAnswer, driverAnswer, driversIn, saysDontKnow } from "./interview/driver-parse.js";
 export { looksLikeAddress, scrubFacts, scrubJobType, scrubText } from "./interview/fact-scrub.js";
-export {
-  askingFirst,
-  checkFirstQuestion,
-  firstQuestionPrompt,
-  modelFirstQuestion,
-  tappedNeed,
-  withFirstQuestion,
-} from "./interview/first-question.js";
 export * from "./interview/index.js";
 export { checkJobType, jobTypePrompt, modelJobType, withJobType, withNobody } from "./interview/job-type.js";
 export {

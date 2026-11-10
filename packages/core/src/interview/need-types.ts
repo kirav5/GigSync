@@ -65,10 +65,6 @@ export interface NeedDraft {
   jobType?: string | undefined;
   /** ADR 0047: a skill workers here list, matched on the phone from the owner's words; set only without a trade. */
   skill?: BoardSkill | undefined;
-  /** ADR 0061: the work was picked by a tap, with no words to read; the model words the first question. */
-  tapped?: boolean | undefined;
-  /** The model's words for the first question after a tap; empty when it had none, and the fixed one is asked. */
-  detailAsk?: string | undefined;
   /** A kind of work asked for that nobody lists yet, and the others in its group that have workers. */
   emptyKind?: WorkCategory | undefined;
   others?: readonly WorkKind[] | undefined;
