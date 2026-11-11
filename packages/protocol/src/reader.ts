@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { Trade } from "./trade.js";
+import { WorkCategory } from "./work-category.js";
 
 /**
  * The phone's reader (ADR 0065): one message, and the question open, read into the kind of message and the spans of
@@ -65,10 +67,23 @@ export const ReaderExample = ReaderInput.extend({
 }).refine((e) => spansFit(e.text, e.spans), SPANS_FIT);
 export type ReaderExample = z.infer<typeof ReaderExample>;
 
+/** The reader's word for a message that names no kind of work. */
+export const NO_READER_WORK = "none";
+
+/**
+ * The kind of work a message is about, as the reader names it: a trade, a kind of work (ADR 0059), or none. Learned,
+ * so "my TV won't turn on" is TV repair, not the electrician its nearest saying would be; a kind added to GigSync needs
+ * a retrain before the reader names it.
+ */
+export const ReaderWork = z.union([Trade, WorkCategory, z.literal(NO_READER_WORK)]);
+export type ReaderWork = z.infer<typeof ReaderWork>;
+
 /** The reader's answer for one message; code checks the spans against the message it was given. */
 export const ReaderResult = z.object({
   turn: TurnKind,
   turn_confidence: Confidence,
+  work: ReaderWork,
+  work_confidence: Confidence,
   spans: z.array(ReadSpan).max(READER_SPANS_MAX),
 });
 export type ReaderResult = z.infer<typeof ReaderResult>;

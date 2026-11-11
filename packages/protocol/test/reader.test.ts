@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { READER_SPANS_MAX, READER_TEXT_MAX, ReaderExample, ReaderInput, ReaderResult } from "../src/index.js";
+import {
+  NO_READER_WORK,
+  READER_SPANS_MAX,
+  READER_TEXT_MAX,
+  ReaderExample,
+  ReaderInput,
+  ReaderResult,
+} from "../src/index.js";
 
 // "need maid in HSR from monday" → kind 5..9, where 13..16, when 17..28
 const TEXT = "need maid in HSR from monday";
@@ -36,11 +43,24 @@ describe("the reader's labelled messages", () => {
 });
 
 describe("the reader's answer", () => {
-  it("says how sure it is of the kind of message and of each span, from 0 to 1", () => {
-    const answer = { turn: "need", turn_confidence: 0.97, spans: [{ ...KIND, confidence: 0.9 }] };
+  it("says how sure it is of the kind of message, the work and each span, from 0 to 1", () => {
+    const answer = {
+      turn: "need",
+      turn_confidence: 0.97,
+      work: "plumber",
+      work_confidence: 0.9,
+      spans: [{ ...KIND, confidence: 0.9 }],
+    };
     expect(ReaderResult.safeParse(answer).success).toBe(true);
     expect(ReaderResult.safeParse({ ...answer, turn_confidence: 1.2 }).success).toBe(false);
     expect(ReaderResult.safeParse({ ...answer, spans: [{ ...KIND, confidence: -0.1 }] }).success).toBe(false);
     expect(ReaderResult.safeParse({ ...answer, spans: [KIND] }).success).toBe(false);
+  });
+
+  it("names a trade, a kind of work or none, and nothing else", () => {
+    const answer = { turn: "need", turn_confidence: 0.97, work_confidence: 0.9, spans: [] };
+    for (const work of ["plumber", "tv_repair", NO_READER_WORK])
+      expect(ReaderResult.safeParse({ ...answer, work }).success).toBe(true);
+    expect(ReaderResult.safeParse({ ...answer, work: "astrologer" }).success).toBe(false);
   });
 });

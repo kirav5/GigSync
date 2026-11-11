@@ -3,14 +3,17 @@
 // and chats that end nowhere. The intent eval scores one message; this scores the whole chat.
 // Run with `pnpm eval:find` (builds core first). GigSync's model through its tunnel needs OLLAMA_URL, OLLAMA_MODEL,
 // MODEL_ACCESS_ID and MODEL_ACCESS_SECRET in the environment. Options:
-//   --reader R   what reads a message: `lists` (the three prompts and word lists) or `turn` (one reader), default lists
+//   --reader R   what reads a message: `lists` (the three prompts and word lists), `turn` (one model reading) or
+//                `phone` (the phone's reader, ADR 0065; READER_MODEL names its folder), default lists
+//   --offline    no model at all, as a phone without GigSync's model: for `--reader phone` or `lists`
 //   --set SET    only one set: en, hi, kn, hinglish or kanglish
 //   --limit N    only the first N of each set
 //   --json FILE  also write every conversation's record
 import { writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { LANG_OF, loadConversations, SETS } from "./eval-find/cases.mjs";
-import { Reader, runConversation } from "./eval-find/flow.mjs";
+import { LISTED, Reader, runConversation } from "./eval-find/flow.mjs";
+import { loadPhone } from "./eval-find/phone.mjs";
 import { line, repeatsIn, rightJob } from "./eval-find/score.mjs";
 import { OLLAMA_MODEL, OLLAMA_URL, ollamaReady, RecordingModel } from "./eval-intent/ollama.mjs";
 
@@ -26,10 +29,20 @@ const PROMPT_OF = {
 const kindOf = (prompt) => Object.keys(PROMPT_OF).find((k) => prompt.startsWith(PROMPT_OF[k]));
 
 const { values } = parseArgs({
-  options: { reader: { type: "string" }, set: { type: "string" }, limit: { type: "string" }, json: { type: "string" } },
+  options: {
+    reader: { type: "string" },
+    set: { type: "string" },
+    limit: { type: "string" },
+    json: { type: "string" },
+    offline: { type: "boolean" },
+  },
 });
 const sets = values.set ? [values.set] : SETS;
-if (!(await ollamaReady())) {
+const reader = values.reader ?? Reader.lists;
+const phone = reader === Reader.phone ? await loadPhone(LISTED) : undefined;
+/** Offline, every model call answers nothing, as on a phone that cannot reach GigSync's model. */
+const offline = async () => null;
+if (!values.offline && !(await ollamaReady())) {
   console.error(`No ${OLLAMA_MODEL} at ${new URL(OLLAMA_URL).host}.`);
   process.exit(1);
 }
@@ -37,8 +50,8 @@ const limit = values.limit ? Number(values.limit) : Number.POSITIVE_INFINITY;
 const runs = [];
 for (const set of sets) {
   for (const conversation of loadConversations([set]).slice(0, limit)) {
-    const model = new RecordingModel();
-    const record = await runConversation(model, conversation, LANG_OF[set], values.reader ?? Reader.lists);
+    const model = values.offline ? new RecordingModel(offline) : new RecordingModel();
+    const record = await runConversation(model, conversation, LANG_OF[set], reader, phone);
     await model.settled();
     runs.push({
       ...conversation,

@@ -12,4 +12,10 @@ interface ImportMetaEnv {
    * R2 bucket. Layout in LLD §9.1. Set at build time.
    */
   readonly VITE_MODEL_BASE_URL?: string;
+  /**
+   * The folder GigSync's model host serves the phone's reader from (ADR 0065), e.g.
+   * https://models.gigsync.network/reader/v3: its `labels.json` and `onnx/model_quantized.onnx`. Set at build time;
+   * a build without it has no reader.
+   */
+  readonly VITE_READER_URL?: string;
 }

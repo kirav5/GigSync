@@ -182,6 +182,17 @@ export * from "./payments/upi.js";
 export * from "./policy/engine.js";
 export * from "./ports.js";
 export * from "./qr/index.js";
+export { type ReaderLabels, type ReaderOutputs, readerResult, spansFromTags, tokenOffsets } from "./reader/decode.js";
+export { type ReaderIds, type ReaderRun, type ReaderTokenizer, readerIds, readingOf } from "./reader/input.js";
+export { inEnglishLetters, readerReads } from "./reader/languages.js";
+export {
+  READER_WORK_MIN,
+  readerAsking,
+  readerTurn,
+  readMessage,
+  spanWords,
+  turnFromReader,
+} from "./reader/turn.js";
 export * from "./records/index.js";
 export * from "./router/clarify.js";
 export * from "./router/earnings.js";
