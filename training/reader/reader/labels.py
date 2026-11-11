@@ -21,13 +21,18 @@ NO_QUESTION = "none"
 # Tokens the loss ignores: the special tokens and the question segment, which carry no tag.
 IGNORE = -100
 
+# The work head's class for a message that names no kind of work; the kinds themselves come with the data (works.json,
+# from protocol's trades and kinds), so a kind added to GigSync needs a new run's labels and a retrain, nothing here.
+NO_WORK = "none"
+
 # A chat message of at most 25 words, and the question, fit in this many tokens with room to spare.
 MAX_TOKENS = 96
 
 
-def labels_json():
+def labels_json(works):
     """What the phone needs to read the model's outputs."""
     return {
+        "works": works,
         "base_model": BASE_MODEL,
         "turns": TURNS,
         "slots": SLOTS,

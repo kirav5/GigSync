@@ -5,12 +5,13 @@ import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { Dropped, findSpan, judge } from "./check.mjs";
+import { Dropped, findSpan, judge, namesWork } from "./check.mjs";
 import { protocol } from "./core.mjs";
 import { labelPrompt, writePrompt } from "./prompts.mjs";
 import { doneIds, Files, finish, makeOne, record } from "./run.mjs";
-import { drawTarget } from "./sample.mjs";
+import { drawTarget, isProblem } from "./sample.mjs";
 import { TeacherDown, untilTeacher } from "./teacher.mjs";
+import { workKinds, workOf } from "./works.mjs";
 
 const SEED = 7;
 const DRAWS = 2000;
@@ -114,6 +115,44 @@ describe("judging a message", () => {
     const target = { ...NEED, slots: { kind: "maid", what: true } };
     const both = { ...MARKS, when: null, what: "maid tomorrow" };
     assert.equal(judge(target, { ...WRITTEN, ...both }, { turn: Turn.need, ...both }).dropped, Dropped.invalid);
+  });
+});
+
+describe("a need that only says what is wrong", () => {
+  const PROBLEM = { id: 2, turn: Turn.need, kind: "plumber", style: "curt", slots: { when: "tomorrow", what: true } };
+  const TEXT = "kitchen tap is leaking, come tomorrow";
+  const READ = {
+    turn: Turn.need,
+    kind: "tap",
+    where: "kitchen",
+    when: "tomorrow",
+    how_long: null,
+    what: "tap is leaking",
+  };
+
+  it("is told to name no worker, and judged by code, not by the writer's loose marks", () => {
+    assert.ok(isProblem(PROBLEM));
+    assert.match(writePrompt(PROBLEM), /must not name the worker/);
+    const kept = judge(PROBLEM, { message: TEXT, kind: null, what: "a leak", when: "tmrw" }, READ).example;
+    assert.deepEqual(
+      kept.spans.map((s) => s.slot),
+      ["what", "when"],
+      "the labeller's kind and the place the target never asked for are left out",
+    );
+  });
+
+  it("is dropped when it names a kind of work after all", () => {
+    assert.ok(namesWork("Plumber needed tomorrow") && !namesWork("my AC is leaking"));
+    const named = judge(PROBLEM, { message: "plumber tomorrow, tap is leaking" }, READ);
+    assert.equal(named.dropped, Dropped.named_work);
+  });
+
+  it("still teaches its kind of work, which a message named by its group does not", () => {
+    const example = { spans: [{ slot: "what", start: 0, end: 3 }] };
+    assert.equal(workOf(PROBLEM, example), "plumber");
+    assert.equal(workOf({ ...PROBLEM, slots: { kind: "home repairs", what: true } }, example), null);
+    assert.equal(workOf({ ...PROBLEM, turn: Turn.answer, asking: "what" }, example), null);
+    assert.ok(workKinds().includes("plumber") && workKinds().includes("tv_repair"));
   });
 });
 

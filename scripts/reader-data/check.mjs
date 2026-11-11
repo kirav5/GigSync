@@ -2,6 +2,8 @@
 // be marked as their detail; the writer's marks of its own message and the labeller's, made without the target, must
 // name the same details over the same words. Details the target did not ask for are kept when both readings agree. Every value is a position in the message, so the example holds no words of its own.
 import { protocol } from "./core.mjs";
+import { KINDS } from "./phrases.mjs";
+import { isProblem } from "./sample.mjs";
 
 /** Why a message was not kept; counted in the run's manifest. */
 export const Dropped = {
@@ -21,7 +23,15 @@ export const Dropped = {
   words: "words",
   /** The spans overlap, or the example fails the protocol's schema. */
   invalid: "invalid",
+  /** A message that was to say only what is wrong names a kind of work after all. */
+  named_work: "named_work",
 };
+
+/** Every kind's words, as whole words, for telling whether a message names a kind of work. */
+const WORK_WORDS = KINDS.flatMap((k) => k.words).map(
+  (w) => new RegExp(`(^|[^\\p{L}\\p{N}])${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}($|[^\\p{L}\\p{N}])`, "iu"),
+);
+export const namesWork = (message) => WORK_WORDS.some((w) => w.test(message));
 
 /** A greeting or a message about anything but hiring says no detail of a need, whatever words it has. */
 const WITHOUT_DETAILS = new Set([protocol.TurnKind.enum.greeting, protocol.TurnKind.enum.other]);
@@ -82,6 +92,26 @@ export function toExample(target, message, spans) {
 }
 
 /**
+ * A need that only says what is wrong. The writer marks such a message loosely (its own words for the job, places it
+ * did not write) and the labeller calls the problem's nouns the kind ("ants", "garden"), so code checks it instead: no
+ * kind of work's words in it, and only the target's details kept from the labeller's marks, the given ones over their
+ * given words.
+ */
+function judgeProblem(target, message, label) {
+  if (namesWork(message)) return { dropped: Dropped.named_work };
+  if (!label || typeof label.turn !== "string") return { dropped: Dropped.unlabelled };
+  // Only the target's details: the writer was told to add none, so a detail marked beyond them is the labeller's own.
+  const asked = Object.fromEntries(protocol.ReaderSlot.options.map((s) => [s, s in target.slots ? label[s] : null]));
+  const labelled = markedSpans(message, asked);
+  if (!labelled) return { dropped: Dropped.unlabelled };
+  if (label.turn !== target.turn) return { dropped: Dropped.turn };
+  const unmet = targetMet(target, message, labelled);
+  if (unmet) return { dropped: unmet };
+  const example = toExample(target, message, labelled);
+  return example ? { example } : { dropped: Dropped.invalid };
+}
+
+/**
  * One target from the teacher's two readings: the writer's marks of its own message and the labeller's, made without
  * the target. Kept when the target's details are there and both readings agree; the labeller's spans are the ones
  * kept, so every example is marked by the same reader.
@@ -89,6 +119,7 @@ export function toExample(target, message, spans) {
 export function judge(target, written, label) {
   if (!written || typeof written.message !== "string" || !written.message.trim()) return { dropped: Dropped.unwritten };
   const message = written.message.trim();
+  if (isProblem(target)) return judgeProblem(target, message, label);
   const own = markedSpans(message, written);
   if (!own) return { dropped: Dropped.unwritten };
   if (!label || typeof label.turn !== "string") return { dropped: Dropped.unlabelled };

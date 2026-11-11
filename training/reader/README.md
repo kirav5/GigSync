@@ -1,7 +1,10 @@
 # Training the reader
 
-The phone's reader (ADR 0065) is `multilingual-e5-small` with two heads: one names the kind of message, one tags each
-token of the message with its detail (`kind`, `where`, `when`, `what`, `how_long`). It learns from a run of the data
+The phone's reader (ADR 0065) is `multilingual-e5-small` with three heads: one names the kind of message, one the kind
+of work (a trade or a kind from protocol, or `none`), and one tags each token of the message with its detail (`kind`,
+`where`, `when`, `what`, `how_long`). The kind of work is learned, not looked up by meaning: "my TV won't turn on" is
+TV repair, which a nearest-saying match takes for an electrician. A trade or kind added to GigSync therefore needs a
+new run's labels and a retrain. It learns from a run of the data
 generator (`pnpm reader:data`, `scripts/reader-data/`) and is exported to ONNX with 8-bit weights for Transformers.js.
 
 This is the repo's only Python. It runs on a founder's Mac, never in CI. It needs [uv](https://docs.astral.sh/uv/)
@@ -18,7 +21,9 @@ uv run train.py --data ../../data/reader/v1 --out ../../data/reader/model-v1
 uv run export.py --model ../../data/reader/model-v1 --data ../../data/reader/v1
 ```
 
-A run still going has no `train.jsonl` yet: `train.py` then splits `examples.jsonl` as the generator will (every
+Each example's kind of work is not in the generator's files: `scripts/reader-data/works.mjs` draws every kept example's
+target again from the run's seed and writes `works.json` and `works.jsonl` beside them (`pnpm reader:train` and the
+watcher run it first). A run still going has no `train.jsonl` yet: `train.py` then splits `examples.jsonl` as the generator will (every
 tenth target to dev), and `--limit 2000 --epochs 1` makes a quick smoke test.
 
 To train as soon as an unattended run finishes, leave a watcher going next to it:
@@ -34,17 +39,18 @@ It trains only when the run's manifest counts every target; `data/reader/model-v
 
 `data/reader/model-v1/`, kept on the machine like the data:
 
-| File                        | What                                                                  |
-| --------------------------- | --------------------------------------------------------------------- |
-| `reader.pt`                 | The best epoch's weights, by turn accuracy and span F1 on dev         |
-| `onnx/model_quantized.onnx` | What the phone runs: inputs `input_ids`, `attention_mask`             |
-| `onnx/model.onnx`           | The same at full precision                                            |
-| `labels.json`               | The order of the turn and tag outputs, and the empty question's word  |
-| tokenizer files             | The base model's tokenizer, unchanged                                 |
-| `report.json`               | Settings, dev scores per epoch and per detail, and the export's check |
+| File                        | What                                                                       |
+| --------------------------- | -------------------------------------------------------------------------- |
+| `reader.pt`                 | The best epoch's weights, by turn accuracy and span F1 on dev              |
+| `onnx/model_quantized.onnx` | What the phone runs: inputs `input_ids`, `attention_mask`                  |
+| `onnx/model.onnx`           | The same at full precision                                                 |
+| `labels.json`               | The order of the turn, work and tag outputs, and the empty question's word |
+| tokenizer files             | The base model's tokenizer, unchanged                                      |
+| `report.json`               | Settings, dev scores per epoch and per detail, and the export's check      |
 
 The input is a pair: the message, then the detail the open question asks for (`how long`, or `none`). The outputs are
-probabilities: `turn_probs` (one row per message, in `labels.json` `turns` order) and `tag_probs` (one row per token,
+probabilities: `turn_probs` (one row per message, in `labels.json` `turns` order), `work_probs` (one row per message,
+in `works` order) and `tag_probs` (one row per token,
 in `tags` order: `O`, then `B-` and `I-` per detail). A detail's words run from a `B-` token through the `I-` tokens of
 the same detail, by the tokenizer's character offsets.
 

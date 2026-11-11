@@ -6,13 +6,20 @@ from pathlib import Path
 
 import torch
 
-from .labels import BEGIN, IGNORE, INSIDE, MAX_TOKENS, OUTSIDE, SLOTS, TAG_ID, TAGS, TURN_ID, question_text
+from .labels import BEGIN, IGNORE, INSIDE, MAX_TOKENS, NO_WORK, OUTSIDE, SLOTS, TAG_ID, TAGS, TURN_ID, question_text
 
 MESSAGE_SEGMENT = 0
 
 
 def read_jsonl(path):
     return [json.loads(line) for line in Path(path).read_text().splitlines() if line.strip()]
+
+
+def with_works(examples, data):
+    """The examples with the kind of work each says (scripts/reader-data/works.mjs), and the head's classes in order."""
+    kinds = json.loads((Path(data) / "works.json").read_text())
+    work = {r["id"]: r["work"] for r in read_jsonl(Path(data) / "works.jsonl")}
+    return [{**e, "work": work.get(e["id"]) or NO_WORK} for e in examples], [NO_WORK, *kinds]
 
 
 def encode(tokenizer, texts, askings):
@@ -50,8 +57,8 @@ def token_tags(offsets, segments, spans):
     return tags
 
 
-def batch(tokenizer, examples):
-    """A training batch: input ids, mask, turn ids and tag ids, padded together."""
+def batch(tokenizer, examples, work_id):
+    """A training batch: input ids, mask, turn, work and tag ids, padded together."""
     enc = encode(tokenizer, [e["text"] for e in examples], [e.get("asking") for e in examples])
     tags = []
     for i, example in enumerate(examples):
@@ -61,6 +68,7 @@ def batch(tokenizer, examples):
         "input_ids": enc["input_ids"],
         "attention_mask": enc["attention_mask"],
         "turn": torch.tensor([TURN_ID[e["turn"]] for e in examples]),
+        "work": torch.tensor([work_id[e["work"]] for e in examples]),
         "tags": torch.tensor(tags),
     }
 
@@ -76,6 +84,15 @@ def _word_end(text, start, end):
     while cut > start and text[cut - 1] in TRAILING:
         cut -= 1
     return cut if any(c.isalnum() for c in text[start:cut]) else end
+
+
+def _whole_words(text, start, end):
+    """A span grown to the words it cuts into: "cock" inside "cockroaches" is the whole word, as the labels always are."""
+    while start > 0 and text[start - 1].isalnum() and text[start].isalnum():
+        start -= 1
+    while end < len(text) and text[end].isalnum() and text[end - 1].isalnum():
+        end += 1
+    return start, end
 
 
 def _trimmed(text, start, end):
@@ -108,7 +125,7 @@ def spans_from_tags(text, offsets, segments, tag_ids, scores=None):
         spans.append(current)
     out = []
     for s in spans:
-        start, end = _trimmed(text, s["start"], s["end"])
+        start, end = _trimmed(text, *_whole_words(text, s["start"], s["end"]))
         if end > start and s["slot"] in SLOTS:
-            out.append({"slot": s["slot"], "start": start, "end": end, "confidence": min(s["scores"])})
+            out.append({"slot": s["slot"], "start": start, "end": end, "confidence": float(min(s["scores"]))})
     return out

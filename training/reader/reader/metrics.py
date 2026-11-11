@@ -1,6 +1,6 @@
 # How well the reader reads held-out examples: the kind of message, and each detail's words exactly (a span counts only
 # when its slot, start and end all match, as the code after the reader needs the words, not roughly where they are).
-from .labels import SLOTS, TURNS
+from .labels import NO_WORK, SLOTS, TURNS
 
 
 def _key(span):
@@ -11,12 +11,20 @@ def score(examples, predictions):
     """`predictions` are `{turn, spans}` in the order of `examples`."""
     turn_right = 0
     all_right = 0
+    work_right = 0
+    named = 0
+    named_right = 0
     counts = {slot: {"tp": 0, "fp": 0, "fn": 0} for slot in SLOTS}
     confusion = {t: {u: 0 for u in TURNS} for t in TURNS}
     for example, predicted in zip(examples, predictions):
         confusion[example["turn"]][predicted["turn"]] += 1
         turn_ok = example["turn"] == predicted["turn"]
         turn_right += turn_ok
+        work_ok = example.get("work") == predicted.get("work")
+        work_right += work_ok
+        if example.get("work", NO_WORK) != NO_WORK:
+            named += 1
+            named_right += work_ok
         gold = {_key(s) for s in example["spans"]}
         got = {_key(s) for s in predicted["spans"]}
         all_right += turn_ok and gold == got
@@ -32,6 +40,8 @@ def score(examples, predictions):
     return {
         "examples": len(examples),
         "turn_accuracy": turn_right / n,
+        "work_accuracy": work_right / n,
+        "work_named_accuracy": named_right / max(1, named),
         "span_f1": span_f1,
         "exact": all_right / n,
         "slots": slots,
@@ -48,4 +58,5 @@ def _f1(c):
 
 def headline(result):
     slots = " ".join(f"{s}={v['f1']:.3f}" for s, v in result["slots"].items())
-    return f"turn={result['turn_accuracy']:.3f} span_f1={result['span_f1']:.3f} exact={result['exact']:.3f} | {slots}"
+    work = f"work={result['work_accuracy']:.3f} (named {result['work_named_accuracy']:.3f})"
+    return f"turn={result['turn_accuracy']:.3f} {work} span_f1={result['span_f1']:.3f} exact={result['exact']:.3f} | {slots}"
