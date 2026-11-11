@@ -1,0 +1,418 @@
+/* GigSync website: what moves with the scroll outside the opening, the teaser for the story, and the story's own
+   page. Loaded after site.css. An element marked data-flow carries --p, its progress across the viewport from 0
+   (its top meets the bottom edge) to 1 (its bottom leaves the top edge), set by flow.js. Without the script, or with
+   Reduce Motion on, --p stays at its settled value and nothing moves. */
+
+[data-flow] {
+  --p: 0.5;
+}
+
+/* ---- 04 the story's teaser: two phones meet, and the agreement is sealed between them ---- */
+.story-teaser {
+  background: #ece2ce;
+  border-block: 1px solid #d6c5a9;
+  padding-block: 96px;
+  overflow: hidden;
+}
+.teaser-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6%;
+  align-items: center;
+}
+.teaser-copy .eyebrow {
+  color: #9d6742;
+  margin-bottom: 24px;
+}
+.teaser-copy .intro-copy {
+  max-width: 470px;
+}
+.teaser-link {
+  margin-top: 32px;
+  background: var(--rust);
+  color: #fbf3e2;
+}
+.teaser-link:hover {
+  background: #7d432a;
+}
+.teaser-note {
+  margin-top: 18px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  color: #82664b;
+}
+.teaser-visual {
+  /* how far the phones have come together, and how far the seal has set */
+  --meet: clamp(0, calc((var(--p) - 0.1) * 2.9), 1);
+  --seal: clamp(0, calc((var(--p) - 0.36) * 7), 1);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 26px;
+  min-height: 400px;
+}
+.teaser-visual::before {
+  /* the ground both phones stand on: a soft disc, as the circle in the mural */
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(420px, 100%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px dashed #c3ab84;
+  transform: translate(-50%, -50%) scale(calc(0.82 + var(--meet) * 0.18));
+  opacity: calc(0.35 + var(--meet) * 0.65);
+}
+.duo-phone {
+  position: relative;
+  width: 172px;
+  aspect-ratio: 9 / 17.5;
+  border: 1.5px solid #5a3a2a;
+  border-radius: 28px;
+  background: #fbf5e8;
+  padding: 38px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  box-shadow: 0 30px 44px -26px rgba(69, 48, 36, 0.5);
+  will-change: transform;
+}
+.duo-phone::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  width: 46px;
+  height: 5px;
+  border-radius: 3px;
+  background: #5a3a2a;
+  opacity: 0.45;
+  transform: translateX(-50%);
+}
+.duo-worker {
+  transform: translate3d(calc((1 - var(--meet)) * -64px), calc((1 - var(--meet)) * 18px), 0)
+    rotate(calc(-11deg + var(--meet) * 6deg));
+}
+.duo-house {
+  transform: translate3d(calc((1 - var(--meet)) * 64px), calc((1 - var(--meet)) * -18px), 0)
+    rotate(calc(11deg - var(--meet) * 6deg));
+}
+.duo-tag {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: #5a3a2a;
+  padding-bottom: 9px;
+  border-bottom: 1px solid #e2d3b6;
+  margin-bottom: 3px;
+}
+.duo-bubble {
+  display: block;
+  width: 74%;
+  height: 17px;
+  border-radius: 9px 9px 9px 3px;
+  background: #eadfc8;
+}
+.duo-bubble.duo-reply {
+  align-self: flex-end;
+  border-radius: 9px 9px 3px 9px;
+  background: #e7c9b1;
+}
+.duo-house .duo-bubble.duo-reply {
+  background: #ecd6a6;
+}
+.duo-bubble.duo-short {
+  width: 48%;
+}
+.duo-card {
+  margin-top: auto;
+  display: grid;
+  gap: 7px;
+  padding: 12px 11px;
+  border: 1px solid #cdb893;
+  background: #fffaf0;
+}
+.duo-card i {
+  display: block;
+  height: 5px;
+  border-radius: 3px;
+  background: #d9c8a8;
+}
+.duo-card i + i {
+  width: 62%;
+}
+.duo-card b {
+  display: block;
+  height: 20px;
+  margin-top: 4px;
+  background: var(--rust);
+  opacity: calc(0.25 + var(--seal) * 0.75);
+}
+.duo-house .duo-card b {
+  background: #b98a3e;
+}
+.duo-seal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: var(--earth);
+  color: var(--gold);
+  display: grid;
+  place-items: center;
+  box-shadow:
+    0 0 0 6px #ece2ce,
+    0 0 0 7px #b79268;
+  transform: translate(-50%, -50%) scale(calc(0.5 + var(--seal) * 0.5)) rotate(calc((1 - var(--seal)) * -40deg));
+  opacity: var(--seal);
+}
+.duo-seal svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.teaser-visual:hover .duo-seal {
+  background: var(--rust);
+  color: #fbf3e2;
+}
+
+/* ---- the story's own page ---- */
+.story-page h1 {
+  font-size: clamp(40px, 4.1vw, 59px);
+  line-height: 1.1;
+  letter-spacing: -1.6px;
+}
+.story-page .journey-section {
+  border-top: 0;
+}
+.desktop-nav a[aria-current="page"] {
+  color: #f4e8cf;
+}
+.story-end {
+  background: var(--earth);
+  color: var(--ivory);
+}
+.story-end-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 22px;
+  padding-block: 46px;
+}
+.story-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding-block: 12px;
+  font-size: 12px;
+  color: #d7c6aa;
+}
+.story-back span {
+  font-size: 18px;
+}
+.story-back:hover {
+  color: #fff0cc;
+}
+
+@media (max-width: 800px) {
+  .story-teaser {
+    padding-block: 72px;
+  }
+  .teaser-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 44px;
+  }
+  .teaser-visual {
+    min-height: 340px;
+    gap: 18px;
+  }
+  .duo-phone {
+    width: 142px;
+    padding: 34px 12px 14px;
+    border-radius: 24px;
+  }
+  .story-page h1 {
+    font-size: 42px;
+  }
+}
+@media (max-width: 620px) {
+  .story-teaser {
+    padding-block: 60px;
+  }
+  .teaser-link {
+    width: 100%;
+  }
+  .duo-phone {
+    width: min(136px, 36vw);
+  }
+  .duo-worker {
+    transform: translate3d(calc((1 - var(--meet)) * -30px), calc((1 - var(--meet)) * 14px), 0)
+      rotate(calc(-11deg + var(--meet) * 6deg));
+  }
+  .duo-house {
+    transform: translate3d(calc((1 - var(--meet)) * 30px), calc((1 - var(--meet)) * -14px), 0)
+      rotate(calc(11deg - var(--meet) * 6deg));
+  }
+  .story-page h1 {
+    font-size: 39px;
+  }
+  .story-end-inner {
+    padding-block: 36px;
+  }
+}
+
+/* sunrise: from the earth of the roots into the cream of the page. A cream hill rises into the brown band with the
+   mural's sun ahead of it; at the end of the page the same band sets back into the earth of the closing. */
+.sunrise {
+  --rise: clamp(0, calc((var(--p) - 0.1) * 2.4), 1);
+  --hill: 72%;
+  position: relative;
+  height: clamp(160px, 17vw, 230px);
+  background: var(--earth);
+  overflow: hidden;
+}
+.sunrise::after {
+  content: "";
+  position: absolute;
+  left: -22%;
+  right: -22%;
+  bottom: 0;
+  height: var(--hill);
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  background: var(--paper);
+  transform: translateY(calc((1 - var(--rise)) * 100%));
+}
+.sunrise-sun {
+  --size: clamp(38px, 3.6vw, 50px);
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--hill) * var(--rise) - var(--size) / 2);
+  width: var(--size);
+  height: var(--size);
+  margin-left: calc(var(--size) / -2);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--gold) 0 34%, transparent 35% 44%, var(--gold) 45% 47%, transparent 48%),
+    repeating-conic-gradient(from 0deg, var(--gold) 0 7deg, transparent 7deg 22.5deg);
+  -webkit-mask: radial-gradient(circle, #000 0 50%, #000 66%, transparent 67%);
+  mask: radial-gradient(circle, #000 0 50%, #000 66%, transparent 67%);
+  transform: translateY(calc(var(--rise) * -26px)) rotate(calc(var(--p) * 120deg));
+  opacity: calc(0.25 + var(--rise) * 0.75);
+}
+.sunset {
+  background: #e5d4b5;
+}
+.sunset::after {
+  background: var(--earth);
+}
+
+/* a faint rust print of the whole mural behind the cream sections, drifting and slowly nearing as the page scrolls */
+.inked {
+  position: relative;
+  isolation: isolate;
+}
+.inked::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  left: 50%;
+  /* never wider than the screen: a phone would widen its whole layout to fit it */
+  width: min(1100px, 100vw);
+  aspect-ratio: 1;
+  background: url("./mural-ink.webp") center / contain no-repeat;
+  opacity: 0.07;
+  pointer-events: none;
+  transform: translate(-50%, -50%) translateY(calc((0.5 - var(--p)) * 180px)) scale(calc(0.9 + var(--p) * 0.24));
+}
+@media (min-width: 1300px) {
+  .inked-right::before {
+    left: 70%;
+  }
+}
+
+/* fringes: a row of folk triangles where the cream meets the brown. Into the jobs band they grow up out of it; out of
+   it they hang from it and draw back as the page moves on. */
+.fringe {
+  --grow: clamp(0, calc((var(--p) - 0.04) * 2.3), 1);
+  --teeth: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 10' preserveAspectRatio='none'%3E%3Cpath d='M0 10L5 0L10 10L15 4.5L20 10Z' fill='%233b2118'/%3E%3C/svg%3E");
+  position: relative;
+  height: clamp(46px, 6vw, 84px);
+  background: #ece2ce;
+  overflow: hidden;
+}
+.fringe::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--teeth) left bottom / clamp(44px, 5vw, 72px) 100% repeat-x;
+  transform-origin: 50% 100%;
+  transform: scaleY(calc(0.06 + var(--grow) * 0.94));
+}
+.fringe-fall {
+  --teeth: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 10' preserveAspectRatio='none'%3E%3Cpath d='M0 0L5 10L10 0L15 5.5L20 0Z' fill='%233b2118'/%3E%3C/svg%3E");
+  background: var(--paper);
+}
+.fringe-fall::before {
+  background-position: left top;
+  transform-origin: 50% 0;
+  transform: scaleY(calc(1 - var(--grow) * 0.8));
+}
+
+/* the closing bookend: the ring of dancers rises at the foot of the last band, turning as it comes */
+.closing-section {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.bookend-ring {
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  bottom: 0;
+  width: min(1000px, 150vw);
+  height: auto;
+  opacity: 0.11;
+  pointer-events: none;
+  transform: translate(-50%, calc(66% - var(--p) * 26%)) rotate(calc(var(--p) * 80deg));
+}
+
+/* headlines rise line by line, each out of its own mask (flow.js splits them at their line breaks) */
+h2[data-lines] .line {
+  display: block;
+  overflow: hidden;
+  padding: 0 0.12em 0.12em;
+  margin: 0 -0.12em -0.12em;
+}
+h2[data-lines] .line > span {
+  display: inline-block;
+  translate: 0 110%;
+  transition: translate 1s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i) * 0.12s);
+}
+h2[data-lines][data-arrived] .line > span {
+  translate: 0 0;
+}
+
+/* the teaser picture's link text, for screen readers only */
+.teaser-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

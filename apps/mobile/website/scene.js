@@ -1,152 +1,103 @@
-// The opening scene's timeline: what every part of the stage looks like at a given progress, as plain numbers.
+// The opening scene's timeline: what every layer of the circle looks like at a given progress, as plain numbers.
 // fly.js measures the page, chases the scroll and applies these numbers; nothing here touches the document.
 //
-// The scene plays like a zoom into a drawing. From progress 0 to 1 the hero copy and its frame fade away, and the hero
-// mural grows evenly about its own centre while it slides to the middle of the stage, until it covers the whole
-// stage, top bar included, fading as it grows into the same faint, shaded background as the jobs section. The roots
-// print comes out of that drawing: it appears tiny at a fixed spot inside the mural while the mural is still bright,
-// rides the zoom to its own place, and grows there from small to big, while the roots copy fades in beside it. The
-// strip under the stage steps aside while the mural is bright and returns with the roots copy.
+// The scene is one zoom into the mural. At progress 0 the ring of dancers stands bright around the headline, with the
+// village faint behind it and the heart, two women holding one basket, a ghost at its centre. As the reader scrolls,
+// every layer grows about one fixed point, the same factor for all of them, so the drawing stays whole: the headline
+// fades, the ring swells past the edges of the screen and fades into the faint background, and the heart brightens and
+// grows until it fills the middle of the screen with the roots copy around it. Nothing slides and the background
+// colour never changes. The fixed point is chosen so the heart ends in the middle of the room the roots copy leaves.
 
-/** The share of the track beyond the camera that the scene takes; the rest holds the end state. Mirrors site.css. */
-export const FLIGHT_SHARE = 200 / 230;
-/** The roots print's tilt, as the stylesheet draws it. */
-const ROOTS_TILT_DEG = -2;
-/** The hero copy has faded by here, and the hero frame and caption a little sooner, before the mural covers them. */
-const COPY_FADE_END = 0.2;
-const FRAME_FADE_END = 0.14;
-/** The mural has slid to the middle of the stage by here, and covers the stage by ZOOM_END, before it is faint. */
-const ZOOM_CENTRED = 0.4;
-const ZOOM_END = 0.5;
-/** The mural fades over this stretch, down to the opacity of the mural behind the jobs section, as its shade comes up. */
-const WASH_FADE_START = 0.04;
-const WASH_FADE_END = 0.55;
-const WASH_OPACITY = 0.1;
-/** The roots print appears inside the mural here, this small beside its place in the drawing, and is solid soon after. */
-const PRINT_START = 0.1;
-const PRINT_SOLID = 0.46;
-const PRINT_SEED = 0.16;
-/** It has grown to its full size by here. */
-const PRINT_GROWN = 0.84;
-/** The roots copy fades in over this stretch. */
-const ROOTS_COPY_START = 0.66;
-const ROOTS_COPY_END = 0.96;
-/** How far the copy drifts while it fades, in pixels. */
-const DRIFT_PX = 26;
-/** With Reduce Motion on: the hero fades away by here, then the print, then the roots copy, with nothing moving. */
-const CALM_HERO_END = 0.4;
-const CALM_PRINT_START = 0.42;
-const CALM_PRINT_END = 0.72;
-const CALM_COPY_START = 0.6;
-const CALM_COPY_END = 0.96;
+/** The share of the track beyond the camera that the scene takes; the rest holds the end state. Mirrors opening.css. */
+export const FLIGHT_SHARE = 170 / 190;
+/** The hero copy has faded by here, and the pool of shade inside the ring a little later. */
+const HERO_FADE_END = 0.22;
+const SHADE_FADE_END = 0.4;
+/** The zoom runs over this stretch, and the ring turns this much further while it does. */
+const ZOOM_START = 0.03;
+const ZOOM_END = 0.9;
+const RING_TURN_DEG = 28;
+/** The ring and the village fade to these, the level of the mural behind the jobs section, over these stretches. */
+const RING = { from: 0.92, to: 0.11, start: 0.08, end: 0.72 };
+const VILLAGE = { from: 0.15, to: 0.09, start: 0.1, end: 0.8 };
+/** The heart comes up from a ghost to bright. */
+const HEART = { from: 0.1, to: 0.95, start: 0.18, end: 0.66 };
+/** The roots copy fades in over this stretch, drifting this many pixels as it comes. */
+const ROOTS_START = 0.68;
+const ROOTS_END = 0.97;
+const DRIFT_PX = 22;
+/** With Reduce Motion on nothing grows or turns; the same layers only fade, in this order. */
+const CALM = {
+  hero: 0.35,
+  ring: { start: 0.25, end: 0.65 },
+  heart: { start: 0.3, end: 0.7 },
+  roots: { start: 0.6, end: 0.95 },
+};
 
 const smooth = (p) => p * p * (3 - 2 * p);
 const lerp = (a, b, t) => a + (b - a) * t;
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 /** Progress through the stretch from `from` to `to`, 0 before it and 1 after it. */
 const stretch = (p, from, to) => clamp01((p - from) / (to - from));
-const centreOf = (box) => ({ x: box.left + box.width / 2, y: box.top + box.height / 2 });
+const fadeOf = (p, f, start = f.start, end = f.end) => lerp(f.from, f.to, smooth(stretch(p, start, end)));
 
 /**
- * @typedef {{ left: number, top: number, width: number, height: number }} Box
  * @typedef {{ x: number, y: number }} Point
- * @typedef {{ start: Box, stage: Box, from: Point, middle: Point, pivot: Point, cover: number }} Plan
+ * @typedef {{ grow: number, anchor: Point }} Plan
  */
 
 /**
- * The scene's fixed points, from boxes measured relative to the stage with the scene's own transforms removed.
- * @param {{ start: Box, art: Box, stage: Box }} boxes the hero picture, the roots print and the camera
+ * The zoom's size and fixed point: the heart's centre goes from where the hero draws it to `end`, `grow` times bigger.
+ * Every point of the drawing moves along the line from the fixed point, so the heart's path is a straight one.
+ * @param {Point} start the heart's centre in the hero
+ * @param {Point} end its centre at the end of the scene
+ * @param {number} grow how many times bigger it ends
  * @returns {Plan}
  */
-export function planScene({ start, art, stage }) {
-  return {
-    start,
-    stage,
-    from: centreOf(start),
-    middle: centreOf(stage),
-    pivot: centreOf(art),
-    // how much the hero picture must grow to cover the stage, as the mural behind the jobs section covers its own
-    cover: Math.max(stage.width / start.width, stage.height / start.height),
-  };
+export function planScene(start, end, grow) {
+  if (grow < 1.001) return { grow: 1, anchor: start };
+  const at = (a, b) => (grow * a - b) / (grow - 1);
+  return { grow, anchor: { x: at(start.x, end.x), y: at(start.y, end.y) } };
 }
 
 /**
- * The same scene for a reader who has asked for less motion: everything stays where it stands and only fades, because
- * a fade is what that setting allows and a zoom filling the screen is what it exists to stop.
+ * The whole scene at progress `p`: 0 is the hero, 1 the roots around the heart.
  * @param {number} p
  * @param {Plan} plan
  */
-export function calmSceneAt(p, plan) {
-  const heroLeft = 1 - smooth(stretch(p, 0, CALM_HERO_END));
-  const copyIn = smooth(stretch(p, CALM_COPY_START, CALM_COPY_END));
+export function sceneAt(p, plan) {
+  const heroLeft = 1 - smooth(stretch(p, 0, HERO_FADE_END));
+  const rootsIn = smooth(stretch(p, ROOTS_START, ROOTS_END));
+  const zoom = smooth(stretch(p, ZOOM_START, ZOOM_END));
   return {
-    heroCopy: { opacity: heroLeft, drift: 0 },
-    heroFrame: heroLeft,
-    rootsCopy: { opacity: copyIn, drift: 0 },
-    strip: Math.max(heroLeft, copyIn),
-    wash: {
-      x: plan.from.x - plan.start.width / 2,
-      y: plan.from.y - plan.start.height / 2,
-      scale: 1,
-      opacity: heroLeft,
-    },
-    shade: 0,
-    print: {
-      x: 0,
-      y: 0,
-      scale: 1,
-      turnDeg: ROOTS_TILT_DEG,
-      opacity: smooth(stretch(p, CALM_PRINT_START, CALM_PRINT_END)),
-    },
+    hero: { opacity: heroLeft, drift: -DRIFT_PX * (1 - heroLeft) },
+    shade: 1 - smooth(stretch(p, 0, SHADE_FADE_END)),
+    // growth by a constant ratio per step of scroll reads as an even camera move, where a linear one would rush at first
+    scale: plan.grow ** zoom,
+    turnDeg: RING_TURN_DEG * zoom,
+    village: fadeOf(p, VILLAGE),
+    ring: fadeOf(p, RING),
+    heart: fadeOf(p, HEART),
+    roots: { opacity: rootsIn, drift: DRIFT_PX * (1 - rootsIn) },
     landed: p >= 1,
   };
 }
 
 /**
- * The whole scene at progress `p`: 0 is the hero, 1 the roots on the faded mural.
+ * The same scene for a reader who has asked for less motion: nothing grows, turns or drifts; the layers only fade.
  * @param {number} p
- * @param {Plan} plan
  */
-export function sceneAt(p, plan) {
-  const copyLeft = 1 - smooth(stretch(p, 0, COPY_FADE_END));
-  const copyIn = smooth(stretch(p, ROOTS_COPY_START, ROOTS_COPY_END));
-  const shade = smooth(stretch(p, WASH_FADE_START, WASH_FADE_END));
-  // the camera move: the mural slides to the middle of the stage while it grows, gently at both ends
-  const slide = smooth(stretch(p, 0, ZOOM_CENTRED));
-  const zoom = 1 - (1 - smooth(stretch(p, 0, ZOOM_END))) ** 2;
-  const scale = lerp(1, plan.cover, zoom);
-  const centre = { x: lerp(plan.from.x, plan.middle.x, slide), y: lerp(plan.from.y, plan.middle.y, slide) };
-  // the roots print belongs to the drawing: its own place on the finished stage is a spot in the mural, and this is
-  // where that spot sits at this moment of the zoom, and how much smaller the drawing is than it will be
-  const shrink = scale / plan.cover;
-  const spot = {
-    x: centre.x + shrink * (plan.pivot.x - plan.middle.x),
-    y: centre.y + shrink * (plan.pivot.y - plan.middle.y),
-  };
-  // it grows out of that spot: small at first beside the drawing around it, its full share of it by the end
-  const size = shrink * lerp(PRINT_SEED, 1, smooth(stretch(p, PRINT_START, PRINT_GROWN)));
+export function calmSceneAt(p) {
+  const heroLeft = 1 - smooth(stretch(p, 0, CALM.hero));
   return {
-    heroCopy: { opacity: copyLeft, drift: -DRIFT_PX * (1 - copyLeft) },
-    heroFrame: 1 - stretch(p, 0, FRAME_FADE_END),
-    rootsCopy: { opacity: copyIn, drift: DRIFT_PX * (1 - copyIn) },
-    strip: Math.max(copyLeft, copyIn),
-    /** The hero mural: a box of the hero picture's size, moved, scaled and faded. */
-    wash: {
-      x: centre.x - plan.start.width / 2,
-      y: centre.y - plan.start.height / 2,
-      scale,
-      opacity: lerp(1, WASH_OPACITY, shade),
-    },
-    /** The shade over the mural, as over the mural behind the jobs section. */
-    shade,
-    /** The roots print, tilted: how far it is moved from its own place, and how small it is drawn. */
-    print: {
-      x: spot.x - plan.pivot.x,
-      y: spot.y - plan.pivot.y,
-      scale: size,
-      turnDeg: ROOTS_TILT_DEG,
-      opacity: smooth(stretch(p, PRINT_START, PRINT_SOLID)),
-    },
+    hero: { opacity: heroLeft, drift: 0 },
+    shade: heroLeft,
+    scale: 1,
+    turnDeg: 0,
+    village: VILLAGE.from,
+    ring: fadeOf(p, RING, CALM.ring.start, CALM.ring.end),
+    heart: fadeOf(p, HEART, CALM.heart.start, CALM.heart.end),
+    roots: { opacity: smooth(stretch(p, CALM.roots.start, CALM.roots.end)), drift: 0 },
     landed: p >= 1,
   };
 }
