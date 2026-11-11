@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 const MAX_LINES = 299;
-const SOURCE = /\.(ts|tsx|js|mjs|cjs|sql|kt|swift|java)$/;
+const SOURCE = /\.(ts|tsx|js|mjs|cjs|sql|kt|swift|java|py|sh)$/;
 
 const files = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], {
   encoding: "utf8",

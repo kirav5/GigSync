@@ -27,7 +27,8 @@
     "eval:questions": "pnpm --filter @gigsync/core build && node scripts/eval-questions.mjs",
     "eval:intent": "pnpm --filter @gigsync/core build && node scripts/eval-intent.mjs",
     "reader:data": "pnpm --filter @gigsync/core build && node scripts/reader-data.mjs",
-    "reader:watch": "node scripts/reader-data/dashboard.mjs"
+    "reader:watch": "node scripts/reader-data/dashboard.mjs",
+    "reader:train": "cd training/reader && uv run train.py --data ../../data/reader/v1 --out ../../data/reader/model-v1 && uv run export.py --model ../../data/reader/model-v1 --data ../../data/reader/v1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.2",
