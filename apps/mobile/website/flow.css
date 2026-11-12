@@ -280,6 +280,9 @@
 .sunrise {
   --rise: clamp(0, calc((var(--p) - 0.1) * 2.4), 1);
   --hill: 72%;
+  /* the pull: the hill's edge starts nearly flat and draws up into its full arch as the band comes on, and settles
+     back when scrolled away; its base stays on the full width, so the next band never shows beside it */
+  --hill-now: calc(var(--hill) * (0.3 + 0.7 * var(--rise)));
   position: relative;
   height: clamp(160px, 17vw, 230px);
   background: var(--earth);
@@ -291,7 +294,7 @@
   left: -22%;
   right: -22%;
   bottom: 0;
-  height: var(--hill);
+  height: var(--hill-now);
   border-radius: 50% 50% 0 0 / 100% 100% 0 0;
   background: var(--paper);
 }
@@ -299,7 +302,7 @@
   --size: clamp(38px, 3.6vw, 50px);
   position: absolute;
   left: 50%;
-  bottom: calc(var(--hill) - var(--size) / 2);
+  bottom: calc(var(--hill-now) - var(--size) / 2);
   width: var(--size);
   height: var(--size);
   margin-left: calc(var(--size) / -2);
@@ -604,8 +607,7 @@ h2[data-lines][data-arrived] .line > span {
   padding-bottom: 36px;
 }
 
-/* the hills stand still and span the full width, so no flat edge of the next band ever shows beside them; only the sun
-   rises over them. The jobs band's print fades in under the hill instead of starting on a straight line. */
+/* the hills keep their base on the full width, so no flat edge of the next band ever shows beside them. The jobs band's print fades in under the hill instead of starting on a straight line. */
 .jobs-art {
   -webkit-mask: linear-gradient(transparent, #000 30%, #000 80%, transparent);
   mask: linear-gradient(transparent, #000 30%, #000 80%, transparent);
