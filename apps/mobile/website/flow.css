@@ -666,27 +666,38 @@ h2[data-lines][data-arrived] .line > span {
 }
 
 /* the top band of the mural, the whole tree with the sun, the huts and the people under it, stands at the foot of
-   the closing on the footer's strip, whole and inside the band's own height, and grows a little from its ground as
+   the closing on the footer's strip and covers the whole band at its own height, growing a little from its ground as
    the band comes on. */
 .bookend-tree {
   position: absolute;
   z-index: -1;
-  inset: 24px 0 0;
+  inset: 0;
   width: 100%;
-  height: calc(100% - 24px);
-  object-fit: contain;
-  object-position: 50% 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 62%;
   opacity: 0.1;
   pointer-events: none;
   transform-origin: 50% 100%;
-  transform: scale(calc(0.97 + var(--p) * 0.03));
+  transform: scale(calc(1 + var(--p) * 0.04));
 }
 
-/* 06 and 07 look at another corner of the same mural: zoomed in on its lower right, the palms, the planted rows and
-   two people passing a basket, instead of the tree at its middle */
+/* 06 and 07 show the mural's left side, the weavers, the planting and the plough, standing at the left of the band
+   at its full height and fading out towards the text */
+.ink-warm .ink-stage {
+  place-items: stretch start;
+  -webkit-mask: linear-gradient(to right, #000 22%, transparent 55%);
+  mask: linear-gradient(to right, #000 22%, transparent 55%);
+}
 .ink-warm .ink-art {
-  background-size: 190%;
-  background-position: 96% 82%;
+  width: auto;
+  height: 100%;
+  aspect-ratio: 245 / 600;
+  background-image: url("./mural-side.webp");
+  background-size: 100% 100%;
+  opacity: 0.09;
+  transform: scale(calc(1 + var(--p) * 0.06));
+  transform-origin: 0 50%;
 }
 .ink-warm .community-section {
   background: none;
