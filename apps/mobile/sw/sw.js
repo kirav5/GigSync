@@ -19,10 +19,10 @@ const scoped = (path) => new URL(path, self.registration.scope);
 /** The app's own address. The site's root is the website now, and index.html redirects there. */
 const APP = scoped("app").href;
 /**
- * The website's page is never answered with the app shell. Its other address, the root, is: an app installed before
- * the website moved in still starts there, and offline that start has to open the app.
+ * The website's pages are never answered with the app shell. The home page's other address, the root, is: an app
+ * installed before the website moved in still starts there, and offline that start has to open the app.
  */
-const WEBSITE = scoped("home").pathname;
+const WEBSITE = new Set([scoped("home").pathname, scoped("story").pathname]);
 const ASSETS = scoped("assets/").pathname;
 
 self.addEventListener("install", (event) => {
@@ -53,7 +53,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (request.mode === NAVIGATE) {
-    if (url.pathname !== WEBSITE) event.respondWith(navigate(request));
+    if (!WEBSITE.has(url.pathname)) event.respondWith(navigate(request));
     return;
   }
   if (url.pathname.startsWith(ASSETS)) event.respondWith(cacheFirst(request));
