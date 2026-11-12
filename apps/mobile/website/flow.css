@@ -612,7 +612,8 @@ h2[data-lines][data-arrived] .line > span {
 }
 
 /* 07 keeps its warmer cream, and the hill down to the closing starts from that same cream */
-.community-section + .sunset {
+.community-section + .sunset,
+.ink-warm + .sunset {
   background: #e5d4b5;
 }
 /* 06 sits on the same warm cream as 07, one band from the hill out of the jobs band down to the closing */
