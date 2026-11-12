@@ -666,31 +666,20 @@ h2[data-lines][data-arrived] .line > span {
 }
 
 /* the top band of the mural, the whole tree with the sun, the huts and the people under it, stands at the foot of
-   the closing on the footer's strip, across the full width of the screen, and grows a little from its ground as the
-   band comes on. */
+   the closing on the footer's strip, whole and inside the band's own height, and grows a little from its ground as
+   the band comes on. */
 .bookend-tree {
   position: absolute;
   z-index: -1;
-  left: 0;
-  bottom: 0;
+  inset: 24px 0 0;
   width: 100%;
-  height: auto;
+  height: calc(100% - 24px);
+  object-fit: contain;
+  object-position: 50% 100%;
   opacity: 0.1;
   pointer-events: none;
-  -webkit-mask: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
-  mask: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
   transform-origin: 50% 100%;
   transform: scale(calc(0.97 + var(--p) * 0.03));
-}
-/* tall enough for the whole painting at the full width of the screen (it is 2.5 times as wide as it is tall) */
-.closing-section:has(.bookend-tree) {
-  min-height: min(calc(40vw + 48px), 980px);
-  display: flex;
-  align-items: center;
-}
-.closing-section:has(.bookend-tree) > .closing-inner {
-  width: min(1320px, calc(100% - 48px));
-  margin-inline: auto;
 }
 
 /* 06 and 07 look at another corner of the same mural: zoomed in on its lower right, the palms, the planted rows and
