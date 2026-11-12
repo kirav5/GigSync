@@ -3,10 +3,8 @@ import type { screens as en } from "../en/screens.js";
 /** Kannada: getting in and finding: language choice, sign-in, the menu, Find, My card, the job list. */
 export const screens: Readonly<Record<keyof typeof en, string>> = {
   "onboard.title": "ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
-  "onboard.later": "ನಂತರ “ನನ್ನ ಬಗ್ಗೆ”ಯಲ್ಲಿ ಬದಲಾಯಿಸಬಹುದು.",
-  "onboard.continue": "ಮುಂದುವರಿಸಿ",
+  "onboard.later": "ನಂತರ “ನಾನು” ವಿಭಾಗದಲ್ಲಿ ಬದಲಾಯಿಸಬಹುದು.",
   "signin.label": "ಸೈನ್ ಇನ್",
-  "signin.headline": "ನಿಮ್ಮ ಏಜೆಂಟ್, ನಿಮ್ಮ ಫೋನ್.",
   "signin.soft": "ನಿಮ್ಮ ನಂಬರ್ ನಿಮ್ಮದೇ ಆಗಿರುತ್ತದೆ.",
   "signin.consumer": "ನನಗೆ ಕೆಲಸ ಮಾಡಿಸಬೇಕು",
   "signin.worker": "ನಾನು ಕೆಲಸ ಮಾಡುತ್ತೇನೆ",
@@ -18,7 +16,6 @@ export const screens: Readonly<Record<keyof typeof en, string>> = {
   "signin.code": "ಎಸ್‌ಎಂಎಸ್‌ನಲ್ಲಿ ಬಂದ ಕೋಡ್",
   "signin.code_dev": "ಎಸ್‌ಎಂಎಸ್‌ನಲ್ಲಿ ಬಂದ ಕೋಡ್ (ಡೆವ್: {code})",
   "signin.send_code": "ಕೋಡ್ ಕಳುಹಿಸಿ",
-  "signin.submit": "ಸೈನ್ ಇನ್ ಮಾಡಿ",
   "role.worker": "ಕೆಲಸಗಾರರು",
   "role.customer": "ಗ್ರಾಹಕರು",
   "nav.find": "ಹುಡುಕಿ",

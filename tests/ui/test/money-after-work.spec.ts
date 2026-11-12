@@ -60,7 +60,7 @@ async function signedJob(browser: { newContext: () => Promise<BrowserContext> },
   await signBoth({ worker, household }, "job-steps");
   const job = workerPage.getByRole("article", { name: say("a11y.job_with", { name: names.household }) });
   const hers = householdPage.getByRole("article", { name: say("a11y.job_with", { name: names.worker }) });
-  return { workerPage, householdPage, job, hers };
+  return { workerPage, householdPage, job, hers, names };
 }
 
 test("the worker's card offers one step at a time, and asks for the money after the work", async ({ browser }) => {
@@ -71,8 +71,11 @@ test("the worker's card offers one step at a time, and asks for the money after 
   await expect(button("update.on_my_way")).toBeVisible();
   await expect(button("restored.cancel")).toBeVisible();
   await expect(button("money.ask_advance")).toBeVisible();
-  for (const key of ["job.start_work", "job.mark_done", "job.ask_payment", "getpaid.cash"] as const)
+  for (const key of ["job.start_work", "job.mark_done", "getpaid.cash"] as const)
     await expect(button(key)).toHaveCount(0);
+  await expect(job.getByRole("button", { name: new RegExp(`^${say("money.ask_for", { price: "₹" })}`) })).toHaveCount(
+    0,
+  );
 
   // An advance over half the price is refused; one within it reaches her.
   await button("money.ask_advance").click();
@@ -106,12 +109,13 @@ test("the worker's card offers one step at a time, and asks for the money after 
 });
 
 test("a job stopped after it started says why, on the other phone", async ({ browser }) => {
-  const { householdPage, job } = await signedJob(browser, "stop");
+  const { householdPage, job, names } = await signedJob(browser, "stop");
   const button = (key: MessageKey) => job.getByRole("button", { name: say(key), exact: true });
   await button("update.on_my_way").click();
   await button("job.start_work").click();
   await button("job.stop").click();
   await button("stop.not_safe").click();
+  await job.getByRole("button", { name: say("jobcard.stop_tell", { name: names.household }), exact: true }).click();
   // A job that ended leaves Activity for Records' Not completed.
   await open(householdPage, "nav.records");
   await expand(householdPage, NOT_COMPLETED);

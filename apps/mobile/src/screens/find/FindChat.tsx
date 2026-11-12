@@ -7,7 +7,6 @@ import {
   type GigDevice,
   hearNeed,
   isGreeting,
-  log,
   NeedSay,
   NeedSlot,
   needPrompt,
@@ -22,12 +21,11 @@ import type { Account } from "../../adapters/account.js";
 import { cityOf, rememberHome, useServedCities } from "../../adapters/cities.js";
 import { meaningFor } from "../../adapters/meaning.js";
 import { chosenModel, ModelChoice } from "../../adapters/model.js";
-import { offerAlerts } from "../../adapters/push.js";
 import { stopSpeaking } from "../../adapters/speech.js";
 import { needConfig } from "../../card/choices.js";
 import { fetchEstimate } from "../../estimate/useEstimate.js";
 import { openAddressDesk } from "../../find/addressDesk.js";
-import { askWorkers, needOf, whereOf } from "../../find/ask.js";
+import { whereOf } from "../../find/ask.js";
 import { countFind } from "../../find/counts.js";
 import { startFindChat, useNeed } from "../../find/findChats.js";
 import {
@@ -35,7 +33,6 @@ import {
   answerNeed,
   beginNeed,
   leaveSwitch,
-  needAsked,
   needEstimateFound,
   needSay,
   relanguageNeed,
@@ -44,18 +41,18 @@ import {
 import { pickKind, readFirst, readLater } from "../../find/readNeed.js";
 import { useAddressBook } from "../../find/useAddressBook.js";
 import { useAddresses } from "../../find/useAddresses.js";
+import { useAskPicked } from "../../find/useAskPicked.js";
 import { useListedRates } from "../../find/useListedRates.js";
-import { ASKED, useNeedSearch } from "../../find/useNeedSearch.js";
+import { useNeedSearch } from "../../find/useNeedSearch.js";
 import { usePriceQuestions } from "../../find/usePriceQuestions.js";
 import { useI18n } from "../../i18n.js";
 import { Composer, Via } from "../../ui/Composer.js";
 import { C } from "../../ui/cls.js";
 import { Dock } from "../../ui/Dock.js";
-import { errorKey } from "../../ui/errorKey.js";
 import { phoneDay } from "../jobGroups.js";
-import { AddAddress } from "./AddAddress.js";
+import { AddAddress, type Adding } from "./AddAddress.js";
 import { AddressDesk } from "./AddressDesk.js";
-import { type FoundTurn, NeedTurns } from "./NeedTurns.js";
+import { NeedTurns } from "./NeedTurns.js";
 import { needMemory, withMemory } from "./remembered.js";
 import "../talk.css";
 import { Working } from "../../ui/Working.js";
@@ -69,7 +66,6 @@ interface Props {
 
 /** The phone has a usable model now: it decides the price questions (ADR 0041 §2); lite mode asks the fixed ones. */
 const modelOn = () => chosenModel.answering() !== ModelChoice.lite;
-const failure = (err: unknown) => ({ error: err instanceof Error ? err.message : String(err) });
 
 /**
  * Find as a conversation, the way workers make their card in Talk: the owner says what they need in their own words,
@@ -82,7 +78,6 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   const i18n = useI18n();
   const { lang, t } = i18n;
   const { ready, open, state, turns, to } = useNeed();
-  const [busy, setBusy] = useState(false);
   const [reading, setReading] = useState(false);
   const end = useRef<HTMLDivElement>(null);
   const current = state ? needPrompt(state) : undefined;
@@ -93,7 +88,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   const { saved, added } = useAddresses(ports, open, state?.config.addresses);
   const { inUse } = useAddressBook(ports.storage);
   const inUseId = inUse?.id;
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState<Adding>();
   // The address at the top of the screen comes first at the "where" question, a tap away.
   useEffect(() => {
     if (state && state.config.inUse !== inUseId) addressInUseNeed(open, inUseId);
@@ -155,6 +150,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   }, [requestKey, session, open]);
 
   useNeedSearch({ state, open, account, i18n, ports, device, onAsked, saved });
+  const { busy, ask } = useAskPicked({ ports, device, i18n, state, open, saved, onAsked });
 
   // Every message: read by the model where one is there, else the word lists (`find/readNeed.ts`). The first is the
   // need in the owner's words; its scope is read into chips the owner confirms before the estimate (ADR 0033 §5).
@@ -196,30 +192,6 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     void send(words, Via.typed);
   });
 
-  async function ask(turn: FoundTurn) {
-    // Asking workers is when this household starts to have news to hear about: the browser may ask, once.
-    void offerAlerts();
-    const need = state && needOf(state, i18n, ports.clock.now(), saved);
-    if (busy || !need) return;
-    const chat = open;
-    setBusy(true);
-    try {
-      await askWorkers(
-        ports,
-        device,
-        need,
-        turn.workers.filter((w) => turn.picked.includes(w.user)),
-      );
-      needAsked(chat, ASKED);
-      onAsked();
-    } catch (err) {
-      log.warn("asking workers failed", failure(err));
-      needSay(chat, { key: errorKey(err) });
-    } finally {
-      setBusy(false);
-    }
-  }
-
   const conversation = (
     <NeedTurns
       chat={open}
@@ -227,7 +199,8 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       turns={turns}
       busy={busy}
       onAsk={(turn) => void ask(turn)}
-      onAddAddress={() => setAdding(true)}
+      where={{ saved: saved ?? [], storage: ports.storage, onSaved: (a) => added(open, a), onAdd: setAdding }}
+      onSay={(text) => void send(text, Via.typed)}
       onTap={(value, label) => {
         if (state) countFind(account.session, findEventOf(state, value));
         const kind = categoryPicked(value);
@@ -250,7 +223,14 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     />
   );
   const form = adding && (
-    <AddAddress chat={open} session={account.session} ports={ports} added={added} onDone={() => setAdding(false)} />
+    <AddAddress
+      chat={open}
+      session={account.session}
+      ports={ports}
+      added={added}
+      adding={adding}
+      onDone={() => setAdding(undefined)}
+    />
   );
   // The workers were asked: the chat stays to read, and asking for something else opens a new one.
   if (ready && !state && turns.length > 0)
@@ -279,7 +259,7 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       <Dock>
         <Composer
           label={t("need.composer")}
-          placeholder={t("need.placeholder")}
+          placeholder={t(state?.slot === NeedSlot.trade ? "find.example" : "need.placeholder")}
           onSend={(text, via) => void send(text, via)}
           busy={busy || reading || waiting}
           hints={current?.hints ?? []}

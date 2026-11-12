@@ -1,5 +1,5 @@
 import type { JobRecord, Journey, LoadedGuide, Ports } from "@gigsync/core";
-import { type City, GuideStatus } from "@gigsync/protocol";
+import type { City } from "@gigsync/protocol";
 import { useState } from "react";
 import type { Account } from "../adapters/account.js";
 import { useI18n } from "../i18n.js";
@@ -7,10 +7,10 @@ import { C } from "../ui/cls.js";
 import { AskGuide } from "./landing/AskGuide.js";
 import { CashPlan } from "./landing/CashPlan.js";
 import { dayAt } from "./landing/day.js";
+import { GuideLabel } from "./landing/GuideLabel.js";
 import { Helplines, NotChecked, Places, Registration } from "./landing/GuideLists.js";
 import { JourneySteps } from "./landing/JourneySteps.js";
-import { LandingStart } from "./landing/LandingStart.js";
-import { GuideText } from "./landing/SectionView.js";
+import { MoveStart } from "./landing/MoveStart.js";
 import { useLanding } from "./landing/useLanding.js";
 import "./landing/landing.css";
 
@@ -23,18 +23,6 @@ interface Props {
   city: City | undefined;
   /** Opens Find a mentor (builder M's screens), for someone who knows the city. */
   onFindMentor: () => void;
-}
-
-/** The label every screen showing the guide carries: the app's own words for a draft, else the guide's. */
-function GuideLabel({ loaded }: { loaded: LoadedGuide }) {
-  const { t, date } = useI18n();
-  const draft = loaded.guide.status === GuideStatus.enum.draft;
-  return (
-    <div className="guide-label" role="note">
-      <strong>{draft ? t("landing.draft") : <GuideText text={loaded.guide.label} original={false} />}</strong>
-      {loaded.offline && <span className={C.muted}>{t("landing.offline", { date: date(new Date(loaded.at)) })}</span>}
-    </div>
-  );
 }
 
 /** Someone who knows the city: the mentor screens, where the newcomer chooses. */
@@ -103,22 +91,21 @@ function JourneyView(props: Props & { journey: Journey; loaded: LoadedGuide; lan
 }
 
 /**
- * Moving to a new city for work (round 4, flow 3): pick the city, the day and the work, then a journey kept on this
- * phone, step by step, from the city's guide. The guide is a draft from public sources and every part of this screen
- * says so; once downloaded it opens without a network.
+ * Moving to a new city for work (round 4, flow 3; design W18), from a move in Talk or from Me: pick the city and see what
+ * comes along, the day and the work, then a journey kept on this phone, step by step, from the city's guide. The guide
+ * is a draft from public sources and every part of this screen says so; once downloaded it opens without a network.
  */
 export function Landing(props: Props) {
-  const { ports, account, jobs, city } = props;
+  const { ports, account, jobs, city, onFindMentor } = props;
   const { t } = useI18n();
   const landing = useLanding(ports, account, jobs);
   const { journey, guide } = landing;
   return (
     <>
-      <div className={C.stack}>
-        <span className={C.labelSq}>{t("nav.talk")}</span>
-        <h1 className={C.headline}>{t("landing.title")}</h1>
-      </div>
-      {journey === null && <LandingStart city={city} trade={account.worker?.trades[0]} onStart={landing.start} />}
+      <h1 className="hero-title">{t("landing.title")}</h1>
+      {journey === null && (
+        <MoveStart ports={ports} account={account} city={city} onStart={landing.start} onFindMentor={onFindMentor} />
+      )}
       {journey && guide === undefined && <p className={C.muted}>{t("landing.loading")}</p>}
       {journey && guide === null && <p className={C.error}>{t("landing.no_guide")}</p>}
       {journey && guide && <JourneyView {...props} journey={journey} loaded={guide} landing={landing} />}

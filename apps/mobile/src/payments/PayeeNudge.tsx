@@ -10,7 +10,7 @@ const E = EngagementStatus.enum;
 const SIGNED: ReadonlySet<EngagementStatus> = new Set([E.agreed, E.in_progress, E.delivered, E.revision]);
 
 /**
- * Today's reminder to add a UPI ID, once a deal is signed and none is saved. It never blocks anything: it only saves
+ * Home's reminder to add a UPI ID, once a deal is signed and none is saved. It never blocks anything: it only saves
  * the worker finding out with the customer standing there.
  */
 export function PayeeNudge({ ports, view, onAdd }: { ports: Ports; view: GigView; onAdd: () => void }) {
@@ -18,7 +18,7 @@ export function PayeeNudge({ ports, view, onAdd }: { ports: Ports; view: GigView
   const [saved, setSaved] = useState<boolean>();
   const signed = view.jobs.some((j) => j.engagement.role === Role.enum.provider && SIGNED.has(j.engagement.status));
 
-  // Read each time Today opens (coming back from About me included) and when the first signed deal appears.
+  // Read each time Home opens (coming back from About me included) and when the first signed deal appears.
   useEffect(() => {
     if (!signed) return;
     let live = true;

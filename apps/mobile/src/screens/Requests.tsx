@@ -10,14 +10,14 @@ interface Props {
   run: (work: () => Promise<unknown>) => Promise<unknown>;
   /** Opens a Find chat addressed to a worker who offered to work. */
   onAsk: (worker: ChosenWorker) => void;
-  /** Opens Records, where finished jobs are. */
+  /** Opens the Pay tab, where finished jobs are. */
   onRecords: () => void;
 }
 
 /**
- * A household's Activity: the same frame as a worker's. Offers to work from someone who scanned their QR wait on them
- * first, under Awaiting you, with answering the worker, signing and saying whether a payment went; the jobs agreed
- * (pay, review) are one list under Agreed.
+ * A household's Jobs tab (design H6): the same frame as a worker's. Offers to work from someone who scanned their QR
+ * come first under Needs you, before the jobs whose decisions wait on them (a new time, the worker's questions, the
+ * price, signing); the jobs agreed (pay, review) are one list under Agreed.
  */
 export function Requests({ view, device, run, onAsk, onRecords }: Props) {
   const more = {

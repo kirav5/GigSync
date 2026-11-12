@@ -172,6 +172,7 @@ export * from "./net/api.js";
 export { claimLegacyRecords } from "./owner/claim.js";
 export * from "./owner/storage.js";
 export * from "./payments/book.js";
+export * from "./payments/money-tab.js";
 export * from "./payments/paid-record.js";
 export * from "./payments/passbook.js";
 export * from "./payments/payee.js";

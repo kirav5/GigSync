@@ -9,9 +9,19 @@ export const progress = {
   "progress.closed": "Closed",
   "progress.cancelled": "Cancelled",
   "progress.you": "You",
-  "progress.more.one": "{count} more step",
-  "progress.more.other": "{count} more steps",
-  "progress.less": "Show less",
+  "progress.state.done": "completed",
+  "progress.state.now": "current step",
+  "progress.state.next": "still to come",
+  "progress.state.stopped": "stopped here",
+  "progress.stopped_at": "Stopped at: {step}",
+  "progress.next_worker.on_my_way": "Next: Set off for the job",
+  "progress.next_worker.started": "Next: Arrive and start work",
+  "progress.next_worker.done": "Next: Finish the work",
+  "progress.next_worker.paid": "Next: {name} pays you",
+  "progress.next_household.on_my_way": "Next: {name} sets off",
+  "progress.next_household.started": "Next: {name} arrives and starts work",
+  "progress.next_household.done": "Next: {name} finishes the work",
+  "progress.next_household.paid": "Next: You pay {name}",
   "restored.work_done": "The work is done",
   "restored.cancel": "Cancel this job",
   "restored.why":
@@ -23,8 +33,6 @@ export const progress = {
   "alerts.about":
     "A notification on this phone when a job moves on, saying who it is from and what happened: a new request, a deal signed, on the way, done, paid or cancelled. It never shows what was said, and Google or Apple cannot read it on the way.",
   "alerts.on": "On: notifications come to this phone.",
-  "alerts.turn_on": "Turn on notifications",
-  "alerts.turn_off": "Turn off",
   "alerts.blocked":
     "Notifications are blocked for GigSync in this browser. Allow them in the browser's settings for this site, then come back here.",
   "alerts.install":

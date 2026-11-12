@@ -4,8 +4,8 @@ import { expect, type Locator, type Page } from "@playwright/test";
 import { open } from "./menu.js";
 
 /**
- * Job cards as the specs reach them: in Activity's tabs (Awaiting you, In talks, Agreed), inside a card's folds, or
- * in Records once the job is finished.
+ * Job cards as the specs reach them: on the Jobs tab, where each job is one line that opens its card in place (Needs
+ * you, Agents talking, Agreed), inside a card's folds, or on Money (Pay) once the job is finished.
  */
 
 /** Opens the folded sections (Details, the agents' talks, Not completed) whose summary reads `summary`, inside `scope`. */
@@ -30,6 +30,27 @@ async function shows(page: Page, target: Locator): Promise<boolean> {
   return target.isVisible();
 }
 
+/**
+ * Opens the closed job lines inside `scope`, one at a time, until `target` (when given) shows in a card. Each line
+ * opened leaves the closed ones, so the first closed line is always the next; their count bounds the loop.
+ */
+async function openRows(page: Page, scope: Page | Locator, target?: Locator): Promise<boolean> {
+  const closed = scope.locator('.job-row[aria-expanded="false"]');
+  for (let left = await closed.count(); left > 0; left--) {
+    // Pinned by its name's id: once open, `first()` already points at the next closed line.
+    const named = await closed.first().getAttribute("aria-labelledby");
+    if (!named) break;
+    const row = scope.locator(`.job-row[aria-labelledby="${named}"]`);
+    await row.click();
+    await expect(row).toHaveAttribute("aria-expanded", "true");
+    if (target && (await shows(page, target))) return true;
+  }
+  return false;
+}
+
+/** Opens every closed job line on the Jobs tab, so each job's card shows. */
+export const openAllRows = (page: Page) => openRows(page, page);
+
 /** Opens Records' rows one at a time (only one stays open), until `target` shows in one of them. */
 async function inRecords(page: Page, target: Locator): Promise<boolean> {
   const rows = page.locator(".record-line");
@@ -41,10 +62,14 @@ async function inRecords(page: Page, target: Locator): Promise<boolean> {
   return false;
 }
 
+/** The Jobs tab's way to its finished jobs, on Money (Pay): named Closed jobs, its count beside the name. */
+const closedJobs = (page: Page, lang: Lang) =>
+  page.getByRole("button", { name: t(lang, "activity.tab_closed"), exact: true });
+
 /**
- * Waits for `target` while the job may still move: between Activity's tabs (a job waiting on the other side goes to
- * In talks, a signed one to Agreed), and out to Records once it is finished. Each try opens every folded section,
- * then each tab in turn, then Records (through Closed) and its rows, until it shows.
+ * Waits for `target` while the job may still move: between the Jobs tab's sections (a job waiting on the other side
+ * goes to Agents talking, a signed one to Agreed), and out to Money (Pay) once it is finished. Each try opens every
+ * folded section, then each closed job line in turn, then Money through Closed jobs and its rows, until it shows.
  */
 export async function reveal(page: Page, target: Locator, lang: Lang = DEFAULT_LANG) {
   let inRecordsNow = false;
@@ -52,11 +77,8 @@ export async function reveal(page: Page, target: Locator, lang: Lang = DEFAULT_L
     if (inRecordsNow) await open(page, "nav.activity", lang);
     inRecordsNow = false;
     if (await shows(page, target)) return;
-    for (const tab of await page.getByRole("tab").all()) {
-      await tab.click();
-      if (await shows(page, target)) return;
-    }
-    const closed = page.locator(".radar-count.closed");
+    if (await openRows(page, page, target)) return;
+    const closed = closedJobs(page, lang);
     if ((await closed.count()) > 0 && Number(await closed.locator("b").textContent()) > 0) {
       await closed.click();
       inRecordsNow = true;
@@ -66,16 +88,21 @@ export async function reveal(page: Page, target: Locator, lang: Lang = DEFAULT_L
   }).toPass();
 }
 
-/** Opens one of Activity's tabs (Awaiting you, In talks, Agreed) by its name in the owner's language. */
+/**
+ * Shows one of the Jobs tab's sections (Needs you, Agents talking, Agreed), named by its old tab key in the owner's
+ * language: scrolls to it and opens its closed job lines, so its cards show as the tab's did.
+ */
 export async function showTab(page: Page, tab: MessageKey, lang: Lang = DEFAULT_LANG) {
-  const button = page.getByRole("tab", { name: t(lang, tab), exact: true });
-  await button.click();
-  await expect(button).toHaveAttribute("aria-selected", "true");
+  const section = page.getByRole("region", { name: t(lang, tab), exact: true });
+  await section.scrollIntoViewIfNeeded();
+  await expect(section).toBeVisible();
+  await openRows(page, section);
 }
 
 /**
- * The job cards under one heading of Activity's Agreed tab (Today's jobs, Coming up, Other jobs, or a household's Your
- * jobs): those whose nearest section heading above is `heading`. Cards in a fold are never under a heading.
+ * The job cards under one heading of the Jobs tab (a section, or one of a worker's days inside Agreed: Today's jobs,
+ * Coming up, Other jobs): those whose nearest heading above is `heading`. Only open lines have a card; cards in a fold
+ * are never under a heading.
  */
 export function inSection(page: Page, heading: MessageKey, lang: Lang = DEFAULT_LANG): Locator {
   const title = t(lang, heading);

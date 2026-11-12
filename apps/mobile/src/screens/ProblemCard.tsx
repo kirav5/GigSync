@@ -5,8 +5,10 @@ import { useI18n } from "../i18n.js";
 import { useStep } from "../payments/useStep.js";
 import { BusyGroup } from "../ui/BusyGroup.js";
 import { C } from "../ui/cls.js";
+import { Icon } from "../ui/Icon.js";
 import { Said } from "../ui/Said.js";
 import { useBusy } from "../ui/useBusy.js";
+import { J } from "./job/look.js";
 
 /** The form's field names. */
 const F = { reason: "reason", text: "text" } as const;
@@ -60,11 +62,10 @@ export function ProblemCard({ job, them, device, run }: Props) {
   if (!canReport(job, new Date())) return null;
   if (!open)
     return (
-      <div className={C.actions}>
-        <button type={C.button} className={C.quiet} onClick={() => setOpen(true)}>
-          {t("problem.report")}
-        </button>
-      </div>
+      <button type={C.button} className={J.ghost} onClick={() => setOpen(true)}>
+        <Icon name="flag" />
+        {t("problem.report")}
+      </button>
     );
 
   function submit(e: FormEvent<HTMLFormElement>) {

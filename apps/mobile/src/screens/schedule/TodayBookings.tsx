@@ -6,7 +6,7 @@ import { C } from "../../ui/cls.js";
 import { BookingLines } from "./BookingLines.js";
 
 /**
- * The worker's own bookings on Today (ADR 0048 §4, §7): what is still to come, the one about to start marked, and
+ * The worker's own bookings on Home, under today's jobs (ADR 0048 §4, §7): what is still to come, the one about to start marked, and
  * Delete on each. Nothing shows until there is a booking; they are added by saying them in Talk.
  */
 export function TodayBookings({ ports }: { ports: Ports }) {

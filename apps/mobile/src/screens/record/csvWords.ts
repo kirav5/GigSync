@@ -1,5 +1,5 @@
 import { type CsvColumn, CsvWord, type CsvWords, type MessageKey } from "@gigsync/core";
-import { JobRecordStatus, PaymentMethod, Trade } from "@gigsync/protocol";
+import { JobRecordStatus, PaymentMethod, type Role, Trade } from "@gigsync/protocol";
 
 /** Each column's heading, by key. */
 const HEADING: Readonly<Record<CsvColumn, MessageKey>> = {
@@ -19,12 +19,21 @@ const STATUS_WORD: Readonly<Record<JobRecordStatus, MessageKey>> = {
   cancelled: "records.status_cancelled",
 };
 
-/** The work record file's words in the owner's language; a value the app has no word for stays as it is. */
-export function csvWords(t: (key: MessageKey) => string): CsvWords {
-  const heading = Object.fromEntries(Object.entries(HEADING).map(([c, key]) => [c, t(key)])) as Record<
-    CsvColumn,
-    string
-  >;
+/**
+ * What changes with the owner's side of the jobs: the money column (received by a worker, paid by a household), and
+ * who alone stands behind a one-sided job, which only the worker's side ever reaches GigSync for.
+ */
+const SIDE: Readonly<Record<Role, { paid: MessageKey; alone: MessageKey }>> = {
+  provider: { paid: "records.col_paid", alone: "records.by_you" },
+  requester: { paid: "ledger.col_paid", alone: "ledger.by_worker" },
+};
+
+/** The record file's words in the owner's language, for their side; a value the app has no word for stays as it is. */
+export function csvWords(t: (key: MessageKey) => string, side: Role): CsvWords {
+  const words = SIDE[side];
+  const heading = Object.fromEntries(
+    Object.entries({ ...HEADING, paid: words.paid }).map(([c, key]) => [c, t(key)]),
+  ) as Record<CsvColumn, string>;
   return {
     heading,
     word(kind, value) {
@@ -39,6 +48,6 @@ export function csvWords(t: (key: MessageKey) => string): CsvWords {
       const method = PaymentMethod.safeParse(value).data;
       return method ? t(`method.${method}`) : value;
     },
-    attested: (both) => t(both ? "records.by_both" : "records.by_you"),
+    attested: (both) => t(both ? "records.by_both" : words.alone),
   };
 }

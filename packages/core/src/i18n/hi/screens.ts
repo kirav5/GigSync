@@ -3,10 +3,8 @@ import type { screens as en } from "../en/screens.js";
 /** Hindi: getting in and finding: language choice, sign-in, the menu, Find, My card, the job list. */
 export const screens: Readonly<Record<keyof typeof en, string>> = {
   "onboard.title": "अपनी भाषा चुनें",
-  "onboard.later": "इसे बाद में “मेरे बारे में” में बदला जा सकता है।",
-  "onboard.continue": "आगे बढ़ें",
+  "onboard.later": "इसे बाद में “मैं” में बदल सकते हैं।",
   "signin.label": "साइन इन",
-  "signin.headline": "आपका एजेंट, आपका फ़ोन।",
   "signin.soft": "आपका नंबर आपका ही रहता है।",
   "signin.consumer": "मुझे काम करवाना है",
   "signin.worker": "मुझे काम चाहिए",
@@ -18,7 +16,6 @@ export const screens: Readonly<Record<keyof typeof en, string>> = {
   "signin.code": "एसएमएस में आया कोड",
   "signin.code_dev": "एसएमएस में आया कोड (डेव: {code})",
   "signin.send_code": "कोड भेजें",
-  "signin.submit": "साइन इन करें",
   "role.worker": "कामगार",
   "role.customer": "ग्राहक",
   "nav.find": "खोजें",

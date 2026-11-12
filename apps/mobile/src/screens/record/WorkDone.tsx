@@ -1,18 +1,19 @@
-import { type MessageKey, type RecordMonth, type RecordRow, RecordState, type WorkRecord } from "@gigsync/core";
+import { type MessageKey, type RecordRow, RecordState, type WorkRecord } from "@gigsync/core";
 import { useId } from "react";
 import { type I18n, useI18n } from "../../i18n.js";
 import { money } from "../../ui/places.js";
+import { MonthGroup } from "./MonthGroup.js";
 import { type CardProps, type OpenRow, RecordLine } from "./RecordLine.js";
 import { type Chip, monthText, Tag, weekdayText, whoOf } from "./text.js";
 import "./record.css";
 
-/** Each money state's words and look. */
-const CHIP: Readonly<Record<RecordState, { text: MessageKey; cls: Tag }>> = {
-  [RecordState.received]: { text: "record.state_received", cls: Tag.fresh },
-  [RecordState.cash]: { text: "record.state_cash", cls: Tag.fresh },
-  [RecordState.waiting]: { text: "record.state_waiting", cls: Tag.wait },
-  [RecordState.notAsked]: { text: "record.state_not_asked", cls: Tag.talk },
-  [RecordState.cancelled]: { text: "record.state_cancelled", cls: Tag.plain },
+/** Each money state's words and look, and whether the money is in. */
+const CHIP: Readonly<Record<RecordState, { text: MessageKey; cls: Tag; settled: boolean }>> = {
+  [RecordState.received]: { text: "record.state_received", cls: Tag.fresh, settled: true },
+  [RecordState.cash]: { text: "record.state_cash", cls: Tag.fresh, settled: true },
+  [RecordState.waiting]: { text: "record.state_waiting", cls: Tag.wait, settled: false },
+  [RecordState.notAsked]: { text: "record.state_not_asked", cls: Tag.talk, settled: false },
+  [RecordState.cancelled]: { text: "record.state_cancelled", cls: Tag.plain, settled: false },
 };
 
 type Props = CardProps & OpenRow & { record: WorkRecord };
@@ -33,9 +34,10 @@ function factsOf(t: I18n["t"], row: RecordRow): string[] {
 
 /**
  * The worker's completed work: how many jobs, for how many households, since when (no day counts, no claims beyond
- * the jobs themselves), then every completed job by month, newest first.
+ * the jobs themselves), then every completed job by month, newest first. Each month's small heading names its card,
+ * so the section's own heading is for readers only.
  */
-export function WorkDone({ record, ...rows }: Props) {
+export function WorkDone({ record, openId, onToggle, ...card }: Props) {
   const { lang, t, plural } = useI18n();
   const heading = useId();
   const { since } = record;
@@ -48,41 +50,32 @@ export function WorkDone({ record, ...rows }: Props) {
         </p>
       )}
       <section className="record" aria-labelledby={heading}>
-        <h2 id={heading}>{t("record.title")}</h2>
-        {record.months.map((m) => (
-          <Month key={m.month} {...m} {...rows} />
+        <h2 id={heading} className="record-sr">
+          {t("record.title")}
+        </h2>
+        {record.months.map(({ month, rows }) => (
+          <MonthGroup key={month} month={month}>
+            {rows.map((row) => {
+              const id = row.job.engagement.id;
+              return (
+                <RecordLine
+                  key={id}
+                  job={row.job}
+                  when={weekdayText(lang, row.day)}
+                  who={whoOf(row.job, card.view.names, t("job.customer"))}
+                  price={row.price_paise}
+                  settled={CHIP[row.state].settled}
+                  chip={chipOf(t, row)}
+                  facts={factsOf(t, row)}
+                  open={openId === id}
+                  onToggle={() => onToggle(id)}
+                  {...card}
+                />
+              );
+            })}
+          </MonthGroup>
         ))}
       </section>
     </>
-  );
-}
-
-/** One month's heading, in the owner's language, over its jobs. */
-function Month({ month, rows, openId, onToggle, ...card }: RecordMonth & CardProps & OpenRow) {
-  const { lang, t } = useI18n();
-  const heading = useId();
-  return (
-    <div className="record-month">
-      <h3 id={heading}>{monthText(lang, month)}</h3>
-      <ul className="record-list" aria-labelledby={heading}>
-        {rows.map((row) => {
-          const id = row.job.engagement.id;
-          return (
-            <RecordLine
-              key={id}
-              job={row.job}
-              when={weekdayText(lang, row.day)}
-              who={whoOf(row.job, card.view.names, t("job.customer"))}
-              price={row.price_paise}
-              chip={chipOf(t, row)}
-              facts={factsOf(t, row)}
-              open={openId === id}
-              onToggle={() => onToggle(id)}
-              {...card}
-            />
-          );
-        })}
-      </ul>
-    </div>
   );
 }

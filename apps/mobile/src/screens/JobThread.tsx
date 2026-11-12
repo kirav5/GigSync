@@ -1,65 +1,42 @@
-import {
-  canRecommend,
-  dayOf,
-  EVERY_DAY,
-  type JobRecord,
-  NUMBER_ONLY,
-  noteShown,
-  t as say,
-  timeText,
-  WhenDetail,
-} from "@gigsync/core";
-import { EngagementStatus, type JobRequest, type Lang, QuestionKey, Role } from "@gigsync/protocol";
-import { directionsTo } from "../adapters/map.js";
+import { canRecommend, type JobRecord, NUMBER_ONLY, t as say, UNDER_WAY, WhenDetail } from "@gigsync/core";
+import { EngagementStatus, type Lang, QuestionKey, Role } from "@gigsync/protocol";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
-import { jobPrice, money } from "../ui/places.js";
 import { Said } from "../ui/Said.js";
+import { requestWork } from "../ui/work.js";
 import { AgentTalk } from "./AgentTalk.js";
 import { DetailValue } from "./DetailValue.js";
 import { type JobActionProps, JobActions } from "./JobActions.js";
 import { PlanCard } from "./JobDecide.js";
 import { JobProgress } from "./JobProgress.js";
 import { RemovedLine, RestoredLine } from "./JobSettled.js";
-import { dayDate } from "./jobGroups.js";
+import { ContactCard } from "./job/ContactCard.js";
+import { CancelLine, DealLine, Notes, PaymentLines, ReviewLine } from "./job/JobFacts.js";
+import { JobHead } from "./job/JobHead.js";
 import { ProblemCard } from "./ProblemCard.js";
 import { RecommendWorker } from "./qr/RecommendWorker.js";
 import { RestoredActions } from "./RestoredActions.js";
-import { TermsList } from "./terms/TermsList.js";
 import "./jobs.css";
-import { PlaceMap } from "../ui/PlaceMap.js";
-import { requestWork } from "../ui/work.js";
+import "./job/job.css";
 
 const S = EngagementStatus.enum;
-const TALK = "tag talk";
-const WAIT = "tag wait";
-const FRESH = "tag fresh";
-const DANGER = "tag danger";
+/** While the agents are at it, their talk is the card's middle, open as a chat; once settled it folds to the end. */
+const TALKING: ReadonlySet<EngagementStatus> = new Set([
+  S.sent,
+  S.clarifying,
+  S.responded,
+  S.negotiating,
+  S.confirming,
+]);
 
-/** How each status looks; its words come from the owner's language (`status.<name>`). */
-const TAG: Readonly<Record<EngagementStatus, string>> = {
-  [S.draft]: TALK,
-  [S.sent]: TALK,
-  [S.clarifying]: WAIT,
-  [S.responded]: TALK,
-  [S.negotiating]: TALK,
-  [S.confirming]: WAIT,
-  [S.agreed]: FRESH,
-  [S.in_progress]: FRESH,
-  [S.delivered]: FRESH,
-  [S.revision]: WAIT,
-  [S.closed]: FRESH,
-  [S.declined]: DANGER,
-  [S.expired]: DANGER,
-  [S.cancelled]: DANGER,
-};
-
-/** The When details have their own line; the generic list leaves them out. */
+/** The When details are in the head; the generic list leaves them out. */
 const WHEN_KEYS: ReadonlySet<string> = new Set(Object.values(WhenDetail));
 
 /**
- * One job as this owner sees it, decisions near the top: who, what, the deal and when, then the actions, the contact,
- * notes and the money. What the agents said on the way (the request's details, the plan, the offers) is folded away.
+ * One job as this owner sees it, laid out as the design's job screen: who, the work and when; the step line once both
+ * signed; then the one thing to do now (JobActions), with the agents' talk beside it while they talk; then the
+ * contact, the deal, and what the job has on record. What the agents said once settled, and the request's details
+ * and the plan, are folded away at the end.
  */
 export function JobThread(props: JobActionProps) {
   const { job, view, device, run } = props;
@@ -68,131 +45,63 @@ export function JobThread(props: JobActionProps) {
   const isWorker = e.role === Role.enum.provider;
   const them =
     view.names[e.counterpart] || job.contact?.name || job.their_name || t(isWorker ? "job.customer" : "job.worker");
-  const terms = job.mine?.terms;
   const payments = view.payments.filter((p) => p.engagement === e.id);
-  // On the way and done are steps on the progress line; listing them again as notes said everything twice.
-  const notes = (job.notes ?? []).filter(noteShown);
   // The consumer's free text (need, when, typed answers, review) is in the language their request says.
   const theirs = isWorker ? job.request.lang : undefined;
-  // The signed slot is a copy of the request's `when`; with a structured day, the When line below says it in this
-  // phone's own words, so the slot's machine-translated copy is left out. Older requests have only the slot.
-  const slot = terms && dayOf(job.request) === undefined ? terms.slot : undefined;
   // The request's words, unless they only repeat the trade or are a bare count (older requests used the first answer).
   const need = job.request.need.trim();
   const tradeName = job.request.skill?.text ?? say(job.request.lang, `trade.${job.request.trade}`);
   const needShown = need && need !== tradeName && !NUMBER_ONLY.test(need) ? need : "";
+  // A restored job's messages never reached the server, and another phone answers an elsewhere one (ADR 0045):
+  // neither has moves here, so the talk, if any, stays at the end.
+  const live = !job.restored && !job.elsewhere;
+  const talkFirst = live && TALKING.has(e.status);
+  const talk = <AgentTalk job={job} them={them} from={theirs} device={device} />;
 
   return (
-    <article className={C.card} aria-label={t("a11y.job_with", { name: them })} data-status={e.status} lang={lang}>
-      <div className={C.row}>
-        <span className="avatar" aria-hidden="true">
-          {them.slice(0, 1).toUpperCase()}
-        </span>
-        <div className="who">
-          <strong>{them}</strong>
-          <span className={C.muted}>{requestWork(t, job.request)}</span>
-        </div>
-        <span className={`${TAG[e.status]} end`}>{t(`status.${e.status}`)}</span>
-      </div>
-      <JobProgress job={job} payments={payments} />
-      {needShown && <Said text={needShown} from={theirs} />}
-      {terms && (
-        <fieldset aria-label={t("a11y.deal")}>
-          {t("job.signed", { price: jobPrice(lang, job.request, terms.price_paise) })} ·{" "}
-          {slot && (
-            <>
-              <Said text={slot} from={theirs} /> ·{" "}
-            </>
-          )}
-          {t(job.theirs ? "job.both_signed" : "job.their_signature")}
-          <TermsList terms={terms.terms} />
-        </fieldset>
+    <article
+      className={`${C.card} job-card`}
+      aria-label={t("a11y.job_with", { name: them })}
+      data-status={e.status}
+      lang={lang}
+    >
+      <JobHead job={job} them={them} from={theirs} />
+      <JobProgress job={job} payments={payments} them={them} />
+      {needShown && (
+        <p className="job-need">
+          <Said text={needShown} from={theirs} />
+        </p>
       )}
-      <When request={job.request} from={theirs} />
       <RestoredLine job={job} />
 
       {/* Another of this owner's phones claimed the request and negotiates it there (ADR 0045): nothing to do here. */}
       {job.elsewhere && <p className={C.faint}>{t("job.elsewhere")}</p>}
       {/* A restored job's messages never reached the server, so its thread cannot go on: it ends through the record. */}
-      {!job.elsewhere &&
-        (job.restored ? (
-          <RestoredActions job={job} device={device} run={run} them={them} />
-        ) : (
-          <JobActions {...props} them={them} />
-        ))}
+      {job.restored && !job.elsewhere && <RestoredActions job={job} device={device} run={run} them={them} />}
+      {live && <JobActions {...props} them={them} talk={talkFirst ? talk : undefined} />}
 
-      {job.contact && (
-        <fieldset className="contact" aria-label={t("a11y.contact")}>
-          <span className={C.label}>{t("job.contact")}</span>
-          <strong>{job.contact.name}</strong>
-          <span>{job.contact.phone}</span>
-          {job.contact.address && <span>{job.contact.address}</span>}
-          {/* The door, until the job settles: the pin and the way there go with the rest of the card (ADR 0039 §3). */}
-          {job.contact.point && (
-            <PlaceMap at={job.contact.point} label={t("map.of", { place: job.contact.address ?? "" })} />
-          )}
-          {(job.contact.point || job.contact.address) && (
-            <a
-              className={C.secondary}
-              href={directionsTo(job.contact.point ?? job.contact.address ?? "")}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {t("map.directions")}
-            </a>
-          )}
-        </fieldset>
-      )}
+      {/* The household has no step of its own on the day: calling the worker is its main move then. */}
+      <ContactCard job={job} primary={!isWorker && UNDER_WAY.has(e.status)} />
+      <DealLine job={job} from={theirs} />
       {canRecommend(job) && (
         <RecommendWorker device={device} run={run} job={job} name={them} work={requestWork(t, job.request)} />
       )}
       <RemovedLine job={job} />
       <ProblemCard job={job} them={them} device={device} run={run} />
-      {notes.length > 0 && (
-        <ul className={C.stack} aria-label={t("a11y.notes")}>
-          {notes.map((n, i) => (
-            // Notes have no id; the list only grows, so the position is stable.
-            // biome-ignore lint/suspicious/noArrayIndexKey: append-only list
-            <li key={i} className="note">
-              {n.mine && <span className={C.faint}>{t("progress.you")}: </span>}
-              {n.code ? (
-                <b>{t(`update.${n.code}`)}</b>
-              ) : (
-                <b>
-                  <Said text={n.text} from={n.lang} />
-                </b>
-              )}
-              {n.at && <time dateTime={n.at}>{timeText(lang, new Date(n.at))}</time>}
-            </li>
-          ))}
-        </ul>
-      )}
-      {job.cancel && (
-        <p className={C.error}>
-          {job.cancel.stop ? t("job.stopped", { why: t(`stop.${job.cancel.stop}`) }) : t(`cancel.${job.cancel.reason}`)}
-        </p>
-      )}
-      {payments.map((p) => (
-        <fieldset key={p.id} aria-label={t("a11y.payment")}>
-          {t("job.payment", { price: money(p.amount_paise), status: t(`pay.thread.${p.status}`) })}
-          {p.utr ? ` · ${t("job.utr", { utr: p.utr })}` : ""}
-        </fieldset>
-      ))}
-      {job.review && (
-        <fieldset aria-label={t("a11y.review")}>
-          {"★".repeat(job.review.stars)} <Said text={job.review.text} from={theirs} />
-        </fieldset>
-      )}
+      <Notes job={job} />
+      <CancelLine job={job} />
+      <PaymentLines payments={payments} />
+      <ReviewLine job={job} from={theirs} />
 
-      <AgentTalk job={job} them={them} from={theirs} device={device} />
+      {!talkFirst && talk}
       <More job={job} from={theirs} />
     </article>
   );
 }
 
 /**
- * Folded under Details: the request's details (the When ones have their own line) and the worker's private price
- * plan. Nothing at all when there is neither. The offers are in the agents' talk above.
+ * Folded under Details: the request's details (the When ones are in the head) and the worker's private price plan.
+ * Nothing at all when there is neither. The offers are in the agents' talk.
  */
 function More({ job, from }: { job: JobRecord; from: Lang | undefined }) {
   const { t } = useI18n();
@@ -219,32 +128,5 @@ function More({ job, from }: { job: JobRecord; from: Lang | undefined }) {
         {plan && <PlanCard advice={plan} />}
       </div>
     </details>
-  );
-}
-
-/**
- * When the work is: the day from the request's structured detail, shown by this phone in its own words (never
- * translated), then the time as the other side wrote it. A request from before the When chips has only its free text.
- */
-function When({ request, from }: { request: JobRequest; from: Lang | undefined }) {
-  const { t, date } = useI18n();
-  const day = dayOf(request);
-  const time = request.details[WhenDetail.time];
-  if (day === undefined)
-    return (
-      <span className={C.muted}>
-        <Said text={request.when} from={from} />
-      </span>
-    );
-  return (
-    <span className={C.muted}>
-      {day === EVERY_DAY ? t("when.daily") : date(dayDate(day))}
-      {time && (
-        <>
-          {" · "}
-          <Said text={time} from={from} />
-        </>
-      )}
-    </span>
   );
 }

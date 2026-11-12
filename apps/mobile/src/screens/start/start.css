@@ -1,0 +1,239 @@
+/*
+ * The first screens (Language.tsx, start/*): language, who you are, your number, the code, how it works. Built on the
+ * kit in styles.css (.option-row, .card-earth, .hero-title, .fine); this file holds only what is theirs.
+ */
+.start {
+  gap: 18px;
+}
+.start-head {
+  display: grid;
+  gap: 6px;
+}
+.start-head p,
+.start p {
+  margin: 0;
+}
+
+/* Language: a row per language, its name in its own script; the speaker sits inside the row's right end, a button of
+   its own beside the row's (never inside it). */
+.lang-rows {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lang-row {
+  position: relative;
+}
+.lang-row .option-row {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  min-height: 72px;
+  padding-inline-end: 64px;
+}
+.lang-name {
+  font-size: calc(var(--fs-body) + 2px);
+  font-weight: 600;
+  line-height: var(--lh-head);
+}
+.lang-row .speak-btn {
+  position: absolute;
+  inset-inline-end: 8px;
+  top: 0;
+  bottom: 0;
+  margin: auto 0;
+  border-color: transparent;
+  background: none;
+}
+
+/* Who you are: two big cards, each a radio that covers the whole card, so a tap anywhere picks it. */
+.role-cards {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.role-card {
+  position: relative;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px 16px;
+  padding: 20px;
+  cursor: pointer;
+}
+.role-card input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.role-card:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.role-card:has(input:checked) {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.role-card .avatar,
+.role-picture {
+  width: 72px;
+  height: 72px;
+}
+.role-picture {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--sage);
+  color: var(--rust);
+}
+.role-words {
+  display: grid;
+  gap: 4px;
+}
+.role-title {
+  font-family: var(--serif);
+  font-size: calc(var(--fs-heading) + 2px);
+  line-height: var(--lh-head);
+}
+.role-about {
+  color: var(--text2);
+  font-size: var(--fs-label);
+  line-height: 1.45;
+}
+.role-echo {
+  grid-column: 1 / -1;
+  font-size: var(--fs-2);
+  font-weight: 600;
+}
+
+/* The steps after it: Back and the step's name, as the signed-in top bar draws them, at the top of the content. */
+.start-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: var(--tap);
+  margin: -8px 0 -6px -12px;
+}
+.start-back {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+.start-bar-title {
+  min-width: 0;
+  font-family: var(--serif);
+  font-size: var(--fs-title);
+  line-height: var(--lh-head);
+}
+/* The number field with the handset at its start. */
+.start-phone {
+  position: relative;
+  display: block;
+}
+.start-phone .ic {
+  position: absolute;
+  inset-inline-start: 14px;
+  top: 0;
+  bottom: 0;
+  margin: auto 0;
+  color: var(--text2);
+  pointer-events: none;
+}
+.start-phone .field {
+  padding-inline-start: 42px;
+}
+.start-agree {
+  margin-top: 6px;
+}
+.start-actions {
+  display: grid;
+  gap: 4px;
+}
+
+/* The code: one real field laid over a box per number, invisible itself, so the phone's keyboard, its SMS suggestion
+   and a paste all land in one place; the boxes show what it holds and where the next number goes. */
+.code-boxes {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 52px);
+  gap: 8px;
+  justify-content: start;
+}
+.code-input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  caret-color: transparent;
+  font-size: 16px;
+}
+.code-input::selection {
+  background: transparent;
+}
+.code-box {
+  display: grid;
+  place-items: center;
+  height: var(--tap-lg);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-btn);
+  background: var(--surface);
+  font-family: var(--serif-latin);
+  font-size: 24px;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.code-box:not(:empty) {
+  border-color: var(--text);
+}
+.code-boxes:focus-within .code-box[data-next] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* How it works: three numbered cards, each an icon tile and two lines. */
+.how-steps {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.how-step {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  padding: 14px 16px;
+}
+.how-words {
+  display: grid;
+  gap: 2px;
+}
+.how-title {
+  font-size: var(--fs-2);
+  font-weight: 600;
+  line-height: var(--lh-head);
+}

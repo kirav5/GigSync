@@ -1,75 +1,56 @@
-import { asciiDigits, type GigDevice, UPI_APP_NAME, UpiApp, upiAppLink } from "@gigsync/core";
+import { asciiDigits, type GigDevice, type JobRecord, Step as JobStep, jobProgress } from "@gigsync/core";
 import type { Payment } from "@gigsync/protocol";
 import { type FormEvent, useEffect, useState } from "react";
-import { payInChooser, UpiOpen, upiOpen } from "../adapters/upi.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
+import { Icon } from "../ui/Icon.js";
+import { ListCard, ListRow } from "../ui/ListRow.js";
 import { money } from "../ui/places.js";
 import { Working } from "../ui/Working.js";
+import { K } from "./kit.js";
+import { moneyWhen, payeeIn } from "./payer.js";
 import { qrDataUrl } from "./qr.js";
+import { UpiButtons } from "./UpiButtons.js";
 import type { Step } from "./useStep.js";
+import "./money.css";
 
-const UPI_APPS = Object.keys(UpiApp) as UpiApp[];
-/** The words on the one button, and the name of the row of buttons. */
-const OPEN_UPI = "job.open_upi";
+interface Props {
+  payment: Payment;
+  device: GigDevice;
+  step: Step;
+  /** The job, for when the work was done; without it the card says when the money was asked for. */
+  job?: JobRecord | undefined;
+  /** The worker as the job card names them; without it, the name their UPI link carries. */
+  them?: string | undefined;
+}
 
-/**
- * Where the household picks their UPI app: Android's chooser in the app; in a browser on Android, a button per common
- * app and one for any other (the phone's default); elsewhere the plain link. When the chooser fails, the plain link.
- */
-function UpiButtons({ link }: { link: string }) {
-  const { t } = useI18n();
-  const [way, setWay] = useState(upiOpen);
-  if (way === UpiOpen.chooser) {
-    const choose = async () => {
-      if (!(await payInChooser(link, t("job.upi_choose")))) setWay(UpiOpen.link);
-    };
-    return (
-      <button type={C.button} className={C.secondary} onClick={() => void choose()}>
-        {t(OPEN_UPI)}
-      </button>
-    );
-  }
-  if (way === UpiOpen.link) {
-    return (
-      <a className={C.secondary} href={link}>
-        {t(OPEN_UPI)}
-      </a>
-    );
-  }
-  return (
-    <nav className={C.row} aria-label={t(OPEN_UPI)}>
-      {UPI_APPS.map((app) => (
-        <a key={app} className={C.secondaryCompact} href={upiAppLink(link, app)}>
-          {UPI_APP_NAME[app]}
-        </a>
-      ))}
-      <a className={C.secondaryCompact} href={link}>
-        {t("job.upi_other")}
-      </a>
-    </nav>
-  );
+/** The worker's sealed request as this phone reads it: the UPI link and the same link drawn as a QR. */
+interface Request {
+  link: string;
+  qr: string;
 }
 
 /**
- * The consumer pays in their own UPI app; GigSync only shows the QR and records the reference they paste back. When
- * the link cannot be built (this phone never got the worker's sealed payment request) it says so instead of a dead QR.
+ * The household pays in their own UPI app; GigSync only opens it with the worker's ID and the amount filled in, and
+ * records the "I've paid" and the reference they may paste back. Nothing passes through GigSync, so the card says so
+ * beside the UPI ID it pays. A phone cannot scan its own screen, so here the button is the way; the QR (ADR 0011's main
+ * path, for paying from another phone) and the reference (the proof either side can match in a bank statement) wait
+ * one tap away in a fold. Cash is no button here: only the worker can record cash (payments/book.ts), so a line says
+ * they do. When the link cannot be built (this phone never got the worker's sealed payment request) it says so instead
+ * of a dead QR.
  */
-export function PayBox({ payment, device, step }: { payment: Payment; device: GigDevice; step: Step }) {
+export function PayBox({ payment, device, step, job, them }: Props) {
   const { t } = useI18n();
-  const [link, setLink] = useState<string>();
-  const [qr, setQr] = useState<string>();
+  const [request, setRequest] = useState<Request>();
   const [failed, setFailed] = useState(false);
   useEffect(() => {
     let live = true;
     setFailed(false);
     void (async () => {
       try {
-        const l = await device.upiLink(payment.id);
-        const image = await qrDataUrl(l);
-        if (!live) return;
-        setLink(l);
-        setQr(image);
+        const link = await device.upiLink(payment.id);
+        const qr = await qrDataUrl(link);
+        if (live) setRequest({ link, qr });
       } catch {
         if (live) setFailed(true);
       }
@@ -83,27 +64,69 @@ export function PayBox({ payment, device, step }: { payment: Payment; device: Gi
     const utr = asciiDigits(String(new FormData(e.currentTarget).get("utr") ?? "").trim());
     step(() => device.markPaid(payment.id, utr || undefined));
   }
+  const payee = request && payeeIn(request.link);
+  const name = them || payee?.name || t("job.worker");
   return (
-    <form className={C.stack} onSubmit={submit} aria-label={t("a11y.pay")}>
-      <span className={C.label}>
-        {t(payment.advance ? "job.pay_advance" : "job.pay_by_upi", { price: money(payment.amount_paise) })}
-      </span>
+    <form className="pay-box" onSubmit={submit} aria-label={t("a11y.pay")}>
+      <PayHero payment={payment} job={job} name={name} />
       {failed && <p className={C.error}>{t("error.generic")}</p>}
-      <Working on={!qr && !failed} />
-      {qr && <img src={qr} alt={t("a11y.qr")} width={160} height={160} />}
-      {link && <UpiButtons link={link} />}
-      <input
-        className={C.field}
-        name="utr"
-        aria-label={t("a11y.utr")}
-        placeholder={t("job.utr_placeholder")}
-        inputMode="numeric"
-      />
-      <div className={C.actions}>
-        <button type={C.submit} className={C.accent}>
-          {t("job.paid")}
-        </button>
-      </div>
+      <Working on={!request && !failed} />
+      {payee && (
+        <ListCard>
+          <ListRow
+            icon="rupee"
+            title={t("money.pay_to", { vpa: payee.vpa })}
+            sub={t("money.holds_nothing", { name })}
+          />
+        </ListCard>
+      )}
+      {request && (
+        <>
+          <UpiButtons link={request.link} />
+          <p className={K.fine}>{t("money.upi_opens", { name, paid: t("job.paid") })}</p>
+        </>
+      )}
+      <button type={C.submit} className={`${C.btn} wide`}>
+        <Icon name="tick" size={20} />
+        {t("job.paid")}
+      </button>
+      <p className={K.fine}>{t("money.cash_hint", { name })}</p>
+      <details className="more pay-other">
+        <summary>{t("money.other_way")}</summary>
+        <div className={C.stack}>
+          {request && <img src={request.qr} alt={t("a11y.qr")} width={160} height={160} />}
+          <input
+            className={C.field}
+            name="utr"
+            aria-label={t("a11y.utr")}
+            placeholder={t("job.utr_placeholder")}
+            inputMode="numeric"
+          />
+          <p className={K.fine}>{t("money.utr_why", { name })}</p>
+        </div>
+      </details>
     </form>
+  );
+}
+
+/**
+ * Who asks for how much, and what for: an advance says so; otherwise when the work was done, as the job's own steps
+ * have it, or when the money was asked for.
+ */
+function PayHero({ payment, job, name }: { payment: Payment; job: JobRecord | undefined; name: string }) {
+  const { t, time, date } = useI18n();
+  const price = money(payment.amount_paise);
+  const doneAt = job && jobProgress(job, [])?.find((s) => s.step === JobStep.done && s.reached)?.at;
+  const when = payment.advance
+    ? t("job.pay_advance", { price })
+    : doneAt
+      ? t("money.done_at", { time: moneyWhen({ time, date }, doneAt) })
+      : payment.requested_at && t("money.asked_at", { time: moneyWhen({ time, date }, payment.requested_at) });
+  return (
+    <div className={K.hero}>
+      <span className={K.fine}>{t("money.asks_for", { name })}</span>
+      <b className={K.amount}>{price}</b>
+      {when && <span className={K.fine}>{when}</span>}
+    </div>
   );
 }

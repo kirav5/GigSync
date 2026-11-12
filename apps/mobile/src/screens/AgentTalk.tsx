@@ -40,9 +40,11 @@ const TALKING: ReadonlySet<EngagementStatus> = new Set([
 ]);
 
 /**
- * What the two agents said, in order and in the reader's language: the request, the worker's agent's questions and
- * the household's answers (translated when the other side wrote them), every offer, the agreement, each signature and
- * the contacts. It ends by saying the reader's own limit never left the phone.
+ * What the two agents said, in order and in the reader's language, as a chat (W9, H9): the other side's turns on the
+ * left, this owner's agent's on the right, and what belongs to both (the agreement, the contacts) between them. The
+ * request, the worker's agent's questions and the household's answers (translated when the other side wrote them),
+ * every offer, the agreement, each signature and the contacts. It ends by saying the reader's own limit never left
+ * the phone.
  */
 export function AgentTalk({
   job,
@@ -149,6 +151,7 @@ export function AgentTalk({
   return (
     <details className="job-talk" open={TALKING.has(job.engagement.status)}>
       <summary>{title}</summary>
+      <p className="section-label">{t("jobcard.talk_sides", { name: them })}</p>
       <ol className="talk" aria-label={title}>
         {steps.map((s, i) => (
           // The story only grows, so a step's place in it is stable.

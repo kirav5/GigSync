@@ -16,10 +16,24 @@ function play(lang: Lang, text: string): void {
  * A speaker button that reads `text` aloud in `lang`, for an owner who would rather hear a question or a decision than
  * read it. It only speaks; deciding stays a tap. A voice the phone can fetch is fetched by the tap and speaks once it
  * is here; the button renders nothing on a phone with no local voice for the language, or one that did not come, and
- * shows again when one is installed while the app was away.
+ * shows again when one is installed while the app was away. `label` names it where the app's language is not known
+ * yet (the language screen, outside I18nProvider); without one it is "Hear it again" in the app's language.
  */
-export function SpeakButton({ lang, text }: { lang: Lang; text: string }) {
+export function SpeakButton({ lang, text, label }: { lang: Lang; text: string; label?: string }) {
+  return label === undefined ? (
+    <ReplayButton lang={lang} text={text} />
+  ) : (
+    <Speaker lang={lang} text={text} label={label} />
+  );
+}
+
+/** The speaker under a question or a decision, named in the app's language. */
+function ReplayButton({ lang, text }: { lang: Lang; text: string }) {
   const { t } = useI18n();
+  return <Speaker lang={lang} text={text} label={t("speech.replay")} />;
+}
+
+function Speaker({ lang, text, label }: { lang: Lang; text: string; label: string }) {
   const [voice, setVoice] = useSpeechState(lang, knownVoice, speakState);
   /** Tapped while the voice was still coming: it speaks when it arrives, if the button is still on screen. */
   const playWhenReady = useRef(false);
@@ -40,7 +54,7 @@ export function SpeakButton({ lang, text }: { lang: Lang; text: string }) {
 
   if (!ready && !waitsForDownload(voice)) return null;
   return (
-    <button type={C.button} className="speak-btn" aria-label={t("speech.replay")} onClick={() => void tap()}>
+    <button type={C.button} className="speak-btn" aria-label={label} onClick={() => void tap()}>
       <Icon name="speaker" size={22} />
     </button>
   );

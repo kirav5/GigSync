@@ -12,6 +12,7 @@ import {
   openDrawer,
   Role,
   RUN,
+  reveal,
   setUpi,
   shoot,
   signIn,
@@ -164,7 +165,9 @@ test("a household moves to a new phone by QR: the job, memory and chats arrive, 
 
   await newPage.getByRole("button", { name: t(en, "phone.in_continue") }).click();
   await open(newPage, "nav.my_jobs");
-  await expect(newPage.getByLabel(t(en, "a11y.contact"))).toContainText(meenaName);
+  const contact = newPage.getByLabel(t(en, "a11y.contact"));
+  await reveal(newPage, contact);
+  await expect(contact).toContainText(meenaName);
   await open(newPage, "nav.about");
   await expect(memory(newPage)).toContainText(ROOMS);
   await openDrawer(newPage);
@@ -187,7 +190,7 @@ test("a worker's card comes back on a new phone, and moving brings the lowest pr
 
   // A fresh sign-in on another phone: not moving yet. The card comes back from the board; only the lowest price is asked.
   await signIn(newPage, { ...anil, elsewhere: MovePrompt.notNow });
-  await open(newPage, "nav.activity");
+  await open(newPage, "nav.home");
   const floor = newPage.getByRole("form", { name: t(en, "phone.floor_title") });
   await expect(floor).toContainText(t(en, "phone.floor_about"));
   await shoot("card-back", { new: newPage }, FOLDER);

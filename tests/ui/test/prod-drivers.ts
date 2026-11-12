@@ -4,6 +4,7 @@ import { expect, type Locator, type Page } from "@playwright/test";
 import { fillAddressForm } from "./address.js";
 import { open, textOf } from "./helpers.js";
 import type { KindPersona } from "./prod-kinds-data.js";
+import { putOnBoard } from "./talk.js";
 
 /**
  * The production run's two people (prod-kinds.spec.ts): a worker making their card in Talk and a household asking in
@@ -58,7 +59,7 @@ async function afterTurn(page: Page, act: () => Promise<unknown>): Promise<void>
 async function typeTalk(page: Page, text: string) {
   await page
     .getByRole("form", { name: t(en, "nav.talk") })
-    .getByPlaceholder(t(en, "agent.placeholder"))
+    .getByRole("textbox")
     .fill(text);
   await page.getByRole("button", { name: t(en, "a11y.send"), exact: true }).click();
 }
@@ -73,7 +74,8 @@ async function cardStep(page: Page, p: KindPersona, said: CardSaid): Promise<"do
   const tap = (key: MessageKey) => afterTurn(page, () => chip(page, key).click());
   const type = (text: string) => afterTurn(page, () => typeTalk(page, text));
   if (await says(page, "iv.published")) return "done";
-  if (await says(page, "iv.confirm")) return tap("flag.yes").then(() => "more" as const);
+  if (await says(page, "iv.confirm"))
+    return afterTurn(page, () => putOnBoard(page, en).click()).then(() => "more" as const);
   if (await says(page, "skill.is_work")) await tap("flag.yes");
   else if (await says(page, "iv.ask.trade")) await type(said.work++ === 0 ? p.worker : t(en, kindKey(p.kind)));
   else if (await says(page, "iv.ask.also")) {

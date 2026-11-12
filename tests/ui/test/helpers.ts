@@ -8,7 +8,7 @@ import { open } from "./menu.js";
 
 /** Job cards on Activity and Records, wherever a job is filed now (jobs.ts). */
 export * from "./jobs.js";
-/** The app's frame, as the specs reach it (menu.ts): the menu, its screens, the chat, sign-out and My card's form. */
+/** The app's frame, as the specs reach it (menu.ts): the tabs, Me's rows, the chat and its list, sign-out and My card's form. */
 export * from "./menu.js";
 
 /** The app and the API (stack.ts); absolute, so pages without a base URL (a phone over DevTools) work too. */
@@ -27,7 +27,7 @@ const digits = (n: number) => Array.from({ length: n }, () => Math.floor(Math.ra
 export const newPhone = () => `+9198${digits(8)}`;
 
 export const Role = { consumer: "consumer", worker: "worker" } as const;
-type Role = (typeof Role)[keyof typeof Role];
+export type Role = (typeof Role)[keyof typeof Role];
 
 export const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const PLACEHOLDER = /\{(\w+)\}/;
@@ -54,11 +54,10 @@ export function counted(lang: Lang, ...keys: PluralKey[]): RegExp {
   return new RegExp(forms.map((f) => `(?:${sourceOf(lang, f, count)})`).join("|"));
 }
 
-/** Picks a language on the first screen, by its name in its own script, then continues in it. */
+/** Picks a language on the first screen by tapping its row, named in its own script; a tap moves on by itself. */
 export async function chooseLanguage(page: Page, lang: Lang) {
   await page.goto(APP);
-  await page.getByRole("radio", { name: new RegExp(`^${escapeRe(t(lang, `lang.${lang}`))}`) }).check();
-  await page.getByRole("button", { name: t(lang, "onboard.continue") }).click();
+  await page.getByRole("button", { name: t(lang, `lang.${lang}`), exact: true }).click();
 }
 
 /**
@@ -90,35 +89,46 @@ export async function signIn(page: Page, who: Person) {
 }
 
 /**
- * Fills the sign-in screen already showing and signs in. The fields are in the form; its buttons are in the dock below
- * it, so they are found on the page.
+ * Goes through the sign-in steps already showing and signs in: the role (a tap moves on), name and number, then the
+ * code, which signs in by itself on its last number. A caller already on the number step is taken back to the role.
+ * The fields are in the form; Send code and Back to it are in the dock and the step's bar.
  */
 export async function completeSignIn(page: Page, who: Person) {
   const lang = who.lang ?? DEFAULT_LANG;
   const form = page.getByRole("form", { name: t(lang, "signin.label") });
-  await form.getByRole("radio", { name: t(lang, `signin.${who.role}`) }).click();
-  await form.getByLabel(t(lang, "signin.name")).fill(who.name);
+  const role = form.getByRole("radio", { name: t(lang, `signin.${who.role}`), exact: true });
+  const name = form.getByLabel(t(lang, "signin.name"));
+  await expect(role.or(name)).toBeVisible();
+  if (await name.isVisible()) await form.getByRole("button", { name: t(lang, "a11y.back"), exact: true }).click();
+  await role.click();
+  await name.fill(who.name);
   await form.getByLabel(t(lang, "signin.phone")).fill(who.phone);
   await page.getByRole("button", { name: t(lang, "signin.send_code"), exact: true }).click();
-  await form.getByLabel(new RegExp(`^${escapeRe(t(lang, "signin.code"))}`)).fill(DEV_OTP);
-  const submit = page.getByRole("button", { name: t(lang, "signin.submit"), exact: true });
-  await submit.click();
+  const code = form.getByLabel(t(lang, "signin.code"), { exact: true });
+  await code.fill(DEV_OTP);
   // The API lets one network address check 10 codes a minute, and a test run signs many people in from one machine:
-  // when it says so, wait the minute out and try the same code again.
+  // when it says so, wait the minute out and type the same code again (a refused code empties the boxes).
   const tooMany = page.getByText(t(lang, "net.too_many"));
+  // A worker with no card is first shown how GigSync works; its one button opens Talk on the card, as before.
+  const howItWorks = page.getByRole("button", { name: t(lang, "start.how_go"), exact: true });
   // Signed in, the top bar shows (only the signed-in frame has one), whichever screen opened first.
-  await expect(page.getByRole("banner").or(tooMany)).toBeVisible();
+  const banner = page.getByRole("banner");
+  await expect(banner.or(howItWorks).or(tooMany).first()).toBeVisible();
   if (await tooMany.isVisible()) {
     await page.waitForTimeout(RATE_WINDOW_MS);
-    await submit.click();
+    await code.fill(DEV_OTP);
+    await expect(banner.or(howItWorks).first()).toBeVisible();
   }
-  await expect(page.getByRole("banner")).toBeVisible();
+  // A new phone is first asked whether it is moving from the old one; that screen takes over from How it works.
   if (who.elsewhere) {
     const notNow = page.getByRole("button", { name: t(lang, "phone.in_not_now"), exact: true });
     await expect(notNow).toBeVisible();
     if (who.elsewhere === MovePrompt.notNow) await notNow.click();
     else return;
+    await expect(banner.or(howItWorks).first()).toBeVisible();
   }
+  if (await howItWorks.isVisible()) await howItWorks.click();
+  await expect(banner).toBeVisible();
   // No address at sign-in any more (ADR 0045): a household saves one, as it would from Settings.
   if (who.address) await saveAddress(page, lang, { house: who.address, area: who.area ?? areaIn(who.address) });
 }

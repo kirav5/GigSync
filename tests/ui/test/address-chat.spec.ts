@@ -1,7 +1,7 @@
 import { type MessageKey, t } from "@gigsync/core";
 import { type GeoResult, Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { plainMap } from "./address.js";
+import { addressSave, doorField, plainMap } from "./address.js";
 import { say } from "./findChat.js";
 import { API, newPhone, Role, RUN, shoot, signIn } from "./helpers.js";
 import { openCard } from "./menu.js";
@@ -77,10 +77,10 @@ test("the address in use is at the top, and the chat changes it", async ({ brows
   await expect(page.getByRole("img", { name: say_("map.of", { place: "Banashankari 2nd Stage" }) })).toBeVisible();
   await expect(page.getByText(say_("map.move_pin"))).toBeVisible();
   const form = page.getByRole("form", { name: say_("addr.add") });
-  await form.getByLabel(say_("addr.house")).fill("No. 45");
+  await doorField(form, en).fill("No. 45");
   await form.getByText(say_("addr.label.work"), { exact: true }).click();
   await shoot("located", { household: page }, FOLDER);
-  await form.getByRole("button", { name: say_("addr.save"), exact: true }).click();
+  await addressSave(form, en).click();
   await expect(desk(page)).toBeHidden();
   await expect(header(page)).toContainText(say_("addr.label.work"));
   await expect(header(page)).toContainText("No. 45, Banashankari 2nd Stage");

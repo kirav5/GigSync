@@ -1,7 +1,7 @@
 import { type MessageKey, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, devices, expect, type Page, test } from "@playwright/test";
-import { APP, drawer, newPhone, open, openDrawer, Role, RUN, SHOTS, signIn } from "./helpers.js";
+import { APP, newPhone, onScreen, open, Role, RUN, SHOTS, signIn } from "./helpers.js";
 
 /**
  * Installing the web app, as collab's Install panel. Before sign-in, on iPhone or where Chrome offered its prompt, the
@@ -19,11 +19,12 @@ const WEBKIT = "webkit";
 
 const card = (page: Page, lang: Lang) => page.getByRole("region", { name: t(lang, "install.title") });
 const installScreen = (page: Page) => page.getByRole("region", { name: say("install.screen") });
-const installButton = (page: Page) => drawer(page).getByRole("button", { name: say("install.button"), exact: true });
+/** Settings' "Install app" row, under This phone. */
+const installButton = (page: Page) =>
+  page.getByRole("main").getByRole("button", { name: say("install.button"), exact: true });
 const back = (page: Page) => page.getByRole("banner").getByRole("button", { name: say("a11y.back"), exact: true });
-/** Home is the chat: no × back to it. */
-const atHome = (page: Page) =>
-  expect(page.getByRole("button", { name: say("shell.to_chat"), exact: true })).toHaveCount(0);
+/** Back on Settings, where the row is. */
+const atSettings = (page: Page) => onScreen(page, "nav.settings");
 
 let contexts: BrowserContext[] = [];
 test.afterEach(async () => {
@@ -70,7 +71,7 @@ async function offerPrompt(page: Page) {
   });
 }
 
-test("iPhone Safari: the language screen asks to install before sign-in, in the language picked", async ({
+test("iPhone Safari: sign-in asks to install before the number, in the language picked", async ({
   browser,
   browserName,
 }) => {
@@ -79,7 +80,8 @@ test("iPhone Safari: the language screen asks to install before sign-in, in the 
   contexts.push(context);
   const page = await context.newPage();
   await page.goto(APP);
-  await page.getByRole("radio", { name: new RegExp(`^${t(hi, "lang.hi")}`) }).check();
+  await page.getByRole("button", { name: t(hi, "lang.hi"), exact: true }).click();
+  await page.getByRole("radio", { name: t(hi, "signin.worker"), exact: true }).click();
 
   const install = card(page, hi);
   await expect(install).toBeVisible();
@@ -91,15 +93,15 @@ test("iPhone Safari: the language screen asks to install before sign-in, in the 
   await install.getByRole("button", { name: t(hi, "install.later") }).click();
   await expect(install).toBeHidden();
   await page.reload();
-  await expect(page.getByRole("radio").first()).toBeVisible();
+  await expect(page.getByRole("main")).toBeVisible();
   for (const lang of Lang.options) await expect(card(page, lang)).toHaveCount(0);
 });
 
-test("iPhone: Install app opens the Install screen with Safari's steps, and Back returns to the chat", async ({
+test("iPhone: Install app opens the Install screen with Safari's steps, and Back returns to Settings", async ({
   browser,
 }) => {
   const page = await signedIn(await browser.newContext({ ...devices["iPhone 15"] }));
-  await openDrawer(page);
+  await open(page, "nav.settings");
   await installButton(page).click();
   await expectSteps(
     page,
@@ -112,12 +114,12 @@ test("iPhone: Install app opens the Install screen with Safari's steps, and Back
   await shot(page, "iphone-safari");
 
   await back(page).click();
-  await atHome(page);
+  await atSettings(page);
 });
 
 test("Android: Install app opens the Install screen with Chrome's menu steps", async ({ browser }) => {
   const page = await signedIn(await browser.newContext({ ...devices["Pixel 7"] }));
-  await openDrawer(page);
+  await open(page, "nav.settings");
   await installButton(page).click();
   await expectSteps(page, "install.on_phone", ["install.android_menu", "install.android_pick", "install.android_open"]);
   await expect(installScreen(page)).not.toContainText(say("install.ios_apart"));
@@ -135,21 +137,21 @@ test("a computer: Settings' row opens the address-bar steps; once Chrome offers,
   await open(page, "nav.settings");
   await expect(card(page, en)).toHaveCount(0);
   await shot(page, "settings-row");
-  await page.getByRole("button", { name: new RegExp(say("install.screen")) }).click();
+  await installButton(page).click();
   const steps: readonly MessageKey[] = safari
     ? ["install.mac_dock", "install.mac_add", "install.computer_open"]
     : ["install.computer_icon", "install.computer_add", "install.computer_open"];
   await expectSteps(page, "install.on_computer", steps);
   await shot(page, safari ? "mac-safari" : "computer");
   await back(page).click();
-  await atHome(page);
+  await atSettings(page);
 
-  // Chrome offers to install: the menu's button shows the prompt itself, and no screen opens.
+  // Chrome offers to install: the row shows the prompt itself, and no screen opens.
   await offerPrompt(page);
   await installButton(page).click();
   await expect.poll(() => page.evaluate(() => Reflect.get(globalThis, "promptsShown"))).toBe(1);
   await expect(installScreen(page)).toHaveCount(0);
-  await atHome(page);
+  await atSettings(page);
 
   // A prompt is shown once; turned down, the same button opens the steps instead.
   await installButton(page).click();
@@ -159,8 +161,8 @@ test("a computer: Settings' row opens the address-bar steps; once Chrome offers,
 test("Chrome with a prompt: the Install screen leads with Chrome's own button", async ({ browser }) => {
   const page = await signedIn(await browser.newContext({ viewport: WIDE }));
   await open(page, "nav.settings");
+  await installButton(page).click();
   await offerPrompt(page);
-  await page.getByRole("button", { name: new RegExp(say("install.screen")) }).click();
   const button = installScreen(page).getByRole("button", { name: say("install.button"), exact: true });
   await expect(button).toBeVisible();
   await shot(page, "prompt");

@@ -21,7 +21,9 @@ const config: CapacitorConfig = {
     // the CSS reads. The default ("css") also injects --safe-area-inset-* variables nothing uses, and its first
     // injection runs before the page has a document, so every launch logged an error. index.html sets
     // viewport-fit=cover; telling SystemBars up front saves a layout jump while it reads the page.
-    SystemBars: { insetsHandling: "native", initialViewportFitValueHint: "cover" },
+    // The bars' icons start as the phone's night mode says, which is right for the Auto look; ui/look.ts sets them
+    // to the app's own look (dark icons on cream, light on dark) as soon as the page runs.
+    SystemBars: { insetsHandling: "native", initialViewportFitValueHint: "cover", style: "DEFAULT" },
     // The keyboard shrinks the web view instead of scrolling the page under it, so the top bar stays put and the
     // focused field stays above the keys (iOS). On Android, SystemBars above already pads the web view by the
     // keyboard's height; Keyboard's resizeOnFullScreen workaround would resize it a second time, which SystemBars

@@ -1,0 +1,21 @@
+/** Making and showing the worker's card: the card chat's look, the card face and the board switch. */
+export const cardflow = {
+  "cardflow.title": "Your card",
+  "cardflow.say_work": "Say your work",
+  "cardflow.say_area": "Say your area",
+  "cardflow.say_number": "Say a number",
+  "cardflow.say_it": "Say it",
+  "cardflow.something_else": "Something else",
+  "cardflow.own_amount": "My own amount",
+  "cardflow.private": "Stays on this phone",
+  "cardflow.put_on_board": "Put it on the board",
+  "cardflow.change_something": "Change something",
+  "cardflow.on_board": "My card is on the board",
+  "cardflow.keep_on": "Keep it on",
+  "cardflow.scan_sub_worker": "A household's QR card",
+  "cardflow.scan_sub_household": "A worker's QR card",
+  "cardflow.talk_sub": "Price, days, area, anything",
+  "cardflow.unit_day": "a day",
+  "cardflow.unit_job": "for the job",
+  "cardflow.unit_sqft": "a square foot",
+} as const;

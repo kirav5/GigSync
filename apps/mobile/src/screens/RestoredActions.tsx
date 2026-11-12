@@ -6,6 +6,7 @@ import { BusyGroup } from "../ui/BusyGroup.js";
 import { C } from "../ui/cls.js";
 import { useBusy } from "../ui/useBusy.js";
 import { CancelJob } from "./job/CancelJob.js";
+import { J } from "./job/look.js";
 
 const R = JobRecordStatus.enum;
 
@@ -32,8 +33,8 @@ export function RestoredActions(props: {
     <div className={C.stack}>
       <span className={C.faint}>{t("restored.why", { name: them })}</span>
       <BusyGroup busy={busy}>
-        <CancelJob onCancel={() => end(R.cancelled)}>
-          <button type={C.button} className={C.secondary} onClick={() => end(R.done)}>
+        <CancelJob them={them} onCancel={() => end(R.cancelled)}>
+          <button type={C.button} className={J.hero} onClick={() => end(R.done)}>
             {t(isWorker ? "job.mark_done" : "restored.work_done")}
           </button>
         </CancelJob>

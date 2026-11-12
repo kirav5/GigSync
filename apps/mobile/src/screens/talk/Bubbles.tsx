@@ -39,14 +39,27 @@ export function Own({ text }: { text: string }) {
   );
 }
 
-/** A question or readback, with its replay button; the silent lines are shown but never spoken. */
-export function Ask({ lines, children }: { lines: readonly Line[]; children?: ReactNode }) {
+/**
+ * A question or readback, with its replay button; the silent lines are shown but never spoken. With `split`, the
+ * bubble holds only the lines before it: the rest are drawn by `children` (the price question's estimate card), and
+ * are still read aloud with the question.
+ */
+export function Ask({
+  lines,
+  split,
+  children,
+}: {
+  lines: readonly Line[];
+  split?: number | undefined;
+  children?: ReactNode;
+}) {
   const i18n = useI18n();
+  const shown = split === undefined ? lines : lines.slice(0, split);
   return (
     <div className="msg-agent iv-ask">
       <div className="iv-say">
         <div className="text">
-          {lines.map((line) => (
+          {shown.map((line) => (
             <p key={line.key}>{lineText(i18n, line)}</p>
           ))}
         </div>

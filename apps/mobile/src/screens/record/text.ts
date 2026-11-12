@@ -7,6 +7,7 @@ import type { Lang } from "@gigsync/protocol";
 const MID_MONTH = "-15T12:00:00";
 const MONTH_YEAR: Intl.DateTimeFormatOptions = { month: "long", year: "numeric" };
 const WEEKDAY_DAY: Intl.DateTimeFormatOptions = { weekday: "short", day: "numeric" };
+const WEEKDAY_DAY_MONTH: Intl.DateTimeFormatOptions = { ...WEEKDAY_DAY, month: "short" };
 
 /** The tag looks from styles.css a chip can take. */
 export const Tag = { fresh: "tag fresh", wait: "tag wait", talk: "tag talk", plain: "tag" } as const;
@@ -29,6 +30,9 @@ export function monthText(lang: Lang, month: string | Date): string {
 
 /** "Wed 28": a day under its month's heading, in the owner's language. */
 export const weekdayText = (lang: Lang, at: Date): string => at.toLocaleDateString(LOCALE[lang], WEEKDAY_DAY);
+
+/** "Wed 28 Oct": a day with no month heading over it, as in a list to pick one job from. */
+export const dayMonthText = (lang: Lang, at: Date): string => at.toLocaleDateString(LOCALE[lang], WEEKDAY_DAY_MONTH);
 
 /**
  * The other side's name as Passbook shows it: from their contact card (or the name kept once it was removed), else the

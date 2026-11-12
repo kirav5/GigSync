@@ -1,16 +1,13 @@
 import {
   areaSlug,
   askingArrangement,
-  CardPick,
   type ChatIntent,
-  type Choice,
   draftOf,
   estimateRequest,
   isLastSlot,
   type Line,
   log,
   type Ports,
-  prompt,
   Slot,
 } from "@gigsync/core";
 import { QuestionKey } from "@gigsync/protocol";
@@ -19,90 +16,21 @@ import type { Account } from "../adapters/account.js";
 import { cityOf } from "../adapters/cities.js";
 import { offerAlerts } from "../adapters/push.js";
 import { stopSpeaking } from "../adapters/speech.js";
-import {
-  claimPublish,
-  interviewEstimate,
-  interviewFailed,
-  interviewPublished,
-  pauseInterview,
-  placeInterview,
-  tapInterview,
-  toggleInterview,
-} from "../card/interviewStore.js";
+import { claimPublish, interviewEstimate, interviewFailed, interviewPublished } from "../card/interviewStore.js";
 import { AboutPrivateError, publishCard, unlistCard } from "../card/publish.js";
-import { type FoundPlace, pilotPlace, workPlace } from "../card/workPlace.js";
 import { fetchEstimate } from "../estimate/useEstimate.js";
 import { useI18n } from "../i18n.js";
 import { isMove } from "../talk/moveTurns.js";
 import { useTalk } from "../talk/talkStore.js";
 import { Speaker, type Turn } from "../talk/turns.js";
 import type { Moves } from "../talk/useMoves.js";
-import { C } from "../ui/cls.js";
 import { errorKey } from "../ui/errorKey.js";
 import { AREAS } from "../ui/places.js";
-import { LocateStep } from "./address/LocateStep.js";
 import { MoveTurnView } from "./talk/AgentTurns.js";
-import { Ask, Own } from "./talk/Bubbles.js";
+import { Own } from "./talk/Bubbles.js";
+import { CardTurn } from "./talk/CardTurn.js";
 import { Note } from "./talk/NoteView.js";
 import "./talk.css";
-
-/** Between the kinds of work picked, as the owner's answer reads. */
-const LIST_JOINER = ", ";
-
-/** "Later": the voice stops with the questions, so a summary half read out does not carry on over the next screen. */
-function later() {
-  void stopSpeaking();
-  pauseInterview();
-}
-
-/**
- * The tap answers under the newest question, and "Later", which pauses the interview. Where the choices toggle
- * (`picked`), a tap turns one on or off in place, and Done answers with all of them at once.
- */
-function Choices({ choices, picked }: { choices: readonly Choice[]; picked?: readonly string[] | undefined }) {
-  const { t } = useI18n();
-  const toggles = picked !== undefined;
-  const on = (c: Choice) => picked?.includes(c.value) ?? false;
-  const done = choices.filter(on).map((c) => t(c.key, c.params));
-  const tap = (c: Choice) => {
-    if (toggles && c.value !== CardPick.yes) return toggleInterview(c.value);
-    tapInterview(c.value, toggles && done.length > 0 ? done.join(LIST_JOINER) : t(c.key, c.params));
-  };
-  return (
-    <div className={`${C.row} iv-choices`}>
-      {choices.map((c) => (
-        <button
-          key={c.value}
-          type={C.button}
-          aria-pressed={toggles && c.value !== CardPick.yes ? on(c) : undefined}
-          className={on(c) ? C.chipOn : C.chip}
-          onClick={() => tap(c)}
-        >
-          {t(c.key, c.params)}
-        </button>
-      ))}
-      <button type={C.button} className={`${C.chip} iv-later`} onClick={later}>
-        {t("iv.later")}
-      </button>
-    </div>
-  );
-}
-
-/** "Use my location" under the area question: for a worker whose area is not a pilot one (ADR 0045). */
-function LocateArea({ session }: { session: Account["session"] }) {
-  const use = (found: FoundPlace | undefined) => {
-    if (found) placeInterview(found.area, found.place);
-    return found !== undefined;
-  };
-  return (
-    <LocateStep
-      session={session}
-      label="card.use_location"
-      onFound={(place, point) => use(workPlace(place, point))}
-      onPointOnly={(point) => use(pilotPlace(point))}
-    />
-  );
-}
 
 /**
  * Talk's conversation, in the order it happened: notes to the agent with its answers, the card interview, each
@@ -216,10 +144,13 @@ export function Interview({
       );
     }
     return (
-      <Ask key={turn.id} lines={turn.lines}>
-        {asking && turn.id === newest?.id && <Choices choices={turn.choices} picked={state && prompt(state).picked} />}
-        {asking && turn.id === newest?.id && state.slot === Slot.area && <LocateArea session={session} />}
-      </Ask>
+      <CardTurn
+        key={turn.id}
+        lines={turn.lines}
+        choices={turn.choices}
+        live={asking && turn.id === newest?.id ? state : undefined}
+        account={account}
+      />
     );
   };
   // A log, so a screen reader announces each new question, readback and answer; focus stays in the composer.

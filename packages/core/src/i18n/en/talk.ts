@@ -20,7 +20,7 @@ export const talk = {
   "talk.private_provider": "Your lowest price was never sent. It stayed on this phone.",
   "talk.private_requester": "Your budget was never sent. It stayed on this phone.",
   "decide.takeover_title": "Your agents could not agree",
-  "decide.takeover_body": "After five offers each, it is your call. Their last offer: {price}.",
+  "decide.takeover_body": "Five offers each. Now you decide.",
   "decide.waiting_body":
     "{name} decides next, on your agent's last offer. You can still accept their last offer of {price}, or end the talk.",
   "decide.accept_theirs": "Accept {price}",
@@ -37,5 +37,5 @@ export const talk = {
   "decide.pick_send": "Send this time",
   "a11y.takeover": "Your agents could not agree",
   "a11y.new_time": "A different time",
-  "talks.take_over": "Take over from your agent",
+  "talks.take_over": "Take over from my agent",
 } as const;

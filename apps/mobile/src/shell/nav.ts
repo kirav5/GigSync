@@ -1,61 +1,106 @@
-import type { MessageKey } from "@gigsync/core";
+import type { MessageKey, Params } from "@gigsync/core";
 import { type Account, AccountRole } from "../adapters/account.js";
 import { Screen } from "../state.js";
 import type { IconName } from "../ui/Icon.js";
 
-/** One row of the menu: the screen it opens, its name, and its line icon. */
-export interface NavRow {
+/** One bottom tab: the screen it opens, its name, and its line icon. */
+export interface Tab {
   screen: Screen;
   label: MessageKey;
   icon: IconName;
 }
 
-/**
- * The menu's rows, in the collab app's order, the same for a worker and a household: what each opens differs by role
- * (Records holds a worker's earnings and work record, or what a household paid).
- */
-export const NAV_ROWS: readonly NavRow[] = [
-  { screen: Screen.activity, label: "nav.activity", icon: "activity" },
-  { screen: Screen.records, label: "nav.records", icon: "receipt" },
-  { screen: Screen.card, label: "nav.card", icon: "card" },
-  { screen: Screen.about, label: "nav.about", icon: "user" },
-  { screen: Screen.privacy, label: "nav.privacy", icon: "shield" },
-  { screen: Screen.settings, label: "nav.settings", icon: "settings" },
+/** A worker's four tabs, in the design's order: what needs them today, their jobs, their money, and themselves. */
+const WORKER_TABS: readonly Tab[] = [
+  { screen: Screen.home, label: "nav.home", icon: "home" },
+  { screen: Screen.activity, label: "nav.jobs", icon: "jobs" },
+  { screen: Screen.records, label: "nav.money", icon: "rupee" },
+  { screen: Screen.me, label: "nav.me", icon: "user" },
 ];
 
-/** The row that carries the count of decisions waiting, and the one with a dot while a mentor note is unread. */
-export const COUNTED_ROW: Screen = Screen.activity;
-export const DOTTED_ROW: Screen = Screen.privacy;
+/** A household's four: asking for help first, then the jobs it led to, what they paid, and themselves. */
+const HOUSEHOLD_TABS: readonly Tab[] = [
+  { screen: Screen.find, label: "nav.find", icon: "search" },
+  { screen: Screen.activity, label: "nav.jobs", icon: "jobs" },
+  { screen: Screen.records, label: "nav.pay", icon: "rupee" },
+  { screen: Screen.me, label: "nav.me", icon: "user" },
+];
 
-/** Screens opened from inside another: their title, and where Back goes (home when no parent is named). */
-const SUB_SCREENS: Partial<Record<Screen, { title: MessageKey; parent?: Screen }>> = {
-  [Screen.cardEdit]: { title: "nav.card", parent: Screen.card },
-  [Screen.link]: { title: "mentor.links", parent: Screen.privacy },
-  [Screen.landing]: { title: "landing.title", parent: Screen.talk },
-  [Screen.findMentor]: { title: "mentor.find", parent: Screen.talk },
-  [Screen.person]: { title: "qr.person" },
-  [Screen.install]: { title: "install.screen" },
-  [Screen.moveOut]: { title: "phone.move_out", parent: Screen.settings },
-  [Screen.moveIn]: { title: "phone.in_title", parent: Screen.settings },
-  [Screen.terms]: { title: "records.terms_title", parent: Screen.settings },
+/** The tab that carries the count of decisions waiting, and the one with a dot while a mentor note is unread. */
+export const COUNTED_TAB: Screen = Screen.activity;
+export const DOTTED_TAB: Screen = Screen.me;
+
+/** The screens that hold a chat: the top bar names the open one there, and the wide rail lists the others. */
+const CHAT_SCREENS: ReadonlySet<Screen> = new Set([Screen.talk, Screen.find]);
+
+/** The top bar's title for each screen that is neither a tab nor a chat. */
+const TITLES: Partial<Record<Screen, MessageKey>> = {
+  [Screen.card]: "nav.card",
+  [Screen.cardEdit]: "nav.card",
+  [Screen.about]: "nav.about",
+  [Screen.privacy]: "nav.privacy",
+  [Screen.settings]: "nav.settings",
+  [Screen.link]: "mentor.links",
+  [Screen.landing]: "landing.title",
+  [Screen.findMentor]: "mentor.find",
+  [Screen.person]: "qr.person",
+  [Screen.install]: "install.screen",
+  [Screen.moveOut]: "phone.move_out",
+  [Screen.moveIn]: "phone.in_title",
+  [Screen.terms]: "records.terms_title",
+  [Screen.chats]: "chats.title",
+  [Screen.alerts]: "tabs.alerts",
+  [Screen.help]: "me.help",
+  [Screen.people]: "me.people",
+  [Screen.language]: "me.language",
+  [Screen.addresses]: "me.addresses",
+  [Screen.myRecord]: "me.record",
 };
 
-/** The chat each owner lands on, and where Back ends: Find's chat for a household, Talk for a worker. */
-export const homeOf = (account: Account): Screen => (account.role === AccountRole.consumer ? Screen.find : Screen.talk);
+const isWorker = (account: Account): boolean => account.role === AccountRole.worker;
 
-/** Whether the screen is the owner's chat. */
-export const isHome = (screen: Screen): boolean => screen === Screen.find || screen === Screen.talk;
+/** The owner's four tabs. */
+export const tabsOf = (account: Account): readonly Tab[] => (isWorker(account) ? WORKER_TABS : HOUSEHOLD_TABS);
 
-/** A screen opened from inside another, with Back on its title row instead of the menu. */
-export const isSub = (screen: Screen): boolean => SUB_SCREENS[screen] !== undefined;
-
-/** The top bar's title for a screen other than the chat (the chat's title is its own). */
-export function titleOf(screen: Screen): MessageKey | undefined {
-  return SUB_SCREENS[screen]?.title ?? NAV_ROWS.find((row) => row.screen === screen)?.label;
+/**
+ * Where the owner lands, and where Back ends: Find for a household; Home for a worker with a card, and Talk for one
+ * without, where the card interview starts.
+ */
+export function landingOf(account: Account): Screen {
+  if (!isWorker(account)) return Screen.find;
+  return account.worker ? Screen.home : Screen.talk;
 }
 
-/** Where Back goes from `screen`: a sub-screen to the one it was opened from, any other to home; none from home. */
-export function backFrom(screen: Screen, home: Screen): Screen | undefined {
-  if (screen === home) return undefined;
-  return SUB_SCREENS[screen]?.parent ?? home;
+/** Whether the screen is one of the owner's tabs. */
+export const isTab = (account: Account, screen: Screen): boolean => tabsOf(account).some((t) => t.screen === screen);
+
+/** Whether the screen holds the owner's chat: Talk for a worker, Find for a household. */
+export const isChat = (screen: Screen): boolean => CHAT_SCREENS.has(screen);
+
+/** Each owner's chat: Talk for a worker, Find's chat for a household. */
+export const chatOf = (account: Account): Screen => (isWorker(account) ? Screen.talk : Screen.find);
+
+/** A title as the top bar says it: a key, and the owner's name where the key greets them. */
+interface Title {
+  key: MessageKey;
+  params?: Params;
+}
+
+/**
+ * The top bar's title for a screen: its own, or its tab's name. Home greets the worker by name; Find says what it is
+ * for. Undefined for Talk, whose title is the open chat's.
+ */
+export function titleOf(account: Account, screen: Screen): Title | undefined {
+  if (screen === Screen.home) return { key: "tabs.namaste", params: { name: account.contact.name } };
+  if (screen === Screen.find) return { key: "tabs.find_title" };
+  const key = TITLES[screen] ?? tabsOf(account).find((t) => t.screen === screen)?.label;
+  return key ? { key } : undefined;
+}
+
+/**
+ * The tab a stack of screens sits under, to mark in the tab bar: the nearest tab below the top, or Home when the stack
+ * holds none (a worker without a card, on the Talk they landed on, which Home opens).
+ */
+export function sectionOf(account: Account, stack: readonly Screen[]): Screen {
+  return [...stack].reverse().find((s) => isTab(account, s)) ?? Screen.home;
 }

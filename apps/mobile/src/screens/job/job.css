@@ -1,0 +1,167 @@
+/* An opened job (JobThread), laid out as the design's job screen: the head, the step line, then the one thing to do
+   now as its hero, then the contact, the deal and the record. */
+.job-card {
+  gap: 14px;
+}
+.job-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.job-head .who {
+  flex: 1;
+}
+.job-name {
+  font-family: var(--serif);
+  font-size: var(--fs-heading);
+  font-weight: 400;
+  line-height: var(--lh-head);
+}
+/* The work and its day can be long in Hindi or Kannada: they wrap rather than lose their end. */
+.job-head .who .small {
+  white-space: normal;
+}
+.job-head .tag {
+  flex: none;
+  align-self: flex-start;
+}
+.job-need {
+  margin: 0;
+  color: var(--text2);
+}
+/* A decision's own label draws the eye, in rust (the design's "Lakshmi · a different time"). */
+.job-now .label {
+  color: var(--accent-ink);
+}
+/* The sentence a decision turns on (H7, H8, W17): the serif heading. */
+.hero-line {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: var(--fs-heading);
+  line-height: 1.3;
+}
+.card-earth .hero-line {
+  color: var(--ivory);
+}
+
+/* The request that fits (W8): its ticks on sage, the agent's question as its own turn. */
+.fit-card .tick-list {
+  font-size: var(--fs-2);
+}
+.fit-card .msg-agent {
+  max-width: 100%;
+}
+
+/* Signing (W10, H9): the price as the hero of the earth card. */
+.price-hero {
+  font-family: var(--serif-latin);
+  font-size: clamp(30px, 9vw, var(--fs-money));
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums lining-nums;
+  overflow-wrap: anywhere;
+}
+:lang(hi) .price-hero,
+:lang(kn) .price-hero {
+  font-family: var(--serif);
+}
+
+/* While the agents talk (W9): the turn and the owner's limit on sage. */
+.turn-line {
+  color: var(--fresh);
+  font-size: var(--fs-2);
+}
+
+/* An own offer: ₹ before the figure, then Send beside it. */
+.offer-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+}
+.money-field {
+  position: relative;
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.money-field > span {
+  position: absolute;
+  inset: 0 auto 0 14px;
+  display: grid;
+  place-items: center;
+  color: var(--text2);
+  pointer-events: none;
+}
+.money-field > .field {
+  padding-left: 30px;
+}
+
+/* The contact both signatures released (W11, H10): Call, Message and Directions side by side, wrapping on a narrow
+   phone. */
+.contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.contact-actions > .btn {
+  flex: 1 1 auto;
+}
+.deal,
+.pay-line {
+  color: var(--text2);
+  font-size: var(--fs-2);
+}
+
+/* Stopping a job (W17): each reason a big row, its title over its own line. */
+.option-words {
+  display: grid;
+  gap: 2px;
+}
+.option-words > :first-child {
+  font-weight: 600;
+}
+
+/* The note box (W12): its label over the field and the send button. */
+.note-box .row > .field {
+  flex: 1 1 180px;
+  width: auto;
+}
+
+/* The review (H12): five stars, gold when chosen, a rust edge so they hold on cream and in the dark. */
+.paid-line {
+  color: var(--fresh);
+  font-size: var(--fs-2);
+}
+.stars {
+  display: flex;
+  gap: 4px;
+}
+.star {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  border-radius: var(--radius-btn);
+  cursor: pointer;
+  --icon: var(--text3);
+}
+.star.on {
+  --icon: var(--accent-ink);
+}
+.star.on .ic {
+  fill: var(--gold);
+}
+.star > input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.star:has(:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

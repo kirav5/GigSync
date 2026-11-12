@@ -1,0 +1,55 @@
+/*
+ * The permission sheet (PermissionSheet.tsx): the whole screen, as the design's Microphone screen. The reason sits in
+ * the middle under a big rust disc with the icon, and the two answers at the bottom, in the thumb's reach. Drawn on
+ * <body> and fixed, so it covers the tabs and the dock wherever the screen opened it (the Composer, a QR scan); it takes
+ * the app's box as the keyboard leaves it (adapters/keyboard.ts), so the answers never sit under the keys.
+ */
+.perm-sheet {
+  position: fixed;
+  top: var(--app-top, 0px);
+  left: 0;
+  right: 0;
+  height: var(--app-h, 100dvh);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: max(24px, env(safe-area-inset-top)) calc(var(--gutter) + env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) calc(var(--gutter) + env(safe-area-inset-left));
+  background: var(--bg);
+  color: var(--text);
+  overflow-y: auto;
+}
+.perm-main,
+.perm-actions {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.perm-main {
+  flex: 1;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 16px;
+  text-align: center;
+}
+.perm-icon {
+  display: grid;
+  place-items: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: var(--rust);
+  color: var(--on-accent);
+}
+.perm-why {
+  margin: 0;
+  color: var(--text2);
+  font-size: var(--fs-2);
+  line-height: var(--lh-body);
+}
+.perm-actions {
+  display: grid;
+  gap: 4px;
+}

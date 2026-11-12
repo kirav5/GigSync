@@ -44,8 +44,9 @@ export function OfferCards({ offers, device, run, onAsk }: Props) {
 
   const title = t("qr.offers");
   return (
+    // Under the Jobs tab's Needs you, before the jobs whose decisions wait: a heading one step below it.
     <section className="job-section" aria-label={title}>
-      <h2>{title}</h2>
+      <h3 className="job-day">{title}</h3>
       <BusyGroup busy={busy}>
         {offers.map((o) => {
           const line = t("qr.offer_line", { name: o.card.display_name, trade: cardWork(t, o.card) });

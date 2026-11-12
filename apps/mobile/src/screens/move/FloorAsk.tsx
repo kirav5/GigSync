@@ -8,7 +8,7 @@ import { money } from "../../ui/places.js";
 const FLOOR_FIELD = "floor";
 
 /**
- * On Today, while a worker's card came back from the board without their lowest price (ADR 0037 §4): the one thing
+ * On Home, while a worker's card came back from the board without their lowest price (ADR 0037 §4): the one thing
  * asked for. Until it is given the card stays listed and the agent shows each request before quoting.
  */
 export function FloorAsk({

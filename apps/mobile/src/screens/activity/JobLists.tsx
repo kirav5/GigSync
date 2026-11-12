@@ -14,17 +14,6 @@ export function JobList({ jobs, ...card }: ListProps) {
   return jobs.map((job) => <JobThread key={job.engagement.id} job={job} {...card} />);
 }
 
-/** A headed list of job cards; nothing at all when it has none. */
-export function JobSection({ title, jobs, ...card }: ListProps & { title: string }) {
-  if (jobs.length === 0) return null;
-  return (
-    <section className="job-section">
-      <h2>{title}</h2>
-      <JobList jobs={jobs} {...card} />
-    </section>
-  );
-}
-
 /**
  * Jobs folded under `summary`. The cards are built only once it is opened: each one translates the other side's
  * words on this phone, and history only grows.

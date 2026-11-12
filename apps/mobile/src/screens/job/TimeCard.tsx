@@ -20,6 +20,8 @@ import { dayLabel } from "../../find/ask.js";
 import { useI18n } from "../../i18n.js";
 import type { Step } from "../../payments/useStep.js";
 import { C } from "../../ui/cls.js";
+import { Icon } from "../../ui/Icon.js";
+import { J } from "./look.js";
 
 const MS_PER_DAY = 86_400_000;
 /** The days a household may pick another time on: today and the next three. */
@@ -135,8 +137,9 @@ function TimePicker({ job, onSend }: { job: JobRecord; onSend: (when: TermWhen) 
 }
 
 /**
- * The household decides the time (ADR 0053 §3): the worker's other one, a time of its own, or no deal. Between phones
- * that understand hours, a day and then a start hour (for work every day, the hour alone); else a part of the day.
+ * The household decides the time (ADR 0053 §3, H7): the worker's other one as the one big button, a time of its own,
+ * or no deal, quietly last. Between phones that understand hours, a day and then a start hour (for work every day,
+ * the hour alone); else a part of the day.
  */
 export function TimeCard({ job, ask, device, step, them }: Props) {
   const { lang, t } = useI18n();
@@ -150,22 +153,21 @@ export function TimeCard({ job, ask, device, step, them }: Props) {
     : t("decide.time_other", { name: them, when: theirs ?? "" });
   return (
     <fieldset className={C.stack} aria-label={t("a11y.new_time")}>
-      <span className={C.label}>{t("decide.time_title")}</span>
-      <span>{line}</span>
-      <div className={C.actions}>
-        {theirs && (
-          <button type={C.button} className={C.accent} onClick={() => step(() => device.talks.acceptTime(id))}>
-            {t("decide.accept_time", { when: theirs })}
-          </button>
-        )}
-        <button type={C.button} className={C.secondary} onClick={() => setPicking(true)}>
-          {t("decide.pick_time")}
+      <span className={C.label}>{t("jobcard.time_label", { name: them })}</span>
+      <p className={J.heroLine}>{line}</p>
+      {theirs && (
+        <button type={C.button} className={J.hero} onClick={() => step(() => device.talks.acceptTime(id))}>
+          <Icon name="tick" />
+          {t("decide.accept_time", { when: theirs })}
         </button>
-        <button type={C.button} className={C.secondary} onClick={() => step(() => device.talks.end(id))}>
-          {t("decide.end")}
-        </button>
-      </div>
+      )}
+      <button type={C.button} className={J.second} aria-expanded={picking} onClick={() => setPicking(true)}>
+        {t("decide.pick_time")}
+      </button>
       {picking && <TimePicker job={job} onSend={(when) => step(() => device.talks.pickTime(id, when))} />}
+      <button type={C.button} className={J.ghost} onClick={() => step(() => device.talks.end(id))}>
+        {t("decide.end")}
+      </button>
     </fieldset>
   );
 }

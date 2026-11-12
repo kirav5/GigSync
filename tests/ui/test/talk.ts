@@ -13,8 +13,15 @@ export const consent = (page: Page, lang: Lang) => ({
   allow: page.getByRole("button", { name: t(lang, "speech.cloud_yes"), exact: true }),
   typeInstead: page.getByRole("button", { name: t(lang, "speech.cloud_no"), exact: true }),
 });
+/** The composer's field: its placeholder says what the question now asked wants, so it is found as the form's box. */
 export const field = (page: Page, lang: Lang) =>
-  page.getByRole("form", { name: t(lang, "nav.talk") }).getByPlaceholder(t(lang, "agent.placeholder"));
+  page.getByRole("form", { name: t(lang, "nav.talk") }).getByRole("textbox");
+
+/** At the card's summary, the dock's answers: put it on the board (yes), or change something (no). */
+export const putOnBoard = (page: Page, lang: Lang) =>
+  page.getByRole("button", { name: t(lang, "cardflow.put_on_board"), exact: true });
+export const changeSomething = (page: Page, lang: Lang) =>
+  page.getByRole("button", { name: t(lang, "cardflow.change_something"), exact: true });
 
 /** Does `act`, then waits for one more line reading `key`: earlier turns stay on screen, so a count says it is new. */
 export async function nextTurn(page: Page, lang: Lang, key: MessageKey, act: () => Promise<void>) {

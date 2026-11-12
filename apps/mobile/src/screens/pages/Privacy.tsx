@@ -1,9 +1,11 @@
 import type { GigDevice, Ports } from "@gigsync/core";
-import type { UserId } from "@gigsync/protocol";
 import type { Account } from "../../adapters/account.js";
 import { useI18n } from "../../i18n.js";
-import { C } from "../../ui/cls.js";
-import { LinksSection } from "../mentor/LinksSection.js";
+import { ListCard } from "../../ui/ListRow.js";
+import type { GigView } from "../../useGig.js";
+import { ModelSwitch } from "../privacy/ModelSwitch.js";
+import { SharedLog } from "../privacy/SharedLog.js";
+import { Tiers } from "../privacy/Tiers.js";
 import { BlockedList } from "./BlockedList.js";
 import { PageFrame } from "./PageFrame.js";
 import { RecordSetting } from "./RecordSetting.js";
@@ -13,35 +15,28 @@ interface Props {
   ports: Ports;
   account: Account;
   device: GigDevice;
+  /** The jobs on this phone and the names the owner knows, for the log of what the agent shared. */
+  view: GigView;
   isWorker: boolean;
-  /** Opens one mentor link's thread, where its person can be blocked. */
-  onOpenLink: (user: UserId) => void;
-}
-
-/** Who reads what the owner writes to their agent (ADR 0052), and how to keep it all on the phone. */
-function ModelPrivacy() {
-  const { t } = useI18n();
-  const title = t("page.privacy_model_title");
-  return (
-    <section className={C.card} aria-label={title}>
-      <span className={C.label}>{title}</span>
-      <span className={C.muted}>{t("page.privacy_model_about")}</span>
-    </section>
-  );
 }
 
 /**
- * Privacy, as collab's: who reads what the owner writes, whether a worker's record shows on their card, the job
- * records GigSync keeps and deleting them, a worker's live mentor links, and the people the owner blocked.
+ * Privacy, "Who sees what" (design P3): the three tiers in plain words, the two switches (a worker's record on their
+ * card, and GigSync's model reading the chats, ADR 0052), the log of what the agent shared, the job records GigSync
+ * keeps with their one delete (ADR 0038 §5), and, folded, the people the owner blocked. A worker's mentor links are on
+ * Help now, with the mentors.
  */
-export function Privacy({ ports, account, device, isWorker, onOpenLink }: Props) {
+export function Privacy({ ports, account, device, view, isWorker }: Props) {
   const { t } = useI18n();
   return (
     <PageFrame title={t("page.privacy_title")} subtitle={t("page.privacy_soft")}>
-      <ModelPrivacy />
-      {isWorker && <RecordSetting ports={ports} account={account} />}
+      <Tiers isWorker={isWorker} />
+      <ListCard>
+        {isWorker && <RecordSetting ports={ports} account={account} />}
+        <ModelSwitch ports={ports} />
+      </ListCard>
+      <SharedLog view={view} />
       <RecordsPrivacy ports={ports} account={account} />
-      {isWorker && <LinksSection onOpen={onOpenLink} />}
       <BlockedList device={device} />
     </PageFrame>
   );

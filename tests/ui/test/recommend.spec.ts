@@ -127,8 +127,8 @@ test("a household recommends a worker to a friend, who signs up and can ask them
   await (await opened).close();
   await expect(card.getByRole("status").filter({ hasText: say("qr.recommend_told", { name }) })).toBeVisible();
 
-  // ── The worker is told on their Activity, in their language, until they tap OK ─────────────────────────────────
-  await open(ganesh, "nav.activity", hi);
+  // ── The worker is told on Home, in their language, until they tap OK ────────────────────────────────────────────
+  await open(ganesh, "nav.home", hi);
   const told = t(hi, "qr.recommended", { name: names.household });
   const note = ganesh.getByRole("article", { name: told });
   await expect(note).toBeVisible();

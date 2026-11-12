@@ -4,6 +4,7 @@ import { type Account, AccountRole } from "../../adapters/account.js";
 import { recordsClient } from "../../adapters/records.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
+import { Icon } from "../../ui/Icon.js";
 import { NoticeWords } from "../record/NoticeWords.js";
 
 /** What the section shows below its line: nothing more, the notice to agree to, or the delete confirmation. */
@@ -14,7 +15,8 @@ const failure = (err: unknown) => ({ error: err instanceof Error ? err.name : ty
 
 /**
  * Privacy's "My records with GigSync" (ADR 0038 §5): whether GigSync keeps this owner's job records, the notice to
- * agree to when it does not, and "Delete my records from GigSync" with a confirmation saying what goes.
+ * agree to when it does not, and "Delete my records from GigSync", a quiet button as the design's ghost, with a
+ * confirmation saying what goes.
  */
 export function RecordsPrivacy({ ports, account }: { ports: Ports; account: Account }) {
   const { t } = useI18n();
@@ -85,6 +87,7 @@ export function RecordsPrivacy({ ports, account }: { ports: Ports; account: Acco
             </button>
           )}
           <button type={C.button} className={C.quiet} onClick={() => setOpen(Open.confirm)}>
+            <Icon name="close" size={16} />
             {t("records.delete")}
           </button>
         </div>

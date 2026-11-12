@@ -11,7 +11,6 @@ import {
   onScreen,
   open,
   openCard,
-  openDrawer,
   Role,
   RUN,
   reveal,
@@ -39,9 +38,9 @@ const anilName = `Anil ${RUN}`;
 const priyaName = `Priya ${RUN}`;
 const ADDRESS = `Flat 302, 3rd floor, 5th Cross (${RUN})`;
 const UTR = "412345678901";
-/** The manual flow's tabs, gone with it. Written out: their keys are deleted after this change. */
-const GONE_TABS = ["Jobs in person", "Get paid", "My record"];
-/** The menu's rows, as a worker sees them. */
+/** The manual flow's tabs, gone with it. Written out: their keys are deleted after this change. ("My record" is a Me row now.) */
+const GONE_TABS = ["Jobs in person", "Get paid"];
+/** The tabs and the Me tab's rows, as a worker sees them. */
 const NAV_ROWS: MessageKey[] = ["nav.activity", "nav.records", "nav.card", "nav.about", "nav.privacy", "nav.settings"];
 const SIGN = /^Sign deal for/;
 
@@ -95,12 +94,11 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
     listWorker(`Esha ${RUN}`, ["plumber"], { lat: INDIRANAGAR.lat, lon: INDIRANAGAR.lon + 0.01 }, 60000),
   ]);
 
-  // ── Anil signs in: the menu's six screens, none of the manual flow's ─────────────────────────────────────────
+  // ── Anil signs in: Jobs and Money as tabs, his pages under Me, none of the manual flow's ─────────────────────
   await signIn(anil, { role: Role.worker, name: anilName, phone: newPhone() });
-  await openDrawer(anil);
+  await open(anil, "nav.me");
   for (const row of NAV_ROWS) await expect(navRow(anil, row)).toBeVisible();
   for (const gone of GONE_TABS) await expect(anil.getByRole("button", { name: gone })).toHaveCount(0);
-  await anil.keyboard.press("Escape");
 
   // He publishes his card: public rate ₹700, private minimum ₹550. It has no UPI field; that is in About me alone.
   await publishCard(
@@ -155,7 +153,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
 
   // ── The agents haggle inside both limits; then each owner signs. Anil's deal comes to the front, Awaiting you ───
   const signOn = (p: Page) =>
-    (p === anil ? anil.getByRole("tabpanel", { name: say("activity.tab_awaiting") }) : p).getByRole("button", {
+    (p === anil ? anil.getByRole("region", { name: say("activity.tab_awaiting") }) : p).getByRole("button", {
       name: SIGN,
     });
   const first = await whichever([anil, priya], SIGN);
@@ -186,7 +184,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
 
   // ── Work, then UPI payment for the signed amount ──────────────────────────────────────────────────────────────
   const job = anil.getByRole("article", { name: say("a11y.job_with", { name: priyaName }) });
-  const askPayment = job.getByRole("button", { name: say("job.ask_payment"), exact: true });
+  const askPayment = job.getByRole("button", { name: say("money.ask_for", { price: `₹${deal}` }), exact: true });
   const onMyWay = job.getByRole("button", { name: say("update.on_my_way") });
   await onMyWay.click();
   await expect(onMyWay).toBeHidden();
@@ -207,6 +205,8 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await expect(job.getByRole("button", { name: say("job.not_received") })).toHaveCount(0);
 
   const payBox = priya.getByRole("form", { name: say("a11y.pay") });
+  // The QR and the UPI reference wait under "another way": the UPI app is the one way shown.
+  await payBox.getByText(say("money.other_way"), { exact: true }).click();
   await expect(payBox.getByRole("img", { name: say("a11y.qr") })).toBeVisible();
   await expect(payBox.getByRole("link", { name: say("job.open_upi") })).toHaveAttribute(
     "href",
