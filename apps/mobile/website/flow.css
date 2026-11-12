@@ -667,9 +667,7 @@ h2[data-lines][data-arrived] .line > span {
 }
 
 /* the top band of the mural, the whole tree with the sun, the huts and the people under it, fills the closing from
-   under the hill's curve down to the footer strip. It is one layer over both, above their brown and below the words;
-   taller than the band on most screens, it pans with the scroll, showing the sun and the crown as the band arrives and
-   the ground and the people by the time the footer comes up, so the whole painting is seen over the scroll. */
+   under the hill's curve down to the footer strip. It is one layer over both, above their brown and below the words. */
 .closing-wrap {
   position: relative;
   overflow: hidden;
@@ -677,15 +675,18 @@ h2[data-lines][data-arrived] .line > span {
 .closing-wrap > .bookend-tree {
   position: absolute;
   z-index: 2;
-  inset: 0;
+  left: 0;
+  bottom: 0;
   width: 100%;
-  height: 100%;
+  /* the full width, kept within the brown under the curve; at its top so the sun and the crown always show, and any
+     trim on a very wide screen falls on the ground at the bottom */
+  height: 76%;
   object-fit: cover;
-  object-position: 50% calc(var(--p) * 100%);
+  object-position: 50% 0;
   opacity: 0.1;
   pointer-events: none;
-  -webkit-mask: linear-gradient(transparent 3%, #000 20%, #000 92%, transparent);
-  mask: linear-gradient(transparent 3%, #000 20%, #000 92%, transparent);
+  -webkit-mask: linear-gradient(transparent, #000 10%, #000 92%, transparent);
+  mask: linear-gradient(transparent, #000 10%, #000 92%, transparent);
 }
 .closing-wrap .closing-section {
   isolation: auto;
