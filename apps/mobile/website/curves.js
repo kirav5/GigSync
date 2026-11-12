@@ -20,13 +20,14 @@ function arcAt(t, a, b, inset) {
 }
 
 function draw(hill) {
-  const w = hill.clientWidth;
-  const h = hill.clientHeight;
+  // exact sizes, not whole pixels: the hill's height moves by fractions of a pixel as it pulls up
+  const { width: w, height: h } = hill.getBoundingClientRect();
   if (!w || !h) return;
   const a = w / 2;
   const b = h;
   const svg = hill.querySelector("svg") ?? hill.appendChild(document.createElementNS(SVG_NS, "svg"));
   svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  svg.setAttribute("preserveAspectRatio", "none");
   // walk the arc once to know its length, then step a tile at a time
   const points = [];
   let length = 0;
@@ -40,17 +41,22 @@ function draw(hill) {
   const scale = TILE_PX / TILE_UNITS;
   const tiles = [];
   let k = 0;
-  for (let s = TILE_PX / 2; s < length; s += TILE_PX) {
-    while (k < points.length - 1 && points[k + 1].s < s) k++;
+  // tiles are counted out from the top of the arch, so as the curve pulls up and its length changes they stay put at
+  // the middle instead of all sliding along from one end; each sits at its exact place between two samples
+  for (let s = (length / 2) % TILE_PX; s < length; s += TILE_PX) {
+    while (k < points.length - 2 && points[k + 1].s < s) k++;
     const p = points[k];
-    const q = points[Math.min(k + 1, points.length - 1)];
+    const q = points[k + 1];
+    const f = (s - p.s) / (q.s - p.s || 1);
+    const x = p.x + (q.x - p.x) * f;
+    const y = p.y + (q.y - p.y) * f;
     const angle = (Math.atan2(p.y - q.y, p.x - q.x) * 180) / Math.PI;
     tiles.push(
-      `<g transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${angle.toFixed(2)}) scale(${scale}) translate(${-TILE_UNITS / 2} -18)">${TILE}</g>`,
+      `<g transform="translate(${x.toFixed(2)} ${y.toFixed(2)}) rotate(${angle.toFixed(2)}) scale(${scale}) translate(${-TILE_UNITS / 2} -18)">${TILE}</g>`,
     );
   }
   const line = (inset) => {
-    const r = (v) => v.toFixed(1);
+    const r = (v) => v.toFixed(2);
     return `<path class="strip-line" fill="none" d="M${r(inset)} ${r(b)} A${r(a - inset)} ${r(b - inset)} 0 0 1 ${r(w - inset)} ${r(b)}"/>`;
   };
   svg.innerHTML = `${line(INSET)}${line(INSET + 10)}${tiles.join("")}`;
