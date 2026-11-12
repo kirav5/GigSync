@@ -631,3 +631,55 @@ h2[data-lines][data-arrived] .line > span {
 .hill-warm .sunrise-hill {
   background: #e5d4b5;
 }
+
+/* 06 lines up like the other sections: its label in the narrow left column, the headline, the lead and the two
+   paragraphs one under the other in the wide right one */
+.community-inner > .eyebrow {
+  margin-bottom: 0;
+}
+.community-section .community-lead {
+  max-width: 640px;
+  margin-top: 28px;
+}
+.community-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 48px;
+  margin-top: 32px;
+}
+.community-body p {
+  font-size: 14px;
+  line-height: 1.85;
+  color: #725d45;
+}
+.community-body .text-link {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-top: 14px;
+  font-size: 14.5px;
+}
+@media (max-width: 760px) {
+  .community-body {
+    grid-template-columns: 1fr;
+    row-gap: 14px;
+  }
+}
+
+/* the top band of the mural, the whole tree with the sun, the huts and the people under it, stands at the foot of
+   the closing on the footer's strip. It is fitted inside the band so none of it is cut, fades only at the far sides,
+   and grows a little from its ground as the band comes on. */
+.bookend-tree {
+  position: absolute;
+  z-index: -1;
+  inset: 24px 0 0;
+  width: 100%;
+  height: calc(100% - 24px);
+  object-fit: contain;
+  object-position: 50% 100%;
+  opacity: 0.1;
+  pointer-events: none;
+  -webkit-mask: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  mask: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  transform-origin: 50% 100%;
+  transform: scale(calc(0.94 + var(--p) * 0.06));
+}

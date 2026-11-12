@@ -13,7 +13,7 @@ const SOURCE_MAP = ".map";
 /** Cloudflare reads this file at deploy and never serves it, so it is no part of what the app precaches. */
 const REDIRECTS = "_redirects";
 /** What only the website loads: an app that opens offline has no use for it, and a phone should not pay for it. */
-const WEBSITE_ONLY = /^assets\/(home-|story-|site-links-|community-mural-|mural-)/;
+const WEBSITE_ONLY = /^assets\/(home-|story-|site-links-|curves-|flow-|community-mural-|mural-)/;
 /** The on-device model's engine (WebLLM, about 12 MB in two files): fetched on its first use, never precached. */
 const MODEL_ENGINE = "/@mlc-ai/web-llm/";
 const MODEL_WORKER = `${ASSETS}model-worker-`;
