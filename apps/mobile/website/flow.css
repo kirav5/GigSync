@@ -615,6 +615,7 @@ h2[data-lines][data-arrived] .line > span {
 
 /* 07 keeps its warmer cream, and the hill down to the closing starts from that same cream */
 .community-section + .sunset,
+.ink-warm + .closing-wrap .sunset,
 .ink-warm + .sunset {
   background: #e5d4b5;
 }
@@ -665,33 +666,41 @@ h2[data-lines][data-arrived] .line > span {
   }
 }
 
-/* the top band of the mural, the whole tree with the sun, the huts and the people under it, stands at the foot of
-   the closing on the footer's strip and covers the whole band at its own height, growing a little from its ground as
-   the band comes on. */
-.bookend-tree {
+/* the top band of the mural, the whole tree with the sun, the huts and the people under it, fills the closing from
+   under the hill's curve down to the footer strip. It is one layer over both, above their brown and below the words;
+   taller than the band on most screens, it pans with the scroll, showing the sun and the crown as the band arrives and
+   the ground and the people by the time the footer comes up, so the whole painting is seen over the scroll. */
+.closing-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.closing-wrap > .bookend-tree {
   position: absolute;
-  z-index: -1;
+  z-index: 2;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* pinned to its top, so the sun and the crown of the tree are never cut; on a very wide screen the trim falls on
-     the ground at the bottom, which fades into the footer strip */
-  object-position: 50% 0;
-  -webkit-mask: linear-gradient(#000 82%, transparent);
-  mask: linear-gradient(#000 82%, transparent);
+  object-position: 50% calc(var(--p) * 100%);
   opacity: 0.1;
   pointer-events: none;
-  transform-origin: 50% 0;
-  transform: scale(calc(1 + var(--p) * 0.04));
+  -webkit-mask: linear-gradient(transparent 3%, #000 20%, #000 92%, transparent);
+  mask: linear-gradient(transparent 3%, #000 20%, #000 92%, transparent);
+}
+.closing-wrap .closing-section {
+  isolation: auto;
+}
+.closing-wrap .closing-inner {
+  position: relative;
+  z-index: 3;
 }
 
 /* 06 and 07 show the mural's left side, the weavers, the planting and the plough, standing at the left of the band
    at its full height and fading out towards the text */
 .ink-warm .ink-stage {
   place-items: stretch start;
-  -webkit-mask: linear-gradient(to right, #000 22%, transparent 55%);
-  mask: linear-gradient(to right, #000 22%, transparent 55%);
+  -webkit-mask: linear-gradient(to right, #000 34%, transparent 72%);
+  mask: linear-gradient(to right, #000 34%, transparent 72%);
 }
 .ink-warm .ink-art {
   width: auto;
@@ -700,7 +709,7 @@ h2[data-lines][data-arrived] .line > span {
   background-image: url("./mural-side.webp");
   background-size: 100% 100%;
   opacity: 0.09;
-  transform: scale(calc(1 + var(--p) * 0.06));
+  transform: scale(calc(1.45 + var(--p) * 0.08));
   transform-origin: 0 50%;
 }
 .ink-warm .community-section {
