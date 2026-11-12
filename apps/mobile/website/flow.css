@@ -320,57 +320,69 @@
   background: var(--earth);
 }
 
-/* a faint rust print of the whole mural behind the cream sections, drifting and slowly nearing as the page scrolls */
-.inked {
+/* one faint rust print of the whole mural behind 02 and 03: it stays in place while both sections pass over it, nearing
+   and turning a little with the scroll and breathing slowly on its own */
+.ink-span {
   position: relative;
   isolation: isolate;
+  overflow: clip;
 }
-.inked::before {
-  content: "";
-  position: absolute;
+.ink-stage {
+  position: sticky;
+  top: 0;
   z-index: -1;
-  top: 50%;
-  left: 50%;
+  height: 100svh;
+  margin-bottom: -100svh;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.ink-art {
   /* never wider than the screen: a phone would widen its whole layout to fit it */
-  width: min(1100px, 100vw);
+  width: min(1100px, 100vw, 125svh);
   aspect-ratio: 1;
   background: url("./mural-ink.webp") center / contain no-repeat;
-  opacity: 0.07;
-  pointer-events: none;
-  transform: translate(-50%, -50%) translateY(calc((0.5 - var(--p)) * 180px)) scale(calc(0.9 + var(--p) * 0.24));
+  opacity: 0.08;
+  transform: scale(calc(0.9 + var(--p) * 0.22)) rotate(calc((var(--p) - 0.5) * 8deg));
+  animation: ink-breathe 16s ease-in-out infinite alternate;
 }
-@media (min-width: 1300px) {
-  .inked-right::before {
-    left: 70%;
+@keyframes ink-breathe {
+  from {
+    translate: 0 10px;
+    opacity: 0.065;
+  }
+  to {
+    translate: 0 -10px;
+    opacity: 0.095;
   }
 }
 
-/* fringes: a row of folk triangles where the cream meets the brown. Into the jobs band they grow up out of it; out of
-   it they hang from it and draw back as the page moves on. */
+/* the folk strip from the header, wherever the cream meets the brown: a hairline, then the row of triangles, drifting a
+   little sideways as the page moves */
+.fringe,
+.site-footer::before,
+.closing-section::before {
+  --strip: var(--folk) left bottom / 28px 16px repeat-x;
+}
 .fringe {
-  --grow: clamp(0, calc((var(--p) - 0.04) * 2.3), 1);
-  --teeth: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 10' preserveAspectRatio='none'%3E%3Cpath d='M0 10L5 0L10 10L15 4.5L20 10Z' fill='%233b2118'/%3E%3C/svg%3E");
   position: relative;
-  height: clamp(46px, 6vw, 84px);
-  background: #ece2ce;
-  overflow: hidden;
+  height: 34px;
+  background: var(--earth);
 }
 .fringe::before {
   content: "";
   position: absolute;
-  inset: 0;
-  background: var(--teeth) left bottom / clamp(44px, 5vw, 72px) 100% repeat-x;
-  transform-origin: 50% 100%;
-  transform: scaleY(calc(0.06 + var(--grow) * 0.94));
+  inset: 9px 0 auto;
+  height: 16px;
+  background: var(--strip);
+  background-position-x: calc(var(--p) * 84px);
+  opacity: 0.55;
+}
+.fringe-rise {
+  border-top: 1px solid rgba(234, 219, 185, 0.16);
 }
 .fringe-fall {
-  --teeth: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 10' preserveAspectRatio='none'%3E%3Cpath d='M0 0L5 10L10 0L15 5.5L20 0Z' fill='%233b2118'/%3E%3C/svg%3E");
-  background: var(--paper);
-}
-.fringe-fall::before {
-  background-position: left top;
-  transform-origin: 50% 0;
-  transform: scaleY(calc(1 - var(--grow) * 0.8));
+  border-bottom: 1px solid rgba(234, 219, 185, 0.16);
 }
 
 /* the closing bookend: the ring of dancers rises at the foot of the last band, turning as it comes */
@@ -415,4 +427,81 @@ h2[data-lines][data-arrived] .line > span {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* the closing and the footer: one compact brown band, the strip at its top and again above the footer line */
+.closing-section::before {
+  height: 16px;
+  margin: 12px 0 0;
+  background: var(--strip);
+  opacity: 0.55;
+}
+.closing-inner {
+  padding: 34px 0 52px;
+}
+.closing-inner h2 {
+  font-size: clamp(38px, 5vw, 56px);
+  letter-spacing: -1.6px;
+  margin-top: 14px;
+}
+.closing-mark {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+.closing-section .community-border {
+  display: none;
+}
+.site-footer {
+  position: relative;
+  display: block;
+  background: var(--earth);
+  padding: 12px 0 0;
+}
+.site-footer::before {
+  content: "";
+  display: block;
+  height: 16px;
+  background: var(--strip);
+  opacity: 0.55;
+}
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-block: 18px 22px;
+  border-top: 1px solid rgba(234, 219, 185, 0.16);
+  margin-top: 0;
+}
+.site-footer .brand {
+  font-size: 22px;
+  color: var(--ivory);
+}
+.site-footer .brand svg {
+  width: 22px;
+  height: 22px;
+}
+.site-footer p {
+  margin-top: 6px;
+  color: #b69b73;
+}
+.site-footer .footer-right a {
+  color: #d3b17a;
+}
+.site-footer .footer-right p {
+  margin-top: 6px;
+}
+@media (max-width: 600px) {
+  .footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .site-footer .footer-right {
+    text-align: left;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ink-art {
+    animation: none;
+  }
 }
