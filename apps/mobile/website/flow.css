@@ -367,7 +367,7 @@
   z-index: -1;
   left: 0;
   right: 0;
-  height: 180px;
+  height: 260px;
   pointer-events: none;
 }
 .ink-span::before {
@@ -381,23 +381,23 @@
 .ink-stage {
   position: sticky;
   top: 0;
-  z-index: -1;
+  z-index: -2;
   height: 100svh;
   margin-bottom: -100svh;
   display: grid;
   place-items: center;
   pointer-events: none;
+  /* fades out at both sides of the screen, so the print has no edge of its own */
+  -webkit-mask: linear-gradient(to right, transparent, #000 24%, #000 76%, transparent);
+  mask: linear-gradient(to right, transparent, #000 24%, #000 76%, transparent);
 }
 .ink-art {
-  /* never wider than the screen: a phone would widen its whole layout to fit it */
-  width: min(1100px, 100vw, 125svh);
-  aspect-ratio: 1;
-  background: url("./mural-ink.webp") center / contain no-repeat;
+  /* fills the whole screen, zoomed in on the mural, and never wider than it: a phone would widen its layout to fit */
+  width: 100%;
+  height: 100%;
+  background: url("./mural-ink.webp") center / cover no-repeat;
   opacity: 0.08;
-  /* fades out towards the right, where the sections keep their text and panels */
-  -webkit-mask: linear-gradient(to right, #000 30%, transparent 82%);
-  mask: linear-gradient(to right, #000 30%, transparent 82%);
-  transform: scale(calc(0.9 + var(--p) * 0.22)) rotate(calc((var(--p) - 0.5) * 8deg));
+  transform: scale(calc(1.08 + var(--p) * 0.22)) rotate(calc((var(--p) - 0.5) * 6deg));
   animation: ink-breathe 16s ease-in-out infinite alternate;
 }
 @keyframes ink-breathe {
