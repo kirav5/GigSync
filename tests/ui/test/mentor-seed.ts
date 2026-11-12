@@ -1,16 +1,7 @@
 import { Collection, ownedName } from "@gigsync/core";
-import { UserId } from "@gigsync/protocol";
+import type { UserId } from "@gigsync/protocol";
 import type { Page } from "@playwright/test";
-
-/** Where the web build keeps the phone's storage (Capacitor Preferences on the web), and the account's key there. */
-const STORE_PREFIX = "CapacitorStorage.";
-const ACCOUNT_KEY = `${STORE_PREFIX}settings:account`;
-
-/** Where the web build keeps one owner's jobs: their own collection, as the app's owner storage names it. */
-export const jobsPrefix = (user: UserId) => `${STORE_PREFIX}${ownedName(Collection.jobs, user)}:`;
-
-/** Where the web build keeps one owner's mentor links. */
-const linksPrefix = (user: UserId) => `${STORE_PREFIX}${ownedName(Collection.mentorLinks, user)}:`;
+import { signedIn, store } from "./phone-store.js";
 
 /**
  * Writes `count` finished jobs the signed-in worker did, both sides signed on the same terms, the first begun `days`
@@ -19,7 +10,8 @@ const linksPrefix = (user: UserId) => `${STORE_PREFIX}${ownedName(Collection.men
 export async function seedRecord(page: Page, count: number, days: number): Promise<void> {
   const me = await userOf(page);
   await page.evaluate(
-    ({ count, days, me, jobsPrefix }) => {
+    async ({ count, days, me, jobs }) => {
+      const writes: (Promise<void> | undefined)[] = [];
       const CROCKFORD = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
       const ULID_LENGTH = 26;
       const MS_PER_DAY = 86_400_000;
@@ -68,10 +60,11 @@ export async function seedRecord(page: Page, count: number, days: number): Promi
           mine: agree,
           theirs: agree,
         };
-        localStorage.setItem(`${jobsPrefix}${engagement}`, JSON.stringify(job));
+        writes.push(window.gigsyncStorage?.put(jobs, engagement, job));
       }
+      await Promise.all(writes);
     },
-    { count, days, me, jobsPrefix: jobsPrefix(me) },
+    { count, days, me, jobs: ownedName(Collection.jobs, me) },
   );
 }
 
@@ -87,15 +80,11 @@ const ULID_LENGTH = 26;
 const newId = (prefix: string) =>
   `${prefix}_${Array.from({ length: ULID_LENGTH }, () => CROCKFORD[Math.floor(Math.random() * CROCKFORD.length)]).join("")}`;
 
-/** The signed-in owner's user id, from the account the web build keeps. */
+/** The signed-in owner's user id, from the account the phone keeps. */
 export async function userOf(page: Page): Promise<UserId> {
-  const user = await page.evaluate((key) => {
-    const account = JSON.parse(localStorage.getItem(key) ?? "{}") as { session?: { user?: string } };
-    return account.session?.user;
-  }, ACCOUNT_KEY);
-  const parsed = UserId.safeParse(user);
-  if (!parsed.success) throw new Error("not signed in");
-  return parsed.data;
+  const user = await signedIn(page);
+  if (!user) throw new Error("not signed in");
+  return user;
 }
 
 /** A mentor link lasts this long. */
@@ -112,18 +101,15 @@ export async function seedMentorLink(first: Party, second: Party): Promise<void>
   const channel = newId("eng");
   const now = Date.now();
   const write = (owner: Party, me: UserId, them: UserId, name: string, role: string) =>
-    owner.page.evaluate(({ key, json }) => localStorage.setItem(key, json), {
-      key: `${linksPrefix(me)}${them}`,
-      json: JSON.stringify({
-        user: them,
-        card: { name, trades: ["cook"], languages: ["en"] },
-        channel,
-        unread: 0,
-        kind: "mentor",
-        linked_at: new Date(now).toISOString(),
-        expires_at: new Date(now + LINK_DAYS * MS_PER_DAY).toISOString(),
-        mentor: { role },
-      }),
+    store(owner.page, ownedName(Collection.mentorLinks, me), them, {
+      user: them,
+      card: { name, trades: ["cook"], languages: ["en"] },
+      channel,
+      unread: 0,
+      kind: "mentor",
+      linked_at: new Date(now).toISOString(),
+      expires_at: new Date(now + LINK_DAYS * MS_PER_DAY).toISOString(),
+      mentor: { role },
     });
   await write(first, a, b, second.name, "newcomer");
   await write(second, b, a, first.name, "mentor");

@@ -1,7 +1,8 @@
-import { t } from "@gigsync/core";
+import { Collection, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, type Page, test } from "@playwright/test";
 import { newPhone, open, Role, RUN, shoot, signIn, textOf } from "./helpers.js";
+import { saved, store } from "./phone-store.js";
 import { type } from "./talk.js";
 
 /**
@@ -19,8 +20,12 @@ const FAKE_MODEL_KEY = "gigsync-fake-model";
 const FETCHES_KEY = "gigsync-fake-model-fetches";
 const PROGRESS_KEY = "gigsync-fake-model-progress";
 const READY_KEY = "gigsync-fake-model-ready";
-/** The app's record of the model on this phone, where Capacitor's web storage keeps it (model-device.ts). */
-const RECORD_KEY = "CapacitorStorage.settings:model_device";
+/**
+ * The app's record of the model on this phone (model-device.ts), as plain text in the web build's old store: written
+ * there before the app first starts, the app takes it in as it does an old phone's records (ADR 0065).
+ */
+const RECORD_ID = "model_device";
+const RECORD_KEY = `CapacitorStorage.${Collection.settings}:${RECORD_ID}`;
 /** The model the fake has downloaded, and the record of a phone that took the offer and was told it is ready. */
 const MODEL_ID = "Qwen3.5-2B-q4f16_1-MLC";
 const DONE = JSON.stringify({ offer: "download", readySaid: true });
@@ -79,6 +84,7 @@ test("a capable phone is offered the model once, and Later puts it away", async 
     .getByRole("button", { name: t(en, "model.offer_later"), exact: true })
     .click();
   await expect(page.getByText(t(en, "model.offer", { mb: MODEL_MB }))).toHaveCount(0);
+  await saved(page);
   await page.reload();
   await expect(page.getByText(textOf(en, "iv.ask.trade"))).toBeVisible();
   await expect(page.getByText(t(en, "model.offer", { mb: MODEL_MB }))).toHaveCount(0);
@@ -132,14 +138,13 @@ test("on mobile data the offer says so, and a stopped download never carries on 
   await shoot("offer-mobile-data", { worker: page }, FOLDER);
 
   // A download agreed to earlier stopped half-way; the app opens again on mobile data.
-  const stopped = JSON.stringify({ offer: "download", wanted: true, speed: { times: [], verdict: "measuring" } });
-  await page.evaluate(
-    ([k, v, p, half]) => {
-      localStorage.setItem(k, v);
-      localStorage.setItem(p, half);
-    },
-    [RECORD_KEY, stopped, PROGRESS_KEY, HALF_DOWN] as const,
-  );
+  // The record goes through the running app's storage: plain text written now would lose to what the app already keeps.
+  await store(page, Collection.settings, RECORD_ID, {
+    offer: "download",
+    wanted: true,
+    speed: { times: [], verdict: "measuring" },
+  });
+  await page.evaluate(([p, half]) => localStorage.setItem(p, half), [PROGRESS_KEY, HALF_DOWN] as const);
   await page.reload();
   await expect(offer(page)).toContainText(t(en, "model.paused"));
   await expect(offer(page)).toContainText(t(en, "model.mobile_data", { mb: MODEL_MB }));

@@ -9,6 +9,7 @@
     "dev:e2e": "VITE_API_BASE=http://localhost:8788 vite --port 5174 --strictPort",
     "build": "tsc -p tsconfig.json --noEmit && vite build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
     "preview": "vite preview",
     "sync": "cap sync",
     "android": "cap run android",
@@ -41,7 +42,9 @@
     "@types/react": "19.2.13",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.1.2",
+    "fake-indexeddb": "6.2.8",
     "typescript": "5.9.3",
-    "vite": "8.3.5"
+    "vite": "8.3.5",
+    "vitest": "4.1.12"
   }
 }

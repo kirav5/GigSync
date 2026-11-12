@@ -1,50 +1,23 @@
-import { Preferences } from "@capacitor/preferences";
 import type { Embedder, Keys, Model, Ports, Storage } from "@gigsync/core";
 import { SecretKeys, SystemClock, traced } from "@gigsync/core";
 import { type DeviceSecrets, newDeviceSecrets, type Sealed } from "@gigsync/crypto";
 import type { DeviceId } from "@gigsync/protocol";
 import { understanding } from "./embedder.js";
 import { chosenModel } from "./model.js";
+import { KEYS_COLLECTION } from "./store/move.js";
+import { phoneStorage } from "./store/open.js";
 
 /**
  * The app's implementations of the core's ports. These are the ONLY place platform APIs are touched, so moving
  * to another shell later means rewriting this file, not the agent.
  *
- * M0 state: Preferences-backed storage and software keys. M0 hardening replaces them with the SQLCipher plugin
- * and a Keystore/Keychain-wrapped key; the interfaces do not change.
+ * Storage (adapters/store, ADR 0065): on the web, IndexedDB with every record sealed under a key script cannot read;
+ * on a native build, still plain Preferences until the SQLCipher plugin with a Keystore/Keychain-held key. The keys
+ * are software keys on both; the interfaces do not change.
  */
 
-class PreferencesStorage implements Storage {
-  private key = (c: string, id: string) => `${c}:${id}`;
-  async get<T>(c: string, id: string) {
-    const { value } = await Preferences.get({ key: this.key(c, id) });
-    return value ? (JSON.parse(value) as T) : undefined;
-  }
-  async put<T>(c: string, id: string, v: T) {
-    await Preferences.set({ key: this.key(c, id), value: JSON.stringify(v) });
-  }
-  async delete(c: string, id: string) {
-    await Preferences.remove({ key: this.key(c, id) });
-  }
-  async list<T>(c: string) {
-    const { keys } = await Preferences.keys();
-    const mine = keys.filter((k) => k.startsWith(`${c}:`)).sort();
-    const out: T[] = [];
-    for (const k of mine) {
-      const { value } = await Preferences.get({ key: k });
-      if (value) out.push(JSON.parse(value) as T);
-    }
-    return out;
-  }
-  async ids(c: string) {
-    const { keys } = await Preferences.keys();
-    const prefix = `${c}:`;
-    return keys.filter((k) => k.startsWith(prefix)).map((k) => k.slice(prefix.length));
-  }
-}
-
-/** Preferences key holding the device's software secrets (v2: Ed25519 + X25519; v1 held Ed25519 only). */
-const DEVICE_SECRETS = "keys:device:v2";
+/** The device's software secrets, in the `keys` collection (v2: Ed25519 + X25519; v1 held Ed25519 only). */
+const DEVICE_SECRETS_ID = "device:v2";
 
 /**
  * The device's secrets, loaded or made once per app. Two loaders racing on a first launch (React's StrictMode runs
@@ -52,20 +25,27 @@ const DEVICE_SECRETS = "keys:device:v2";
  * keep the other, and after a restart could open nothing sent to it.
  */
 let deviceSecrets: Promise<SecretKeys> | undefined;
-function loadDeviceSecrets(): Promise<SecretKeys> {
+function loadDeviceSecrets(storage: Storage): Promise<SecretKeys> {
   deviceSecrets ??= (async () => {
-    const { value } = await Preferences.get({ key: DEVICE_SECRETS });
-    if (value) return new SecretKeys(JSON.parse(value) as DeviceSecrets);
+    const kept = await storage.get<DeviceSecrets>(KEYS_COLLECTION, DEVICE_SECRETS_ID);
+    if (kept) return new SecretKeys(kept);
     const fresh = newDeviceSecrets();
-    await Preferences.set({ key: DEVICE_SECRETS, value: JSON.stringify(fresh) });
+    await storage.put(KEYS_COLLECTION, DEVICE_SECRETS_ID, fresh);
     return new SecretKeys(fresh);
   })();
   return deviceSecrets;
 }
 
-/** Software keys. DEV ONLY: the secrets live in Preferences until the Keystore plugin lands. */
+/**
+ * Software keys. On the web the two private keys are sealed at rest like every other record (ADR 0065), but they are
+ * raw bytes in memory whenever the app runs: @gigsync/crypto signs and opens with noble, which needs them so. Native
+ * builds keep them in plain Preferences until the Keystore/Keychain store lands (ADR 0065 §5).
+ */
 class SoftwareKeys implements Keys {
-  private keys = loadDeviceSecrets();
+  private readonly keys: Promise<SecretKeys>;
+  constructor(storage: Storage) {
+    this.keys = loadDeviceSecrets(storage);
+  }
   async publicKeys() {
     return (await this.keys).publicKeys();
   }
@@ -91,9 +71,10 @@ function createEmbedder(): Embedder {
 }
 
 export function createPorts(): Ports {
+  const storage = phoneStorage();
   return {
-    storage: new PreferencesStorage(),
-    keys: new SoftwareKeys(),
+    storage,
+    keys: new SoftwareKeys(storage),
     model: createModel(),
     clock: new SystemClock(),
     embedder: createEmbedder(),

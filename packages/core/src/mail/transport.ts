@@ -115,6 +115,7 @@ export class MailTransport {
    * handled.
    */
   async receive(handle: (r: Received) => Promise<void>): Promise<number> {
+    await this.inbox.prune(this.clock.now());
     const fetched = await this.relay.inbox();
     if (fetched.length === 0) return 0;
     let handled = 0;
