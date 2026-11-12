@@ -678,11 +678,12 @@ h2[data-lines][data-arrived] .line > span {
   left: 0;
   bottom: 0;
   width: 100%;
-  /* the full width, kept within the brown under the curve; at its top so the sun and the crown always show, and any
-     trim on a very wide screen falls on the ground at the bottom */
-  height: 76%;
-  object-fit: cover;
-  object-position: 50% 0;
+  /* a wide panorama, the tree band with the village's two side columns added at its ends, shown whole at the full
+     width and standing on the footer strip; never taller than the brown under the curve */
+  height: auto;
+  max-height: 76%;
+  object-fit: contain;
+  object-position: 50% 100%;
   opacity: 0.1;
   pointer-events: none;
   -webkit-mask: linear-gradient(transparent, #000 10%, #000 92%, transparent);
