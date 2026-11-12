@@ -522,3 +522,79 @@
 .mo-caption {
   font-size: 15px;
 }
+
+/* the last line of the headline turns: "for life." gives way, one at a time, to what an agent on her side is for. The
+   words share one cell, so the line keeps the width of the longest and the headline never shifts; each rises in,
+   holds for three seconds and lifts away. With Reduce Motion on only "for life." shows. */
+.mo-turns {
+  display: inline-grid;
+  vertical-align: top;
+  overflow: hidden;
+  padding: 0 0.08em 0.14em;
+  margin: 0 -0.08em -0.14em;
+}
+.mo-turns > span {
+  grid-area: 1 / 1;
+  justify-self: center;
+  white-space: nowrap;
+  opacity: 0;
+  animation: mo-turn-word 15s 1.4s cubic-bezier(0.2, 0.7, 0.2, 1) infinite backwards;
+}
+.mo-turns > span:nth-child(2) {
+  animation-delay: 4.4s;
+}
+.mo-turns > span:nth-child(3) {
+  animation-delay: 7.4s;
+}
+.mo-turns > span:nth-child(4) {
+  animation-delay: 10.4s;
+}
+.mo-turns > span:nth-child(5) {
+  animation-delay: 13.4s;
+}
+.mo-turns > span:first-child {
+  opacity: 1;
+  animation-name: mo-turn-first;
+}
+@keyframes mo-turn-word {
+  0% {
+    opacity: 0;
+    transform: translateY(75%);
+  }
+  3%,
+  18% {
+    opacity: 1;
+    transform: none;
+  }
+  21%,
+  100% {
+    opacity: 0;
+    transform: translateY(-75%);
+  }
+}
+/* the first word is already there when the page opens, so it starts held rather than rising in */
+@keyframes mo-turn-first {
+  0%,
+  18% {
+    opacity: 1;
+    transform: none;
+  }
+  21%,
+  97% {
+    opacity: 0;
+    transform: translateY(-75%);
+  }
+  97.01% {
+    opacity: 0;
+    transform: translateY(75%);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mo-turns > span {
+    animation: none;
+  }
+}

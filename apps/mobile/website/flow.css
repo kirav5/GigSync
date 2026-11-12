@@ -717,3 +717,27 @@ h2[data-lines][data-arrived] .line > span {
 .ink-warm .community-section {
   background: none;
 }
+
+/* 03 goes round like the rest of the page: soft-cornered cards, their inner rule and folk strip following the
+   corners, the icon tiles and labels rounded, and the two captions as pills */
+.say .box {
+  border-radius: 28px;
+}
+.say .box.her::before {
+  border-radius: 22px;
+}
+.say .box.her::after {
+  left: 28px;
+  right: 28px;
+}
+.say .ic {
+  border-radius: 14px;
+}
+.say .tag {
+  border-radius: 999px;
+  padding: 7px 12px;
+}
+.say-cap span {
+  border-radius: 999px;
+  padding-inline: 22px;
+}
