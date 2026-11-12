@@ -294,13 +294,12 @@
   height: var(--hill);
   border-radius: 50% 50% 0 0 / 100% 100% 0 0;
   background: var(--paper);
-  transform: translateY(calc((1 - var(--rise)) * 100%));
 }
 .sunrise-sun {
   --size: clamp(38px, 3.6vw, 50px);
   position: absolute;
   left: 50%;
-  bottom: calc(var(--hill) * var(--rise) - var(--size) / 2);
+  bottom: calc(var(--hill) - var(--size) / 2);
   width: var(--size);
   height: var(--size);
   margin-left: calc(var(--size) / -2);
@@ -603,4 +602,11 @@ h2[data-lines][data-arrived] .line > span {
 }
 .say .box.her {
   padding-bottom: 36px;
+}
+
+/* the hills stand still and span the full width, so no flat edge of the next band ever shows beside them; only the sun
+   rises over them. The jobs band's print fades in under the hill instead of starting on a straight line. */
+.jobs-art {
+  -webkit-mask: linear-gradient(transparent, #000 30%, #000 80%, transparent);
+  mask: linear-gradient(transparent, #000 30%, #000 80%, transparent);
 }
