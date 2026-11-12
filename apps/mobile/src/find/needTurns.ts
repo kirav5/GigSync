@@ -20,6 +20,9 @@ export type NeedTurn =
   /** What a search found, and the ones the owner picked to ask (the nearest, until they choose). */
   | { id: number; who: typeof NeedSpeaker.found; workers: readonly BoardWorker[]; picked: readonly string[] };
 
+/** A found-workers turn. */
+export type FoundTurn = Extract<NeedTurn, { who: typeof NeedSpeaker.found }>;
+
 /** Turn ids are unique across every Find chat on screen. */
 let lastId = 0;
 

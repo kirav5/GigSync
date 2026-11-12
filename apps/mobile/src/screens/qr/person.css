@@ -1,0 +1,26 @@
+/* A worker's card as a scan opens it (app-journey H14): everything centred, the initial large, the name in the serif. */
+.person-card {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 8px 4px;
+  text-align: center;
+}
+.person-card > p {
+  margin: 0;
+}
+.person-card .rec-badges {
+  justify-content: center;
+}
+.person-name {
+  margin: 4px 0 0;
+  font-family: var(--serif);
+  font-size: var(--fs-hero);
+  font-weight: 400;
+  line-height: var(--lh-head);
+  overflow-wrap: anywhere;
+}
+.person-rate {
+  font-size: var(--fs-2);
+  font-weight: 500;
+}

@@ -35,16 +35,16 @@ function Remembered({ suggested, onChange }: { suggested: Suggested; onChange: (
   );
 }
 
-/** A written question's two answers, as two buttons; the chosen one is pressed. */
+/** A written question's two answers, as two chips side by side (H7); the chosen one is pressed. */
 function YesNo({ q, value, onChange }: { q: ModelQuestion; value: string; onChange: (v: string) => void }) {
   const { t } = useI18n();
   return (
-    <fieldset className={C.actions} aria-labelledby={ANSWER_ID + q.key + QUESTION_ID_SUFFIX}>
+    <fieldset className={C.row} aria-labelledby={ANSWER_ID + q.key + QUESTION_ID_SUFFIX}>
       {DetailFlag.options.map((f) => (
         <button
           key={f}
           type={C.button}
-          className={value === f ? C.accent : C.secondary}
+          className={value === f ? C.chipOn : C.chip}
           aria-pressed={value === f}
           onClick={() => onChange(f)}
         >
@@ -141,10 +141,10 @@ function Field({ q, value, onChange, suggested }: FieldProps) {
 
 /**
  * The other side's agent's questions, in this owner's language: standard ones as they always were, a model's words
- * translated on this phone, yes-or-no as two buttons, a number as a number pad, the rest typed; each one skippable.
- * `say` names who is asking, shown and read aloud from the speaker button. Answers the agent remembers from past jobs
- * (`suggested`, when the owner chose "Ask me first") come filled in, so one tap sends them. Sending waits for every
- * answer or skip.
+ * translated on this phone, yes-or-no as two chips, a number as a number pad, the rest typed; each one skippable.
+ * `say` names who is asking, shown as the card's label and read aloud from the speaker button. Answers the agent
+ * remembers from past jobs (`suggested`, when the owner chose "Ask me first") come filled in, so one tap sends them.
+ * Sending waits for every answer or skip.
  */
 export function AnswerForm({
   questions,
@@ -169,9 +169,9 @@ export function AnswerForm({
   }
   return (
     <form className={C.stack} onSubmit={submit} aria-label={t("a11y.answer")}>
-      <div className={C.row}>
+      <div className="row-between">
+        <span className={C.label}>{say}</span>
         <SpeakButton lang={lang} text={say} />
-        <span className={C.muted}>{say}</span>
       </div>
       {questions.map((q) => (
         <Field
@@ -182,11 +182,9 @@ export function AnswerForm({
           onChange={(v) => setValues((all) => ({ ...all, [q.key]: v }))}
         />
       ))}
-      <div className={C.actions}>
-        <button type={C.submit} className={C.btn} disabled={!ready}>
-          {t("job.send_answers")}
-        </button>
-      </div>
+      <button type={C.submit} className={`${C.btn} wide`} disabled={!ready}>
+        {t("job.send_answers")}
+      </button>
     </form>
   );
 }

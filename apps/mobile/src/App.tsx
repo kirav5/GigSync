@@ -15,8 +15,7 @@ import { fetchPacksOnTap, prepareLanguage } from "./adapters/translate.js";
 import { forgetFind, loadFind } from "./find/findChats.js";
 import { I18nProvider } from "./i18n.js";
 import { LanguageChooser } from "./screens/Language.js";
-import { SignIn } from "./screens/SignIn.js";
-import { setDrawer } from "./shell/drawer.js";
+import { SignIn } from "./screens/start/SignIn.js";
 import { SignedIn } from "./shell/SignedIn.js";
 import { forgetTalk, loadTalk } from "./talk/talkStore.js";
 import { Frame } from "./ui/Frame.js";
@@ -78,8 +77,8 @@ export function App() {
   }, [owner, owned]);
 
   // Back (Android's button, the browser's, or the one on screen): the signed-in screens move back one place
-  // (shell/SignedIn.tsx), and from the chat the app goes to the background, or the browser leaves. One listener for
-  // the app's life, reading the current handler through a ref, so a press never lands between two listeners.
+  // (shell/useNav.ts), and from the landing screen the app goes to the background, or the browser leaves. One
+  // listener for the app's life, reading the current handler through a ref, so a press never lands between two.
   const back = useRef<() => boolean>(() => false);
   // A line waiting for a language pack has it fetched on the owner's next tap anywhere.
   useEffect(() => fetchPacksOnTap(), []);
@@ -97,7 +96,6 @@ export function App() {
         forgetTalk();
         forgetFind();
         forgetCloudConsent();
-        setDrawer(false);
         setAccount(null);
       }),
     [ports],

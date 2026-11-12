@@ -1,17 +1,19 @@
-/* Talk: the card interview as a conversation. Questions sit on a hairline with their replay button beside them; the
-   tap answers wrap under the newest question; the owner's answers use the chat bubbles from styles.css. */
+/* Talk: the card interview as a conversation. Questions are the agent's bubbles (styles.css) with their replay button
+   inside, at the end; the tap answers wrap under the newest question; the owner's answers are the owner's bubbles. */
 .iv {
   display: grid;
   gap: 16px;
-}
-.iv-ask {
-  border-left: 2px solid var(--hairline);
-  padding-left: 12px;
 }
 .iv-say {
   display: flex;
   gap: 8px;
   align-items: flex-start;
+}
+/* Inside a bubble the replay button loses its ring and gives back its padding, so the words keep the width. */
+.iv-say .speak-btn {
+  border-color: transparent;
+  background: none;
+  margin: -10px -12px -10px 0;
 }
 .iv-say .text {
   flex: 1;
@@ -25,10 +27,6 @@
 .iv-choices {
   padding-top: 4px;
 }
-.iv-later {
-  color: var(--text2);
-}
-
 /* Find's form/chat switch, at the end of its line. */
 .talk-head {
   justify-content: flex-end;
@@ -37,9 +35,8 @@
 
 /* The agent at work on a note: three dots that pulse in turn beside "Thinking…". The global reduced-motion rule
    stills them; the words stay. */
-.thinking {
-  grid-auto-flow: column;
-  justify-content: start;
+.msg-agent.thinking {
+  display: flex;
   align-items: center;
   gap: 10px;
 }
@@ -62,9 +59,45 @@
 }
 .address-head-line {
   color: var(--text2);
-  font-size: 14px;
+  font-size: var(--fs-label);
   max-width: 280px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* The card chat (W1–W5). The heading the top bar names while the card is made: for readers who move by headings,
+   drawn nowhere. */
+.talk-head-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* A trade's chip leads with its picture; Finish later is quieter than the answers. */
+.iv-later {
+  border-color: transparent;
+  background: none;
+  color: var(--text2);
+}
+/* The private question's lock: under the bubble, at its start, not stretched across the turn. */
+.iv-private {
+  justify-self: start;
+}
+/* The going rate under the price question (W3): the range in words, the band, then what it rests on. */
+.iv-estimate {
+  gap: 10px;
+}
+.iv-estimate-range {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.4;
+}
+/* The summary's two answers above the composer: the big one, and the quiet one under it. */
+.iv-publish {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 8px;
 }

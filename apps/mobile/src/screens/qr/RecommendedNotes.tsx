@@ -12,7 +12,7 @@ interface Props {
 }
 
 /**
- * On a worker's Activity: a household they worked for recommended them to someone (ADR 0055). Told, not asked: if that
+ * On a worker's Home: a household they worked for recommended them to someone (ADR 0055). Told, not asked: if that
  * person asks, it comes as a usual request they may decline. OK puts it away. Nothing shows without one.
  */
 export function RecommendedNotes({ view, device, run }: Props) {

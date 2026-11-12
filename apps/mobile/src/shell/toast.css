@@ -1,9 +1,10 @@
-/* One passing line over the bottom of the screen, above the dock; it goes by itself. */
+/* One passing line over the bottom of the screen, above the dock, and above the tabs on a tab's screen
+   (shell.css sets --toast-lift there); it goes by itself. */
 .toast {
   position: fixed;
   left: 16px;
   right: 16px;
-  bottom: calc(88px + env(safe-area-inset-bottom));
+  bottom: calc(88px + var(--toast-lift, 0px) + env(safe-area-inset-bottom));
   z-index: 40;
   max-width: 560px;
   margin: 0 auto;

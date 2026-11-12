@@ -87,6 +87,7 @@ test("the sign-in line in Hindi opens the terms; continuing records the agreemen
   const who = { role: Role.worker, name: `Sunita ${RUN}`, phone: newPhone(), lang: hi };
   await chooseLanguage(worker, hi);
   const form = worker.getByRole("form", { name: t(hi, "signin.label") });
+  await form.getByRole("radio", { name: t(hi, `signin.${who.role}`), exact: true }).click();
   await form.getByLabel(t(hi, "signin.name")).fill(who.name);
   // One line under Continue, the documents' name a link inside it.
   const link = worker.getByRole("button", { name: t(hi, "records.signin_link"), exact: true });

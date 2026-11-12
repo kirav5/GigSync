@@ -22,7 +22,7 @@ export const talk: Readonly<Record<keyof typeof en, string>> = {
   "talk.private_provider": "आपका सबसे कम दाम कभी भेजा नहीं गया। वह इसी फ़ोन पर रहा।",
   "talk.private_requester": "आपका बजट कभी भेजा नहीं गया। वह इसी फ़ोन पर रहा।",
   "decide.takeover_title": "आपके एजेंट सहमत नहीं हो पाए",
-  "decide.takeover_body": "पाँच-पाँच बार की पेशकश के बाद अब फ़ैसला आपका है। उनकी आख़िरी पेशकश: {price}।",
+  "decide.takeover_body": "पाँच-पाँच पेशकश हो चुकीं। अब फ़ैसला आपका है।",
   "decide.waiting_body":
     "अब {name} आपके एजेंट की आख़िरी पेशकश पर फ़ैसला करेंगे। आप चाहें तो उनकी आख़िरी पेशकश {price} मान सकते हैं, या बातचीत ख़त्म कर सकते हैं।",
   "decide.accept_theirs": "{price} मान लें",

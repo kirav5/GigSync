@@ -149,8 +149,8 @@ test("a cook moving to Bengaluru gets the outlook, the guide's answers and a men
   await expect(log).toContainText(t(en, "moving.sent", { name: mentorName }));
   await shoot("asked", shots, FOLDER);
 
-  // ── The mentor sees the request on Today, as before ──────────────────────────────────────────────────────────
-  await open(mentorPage, "nav.activity");
+  // ── The mentor sees the request on Home ──────────────────────────────────────────────────────────────────────
+  await open(mentorPage, "nav.home");
   await expect(mentorPage.getByRole("button", { name: t(en, "mentor.help", { name: `Kavya ${RUN}` }) })).toBeVisible();
 
   // ── About me has nothing about cities any more ──────────────────────────────────────────────────────────────

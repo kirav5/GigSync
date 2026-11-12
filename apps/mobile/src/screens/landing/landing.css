@@ -5,10 +5,12 @@
 .guide-label {
   display: grid;
   gap: 4px;
-  padding: 12px var(--gutter);
+  padding: 12px 16px;
   border-left: 4px solid var(--wait);
+  border-radius: var(--radius-btn);
   background: var(--wait-fill);
   color: var(--text);
+  --text2: var(--text);
 }
 
 .journey-steps {
@@ -23,7 +25,7 @@
 }
 .journey-steps li[aria-current] {
   color: var(--accent-ink);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .journey-list,
@@ -70,9 +72,12 @@
 }
 .guide-quote blockquote {
   margin: 0;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-left: 3px solid var(--hairline);
+  border-radius: 0 var(--radius-btn) var(--radius-btn) 0;
   background: var(--surface2);
+  font-family: var(--serif);
+  font-style: italic;
   font-size: var(--fs-2);
 }
 
@@ -85,4 +90,14 @@
   padding: 8px 0;
   color: var(--text);
   text-decoration: none;
+}
+
+/* Where are you moving? (design W18): the question, the city chips, what comes with you, then the day and the work. */
+.move-start {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.move-start > .btn-big {
+  margin-top: 4px;
 }

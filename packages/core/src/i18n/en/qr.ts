@@ -23,7 +23,6 @@ export const qr = {
   "qr.scan": "Scan a QR",
   "qr.scan_close": "Close",
   "qr.scan_label": "Camera, looking for a QR code",
-  "qr.camera_why": "To scan a QR code, GigSync needs the camera, only while you scan. Your phone will ask you next.",
   "qr.camera_denied": "The camera was not allowed. You can also scan with your phone's camera app.",
   "qr.no_camera": "No camera to use here. You can also scan with your phone's camera app.",
   "qr.not_ours": "That is not a GigSync QR code.",

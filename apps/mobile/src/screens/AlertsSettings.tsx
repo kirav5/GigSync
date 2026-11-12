@@ -2,7 +2,8 @@ import type { Session } from "@gigsync/protocol";
 import { useEffect, useState } from "react";
 import { AlertState, alertState, turnOffAlerts, turnOnAlerts } from "../adapters/push.js";
 import { useI18n } from "../i18n.js";
-import { C } from "../ui/cls.js";
+import { ListCard, ListRow } from "../ui/ListRow.js";
+import { ToggleRow } from "./pages/ToggleRow.js";
 
 /** What Settings says for each state that has no switch to offer. */
 const STATE_LINE = {
@@ -13,8 +14,10 @@ const STATE_LINE = {
 } as const;
 
 /**
- * Settings › Job alerts: a phone notification when a job moves on, for worker and household alike. The owner's tap
- * turns it on (the browser then asks once); the alert itself never says what was said (adapters/push.ts).
+ * Settings › Alerts: a phone notification when a job moves on, for worker and household alike, as one switch. The
+ * owner's tap turns it on (the browser then asks once); the alert itself never says what was said (adapters/push.ts).
+ * Where there can be no switch (blocked, not installed, no support), the row says why instead. Nothing here promises a
+ * call: GigSync never rings anyone.
  */
 export function AlertsSettings({ session }: { session: Session }) {
   const { t } = useI18n();
@@ -37,25 +40,21 @@ export function AlertsSettings({ session }: { session: Session }) {
   };
 
   if (!state) return null;
+  const title = t("me.alerts_job");
+  const on = state === AlertState.on;
   return (
-    <section className={C.card} aria-label={t("alerts.title")}>
-      <span className={C.label}>{t("alerts.title")}</span>
-      <span className={C.faint}>{t("alerts.about")}</span>
-      {state === AlertState.on && <span className={C.muted}>{t("alerts.on")}</span>}
-      {state in STATE_LINE && <span className={C.muted}>{t(STATE_LINE[state as keyof typeof STATE_LINE])}</span>}
-      {(state === AlertState.on || state === AlertState.off) && (
-        <div>
-          <button
-            type={C.button}
-            className={state === AlertState.on ? C.secondary : C.accent}
-            disabled={busy}
-            aria-busy={busy}
-            onClick={() => void flip(state === AlertState.off)}
-          >
-            {t(state === AlertState.on ? "alerts.turn_off" : "alerts.turn_on")}
-          </button>
-        </div>
+    <ListCard label={t("me.section_alerts")}>
+      {on || state === AlertState.off ? (
+        <ToggleRow
+          title={title}
+          sub={t(on ? "alerts.on" : "alerts.about")}
+          checked={on}
+          onChange={(next) => void flip(next)}
+          disabled={busy}
+        />
+      ) : (
+        <ListRow icon="bell" title={title} sub={t(STATE_LINE[state])} />
       )}
-    </section>
+    </ListCard>
   );
 }

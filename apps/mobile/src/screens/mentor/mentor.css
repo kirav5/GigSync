@@ -15,11 +15,12 @@
 
 .mentor-vouched {
   justify-self: start;
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 1px solid var(--accent);
-  color: var(--accent);
+  padding: 2px 9px;
+  border-radius: var(--radius-chip);
+  background: var(--done-fill);
+  color: var(--fresh);
   font-size: 0.85em;
+  font-weight: 600;
 }
 
 .mentor-chips {
@@ -86,7 +87,7 @@
   margin-inline-start: auto;
   flex: none;
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: var(--radius-chip);
   background: var(--accent);
   color: var(--on-accent);
   font-size: var(--fs-tag);
@@ -94,4 +95,11 @@
 }
 .link-thread .msg-user {
   justify-self: end;
+}
+/* A mentor's note is theirs, not the agent's: their bubble without the agent's sun beside it. */
+.link-thread .msg-agent {
+  display: block;
+}
+.link-thread .msg-agent::before {
+  content: none;
 }

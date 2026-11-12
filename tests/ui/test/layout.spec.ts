@@ -2,7 +2,7 @@ import { type ApiClient, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { tellNeed } from "./findChat.js";
-import { APP, completeSignIn, counted, listWorker, menuButton, newPhone, openCard, Role, RUN } from "./helpers.js";
+import { APP, completeSignIn, counted, listWorker, newPhone, openCard, Role, RUN, tabBar } from "./helpers.js";
 
 /**
  * A 360×640 phone, the small end of what pilot workers carry: on every screen with a dock, its one action is on
@@ -51,25 +51,29 @@ async function fits(page: Page, action: Locator, lang: Lang, text: Locator = pag
   expect(await fontPx(text)).toBeGreaterThanOrEqual(BODY_MIN_PX[lang]);
 }
 
-/** The language screen with `lang` picked: the page is still English there, so the form carries the type sizes. */
+/** The language screen's row for `lang`, checked to fit: the screen is in the phone's own language (English) until a tap. */
 async function pickLanguage(page: Page, lang: Lang): Promise<Locator> {
-  await page.getByRole("radio", { name: new RegExp(`^${t(lang, `lang.${lang}`)}`) }).check();
-  const continueButton = page.getByRole("button", { name: t(lang, "onboard.continue") });
-  await fits(page, continueButton, lang, page.getByRole("form", { name: t(lang, "onboard.title") }));
-  expect(await fontPx(continueButton)).toBeGreaterThanOrEqual(BUTTON_MIN_PX);
-  return continueButton;
+  const row = page.getByRole("button", { name: t(lang, `lang.${lang}`), exact: true });
+  await fits(page, row, en, page.getByRole("region", { name: t(en, "onboard.title") }));
+  return row;
+}
+
+/** Sign-in's first step: the role, a tap that moves on to the name and number. */
+async function pickRole(page: Page, lang: Lang, role: Role) {
+  const form = page.getByRole("form", { name: t(lang, "signin.label") });
+  await form.getByRole("radio", { name: t(lang, `signin.${role}`), exact: true }).click();
 }
 
 test("a worker's screens at 360×640 in English: Language, Sign-in, Talk and My card", async ({ page }) => {
   await page.goto(APP);
-  await pickLanguage(page, hi);
   await (await pickLanguage(page, en)).click();
+  await pickRole(page, en, Role.worker);
 
   await fits(page, page.getByRole("button", { name: t(en, "signin.send_code"), exact: true }), en);
   await completeSignIn(page, { role: Role.worker, name: `Lakshmi ${RUN}`, phone: newPhone() });
 
-  // With no card, she lands on Talk: the menu button above, the composer and its mic below, all on screen.
-  await expect(menuButton(page)).toBeInViewport(WHOLE);
+  // With no card, she lands on Talk: the composer and its mic, and the tabs below, all on screen.
+  await expect(tabBar(page)).toBeInViewport(WHOLE);
   await fits(page, page.getByRole("button", { name: t(en, "speech.listen") }), en);
   await expect(page.getByRole("form", { name: t(en, "nav.talk") })).toBeInViewport(WHOLE);
   await expect(page.getByRole("button", { name: t(en, "a11y.send"), exact: true })).toBeInViewport(WHOLE);
@@ -90,6 +94,7 @@ test("a household's screens at 360×640 in Hindi: Language, Sign-in and Find's A
   other = await listWorker(name, ["painter"], WHITEFIELD, 80000, { area_name: "Whitefield", languages: [hi] });
   await page.goto(APP);
   await (await pickLanguage(page, hi)).click();
+  await pickRole(page, hi, Role.consumer);
 
   await fits(page, page.getByRole("button", { name: t(hi, "signin.send_code"), exact: true }), hi);
   await completeSignIn(page, {
@@ -110,5 +115,5 @@ test("a household's screens at 360×640 in Hindi: Language, Sign-in and Find's A
   const ask = page.getByRole("button", { name: counted(hi, "find.ask") });
   await fits(page, ask, hi);
   expect(await fontPx(ask)).toBeGreaterThanOrEqual(BUTTON_MIN_PX);
-  await expect(menuButton(page, hi)).toBeInViewport(WHOLE);
+  await expect(tabBar(page, hi)).toBeInViewport(WHOLE);
 });

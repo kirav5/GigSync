@@ -9,7 +9,8 @@ const { hi } = Lang.enum;
 test("sign-in takes a 10-digit number as typed, and says so plainly when a number is too short", async ({ page }) => {
   await chooseLanguage(page, hi);
   const form = page.getByRole("form", { name: t(hi, "signin.label") });
-  // The other fields are filled, so only the number can be wrong.
+  // The role first (a tap moves on), then the other fields are filled, so only the number can be wrong.
+  await form.getByRole("radio", { name: t(hi, `signin.${Role.consumer}`), exact: true }).click();
   await form.getByLabel(t(hi, "signin.name")).fill(`Phone ${RUN}`);
   await form.getByLabel(t(hi, "signin.phone")).fill("12345");
   await page.getByRole("button", { name: t(hi, "signin.send_code"), exact: true }).click();

@@ -36,59 +36,83 @@ class CardIncompleteError extends Error {}
  */
 export class AboutPrivateError extends Error {}
 
+/** How far the worker goes, in km: as the draft says, else as the card on this phone does, else the default. */
+export const radiusOf = (account: Account, draft: CardDraft): number =>
+  draft.radius_km ?? account.worker?.radius_km ?? DEFAULT_RADIUS_KM;
+
+/** The owner's own language first: it is the one their card's free text is written in. */
+const spokenOf = (draft: CardDraft, lang: Lang): Lang[] => [lang, ...(draft.languages ?? []).filter((l) => l !== lang)];
+
 /**
- * Puts the card on the board and keeps the private half on this phone, for the interview and the My card form alike.
- * The public card is what the board shows; the rules (lowest rate, what to see first) never leave the phone. The UPI
- * ID is not part of either: payment requests read it from About me at send time.
+ * The card a draft puts on the board, as the board will show it: what is published, and what the owner sees read back
+ * before saying yes. Undefined while the draft lacks something the board needs.
  */
-export async function publishCard(ports: Ports, account: Account, draft: CardDraft, lang: Lang): Promise<Account> {
+export function draftCard(account: Account, draft: CardDraft, lang: Lang): BoardProfile | undefined {
   const { trades = [], skills = [], rate_paise: rate, limit_paise: limit } = draft;
   const area = baseOf(draft);
   if (trades.length + skills.length === 0 || !area || rate === undefined || limit === undefined || limit > rate)
-    throw new CardIncompleteError("card draft is incomplete");
-  const main = mainOf(draft);
+    return undefined;
   const rates = arrangementRates(draft);
   const workRates = workMandates(draft, { opening_paise: rate, limit_paise: limit });
-  // The owner's own language first: it is the one their card's free text is written in.
-  const languages = [lang, ...(draft.languages ?? []).filter((l) => l !== lang)];
-  const about = draft.about?.trim() ?? "";
-  // Checked here, where the interview and the My card form meet, so neither path can put contact on the board.
-  if (aboutIsPrivate(about)) throw new AboutPrivateError("the line about the work holds contact details");
-  const card: BoardProfile = {
+  return {
     display_name: account.contact.name,
     trades,
     ...(skills.length > 0 ? { skills } : {}),
     area: coarsePoint(area),
     area_name: area.name,
     rate_paise: rate,
-    languages,
-    about,
+    languages: spokenOf(draft, lang),
+    about: draft.about?.trim() ?? "",
     ...(rates.length > 0 ? { arrangements: rates } : {}),
     ...(workRates.length > 0 ? { work_rates: publicWorkRates(workRates) } : {}),
     ...withHours(draft.terms ?? account.worker?.terms),
   };
+}
+
+/**
+ * Puts the card on the board and keeps the private half on this phone, for the interview and the My card form alike.
+ * The public card is what the board shows; the rules (lowest rate, what to see first) never leave the phone. The UPI
+ * ID is not part of either: payment requests read it from About me at send time.
+ */
+export async function publishCard(ports: Ports, account: Account, draft: CardDraft, lang: Lang): Promise<Account> {
+  const card = draftCard(account, draft, lang);
+  const area = baseOf(draft);
+  const { rate_paise: rate, limit_paise: limit } = draft;
+  if (!card || !area || rate === undefined || limit === undefined)
+    throw new CardIncompleteError("card draft is incomplete");
+  // Checked here, where the interview and the My card form meet, so neither path can put contact on the board.
+  if (aboutIsPrivate(card.about)) throw new AboutPrivateError("the line about the work holds contact details");
+  const mandate = { opening_paise: rate, limit_paise: limit };
+  const main = mainOf(draft);
+  const rates = arrangementRates(draft);
+  const workRates = workMandates(draft, mandate);
   const worker: WorkerRules = {
-    trades,
-    ...(skills.length > 0 ? { skills } : {}),
-    rate: { opening_paise: rate, limit_paise: limit },
+    trades: card.trades,
+    ...(card.skills ? { skills: card.skills } : {}),
+    rate: mandate,
     // The agent's own copy stays on the phone as the worker set it; the board keeps the coarse one.
     base: { lat: area.lat, lon: area.lon },
     ...(draft.place ? { base_name: draft.place.name } : {}),
-    radius_km: draft.radius_km ?? account.worker?.radius_km ?? DEFAULT_RADIUS_KM,
-    ...(main && rates.length > 0
-      ? { arrangements: arrangementMandates(rates, { opening_paise: rate, limit_paise: limit }, main) }
-      : {}),
+    radius_km: radiusOf(account, draft),
+    ...(main && rates.length > 0 ? { arrangements: arrangementMandates(rates, mandate, main) } : {}),
     ...(workRates.length > 0 ? { work_rates: workRates } : {}),
     rates: CITY_RATES,
     ask_me: draft.ask_me ?? [],
     // ADR 0063: what the agent's questions are written from, on this phone only.
-    ...(about ? { about } : {}),
+    ...(card.about ? { about: card.about } : {}),
     ...(draft.asks?.length ? { asks: draft.asks } : {}),
     ...withPrefs(draft.terms ?? account.worker?.terms),
   };
   // No record and no "show my record": the server computes the one and keeps the other as the worker last set it.
   await apiClient(account.session).publishProfile(card);
-  const next: Account = { ...account, worker, languages, autoConfirm: draft.auto ?? false, about, listed: true };
+  const next: Account = {
+    ...account,
+    worker,
+    languages: spokenOf(draft, lang),
+    autoConfirm: draft.auto ?? false,
+    about: card.about,
+    listed: true,
+  };
   await saveAccount(ports, next);
   return next;
 }

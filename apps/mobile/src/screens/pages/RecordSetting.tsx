@@ -5,11 +5,15 @@ import { setShowRecord } from "../../card/publish.js";
 import { useOwnCard } from "../../card/useOwnCard.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
+import { ToggleRow } from "./ToggleRow.js";
+
+/** A status line under the switch's own words. */
+const NOTE = "row-note";
 
 /**
- * Privacy's "Show my record on my card" (ADR 0036 §3, ADR 0038): on until the worker turns it off, kept by GigSync
- * with the card. All of it or none: single ratings cannot be hidden. Without a card on the board there is nothing to
- * show it on, so the switch waits for one.
+ * Privacy's "Show my record on my card" (ADR 0036 §3, ADR 0038), a switch row: on until the worker turns it off, kept
+ * by GigSync with the card. All of it or none: single ratings cannot be hidden. Without a card on the board there is
+ * nothing to show it on, so the switch waits for one.
  */
 export function RecordSetting({ ports, account }: { ports: Ports; account: Account }) {
   const { t } = useI18n();
@@ -30,28 +34,24 @@ export function RecordSetting({ ports, account }: { ports: Ports; account: Accou
       .finally(() => setSending(undefined));
   }
 
-  const label = t("record.setting");
-  const shown = sending ?? card?.show_record ?? true;
-  return (
-    <section className={C.card} aria-label={label}>
-      <label className={C.checkRow}>
-        <input
-          type="checkbox"
-          role="switch"
-          aria-checked={shown}
-          checked={shown}
-          disabled={!card || sending !== undefined}
-          onChange={(e) => choose(e.currentTarget.checked)}
-        />
-        <span>{label}</span>
-      </label>
-      <span className={C.muted}>{t("record.setting_about")}</span>
-      {card === null && <span className={C.faint}>{t("records.show_needs_card")}</span>}
+  const sub = (
+    <>
+      {t("record.setting_about")}
+      {card === null && <span className={NOTE}>{t("records.show_needs_card")}</span>}
       {failed && (
-        <span className={C.error} role="alert">
+        <span className={`${NOTE} ${C.error}`} role="alert">
           {t("records.show_failed")}
         </span>
       )}
-    </section>
+    </>
+  );
+  return (
+    <ToggleRow
+      title={t("record.setting")}
+      sub={sub}
+      checked={sending ?? card?.show_record ?? true}
+      onChange={choose}
+      disabled={!card || sending !== undefined}
+    />
   );
 }

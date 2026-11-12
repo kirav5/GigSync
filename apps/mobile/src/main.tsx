@@ -5,6 +5,7 @@ import { App } from "./App.js";
 import { registerServiceWorker, watchInstall } from "./adapters/install.js";
 import { keepFocusedFieldVisible } from "./adapters/keyboard.js";
 import { openedCode } from "./adapters/links.js";
+import "./fonts.css";
 import "./styles.css";
 import "./ui/motion.css";
 import { applyLook, watchDeviceLook } from "./ui/look.js";

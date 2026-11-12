@@ -1,70 +1,145 @@
-/* Activity's counters, as collab's radar: four numbers in one bordered row, the open tab underlined in the accent.
-   Awaiting you's number is in the wait colour whenever something waits. Sizes and colours come from styles.css. */
-.radar {
-  display: grid;
-  grid-template-columns: 3fr 1fr;
-  border: 1px solid var(--hairline);
-  border-radius: 8px;
+/* The Jobs tab (design H6): three sections one under the other, each a small uppercase label over one card of job
+   lines; Needs you's card has a rust rule. A line opens its job's card in place, inside the same card. Home lists its
+   jobs with the same lines. Sizes and colours come from styles.css. */
+
+/* The tab's heading, for readers: the top bar already says Jobs. */
+.jobs-heading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
   overflow: hidden;
-  background: var(--surface);
-}
-.radar-tabs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-.radar-count {
-  display: grid;
-  gap: 2px;
-  justify-items: center;
-  align-content: center;
-  min-height: 64px;
-  padding: 12px 4px;
+  clip-path: inset(50%);
+  white-space: nowrap;
   border: 0;
-  border-right: 1px solid var(--hairline);
-  background: transparent;
-  color: var(--text3);
+}
+
+.job-group {
+  display: grid;
+  gap: 8px;
+}
+.job-group.needs > .section-label {
+  color: var(--rust);
+}
+
+/* A worker's day inside Agreed: Today's jobs, Coming up, Other jobs. */
+.job-day {
+  margin: 4px 0 0;
+  font-size: var(--fs-label);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text2);
+}
+
+.job-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+.job-group.needs .job-rows {
+  border-color: var(--rust);
+}
+.job-rows > li + li {
+  border-top: 1px solid var(--hairline);
+}
+
+/* One line: the person's tile, their name over the work and where it stands, the word at the end, a chevron. */
+.job-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: var(--tap-lg);
+  margin: 0;
+  padding: 12px 16px;
+  border: 0;
+  background: none;
+  color: inherit;
   font: inherit;
+  text-align: start;
   cursor: pointer;
 }
-.radar-count.closed {
-  border-right: 0;
-}
-.radar-count b {
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-}
-.radar-count span {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  text-align: center;
-  overflow-wrap: anywhere;
-}
-.radar-count[aria-selected="true"] {
-  color: var(--text);
-  box-shadow: inset 0 -3px 0 var(--accent);
-}
-.radar-count.awaiting b {
-  color: var(--wait);
-}
-.radar-count:focus-visible {
-  outline: 2px solid var(--accent);
+.job-row:focus-visible {
   outline-offset: -2px;
 }
-
-/* The panel under the counters: its job cards, or what the tab says when empty. */
-.radar-panel {
+.job-row-text {
+  flex: 1;
+  min-width: 0;
   display: grid;
-  gap: 14px;
+  gap: 2px;
+}
+.job-row-name {
+  font-size: calc(var(--fs-2) + 1px);
+  font-weight: 500;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.job-row-line {
+  font-size: var(--fs-label);
+  line-height: 1.4;
+  color: var(--text2);
+  overflow-wrap: anywhere;
+}
+/* The word at the end wraps rather than squeezing the name: Hindi and Kannada words run long at 360px. */
+.job-row-word {
+  flex: none;
+  max-width: 36%;
+  font-size: var(--fs-label);
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: end;
+  overflow-wrap: anywhere;
+}
+.job-row-word.act {
+  color: var(--rust);
+}
+.job-row-word.talk {
+  color: var(--text2);
+}
+.job-row-word.done {
+  color: var(--green);
+}
+.job-row-chev {
+  flex: none;
+  display: grid;
+  color: var(--text3);
+  transition: transform var(--release-ms) var(--ease-out);
+}
+.job-row[aria-expanded="true"] .job-row-chev {
+  transform: rotate(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .job-row-chev {
+    transition: none;
+  }
 }
 
-/* The foot: finished jobs are in Records, with the way there. */
+/* The job's own card, opened under its line: it sits inside the list's card instead of drawing a second one. */
+.job-row-open {
+  padding-bottom: 4px;
+  border-top: 1px dashed var(--hairline);
+}
+.job-row-open > article {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* The foot: finished jobs are with the payments, the way there with their count, and when the phone last checked. */
 .activity-foot {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 10px;
+  margin: 0;
+}
+.activity-foot b {
+  font-variant-numeric: tabular-nums;
 }

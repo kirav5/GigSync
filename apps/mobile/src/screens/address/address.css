@@ -1,0 +1,55 @@
+/* The door pin (app-journey S9) and the saved addresses: the map first, the place under the pin, one field, then the
+   rest of the address folded behind "More details". */
+.door-title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: var(--fs-heading);
+  font-weight: 400;
+  line-height: var(--lh-head);
+}
+.door-pin > p {
+  margin: 0;
+}
+.door-place {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-label);
+  font-weight: 500;
+}
+.door-place > .ic {
+  flex: none;
+  color: var(--rust);
+}
+.door-find {
+  display: grid;
+  gap: 8px;
+}
+.door-more {
+  justify-self: start;
+  padding-inline: 0;
+}
+.door-more[aria-expanded="true"] > .ic {
+  transform: rotate(180deg);
+}
+.door-more-fields {
+  display: grid;
+  gap: 10px;
+}
+.door-more-fields[hidden] {
+  display: none;
+}
+.door-actions {
+  display: grid;
+  gap: 4px;
+}
+
+/* Saved addresses: one card of rows, each its label, its line and a way to remove it. */
+.address-list .list-row {
+  align-items: flex-start;
+}
+.address-list .list-row-sub {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}

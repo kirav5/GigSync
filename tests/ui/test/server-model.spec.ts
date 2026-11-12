@@ -6,7 +6,7 @@ import { API, newPhone, open, Role, RUN, shoot, signIn } from "./helpers.js";
 
 /**
  * GigSync's own model (ADR 0052), with the API's answers stood in for: test runs have no Mac Studio. When the API has
- * a model, Auto asks it, the menu's chip says so and the Privacy page says who reads what the owner writes; the
+ * a model, Auto asks it, Settings' chip says so and the Privacy page says who reads what the owner writes; the
  * budget, a secret answer, is never in what is sent. When the API has none, nothing is sent at all.
  */
 
@@ -14,7 +14,12 @@ const { en } = Lang.enum;
 const FOLDER = "server-model";
 /** A budget no other part of the conversation would say. */
 const BUDGET = "777";
-const chip = (page: Page) => page.getByTitle(t(en, "shell.model_about"));
+/** Settings' "Your agent runs on" row, whose chip says what answers. */
+async function engineSays(page: Page, key: "shell.model_server" | "shell.model_lite") {
+  await open(page, "nav.settings");
+  await expect(page.getByRole("main")).toContainText(t(en, key));
+  await open(page, "nav.find");
+}
 
 /** The prompts the app sends to GigSync's model; the model "answers" nothing, so the phone falls back every time. */
 async function serverModel(page: Page, on: boolean): Promise<string[]> {
@@ -48,7 +53,7 @@ test("with a model on the API, Auto asks it, the Privacy page says so, and the b
 }) => {
   const prompts = await serverModel(page, true);
   await household(page);
-  await expect(chip(page)).toContainText(t(en, "shell.model_server"));
+  await engineSays(page, "shell.model_server");
   await tellNeed({ page, lang: en }, need);
   expect(prompts.length).toBeGreaterThan(0);
   expect(prompts.join("\n")).not.toContain(BUDGET);
@@ -61,7 +66,7 @@ test("with a model on the API, Auto asks it, the Privacy page says so, and the b
 test("without a model on the API, nothing is sent and lite mode answers", async ({ page }) => {
   const prompts = await serverModel(page, false);
   await household(page);
-  await expect(chip(page)).toContainText(t(en, "shell.model_lite"));
+  await engineSays(page, "shell.model_lite");
   await tellNeed({ page, lang: en }, need);
   expect(prompts).toEqual([]);
 });

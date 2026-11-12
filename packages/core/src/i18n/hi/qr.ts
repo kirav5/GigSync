@@ -23,7 +23,6 @@ export const qr: Readonly<Record<keyof typeof en, string>> = {
   "qr.scan": "QR स्कैन करें",
   "qr.scan_close": "बंद करें",
   "qr.scan_label": "कैमरा, QR कोड ढूँढ रहा है",
-  "qr.camera_why": "QR कोड स्कैन करने के लिए GigSync को कैमरा चाहिए, सिर्फ़ स्कैन करते समय। आपका फ़ोन आगे पूछेगा।",
   "qr.camera_denied": "कैमरे की इजाज़त नहीं मिली। आप फ़ोन के कैमरा ऐप से भी स्कैन कर सकते हैं।",
   "qr.no_camera": "यहाँ इस्तेमाल के लिए कैमरा नहीं है। आप फ़ोन के कैमरा ऐप से भी स्कैन कर सकते हैं।",
   "qr.not_ours": "यह GigSync का QR कोड नहीं है।",

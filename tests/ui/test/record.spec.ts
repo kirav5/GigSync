@@ -99,7 +99,9 @@ test("a paid finished job moves from Agreed to Records, under its month, and ope
   await card.getByRole("button", { name: say("getpaid.cash") }).click();
   await card.getByRole("button", { name: say("flag.yes"), exact: true }).click();
   await expect(card).toHaveCount(0);
-  await expect(workerPage.getByRole("tab", { name: say("activity.tab_agreed") })).toContainText("0");
+  await expect(workerPage.getByRole("region", { name: say("activity.tab_agreed"), exact: true })).toContainText(
+    say("activity.empty_agreed"),
+  );
 
   // ── Records: the summary, the month, and the job's row with its money state ─────────────────────────────────────
   await open(workerPage, "nav.records");

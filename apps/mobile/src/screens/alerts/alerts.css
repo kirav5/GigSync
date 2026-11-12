@@ -1,0 +1,5 @@
+/* Alerts (design P6): a day's rows in one list card; what a row needs from the owner is said at its end in rust. */
+.alert-next {
+  color: var(--accent-ink);
+  font-weight: 600;
+}

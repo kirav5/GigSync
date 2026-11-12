@@ -19,6 +19,8 @@
     "@capacitor/core": "8.5.3",
     "@capacitor/keyboard": "8.0.6",
     "@capacitor/preferences": "8.0.1",
+    "@fontsource/inter": "5.3.0",
+    "@fontsource/source-serif-4": "5.3.1",
     "@gigsync/core": "workspace:*",
     "@gigsync/crypto": "workspace:*",
     "@gigsync/plugin-llm": "workspace:*",

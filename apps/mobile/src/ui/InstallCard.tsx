@@ -7,16 +7,16 @@ import { Icon } from "./Icon.js";
 import "./install.css";
 
 /**
- * Offered on the language screen only where the step is quick (Chrome's prompt) or must come first (iPhone: the
+ * Offered on sign-in's number step only where the step is quick (Chrome's prompt) or must come first (iPhone: the
  * home-screen app keeps its own storage, so installing after sign-in would start a second, empty phone). Once signed
- * in, the menu's Install app and Settings open the Install screen instead.
+ * in, Settings' Install app opens the browser's prompt or the Install screen instead.
  */
 const OFFERED: readonly InstallState[] = [InstallState.prompt, InstallState.ios];
 
 /**
- * Offers to put the web app on the home screen before sign-in, as one quiet row: an icon, what it gives, and a small
- * button (or, on iPhone, the one step to take and why now). "Not now" is the × in the corner. Takes `lang` because
- * the language screen is outside I18nProvider.
+ * Offers to put the web app on the home screen before sign-in, as one quiet row under the number: an icon, what it
+ * gives, and a small button (or, on iPhone, the one step to take and why now). "Not now" is the × in the corner.
+ * Takes `lang`, so it also works outside I18nProvider.
  */
 export function InstallCard({ lang }: { lang: Lang }) {
   const state = useInstallState();

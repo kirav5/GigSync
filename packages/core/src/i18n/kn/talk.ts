@@ -22,7 +22,7 @@ export const talk: Readonly<Record<keyof typeof en, string>> = {
   "talk.private_provider": "ನಿಮ್ಮ ಕನಿಷ್ಠ ದರವನ್ನು ಎಂದೂ ಕಳುಹಿಸಲಿಲ್ಲ. ಅದು ಈ ಫೋನ್‌ನಲ್ಲೇ ಉಳಿಯಿತು.",
   "talk.private_requester": "ನಿಮ್ಮ ಬಜೆಟ್ ಅನ್ನು ಎಂದೂ ಕಳುಹಿಸಲಿಲ್ಲ. ಅದು ಈ ಫೋನ್‌ನಲ್ಲೇ ಉಳಿಯಿತು.",
   "decide.takeover_title": "ನಿಮ್ಮ ಏಜೆಂಟ್‌ಗಳು ಒಪ್ಪಿಗೆಗೆ ಬರಲಿಲ್ಲ",
-  "decide.takeover_body": "ತಲಾ ಐದು ಆಫರ್‌ಗಳ ನಂತರ ಈಗ ನಿರ್ಧಾರ ನಿಮ್ಮದು. ಅವರ ಕೊನೆಯ ಆಫರ್: {price}.",
+  "decide.takeover_body": "ತಲಾ ಐದು ಆಫರ್‌ಗಳು ಆದವು. ಈಗ ನಿರ್ಧಾರ ನಿಮ್ಮದು.",
   "decide.waiting_body":
     "ಈಗ {name} ಅವರು ನಿಮ್ಮ ಏಜೆಂಟ್‌ನ ಕೊನೆಯ ಆಫರ್ ಬಗ್ಗೆ ನಿರ್ಧರಿಸುತ್ತಾರೆ. ನೀವು ಬೇಕಾದರೆ ಅವರ ಕೊನೆಯ ಆಫರ್ {price} ಒಪ್ಪಬಹುದು, ಅಥವಾ ಮಾತುಕತೆ ಮುಗಿಸಬಹುದು.",
   "decide.accept_theirs": "{price} ಒಪ್ಪಿ",

@@ -34,6 +34,12 @@ importers:
       "@capacitor/preferences":
         specifier: 8.0.1
         version: 8.0.1(@capacitor/core@8.5.3)
+      "@fontsource/inter":
+        specifier: 5.3.0
+        version: 5.3.0
+      "@fontsource/source-serif-4":
+        specifier: 5.3.1
+        version: 5.3.1
       "@gigsync/core":
         specifier: workspace:*
         version: link:../../packages/core
@@ -933,6 +939,14 @@ packages:
     engines: { node: ">=18" }
     cpu: [x64]
     os: [win32]
+
+  "@fontsource/inter@5.3.0":
+    resolution:
+      { integrity: sha512-RofMylZmjlJEfELXeNHFWBRcSs75rGU/6bV2S2jfnvv/3rPXPGe0LgUJTklcHZ9lM4OZmAVFhcJPnACfb91A3g== }
+
+  "@fontsource/source-serif-4@5.3.1":
+    resolution:
+      { integrity: sha512-cWcTCXjYYrgF9A67fThVir1VSc0lPEYmwQ6jA4pPt01s2MSCi/maINUcZoCzaqnU8fyUReDO97eGcBUkHgOeug== }
 
   "@huggingface/jinja@0.5.11":
     resolution:
@@ -3453,6 +3467,10 @@ snapshots:
 
   "@esbuild/win32-x64@0.28.2":
     optional: true
+
+  "@fontsource/inter@5.3.0": {}
+
+  "@fontsource/source-serif-4@5.3.1": {}
 
   "@huggingface/jinja@0.5.11": {}
 

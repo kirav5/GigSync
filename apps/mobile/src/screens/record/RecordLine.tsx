@@ -2,18 +2,19 @@ import type { JobRecord } from "@gigsync/core";
 import type { EngagementId } from "@gigsync/protocol";
 import { useId } from "react";
 import { useI18n } from "../../i18n.js";
+import { Avatar, AvatarSize, AvatarTone } from "../../ui/Avatar.js";
 import { C } from "../../ui/cls.js";
 import { money } from "../../ui/places.js";
+import { requestWork } from "../../ui/work.js";
 import type { JobActionProps } from "../JobActions.js";
 import { JobThread } from "../JobThread.js";
 import type { Chip } from "./text.js";
 import "./record.css";
-import { requestWork } from "../../ui/work.js";
 
 /** What a row needs to open the job's own card in place: the same as a card on Activity. */
 export type CardProps = Omit<JobActionProps, "job">;
 
-/** Which row is open, and how to open or close one: one at a time across the whole of Records. */
+/** Which row is open, and how to open or close one: one at a time across the whole tab. */
 export interface OpenRow {
   openId: EngagementId | undefined;
   onToggle: (id: EngagementId) => void;
@@ -27,6 +28,8 @@ interface Props extends CardProps {
   who: string;
   /** The signed price, in paise. */
   price: number;
+  /** The money is in: received by the worker, or paid and confirmed for the household. The amount reads green. */
+  settled: boolean;
   chip: Chip;
   /** Facts beside the chip: how the money came, its UPI reference. */
   facts?: readonly string[];
@@ -36,13 +39,18 @@ interface Props extends CardProps {
 
 /** Between the pieces of a row's description, so a screen reader pauses where the eye sees a new column. */
 const PAUSE = ", ";
+/** Between the work and its day on the row's second line. */
+const PARTS = " · ";
+const SETTLED = "record-price settled";
+const PRICE = "record-price";
 
 /**
- * One job in the record: day, name, trade, the signed price and where its money stands. The whole line is one 48px
- * button that opens the job's own card (its thread and money actions) right under it. The button is named by what
- * it does; the row's words, joined with pauses, are its description, so a screen reader hears both.
+ * One job in the record (designs W15, H13): the other side as a round initial, their name over the work and its day,
+ * the signed price at the end, and where its money stands as a chip under them. The whole line is one button that
+ * opens the job's own card (its thread and money actions) right under it. The button is named by what it does; the
+ * row's words, joined with pauses, are its description, so a screen reader hears both.
  */
-export function RecordLine({ job, when, who, price, chip, facts = [], open, onToggle, ...card }: Props) {
+export function RecordLine({ job, when, who, price, settled, chip, facts = [], open, onToggle, ...card }: Props) {
   const { t } = useI18n();
   const id = useId();
   const about = `${id}-about`;
@@ -59,11 +67,14 @@ export function RecordLine({ job, when, who, price, chip, facts = [], open, onTo
         aria-describedby={about}
         onClick={onToggle}
       >
+        <Avatar name={who} size={AvatarSize.md} tone={AvatarTone.rust} />
         <span className="record-text">
-          <span className="record-day">{when}</span>
           <strong className="record-who">{who}</strong>
-          <strong className={`${C.money} record-price`}>{money(price)}</strong>
-          <span className="record-trade">{trade}</span>
+          <span className="record-trade">
+            {trade}
+            {PARTS}
+            <span className="record-day">{when}</span>
+          </span>
           <span className="record-state">
             <span className={chip.cls}>{chip.text}</span>
             {facts.map((fact) => (
@@ -71,6 +82,7 @@ export function RecordLine({ job, when, who, price, chip, facts = [], open, onTo
             ))}
           </span>
         </span>
+        <strong className={`${C.money} ${settled ? SETTLED : PRICE}`}>{money(price)}</strong>
         <span className="record-chevron" aria-hidden="true" />
       </button>
       <span id={about} hidden>

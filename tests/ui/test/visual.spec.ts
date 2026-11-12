@@ -1,3 +1,4 @@
+import { t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { APP, newPhone, open, Role, RUN, SHOTS, signIn } from "./helpers.js";
@@ -37,7 +38,7 @@ for (const lang of Lang.options)
         await browser.newContext({ viewport: PHONE, deviceScaleFactor: 2, colorScheme: scheme })
       ).newPage();
       await worker.goto(APP);
-      await expect(worker.getByRole("radio").first()).toBeVisible();
+      await expect(worker.getByRole("button", { name: t(lang, `lang.${lang}`), exact: true })).toBeVisible();
       await snap(worker, dir, "00-language");
 
       await signIn(worker, { role: Role.worker, name: `Visual ${RUN}`, phone: newPhone(), lang });

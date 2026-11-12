@@ -1,10 +1,8 @@
 /** Getting in and finding: language choice, sign-in, the menu, Find, My card, the job list. */
 export const screens = {
   "onboard.title": "Choose your language",
-  "onboard.later": "You can change it later in About me.",
-  "onboard.continue": "Continue",
+  "onboard.later": "You can change it later in Me.",
   "signin.label": "Sign in",
-  "signin.headline": "Your agent, your phone.",
   "signin.soft": "Your number stays yours.",
   "signin.consumer": "I need work done",
   "signin.worker": "I do the work",
@@ -16,7 +14,6 @@ export const screens = {
   "signin.code": "Code from SMS",
   "signin.code_dev": "Code from SMS (dev: {code})",
   "signin.send_code": "Send code",
-  "signin.submit": "Sign in",
   "role.worker": "worker",
   "role.customer": "customer",
   "nav.find": "Find",

@@ -136,8 +136,11 @@ test("a rebuilt job can still be finished, both phones agree on its progress, an
   const check = again.getByRole("group", { name: say("a11y.approve") });
   await check.getByRole("button", { name: textOf(en, "approve.yes") }).click({ timeout: 60_000 });
   // His agent took it up: its offers reach her, whatever the two agents then come to (ADR 0053).
+  await open(household, "nav.activity");
+  await showTab(household, "activity.tab_talks");
   await expect(
     household
+      .getByRole("region", { name: say("activity.tab_talks"), exact: true })
       .getByRole("list", { name: say("talk.title") })
       .getByRole("listitem")
       .nth(1),

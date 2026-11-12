@@ -11,8 +11,6 @@ export const shell: Readonly<Record<keyof typeof en, string>> = {
   "a11y.back": "ಹಿಂದಕ್ಕೆ",
   "shell.menu": "ಮೆನು",
   "shell.drawer": "GigSync ಮೆನು",
-  "shell.close_menu": "ಮೆನು ಮುಚ್ಚಿ",
-  "shell.to_chat": "ಚಾಟ್‌ಗೆ ಹಿಂದಕ್ಕೆ",
   "shell.need_you.one": "{count} ಕೆಲಸ ನಿಮಗಾಗಿ ಕಾಯುತ್ತಿದೆ",
   "shell.need_you.other": "{count} ಕೆಲಸಗಳು ನಿಮಗಾಗಿ ಕಾಯುತ್ತಿವೆ",
   "shell.model_about": "ನಿಮ್ಮ ಏಜೆಂಟ್ ಯಾವುದರಿಂದ ನಡೆಯುತ್ತದೆ. ಸೆಟ್ಟಿಂಗ್ಸ್‌ಗೆ ಒತ್ತಿ.",
@@ -27,7 +25,5 @@ export const shell: Readonly<Record<keyof typeof en, string>> = {
   "when.tomorrow": "ನಾಳೆ",
   "when.pick": "ದಿನಾಂಕ ಆರಿಸಿ",
   "when.daily": "ಪ್ರತಿದಿನ",
-  "perm.mic_why": "ನಿಮ್ಮ ಮಾತು ಕೇಳಲು GigSync ಗೆ ಮೈಕ್ರೊಫೋನ್ ಬೇಕು. ಈಗ ನಿಮ್ಮ ಫೋನ್ ಅನುಮತಿ ಕೇಳುತ್ತದೆ.",
-  "perm.continue": "ಮುಂದುವರಿಯಿರಿ",
   "perm.not_now": "ಈಗ ಬೇಡ",
 };

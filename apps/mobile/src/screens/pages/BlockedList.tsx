@@ -8,7 +8,7 @@ const failure = (err: unknown) => ({ error: err instanceof Error ? err.name : ty
 
 /**
  * Everyone the owner blocked (from a mentor link, an introduction or a request), newest first, by the name this phone
- * knew them by. There is no unblock: the server was told never to match the two again.
+ * knew them by, folded at the foot of Privacy. There is no unblock: the server was told never to match the two again.
  */
 export function BlockedList({ device }: { device: GigDevice }) {
   const { t, date } = useI18n();
@@ -27,20 +27,22 @@ export function BlockedList({ device }: { device: GigDevice }) {
 
   const title = t("page.blocked");
   return (
-    <section className={C.card} aria-label={title}>
-      <span className={C.label}>{title}</span>
-      <span className={C.muted}>{t("page.blocked_about")}</span>
-      {people?.length === 0 && <span className={C.faint}>{t("page.blocked_none")}</span>}
-      {people && people.length > 0 && (
-        <ul className="blocked-rows">
-          {people.map((p) => (
-            <li key={p.user}>
-              <strong>{p.name ?? t("page.blocked_unnamed")}</strong>
-              <span className={C.faint}>{t("page.blocked_on", { date: date(new Date(p.at)) })}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+    <details className={`${C.card} blocked-fold`}>
+      <summary className={C.label}>{title}</summary>
+      <section className={C.stack} aria-label={title}>
+        <span className={C.muted}>{t("page.blocked_about")}</span>
+        {people?.length === 0 && <span className={C.faint}>{t("page.blocked_none")}</span>}
+        {people && people.length > 0 && (
+          <ul className="blocked-rows">
+            {people.map((p) => (
+              <li key={p.user}>
+                <strong>{p.name ?? t("page.blocked_unnamed")}</strong>
+                <span className={C.faint}>{t("page.blocked_on", { date: date(new Date(p.at)) })}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </details>
   );
 }

@@ -1,5 +1,5 @@
 /*
- * The install card (InstallCard.tsx): the language screen, on iPhone or where Chrome offered its prompt. One
+ * The install card (InstallCard.tsx): sign-in's number step, on iPhone or where Chrome offered its prompt. One
  * quiet row in the card style: a tinted icon, the title and why, a × for "Not now"; the button or the iPhone step sits
  * under the text, small and secondary, so it never shouts over the screen it is on.
  */
@@ -10,15 +10,15 @@
   row-gap: 10px;
   padding: 12px 8px 12px 14px;
 }
-/* Also leads Settings' row to the Install screen. */
+/* Also leads Settings' row to the Install screen: the rust icon on a sage tile, as a list row's. */
 .install-badge {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  color: var(--accent-ink);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-card);
+  background: var(--sage);
+  color: var(--rust);
 }
 .install .install-text {
   display: grid;
@@ -70,7 +70,7 @@
 }
 /* The reason to do it before signing in carries the weight on iPhone, so it reads as a notice, not small print. */
 .install .install-first {
-  border-left: 2px solid var(--wait);
+  border-left: 3px solid var(--wait);
   padding-left: 10px;
   color: var(--text2);
   font-size: var(--fs-label);
@@ -78,8 +78,8 @@
 }
 
 /*
- * The Install screen (screens/pages/InstallPage.tsx), as collab's .install-card: the logo beside where it goes and
- * what it gives, then the numbered steps for this device. Settings' row to it shares the badge and text above.
+ * The Install screen (screens/pages/InstallPage.tsx): the mark beside where it goes and what it gives, then the
+ * numbered steps for this device. Settings' row to it shares the badge and text above.
  */
 .install-card {
   gap: 14px;
@@ -93,24 +93,19 @@
   width: 40px;
   height: 40px;
 }
-.install-card .install-text,
-.install-row .install-text {
+.install-card .install-text {
   display: grid;
   gap: 2px;
   min-width: 0;
 }
-.install-card .install-title,
-.install-row .install-title {
-  font-weight: 600;
-  font-size: var(--fs-2);
-  line-height: var(--lh-head);
-}
 /* The screen's headline stays above its steps, which keep body size for reading on a phone. */
 .install-card .install-title {
-  font-size: var(--fs-title);
+  font-family: var(--serif);
+  font-size: var(--fs-heading);
+  font-weight: 400;
+  line-height: var(--lh-head);
 }
-.install-card .install-about,
-.install-row .install-about {
+.install-card .install-about {
   color: var(--text2);
   font-size: var(--fs-label);
   line-height: var(--lh-body);
@@ -129,24 +124,9 @@
 }
 .install-card .install-first {
   margin: 0;
-  border-left: 2px solid var(--wait);
+  border-left: 3px solid var(--wait);
   padding-left: 10px;
   color: var(--text2);
   font-size: var(--fs-label);
   line-height: var(--lh-body);
-}
-/* Settings' one way to the Install screen: the whole card is the button, with › at its end. */
-.install-row {
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  column-gap: 12px;
-  width: 100%;
-  color: inherit;
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
-}
-.install-row .install-go {
-  color: var(--text3);
-  font-size: var(--fs-2);
 }

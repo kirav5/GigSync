@@ -1,17 +1,14 @@
-/** Activity: what the agents are doing, its counters and sections, the card's state, and the decisions read aloud. */
+/** The Jobs tab: its three sections and what each says when empty, the card's state, and the decisions read aloud. */
 export const home = {
-  // Activity, as collab's: the headline, the four counters and what each says when empty
-  "activity.headline": "What your agents are doing",
-  "activity.tabs": "Your jobs, by where they stand",
-  "activity.tab_awaiting": "Awaiting you",
-  "activity.tab_talks": "In talks",
+  // The Jobs tab: its heading, its three sections (needs you, agents talking, agreed) and the way to closed jobs
+  "activity.headline": "Your jobs",
+  "activity.tab_awaiting": "Needs you",
+  "activity.tab_talks": "Agents talking",
   "activity.tab_agreed": "Agreed",
-  "activity.tab_closed": "Closed",
-  "activity.standing_by": "Your agents are standing by.",
-  "activity.awaiting.one": "{count} decision waits on you.",
-  "activity.awaiting.other": "{count} decisions wait on you.",
-  "activity.talking.one": "Your agents are in {count} talk.",
-  "activity.talking.other": "Your agents are in {count} talks.",
+  "activity.tab_closed": "Closed jobs",
+  "activity.standing_by": "Nothing for today. Your agent is standing by.",
+  "activity.talking.one": "Your agent is talking to {count} household",
+  "activity.talking.other": "Your agent is talking to {count} households",
   "activity.empty_awaiting": "Nothing waits on you. Your agents ask only when a decision is yours.",
   "activity.empty_talks": "No talks running right now.",
   "activity.empty_agreed": "Nothing agreed yet.",
@@ -19,13 +16,11 @@ export const home = {
     "Tell your agent about your work in the chat: “I paint houses, ₹800 a day”. Households' requests show up here.",
   "activity.hint_household":
     "Ask for something in the chat: “Need a painter on Saturday”. Your agents' work shows up here.",
-  "activity.records_line": "Finished jobs are in Records.",
-  "activity.records_open": "Open Records",
-  // The sections inside Agreed, and the worker's card nudges
+  "activity.records_line": "Finished jobs are kept with your payments.",
+  // The worker's Agreed by day, and their card nudges on Home
   "home.today": "Today's jobs",
   "home.upcoming": "Coming up",
   "home.other": "Other jobs",
-  "home.jobs": "Your jobs",
   "home.no_card": "Make your card so customers near you can find you.",
   "home.make_card": "Make my card by talking",
   "home.card_off": "Your card is off the board, so new customers can't find you.",

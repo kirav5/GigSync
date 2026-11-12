@@ -1,6 +1,7 @@
 import { type MessageKey, t } from "@gigsync/core";
 import { type GeoResult, Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
+import { addressSave, doorField, moreDetails } from "./address.js";
 import { API, listWorker, newPhone, open, Role, RUN, shoot, signIn } from "./helpers.js";
 import { openCard } from "./menu.js";
 
@@ -64,8 +65,8 @@ test("a household saves its home from its location and asks for a maid by the ho
   const page = await phoneHere(browser);
   await signIn(page, { role: Role.consumer, name: `Uma ${RUN}`, phone: newPhone(), lang: en });
 
-  // Settings › Saved addresses › Add: the reason first, then the phone's position, then the form to check.
-  await open(page, "nav.settings", en);
+  // Me › Addresses › Add: the reason first, then the phone's position, then the form to check.
+  await open(page, "me.addresses", en);
   await page.getByRole("button", { name: t(en, "addr.add"), exact: true }).click();
   const form = page.getByRole("form", { name: t(en, "addr.add") });
   await form.getByRole("button", { name: t(en, "addr.use_location"), exact: true }).click();
@@ -73,12 +74,13 @@ test("a household saves its home from its location and asks for a maid by the ho
   await shoot("why-location", { household: page }, FOLDER);
   await page.getByRole("button", { name: t(en, "addr.allow"), exact: true }).click();
   await expect(form.getByRole("status")).toContainText(t(en, "addr.found", { area: LOCALITY }));
+  await doorField(form, en).fill("Flat 4B");
+  await moreDetails(form, en);
   await expect(form.getByLabel(t(en, "addr.area"), { exact: true })).toHaveValue(LOCALITY);
   await expect(form.getByLabel(t(en, "addr.pin"), { exact: true })).toHaveValue("560070");
-  await form.getByLabel(t(en, "addr.house"), { exact: true }).fill("Flat 4B");
   await form.getByLabel(t(en, "addr.building"), { exact: true }).fill("Prestige Lakeside");
   await shoot("address-form", { household: page }, FOLDER);
-  await form.getByRole("button", { name: t(en, "addr.save"), exact: true }).click();
+  await addressSave(form, en).click();
   const book = page.getByRole("region", { name: t(en, "addr.title") });
   await expect(book).toContainText(`Flat 4B, Prestige Lakeside, 12th Main, ${LOCALITY}, Bengaluru 560070`);
   await shoot("saved-addresses", { household: page }, FOLDER);

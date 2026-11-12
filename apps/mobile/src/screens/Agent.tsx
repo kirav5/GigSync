@@ -27,12 +27,15 @@ import { useI18n } from "../i18n.js";
 import { openChat, useTalk } from "../talk/talkStore.js";
 import { useMoves } from "../talk/useMoves.js";
 import { useNotes } from "../talk/useNotes.js";
+import { BarTitle } from "../ui/Bar.js";
 import { Composer, Via } from "../ui/Composer.js";
 import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
 import type { GigView } from "../useGig.js";
 import { Interview } from "./Interview.js";
 import { ModelNotice } from "./model/ModelNotice.js";
+import { PublishActions } from "./talk/CardTurn.js";
+import { placeholderKey, readyToPublish } from "./talk/cardAsk.js";
 import { Thinking } from "./talk/NoteView.js";
 import { type Suggestion, Suggestions } from "./talk/TalkStart.js";
 import "./talk.css";
@@ -43,6 +46,8 @@ interface TalkProps {
   account: Account;
   /** Start (or resume) the card interview on opening Talk. */
   interview: boolean;
+  /** Talk opened the interview: it is not opened again when Talk next opens. */
+  onInterviewOpened: () => void;
   /** The account after the interview published the card. */
   onSaved: (a: Account) => void;
   /** Opens the moving checklist (the landing journey) for the city of the move Talk is about. */
@@ -60,10 +65,13 @@ interface TalkProps {
  * card interview when there is no card yet or the owner asked to change it by talking. Words that ask to change a
  * field of the card ("मेरा रेट बदलो") open the interview at that field, below what was said before. Moving to a new
  * city, offering to help newcomers and the guide's answers are all in the chat (`talk/useMoves.ts`): no menu to find.
- * Past chats and "New chat" are in the menu (shell/DrawerChats.tsx), as in the collab app.
+ * Past chats and "New chat" are behind the top bar's chats button (shell/ChatsScreen.tsx). While the card is being
+ * made the screen is "Your card" (W1–W5): the field says what the question wants, and at the summary the dock asks
+ * to put the card on the board above it.
  */
 export function AgentScreen(props: TalkProps) {
-  const { agent, ports, account, interview, onSaved, onChecklist, onFindMentor, view, device, run } = props;
+  const { agent, ports, account, interview, onInterviewOpened, onSaved, onChecklist, onFindMentor } = props;
+  const { view, device, run } = props;
   const i18n = useI18n();
   const { lang, t } = i18n;
   const { ready, open, state, turns, paused, interviewIn } = useTalk();
@@ -72,16 +80,16 @@ export function AgentScreen(props: TalkProps) {
   const end = useRef<HTMLDivElement>(null);
   const active = state !== undefined && !paused;
   const current = active ? prompt(state) : undefined;
-  const wanted = interview || !account.worker;
 
   // Opening Talk to make or change the card starts the interview; one already under way carries on where it was, in
   // the chat it belongs to. One paused ("Later", or left for another chat) stays paused until the owner taps "Carry on".
   useEffect(() => {
-    if (opened.current || !wanted || !ready) return;
+    if (opened.current || !interview || !ready) return;
     opened.current = true;
     if (!interviewIn) beginInterview(start(interviewConfig(lang), accountDraft(account), account.listed === false));
     else if (interviewIn !== open) openChat(interviewIn);
-  }, [wanted, ready, interviewIn, open, lang, account]);
+    onInterviewOpened();
+  }, [interview, ready, interviewIn, open, lang, account, onInterviewOpened]);
 
   // A language picked in About me part-way: the questions from here on, and what the mic listens for, follow it.
   useEffect(() => {
@@ -152,7 +160,9 @@ export function AgentScreen(props: TalkProps) {
 
   return (
     <>
-      <div className={C.stack}>
+      {active && <BarTitle text={t("cardflow.title")} />}
+      {/* While the card is made the top bar names the screen; the heading stays for readers who move by headings. */}
+      <div className={active ? "talk-head-hidden" : C.stack}>
         <h1 className={C.headline}>
           {t("agent.headline")} <span className={C.soft}>{t("agent.soft")}</span>
         </h1>
@@ -179,9 +189,10 @@ export function AgentScreen(props: TalkProps) {
       {ready && turns.length === 0 && !active && <Suggestions items={suggestions} />}
       <div ref={end} />
       <Dock>
+        {active && readyToPublish(state) && <PublishActions />}
         <Composer
           label={t("nav.talk")}
-          placeholder={t("agent.placeholder")}
+          placeholder={t(placeholderKey(active ? state : undefined, current))}
           onSend={send}
           busy={busy || moves.busy || !ready || (state !== undefined && isLastSlot(state.slot))}
           hints={current?.hints ?? []}

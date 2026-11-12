@@ -47,7 +47,10 @@ const CHOICES: readonly { choice: ModelChoice; label: MessageKey; about: Message
     : []),
 ];
 
-/** Which model the agent uses, with what this device actually has. Nothing here ever uses a cloud model. */
+/**
+ * Which model the agent uses, with what this device actually has, as the last block of Settings' Your agent. Nothing
+ * here ever uses a cloud model.
+ */
 export function ModelSettings({ ports }: { ports: Ports }) {
   const { t } = useI18n();
   const model = useChosenModel();
@@ -68,8 +71,8 @@ export function ModelSettings({ ports }: { ports: Ports }) {
   const chosen = CHOICES.find((c) => c.choice === choice);
 
   return (
-    <section className={C.card} aria-label={t("model.title")}>
-      <span className={C.label}>{t("model.title")}</span>
+    <section className="setting-block" aria-label={t("model.title")}>
+      <span className="list-row-title">{t("model.title")}</span>
       <OnDeviceModel />
       <div className={C.row}>
         {CHOICES.map((c) => (

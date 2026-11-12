@@ -1,7 +1,7 @@
 import { type MessageKey, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { MovePrompt, newPhone, open, Role, RUN, shoot, signIn } from "./helpers.js";
+import { MovePrompt, newPhone, open, openAllRows, Role, RUN, shoot, signIn } from "./helpers.js";
 import { fillAsk, publishCard, unlistCards } from "./journey.js";
 
 /**
@@ -41,13 +41,14 @@ test("a worker's two open phones answer one request once", async ({ browser }) =
   );
   // The same number on a second phone, keeping the first: both stay signed in and both fetch the mail.
   await signIn(second, { role: Role.worker, name: workerName, phone: workerPhone, elsewhere: MovePrompt.notNow });
-  await Promise.all([open(first, "nav.activity"), open(second, "nav.activity")]);
-  // The second phone's card came back from GigSync without the lowest price; the worker gives it there too, so
-  // whichever phone claims the request quotes at once instead of waiting for the worker.
+  // The second phone's card came back from GigSync without the lowest price; the worker gives it on Home there too,
+  // so whichever phone claims the request quotes at once instead of waiting for the worker.
+  await Promise.all([open(first, "nav.activity"), open(second, "nav.home")]);
   const floor = second.getByRole("form", { name: say("phone.floor_title") });
   await floor.getByLabel(say("phone.floor_label")).fill("550");
   await floor.getByRole("button", { name: say("settings.save") }).click();
   await expect(floor).toHaveCount(0);
+  await open(second, "nav.activity");
 
   await signIn(household, {
     role: Role.consumer,
@@ -84,10 +85,16 @@ test("a worker's two open phones answer one request once", async ({ browser }) =
       timeout: NEGOTIATION_MS,
     })
     .toBe(1);
-  // Exactly one phone says the other is answering, on the request it keeps to show.
+  // Exactly one phone says the other is answering, on the request it keeps to show (its line opened to read it).
   const elsewhere = (page: Page) => page.getByText(say("job.elsewhere"));
   await expect
-    .poll(async () => (await elsewhere(first).count()) + (await elsewhere(second).count()), { timeout: 30_000 })
+    .poll(
+      async () => {
+        await Promise.all([openAllRows(first), openAllRows(second)]);
+        return (await elsewhere(first).count()) + (await elsewhere(second).count());
+      },
+      { timeout: 30_000 },
+    )
     .toBe(1);
   const [answering, mirroring] = (await elsewhere(first).count()) > 0 ? [second, first] : [first, second];
   await expect(elsewhere(answering)).toHaveCount(0);

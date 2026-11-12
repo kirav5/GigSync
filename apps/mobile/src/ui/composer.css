@@ -1,5 +1,7 @@
-/* Voice (P3): the composer's mic beside the field and send (styles.css draws .composer .bar and .send), the cloud
-   consent sheet above them, the speaker button on questions and decisions, and the read-aloud switch in Settings. */
+/* Voice (P3): the composer, the cloud consent sheet above it, the speaker button on questions and decisions, and the
+   read-aloud switch in Settings. The composer is one pill: the field, send, and at its right end the round rust mic,
+   the biggest thing on a chat screen. The mic comes first in the markup, so a reader meets it first; `order` draws it
+   last, where the design puts it. */
 .composer {
   display: flex;
   flex-direction: column;
@@ -10,15 +12,62 @@
 }
 .composer-row {
   display: flex;
-  gap: 10px;
+  gap: 4px;
   align-items: center;
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 4px;
+  padding-inline-start: 8px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-chip);
+}
+.composer-row:focus-within {
+  border-color: var(--accent);
 }
 .composer-row > .bar {
   flex: 1;
   min-width: 0;
-  margin: 0;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.composer input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap);
+  border: 0;
+  outline: none;
+  background: transparent;
+  padding: 6px 8px;
+}
+.composer input::placeholder {
+  color: var(--text3);
+}
+.composer input[readonly] {
+  color: var(--text2);
+}
+.send {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--accent-ink);
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.send:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 .composer-mic {
+  order: 1;
   flex: none;
   display: grid;
   place-items: center;
@@ -49,14 +98,6 @@
 .composer-mic:disabled {
   opacity: 0.4;
 }
-.composer-mic:focus-visible,
-.speak-btn:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 2px;
-}
-.composer input[readonly] {
-  color: var(--text2);
-}
 @keyframes composer-listening {
   50% {
     box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 20%, transparent);
@@ -71,15 +112,16 @@
 .composer-sheet {
   display: grid;
   gap: 12px;
-  padding: 14px;
+  padding: 16px;
   border: 1px solid var(--hairline);
-  border-radius: 8px;
+  border-radius: var(--radius-card, 10px);
   background: var(--surface);
 }
 .composer-sheet p {
   margin: 0;
 }
 
+/* Hear it again: a round button in the rust of the design's speaker. */
 .speak-btn {
   flex: none;
   display: inline-grid;
@@ -90,7 +132,7 @@
   border: 1px solid var(--hairline);
   border-radius: 50%;
   background: var(--surface);
-  color: var(--text2);
+  color: var(--accent-ink);
   cursor: pointer;
 }
 .speak-btn .ic {

@@ -3,7 +3,7 @@ import { BoardProfile, type GeoResult, Lang } from "@gigsync/protocol";
 import { expect, type Page, test } from "@playwright/test";
 import { API, newPhone, open, Role, RUN, signIn } from "./helpers.js";
 import { publishCard, unlistCards } from "./journey.js";
-import { type, unlist } from "./talk.js";
+import { putOnBoard, type, unlist } from "./talk.js";
 
 /**
  * Changing the card in the chat (ADR 0053 §7): each change is a tap or a sentence, and it reaches the board only after
@@ -57,7 +57,7 @@ test("a worker sets their hours, days and how far they go in the chat, and the b
   const sent = page.waitForResponse(
     (r) => r.url() === BOARD_PROFILE && r.request().method() === HttpMethod.put && r.ok(),
   );
-  await chip(page, t(en, "flag.yes")).click();
+  await putOnBoard(page, en).click();
   const card = BoardProfile.parse((await sent).request().postDataJSON());
   expect(card.work_hours).toMatchObject({ days: WORK_DAYS, from: NINE, to: SIX_PM });
 
@@ -106,7 +106,7 @@ test("a worker outside the pilot areas sets their area from the phone's location
   const sent = page.waitForResponse(
     (r) => r.url() === BOARD_PROFILE && r.request().method() === HttpMethod.put && r.ok(),
   );
-  await chip(page, t(en, "flag.yes")).click();
+  await putOnBoard(page, en).click();
   const card = BoardProfile.parse((await sent).request().postDataJSON());
   expect(card.area_name).toBe(LOCALITY);
   expect(card.area).toEqual(COARSE);
