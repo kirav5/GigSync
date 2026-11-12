@@ -615,9 +615,16 @@ h2[data-lines][data-arrived] .line > span {
 .community-section + .sunset {
   background: #e5d4b5;
 }
-.hill-cream {
-  background: var(--paper);
+/* 06 sits on the same warm cream as 07, one band from the hill out of the jobs band down to the closing */
+.ink-warm {
+  background: #e5d4b5;
 }
-.hill-cream .sunrise-hill {
+.ink-warm::before {
+  background: linear-gradient(#e5d4b5, transparent);
+}
+.ink-warm::after {
+  background: linear-gradient(transparent, #e5d4b5);
+}
+.hill-warm .sunrise-hill {
   background: #e5d4b5;
 }
