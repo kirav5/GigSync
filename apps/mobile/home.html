@@ -91,7 +91,7 @@
     </div>
   </section>
 
-  <div class="sunrise" data-flow aria-hidden="true"><span class="sunrise-sun"></span></div>
+  <div class="sunrise" data-flow aria-hidden="true"><span class="sunrise-sun"></span><span class="sunrise-hill"></span></div>
 
   <div class="ink-span" data-flow>
   <div class="ink-stage" aria-hidden="true"><span class="ink-art"></span></div>
@@ -146,7 +146,6 @@
     </div>
     <div class="say-cap"><span class="a">What she sees: 2 steps</span><span class="b">What her agent does in between: 3 steps</span></div>
   </section>
-  </div>
 
   <section id="journey" class="story-teaser"><div class="wrap teaser-inner">
     <div class="teaser-copy">
@@ -196,8 +195,9 @@
       </article>
     </div>
   </section>
+  </div>
 
-  <div class="fringe fringe-rise" data-flow aria-hidden="true"></div>
+  <div class="sunrise sunset hill-low" data-flow aria-hidden="true"><span class="sunrise-hill"></span></div>
   <section id="one-agent" class="jobs-section" data-motion="true">
     <div class="jobs-stage" id="jobsStage">
       <img class="jobs-art" src="./website/community-mural.jpg" alt="" width="1254" height="1254" />
@@ -321,8 +321,10 @@
     </div>
   </section>
 
-  <div class="fringe fringe-fall" data-flow aria-hidden="true"></div>
+  <div class="sunrise hill-low" data-flow aria-hidden="true"><span class="sunrise-hill"></span></div>
 
+  <div class="ink-span" data-flow>
+  <div class="ink-stage" aria-hidden="true"><span class="ink-art"></span></div>
   <section id="built-around-you" class="principles-section wrap section-space">
     <div class="section-intro">
       <p class="eyebrow">06 / Built around real life</p>
@@ -337,21 +339,9 @@
       <details><summary><span class="roadmap-number">03</span><span><small>Privacy by default</small>Share what is relevant. Keep the rest hers.</span><span class="roadmap-tag">Her permission</span></summary><div class="detail-body"><p>Private context stays on her device. Messages between agents travel sealed through a mailbox the server cannot read.</p><div class="privacy-example"><strong>"Are you free on Tuesday?"</strong><p>Her agent shares an approved time window—not her full calendar, her home address, or her number.</p></div><p>Each interaction has a defined scope. Her number and address move only after both phones sign, and only until the job ends.</p></div></details>
     </div>
   </section>
+  </div>
 
-  <section class="community-section"><div class="wrap community-inner">
-    <p class="eyebrow">07 / A future we want to grow</p>
-    <h2>New city.<br>A familiar circle.</h2>
-    <div class="community-columns">
-      <p class="community-lead">Sometimes a new beginning starts with one person you know.</p>
-      <div>
-        <p>Workers have told us about moving to a city because a brother, a friend, or someone from their village was already there. A familiar person can make an unfamiliar world feel safer. Most of the women we spoke to found their first work through someone, not through an app.</p>
-        <p>Beyond work, we hope to grow circles of belonging: workers from the same region and trade, run by their union, with a mentor who opts in; a vouched bed for the first nights; the registrations and documents she is owed. GigSync introduces; the circle does the rest.</p>
-        <a class="text-link" href="#have-a-say">What would help your community? <span>↗︎</span></a>
-      </div>
-    </div>
-  </div></section>
-
-  <div class="sunrise sunset" data-flow aria-hidden="true"><span class="sunrise-sun"></span></div>
+  <div class="sunrise sunset" data-flow aria-hidden="true"><span class="sunrise-sun"></span><span class="sunrise-hill"></span></div>
   <section id="have-a-say" class="closing-section" data-flow>
     <img class="bookend-ring" src="./website/mural-ring.webp" alt="" width="1600" height="1600" loading="lazy" aria-hidden="true" />
     <div class="wrap closing-inner">
@@ -372,6 +362,7 @@
 
 <script type="module">
   import { drawLogoMark } from "./website/art.js";
+  import { curveStrips } from "./website/curves.js";
   import { drawDoneScene, drawSayScene } from "./website/drawings.js";
   import { revealLines, startFlow } from "./website/flow.js";
   import { startScene } from "./website/fly.js";
@@ -392,8 +383,9 @@
     links: document.querySelectorAll('a[href="#our-roots"], a[href="#top"]'),
   });
   phoneMenu(document.getElementById("top"));
-  revealLines(document.querySelectorAll("#the-idea h2, #she-says h2, #journey h2, #one-agent h2, #built-around-you h2, #request-to-receipt h2, .community-section h2, #have-a-say h2"));
+  revealLines(document.querySelectorAll("#the-idea h2, #she-says h2, #journey h2, #one-agent h2, #built-around-you h2, #request-to-receipt h2, #have-a-say h2"));
   startFlow(document.querySelectorAll("[data-flow]"));
+  curveStrips(document.querySelectorAll(".sunrise-hill"));
   revealOnArrival(".rise");
   hoverAccordion(document.getElementById("say"));
   drawSayScene(document.querySelector('[data-scene="say"]'));

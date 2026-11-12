@@ -285,9 +285,9 @@
   background: var(--earth);
   overflow: hidden;
 }
-.sunrise::after {
-  content: "";
+.sunrise-hill {
   position: absolute;
+  z-index: 1;
   left: -22%;
   right: -22%;
   bottom: 0;
@@ -314,10 +314,42 @@
   opacity: calc(0.25 + var(--rise) * 0.75);
 }
 .sunset {
-  background: #e5d4b5;
+  background: var(--paper);
 }
-.sunset::after {
+.sunset .sunrise-hill {
   background: var(--earth);
+}
+/* the lower hills in and out of the jobs band, without the sun */
+.hill-low {
+  --hill: 78%;
+  height: clamp(96px, 10vw, 150px);
+}
+/* the header's folk strip, laid along each hill's edge by curves.js: brown on the cream hills, cream on the brown */
+.sunrise-hill svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: var(--earth);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.4;
+}
+.sunrise-hill svg circle {
+  fill: currentColor;
+  color: var(--earth);
+}
+.sunset .sunrise-hill svg {
+  stroke: #eadbb9;
+  opacity: 0.55;
+}
+.sunset .sunrise-hill svg circle {
+  color: #eadbb9;
+}
+.sunrise-hill .strip-line:last-of-type {
+  opacity: 0.35;
 }
 
 /* one faint rust print of the whole mural behind 02 and 03: it stays in place while both sections pass over it, nearing
@@ -326,6 +358,25 @@
   position: relative;
   isolation: isolate;
   overflow: clip;
+}
+/* the print fades in and out at both ends of its run instead of stopping on a hard edge */
+.ink-span::before,
+.ink-span::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  right: 0;
+  height: 180px;
+  pointer-events: none;
+}
+.ink-span::before {
+  top: 0;
+  background: linear-gradient(var(--paper), transparent);
+}
+.ink-span::after {
+  bottom: 0;
+  background: linear-gradient(transparent, var(--paper));
 }
 .ink-stage {
   position: sticky;
@@ -343,6 +394,9 @@
   aspect-ratio: 1;
   background: url("./mural-ink.webp") center / contain no-repeat;
   opacity: 0.08;
+  /* fades out towards the right, where the sections keep their text and panels */
+  -webkit-mask: linear-gradient(to right, #000 30%, transparent 82%);
+  mask: linear-gradient(to right, #000 30%, transparent 82%);
   transform: scale(calc(0.9 + var(--p) * 0.22)) rotate(calc((var(--p) - 0.5) * 8deg));
   animation: ink-breathe 16s ease-in-out infinite alternate;
 }
@@ -357,32 +411,8 @@
   }
 }
 
-/* the folk strip from the header, wherever the cream meets the brown: a hairline, then the row of triangles, drifting a
-   little sideways as the page moves */
-.fringe,
-.site-footer::before,
-.closing-section::before {
+.site-footer::before {
   --strip: var(--folk) left bottom / 28px 16px repeat-x;
-}
-.fringe {
-  position: relative;
-  height: 34px;
-  background: var(--earth);
-}
-.fringe::before {
-  content: "";
-  position: absolute;
-  inset: 9px 0 auto;
-  height: 16px;
-  background: var(--strip);
-  background-position-x: calc(var(--p) * 84px);
-  opacity: 0.55;
-}
-.fringe-rise {
-  border-top: 1px solid rgba(234, 219, 185, 0.16);
-}
-.fringe-fall {
-  border-bottom: 1px solid rgba(234, 219, 185, 0.16);
 }
 
 /* the closing bookend: the ring of dancers rises at the foot of the last band, turning as it comes */
@@ -431,10 +461,7 @@ h2[data-lines][data-arrived] .line > span {
 
 /* the closing and the footer: one compact brown band, the strip at its top and again above the footer line */
 .closing-section::before {
-  height: 16px;
-  margin: 12px 0 0;
-  background: var(--strip);
-  opacity: 0.55;
+  content: none;
 }
 .closing-inner {
   padding: 34px 0 52px;
@@ -503,5 +530,20 @@ h2[data-lines][data-arrived] .line > span {
 @media (prefers-reduced-motion: reduce) {
   .ink-art {
     animation: none;
+  }
+}
+
+/* 04 sits on top of the shared print, a rounded panel with the print showing all round it */
+.ink-span .story-teaser {
+  position: relative;
+  width: min(1320px, calc(100% - 48px));
+  margin: 24px auto;
+  border: 1px solid #d6c5a9;
+  border-radius: clamp(28px, 4vw, 48px);
+  box-shadow: 0 40px 90px -50px rgba(59, 33, 24, 0.45);
+}
+@media (max-width: 600px) {
+  .ink-span .story-teaser {
+    width: calc(100% - 24px);
   }
 }
