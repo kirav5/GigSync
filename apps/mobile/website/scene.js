@@ -19,7 +19,7 @@ const ZOOM_END = 0.9;
 const RING_TURN_DEG = 28;
 /** The ring and the village fade to these, the level of the mural behind the jobs section, over these stretches. */
 const RING = { from: 0.92, to: 0.11, start: 0.08, end: 0.72 };
-const VILLAGE = { from: 0.15, to: 0.09, start: 0.1, end: 0.8 };
+const VILLAGE = { from: 0.11, to: 0.07, start: 0.1, end: 0.8 };
 /** The heart comes up from a ghost to bright. */
 const HEART = { from: 0.1, to: 0.95, start: 0.18, end: 0.66 };
 /** The roots copy fades in over this stretch, drifting this many pixels as it comes. */

@@ -59,7 +59,7 @@
   height: var(--s);
   left: calc(50% - var(--s) * 0.50351);
   top: calc(var(--fy) - var(--s) * 0.63194);
-  opacity: 0.15;
+  opacity: 0.11;
 }
 .mo-ring-turn {
   width: calc(var(--d) / 0.96);
@@ -152,7 +152,7 @@
   grid-area: brow;
   align-self: start;
   text-align: center;
-  font-size: 9px;
+  font-size: 11.5px;
   color: #d9c29b;
   animation: mo-rise 1s 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
 }
@@ -238,7 +238,7 @@
   background: #eadbb9;
   color: #482a1d;
   padding: 15px 19px;
-  font-size: 12px;
+  font-size: 14.5px;
   gap: 32px;
 }
 .mo-button:hover {
@@ -246,7 +246,7 @@
 }
 .mo .text-link {
   color: #e0cfb2;
-  font-size: 11px;
+  font-size: 13.5px;
   gap: 14px;
 }
 .mo .text-link:hover {
@@ -261,7 +261,7 @@
   align-items: center;
   gap: 8px;
   margin: 0;
-  font-size: 10px;
+  font-size: 12.5px;
   color: #bca787;
 }
 .mo-caption {
@@ -276,7 +276,7 @@
 .mo-caption span:first-child {
   font-family: var(--sans);
   font-style: normal;
-  font-size: 9px;
+  font-size: 11.5px;
   letter-spacing: 1.8px;
   text-transform: uppercase;
   color: var(--gold);
@@ -429,7 +429,7 @@
 }
 .mo-roots-caption {
   margin: 8px 0 0;
-  font-size: 9px;
+  font-size: 11.5px;
   letter-spacing: 1.8px;
   text-transform: uppercase;
   color: #bca787;
@@ -503,4 +503,22 @@
   .mo-foot > * {
     animation: none;
   }
+}
+
+/* the village recedes: its square fades out at its own edges, so a narrow screen shows no frame around it, and the
+   screen's corners darken so the ring is the one bright thing */
+.mo-village {
+  -webkit-mask: radial-gradient(closest-side, #000 72%, transparent);
+  mask: radial-gradient(closest-side, #000 72%, transparent);
+}
+.mo-shade {
+  box-shadow: inset 0 0 22vmax rgba(34, 18, 12, 0.75);
+}
+/* one quiet line in each lower corner: the right keeps its link and the italic caption, not four stacked notes */
+.mo-note,
+.mo-caption span:first-child {
+  display: none;
+}
+.mo-caption {
+  font-size: 15px;
 }

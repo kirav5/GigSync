@@ -218,7 +218,7 @@
   align-items: center;
   gap: 14px;
   padding-block: 12px;
-  font-size: 12px;
+  font-size: 14.5px;
   color: #d7c6aa;
 }
 .story-back span {
@@ -546,4 +546,61 @@ h2[data-lines][data-arrived] .line > span {
   .ink-span .story-teaser {
     width: calc(100% - 24px);
   }
+}
+
+/* the five steps of 03: the label, the icon and the words sit at the same heights in every card, and the titles fit */
+.say .box {
+  justify-content: flex-start;
+}
+.say .n {
+  align-self: flex-start;
+  padding: 7px 0;
+  border: 1px solid transparent;
+}
+.say .ic {
+  margin-top: 28px;
+}
+.say .box > div {
+  margin-top: auto;
+}
+.say {
+  max-width: 1180px;
+}
+.say .box {
+  padding: 24px 22px;
+}
+.say .tag {
+  white-space: normal;
+  max-width: 100%;
+  letter-spacing: 1px;
+}
+.say h3 {
+  font-size: clamp(22px, 1.9vw, 28px);
+}
+.say p {
+  min-height: 4.8em;
+}
+.say.open p {
+  min-width: 0;
+}
+
+/* the hills carry the edge now, so the bands they lead into need no ruled line of their own */
+.jobs-section,
+.closing-section {
+  border-block: 0;
+}
+
+/* the story page: its sand band runs straight into the hill down to the brown ending */
+.journey-section {
+  border-bottom: 0;
+}
+.journey-section + .sunset {
+  background: #ece2ce;
+}
+/* once opened the drawings step aside, so her two cards use their full width like the other three */
+.say.open .box.her > div {
+  max-width: none;
+}
+.say .box.her {
+  padding-bottom: 36px;
 }

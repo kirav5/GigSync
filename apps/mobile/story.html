@@ -300,6 +300,7 @@
     </div>
   </div></section>
 
+  <div class="sunrise sunset hill-low" data-flow aria-hidden="true"><span class="sunrise-hill"></span></div>
   <section class="story-end">
     <div class="wrap story-end-inner">
       <a class="story-back" href="./#journey" data-page="home"><span>←</span> Back to the website</a>
@@ -308,13 +309,15 @@
   </section>
 </main>
 
-<footer class="site-footer wrap">
-  <div><a class="brand" href="./" data-page="home"><svg viewBox="0 0 64 64" aria-hidden="true" data-logo></svg>gigsync<span class="brand-dot">.</span></a><p>Built around people. Enabled by agents on their own phones.</p></div>
-  <div class="footer-right"><a href="#top">Back to the beginning <span>↑</span></a><p>Product vision · Bengaluru · 2026</p></div>
+<footer class="site-footer">
+  <div class="wrap footer-inner"><div><a class="brand" href="./" data-page="home"><svg viewBox="0 0 64 64" aria-hidden="true" data-logo></svg>gigsync<span class="brand-dot">.</span></a><p>Built around people. Enabled by agents on their own phones.</p></div>
+  <div class="footer-right"><a href="#top">Back to the beginning <span>↑</span></a><p>Product vision · Bengaluru · 2026</p></div></div>
 </footer>
 
 <script type="module">
   import { drawLogoMark } from "./website/art.js";
+  import { curveStrips } from "./website/curves.js";
+  import { startFlow } from "./website/flow.js";
   import { phoneMenu } from "./website/motion.js";
   import { linkPages } from "./website/site-links.js";
   import { startStory } from "./website/story.js";
@@ -322,6 +325,8 @@
   linkPages();
   for (const svg of document.querySelectorAll("[data-logo]")) drawLogoMark(svg);
   phoneMenu(document.getElementById("top"));
+  startFlow(document.querySelectorAll("[data-flow]"));
+  curveStrips(document.querySelectorAll(".sunrise-hill"));
   startStory({
     chapters: document.querySelectorAll("#chapters .chapter"),
     phone: document.getElementById("phone"),
