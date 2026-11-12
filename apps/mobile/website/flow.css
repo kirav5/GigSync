@@ -678,11 +678,10 @@ h2[data-lines][data-arrived] .line > span {
   left: 0;
   bottom: 0;
   width: 100%;
-  /* a wide panorama, the tree band with the village's two side columns added at its ends, shown whole at the full
-     width and standing on the footer strip; never taller than the brown under the curve */
-  height: auto;
-  max-height: 76%;
-  object-fit: contain;
+  /* a wide panorama, the tree band with the village's two side columns added at its ends, standing on the footer
+     strip and reaching up to just under the curve; on a narrower screen its far ends are what gets trimmed */
+  height: 86%;
+  object-fit: cover;
   object-position: 50% 100%;
   opacity: 0.1;
   pointer-events: none;
