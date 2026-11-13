@@ -169,8 +169,9 @@ export function removeChat(id: string): void {
 }
 
 /**
- * Reads the signed-in owner's chats from the phone and opens the newest; their card interview comes back in the chat
- * it belongs to, as it was left.
+ * Reads the signed-in owner's chats from the phone and opens a new one: every launch and reload starts afresh, with the
+ * past chats a tap away in the list. Their card interview comes back in the chat it belongs to, as it was left, and
+ * opens there when Talk is opened to make the card.
  */
 export async function loadTalk(ports: Owner): Promise<void> {
   const mine = ++generation;
@@ -185,7 +186,7 @@ export async function loadTalk(ports: Owner): Promise<void> {
   const chats = read.map(({ chat }) => chat);
   const fresh = newChat<Turn>(ports.clock.now());
   owner = ports;
-  show({ ready: true, chats: chats.length > 0 ? chats : [fresh], open: chats[0]?.id ?? fresh.id, live });
+  show({ ready: true, chats: [fresh, ...chats], open: fresh.id, live });
 }
 
 /** Signing out: the screen forgets the owner's chats; their records stay on the phone for when they sign in again. */

@@ -24,8 +24,9 @@ import { nextTurn, type } from "./talk.js";
 /**
  * Talk's chats, kept on the phone and listed in the menu like the collab app's sessions: "New chat" keeps the open chat
  * in the list and starts an empty one; a past chat opens with its turns and carries on, the unfinished card interview with it; chats survive a
- * reload; Delete removes one after a confirm; another owner on the same phone sees none of them. A household's Find
- * chats are kept the same way: a need sent to workers stays in its chat to read, and an unsent one carries on.
+ * reload, which opens a new chat; Delete removes one after a confirm; another owner on the same phone sees none of
+ * them. A household's Find chats are kept the same way: a need sent to workers stays in its chat to read, and an
+ * unsent one carries on from the list.
  */
 
 const { en } = Lang.enum;
@@ -243,12 +244,15 @@ test("a household's Find chats are kept: a sent need stays to read, new chats ke
       await expect(page.getByRole("button", { name: NEW_NEED })).toHaveCount(0);
     });
 
-    await test.step("after a reload both are there, and the unsent need opens where it was", async () => {
+    await test.step("a reload opens a new chat; both are listed, and the unsent need carries on from the list", async () => {
       await page.reload();
-      await expect(talkLog(page).getByText(TAP, { exact: true })).toBeVisible();
-      await expect(needBox(page)).toBeVisible();
+      await expect(talkLog(page)).toContainText(say("need.start"));
+      await expect(talkLog(page)).not.toContainText(TAP);
       await showChats(page);
       await expect(chatList(page).getByRole("listitem")).toHaveCount(2);
+      await reopen(page, TAP);
+      await expect(talkLog(page).getByText(TAP, { exact: true })).toBeVisible();
+      await expect(needBox(page)).toBeVisible();
     });
 
     await test.step("Delete says the job stays in My jobs; the chat goes, also after a reload, the job stays", async () => {
@@ -280,7 +284,9 @@ test("a household's Find chats are kept: a sent need stays to read, new chats ke
       await expect(chatList(page)).toContainText(say("chats.empty"));
       await signOutHere(page);
       await completeSignIn(page, meena);
-      await expect(talkLog(page).getByText(TAP, { exact: true })).toBeVisible();
+      await expect(talkLog(page)).toContainText(say("need.start"));
+      await showChats(page);
+      await expect(row(page, TAP)).toHaveCount(1);
     });
   } finally {
     await listed.removeProfile();
