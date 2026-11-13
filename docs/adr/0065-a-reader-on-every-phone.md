@@ -95,3 +95,34 @@ The reader ships only when, on the held-out English test set and on a real Andro
 4. Training and export (`training/reader/`).
 5. The gate: `eval:reader` and timing on a 4 GB phone.
 6. The reader in the app, first in Find.
+
+## Amendment (2026-11-11): shipped before the gate, the reader alone for what it reads
+
+The founders decided to ship the first trained reader (`model-v3`: about 25,000 English messages, a third of them
+problems that name no worker) before the gate's test set and phone timing exist, and with no fallback to GigSync's model
+for messages it reads but is unsure of. Below its threshold the work goes to the matchers that read with no model (the
+trades and listed skills by meaning, then the list to pick from), not to the model. Measured on `eval:find`, through the
+app's own code path (`pnpm eval:find --reader phone`):
+
+| Set              | GigSync's model alone | Reader, model reachable | Reader, no model |
+| ---------------- | --------------------- | ----------------------- | ---------------- |
+| English (25)     | 100%                  | 92%                     | 88%              |
+| Pilot chats (10) | 100%                  | 90%                     | 90%              |
+| Hinglish (25)    | 100%                  | 100%                    | 56% (word lists) |
+| Kanglish (25)    | 88%                   | 88%                     | 80% (word lists) |
+
+So the gate's first bar (within 5 points of GigSync's model) is not met in English, and the 4 GB phone's timing is
+not measured; these conversations also tuned the model's prompt, which flatters it. The misses are named: work the
+reader is unsure of (a tailor at 0.41), a worker's own wording for a kind ("Cooler fixing"), an aquarium read as a water
+tank, and "pandit". The gate stays the bar for the next reader, and Hindi, Kannada, Hinglish and Kanglish wait for it.
+
+What changes from the decision above:
+- The reader reads only English: Hindi and Kannada by their script, and Hinglish and Kanglish by their everyday words
+  in English letters (`readerReads` in `packages/core/src/reader/languages.ts`), go to GigSync's model as before.
+- Told a question, the reader takes nearly any words for its answer; an answer that marks nothing of the detail asked
+  for is read again with no question open, so other work said at "Where?" is still offered as a switch.
+- The reader names the kind of work itself (a third head, `work`), so a kind added to GigSync needs a retrain, as
+  the founders accepted on 2026-11-11.
+- Its files are on GigSync's model host (an R2 bucket, `pnpm reader:publish`), at a folder per version set at build
+  time by `VITE_READER_URL`; a build without it has no reader. It is fetched with the understanding pack, or alone by
+  a phone that fetched the pack before.

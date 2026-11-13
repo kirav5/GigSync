@@ -1,14 +1,18 @@
 // One person through Find, driven as FindChat.tsx drives it: `say` and `tap` move the real interview (core's functions)
 // and the model is asked when the app would ask it. What the person says back comes from their conversation file.
 import { core, protocol } from "./core.mjs";
+import { phoneRead } from "./phone.mjs";
 
 const { NeedSlot } = core;
-/** What reads a message: the three prompts and the lists, or one reader for every message. */
-export const Reader = { lists: "lists", turn: "turn" };
+/**
+ * What reads a message: the three prompts and the lists, one model reading for every message, or the phone's reader
+ * (ADR 0065) with the matchers by meaning the app falls back to.
+ */
+export const Reader = { lists: "lists", turn: "turn", phone: "phone" };
 const AREAS = core.PILOT_AREA_CHOICES;
 const HOME = { id: "adr_01JC0000000000000000000001", label: "home", areaName: "HSR Layout", area: "hsr_layout" };
 /** What workers list on the board in these conversations, by kind of work where it has one, some in two wordings. */
-const LISTED = [
+export const LISTED = [
   ["TV repair", "tv_repair", 3],
   ["TV mechanic", "tv_repair", 2],
   ["Fridge repair", "fridge_repair", 3],
@@ -88,17 +92,22 @@ async function firstWords(model, s, text, lang) {
  * The first sentence as the one reader takes it (read-turn.ts, `readFirst` in readNeed.ts): its reading decides the
  * work and how it is hired, and with none, nothing is guessed.
  */
-async function firstTurn(model, s, text, lang) {
-  const read =
+async function firstTurn(model, s, text, lang, phone) {
+  const byModel = async () =>
     (await core.readTurn(model, core.turnContext(s, text, OPTIONS), WAIT_MS)) ??
     (await core.readTurn(model, core.turnContext(s, text, OPTIONS), WAIT_MS));
+  const read = phone ? await phoneRead(phone, text, undefined, byModel) : await byModel();
   if (read?.kind === protocol.TurnKind.enum.greeting) return s;
   const titled = core.tradeTitled(text);
   const filed = async (c) => core.categorySkill(c, LISTED, lang) ?? (await core.sameWork(model, c, LISTED, WAIT_MS));
   const found = titled ? undefined : read?.category ? await filed(read.category) : read?.skill;
-  const trade = titled ?? read?.trade;
+  const named = titled ? undefined : read?.jobType || found;
+  // As readFirst: a trade by meaning only for a reading that named no work, with the embedding model on the phone.
+  const byMeaning =
+    phone && read && !named && !read.category ? await core.tradeByMeaning(phone.trades, text) : undefined;
+  const trade = titled ?? read?.trade ?? byMeaning;
   if (!trade && read?.category && !found) return core.withNobody(s, core.t(lang, `category.${read.category}`), text);
-  const skill = trade || !read ? undefined : (found ?? (await core.listedSkill(text, LISTED)));
+  const skill = trade || !read ? undefined : (found ?? (await core.listedSkill(text, LISTED, phone?.skills)));
   const how = { saysWhat: Boolean(read?.problem || read?.jobType || found), arrangement: read?.arrangement };
   if (skill) return core.withSkill(s, skill, text, how);
   if (!trade && read?.jobType) return core.withJobType(s, read.jobType, text);
@@ -108,10 +117,11 @@ async function firstTurn(model, s, text, lang) {
 }
 
 /** Words at a later question: the interview's, and when it did not understand them, the one reader's. */
-async function laterTurn(model, s, text, reader, log) {
+async function laterTurn(model, s, text, reader, log, phone) {
   const heard = core.hearNeed(s, text);
-  if (reader !== Reader.turn || !core.worthReading(s, heard) || s.slot === NeedSlot.budget) return heard;
-  const read = await core.readTurn(model, core.turnContext(s, text, OPTIONS), WAIT_MS);
+  if (reader === Reader.lists || !core.worthReading(s, heard) || s.slot === NeedSlot.budget) return heard;
+  const byModel = () => core.readTurn(model, core.turnContext(s, text, OPTIONS), WAIT_MS);
+  const read = phone ? await phoneRead(phone, text, s.slot, byModel) : await byModel();
   if (!read || !core.namesOtherWork(s, read)) return heard;
   log.switched = true;
   return core.chooseNeed(core.offerSwitch(s, read, text), "no");
@@ -136,7 +146,7 @@ function reply(s, conversation, used) {
 }
 
 /** Runs one conversation: the record the scorer reads. */
-export async function runConversation(model, conversation, lang, reader = Reader.lists) {
+export async function runConversation(model, conversation, lang, reader = Reader.lists, phone = undefined) {
   const says = [...conversation.says];
   let later = conversation.later;
   const used = { answers: 0 };
@@ -155,14 +165,14 @@ export async function runConversation(model, conversation, lang, reader = Reader
     const next = first ? says.shift() : undefined;
     if (first && next === undefined) break;
     if (next !== undefined) {
-      const read = reader === Reader.turn ? firstTurn : firstWords;
-      s = core.isGreeting(next) ? s : await read(model, s, next, lang);
+      const read = reader === Reader.lists ? firstWords : firstTurn;
+      s = core.isGreeting(next) ? s : await read(model, s, next, lang, phone);
     } else if (later && s.slot !== NeedSlot.budget) {
-      s = await laterTurn(model, s, later, reader, log);
+      s = await laterTurn(model, s, later, reader, log, phone);
       later = undefined;
     } else {
       const action = reply(s, conversation, used);
-      s = action.tap ? core.chooseNeed(s, action.tap) : await laterTurn(model, s, action.say, reader, log);
+      s = action.tap ? core.chooseNeed(s, action.tap) : await laterTurn(model, s, action.say, reader, log, phone);
     }
     s = await modelAsks(model, s);
     if (sorry(s)) log.sorries++;

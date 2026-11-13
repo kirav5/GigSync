@@ -56,3 +56,21 @@ the same detail, by the tokenizer's character offsets.
 
 Dev scores come from the teacher's own data, so they say the model learned the teacher; whether it reads people is
 the gate's held-out test set (ADR 0065, step 5).
+
+## Putting it on phones
+
+A trained reader goes to GigSync's model host, an R2 bucket, at a folder per version that is never overwritten:
+
+```bash
+pnpm reader:publish --model data/reader/model-v3 --version v3 --dry-run   # checks the labels against protocol
+pnpm reader:publish --model data/reader/model-v3 --version v3             # needs `wrangler login`
+```
+
+The app's build reads it from `VITE_READER_URL` (the `READER_URL` repository variable in CI), e.g.
+`https://models.gigsync.network/reader/v3`. The bucket answers the app's origins with CORS (`infra/r2/models-cors.json`:
+`wrangler r2 bucket cors set gigsync-models --file infra/r2/models-cors.json`). Before publishing, score it the way
+phones read, with and without GigSync's model:
+
+```bash
+READER_MODEL=data/reader/model-v3 pnpm eval:find --reader phone --set en --offline
+```

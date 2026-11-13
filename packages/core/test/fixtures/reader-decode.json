@@ -1,0 +1,1069 @@
+[
+  {
+    "text": "my kitchen tap is leaking",
+    "tokens": ["▁my", "▁kitchen", "▁tap", "▁is", "▁le", "a", "king"],
+    "tags": ["B-what", "I-what", "I-what", "I-what", "I-what", "I-what", "I-what"],
+    "scores": [0.9742, 0.7353, 0.9856, 0.993, 0.9917, 0.9959, 0.9955],
+    "turn": "need",
+    "work": "plumber",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 25
+      }
+    ]
+  },
+  {
+    "text": "the bathroom drain is blocked",
+    "tokens": ["▁the", "▁bathroom", "▁dra", "in", "▁is", "▁block", "ed"],
+    "tags": ["B-what", "I-what", "I-what", "I-what", "I-what", "I-what", "I-what"],
+    "scores": [0.9839, 0.9015, 0.9856, 0.9922, 0.9917, 0.992, 0.9932],
+    "turn": "need",
+    "work": "waterproofing",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 29
+      }
+    ]
+  },
+  {
+    "text": "the ceiling fan is not working",
+    "tokens": ["▁the", "▁ce", "iling", "▁fan", "▁is", "▁not", "▁working"],
+    "tags": ["B-what", "I-what", "I-what", "I-what", "I-what", "I-what", "I-what"],
+    "scores": [0.9765, 0.7606, 0.9641, 0.8684, 0.9765, 0.9585, 0.9928],
+    "turn": "need",
+    "work": "small_appliance_repair",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 30
+      }
+    ]
+  },
+  {
+    "text": "a switch board is sparking in my room",
+    "tokens": ["▁a", "▁switch", "▁board", "▁is", "▁spark", "ing", "▁in", "▁my", "▁room"],
+    "tags": ["B-what", "I-what", "I-what", "I-what", "I-what", "I-what", "I-what", "I-what", "I-what"],
+    "scores": [0.9469, 0.9109, 0.7159, 0.9606, 0.9754, 0.9897, 0.9037, 0.9028, 0.9033],
+    "turn": "need",
+    "work": "electrician",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 37
+      }
+    ]
+  },
+  {
+    "text": "I need someone to clean my house and wash dishes",
+    "tokens": ["▁I", "▁need", "▁someone", "▁to", "▁clean", "▁my", "▁house", "▁and", "▁was", "h", "▁di", "shes"],
+    "tags": ["O", "O", "O", "O", "B-what", "I-what", "I-what", "I-what", "I-what", "I-what", "I-what", "I-what"],
+    "scores": [0.9979, 0.998, 0.9978, 0.9977, 0.9478, 0.9611, 0.9524, 0.9831, 0.9687, 0.9546, 0.9805, 0.986],
+    "turn": "need",
+    "work": "maid",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 18,
+        "end": 48
+      }
+    ]
+  },
+  {
+    "text": "I need a cook for my family",
+    "tokens": ["▁I", "▁need", "▁a", "▁cook", "▁for", "▁my", "▁family"],
+    "tags": ["O", "O", "O", "B-kind", "O", "I-what", "I-what"],
+    "scores": [0.9964, 0.9968, 0.9911, 0.987, 0.465, 0.8919, 0.9589],
+    "turn": "need",
+    "work": "cook",
+    "spans": [
+      {
+        "slot": "kind",
+        "start": 9,
+        "end": 13
+      },
+      {
+        "slot": "what",
+        "start": 18,
+        "end": 27
+      }
+    ]
+  },
+  {
+    "text": "I need a driver for my car tomorrow",
+    "tokens": ["▁I", "▁need", "▁a", "▁driver", "▁for", "▁my", "▁car", "▁tomorrow"],
+    "tags": ["O", "O", "O", "B-kind", "B-what", "I-what", "I-what", "B-when"],
+    "scores": [0.9938, 0.9965, 0.9803, 0.9808, 0.7078, 0.6943, 0.8414, 0.9832],
+    "turn": "need",
+    "work": "driver",
+    "spans": [
+      {
+        "slot": "kind",
+        "start": 9,
+        "end": 15
+      },
+      {
+        "slot": "what",
+        "start": 16,
+        "end": 26
+      },
+      {
+        "slot": "when",
+        "start": 27,
+        "end": 35
+      }
+    ]
+  },
+  {
+    "text": "my wardrobe door is broken",
+    "tokens": ["▁my", "▁", "ward", "robe", "▁door", "▁is", "▁broken"],
+    "tags": ["B-what", "I-what", "I-what", "I-what", "I-what", "I-what", "I-what"],
+    "scores": [0.9332, 0.8352, 0.8365, 0.95, 0.978, 0.9719, 0.9548],
+    "turn": "need",
+    "work": "welder",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 26
+      }
+    ]
+  },
+  {
+    "text": "I want my two bedrooms painted",
+    "tokens": ["▁I", "▁want", "▁my", "▁two", "▁bedroom", "s", "▁paint", "ed"],
+    "tags": ["O", "O", "O", "B-what", "I-what", "O", "B-what", "I-what"],
+    "scores": [0.9976, 0.9974, 0.9798, 0.8475, 0.7675, 0.5031, 0.4696, 0.6668],
+    "turn": "need",
+    "work": "painter",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 10,
+        "end": 22
+      },
+      {
+        "slot": "what",
+        "start": 23,
+        "end": 30
+      }
+    ]
+  },
+  {
+    "text": "my ac is not working",
+    "tokens": ["▁my", "▁ac", "▁is", "▁not", "▁working"],
+    "tags": ["B-what", "I-what", "I-what", "I-what", "I-what"],
+    "scores": [0.9532, 0.5354, 0.9873, 0.9855, 0.9947],
+    "turn": "need",
+    "work": "ac_technician",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 20
+      }
+    ]
+  },
+  {
+    "text": "need my ac to be serviced",
+    "tokens": ["▁need", "▁my", "▁ac", "▁to", "▁be", "▁service", "d"],
+    "tags": ["O", "O", "B-kind", "O", "I-what", "I-what", "I-what"],
+    "scores": [0.9971, 0.9811, 0.8138, 0.9252, 0.5435, 0.7055, 0.8811],
+    "turn": "need",
+    "work": "ac_technician",
+    "spans": [
+      {
+        "slot": "kind",
+        "start": 8,
+        "end": 10
+      },
+      {
+        "slot": "what",
+        "start": 14,
+        "end": 25
+      }
+    ]
+  },
+  {
+    "text": "my tv not working",
+    "tokens": ["▁my", "▁tv", "▁not", "▁working"],
+    "tags": ["B-what", "B-what", "I-what", "I-what"],
+    "scores": [0.9608, 0.5344, 0.933, 0.9917],
+    "turn": "need",
+    "work": "tv_repair",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 2
+      },
+      {
+        "slot": "what",
+        "start": 3,
+        "end": 17
+      }
+    ]
+  },
+  {
+    "text": "I can't turn on the TV",
+    "tokens": ["▁I", "▁can", "'", "t", "▁turn", "▁on", "▁the", "▁TV"],
+    "tags": ["B-what", "I-what", "I-what", "I-what", "I-what", "I-what", "I-what", "I-what"],
+    "scores": [0.5599, 0.6899, 0.8282, 0.8668, 0.9486, 0.9767, 0.956, 0.5557],
+    "turn": "need",
+    "work": "tv_repair",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 22
+      }
+    ]
+  },
+  {
+    "text": "my fridge stopped cooling",
+    "tokens": ["▁my", "▁f", "ridge", "▁stopped", "▁cool", "ing"],
+    "tags": ["B-what", "I-what", "I-what", "I-what", "I-what", "I-what"],
+    "scores": [0.9038, 0.5474, 0.8885, 0.9472, 0.9933, 0.9908],
+    "turn": "need",
+    "work": "fridge_repair",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 25
+      }
+    ]
+  },
+  {
+    "text": "there are cockroaches all over my kitchen",
+    "tokens": ["▁there", "▁are", "▁cock", "ro", "ach", "es", "▁all", "▁over", "▁my", "▁kitchen"],
+    "tags": ["O", "O", "B-what", "I-what", "I-what", "I-what", "I-what", "I-what", "I-what", "I-what"],
+    "scores": [0.9627, 0.9806, 0.6512, 0.9911, 0.9858, 0.9873, 0.7169, 0.9894, 0.9902, 0.9843],
+    "turn": "need",
+    "work": "pest_control",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 10,
+        "end": 41
+      }
+    ]
+  },
+  {
+    "text": "I need a maths tutor for my son",
+    "tokens": ["▁I", "▁need", "▁a", "▁math", "s", "▁tutor", "▁for", "▁my", "▁son"],
+    "tags": ["O", "O", "O", "B-kind", "I-kind", "I-kind", "O", "I-what", "I-what"],
+    "scores": [0.9973, 0.9974, 0.9957, 0.9672, 0.9625, 0.9712, 0.5084, 0.855, 0.9813],
+    "turn": "need",
+    "work": "school_tutor",
+    "spans": [
+      {
+        "slot": "kind",
+        "start": 9,
+        "end": 20
+      },
+      {
+        "slot": "what",
+        "start": 25,
+        "end": 31
+      }
+    ]
+  },
+  {
+    "text": "I need a blouse stitched",
+    "tokens": ["▁I", "▁need", "▁a", "▁blou", "se", "▁", "stit", "ched"],
+    "tags": ["O", "O", "O", "B-what", "I-what", "I-what", "I-what", "I-what"],
+    "scores": [0.9981, 0.9982, 0.9566, 0.5046, 0.597, 0.8246, 0.6953, 0.98],
+    "turn": "need",
+    "work": "tailor",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 9,
+        "end": 24
+      }
+    ]
+  },
+  {
+    "text": "my laptop screen is broken",
+    "tokens": ["▁my", "▁laptop", "▁screen", "▁is", "▁broken"],
+    "tags": ["B-what", "B-what", "I-what", "I-what", "I-what"],
+    "scores": [0.6918, 0.5678, 0.7643, 0.9266, 0.8842],
+    "turn": "need",
+    "work": "computer_repair",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 2
+      },
+      {
+        "slot": "what",
+        "start": 3,
+        "end": 26
+      }
+    ]
+  },
+  {
+    "text": "hey",
+    "tokens": ["▁hey"],
+    "tags": ["O"],
+    "scores": [0.998],
+    "turn": "greeting",
+    "work": "none",
+    "spans": []
+  },
+  {
+    "text": "hi",
+    "tokens": ["▁hi"],
+    "tags": ["O"],
+    "scores": [0.9979],
+    "turn": "greeting",
+    "work": "none",
+    "spans": []
+  },
+  {
+    "text": "the kitchen tap is leaking",
+    "tokens": ["▁the", "▁kitchen", "▁tap", "▁is", "▁le", "a", "king"],
+    "tags": ["B-what", "I-what", "I-what", "I-what", "I-what", "I-what", "I-what"],
+    "scores": [0.9833, 0.8049, 0.9842, 0.9931, 0.9906, 0.9953, 0.9948],
+    "turn": "need",
+    "work": "plumber",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 26
+      }
+    ]
+  },
+  {
+    "text": "I need a swimming coach",
+    "tokens": ["▁I", "▁need", "▁a", "▁swimming", "▁coach"],
+    "tags": ["O", "O", "O", "B-kind", "I-kind"],
+    "scores": [0.9951, 0.9961, 0.9928, 0.9897, 0.9935],
+    "turn": "need",
+    "work": "swimming_teacher",
+    "spans": [
+      {
+        "slot": "kind",
+        "start": 9,
+        "end": 23
+      }
+    ]
+  },
+  {
+    "text": "my fish tank needs cleaning",
+    "tokens": ["▁my", "▁fish", "▁tank", "▁needs", "▁cleaning"],
+    "tags": ["B-what", "I-what", "I-what", "I-what", "I-what"],
+    "scores": [0.9144, 0.6167, 0.8274, 0.8568, 0.9559],
+    "turn": "need",
+    "work": "water_tank_cleaning",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 27
+      }
+    ]
+  },
+  {
+    "text": "my cooler is not working",
+    "tokens": ["▁my", "▁cool", "er", "▁is", "▁not", "▁working"],
+    "tags": ["B-what", "I-what", "I-what", "I-what", "I-what", "I-what"],
+    "scores": [0.959, 0.8869, 0.9407, 0.9607, 0.9543, 0.991],
+    "turn": "need",
+    "work": "air_cooler_repair",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 24
+      }
+    ]
+  },
+  {
+    "text": "1000 litre overhead Sintex tank needs cleaning",
+    "tokens": ["▁1000", "▁litre", "▁over", "head", "▁Sin", "tex", "▁tank", "▁needs", "▁cleaning"],
+    "tags": ["B-what", "I-what", "I-what", "I-what", "B-what", "I-what", "I-what", "I-what", "I-what"],
+    "scores": [0.7285, 0.8098, 0.7782, 0.6659, 0.9647, 0.7884, 0.7711, 0.8881, 0.8951],
+    "turn": "need",
+    "work": "water_tank_cleaning",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 19
+      },
+      {
+        "slot": "what",
+        "start": 20,
+        "end": 46
+      }
+    ]
+  },
+  {
+    "text": "Daily car cleaning in my apartment parking",
+    "tokens": ["▁Daily", "▁car", "▁cleaning", "▁in", "▁my", "▁apartment", "▁parking"],
+    "tags": ["B-how_long", "B-kind", "I-kind", "O", "O", "B-where", "I-where"],
+    "scores": [0.7112, 0.5883, 0.993, 0.9855, 0.9277, 0.591, 0.9339],
+    "turn": "need",
+    "work": "car_wash",
+    "spans": [
+      {
+        "slot": "how_long",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "slot": "kind",
+        "start": 6,
+        "end": 18
+      },
+      {
+        "slot": "where",
+        "start": 25,
+        "end": 42
+      }
+    ]
+  },
+  {
+    "text": "Wall plaster is cracking near the balcony door",
+    "tokens": ["▁Wall", "▁plast", "er", "▁is", "▁crack", "ing", "▁near", "▁the", "▁balcon", "y", "▁door"],
+    "tags": ["B-what", "I-kind", "I-what", "O", "B-what", "I-what", "O", "O", "O", "O", "O"],
+    "scores": [0.7569, 0.7132, 0.6471, 0.3875, 0.6703, 0.9768, 0.5801, 0.6853, 0.5905, 0.6597, 0.7582],
+    "turn": "need",
+    "work": "mason",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "slot": "kind",
+        "start": 5,
+        "end": 12
+      },
+      {
+        "slot": "what",
+        "start": 5,
+        "end": 12
+      },
+      {
+        "slot": "what",
+        "start": 16,
+        "end": 24
+      }
+    ]
+  },
+  {
+    "text": "Ceiling seepage in the bedroom from the terrace during rain",
+    "tokens": [
+      "▁Ce",
+      "iling",
+      "▁see",
+      "page",
+      "▁in",
+      "▁the",
+      "▁bedroom",
+      "▁from",
+      "▁the",
+      "▁terra",
+      "ce",
+      "▁during",
+      "▁rain"
+    ],
+    "tags": [
+      "B-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what"
+    ],
+    "scores": [0.3573, 0.7327, 0.7106, 0.8252, 0.9227, 0.9757, 0.9785, 0.9731, 0.9701, 0.9773, 0.9763, 0.9613, 0.9872],
+    "turn": "need",
+    "work": "waterproofing",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 59
+      }
+    ]
+  },
+  {
+    "text": "Want my 5 seater fabric sofa cleaned",
+    "tokens": ["▁Want", "▁my", "▁5", "▁se", "ater", "▁fabric", "▁sofa", "▁clean", "ed"],
+    "tags": ["O", "O", "O", "I-what", "O", "I-what", "B-what", "I-what", "I-what"],
+    "scores": [0.9981, 0.9974, 0.9556, 0.8149, 0.4697, 0.3299, 0.7606, 0.883, 0.9065],
+    "turn": "need",
+    "work": "sofa_cleaning",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 10,
+        "end": 16
+      },
+      {
+        "slot": "what",
+        "start": 17,
+        "end": 23
+      },
+      {
+        "slot": "what",
+        "start": 24,
+        "end": 36
+      }
+    ]
+  },
+  {
+    "text": "One burner on my gas stove gives a weak flame",
+    "tokens": ["▁One", "▁burn", "er", "▁on", "▁my", "▁gas", "▁sto", "ve", "▁gives", "▁a", "▁we", "ak", "▁flam", "e"],
+    "tags": [
+      "B-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what"
+    ],
+    "scores": [
+      0.9849, 0.9818, 0.9886, 0.9922, 0.9868, 0.9358, 0.9837, 0.9903, 0.9944, 0.9958, 0.9962, 0.9963, 0.9963, 0.9963
+    ],
+    "turn": "need",
+    "work": "gas_stove_repair",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 45
+      }
+    ]
+  },
+  {
+    "text": "Need a pandit for griha pravesh next month",
+    "tokens": ["▁Need", "▁a", "▁pand", "it", "▁for", "▁gri", "ha", "▁prav", "esh", "▁next", "▁month"],
+    "tags": ["O", "O", "B-kind", "I-kind", "O", "B-what", "I-what", "B-where", "I-where", "B-when", "I-when"],
+    "scores": [0.998, 0.9977, 0.9919, 0.9957, 0.9901, 0.7887, 0.774, 0.4395, 0.3988, 0.9837, 0.9913],
+    "turn": "need",
+    "work": "priest",
+    "spans": [
+      {
+        "slot": "kind",
+        "start": 7,
+        "end": 13
+      },
+      {
+        "slot": "what",
+        "start": 18,
+        "end": 23
+      },
+      {
+        "slot": "where",
+        "start": 24,
+        "end": 31
+      },
+      {
+        "slot": "when",
+        "start": 32,
+        "end": 42
+      }
+    ]
+  },
+  {
+    "text": "Need a nurse to change a wound dressing daily for a week",
+    "tokens": [
+      "▁Need",
+      "▁a",
+      "▁nurse",
+      "▁to",
+      "▁change",
+      "▁a",
+      "▁wo",
+      "und",
+      "▁dressing",
+      "▁daily",
+      "▁for",
+      "▁a",
+      "▁week"
+    ],
+    "tags": [
+      "O",
+      "O",
+      "B-kind",
+      "O",
+      "B-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "B-how_long",
+      "B-how_long",
+      "I-how_long",
+      "I-how_long"
+    ],
+    "scores": [0.9973, 0.9967, 0.703, 0.995, 0.977, 0.9728, 0.9817, 0.9953, 0.9938, 0.9153, 0.6829, 0.7853, 0.9489],
+    "turn": "need",
+    "work": "home_nurse",
+    "spans": [
+      {
+        "slot": "kind",
+        "start": 7,
+        "end": 12
+      },
+      {
+        "slot": "what",
+        "start": 16,
+        "end": 39
+      },
+      {
+        "slot": "how_long",
+        "start": 40,
+        "end": 45
+      },
+      {
+        "slot": "how_long",
+        "start": 46,
+        "end": 56
+      }
+    ]
+  },
+  {
+    "text": "need a maid for 3 hours on Saturday",
+    "tokens": ["▁need", "▁a", "▁mai", "d", "▁for", "▁3", "▁hours", "▁on", "▁Saturday"],
+    "tags": ["O", "O", "B-kind", "I-kind", "O", "B-how_long", "I-how_long", "B-when", "I-when"],
+    "scores": [0.9973, 0.9966, 0.9717, 0.9849, 0.997, 0.9591, 0.969, 0.6445, 0.7845],
+    "turn": "need",
+    "work": "maid",
+    "spans": [
+      {
+        "slot": "kind",
+        "start": 7,
+        "end": 11
+      },
+      {
+        "slot": "how_long",
+        "start": 16,
+        "end": 23
+      },
+      {
+        "slot": "when",
+        "start": 24,
+        "end": 35
+      }
+    ]
+  },
+  {
+    "text": "Looking for a cook for lunch and dinner every day, family of four",
+    "tokens": [
+      "▁Looking",
+      "▁for",
+      "▁a",
+      "▁cook",
+      "▁for",
+      "▁lunch",
+      "▁and",
+      "▁dinner",
+      "▁every",
+      "▁day",
+      ",",
+      "▁family",
+      "▁of",
+      "▁four"
+    ],
+    "tags": [
+      "O",
+      "O",
+      "O",
+      "B-kind",
+      "O",
+      "B-what",
+      "I-what",
+      "I-what",
+      "B-how_long",
+      "I-how_long",
+      "O",
+      "O",
+      "O",
+      "O"
+    ],
+    "scores": [
+      0.9974, 0.997, 0.9944, 0.9806, 0.9783, 0.9743, 0.9719, 0.9085, 0.637, 0.8782, 0.971, 0.952, 0.9812, 0.9817
+    ],
+    "turn": "need",
+    "work": "cook",
+    "spans": [
+      {
+        "slot": "kind",
+        "start": 14,
+        "end": 18
+      },
+      {
+        "slot": "what",
+        "start": 23,
+        "end": 39
+      },
+      {
+        "slot": "how_long",
+        "start": 40,
+        "end": 49
+      }
+    ]
+  },
+  {
+    "text": "Need a plumber in Sector 2, Noida.",
+    "tokens": ["▁Need", "▁a", "▁plumb", "er", "▁in", "▁Sector", "▁2", ",", "▁No", "ida", "."],
+    "tags": ["O", "O", "B-kind", "I-kind", "O", "B-where", "I-where", "O", "B-where", "I-where", "O"],
+    "scores": [0.9976, 0.9966, 0.9912, 0.994, 0.9967, 0.9753, 0.9926, 0.9977, 0.9808, 0.9923, 0.9963],
+    "turn": "need",
+    "work": "plumber",
+    "spans": [
+      {
+        "slot": "kind",
+        "start": 7,
+        "end": 14
+      },
+      {
+        "slot": "where",
+        "start": 18,
+        "end": 26
+      },
+      {
+        "slot": "where",
+        "start": 28,
+        "end": 33
+      }
+    ]
+  },
+  {
+    "text": "AC  not cooling!!  since yesterday",
+    "tokens": ["▁AC", "▁not", "▁cool", "ing", "!!", "▁since", "▁yesterday"],
+    "tags": ["B-what", "I-what", "I-what", "I-what", "O", "O", "O"],
+    "scores": [0.6201, 0.9008, 0.9892, 0.986, 0.9159, 0.9168, 0.8294],
+    "turn": "need",
+    "work": "ac_technician",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 15
+      }
+    ]
+  },
+  {
+    "text": "my geyser's broken… help",
+    "tokens": ["▁my", "▁gey", "ser", "'", "s", "▁broken", "...", "▁help"],
+    "tags": ["B-what", "I-what", "I-what", "I-what", "I-what", "I-what", "O", "O"],
+    "scores": [0.8297, 0.5196, 0.8661, 0.9281, 0.9577, 0.9693, 0.9915, 0.9954],
+    "turn": "need",
+    "work": "geyser_repair",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 18
+      }
+    ]
+  },
+  {
+    "text": "Painter for 2BHK, next month?",
+    "tokens": ["▁Paint", "er", "▁for", "▁2", "B", "HK", ",", "▁next", "▁month", "?"],
+    "tags": ["B-kind", "I-kind", "O", "B-where", "I-where", "I-where", "O", "B-when", "I-when", "O"],
+    "scores": [0.9743, 0.9933, 0.9925, 0.9482, 0.9759, 0.9824, 0.9966, 0.9782, 0.9913, 0.9975],
+    "turn": "need",
+    "work": "painter",
+    "spans": [
+      {
+        "slot": "kind",
+        "start": 0,
+        "end": 7
+      },
+      {
+        "slot": "where",
+        "start": 12,
+        "end": 16
+      },
+      {
+        "slot": "when",
+        "start": 18,
+        "end": 28
+      }
+    ]
+  },
+  {
+    "text": "cook needed — every day, 2 meals",
+    "tokens": ["▁cook", "▁needed", "▁—", "▁every", "▁day", ",", "▁2", "▁meal", "s"],
+    "tags": ["B-kind", "O", "O", "B-how_long", "I-how_long", "O", "B-how_long", "B-what", "O"],
+    "scores": [0.9311, 0.9733, 0.9964, 0.924, 0.9675, 0.997, 0.7566, 0.4467, 0.6799],
+    "turn": "need",
+    "work": "cook",
+    "spans": [
+      {
+        "slot": "kind",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "slot": "how_long",
+        "start": 14,
+        "end": 23
+      },
+      {
+        "slot": "how_long",
+        "start": 25,
+        "end": 26
+      },
+      {
+        "slot": "what",
+        "start": 27,
+        "end": 32
+      }
+    ]
+  },
+  {
+    "text": "TV not working 😢 in HSR Layout",
+    "tokens": ["▁TV", "▁not", "▁working", "▁", "😢", "▁in", "▁H", "SR", "▁Layout"],
+    "tags": ["B-what", "I-what", "I-what", "O", "O", "O", "B-where", "I-where", "I-where"],
+    "scores": [0.8171, 0.728, 0.9796, 0.9889, 0.9109, 0.9974, 0.9847, 0.9932, 0.993],
+    "turn": "need",
+    "work": "tv_repair",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 14
+      },
+      {
+        "slot": "where",
+        "start": 20,
+        "end": 30
+      }
+    ]
+  },
+  {
+    "text": "need maid 3 hours on Saturday, Koramangala 5th block",
+    "tokens": [
+      "▁need",
+      "▁mai",
+      "d",
+      "▁3",
+      "▁hours",
+      "▁on",
+      "▁Saturday",
+      ",",
+      "▁Ko",
+      "raman",
+      "gala",
+      "▁5",
+      "th",
+      "▁block"
+    ],
+    "tags": [
+      "O",
+      "B-kind",
+      "I-kind",
+      "B-how_long",
+      "I-how_long",
+      "O",
+      "I-when",
+      "O",
+      "B-where",
+      "I-where",
+      "I-where",
+      "I-where",
+      "I-where",
+      "I-where"
+    ],
+    "scores": [
+      0.996, 0.963, 0.985, 0.9457, 0.963, 0.6273, 0.8922, 0.9972, 0.9837, 0.9927, 0.9927, 0.9926, 0.9923, 0.9925
+    ],
+    "turn": "need",
+    "work": "maid",
+    "spans": [
+      {
+        "slot": "kind",
+        "start": 5,
+        "end": 9
+      },
+      {
+        "slot": "how_long",
+        "start": 10,
+        "end": 17
+      },
+      {
+        "slot": "when",
+        "start": 21,
+        "end": 29
+      },
+      {
+        "slot": "where",
+        "start": 31,
+        "end": 52
+      }
+    ]
+  },
+  {
+    "text": "carpenter: wardrobe hinge loose",
+    "tokens": ["▁car", "pen", "ter", ":", "▁", "ward", "robe", "▁hinge", "▁loo", "se"],
+    "tags": ["B-kind", "I-kind", "I-kind", "O", "O", "B-what", "I-what", "I-what", "I-what", "I-what"],
+    "scores": [0.9732, 0.9617, 0.9904, 0.9881, 0.4387, 0.8754, 0.9787, 0.9864, 0.9888, 0.993],
+    "turn": "need",
+    "work": "carpenter",
+    "spans": [
+      {
+        "slot": "kind",
+        "start": 0,
+        "end": 9
+      },
+      {
+        "slot": "what",
+        "start": 11,
+        "end": 31
+      }
+    ]
+  },
+  {
+    "text": "How much does an electrician charge?",
+    "tokens": ["▁How", "▁much", "▁does", "▁an", "▁electric", "ian", "▁charge", "?"],
+    "tags": ["O", "O", "O", "O", "B-kind", "I-kind", "O", "O"],
+    "scores": [0.9963, 0.9957, 0.9959, 0.9951, 0.9717, 0.9908, 0.9931, 0.9962],
+    "turn": "market",
+    "work": "electrician",
+    "spans": [
+      {
+        "slot": "kind",
+        "start": 17,
+        "end": 28
+      }
+    ]
+  },
+  {
+    "text": "thanks!",
+    "tokens": ["▁thanks", "!"],
+    "tags": ["O", "O"],
+    "scores": [0.9981, 0.9981],
+    "turn": "greeting",
+    "work": "none",
+    "spans": []
+  },
+  {
+    "text": "mornings",
+    "tokens": ["▁morning", "s"],
+    "tags": ["B-when", "I-when"],
+    "scores": [0.9523, 0.9908],
+    "turn": "greeting",
+    "work": "none",
+    "spans": [
+      {
+        "slot": "when",
+        "start": 0,
+        "end": 8
+      }
+    ]
+  },
+  {
+    "text": "Indiranagar",
+    "tokens": ["▁Indi", "ra", "nagar"],
+    "tags": ["B-where", "I-where", "I-where"],
+    "scores": [0.9835, 0.9924, 0.9925],
+    "turn": "need",
+    "work": "none",
+    "spans": [
+      {
+        "slot": "where",
+        "start": 0,
+        "end": 11
+      }
+    ]
+  },
+  {
+    "text": "for a month",
+    "tokens": ["▁for", "▁a", "▁month"],
+    "tags": ["B-how_long", "I-how_long", "I-how_long"],
+    "scores": [0.8778, 0.9638, 0.9662],
+    "turn": "greeting",
+    "work": "none",
+    "spans": [
+      {
+        "slot": "how_long",
+        "start": 0,
+        "end": 11
+      }
+    ]
+  },
+  {
+    "text": "Driver needed for 1 week from 12th Dec",
+    "tokens": ["▁Driver", "▁needed", "▁for", "▁1", "▁week", "▁from", "▁12", "th", "▁Dec"],
+    "tags": ["B-kind", "O", "O", "B-how_long", "I-how_long", "O", "B-when", "I-when", "I-when"],
+    "scores": [0.9367, 0.972, 0.9963, 0.942, 0.9518, 0.849, 0.6448, 0.9815, 0.9791],
+    "turn": "need",
+    "work": "driver",
+    "spans": [
+      {
+        "slot": "kind",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "slot": "how_long",
+        "start": 18,
+        "end": 24
+      },
+      {
+        "slot": "when",
+        "start": 30,
+        "end": 38
+      }
+    ]
+  },
+  {
+    "text": "fridge isn't cooling, ice everywhere.",
+    "tokens": ["▁f", "ridge", "▁isn", "'", "t", "▁cool", "ing", ",", "▁", "ice", "▁everywhere", "."],
+    "tags": [
+      "B-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what",
+      "I-what"
+    ],
+    "scores": [0.8625, 0.8715, 0.9153, 0.9957, 0.9953, 0.9962, 0.996, 0.9963, 0.9963, 0.9957, 0.9964, 0.5124],
+    "turn": "need",
+    "work": "fridge_repair",
+    "spans": [
+      {
+        "slot": "what",
+        "start": 0,
+        "end": 37
+      }
+    ]
+  }
+]

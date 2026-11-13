@@ -11,9 +11,11 @@ import {
   othersInGroup,
   type Ports,
   problemByMeaning,
+  readMessage,
   readScope,
   readTurn,
   sameWork,
+  type TurnRead,
   t,
   tradeByMeaning,
   tradeTitled,
@@ -38,8 +40,9 @@ import { findRoute } from "./route.js";
 import { listedWork } from "./skills.js";
 
 /**
- * Reading a message in Find. With a model, one call reads it with the chat so far (`readTurn`), in any language, and its
- * read decides what work it is and how it is hired: the word lists, which misread words like "kitchen" or "cleaning",
+ * Reading a message in Find. The phone's reader reads an English message on the phone (ADR 0065); otherwise, with a
+ * model, one call reads it with the chat so far (`readTurn`), in any language. The reading decides what work it is and
+ * how it is hired: the word lists, which misread words like "kitchen" or "cleaning",
  * never do. With no answer, the chat asks which work and offers the list, rather than guess. The word lists still read
  * what they are sure of: an area, a day, an amount. Models propose, the interview decides.
  */
@@ -67,9 +70,13 @@ async function marketAnswer(m: Message, slot: NeedSlot, shown: boolean): Promise
 }
 
 /** The model's reading of one message; asked twice, since a dropped request is no reading. */
-const readOnce = async (m: Message, list: readonly BoardSkill[]) =>
+const readByModel = async (m: Message, list: readonly BoardSkill[]) =>
   (await readTurn(m.ports.model, turnContext(m.state, m.text, workOptions(list)))) ??
   (await readTurn(m.ports.model, turnContext(m.state, m.text, workOptions(list))));
+
+/** One message's reading: the phone's reader alone for English, GigSync's model for the rest (`readMessage`). */
+const readOnce = (m: Message, list: readonly BoardSkill[], slot?: NeedSlot): Promise<TurnRead | undefined> =>
+  readMessage(m.ports.reader, m.text, slot, () => readByModel(m, list));
 
 /**
  * The first message: the need in the owner's words, read into its work, its scope and the kind of job. The model's
@@ -123,7 +130,7 @@ export async function readLater(m: Message, secret: boolean, heard: NeedState): 
   if (await marketAnswer(m, state.slot, false)) return true;
   if (secret || !worthReading(state, heard)) return false;
   const { list } = await listedWork(ports, session, state.to?.skills);
-  const read = await readTurn(ports.model, turnContext(state, text, workOptions(list)));
+  const read = await readOnce(m, list, state.slot);
   if (!read || !namesOtherWork(state, read)) return false;
   switchNeed(chat, read, text);
   return true;

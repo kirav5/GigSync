@@ -1,36 +1,51 @@
 import type { MessageKey, Ports } from "@gigsync/core";
 import { useEffect, useState } from "react";
-import { EMBEDDING_PACK_MB, PackState, useUnderstanding } from "../adapters/embedder.js";
+import { EMBEDDING_PACK_MB, PackState, READER_PACK_MB, useUnderstanding } from "../adapters/embedder.js";
 import { ModelChoice, OLLAMA_OFFERED, useChosenModel } from "../adapters/model.js";
 import { listOllamaModels } from "../adapters/ollama.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { OnDeviceModel } from "./model/OnDeviceModel.js";
 
-/** The understanding pack (ADR 0042): its state on this device, and the one tap that fetches it. */
+/** What the owner is told of a part of the pack: fetched, fetching, or failed. */
+function packLine(state: PackState | undefined, percent: number, t: ReturnType<typeof useI18n>["t"]) {
+  return state === PackState.ready
+    ? t("pack.ready")
+    : state === PackState.downloading
+      ? t("pack.downloading", { percent })
+      : state === PackState.failed
+        ? t("pack.failed")
+        : undefined;
+}
+
+const fetchable = (state: PackState | undefined) => state === PackState.downloadable || state === PackState.failed;
+
+/**
+ * The understanding pack (ADR 0042) and the reader that comes with it (ADR 0065): their state on this device, and the
+ * one tap that fetches them. A pack fetched before the reader existed offers the reader alone.
+ */
 function UnderstandingPack() {
   const { t } = useI18n();
   const pack = useUnderstanding();
   const model = useChosenModel();
   const lite = model.current.choice === ModelChoice.lite;
+  const reader = pack.state === PackState.ready ? pack.readerState : undefined;
+  const readerMb = pack.readerState === undefined ? 0 : READER_PACK_MB;
   const line =
-    pack.state === PackState.ready
-      ? t("pack.ready")
-      : pack.state === PackState.downloading
-        ? t("pack.downloading", { percent: pack.percent })
-        : pack.state === PackState.failed
-          ? t("pack.failed")
-          : undefined;
+    reader && reader !== PackState.ready
+      ? packLine(reader, pack.readerPercent, t)
+      : packLine(pack.state, pack.percent, t);
+  const tap = fetchable(pack.state) ? EMBEDDING_PACK_MB + readerMb : fetchable(reader) ? READER_PACK_MB : undefined;
   return (
     <section className={C.stack} aria-label={t("pack.title")}>
       <span className={C.label}>{t("pack.title")}</span>
-      <span className={C.faint}>{t("pack.about", { mb: EMBEDDING_PACK_MB })}</span>
+      <span className={C.faint}>{t("pack.about", { mb: EMBEDDING_PACK_MB + readerMb })}</span>
       {line && <span className={C.muted}>{line}</span>}
       {lite && pack.state === PackState.ready && <span className={C.muted}>{t("pack.lite")}</span>}
-      {(pack.state === PackState.downloadable || pack.state === PackState.failed) && (
+      {tap !== undefined && (
         <div>
           <button type={C.button} className={C.secondary} onClick={() => void pack.prepare()}>
-            {t("pack.get", { mb: EMBEDDING_PACK_MB })}
+            {t("pack.get", { mb: tap })}
           </button>
         </div>
       )}

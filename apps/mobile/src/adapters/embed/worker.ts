@@ -1,6 +1,9 @@
 /// <reference lib="webworker" />
+
+import type { ReaderInput } from "@gigsync/protocol";
 import { env, type FeatureExtractionPipeline, pipeline } from "@huggingface/transformers";
 import { EMBEDDING_MODEL, FromWorker, type FromWorkerMessage, ToWorker, type ToWorkerMessage } from "./messages.js";
+import { type LoadedReader, loadReader, readOne } from "./reader.js";
 
 /**
  * The understanding pack's model, in a worker (ADR 0042): loads the embedding model and turns texts into vectors off
@@ -89,8 +92,42 @@ async function embed(id: number, texts: readonly string[], keep: boolean): Promi
   }
 }
 
+let reader: Promise<LoadedReader> | undefined;
+
+/** The reader, after the embedding model whose tokenizer it uses; from the device only unless `fetchIt`. */
+async function startReader(url: string, fetchIt: boolean): Promise<void> {
+  try {
+    if (!pipe) throw new Error("model not loaded");
+    const { tokenizer } = await pipe;
+    const progress = (percent: number) => post({ type: FromWorker.readerProgress, percent });
+    reader ??= loadReader(url, fetchIt, tokenizer, progress);
+    await reader;
+    post({ type: FromWorker.readerReady });
+  } catch (err) {
+    reader = undefined;
+    post({ type: FromWorker.readerFailed, error: nameOf(err) });
+  }
+}
+
+async function read(id: number, input: ReaderInput): Promise<void> {
+  try {
+    if (!reader) throw new Error("reader not loaded");
+    post({ type: FromWorker.reading, id, result: (await readOne(await reader, input)) ?? null });
+  } catch (err) {
+    post({ type: FromWorker.error, id, error: nameOf(err) });
+  }
+}
+
 scope.onmessage = (e: MessageEvent<ToWorkerMessage>) => {
   const m = e.data;
-  if (m.type === ToWorker.load) void load();
-  else void embed(m.id, m.texts, m.keep);
+  switch (m.type) {
+    case ToWorker.load:
+      return void load();
+    case ToWorker.embed:
+      return void embed(m.id, m.texts, m.keep);
+    case ToWorker.loadReader:
+      return void startReader(m.url, m.fetch);
+    case ToWorker.read:
+      return void read(m.id, m.input);
+  }
 };

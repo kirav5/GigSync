@@ -5,7 +5,7 @@
  */
 
 import type { DevicePublicKeys, Sealed } from "@gigsync/crypto";
-import type { DeviceId, ModelPurpose } from "@gigsync/protocol";
+import type { DeviceId, ModelPurpose, ReaderInput, ReaderResult } from "@gigsync/protocol";
 
 /**
  * Every storage collection the agent uses. One name per kind of record, so two features never share one by accident.
@@ -136,6 +136,15 @@ export interface Embedder {
   embedMany?(texts: readonly string[]): Promise<(readonly number[] | null)[]>;
 }
 
+/**
+ * The phone's reader (ADR 0065): a message, and the detail the open question asks for, read on the phone into the kind
+ * of message, the kind of work and each detail's words. Null when the device has none ready (not fetched, lite mode);
+ * Find then reads the message as it does without it.
+ */
+export interface Reader {
+  read(input: ReaderInput): Promise<ReaderResult | null>;
+}
+
 export interface Clock {
   now(): Date;
 }
@@ -155,6 +164,8 @@ export interface Ports {
   clock: Clock;
   /** Absent on a device with no embedding model; every reader then uses the word lists alone. */
   embedder?: Embedder;
+  /** Absent on a device with no reader; Find then reads with GigSync's model or the word lists. */
+  reader?: Reader;
 }
 
 /** In-memory implementations for tests and the web preview. */
