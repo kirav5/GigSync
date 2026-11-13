@@ -119,28 +119,6 @@ html[data-keyboard="open"] .tabbar {
   font-size: 13px;
 }
 
-/* What runs the agent: a pill, peri while a model answers; with none answering there is no pill. */
-.engine-chip {
-  font: 600 11px / 1 var(--sans);
-  padding: 6px 9px;
-  border-radius: 999px;
-  border: 1px solid var(--hairline);
-  background: var(--surface2);
-  color: var(--accent-ink);
-  white-space: nowrap;
-}
-button.engine-chip {
-  cursor: pointer;
-}
-.engine-chip.peri {
-  color: var(--peri-ink);
-}
-@media (hover: hover) {
-  button.engine-chip:hover {
-    border-color: currentColor;
-  }
-}
-
 /* The chats kept on this phone (shell/DrawerChats.tsx): one row each, its title opening it, the trash beside it. */
 .side-chats,
 .side-group {

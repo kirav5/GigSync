@@ -84,12 +84,9 @@ test("a capable phone is offered the model once, and Later puts it away", async 
   await expect(page.getByText(t(en, "model.offer", { mb: MODEL_MB }))).toHaveCount(0);
   expect(await fetches(page)).toEqual([]);
 
-  // Settings still has it, a tap away.
+  // Settings asks nothing about a model the phone doesn't keep.
   await open(page, "nav.settings");
-  await expect(settingsCard(page)).toContainText(t(en, "model.state_downloadable"));
-  await expect(
-    settingsCard(page).getByRole("button", { name: t(en, "model.download", { mb: MODEL_MB }) }),
-  ).toBeVisible();
+  await expect(settingsCard(page)).toHaveCount(0);
 });
 
 test("Download shows progress in the chat, says once that it is ready, and Settings removes it", async ({ page }) => {
@@ -116,10 +113,9 @@ test("Download shows progress in the chat, says once that it is ready, and Setti
   await open(page, "nav.settings");
   const card = settingsCard(page);
   await expect(card).toContainText(t(en, "model.state_ready"));
-  await expect(card).toContainText("Qwen3.5-2B");
   await shoot("settings-ready", { worker: page }, FOLDER);
   await card.getByRole("button", { name: t(en, "model.remove"), exact: true }).click();
-  await expect(card).toContainText(t(en, "model.state_downloadable"));
+  await expect(card).toHaveCount(0);
   expect(await page.evaluate((k) => localStorage.getItem(k), READY_KEY)).toBeNull();
   await shoot("settings-removed", { worker: page }, FOLDER);
 });
@@ -164,16 +160,13 @@ test("on Wi-Fi a stopped download carries on by itself", async ({ page }) => {
   expect(await fetches(page)).toHaveLength(1);
 });
 
-test("a phone that cannot run the model is never offered it, and Settings says why", async ({ page }) => {
+test("a phone that cannot run the model is never offered it, and Settings never mentions one", async ({ page }) => {
   await phone(page, Mode.incapable);
   await worker(page, "Usha");
   await page.waitForTimeout(SETTLE_MS);
   await expect(page.getByText(t(en, "model.offer", { mb: MODEL_MB }))).toHaveCount(0);
   await open(page, "nav.settings");
-  await expect(settingsCard(page)).toContainText(t(en, "model.why.no_webgpu"));
-  await expect(settingsCard(page).getByRole("button", { name: t(en, "model.download", { mb: MODEL_MB }) })).toHaveCount(
-    0,
-  );
+  await expect(settingsCard(page)).toHaveCount(0);
   await shoot("settings-incapable", { worker: page }, FOLDER);
 });
 

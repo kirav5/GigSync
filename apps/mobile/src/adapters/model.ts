@@ -1,24 +1,11 @@
-import {
-  Collection,
-  type GenerateOptions,
-  log,
-  type MessageKey,
-  type Model,
-  type Params,
-  pii,
-  type Storage,
-  withoutReasoning,
-} from "@gigsync/core";
-import type { ModelStatus } from "@gigsync/plugin-llm";
+import { Collection, type GenerateOptions, log, type Model, pii, type Storage, withoutReasoning } from "@gigsync/core";
 import type { Session } from "@gigsync/protocol";
 import { useSyncExternalStore } from "react";
 import { OnDevice } from "./model-device.js";
-import { ENGINE_NONE } from "./model-engine.js";
 import { OllamaModel } from "./ollama.js";
 import { ServerModel } from "./server-model.js";
 
 export { Notice } from "./model-device.js";
-export { ENGINE_NONE } from "./model-engine.js";
 
 /**
  * Which model the agent uses, chosen in Settings and kept on this device. Everything goes through core's `Model`
@@ -49,19 +36,12 @@ export interface ModelSettings {
 export const OLLAMA_OFFERED = import.meta.env.DEV;
 
 const SETTINGS_KEY = "model";
+/** A development build given an Ollama model (`VITE_OLLAMA_MODEL`) uses it; there is no screen to pick one. */
+const DEV_OLLAMA = OLLAMA_OFFERED ? (import.meta.env.VITE_OLLAMA_MODEL ?? "") : "";
 const DEFAULTS: ModelSettings = {
-  choice: ModelChoice.auto,
-  ollamaModel: OLLAMA_OFFERED ? (import.meta.env.VITE_OLLAMA_MODEL ?? "") : "",
+  choice: DEV_OLLAMA ? ModelChoice.ollama : ModelChoice.auto,
+  ollamaModel: DEV_OLLAMA,
 };
-const ENGINE_NAMES: Readonly<Record<string, string>> = {
-  litert: "LiteRT-LM",
-  "foundation-models": "Apple Foundation Models",
-};
-
-/** The model's own name when the engine gives one, else the engine's. */
-export const engineName = (status: ModelStatus | undefined) =>
-  status?.model?.name ?? ENGINE_NAMES[status?.engine ?? ENGINE_NONE] ?? status?.engine ?? ENGINE_NONE;
-
 /** The one `Model` the app hands to core; it routes each call to the engine chosen in Settings. */
 export class ChosenModel implements Model {
   private settings: ModelSettings = DEFAULTS;
@@ -78,10 +58,6 @@ export class ChosenModel implements Model {
     return this.settings;
   }
 
-  get deviceInfo(): ModelStatus | undefined {
-    return this.device.status;
-  }
-
   /** Reads the saved choice and asks the device what it has. */
   async load(storage: Storage): Promise<void> {
     const saved = await storage.get<Partial<ModelSettings>>(Collection.settings, SETTINGS_KEY);
@@ -90,8 +66,6 @@ export class ChosenModel implements Model {
     if (this.settings.choice === ModelChoice.lite) this.settings = { ...this.settings, choice: ModelChoice.device };
     await this.device.load(storage);
   }
-
-  refresh = () => this.device.refresh();
 
   /** The signed-in owner's session, for GigSync's model; none once signed out. */
   setSession(session: Session | undefined): void {
@@ -155,24 +129,6 @@ export class ChosenModel implements Model {
       default:
         if (!this.secret && this.server.available) return ModelChoice.server;
         return this.device.usable() ? ModelChoice.device : ModelChoice.lite;
-    }
-  }
-
-  /**
-   * One line for the screens, in the owner's language: which engine will answer right now; undefined when none can, as
-   * there is nothing for the owner to do about it (rules and templates do every job).
-   */
-  label(t: (key: MessageKey, params?: Params) => string): string | undefined {
-    const device = t("model.on_device_label", { engine: engineName(this.device.status) });
-    switch (this.answering()) {
-      case ModelChoice.ollama:
-        return t("model.ollama_label", { name: this.settings.ollamaModel });
-      case ModelChoice.server:
-        return t("model.auto_label", { model: t("model.server_label") });
-      case ModelChoice.device:
-        return this.settings.choice === ModelChoice.auto ? t("model.auto_label", { model: device }) : device;
-      default:
-        return this.settings.choice === ModelChoice.device ? t("model.device_not_ready", { device }) : undefined;
     }
   }
 

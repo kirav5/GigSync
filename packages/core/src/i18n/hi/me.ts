@@ -25,7 +25,6 @@ export const me: Readonly<Record<keyof typeof en, string>> = {
   "me.off_board": "बोर्ड से हटा",
   "me.this_phone": "यह फ़ोन",
   "me.sign_out_sub": "आपके रिकॉर्ड इसी फ़ोन पर रहते हैं",
-  "me.agent_runs": "आपका एजेंट किस पर चलता है",
   "me.people_none": "जिन कामगारों के साथ आप काम पर हस्ताक्षर करते हैं, वे यहाँ दिखते हैं।",
   "me.alerts_waiting.one": "{count} फ़ैसला आपका इंतज़ार कर रहा है",
   "me.alerts_waiting.other": "{count} फ़ैसले आपका इंतज़ार कर रहे हैं",

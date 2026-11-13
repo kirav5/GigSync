@@ -1,138 +1,47 @@
-import type { MessageKey, Ports } from "@gigsync/core";
-import { useEffect, useState } from "react";
-import { EMBEDDING_PACK_MB, PackState, READER_PACK_MB, useUnderstanding } from "../adapters/embedder.js";
-import { ModelChoice, OLLAMA_OFFERED, useChosenModel } from "../adapters/model.js";
-import { listOllamaModels } from "../adapters/ollama.js";
+import { ModelState } from "@gigsync/plugin-llm";
+import { useChosenModel } from "../adapters/model.js";
+import { currentNetwork } from "../adapters/model-device.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
-import { OnDeviceModel } from "./model/OnDeviceModel.js";
-
-/** What the owner is told of a part of the pack: fetched, fetching, or failed. */
-function packLine(state: PackState | undefined, percent: number, t: ReturnType<typeof useI18n>["t"]) {
-  return state === PackState.ready
-    ? t("pack.ready")
-    : state === PackState.downloading
-      ? t("pack.downloading", { percent })
-      : state === PackState.failed
-        ? t("pack.failed")
-        : undefined;
-}
-
-const fetchable = (state: PackState | undefined) => state === PackState.downloadable || state === PackState.failed;
+import { DownloadLine, networkNote, percentOf, sizeMb } from "./model/modelText.js";
+import "./model/model.css";
 
 /**
- * The understanding pack (ADR 0042) and the reader that comes with it (ADR 0065): their state on this device, and the
- * one tap that fetches them. A pack fetched before the reader existed offers the reader alone.
+ * The model on this phone, as the last block of Settings' Your agent, and only once the owner has one or is fetching
+ * it: its progress, a paused download to carry on, or Remove to free the space. Which model answers is the Privacy
+ * switch's choice ("Let GigSync's model read my chats"), and the download itself is offered in the chat when it would
+ * help, so nothing here asks the owner to pick a model or explains one.
  */
-function UnderstandingPack() {
+export function ModelSettings() {
   const { t } = useI18n();
-  const pack = useUnderstanding();
-  const reader = pack.state === PackState.ready ? pack.readerState : undefined;
-  const readerMb = pack.readerState === undefined ? 0 : READER_PACK_MB;
-  const line =
-    reader && reader !== PackState.ready
-      ? packLine(reader, pack.readerPercent, t)
-      : packLine(pack.state, pack.percent, t);
-  const tap = fetchable(pack.state) ? EMBEDDING_PACK_MB + readerMb : fetchable(reader) ? READER_PACK_MB : undefined;
-  return (
-    <section className={C.stack} aria-label={t("pack.title")}>
-      <span className={C.label}>{t("pack.title")}</span>
-      <span className={C.faint}>{t("pack.about", { mb: EMBEDDING_PACK_MB + readerMb })}</span>
-      {line && <span className={C.muted}>{line}</span>}
-      {tap !== undefined && (
-        <div>
-          <button type={C.button} className={C.secondary} onClick={() => void pack.prepare()}>
-            {t("pack.get", { mb: tap })}
-          </button>
-        </div>
-      )}
-    </section>
-  );
-}
-
-const CHOICES: readonly { choice: ModelChoice; label: MessageKey; about: MessageKey }[] = [
-  { choice: ModelChoice.auto, label: "model.auto", about: "model.auto_about" },
-  { choice: ModelChoice.device, label: "model.device", about: "model.device_about" },
-  ...(OLLAMA_OFFERED
-    ? [{ choice: ModelChoice.ollama, label: "model.ollama" as const, about: "model.ollama_about" as const }]
-    : []),
-];
-
-/**
- * Which model the agent uses, with what this device actually has, as the last block of Settings' Your agent. Nothing
- * here ever uses a cloud model.
- */
-export function ModelSettings({ ports }: { ports: Ports }) {
-  const { t } = useI18n();
-  const model = useChosenModel();
-  const [ollamaName, setOllamaName] = useState(model.current.ollamaModel);
-  const [pulled, setPulled] = useState<string[]>();
-  const choice = model.current.choice;
-
-  useEffect(() => setOllamaName(model.current.ollamaModel), [model.current.ollamaModel]);
-
-  // Offer the models Ollama on this computer actually has, instead of asking for a name to be typed.
-  useEffect(() => {
-    if (choice === ModelChoice.ollama && OLLAMA_OFFERED) void listOllamaModels().then(setPulled);
-  }, [choice]);
-
-  const choose = (next: ModelChoice) => void model.save(ports.storage, { ...model.current, choice: next });
-  const saveOllama = () =>
-    void model.save(ports.storage, { ...model.current, choice: ModelChoice.ollama, ollamaModel: ollamaName });
-  const chosen = CHOICES.find((c) => c.choice === choice);
-  const now = model.label(t);
-
+  const { device } = useChosenModel();
+  const status = device.status;
+  const kept = Boolean(status?.available && status.state);
+  const paused = Boolean(device.record.wanted) && status?.state === ModelState.downloadable;
+  if (!kept && !paused && !device.downloading) return null;
+  const mb = sizeMb(status);
+  const state = t(kept ? "model.state_ready" : "model.state_downloading", { percent: percentOf(status) });
+  const note = paused ? networkNote(currentNetwork(), mb, t) : undefined;
   return (
     <section className="setting-block" aria-label={t("model.title")}>
       <span className="list-row-title">{t("model.title")}</span>
-      <OnDeviceModel />
-      <div className={C.row}>
-        {CHOICES.map((c) => (
-          <button
-            key={c.choice}
-            type={C.button}
-            aria-pressed={choice === c.choice}
-            className={choice === c.choice ? C.chipOn : C.chip}
-            onClick={() => choose(c.choice)}
-          >
-            {t(c.label)}
-          </button>
-        ))}
-      </div>
-      {chosen && <span className={C.faint}>{t(chosen.about)}</span>}
-      {choice === ModelChoice.ollama && OLLAMA_OFFERED && (
-        <div className={C.row}>
-          {pulled && pulled.length > 0 ? (
-            <select
-              className={C.field}
-              aria-label={t("model.ollama_model")}
-              value={ollamaName}
-              onChange={(e) => setOllamaName(e.target.value)}
-            >
-              <option value="">{t("model.ollama_choose")}</option>
-              {pulled.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
+      <span className={C.muted}>{t("model.kept_line", { mb, state })}</span>
+      {device.downloading && <DownloadLine status={status} t={t} />}
+      {paused && <span className={C.muted}>{t("model.paused")}</span>}
+      {note && <span className={C.faint}>{note}</span>}
+      {(kept || paused) && (
+        <div>
+          {paused ? (
+            <button type={C.button} className={C.secondary} onClick={() => void device.download()}>
+              {t("model.resume", { mb })}
+            </button>
           ) : (
-            <input
-              className={C.field}
-              aria-label={t("model.ollama_name")}
-              placeholder={t(pulled ? "model.ollama_off" : "model.ollama_looking")}
-              value={ollamaName}
-              onChange={(e) => setOllamaName(e.target.value)}
-              autoComplete={C.off}
-            />
+            <button type={C.button} className={C.secondary} onClick={() => void device.remove()}>
+              {t("model.remove")}
+            </button>
           )}
-          <button type={C.button} className={C.secondary} onClick={saveOllama} disabled={!ollamaName.trim()}>
-            {t("model.use")}
-          </button>
         </div>
       )}
-      {now && <span className={C.label}>{t("model.now", { model: now })}</span>}
-      <UnderstandingPack />
     </section>
   );
 }

@@ -65,7 +65,6 @@ export function Shell({ account, nav, tasks, chatTitle, onNewChat, children }: P
               onTab={go}
               onNewChat={onNewChat}
               onChatOpened={() => go(chatOf(account))}
-              onSettings={() => go(Screen.settings)}
             />
           )}
         </div>
