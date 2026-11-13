@@ -60,7 +60,9 @@ export function Ask({
       <div className="iv-say">
         <div className="text">
           {shown.map((line) => (
-            <p key={line.key}>{lineText(i18n, line)}</p>
+            <p key={line.key} className={line.aside ? "iv-aside" : undefined}>
+              {lineText(i18n, line)}
+            </p>
           ))}
         </div>
         <SpeakButton lang={i18n.lang} text={spoken(i18n, lines)} />

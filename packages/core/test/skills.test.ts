@@ -24,7 +24,10 @@ import { BagOfWordsEmbedder } from "./embedder-fakes.js";
 
 const AREAS = [{ key: "koramangala", names: ["Koramangala", "कोरमंगला", "ಕೋರಮಂಗಲ"] }];
 const config = (own: Lang) => ({ own, areas: AREAS, rates: CITY_RATES, today: "2026-11-02" });
-const keys = (s: NeedState) => needPrompt(s).lines.map((l) => l.key);
+const keys = (s: NeedState) =>
+  needPrompt(s)
+    .lines.filter((l) => !l.aside)
+    .map((l) => l.key);
 const listed = (text: string, workers = 1, lang: Lang = "en"): BoardSkill => ({
   key: text.toLowerCase(),
   text,

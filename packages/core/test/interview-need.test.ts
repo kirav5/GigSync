@@ -33,7 +33,11 @@ const AREAS = [
   { key: "hsr_layout", names: ["HSR Layout", "एचएसआर लेआउट", "HSR"] },
 ];
 const config = (own: Lang) => ({ own, areas: AREAS, rates: CITY_RATES, today: "2026-10-29" });
-const keys = (s: NeedState) => needPrompt(s).lines.map((l) => l.key);
+/** The question's own lines; the small print over it is `need-understood.test.ts`'s. */
+const keys = (s: NeedState) =>
+  needPrompt(s)
+    .lines.filter((l) => !l.aside)
+    .map((l) => l.key);
 const run = (s: NeedState, answers: readonly string[]) => answers.reduce((at, a) => hearNeed(at, a), s);
 const tap = (s: NeedState, values: readonly string[]) => values.reduce((at, v) => chooseNeed(at, v), s);
 
