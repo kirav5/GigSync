@@ -7,6 +7,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { protocol } from "./core.mjs";
+import { langOf } from "./languages.mjs";
 import { GROUP_WORDS } from "./phrases.mjs";
 import { Files } from "./run.mjs";
 import { drawTarget } from "./sample.mjs";
@@ -41,12 +42,13 @@ const lines = (path) =>
 if (import.meta.url === `file://${process.argv[1]}`) {
   const { values } = parseArgs({ options: { out: { type: "string" } } });
   const dir = values.out ?? "data/reader/v1";
-  const { seed } = JSON.parse(readFileSync(join(dir, Files.run), "utf8"));
-  const rows = lines(join(dir, Files.kept)).map((e) => ({ id: e.id, work: workOf(drawTarget(seed, e.id), e) }));
+  const { seed, lang } = JSON.parse(readFileSync(join(dir, Files.run), "utf8"));
+  const draw = (id) => drawTarget(seed, id, langOf(lang));
+  const rows = lines(join(dir, Files.kept)).map((e) => ({ id: e.id, work: workOf(draw(e.id), e) }));
   writeFileSync(join(dir, WORKS_LIST), `${JSON.stringify(workKinds())}\n`);
   writeFileSync(join(dir, WORKS), rows.map((r) => JSON.stringify(r)).join("\n") + (rows.length ? "\n" : ""));
   const named = rows.filter((r) => r.work).length;
-  const drift = lines(join(dir, Files.kept)).filter((e) => drawTarget(seed, e.id).turn !== e.turn).length;
+  const drift = lines(join(dir, Files.kept)).filter((e) => draw(e.id).turn !== e.turn).length;
   if (drift > 0) throw new Error(`${drift} examples do not match the targets drawn again: another seed or recipe?`);
   console.log(`${rows.length} examples, ${named} with a kind of work, ${workKinds().length} kinds`);
 }

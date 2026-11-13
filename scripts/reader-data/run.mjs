@@ -26,7 +26,7 @@ const DEV_EVERY = 10;
 export async function makeOne(target, ask) {
   const written = await ask(writePrompt(target), WRITE_OPTIONS);
   const message = typeof written?.message === "string" ? written.message.trim() : "";
-  const label = message ? await ask(labelPrompt(message, target.asking), LABEL_OPTIONS) : null;
+  const label = message ? await ask(labelPrompt(message, target.asking, target.lang), LABEL_OPTIONS) : null;
   const judged = judge(target, written, label);
   return judged.example ? judged : { ...judged, ...(message ? { message } : {}), ...(label ? { label } : {}) };
 }

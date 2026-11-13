@@ -6,7 +6,7 @@
 //   --reader R   what reads a message: `lists` (the three prompts and word lists), `turn` (one model reading) or
 //                `phone` (the phone's reader, ADR 0065; READER_MODEL names its folder), default lists
 //   --offline    no model at all, as a phone without GigSync's model: for `--reader phone` or `lists`
-//   --set SET    only one set: en, hi, kn, hinglish or kanglish
+//   --set SET    only one set: en, hi, kn, hinglish, hinglish-held (never trained or tuned on) or kanglish
 //   --limit N    only the first N of each set
 //   --json FILE  also write every conversation's record
 import { writeFileSync } from "node:fs";

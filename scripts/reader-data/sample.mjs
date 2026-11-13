@@ -2,7 +2,7 @@
 // must use. Drawn from a generator seeded by the run's seed and the target's number, so the same run draws the same
 // targets on any machine, and a stopped run picks up where it was without drawing anything twice.
 import { protocol } from "./core.mjs";
-import { GROUP_WORDS, HOW_LONG, KINDS, STYLES, WHEN, WHERE } from "./phrases.mjs";
+import { PHRASES, ReaderLang } from "./languages.mjs";
 
 const Turn = protocol.TurnKind.enum;
 const Slot = protocol.ReaderSlot.enum;
@@ -53,31 +53,31 @@ function weighted(rand, weights) {
 }
 
 /** The words a detail must use: a kind's or group's name, a place, a time, how long; `what` the teacher writes. */
-function wordsFor(rand, slot, kind) {
+function wordsFor(rand, words, slot, kind) {
   if (slot === Slot.kind) return pick(rand, kind.words);
-  if (slot === Slot.where) return pick(rand, WHERE);
-  if (slot === Slot.when) return pick(rand, WHEN);
-  if (slot === Slot.how_long) return pick(rand, HOW_LONG[pick(rand, protocol.Arrangement.options)]);
+  if (slot === Slot.where) return pick(rand, words.WHERE);
+  if (slot === Slot.when) return pick(rand, words.WHEN);
+  if (slot === Slot.how_long) return pick(rand, words.HOW_LONG[pick(rand, protocol.Arrangement.options)]);
   return true;
 }
 
-function needSlots(rand, kind, group) {
+function needSlots(rand, words, kind, group) {
   const slots = {};
   if (group) slots.kind = group.words;
-  else if (chance(rand, NEED_SAYS.kind)) slots.kind = wordsFor(rand, Slot.kind, kind);
+  else if (chance(rand, NEED_SAYS.kind)) slots.kind = wordsFor(rand, words, Slot.kind, kind);
   for (const slot of [Slot.where, Slot.when, Slot.how_long])
-    if (chance(rand, NEED_SAYS[slot])) slots[slot] = wordsFor(rand, slot, kind);
+    if (chance(rand, NEED_SAYS[slot])) slots[slot] = wordsFor(rand, words, slot, kind);
   if (!slots.kind || chance(rand, NEED_SAYS.what)) slots.what = true;
   return slots;
 }
 
-function answerSlots(rand, kind, asking) {
-  const slots = { [asking]: wordsFor(rand, asking, kind) };
+function answerSlots(rand, words, kind, asking) {
+  const slots = { [asking]: wordsFor(rand, words, asking, kind) };
   const also = pick(
     rand,
     ASKED.filter((s) => s !== asking),
   );
-  if (chance(rand, ANSWER_ALSO)) slots[also] = wordsFor(rand, also, kind);
+  if (chance(rand, ANSWER_ALSO)) slots[also] = wordsFor(rand, words, also, kind);
   return slots;
 }
 
@@ -86,23 +86,26 @@ export const isProblem = (target) => target.turn === Turn.need && !target.slots.
 
 /**
  * Target number `id` of a run. `kind` is the work the message is about, for the teacher's sense of the job; `slots`
- * are the details it must say, each with the words to use, or `true` for `what`, which the teacher words itself.
+ * are the details it must say, each with the words to use, or `true` for `what`, which the teacher words itself. A run
+ * in another language than English draws the same way from that language's words, and its targets say which.
  */
-export function drawTarget(seed, id) {
+export function drawTarget(seed, id, lang = ReaderLang.en) {
+  const words = PHRASES[lang];
+  const { GROUP_WORDS, KINDS, STYLES, WHERE } = words;
   const rand = generator(targetSeed(seed, id));
   const turn = weighted(rand, TURN_WEIGHTS);
   // A need named by its group is about one of the group's kinds, so the message and its target agree.
   const group = turn === Turn.need && chance(rand, NEED_SAYS.group) ? pick(rand, GROUP_WORDS) : undefined;
   const kind = group ? (KINDS.find((k) => k.kind === pick(rand, group.kinds)) ?? pick(rand, KINDS)) : pick(rand, KINDS);
   const style = pick(rand, STYLES);
-  const base = { id, turn, kind: kind.kind, style };
-  if (turn === Turn.need) return { ...base, slots: needSlots(rand, kind, group) };
+  const base = { id, turn, kind: kind.kind, style, ...(lang === ReaderLang.en ? {} : { lang }) };
+  if (turn === Turn.need) return { ...base, slots: needSlots(rand, words, kind, group) };
   if (turn === Turn.answer) {
     const asking = pick(rand, ASKED);
-    return { ...base, asking, slots: answerSlots(rand, kind, asking) };
+    return { ...base, asking, slots: answerSlots(rand, words, kind, asking) };
   }
   if (turn === Turn.market) {
-    const slots = { kind: wordsFor(rand, Slot.kind, kind) };
+    const slots = { kind: wordsFor(rand, words, Slot.kind, kind) };
     if (chance(rand, MARKET_WHERE)) slots.where = pick(rand, WHERE);
     return { ...base, slots };
   }

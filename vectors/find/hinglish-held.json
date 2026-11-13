@@ -1,0 +1,409 @@
+[
+  {
+    "id": "hinglish-held-cook-leave",
+    "says": ["meri cook aaj chutti pe hai, raat ka khana banwana hai family ke liye"],
+    "answers": ["4 log", "aaj shaam 7 baje"],
+    "want": {
+      "trade": "cook"
+    },
+    "hired": "visit"
+  },
+  {
+    "id": "hinglish-held-cook-monthly",
+    "says": ["roz subah shaam khana banane ke liye koi chahiye"],
+    "answers": ["3 log", "dono time"],
+    "want": {
+      "trade": "cook"
+    },
+    "hired": "monthly"
+  },
+  {
+    "id": "hinglish-held-cook-party",
+    "says": ["sunday ko ghar pe 15 logon ki party hai, khana kaun banayega"],
+    "answers": ["15", "sunday dopahar"],
+    "want": {
+      "trade": "cook"
+    }
+  },
+  {
+    "id": "hinglish-held-cook-veg",
+    "says": ["pure veg khana banane wali didi chahiye"],
+    "answers": ["2 log", "kal se"],
+    "want": {
+      "trade": "cook"
+    }
+  },
+  {
+    "id": "hinglish-held-maid-daily",
+    "says": ["jhadu pocha bartan ke liye kaamwali chahiye roz"],
+    "answers": ["2bhk", "subah 8 baje"],
+    "want": {
+      "trade": "maid"
+    },
+    "hired": "monthly"
+  },
+  {
+    "id": "hinglish-held-maid-deep",
+    "says": ["diwali se pehle poore ghar ki deep cleaning karwani hai"],
+    "answers": ["3bhk", "is weekend"],
+    "want": {
+      "trade": "maid"
+    }
+  },
+  {
+    "id": "hinglish-held-maid-left",
+    "says": ["humari bai ne kaam chhod diya, nayi chahiye jaldi"],
+    "answers": ["2 kamre", "kal se"],
+    "want": {
+      "trade": "maid"
+    }
+  },
+  {
+    "id": "hinglish-held-maid-weekend",
+    "says": ["sirf saturday sunday ko safai ke liye koi mil jayega?"],
+    "answers": ["1bhk", "is saturday"],
+    "want": {
+      "trade": "maid"
+    },
+    "hired": "weekly"
+  },
+  {
+    "id": "hinglish-held-plumber-geyser",
+    "says": ["bathroom mein pani hi nahi aa raha, tap sukha hai"],
+    "answers": ["ek bathroom", "abhi"],
+    "want": {
+      "trade": "plumber"
+    }
+  },
+  {
+    "id": "hinglish-held-plumber-flush",
+    "says": ["flush ka pani band hi nahi hota, lagatar beh raha hai"],
+    "answers": ["ek", "aaj"],
+    "want": {
+      "trade": "plumber"
+    }
+  },
+  {
+    "id": "hinglish-held-plumber-pipe",
+    "says": ["sink ke neeche pipe se pani leak ho raha"],
+    "answers": ["bas ek", "aaj shaam"],
+    "want": {
+      "trade": "plumber"
+    }
+  },
+  {
+    "id": "hinglish-held-plumber-motor",
+    "says": ["tanki mein pani nahi chadh raha, motor chal rahi hai par"],
+    "answers": ["ek", "kal subah"],
+    "want": {
+      "trade": "plumber"
+    }
+  },
+  {
+    "id": "hinglish-held-elec-mcb",
+    "says": ["baar baar light chali jaati hai, MCB trip ho raha hai"],
+    "answers": ["poora ghar", "aaj"],
+    "want": {
+      "trade": "electrician"
+    }
+  },
+  {
+    "id": "hinglish-held-elec-fan",
+    "says": ["naya pankha lagwana hai bedroom mein"],
+    "answers": ["ek pankha", "kal"],
+    "want": {
+      "trade": "electrician"
+    }
+  },
+  {
+    "id": "hinglish-held-elec-socket",
+    "says": ["socket se dhuan nikla aur ab kuch nahi chal raha"],
+    "answers": ["ek socket", "abhi"],
+    "want": {
+      "trade": "electrician"
+    }
+  },
+  {
+    "id": "hinglish-held-elec-wiring",
+    "says": ["hall ki wiring purani ho gayi hai, nayi daalni hai"],
+    "answers": ["ek kamra", "agle hafte"],
+    "want": {
+      "trade": "electrician"
+    }
+  },
+  {
+    "id": "hinglish-held-carp-bed",
+    "says": ["bed ki ek taang toot gayi hai"],
+    "answers": ["ek bed", "kal"],
+    "want": {
+      "trade": "carpenter"
+    }
+  },
+  {
+    "id": "hinglish-held-carp-door",
+    "says": ["darwaza theek se band nahi hota, atak jaata hai"],
+    "answers": ["ek darwaza", "is hafte"],
+    "want": {
+      "trade": "carpenter"
+    }
+  },
+  {
+    "id": "hinglish-held-carp-shelf",
+    "says": ["kitchen mein lakdi ki shelf banwani hai"],
+    "answers": ["ek shelf", "agle hafte"],
+    "want": {
+      "trade": "carpenter"
+    }
+  },
+  {
+    "id": "hinglish-held-ac-gas",
+    "says": ["ac thandi hawa nahi de raha, shayad gas khatam"],
+    "answers": ["ek ac", "kal subah"],
+    "want": {
+      "trade": "ac_technician"
+    }
+  },
+  {
+    "id": "hinglish-held-ac-water",
+    "says": ["ac se pani tapak raha hai andar"],
+    "answers": ["ek", "aaj"],
+    "want": {
+      "trade": "ac_technician"
+    }
+  },
+  {
+    "id": "hinglish-held-ac-install",
+    "says": ["naya split ac lagwana hai"],
+    "answers": ["ek", "sunday ko"],
+    "want": {
+      "trade": "ac_technician"
+    }
+  },
+  {
+    "id": "hinglish-held-paint-room",
+    "says": ["bacche ke room ki deewar pe naya rang chahiye"],
+    "answers": ["ek kamra", "agle mahine"],
+    "want": {
+      "trade": "painter"
+    }
+  },
+  {
+    "id": "hinglish-held-paint-seepage",
+    "says": ["deewar pe seelan ki wajah se paint utar raha hai, repaint karna hai"],
+    "answers": ["ek deewar", "is hafte"],
+    "want": {
+      "trade": "painter"
+    }
+  },
+  {
+    "id": "hinglish-held-paint-flat",
+    "says": ["poore flat ki putai karwani hai shift hone se pehle"],
+    "answers": ["2bhk", "15 tarikh se pehle"],
+    "want": {
+      "trade": "painter"
+    }
+  },
+  {
+    "id": "hinglish-held-driver-airport",
+    "says": ["kal subah 5 baje airport chhodne ke liye driver chahiye"],
+    "answers": ["ek baar", "kal subah"],
+    "want": {
+      "trade": "driver"
+    },
+    "hired": "visit"
+  },
+  {
+    "id": "hinglish-held-driver-office",
+    "says": ["roz office ke liye gaadi chalane wala chahiye"],
+    "answers": ["subah 9 se shaam 7", "agle somvar se"],
+    "want": {
+      "trade": "driver"
+    },
+    "hired": "monthly"
+  },
+  {
+    "id": "hinglish-held-driver-outstation",
+    "says": ["mysore jaana hai weekend pe, apni gaadi hai, driver chahiye"],
+    "answers": ["2 din", "saturday subah"],
+    "want": {
+      "trade": "driver"
+    }
+  },
+  {
+    "id": "hinglish-held-hello-maid",
+    "says": ["namaste ji", "ghar ki safai ke liye bai chahiye"],
+    "answers": ["2bhk", "kal se"],
+    "want": {
+      "trade": "maid"
+    }
+  },
+  {
+    "id": "hinglish-held-tv-sound",
+    "says": ["tv mein awaaz nahi aa rahi, picture aa rahi hai"],
+    "answers": ["bas ek", "kal se"],
+    "want": {
+      "skill": "TV repair"
+    }
+  },
+  {
+    "id": "hinglish-held-tv-lines",
+    "says": ["tv ki screen pe lines aa rahi hain"],
+    "answers": ["bas ek", "kal se"],
+    "want": {
+      "skill": "TV repair"
+    }
+  },
+  {
+    "id": "hinglish-held-fridge-ice",
+    "says": ["fridge mein barf jam rahi hai par neeche thanda nahi"],
+    "answers": ["bas ek", "kal se"],
+    "want": {
+      "skill": "Fridge repair"
+    }
+  },
+  {
+    "id": "hinglish-held-fridge-noise",
+    "says": ["fridge bahut awaaz kar raha hai raat ko"],
+    "answers": ["bas ek", "kal se"],
+    "want": {
+      "skill": "Fridge repair"
+    }
+  },
+  {
+    "id": "hinglish-held-laptop-slow",
+    "says": ["laptop bahut slow ho gaya hai, on hone mein time lagta"],
+    "answers": ["bas ek", "kal se"],
+    "want": {
+      "skill": "Laptop and computer repair"
+    }
+  },
+  {
+    "id": "hinglish-held-pest-termite",
+    "says": ["almari mein deemak lag gayi hai"],
+    "answers": ["bas ek", "kal se"],
+    "want": {
+      "skill": "Pest control"
+    }
+  },
+  {
+    "id": "hinglish-held-pest-rats",
+    "says": ["ghar mein chuhe ghoom rahe hain"],
+    "answers": ["bas ek", "kal se"],
+    "want": {
+      "skill": "Pest control"
+    }
+  },
+  {
+    "id": "hinglish-held-tutor-english",
+    "says": ["beti ko english padhane ke liye tuition teacher chahiye"],
+    "answers": ["ek", "shaam ko"],
+    "want": {
+      "skill": "School tutor"
+    }
+  },
+  {
+    "id": "hinglish-held-tailor-kurta",
+    "says": ["kurta ki fitting theek karwani hai"],
+    "answers": ["bas ek", "kal se"],
+    "want": {
+      "skill": "Tailor"
+    }
+  },
+  {
+    "id": "hinglish-held-garden",
+    "says": ["balcony ke paudhon ki dekhbhal ke liye mali chahiye"],
+    "answers": ["10 gamle", "hafte mein ek baar"],
+    "want": {
+      "skill": "Gardener"
+    }
+  },
+  {
+    "id": "hinglish-held-mehendi",
+    "says": ["shaadi ke liye mehendi lagwani hai"],
+    "answers": ["5 log", "agle mahine"],
+    "want": {
+      "skill": "Mehendi artist"
+    }
+  },
+  {
+    "id": "hinglish-held-yoga",
+    "says": ["ghar pe yoga sikhane ke liye koi chahiye mummy ke liye"],
+    "answers": ["ek", "subah"],
+    "want": {
+      "skill": "Yoga teacher"
+    }
+  },
+  {
+    "id": "hinglish-held-carwash",
+    "says": ["roz gaadi dhone wala chahiye society parking mein"],
+    "answers": ["ek car", "roz subah"],
+    "want": {
+      "skill": "Car wash"
+    }
+  },
+  {
+    "id": "hinglish-held-tank",
+    "says": ["chhat ki pani ki tanki saaf karwani hai"],
+    "answers": ["1000 litre", "is sunday"],
+    "want": {
+      "skill": "Water tank cleaning"
+    }
+  },
+  {
+    "id": "hinglish-held-leak-roof",
+    "says": ["baarish mein chhat se pani tapakta hai"],
+    "answers": ["bas ek", "kal se"],
+    "want": {
+      "skill": "Waterproofing"
+    }
+  },
+  {
+    "id": "hinglish-held-pandit",
+    "says": ["griha pravesh ki pooja ke liye pandit ji chahiye"],
+    "answers": ["ek", "agle mahine"],
+    "want": {
+      "skill": "Priest"
+    }
+  },
+  {
+    "id": "hinglish-held-nurse",
+    "says": ["papa ke liye ghar pe nurse chahiye operation ke baad"],
+    "answers": ["ek", "kal se"],
+    "want": {
+      "skill": "Home nurse"
+    }
+  },
+  {
+    "id": "hinglish-held-mason-tile",
+    "says": ["bathroom ki tiles toot gayi hain, nayi lagwani hain"],
+    "answers": ["bas ek", "kal se"],
+    "want": {
+      "skill": "Mason"
+    }
+  },
+  {
+    "id": "hinglish-held-outside-dj",
+    "says": ["birthday party ke liye DJ chahiye"],
+    "answers": ["x"],
+    "want": {
+      "outside": true
+    }
+  },
+  {
+    "id": "hinglish-held-outside-lawyer",
+    "says": ["property ke kaam ke liye vakeel chahiye"],
+    "answers": ["x"],
+    "want": {
+      "outside": true
+    }
+  },
+  {
+    "id": "hinglish-held-switch-plumber",
+    "says": ["bathroom ka nal leak ho raha hai"],
+    "answers": ["bas ek"],
+    "want": {
+      "trade": "plumber"
+    },
+    "later": "aur ek electrician bhi chahiye"
+  }
+]

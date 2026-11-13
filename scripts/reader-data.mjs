@@ -4,12 +4,14 @@
 //   --seed S         the run's seed (default 1): the same seed draws the same targets
 //   --out DIR        where the run's files go (default data/reader/v1, git-ignored); a run there already resumes
 //   --concurrency C  targets in flight at once (default 4)
+//   --lang L         the language messages are written in: en (default) or hinglish (ADR 0065 §6)
 //   --only problem   only needs that say what is wrong and name no worker ("my tv won't turn on"): the run's targets are
 //                    the first N of those the seed draws, for filling that gap in a run without drawing the rest again
 // The teacher is Ollama at TEACHER_URL (default the SSH tunnel's end, http://localhost:11435) running TEACHER_MODEL.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
+import { langOf } from "./reader-data/languages.mjs";
 import { doneIds, Files, finish, makeOne, record } from "./reader-data/run.mjs";
 import { drawTarget, isProblem } from "./reader-data/sample.mjs";
 import { ask, TEACHER_MODEL, TEACHER_URL, TeacherDown, teacherReady, untilTeacher } from "./reader-data/teacher.mjs";
@@ -26,6 +28,7 @@ const { values } = parseArgs({
     out: { type: "string" },
     concurrency: { type: "string" },
     only: { type: "string" },
+    lang: { type: "string" },
   },
 });
 const settings = { ...DEFAULTS, ...values };
@@ -33,6 +36,7 @@ const count = Number.parseInt(settings.count, DECIMAL);
 const seed = Number.parseInt(settings.seed, DECIMAL);
 const concurrency = Number.parseInt(settings.concurrency, DECIMAL);
 const dir = settings.out;
+const lang = langOf(settings.lang);
 
 if (!(await teacherReady())) {
   console.error(`No ${TEACHER_MODEL} at ${TEACHER_URL}. Is the tunnel to the Mac Studio up?`);
@@ -44,6 +48,7 @@ const run = {
   count,
   concurrency,
   only: settings.only ?? null,
+  lang,
   teacher: TEACHER_MODEL,
   started_at: new Date().toISOString(),
 };
@@ -58,7 +63,7 @@ if (settings.only !== undefined && !(settings.only in ONLY)) {
 function targetIds() {
   if (settings.only === undefined) return Array.from({ length: count }, (_, id) => id);
   const ids = [];
-  for (let id = 0; ids.length < count; id++) if (isProblem(drawTarget(seed, id))) ids.push(id);
+  for (let id = 0; ids.length < count; id++) if (isProblem(drawTarget(seed, id, lang))) ids.push(id);
   return ids;
 }
 const todo = targetIds().filter((id) => !done.has(id));
@@ -81,7 +86,7 @@ let finished = 0;
 const started = Date.now();
 async function worker() {
   for (let id = todo.shift(); id !== undefined; id = todo.shift()) {
-    const target = drawTarget(seed, id);
+    const target = drawTarget(seed, id, lang);
     record(dir, target, await madeWhenUp(target));
     finished += 1;
     if (finished % PROGRESS_EVERY === 0) {
@@ -94,5 +99,5 @@ async function worker() {
 }
 await Promise.all(Array.from({ length: concurrency }, worker));
 
-const manifest = finish(dir, { seed, count, teacher: TEACHER_MODEL });
+const manifest = finish(dir, { seed, count, lang, teacher: TEACHER_MODEL });
 console.log(JSON.stringify(manifest, null, 2));

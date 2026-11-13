@@ -3,11 +3,23 @@
 import { readFileSync } from "node:fs";
 import { z } from "./core.mjs";
 
-export const SETS = ["en", "hi", "kn", "hinglish", "kanglish", "run"];
+/**
+ * `hinglish-held` is held out (ADR 0065 §6): written for judging the Hinglish reader, never for training it or tuning a
+ * prompt, so a score on it says how the reader reads people, not how well it learned this file.
+ */
+export const SETS = ["en", "hi", "kn", "hinglish", "hinglish-held", "kanglish", "run"];
 const VECTORS = new URL("../../vectors/find/", import.meta.url);
 
 /** The app's language for each set: Hinglish and Kanglish are typed by people whose app is in English. */
-export const LANG_OF = { en: "en", hi: "hi", kn: "kn", hinglish: "en", kanglish: "en", run: "en" };
+export const LANG_OF = {
+  en: "en",
+  hi: "hi",
+  kn: "kn",
+  hinglish: "en",
+  "hinglish-held": "en",
+  kanglish: "en",
+  run: "en",
+};
 
 const Conversation = z.object({
   id: z.string(),
