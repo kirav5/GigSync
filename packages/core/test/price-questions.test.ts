@@ -29,7 +29,11 @@ const config = (own: Lang, modelQuestions = false) => ({
   today: "2026-10-29",
   modelQuestions,
 });
-const keys = (s: NeedState) => needPrompt(s).lines.map((l) => l.key);
+/** The question's lines; the small print over it (what an answer gave) is `need-took`'s, tested there. */
+const keys = (s: NeedState) =>
+  needPrompt(s)
+    .lines.filter((l) => !l.aside)
+    .map((l) => l.key);
 const run = (s: NeedState, answers: readonly string[]) => answers.reduce((at, a) => hearNeed(at, a), s);
 const VILLA = "4 BHK villa painting, outside too, 2 floors";
 

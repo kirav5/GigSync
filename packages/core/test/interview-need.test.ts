@@ -114,7 +114,11 @@ describe("the need interview", () => {
     expect(s.draft.day).toBe(EVERY_DAY);
     expect(s.slot).toBe(NeedSlot.budget);
     const p = needPrompt(s);
-    expect(p.lines.map((l) => l.key)).toEqual(["need.ask.budget", "need.budget_per.month", "need.band_month"]);
+    expect(p.lines.filter((l) => !l.aside).map((l) => l.key)).toEqual([
+      "need.ask.budget",
+      "need.budget_per.month",
+      "need.band_month",
+    ]);
     expect(p.secret).toBe(true);
     expect(p.numeric).toBe(true);
     const typed = hearNeed(s, "नौ हज़ार");

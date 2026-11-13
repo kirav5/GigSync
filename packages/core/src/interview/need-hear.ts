@@ -37,6 +37,7 @@ import { Say } from "./need-say.js";
 import { chooseScope, hearScope } from "./need-scope.js";
 import { chooseSwitch, hearSwitch } from "./need-switch.js";
 import { chooseHour, needsHour } from "./need-time.js";
+import { withTook } from "./need-took.js";
 import { NEED_FIELD_WORDS } from "./need-words.js";
 import { finder, firstIn, normalize } from "./normalize.js";
 
@@ -175,7 +176,10 @@ function onNobody(s: NeedState, text: string): NeedState {
  * An answer in words: `aloud` when said, false when typed (a typed budget is never read back aloud). `hint` is what a
  * model read from the same words, already checked; it fills only what the word lists left empty.
  */
-export function hearNeed(s: NeedState, text: string, aloud = false, hint: NeedHint = {}): NeedState {
+export const hearNeed = (s: NeedState, text: string, aloud = false, hint: NeedHint = {}): NeedState =>
+  withTook(s, heard(s, text, aloud, hint));
+
+function heard(s: NeedState, text: string, aloud: boolean, hint: NeedHint): NeedState {
   if (s.switching) return hearSwitch(s, text);
   switch (s.slot) {
     case NeedSlot.confirm:
