@@ -189,8 +189,8 @@ export function settleSearch(claim: SearchClaim): boolean {
 }
 
 /**
- * Reads the signed-in owner's Find chats from the phone. The newest opens when its need is not yet sent, so it carries
- * on where it was; otherwise a new chat opens, ready for the next need.
+ * Reads the signed-in owner's Find chats from the phone and opens a new one: every launch and reload starts afresh. A
+ * need left unsent stays in the list, where opening its chat carries it on.
  */
 export async function loadFind(ports: Owner): Promise<void> {
   const mine = ++generation;
@@ -200,12 +200,10 @@ export async function loadFind(ports: Owner): Promise<void> {
   if (mine !== generation) return;
   const chats = records.map(readFindChat);
   needTurnIdsSeen(Math.max(0, ...chats.flatMap((chat) => chat.turns.map((turn) => turn.id))));
-  const newest = chats[0];
   owner = ports;
   // A worker chosen while the chats were being read (their QR link opened the app) keeps their chat open.
   const pending = chatIn(find, find.open);
   if (pending?.to && !saidIn(pending)) return show({ ready: true, chats: [pending, ...chats], open: pending.id });
-  if (newest?.need) return show({ ready: true, chats, open: newest.id });
   const fresh = newChat<NeedTurn>(ports.clock.now());
   show({ ready: true, chats: [fresh, ...chats], open: fresh.id });
 }
