@@ -55,10 +55,12 @@ type Note = (typeof Note)[keyof typeof Note];
 
 const NUMERIC = "numeric";
 const SEND = "send";
+const ROUND = "composer-mic";
 const NO_HINTS: readonly string[] = [];
 
 /**
- * Where the owner answers: a big mic first, then the field and send (spec §3.3). Heard words fill the field while the
+ * Where the owner answers: the field and one big round button (spec §3.3), the mic until something is typed and send
+ * from then on, as in the messengers owners already use; while listening it stops. Heard words fill the field while the
  * owner speaks (it is read-only then, so typing is never overwritten) and are sent by themselves at the end, because
  * many owners cannot proofread and every answer is read back. The mic's state is honest: "please type", or the
  * phone's mic setting; a recognizer the phone can fetch is fetched by the tap on the mic, never by a download button.
@@ -239,6 +241,9 @@ export function Composer({
   }
 
   const off = !listening && status?.state === VoiceState.unavailable && (!status.cloud || onDeviceOnly);
+  // Typed words turn the mic into send; heard words never do, as they send themselves (or stop the listen to send).
+  const typed = !listening && Boolean(text.trim());
+  const tooLong = maxLength !== undefined && text.trim().length > maxLength;
   return (
     <form className="composer" aria-label={label} onSubmit={submit}>
       <p className={C.dockStatus} role="status" aria-live="polite">
@@ -259,34 +264,35 @@ export function Composer({
       )}
       {why && <PermissionSheet permission={Permission.mic} onAnswer={explained} />}
       <div className="composer-row">
-        <button
-          type={C.button}
-          className="composer-mic"
-          data-listening={listening || undefined}
-          data-off={off || undefined}
-          disabled={busy && !listening}
-          aria-label={listening ? t("speech.stop") : t("speech.listen")}
-          onClick={() => void tapMic()}
-        >
-          <Icon name={listening ? "stop" : "mic"} size={26} />
-        </button>
-        <div className="bar">
-          <input
-            ref={field}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder={placeholder}
-            aria-label={placeholder}
-            autoComplete={C.off}
-            enterKeyHint={SEND}
-            inputMode={numeric ? NUMERIC : undefined}
-            readOnly={listening}
-            maxLength={maxLength}
-          />
-          <button type={C.submit} className={SEND} disabled={busy || !text.trim()} aria-label={t("a11y.send")}>
-            →
+        {typed ? (
+          <button type={C.submit} className={ROUND} disabled={busy || tooLong} aria-label={t("a11y.send")}>
+            <Icon name="arrow" size={26} />
           </button>
-        </div>
+        ) : (
+          <button
+            type={C.button}
+            className={ROUND}
+            data-listening={listening || undefined}
+            data-off={off || undefined}
+            disabled={busy && !listening}
+            aria-label={listening ? t("speech.stop") : t("speech.listen")}
+            onClick={() => void tapMic()}
+          >
+            <Icon name={listening ? "stop" : "mic"} size={26} />
+          </button>
+        )}
+        <input
+          ref={field}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={placeholder}
+          aria-label={placeholder}
+          autoComplete={C.off}
+          enterKeyHint={SEND}
+          inputMode={numeric ? NUMERIC : undefined}
+          readOnly={listening}
+          maxLength={maxLength}
+        />
       </div>
     </form>
   );
