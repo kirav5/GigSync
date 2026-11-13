@@ -4,7 +4,7 @@
 // or the checks is a new data version: RECIPE_VERSION goes into every run's manifest.
 import { protocol } from "./core.mjs";
 
-export const RECIPE_VERSION = 5;
+export const RECIPE_VERSION = 6;
 
 const Turn = protocol.TurnKind.enum;
 const Slot = protocol.ReaderSlot.enum;
@@ -68,6 +68,12 @@ export function writePrompt(target) {
       ? [`The work is: ${target.kind.replaceAll("_", " ")}.`]
       : []),
     ...(slots.length > 0 ? ["It must say these:", ...slots.map(([s, w]) => detailLine(s, w))] : []),
+    // Without this the writer names the worker anyway, and every message that only says what is wrong is dropped.
+    ...(target.turn === Turn.need && !target.slots.kind
+      ? [
+          "It must not name the worker, the trade or the service in any words: only say what is wrong or what needs doing, as people do when they do not know whom to call.",
+        ]
+      : []),
     'It must not name any other kind of work, place, day, time or how long, and no urgency ("urgently", "asap").',
     `Style: ${target.style}. At most 25 words. English only. No names, phone numbers or prices.`,
     "Then mark your own message: for each detail, copy its exact words from the message, or null when it does not say it:",

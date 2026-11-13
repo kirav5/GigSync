@@ -29,3 +29,10 @@ tests/ui/prod-runs
 
 # The reader's generated training data (ADR 0065): kept on the machine that trains, out of git.
 data/reader/
+
+# The reader training environment (training/reader): made by uv, never committed.
+training/reader/.venv/
+__pycache__/
+
+# Claude Code sessions' worktrees: other checkouts of this repo, never part of it.
+.claude/worktrees/

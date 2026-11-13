@@ -81,6 +81,9 @@ function answerSlots(rand, kind, asking) {
   return slots;
 }
 
+/** A need that names no worker and no group, only what is wrong or what needs doing. */
+export const isProblem = (target) => target.turn === Turn.need && !target.slots.kind;
+
 /**
  * Target number `id` of a run. `kind` is the work the message is about, for the teacher's sense of the job; `slots`
  * are the details it must say, each with the words to use, or `true` for `what`, which the teacher words itself.

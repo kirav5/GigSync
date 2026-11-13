@@ -4,12 +4,14 @@
 //   --seed S         the run's seed (default 1): the same seed draws the same targets
 //   --out DIR        where the run's files go (default data/reader/v1, git-ignored); a run there already resumes
 //   --concurrency C  targets in flight at once (default 4)
+//   --only problem   only needs that say what is wrong and name no worker ("my tv won't turn on"): the run's targets are
+//                    the first N of those the seed draws, for filling that gap in a run without drawing the rest again
 // The teacher is Ollama at TEACHER_URL (default the SSH tunnel's end, http://localhost:11435) running TEACHER_MODEL.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { doneIds, Files, finish, makeOne, record } from "./reader-data/run.mjs";
-import { drawTarget } from "./reader-data/sample.mjs";
+import { drawTarget, isProblem } from "./reader-data/sample.mjs";
 import { ask, TEACHER_MODEL, TEACHER_URL, TeacherDown, teacherReady, untilTeacher } from "./reader-data/teacher.mjs";
 
 const DECIMAL = 10;
@@ -23,6 +25,7 @@ const { values } = parseArgs({
     seed: { type: "string" },
     out: { type: "string" },
     concurrency: { type: "string" },
+    only: { type: "string" },
   },
 });
 const settings = { ...DEFAULTS, ...values };
@@ -36,10 +39,29 @@ if (!(await teacherReady())) {
   process.exit(EXIT_NO_TEACHER);
 }
 mkdirSync(dir, { recursive: true });
-const run = { seed, count, concurrency, teacher: TEACHER_MODEL, started_at: new Date().toISOString() };
+const run = {
+  seed,
+  count,
+  concurrency,
+  only: settings.only ?? null,
+  teacher: TEACHER_MODEL,
+  started_at: new Date().toISOString(),
+};
 writeFileSync(join(dir, Files.run), `${JSON.stringify(run, null, 2)}\n`);
 const done = doneIds(dir);
-const todo = Array.from({ length: count }, (_, id) => id).filter((id) => !done.has(id));
+const ONLY = { problem: "problem" };
+if (settings.only !== undefined && !(settings.only in ONLY)) {
+  console.error(`--only must be one of ${Object.keys(ONLY).join(", ")}`);
+  process.exit(EXIT_NO_TEACHER);
+}
+/** The run's target numbers: 0 to count, or with --only the first `count` numbers whose targets are of that kind. */
+function targetIds() {
+  if (settings.only === undefined) return Array.from({ length: count }, (_, id) => id);
+  const ids = [];
+  for (let id = 0; ids.length < count; id++) if (isProblem(drawTarget(seed, id))) ids.push(id);
+  return ids;
+}
+const todo = targetIds().filter((id) => !done.has(id));
 console.log(`${todo.length} of ${count} targets to write (${done.size} done already) into ${dir}`);
 
 /** One target, asked again for as long as the teacher is down: an outage is never a dropped target. */
