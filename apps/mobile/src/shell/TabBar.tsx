@@ -4,7 +4,6 @@ import { useI18n } from "../i18n.js";
 import type { Screen } from "../state.js";
 import { Brand } from "../ui/Brand.js";
 import { C } from "../ui/cls.js";
-import { EngineChip } from "../ui/EngineChip.js";
 import { Icon } from "../ui/Icon.js";
 import { useChatList } from "./chatLists.js";
 import { DrawerChats } from "./DrawerChats.js";
@@ -93,7 +92,6 @@ interface TabBarProps {
   onTab: (s: Screen) => void;
   onNewChat: () => void;
   onChatOpened: () => void;
-  onSettings: () => void;
 }
 
 /**
@@ -102,14 +100,13 @@ interface TabBarProps {
  * screen the same tabs stand in a rail beside the content.
  */
 export function TabBar(props: TabBarProps) {
-  const { account, screen, section, tasks, unread, wide, chatOpen, onTab, onNewChat, onChatOpened, onSettings } = props;
+  const { account, screen, section, tasks, unread, wide, chatOpen, onTab, onNewChat, onChatOpened } = props;
   const { t, plural } = useI18n();
   return (
     <nav className="tabbar" aria-label={t("shell.tabs")}>
       {wide && (
         <div className="rail-head">
           <Brand />
-          <EngineChip onOpen={onSettings} />
         </div>
       )}
       <div className="tabs">

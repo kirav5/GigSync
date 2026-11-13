@@ -25,7 +25,6 @@ export const me: Readonly<Record<keyof typeof en, string>> = {
   "me.off_board": "ಬೋರ್ಡ್‌ನಿಂದ ಹೊರಗಿದೆ",
   "me.this_phone": "ಈ ಫೋನ್",
   "me.sign_out_sub": "ನಿಮ್ಮ ದಾಖಲೆಗಳು ಈ ಫೋನ್‌ನಲ್ಲೇ ಇರುತ್ತವೆ",
-  "me.agent_runs": "ನಿಮ್ಮ ಏಜೆಂಟ್ ಯಾವುದರಲ್ಲಿ ನಡೆಯುತ್ತದೆ",
   "me.people_none": "ನೀವು ಕೆಲಸಕ್ಕೆ ಸಹಿ ಮಾಡಿದ ಕೆಲಸಗಾರರು ಇಲ್ಲಿ ಕಾಣುತ್ತಾರೆ.",
   "me.alerts_waiting.one": "{count} ನಿರ್ಧಾರ ನಿಮಗಾಗಿ ಕಾಯುತ್ತಿದೆ",
   "me.alerts_waiting.other": "{count} ನಿರ್ಧಾರಗಳು ನಿಮಗಾಗಿ ಕಾಯುತ್ತಿವೆ",

@@ -23,7 +23,6 @@ export const me = {
   "me.off_board": "Off the board",
   "me.this_phone": "This phone",
   "me.sign_out_sub": "Your records stay on this phone",
-  "me.agent_runs": "What runs your agent",
   "me.people_none": "Workers you sign a job with are listed here.",
   "me.alerts_waiting.one": "{count} decision waits on you",
   "me.alerts_waiting.other": "{count} decisions wait on you",

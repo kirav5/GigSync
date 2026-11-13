@@ -21,7 +21,7 @@ export interface ModelEngine {
 }
 
 /** The plugin's name for "no engine on this device". */
-export const ENGINE_NONE = "none";
+const ENGINE_NONE = "none";
 export const NO_MODEL: ModelStatus = { available: false, engine: ENGINE_NONE };
 
 const device: ModelEngine = {
