@@ -24,6 +24,11 @@
 .iv-say .text p {
   margin: 0;
 }
+/* The agent's small print over a question: what it understood and why it asks. */
+.iv-say .text p.iv-aside {
+  font-size: var(--fs-2);
+  color: var(--text3);
+}
 .iv-choices {
   padding-top: 4px;
 }

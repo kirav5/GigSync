@@ -92,6 +92,8 @@ export interface NeedState {
   readonly to?: NeedTo | undefined;
   /** Other work the owner named part-way: asked about before anything else (`need-switch.ts`). */
   readonly switching?: WorkSwitch | undefined;
+  /** This answer named the work: the next question carries what was understood and why it is asked (`need-understood.ts`). */
+  readonly understood?: boolean | undefined;
   /** A model chose the work: until the next answer the chat says so, and "Not this" undoes it. */
   readonly guessed?: boolean | undefined;
   /** Picking from the list: the group open, its kinds on screen (ADR 0061). */
@@ -214,6 +216,7 @@ export const moveOn = (s: NeedState, draft: NeedDraft, notes: Line[] = []): Need
     ...s,
     ...nextSlot(s.config, draft),
     notes,
+    understood: workOf(s.draft) === undefined && workOf(draft) !== undefined,
     changing: false,
     fresh: false,
     filled: [],

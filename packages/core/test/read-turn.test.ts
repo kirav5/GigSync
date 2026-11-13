@@ -188,7 +188,9 @@ describe("work a model chose", () => {
 
   it("is said with the next question, with one tap to take it back", () => {
     const prompt = needPrompt(at());
-    expect(prompt.lines[0]).toEqual({ key: "need.for", params: { work: "AC technician" } });
+    // The small print names the work it chose, so "For: …" is not said twice.
+    expect(prompt.lines[0]).toMatchObject({ key: "need.understood", names: { what: ["trade.ac_technician"] } });
+    expect(prompt.lines.map((l) => l.key)).not.toContain("need.for");
     expect(prompt.choices?.at(-1)).toEqual({ value: NeedPick.notThis, key: "need.not_this" });
   });
 

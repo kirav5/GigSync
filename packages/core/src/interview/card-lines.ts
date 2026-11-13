@@ -15,6 +15,8 @@ export interface Line {
   /** Days as "YYYY-MM-DD", written as a date in the reader's language when shown. */
   dates?: Readonly<Record<string, string>>;
   silent?: true;
+  /** Small print beside the question: the interview's reasoning, shown smaller and never read aloud with it. */
+  aside?: true;
 }
 
 /** A tap answer: the value `choose()` takes, and the label shown. */

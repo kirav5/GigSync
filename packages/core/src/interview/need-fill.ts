@@ -11,7 +11,8 @@ import { tradeTitled } from "./trade-titled.js";
 /** The sentence's other answers, each only where nothing was given yet. */
 export function fillEmpty(d: NeedDraft, fill: NeedFill): NeedDraft {
   const seen = { ...fill.details, ...d.seen };
-  let next: NeedDraft = { ...d, seen };
+  // The day said comes before the work: monthly work is every day only when the owner named no day (`withTrade`).
+  let next: NeedDraft = { ...d, seen, day: d.day ?? fill.day };
   const first = firstQuestion(next.trade);
   if (first && next.detail === undefined && seen[first]) next = { ...next, detail: seen[first] };
   // Work already found as a kind or as no listed work stays so: a later answer's word is no reason to make it a trade.

@@ -30,6 +30,7 @@ import { needWords } from "./need-request.js";
 import { scopeQuestion } from "./need-scope.js";
 import { switchPrompt } from "./need-switch.js";
 import { hourPrompt, needsHour } from "./need-time.js";
+import { understoodNote } from "./need-understood.js";
 
 /**
  * What the need interview shows and reads aloud now: the question for the field still missing, with its tap choices
@@ -272,13 +273,15 @@ export function needPrompt(s: NeedState): Prompt {
   const redo = redoChoices(s);
   const correct = correctable(s);
   const chips = [...redo, ...(ask.choices ?? []), ...(correct ? [NOT_THIS] : [])];
+  // The note names the work itself; "For: …" is only for a model's choice with no note.
+  const note = offered(s) ? [] : understoodNote(s);
   const said =
-    correct && s.draft.trade
+    correct && s.draft.trade && note.length === 0
       ? [{ key: "need.for", params: { work: t(s.config.own, `trade.${s.draft.trade}`) } } as const]
       : [];
   return {
     ...ask,
-    lines: [...s.notes, ...said, ...filledLines(s), ...ask.lines],
+    lines: [...s.notes, ...said, ...note, ...filledLines(s), ...ask.lines],
     ...(chips.length > 0 ? { choices: chips } : {}),
   };
 }
