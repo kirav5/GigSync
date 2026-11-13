@@ -13,7 +13,6 @@ export const shell = {
   "shell.need_you.other": "{count} need you",
   "shell.model_about": "What runs your agent. Tap for Settings.",
   "shell.model_device": "On this phone",
-  "shell.model_lite": "Lite mode",
   "shell.model_server": "GigSync's model",
   "shell.model_ollama": "Ollama · {name}",
   "shell.edit_card": "Edit my card",

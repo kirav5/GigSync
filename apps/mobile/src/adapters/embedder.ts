@@ -8,13 +8,12 @@ import {
   ToWorker,
   type ToWorkerMessage,
 } from "./embed/messages.js";
-import { chosenModel, ModelChoice } from "./model.js";
 
 /**
  * The understanding pack (ADR 0042): a small multilingual embedding model that runs inside this app, through ONNX
  * Runtime in the browser or webview, and turns a sentence into a vector core compares with its labelled sayings. It is
  * fetched once, on the owner's tap, and kept by the browser's cache; after that it loads from the device and nothing
- * typed ever leaves the phone. Lite mode turns it off like every other model. The model itself runs in a worker
+ * typed ever leaves the phone, so it stays on whichever model answers, or none. The model itself runs in a worker
  * (embed/worker.ts), so loading and embedding never hold up typing or the screen.
  */
 
@@ -174,7 +173,7 @@ export class UnderstandingPack implements Embedder, Reader {
   }
 
   private ask(texts: readonly string[], keep: boolean): Promise<Vectors | null> {
-    if (this.state !== PackState.ready || chosenModel.current.choice === ModelChoice.lite) return Promise.resolve(null);
+    if (this.state !== PackState.ready) return Promise.resolve(null);
     const id = this.nextId++;
     return new Promise((resolve) => {
       this.pending.set(id, resolve);
@@ -193,12 +192,11 @@ export class UnderstandingPack implements Embedder, Reader {
   }
 
   /**
-   * One message read on the phone; null with no reader ready or in lite mode. Which messages it is asked to read is
-   * Find's choice (`readMessage` in core).
+   * One message read on the phone; null with no reader ready. Which messages it is asked to read is Find's choice
+   * (`readMessage` in core).
    */
   read(input: ReaderInput): Promise<ReaderResult | null> {
-    const off = chosenModel.current.choice === ModelChoice.lite;
-    if (this.readerState !== PackState.ready || off) return Promise.resolve(null);
+    if (this.readerState !== PackState.ready) return Promise.resolve(null);
     const id = this.nextId++;
     return new Promise((resolve) => {
       this.readings.set(id, resolve);

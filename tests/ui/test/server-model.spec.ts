@@ -14,10 +14,12 @@ const { en } = Lang.enum;
 const FOLDER = "server-model";
 /** A budget no other part of the conversation would say. */
 const BUDGET = "777";
-/** Settings' "Your agent runs on" row, whose chip says what answers. */
-async function engineSays(page: Page, key: "shell.model_server" | "shell.model_lite") {
+/** Settings' "Your agent runs on" row, whose chip says what answers; with no model answering, no row at all. */
+async function engineSays(page: Page, key: "shell.model_server" | undefined) {
   await open(page, "nav.settings");
-  await expect(page.getByRole("main")).toContainText(t(en, key));
+  const main = page.getByRole("main");
+  if (key) await expect(main).toContainText(t(en, key));
+  else await expect(main).not.toContainText(t(en, "me.agent_runs"));
   await open(page, "nav.find");
 }
 
@@ -63,10 +65,10 @@ test("with a model on the API, Auto asks it, the Privacy page says so, and the b
   await shoot("privacy", { household: page }, FOLDER);
 });
 
-test("without a model on the API, nothing is sent and lite mode answers", async ({ page }) => {
+test("without a model on the API, nothing is sent and the phone answers by rules, unnamed", async ({ page }) => {
   const prompts = await serverModel(page, false);
   await household(page);
-  await engineSays(page, "shell.model_lite");
+  await engineSays(page, undefined);
   await tellNeed({ page, lang: en }, need);
   expect(prompts).toEqual([]);
 });

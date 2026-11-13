@@ -6,7 +6,7 @@ import { ToggleRow } from "../pages/ToggleRow.js";
 /**
  * "Let GigSync's model read my chats" (design P3): the same choice as Settings' model, said as a switch. On is Auto,
  * the default (ADR 0052 §3), where GigSync's model is asked first; off is the phone's own model, which falls back to
- * none (lite mode) until one is ready. The words under it are the ones ADR 0052 asks Privacy to say: the words are
+ * rules and templates until one is ready. The words under it are the ones ADR 0052 asks Privacy to say: the words are
  * read, not kept, and private answers never leave the phone.
  */
 export function ModelSwitch({ ports }: { ports: Ports }) {

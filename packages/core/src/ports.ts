@@ -138,7 +138,7 @@ export interface Embedder {
 
 /**
  * The phone's reader (ADR 0065): a message, and the detail the open question asks for, read on the phone into the kind
- * of message, the kind of work and each detail's words. Null when the device has none ready (not fetched, lite mode);
+ * of message, the kind of work and each detail's words. Null when the device has none ready (not fetched yet);
  * Find then reads the message as it does without it.
  */
 export interface Reader {
