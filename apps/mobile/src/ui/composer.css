@@ -1,7 +1,7 @@
 /* Voice (P3): the composer, the cloud consent sheet above it, the speaker button on questions and decisions, and the
-   read-aloud switch in Settings. The composer is one pill: the field, send, and at its right end the round rust mic,
-   the biggest thing on a chat screen. The mic comes first in the markup, so a reader meets it first; `order` draws it
-   last, where the design puts it. */
+   read-aloud switch in Settings. The composer is one pill: the field and, at its right end, one round rust button,
+   the biggest thing on a chat screen: the mic until words are typed, then send. It comes first in the markup, so a
+   reader meets it first; `order` draws it last, where the design puts it. */
 .composer {
   display: flex;
   flex-direction: column;
@@ -26,13 +26,6 @@
 .composer-row:focus-within {
   border-color: var(--accent);
 }
-.composer-row > .bar {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
 .composer input {
   flex: 1;
   min-width: 0;
@@ -47,24 +40,6 @@
 }
 .composer input[readonly] {
   color: var(--text2);
-}
-.send {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--accent-ink);
-  font-size: 20px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.send:disabled {
-  opacity: 0.35;
-  cursor: default;
 }
 .composer-mic {
   order: 1;

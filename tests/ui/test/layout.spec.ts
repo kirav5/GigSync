@@ -76,7 +76,13 @@ test("a worker's screens at 360×640 in English: Language, Sign-in, Talk and My 
   await expect(tabBar(page)).toBeInViewport(WHOLE);
   await fits(page, page.getByRole("button", { name: t(en, "speech.listen") }), en);
   await expect(page.getByRole("form", { name: t(en, "nav.talk") })).toBeInViewport(WHOLE);
+  // Typed words turn the mic into send, in the same place.
+  await page
+    .getByRole("form", { name: t(en, "nav.talk") })
+    .getByRole("textbox")
+    .fill("hello");
   await expect(page.getByRole("button", { name: t(en, "a11y.send"), exact: true })).toBeInViewport(WHOLE);
+  await expect(page.getByRole("button", { name: t(en, "speech.listen") })).toHaveCount(0);
 
   await openCard(page);
   const publish = page.getByRole("button", { name: t(en, "card.publish"), exact: true });
