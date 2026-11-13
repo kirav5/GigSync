@@ -3259,21 +3259,18 @@ body.flying .hero-visual .community-art {
   font-size: 14.5px;
   line-height: 1.2;
   overflow: hidden;
-  color: #d9c8aa;
-  transition: color 0.25s;
-}
-.job::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: #eadbb9;
-  transform: scaleX(var(--fill, 1));
-  transform-origin: left center;
-  will-change: transform;
+  /* The fill and the words share one edge: two background layers, the words' colour on top (clipped to the text),
+     earth over the filled part and light over the rest, so no letter is ever dark on dark while the fill sweeps.
+     Nothing inside a chip takes an opacity of its own, as Safari leaves such text out of the clip. */
+  --edge: calc(var(--fill, 1) * 100%);
+  color: transparent;
+  background:
+    linear-gradient(to right, var(--earth) var(--edge), #d9c8aa var(--edge)),
+    linear-gradient(to right, #eadbb9 var(--edge), transparent var(--edge));
+  -webkit-background-clip: text, padding-box;
+  background-clip: text, padding-box;
 }
 .job[data-filled="true"] {
-  color: var(--earth);
   border-color: #eadbb9;
 }
 .job-check {
@@ -3289,7 +3286,6 @@ body.flying .hero-visual .community-art {
 .job small {
   font-size: 11.5px;
   line-height: 1.3;
-  opacity: 0.72;
 }
 .jobs-bottom {
   display: flex;
@@ -3851,7 +3847,7 @@ body.flying .hero-visual .community-art {
 }
 @media (max-width: 759.98px) {
   .jobs-section[data-motion="true"] {
-    height: 420svh;
+    height: 300svh;
   }
   .jobs-section[data-motion="true"] .jobs-stage {
     position: sticky;
@@ -3970,5 +3966,22 @@ body.flying .hero-visual .community-art {
   .story-row .story-demo {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* Phones: everything that eases in or changes on a tap does so quickly, so scrolling never waits on it. */
+@media (max-width: 700px) {
+  .rise {
+    transition-duration: 0.35s;
+  }
+  .say .box,
+  .say .box.her {
+    transition-duration: 0.4s;
+  }
+  .jp-phone {
+    transition-duration: 0.3s;
+  }
+  .story-row .story-demo {
+    transition-duration: 0.3s;
   }
 }
