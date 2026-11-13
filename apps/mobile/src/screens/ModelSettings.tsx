@@ -27,8 +27,6 @@ const fetchable = (state: PackState | undefined) => state === PackState.download
 function UnderstandingPack() {
   const { t } = useI18n();
   const pack = useUnderstanding();
-  const model = useChosenModel();
-  const lite = model.current.choice === ModelChoice.lite;
   const reader = pack.state === PackState.ready ? pack.readerState : undefined;
   const readerMb = pack.readerState === undefined ? 0 : READER_PACK_MB;
   const line =
@@ -41,7 +39,6 @@ function UnderstandingPack() {
       <span className={C.label}>{t("pack.title")}</span>
       <span className={C.faint}>{t("pack.about", { mb: EMBEDDING_PACK_MB + readerMb })}</span>
       {line && <span className={C.muted}>{line}</span>}
-      {lite && pack.state === PackState.ready && <span className={C.muted}>{t("pack.lite")}</span>}
       {tap !== undefined && (
         <div>
           <button type={C.button} className={C.secondary} onClick={() => void pack.prepare()}>
@@ -56,7 +53,6 @@ function UnderstandingPack() {
 const CHOICES: readonly { choice: ModelChoice; label: MessageKey; about: MessageKey }[] = [
   { choice: ModelChoice.auto, label: "model.auto", about: "model.auto_about" },
   { choice: ModelChoice.device, label: "model.device", about: "model.device_about" },
-  { choice: ModelChoice.lite, label: "model.lite", about: "model.lite_about" },
   ...(OLLAMA_OFFERED
     ? [{ choice: ModelChoice.ollama, label: "model.ollama" as const, about: "model.ollama_about" as const }]
     : []),
@@ -84,6 +80,7 @@ export function ModelSettings({ ports }: { ports: Ports }) {
   const saveOllama = () =>
     void model.save(ports.storage, { ...model.current, choice: ModelChoice.ollama, ollamaModel: ollamaName });
   const chosen = CHOICES.find((c) => c.choice === choice);
+  const now = model.label(t);
 
   return (
     <section className="setting-block" aria-label={t("model.title")}>
@@ -134,10 +131,7 @@ export function ModelSettings({ ports }: { ports: Ports }) {
           </button>
         </div>
       )}
-      <span className={C.label}>{t("model.now", { model: model.label(t) })}</span>
-      {choice === ModelChoice.auto && model.answering() === ModelChoice.lite && model.deviceInfo && (
-        <span className={C.faint}>{t("model.still_works")}</span>
-      )}
+      {now && <span className={C.label}>{t("model.now", { model: now })}</span>}
       <UnderstandingPack />
     </section>
   );

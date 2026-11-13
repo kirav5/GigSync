@@ -15,7 +15,6 @@ export const shell: Readonly<Record<keyof typeof en, string>> = {
   "shell.need_you.other": "{count} काम आपका इंतज़ार कर रहे हैं",
   "shell.model_about": "आपका एजेंट किससे चलता है। सेटिंग्स के लिए दबाएँ।",
   "shell.model_device": "इसी फ़ोन पर",
-  "shell.model_lite": "लाइट मोड",
   "shell.model_server": "GigSync का मॉडल",
   "shell.model_ollama": "Ollama मॉडल · {name}",
   "shell.edit_card": "मेरा कार्ड बदलें",

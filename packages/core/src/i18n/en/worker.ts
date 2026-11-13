@@ -29,7 +29,6 @@ export const worker = {
   "pack.downloading": "Downloading… {percent}%",
   "pack.ready": "Ready · runs on this device",
   "pack.failed": "The download did not finish. Check your connection and try again.",
-  "pack.lite": "Off in lite mode.",
   "settings.err_vpa": "That does not look like a UPI ID (name@bank).",
   "settings.err_name": "Enter the name customers will see when they pay you.",
   "settings.err_name_long": "Keep the name to {max} characters.",

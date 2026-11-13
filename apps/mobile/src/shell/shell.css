@@ -119,7 +119,7 @@ html[data-keyboard="open"] .tabbar {
   font-size: 13px;
 }
 
-/* What runs the agent: a pill. Grey ink for lite mode, peri for a model that answers. */
+/* What runs the agent: a pill, peri while a model answers; with none answering there is no pill. */
 .engine-chip {
   font: 600 11px / 1 var(--sans);
   padding: 6px 9px;

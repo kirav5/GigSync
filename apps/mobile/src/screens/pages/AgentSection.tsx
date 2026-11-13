@@ -3,7 +3,7 @@ import { useState } from "react";
 import { type Account, saveAccount } from "../../adapters/account.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
-import { EngineChip } from "../../ui/EngineChip.js";
+import { EngineChip, useEngineWords } from "../../ui/EngineChip.js";
 import { ListCard, ListRow } from "../../ui/ListRow.js";
 import { ModelSettings } from "../ModelSettings.js";
 import { TacticSetting } from "../TacticSetting.js";
@@ -63,11 +63,12 @@ function AutoSign({ ports, account, onSaved }: Props) {
  */
 export function AgentSection({ ports, account, onSaved, isWorker }: Props & { isWorker: boolean }) {
   const { t } = useI18n();
+  const engine = useEngineWords();
   return (
     <ListCard label={t("me.section_agent")}>
       {isWorker && <AutoSign ports={ports} account={account} onSaved={onSaved} />}
       <TacticSetting ports={ports} />
-      <ListRow title={t("me.agent_runs")} end={<EngineChip />} />
+      {engine && <ListRow title={t("me.agent_runs")} end={<EngineChip />} />}
       <ModelSettings ports={ports} />
     </ListCard>
   );

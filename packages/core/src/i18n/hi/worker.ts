@@ -31,7 +31,6 @@ export const worker: Readonly<Record<keyof typeof en, string>> = {
   "pack.downloading": "डाउनलोड हो रहा है… {percent}%",
   "pack.ready": "तैयार · इसी फ़ोन पर चलता है",
   "pack.failed": "डाउनलोड पूरा नहीं हुआ। कनेक्शन जाँचें और फिर कोशिश करें।",
-  "pack.lite": "लाइट मोड में बंद।",
   "settings.err_vpa": "यह यूपीआई आईडी जैसा नहीं लगता (name@bank)।",
   "settings.err_name": "वह नाम लिखें जो ग्राहकों को पैसे देते समय दिखेगा।",
   "settings.err_name_long": "नाम {max} अक्षरों तक रखें।",

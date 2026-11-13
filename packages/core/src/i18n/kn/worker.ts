@@ -31,7 +31,6 @@ export const worker: Readonly<Record<keyof typeof en, string>> = {
   "pack.downloading": "ಡೌನ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ… {percent}%",
   "pack.ready": "ಸಿದ್ಧ · ಈ ಫೋನ್‌ನಲ್ಲೇ ಚಲಿಸುತ್ತದೆ",
   "pack.failed": "ಡೌನ್‌ಲೋಡ್ ಮುಗಿಯಲಿಲ್ಲ. ಸಂಪರ್ಕ ಪರಿಶೀಲಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
-  "pack.lite": "ಲೈಟ್ ಮೋಡ್‌ನಲ್ಲಿ ಆಫ್.",
   "settings.err_vpa": "ಇದು ಯುಪಿಐ ಐಡಿಯಂತೆ ಕಾಣುತ್ತಿಲ್ಲ (name@bank).",
   "settings.err_name": "ಗ್ರಾಹಕರು ಪಾವತಿಸುವಾಗ ಕಾಣುವ ಹೆಸರನ್ನು ಬರೆಯಿರಿ.",
   "settings.err_name_long": "ಹೆಸರನ್ನು {max} ಅಕ್ಷರಗಳೊಳಗೆ ಇಡಿ.",

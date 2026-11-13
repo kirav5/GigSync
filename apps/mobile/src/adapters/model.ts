@@ -26,9 +26,9 @@ export { ENGINE_NONE } from "./model-engine.js";
  *   auto:   GigSync's own model on GigSync's computer (ADR 0052); when it cannot answer, the device's own model once
  *           it is downloaded and ready; otherwise lite mode
  *   device: always try the device's own model (WebLLM in the web app; LiteRT-LM on Android, Apple Foundation Models)
- *   lite:   no model at all: rules and templates do every job
  *   ollama: development builds only, a model served by Ollama on this computer
- * `server` is never chosen as such: it is what answers under auto while GigSync's model can be asked.
+ * `server` is never chosen as such: it is what answers under auto while GigSync's model can be asked. `lite` is never
+ * chosen either, nor named on any screen: it is what answers when no model can, and rules and templates do every job.
  */
 export const ModelChoice = {
   auto: "auto",
@@ -86,6 +86,8 @@ export class ChosenModel implements Model {
   async load(storage: Storage): Promise<void> {
     const saved = await storage.get<Partial<ModelSettings>>(Collection.settings, SETTINGS_KEY);
     if (saved) this.settings = { ...DEFAULTS, ...saved };
+    // Lite was a choice once: the phone's own model keeps its promise (nothing leaves the phone) and falls back the same.
+    if (this.settings.choice === ModelChoice.lite) this.settings = { ...this.settings, choice: ModelChoice.device };
     await this.device.load(storage);
   }
 
@@ -143,11 +145,9 @@ export class ChosenModel implements Model {
     }
   }
 
-  /** Which engine answers right now: the device's own model, Ollama, or none at all (lite mode). */
+  /** Which engine answers right now: GigSync's model, the device's own, Ollama, or none at all (`lite`). */
   answering(): ModelChoice {
     switch (this.settings.choice) {
-      case ModelChoice.lite:
-        return ModelChoice.lite;
       case ModelChoice.ollama:
         return OLLAMA_OFFERED && this.settings.ollamaModel ? ModelChoice.ollama : ModelChoice.lite;
       case ModelChoice.device:
@@ -158,22 +158,21 @@ export class ChosenModel implements Model {
     }
   }
 
-  /** One line for the screens, in the owner's language: which engine will answer right now. */
-  label(t: (key: MessageKey, params?: Params) => string): string {
-    const lite = t("model.lite_label");
+  /**
+   * One line for the screens, in the owner's language: which engine will answer right now; undefined when none can, as
+   * there is nothing for the owner to do about it (rules and templates do every job).
+   */
+  label(t: (key: MessageKey, params?: Params) => string): string | undefined {
     const device = t("model.on_device_label", { engine: engineName(this.device.status) });
-    switch (this.settings.choice) {
-      case ModelChoice.lite:
-        return lite;
+    switch (this.answering()) {
       case ModelChoice.ollama:
-        return this.settings.ollamaModel ? t("model.ollama_label", { name: this.settings.ollamaModel }) : lite;
+        return t("model.ollama_label", { name: this.settings.ollamaModel });
+      case ModelChoice.server:
+        return t("model.auto_label", { model: t("model.server_label") });
       case ModelChoice.device:
-        return this.device.status?.available ? device : t("model.not_ready_lite", { device });
-      default: {
-        const now = this.answering();
-        const model = now === ModelChoice.server ? t("model.server_label") : now === ModelChoice.device ? device : lite;
-        return t("model.auto_label", { model });
-      }
+        return this.settings.choice === ModelChoice.auto ? t("model.auto_label", { model: device }) : device;
+      default:
+        return this.settings.choice === ModelChoice.device ? t("model.device_not_ready", { device }) : undefined;
     }
   }
 
