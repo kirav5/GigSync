@@ -100,8 +100,8 @@ export async function readerTurn(reader: Reader, text: string, slot?: NeedSlot):
 }
 
 /**
- * Find's reading of one message (ADR 0065 §7, amended 2026-11-11): the reader alone for English, and GigSync's model
- * not asked; the model for the rest; and the reader again for Hinglish or Kanglish the model did not answer.
+ * Find's reading of one message (ADR 0065 §7, amended 2026-11-14): the reader alone for English and Hinglish, and
+ * GigSync's model not asked; the model for the rest; and the reader again for Kanglish the model did not answer.
  */
 export async function readMessage(
   reader: Reader | undefined,
