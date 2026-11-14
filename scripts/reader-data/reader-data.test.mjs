@@ -7,6 +7,8 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 import { Dropped, findSpan, judge, namesWork } from "./check.mjs";
 import { protocol } from "./core.mjs";
+import { ReaderLang } from "./languages.mjs";
+import * as hinglish from "./phrases-hinglish.mjs";
 import { labelPrompt, writePrompt } from "./prompts.mjs";
 import { doneIds, Files, finish, makeOne, record } from "./run.mjs";
 import { drawTarget, isProblem } from "./sample.mjs";
@@ -48,6 +50,38 @@ describe("drawing targets", () => {
     }
     const needs = targets.filter((t) => t.turn === Turn.need).length / DRAWS;
     assert.ok(needs > 0.5 && needs < 0.7, `needs ${needs}`);
+  });
+});
+
+describe("Hinglish runs", () => {
+  const H = ReaderLang.hinglish;
+  const targets = Array.from({ length: DRAWS }, (_, id) => drawTarget(SEED, id, H));
+
+  it("leave English targets as they were drawn before, and mark the others with their language", () => {
+    assert.equal("lang" in drawTarget(SEED, 3), false);
+    assert.equal(drawTarget(SEED, 3, H).lang, H);
+    assert.equal(drawTarget(SEED, 3, H).turn, drawTarget(SEED, 3).turn);
+  });
+
+  it("draw the details' words from Hinglish's own lists", () => {
+    const when = targets.flatMap((t) => (typeof t.slots.when === "string" ? [t.slots.when] : []));
+    assert.ok(when.length > 0);
+    for (const w of when) assert.ok(hinglish.WHEN.includes(w), w);
+    for (const t of targets) assert.ok(hinglish.STYLES.includes(t.style), t.style);
+  });
+
+  it("ask the writer for Hinglish and tell the labeller the message may mix languages", () => {
+    const need = targets.find((t) => t.turn === Turn.need);
+    assert.ok(writePrompt(need).includes(hinglish.LANGUAGE_LINE));
+    assert.ok(!writePrompt(need).includes("English only"));
+    assert.ok(writePrompt(NEED).includes("English only"));
+    assert.ok(labelPrompt(MESSAGE, undefined, H).includes("Hindi typed in English letters"));
+    assert.ok(!labelPrompt(MESSAGE).includes("Hindi typed in English letters"));
+  });
+
+  it("count Hindi names for work as naming it, so a message about only the problem stays so", () => {
+    assert.ok(namesWork("kal bijli wala chahiye"));
+    assert.ok(!namesWork("kitchen ka nal tapak raha hai"));
   });
 });
 

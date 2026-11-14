@@ -2,7 +2,7 @@
 // be marked as their detail; the writer's marks of its own message and the labeller's, made without the target, must
 // name the same details over the same words. Details the target did not ask for are kept when both readings agree. Every value is a position in the message, so the example holds no words of its own.
 import { protocol } from "./core.mjs";
-import { KINDS } from "./phrases.mjs";
+import { ALL_KIND_WORDS } from "./languages.mjs";
 import { isProblem } from "./sample.mjs";
 
 /** Why a message was not kept; counted in the run's manifest. */
@@ -27,8 +27,8 @@ export const Dropped = {
   named_work: "named_work",
 };
 
-/** Every kind's words, as whole words, for telling whether a message names a kind of work. */
-const WORK_WORDS = KINDS.flatMap((k) => k.words).map(
+/** Every kind's words in every language, as whole words, for telling whether a message names a kind of work. */
+const WORK_WORDS = ALL_KIND_WORDS.map(
   (w) => new RegExp(`(^|[^\\p{L}\\p{N}])${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}($|[^\\p{L}\\p{N}])`, "iu"),
 );
 export const namesWork = (message) => WORK_WORDS.some((w) => w.test(message));

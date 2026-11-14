@@ -3,8 +3,9 @@
 // agree are kept, so a message whose details are unclear is dropped rather than taught. Changing a prompt, the phrases
 // or the checks is a new data version: RECIPE_VERSION goes into every run's manifest.
 import { protocol } from "./core.mjs";
+import { PHRASES, ReaderLang } from "./languages.mjs";
 
-export const RECIPE_VERSION = 6;
+export const RECIPE_VERSION = 9;
 
 const Turn = protocol.TurnKind.enum;
 const Slot = protocol.ReaderSlot.enum;
@@ -60,6 +61,7 @@ const detailLine = (slot, words) =>
 
 export function writePrompt(target) {
   const slots = Object.entries(target.slots);
+  const phrases = PHRASES[target.lang ?? ReaderLang.en];
   return [
     "You write one chat message that a person in an Indian city types into a home-services app. Reply with one JSON object only.",
     `The message ${TURN_ASK[target.turn]}.`,
@@ -72,10 +74,11 @@ export function writePrompt(target) {
     ...(target.turn === Turn.need && !target.slots.kind
       ? [
           "It must not name the worker, the trade or the service in any words: only say what is wrong or what needs doing, as people do when they do not know whom to call.",
+          ...[phrases.problemLine(target.kind)].filter(Boolean),
         ]
       : []),
     'It must not name any other kind of work, place, day, time or how long, and no urgency ("urgently", "asap").',
-    `Style: ${target.style}. At most 25 words. English only. No names, phone numbers or prices.`,
+    `Style: ${target.style}. At most 25 words. ${phrases.LANGUAGE_LINE} No names, phone numbers or prices.`,
     "Then mark your own message: for each detail, copy its exact words from the message, or null when it does not say it:",
     ...protocol.ReaderSlot.options.map((s) => `- ${s}: ${PLAIN[s]}.`),
     `{"message": "...", ${protocol.ReaderSlot.options.map((s) => `"${s}": ...`).join(", ")}}`,
@@ -93,9 +96,17 @@ export const WRITE_SCHEMA = {
 /** "answer" only when there was a question to answer. */
 const ANSWER_TURN = (asking) => (asking ? `"answer" if it replies to the app's question; ` : "");
 
-export function labelPrompt(message, asking) {
+/** Said to the labeller for a message not in English, so Hindi words in English letters are read as words, not noise. */
+const MIXED = [
+  "The message may mix Hindi typed in English letters with English; mark the words as they stand.",
+  'A message saying work needs doing ("... chahiye", "... karna hai", "... karwana hai") asks to hire someone: it is "need".',
+  '"ghar" is home: never a place. "jaldi" and "turant" say how soon (when).',
+].join("\n");
+
+export function labelPrompt(message, asking, lang = ReaderLang.en) {
   return [
     "Mark the details in one chat message sent to a home-services app in India. Reply with one JSON object only.",
+    ...(lang === ReaderLang.en ? [] : [MIXED]),
     ...(asking ? [`The app had just asked: ${JSON.stringify(QUESTION[asking])}`] : []),
     `turn: "need" if it asks to hire someone; ${ANSWER_TURN(asking)}"market" if it asks what work costs; "greeting" if only a hello or thanks; else "other".`,
     "For each detail, copy its exact words from the message, letter for letter, or null when the message does not say it. Never write words that are not in the message:",
