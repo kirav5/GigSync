@@ -10,7 +10,7 @@ const ENGLISH_LINE = "English only.";
 
 /** Each language's phrases: kinds of work, places, times, how long, styles, and how the prompt names the language. */
 export const PHRASES = {
-  [ReaderLang.en]: { ...english, LANGUAGE_LINE: ENGLISH_LINE },
+  [ReaderLang.en]: { ...english, LANGUAGE_LINE: ENGLISH_LINE, problemLine: () => undefined },
   [ReaderLang.hinglish]: { ...hinglish, GROUP_WORDS: english.GROUP_WORDS },
 };
 

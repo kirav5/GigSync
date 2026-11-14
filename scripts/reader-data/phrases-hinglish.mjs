@@ -78,6 +78,40 @@ export const STYLES = [
   "mostly Hindi in English letters with a few English words",
 ];
 
+/**
+ * For a message that only says what is wrong: the Hindi words households use for the things one kind of work deals
+ * with, so the reader learns that "pankha" wants an electrician as "fan" does. Only the target's own kind's words: given
+ * a list for every kind, the writer put fans and taps into a bike's problem.
+ */
+const PROBLEM_WORDS = {
+  electrician: ["pankha", "batti", "bijli", "switch board", "taar", "socket"],
+  plumber: ["nal", "tanki", "motor", "naali", "flush", "pipe"],
+  carpenter: ["darwaza", "khidki", "almari", "kundi", "palang", "kursi", "mez"],
+  painter: ["deewar", "rang", "putai", "kamra"],
+  waterproofing: ["chhat", "seelan", "deewar", "baarish ka pani"],
+  pest_control: ["keede", "deemak", "chuhe", "machhar", "cockroach", "khatmal"],
+  maid: ["jhadu", "pocha", "bartan", "kapde", "safai"],
+  cook: ["khana", "roti", "sabzi", "nashta", "tiffin"],
+  driver: ["gaadi", "office", "school"],
+  gardener: ["paudhe", "gamle", "ghaas", "bagicha"],
+  car_wash: ["gaadi", "car", "dhulai"],
+  locksmith: ["taala", "chaabi", "kundi"],
+  mason: ["deewar", "farsh", "plaster", "eent"],
+  tile_work: ["tiles", "farsh", "bathroom"],
+  geyser_repair: ["geyser", "garam pani"],
+  water_tank_cleaning: ["tanki", "pani"],
+  tailor: ["kurta", "blouse", "silai", "fitting"],
+  laundry: ["kapde", "dhulai", "press"],
+  priest: ["pooja", "havan", "griha pravesh"],
+};
+
+/** The writing prompt's line for a problem of this kind of work; none when the kind has no Hindi words of its own. */
+export function problemLine(kind) {
+  const words = PROBLEM_WORDS[kind];
+  if (!words) return undefined;
+  return `Where it fits, say a thing the Hindi way people do, such as ${words.join(", ")}: one or two at most, and only what fits this problem.`;
+}
+
 /** For the writing prompt: what the message's language is. */
 export const LANGUAGE_LINE = [
   "Hinglish: Hindi typed in English letters, mixed with English words, as people type on WhatsApp in an Indian city. Never Devanagari.",
