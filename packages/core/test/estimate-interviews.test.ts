@@ -31,7 +31,8 @@ const painterFound = (): FoundEstimate => ({
   request: estimateRequest(city, T.painter) as EstimateRequest,
   estimate: PAINT_2BHK,
 });
-const keys = (lines: readonly { key: string }[]) => lines.map((l) => l.key);
+/** The lines' keys, without the small print over a question (what an answer gave), which `need-took` tests. */
+const keys = (lines: readonly { key: string; aside?: true }[]) => lines.filter((l) => !l.aside).map((l) => l.key);
 
 describe("the estimate under the card's rate questions", () => {
   /** A cook's card is for monthly work here, so its estimate is asked for that arrangement (ADR 0051). */

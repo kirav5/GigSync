@@ -16,7 +16,7 @@ import type { NeedDraft } from "./need-types.js";
  * A day the owner said, as the note names it. Every day stays out (monthly work has it unless another day was said, so
  * the owner may not have said it), and so does a date: the readback shows both.
  */
-const DAY_NAME: Readonly<Record<string, MessageKey>> = {
+export const DAY_NAME: Readonly<Record<string, MessageKey>> = {
   [DayWord.today]: "when.today",
   [DayWord.tomorrow]: "when.tomorrow",
 };
@@ -68,11 +68,13 @@ function whyKey(s: NeedState): MessageKey | undefined {
 }
 
 /**
- * The small-print note, when the work was just named and a question follows; empty otherwise. Never spoken: the
- * question is what the owner answers, and the note is there to read.
+ * The small-print note, when the work was just named and a question follows, or a later answer in words filled
+ * something (`need-took.ts`); empty otherwise. Never spoken: the question is what the owner answers, and the note is
+ * there to read.
  */
 export function understoodNote(s: NeedState): Line[] {
-  if (!s.understood || s.switching || !ASKING.has(s.slot)) return [];
+  if (s.switching || !ASKING.has(s.slot)) return [];
+  if (!s.understood) return s.took ? [{ ...s.took, aside: true }] : [];
   const understood = understoodLine(s.draft);
   if (!understood) return [];
   const why = whyKey(s);
