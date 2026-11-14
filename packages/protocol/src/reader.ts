@@ -78,12 +78,23 @@ export const NO_READER_WORK = "none";
 export const ReaderWork = z.union([Trade, WorkCategory, z.literal(NO_READER_WORK)]);
 export type ReaderWork = z.infer<typeof ReaderWork>;
 
-/** The reader's answer for one message; code checks the spans against the message it was given. */
+/** How many of its likeliest kinds of work the reader gives besides its first. */
+export const READER_GUESSES_MAX = 3;
+
+/** One kind of work the message may be about, and how likely the reader thinks it. */
+export const ReaderGuess = z.object({ work: ReaderWork, confidence: Confidence });
+export type ReaderGuess = z.infer<typeof ReaderGuess>;
+
+/**
+ * The reader's answer for one message; code checks the spans against the message it was given. `guesses` are its
+ * likeliest kinds of work, likeliest first, so a message it is unsure of can be asked about instead of dropped.
+ */
 export const ReaderResult = z.object({
   turn: TurnKind,
   turn_confidence: Confidence,
   work: ReaderWork,
   work_confidence: Confidence,
+  guesses: z.array(ReaderGuess).max(READER_GUESSES_MAX).optional(),
   spans: z.array(ReadSpan).max(READER_SPANS_MAX),
 });
 export type ReaderResult = z.infer<typeof ReaderResult>;

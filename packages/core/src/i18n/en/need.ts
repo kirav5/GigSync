@@ -2,6 +2,8 @@
 export const need = {
   "need.start": "What do you need done? Say it in your own words.",
   "need.ask.trade": "Which kind of worker do you need?",
+  "need.guess_ask": "Is this for…?",
+  "need.guess_else": "Something else",
   "need.again": "Sorry, I didn't catch that.",
   "need.greeting": "Hello! Tell me what work you need done, in your own words.",
   "need.switch_ask": "Do you want to ask about {work} instead? This chat stays in your list.",

@@ -145,6 +145,24 @@ function reply(s, conversation, used) {
   return { say: conversation.answers[used.answers++] ?? DONT_KNOW };
 }
 
+/** The chip for the work the person wants, if "Is this for…?" offers it; else "Something else", as a household would. */
+function guessPick(s, want) {
+  const offered = (core.needPrompt(s).choices ?? []).map((c) => c.value);
+  const named = (category) => category !== undefined && core.t("en", `category.${category}`) === want.skill;
+  const wanted = (value) =>
+    "trade" in want ? value === want.trade : "skill" in want && named(core.categoryPicked(value));
+  return offered.find(wanted) ?? core.NeedPick.list;
+}
+
+/** A tap, as FindChat.tsx takes it: a kind outside the trades goes to its workers' skill (`pickKind` in readNeed.ts). */
+function tap(s, value, lang) {
+  const kind = core.categoryPicked(value);
+  if (!kind) return core.chooseNeed(s, value);
+  const label = core.t(lang, `category.${kind}`);
+  const skill = core.categorySkill(kind, LISTED, lang);
+  return skill ? core.withSkill(s, skill, label, { picked: true }) : core.withNobody(s, label, label);
+}
+
 /** Runs one conversation: the record the scorer reads. */
 export async function runConversation(model, conversation, lang, reader = Reader.lists, phone = undefined) {
   const says = [...conversation.says];
@@ -161,12 +179,16 @@ export async function runConversation(model, conversation, lang, reader = Reader
       log.end = "outside";
       break;
     }
-    const first = s.slot === NeedSlot.trade;
+    const guessing = s.slot === NeedSlot.trade && s.guesses?.length > 0;
+    const first = s.slot === NeedSlot.trade && !guessing;
     const next = first ? says.shift() : undefined;
     if (first && next === undefined) break;
     if (next !== undefined) {
       const read = reader === Reader.lists ? firstWords : firstTurn;
       s = core.isGreeting(next) ? s : await read(model, s, next, lang, phone);
+    } else if (guessing) {
+      log.guessed = true;
+      s = tap(s, guessPick(s, conversation.want), lang);
     } else if (later && s.slot !== NeedSlot.budget) {
       s = await laterTurn(model, s, later, reader, log, phone);
       later = undefined;

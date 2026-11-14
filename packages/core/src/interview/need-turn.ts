@@ -45,6 +45,7 @@ export const hintOf = (read: TurnRead): NeedHint => ({
   ...(read.trade ? { trade: read.trade } : {}),
   ...(read.problem ? { problem: true as const } : {}),
   ...(read.arrangement ? { arrangement: read.arrangement } : {}),
+  ...(read.guesses ? { guesses: read.guesses } : {}),
 });
 
 /**

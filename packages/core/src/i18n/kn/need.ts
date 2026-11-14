@@ -4,6 +4,8 @@ import type { need as en } from "../en/need.js";
 export const need: Readonly<Record<keyof typeof en, string>> = {
   "need.start": "ನಿಮಗೆ ಯಾವ ಕೆಲಸ ಆಗಬೇಕು? ನಿಮ್ಮದೇ ಮಾತಿನಲ್ಲಿ ಹೇಳಿ.",
   "need.ask.trade": "ನಿಮಗೆ ಯಾವ ರೀತಿಯ ಕೆಲಸಗಾರರು ಬೇಕು?",
+  "need.guess_ask": "ಇದು ಇವುಗಳಲ್ಲಿ ಯಾವುದಕ್ಕೆ?",
+  "need.guess_else": "ಬೇರೆ ಏನಾದರೂ",
   "need.again": "ಕ್ಷಮಿಸಿ, ನನಗೆ ಅರ್ಥವಾಗಲಿಲ್ಲ.",
   "need.greeting": "ನಮಸ್ಕಾರ! ನಿಮಗೆ ಯಾವ ಕೆಲಸ ಆಗಬೇಕು ಎಂದು ಹೇಳಿ.",
   "need.switch_ask": "ಇದರ ಬದಲು {work} ಬಗ್ಗೆ ಕೇಳಬೇಕೇ? ಈ ಚಾಟ್ ನಿಮ್ಮ ಪಟ್ಟಿಯಲ್ಲಿ ಉಳಿಯುತ್ತದೆ.",
