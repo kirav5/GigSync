@@ -7,11 +7,12 @@
 //   --lang L         the language messages are written in: en (default) or hinglish (ADR 0065 §6)
 //   --only problem   only needs that say what is wrong and name no worker ("my tv won't turn on"): the run's targets are
 //                    the first N of those the seed draws, for filling that gap in a run without drawing the rest again
+//   --kinds K,K      only targets about these kinds of work (e.g. plumber,electrician), for the work most asked for
 // The teacher is Ollama at TEACHER_URL (default the SSH tunnel's end, http://localhost:11435) running TEACHER_MODEL.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { langOf } from "./reader-data/languages.mjs";
+import { langOf, PHRASES } from "./reader-data/languages.mjs";
 import { doneIds, Files, finish, makeOne, record } from "./reader-data/run.mjs";
 import { drawTarget, isProblem } from "./reader-data/sample.mjs";
 import { ask, TEACHER_MODEL, TEACHER_URL, TeacherDown, teacherReady, untilTeacher } from "./reader-data/teacher.mjs";
@@ -29,6 +30,7 @@ const { values } = parseArgs({
     concurrency: { type: "string" },
     only: { type: "string" },
     lang: { type: "string" },
+    kinds: { type: "string" },
   },
 });
 const settings = { ...DEFAULTS, ...values };
@@ -37,6 +39,13 @@ const seed = Number.parseInt(settings.seed, DECIMAL);
 const concurrency = Number.parseInt(settings.concurrency, DECIMAL);
 const dir = settings.out;
 const lang = langOf(settings.lang);
+/** The kinds of work a run keeps to; every kind when none is given. */
+const kinds = settings.kinds ? new Set(settings.kinds.split(",").map((k) => k.trim())) : undefined;
+const unknown = [...(kinds ?? [])].filter((k) => !PHRASES[lang].KINDS.some((known) => known.kind === k));
+if (unknown.length > 0) {
+  console.error(`--kinds has no such kind of work: ${unknown.join(", ")}`);
+  process.exit(EXIT_NO_TEACHER);
+}
 
 if (!(await teacherReady())) {
   console.error(`No ${TEACHER_MODEL} at ${TEACHER_URL}. Is the tunnel to the Mac Studio up?`);
@@ -48,6 +57,7 @@ const run = {
   count,
   concurrency,
   only: settings.only ?? null,
+  kinds: kinds ? [...kinds] : null,
   lang,
   teacher: TEACHER_MODEL,
   started_at: new Date().toISOString(),
@@ -59,11 +69,18 @@ if (settings.only !== undefined && !(settings.only in ONLY)) {
   console.error(`--only must be one of ${Object.keys(ONLY).join(", ")}`);
   process.exit(EXIT_NO_TEACHER);
 }
-/** The run's target numbers: 0 to count, or with --only the first `count` numbers whose targets are of that kind. */
+/** Whether a target is one the run keeps to: a problem with --only, of the given kinds with --kinds. */
+function wanted(target) {
+  return (settings.only === undefined || isProblem(target)) && (!kinds || kinds.has(target.kind));
+}
+/**
+ * The run's target numbers: 0 to count, or with --only or --kinds the first `count` numbers whose targets they keep.
+ * Numbers stay the seed's, so `works.mjs` draws each kept target again the same way.
+ */
 function targetIds() {
-  if (settings.only === undefined) return Array.from({ length: count }, (_, id) => id);
+  if (settings.only === undefined && !kinds) return Array.from({ length: count }, (_, id) => id);
   const ids = [];
-  for (let id = 0; ids.length < count; id++) if (isProblem(drawTarget(seed, id, lang))) ids.push(id);
+  for (let id = 0; ids.length < count; id++) if (wanted(drawTarget(seed, id, lang))) ids.push(id);
   return ids;
 }
 const todo = targetIds().filter((id) => !done.has(id));
