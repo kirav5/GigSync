@@ -29,6 +29,7 @@ import { detailAnswer, settledProblem } from "./need-detail.js";
 import { chooseDriver, hearDriver } from "./need-drivers.js";
 import { suggestedBudget } from "./need-estimate.js";
 import { changedBy, decidedFill, fillEmpty, fillFromHint } from "./need-fill.js";
+import { askGuesses } from "./need-guess.js";
 import { chooseKindPick } from "./need-kinds.js";
 import { MemoryPick } from "./need-memory.js";
 import type { NeedHint } from "./need-model.js";
@@ -144,7 +145,9 @@ function onAnswer(s: NeedState, text: string, aloud: boolean, hint: NeedHint): N
   const draft = withWordDrivers(fillFromHint(fillEmpty(s.draft, fill), hint, fill.words), fill.words);
   const answered = onSlot(s, draft, text, fill, aloud);
   if (answered) return answered;
-  // The question stays open, but whatever else the answer gave is kept.
+  // The question stays open, but whatever else the answer gave is kept; unsure of the work, the reader's guesses asked.
+  const guessing = s.slot === NeedSlot.trade ? askGuesses(s, draft, hint) : undefined;
+  if (guessing) return guessing;
   return { ...retryNeed(s, { key: s.slot === NeedSlot.budget ? Say.againBudget : Say.again }), draft };
 }
 
@@ -226,7 +229,7 @@ export function chooseNeed(s: NeedState, value: string): NeedState {
   if (s.slot === NeedSlot.driver) return chooseDriver(s, value) ?? s;
   switch (s.slot) {
     case NeedSlot.trade: {
-      if (value === NeedPick.list) return { ...s, fresh: false, notes: [] };
+      if (value === NeedPick.list) return { ...s, fresh: false, notes: [], guesses: undefined };
       const browsed = chooseKindPick(s, value);
       if (browsed) return browsed;
       const trade = Trade.options.find((tr) => tr === value);

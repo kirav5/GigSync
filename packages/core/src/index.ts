@@ -186,6 +186,7 @@ export { type ReaderLabels, type ReaderOutputs, readerResult, spansFromTags, tok
 export { type ReaderIds, type ReaderRun, type ReaderTokenizer, readerIds, readingOf } from "./reader/input.js";
 export { inEnglishLetters, readerReads } from "./reader/languages.js";
 export {
+  READER_GUESS_MIN,
   READER_WORK_MIN,
   readerAsking,
   readerTurn,

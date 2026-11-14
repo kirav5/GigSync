@@ -1,4 +1,4 @@
-import type { BoardSkill, Lang, Trade, WorkCategory } from "@gigsync/protocol";
+import type { BoardSkill, Lang, Trade, WorkCategory, WorkKind } from "@gigsync/protocol";
 import { Arrangement, ModelPurpose, TurnKind } from "@gigsync/protocol";
 import { z } from "zod";
 import { t } from "../i18n/t.js";
@@ -85,6 +85,8 @@ export interface TurnRead {
   problem?: true;
   /** How the work is hired, when the message says so (ADR 0046): read for its meaning, so "next month" is a date. */
   arrangement?: Arrangement;
+  /** Unsure of the work, the kinds it may well be, likeliest first: asked about, never taken (the phone's reader). */
+  guesses?: readonly WorkKind[];
 }
 
 /** What the model is told about the chat. */

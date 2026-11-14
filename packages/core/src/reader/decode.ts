@@ -1,6 +1,8 @@
 import {
   NO_READER_WORK,
+  READER_GUESSES_MAX,
   READER_SPANS_MAX,
+  type ReaderGuess,
   ReaderResult,
   ReaderSlot,
   ReaderWork,
@@ -103,6 +105,14 @@ function argmax(row: ArrayLike<number>): { at: number; p: number } {
   return { at, p: row[at] ?? 0 };
 }
 
+/** The likeliest kinds of work, likeliest first; a label protocol does not name is left out. */
+export function guessesOf(row: ArrayLike<number>, works: readonly string[]): ReaderGuess[] {
+  return Array.from(row, (confidence, at) => ({ work: ReaderWork.safeParse(works[at]).data, confidence }))
+    .flatMap((g) => (g.work === undefined ? [] : [{ work: g.work, confidence: g.confidence }]))
+    .sort((a, b) => b.confidence - a.confidence)
+    .slice(0, READER_GUESSES_MAX);
+}
+
 interface Open {
   slot: string;
   start: number;
@@ -168,6 +178,7 @@ export function readerResult(
     turn_confidence: turn.p,
     work: ReaderWork.safeParse(labels.works[work.at]).data ?? NO_READER_WORK,
     work_confidence: work.p,
+    guesses: guessesOf(outputs.work, labels.works),
     spans: spans.slice(0, READER_SPANS_MAX),
   });
   return parsed.success ? parsed.data : undefined;

@@ -5,6 +5,7 @@ import {
   type QuestionKey,
   type Trade,
   type WorkGroup,
+  type WorkKind,
 } from "@gigsync/protocol";
 import { EVERY_DAY, isMonthly } from "../job/when.js";
 import { QUESTIONS } from "../job/worker.js";
@@ -100,6 +101,8 @@ export interface NeedState {
   readonly guessed?: boolean | undefined;
   /** Picking from the list: the group open, its kinds on screen (ADR 0061). */
   readonly browsing?: WorkGroup | undefined;
+  /** The kinds of work the words may be for, asked as "Is this for…?" before the list (`need-guess.ts`). */
+  readonly guesses?: readonly WorkKind[] | undefined;
 }
 
 /** The trade's first question, which the request answers up front so the worker's agent need not ask it. */
@@ -225,6 +228,7 @@ export const moveOn = (s: NeedState, draft: NeedDraft, notes: Line[] = []): Need
     filled: [],
     guessed: false,
     browsing: undefined,
+    guesses: undefined,
   });
 
 /** "Use it": the remembered answer offered for the question now asked; anything else changes nothing. */

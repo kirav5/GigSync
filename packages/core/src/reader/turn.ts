@@ -6,6 +6,7 @@ import {
   Trade,
   TurnKind,
   WorkCategory,
+  type WorkKind,
 } from "@gigsync/protocol";
 import { arrangementSaid } from "../interview/arrangement-words.js";
 import { scrubJobType } from "../interview/fact-scrub.js";
@@ -23,6 +24,12 @@ import { inEnglishLetters, readerReads } from "./languages.js";
 
 /** How sure the reader must be of the kind of work for Find to take it: below this, its guess is wrong as often. */
 export const READER_WORK_MIN = 0.5;
+
+/**
+ * How likely a kind of work must be for Find to offer it when the reader is unsure of the work ("Is this for…?"): a
+ * kind below this is rarely the one meant, and one wrong chip among right ones costs a glance, not a wrong job.
+ */
+export const READER_GUESS_MIN = 0.1;
 
 const Slot = ReaderSlot.enum;
 
@@ -67,6 +74,18 @@ function sureWork(result: ReaderResult): Pick<TurnRead, "trade" | "category"> | 
   return category ? { category } : undefined;
 }
 
+/** The kinds of work worth asking about when the reader is unsure: none when it is sure, or sure there is none. */
+function guessed(result: ReaderResult): WorkKind[] {
+  if (result.work_confidence >= READER_WORK_MIN) return [];
+  return (result.guesses ?? []).flatMap((g) => {
+    const kind =
+      g.confidence >= READER_GUESS_MIN
+        ? (Trade.safeParse(g.work).data ?? WorkCategory.safeParse(g.work).data)
+        : undefined;
+    return kind ? [kind] : [];
+  });
+}
+
 export function turnFromReader(result: ReaderResult, text: string): TurnRead {
   const work = sureWork(result);
   const kindWords = spanWords(result, text, Slot.kind);
@@ -75,12 +94,14 @@ export function turnFromReader(result: ReaderResult, text: string): TurnRead {
     result.turn === TurnKind.enum.need && work === NO_READER_WORK && kindWords ? scrubJobType(kindWords) : undefined;
   const hired = spanWords(result, text, Slot.how_long);
   const arrangement = hired ? hiredBy(hired) : undefined;
+  const guesses = result.turn === TurnKind.enum.need ? guessed(result) : [];
   return {
     kind: result.turn,
     ...(work && work !== NO_READER_WORK ? work : {}),
     ...(jobType ? { jobType } : {}),
     ...(spanWords(result, text, Slot.what) ? { problem: true as const } : {}),
     ...(arrangement ? { arrangement } : {}),
+    ...(guesses.length > 0 ? { guesses } : {}),
   };
 }
 

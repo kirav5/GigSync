@@ -23,6 +23,7 @@ import { areaParts, wherePrompt } from "./need-address.js";
 import { arrangedWork, arrangementLines, arrangementPrompt, budgetUnitLines, oneOffNeed } from "./need-arrangement.js";
 import { driverQuestion } from "./need-drivers.js";
 import { budgetEstimate, listedLine } from "./need-estimate.js";
+import { guessPrompt } from "./need-guess.js";
 import { NeedPick } from "./need-hear.js";
 import { kindsPrompt, othersOf } from "./need-kinds.js";
 import { OFFER_CHOICES, recalledLine, redoChoice } from "./need-memory.js";
@@ -193,6 +194,7 @@ function question(s: NeedState): Prompt {
       // ADR 0051: the first turn invites the need in the owner's words, with one chip to the trades for whoever cannot
       // say or type it; the grid of trades comes on that tap, or when the words named no work.
       const opening = s.fresh && !s.to;
+      if (s.guesses?.length) return guessPrompt(s, s.guesses);
       if (!opening && !s.to) return kindsPrompt(s);
       const chips: Choice[] = trades.map((tr) => ({ value: tr, key: `trade.${tr}` as const }));
       return {

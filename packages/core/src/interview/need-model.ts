@@ -1,3 +1,4 @@
+import type { WorkKind } from "@gigsync/protocol";
 import { Arrangement, Lang, ModelPurpose, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
 import { z } from "zod";
 import { asciiDigits, numbersIn } from "../job/details.js";
@@ -45,6 +46,8 @@ export interface NeedHint {
    * trade nor the arrangement from them, so "car cleaning" is not a maid's and "next month" is not monthly work.
    */
   decided?: true;
+  /** Unsure of the work, the kinds it may well be (the phone's reader): asked about when nothing else names it. */
+  guesses?: readonly WorkKind[];
 }
 
 /** The on-device models read and answer English only today (HLD 7.6). */
