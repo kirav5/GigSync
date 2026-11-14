@@ -126,3 +126,21 @@ What changes from the decision above:
 - Its files are on GigSync's model host (an R2 bucket, `pnpm reader:publish`), at a folder per version set at build
   time by `VITE_READER_URL`; a build without it has no reader. It is fetched with the understanding pack, or alone by
   a phone that fetched the pack before.
+
+## Amendment (2026-11-14): Hinglish read on the phone, never sent to GigSync's model
+
+The founders decided that Hinglish no longer goes to GigSync's model: the phone's reader reads it alone, as it reads
+English. `model-v5` is trained on about 42,000 messages: the English runs above and two Hinglish runs (`--lang hinglish`,
+about 9,700 messages and 7,000 problems that name no worker, the problems in the everyday Hindi words for the house's
+things). Measured on the phone alone (`pnpm eval:find --reader phone --offline`):
+
+| Set                     | `model-v3` | `model-v5` |
+| ----------------------- | ---------- | ---------- |
+| Hinglish, held out (50) | 36%        | 68%        |
+| Hinglish (25)           | 56%        | 88%        |
+| English (25)            | 88%        | 84%        |
+
+GigSync's model reads Hinglish at 100%, so this trades accuracy for keeping the message on the phone. The held-out
+set is not fully blind: some of the Hindi words the problems run was given are in conversations `model-v4` missed. The
+8-bit export loses 0.0101 span F1 against PyTorch on dev, just over the export's 0.01 slack, and ships as measured.
+Kanglish still goes to GigSync's model first, Hindi and Kannada in their scripts too, until each is trained.

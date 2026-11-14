@@ -185,12 +185,17 @@ describe("what the reader reads", () => {
     expect(readerReads("cleaning of the side windows")).toBe(true);
   });
 
-  it("leaves Hindi and Kannada to the readers below it, in their scripts or in English letters", () => {
+  it("reads Hinglish, which it is trained on", () => {
+    expect(readerReads("mera cooler kharab ho gaya")).toBe(true);
+    expect(readerReads("bas ek")).toBe(true);
+    expect(readerReads("almari mein deemak lag gayi hai")).toBe(true);
+  });
+
+  it("leaves Hindi and Kannada to the readers below it, in their scripts, and Kanglish", () => {
     expect(readerReads("मेरा नल टपक रहा है")).toBe(false);
     expect(readerReads("ನನ್ನ ಟಿವಿ ಕೆಲಸ ಮಾಡುತ್ತಿಲ್ಲ")).toBe(false);
-    expect(readerReads("mera cooler kharab ho gaya")).toBe(false);
     expect(readerReads("ac service madisbeku")).toBe(false);
-    expect(readerReads("bas ek")).toBe(false);
+    expect(readerReads("nanna mane alli fan kelsa madtilla")).toBe(false);
   });
 });
 
@@ -209,9 +214,21 @@ describe("Find's reading of a message", () => {
     expect(asked).toBe(false);
   });
 
-  it("asks the model for Hinglish, and the reader only when the model has no answer", async () => {
-    expect(await readMessage(tv, "mera tv kharab hai", undefined, model(true))).toBe(fromModel);
-    expect((await readMessage(tv, "mera tv kharab hai", undefined, model(false)))?.category).toBe("tv_repair");
+  it("reads Hinglish with the reader alone, never asking the model", async () => {
+    let asked = false;
+    const read = await readMessage(tv, "mera tv kharab hai", undefined, async () => {
+      asked = true;
+      return fromModel;
+    });
+    expect(read?.category).toBe("tv_repair");
+    expect(asked).toBe(false);
+  });
+
+  it("asks the model for Kanglish, and the reader only when the model has no answer", async () => {
+    expect(await readMessage(tv, "nanna tv kelsa madtilla beku", undefined, model(true))).toBe(fromModel);
+    expect((await readMessage(tv, "nanna tv kelsa madtilla beku", undefined, model(false)))?.category).toBe(
+      "tv_repair",
+    );
   });
 
   it("never gives Hindi or Kannada in their scripts to the reader", async () => {
