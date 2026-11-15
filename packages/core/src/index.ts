@@ -130,6 +130,7 @@ export * from "./job/progress.js";
 export * from "./job/settle.js";
 export * from "./job/store.js";
 export * from "./job/strategy.js";
+export * from "./job/sync-pace.js";
 export { setUsualTactic, usualTactic } from "./job/tactic.js";
 export * from "./job/talk.js";
 export { canOffer, TalkError, Talks, theirLast, theirLatest } from "./job/talks.js";

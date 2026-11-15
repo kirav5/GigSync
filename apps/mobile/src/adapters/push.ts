@@ -33,6 +33,9 @@ const ASKED: NotificationPermission = "default";
 export const SW_LANG = "gigsync-lang";
 /** The message that gives the service worker the names of the people this owner has jobs with, by user id. */
 export const SW_NAMES = "gigsync-names";
+/** The message the service worker sends every open page when a push lands; the same value as in sw/sw.js. */
+const SW_PUSHED = "gigsync-pushed";
+const MESSAGE_EVENT = "message";
 /** Set once this phone offered notifications on its own, so it never asks again unprompted. */
 const OFFERED_KEY = "gigsync-notifications-offered";
 
@@ -117,6 +120,22 @@ export async function turnOffAlerts(session: Session): Promise<AlertState> {
   await (await current())?.unsubscribe();
   await apiClient(session).unsubscribePush();
   return AlertState.off;
+}
+
+const isPushed = (data: unknown): boolean =>
+  typeof data === "object" && data !== null && "type" in data && data.type === SW_PUSHED;
+
+/**
+ * Calls `pushed` each time the service worker says a push landed while this page is open, so the page can check its
+ * mailbox at once; returns how to stop. Does nothing where there is no Web Push (the native apps, old browsers).
+ */
+export function onPush(pushed: () => void): () => void {
+  if (!supported()) return () => undefined;
+  const heard = (event: MessageEvent<unknown>) => {
+    if (isPushed(event.data)) pushed();
+  };
+  navigator.serviceWorker.addEventListener(MESSAGE_EVENT, heard);
+  return () => navigator.serviceWorker.removeEventListener(MESSAGE_EVENT, heard);
 }
 
 /** Tells the service worker who the people this owner has jobs with are, so a notification can name its sender. */
