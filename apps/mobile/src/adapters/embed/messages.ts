@@ -22,12 +22,22 @@ export const FromWorker = {
   reading: "reading",
 } as const;
 
+/** Models the app came with: the folder they are in (`models/`), and the embedding model's name there. */
+export interface Bundled {
+  base: string;
+  embedder: string;
+}
+
 export type ToWorkerMessage =
-  | { type: typeof ToWorker.load }
+  /** `bundled`: load from the app's own files, never the network; absent, from Hugging Face as before. */
+  | { type: typeof ToWorker.load; bundled: Bundled | undefined }
   /** `keep`: fixed sayings, whose vectors the worker keeps for later launches; never set for an owner's own words. */
   | { type: typeof ToWorker.embed; id: number; texts: readonly string[]; keep: boolean }
-  /** `url`: the folder the reader's files are in; `fetch`: false loads it only from the device, never the network. */
-  | { type: typeof ToWorker.loadReader; url: string; fetch: boolean }
+  /**
+   * `url`: the folder the reader's files are in; `fetch`: false loads it only from the device, never the network;
+   * `keep`: put what was fetched in the browser's cache (never for files the app came with, which are on the device).
+   */
+  | { type: typeof ToWorker.loadReader; url: string; fetch: boolean; keep: boolean }
   | { type: typeof ToWorker.read; id: number; input: ReaderInput };
 
 export type FromWorkerMessage =

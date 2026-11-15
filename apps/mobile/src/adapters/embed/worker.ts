@@ -2,7 +2,14 @@
 
 import type { ReaderInput } from "@gigsync/protocol";
 import { env, type FeatureExtractionPipeline, pipeline } from "@huggingface/transformers";
-import { EMBEDDING_MODEL, FromWorker, type FromWorkerMessage, ToWorker, type ToWorkerMessage } from "./messages.js";
+import {
+  type Bundled,
+  EMBEDDING_MODEL,
+  FromWorker,
+  type FromWorkerMessage,
+  ToWorker,
+  type ToWorkerMessage,
+} from "./messages.js";
 import { type LoadedReader, loadReader, readOne } from "./reader.js";
 
 /**
@@ -16,7 +23,8 @@ const DTYPE = "q8";
 const QUERY_PREFIX = "query: ";
 const POOLING = "mean";
 /** Where kept vectors live, by model and text; a new model gets a new name, so old vectors are never mixed in. */
-const VECTORS_CACHE = `gigsync-vectors-${EMBEDDING_MODEL.replace("/", "-")}-${DTYPE}`;
+const vectorsCache = (model: string) => `gigsync-vectors-${model.replace("/", "-")}-${DTYPE}`;
+let VECTORS_CACHE = vectorsCache(EMBEDDING_MODEL);
 /** A name of our own for the cache's keys; never fetched. */
 const VECTORS_ORIGIN = "https://vectors.gigsync.internal/";
 
@@ -36,12 +44,28 @@ const post = (m: FromWorkerMessage) => scope.postMessage(m);
 const nameOf = (err: unknown) => (err instanceof Error ? err.name : String(err));
 let pipe: Promise<FeatureExtractionPipeline> | undefined;
 
-async function load(): Promise<void> {
-  // Files come from the browser's cache when it has them, else from the model's host: the app asks for a load only
-  // when the cache is complete, or on the owner's tap.
+/**
+ * Points Transformers.js at the app's own files, with no network and no second copy: the models, and ONNX Runtime's
+ * WebAssembly, which the build already ships beside this worker (Transformers.js would fetch it from a CDN instead).
+ */
+function fromBundle(bundled: Bundled): string {
+  env.allowRemoteModels = false;
+  env.allowLocalModels = true;
+  env.localModelPath = bundled.base;
+  env.useBrowserCache = false;
+  const wasm = env.backends.onnx.wasm;
+  if (wasm) delete wasm.wasmPaths;
+  VECTORS_CACHE = vectorsCache(bundled.embedder);
+  return bundled.embedder;
+}
+
+async function load(bundled: Bundled | undefined): Promise<void> {
+  // Files come from the app's bundle, or else from the browser's cache when it has them, else from the model's host:
+  // the app asks for a load only when the cache is complete, or on the owner's tap.
   env.allowRemoteModels = true;
   env.allowLocalModels = false;
-  pipe ??= loadExtractor("feature-extraction", EMBEDDING_MODEL, {
+  const model = bundled ? fromBundle(bundled) : EMBEDDING_MODEL;
+  pipe ??= loadExtractor("feature-extraction", model, {
     dtype: DTYPE,
     progress_callback: (p) => {
       if (p.progress !== undefined) post({ type: FromWorker.progress, percent: Math.round(p.progress) });
@@ -95,12 +119,12 @@ async function embed(id: number, texts: readonly string[], keep: boolean): Promi
 let reader: Promise<LoadedReader> | undefined;
 
 /** The reader, after the embedding model whose tokenizer it uses; from the device only unless `fetchIt`. */
-async function startReader(url: string, fetchIt: boolean): Promise<void> {
+async function startReader(url: string, fetchIt: boolean, keep: boolean): Promise<void> {
   try {
     if (!pipe) throw new Error("model not loaded");
     const { tokenizer } = await pipe;
     const progress = (percent: number) => post({ type: FromWorker.readerProgress, percent });
-    reader ??= loadReader(url, fetchIt, tokenizer, progress);
+    reader ??= loadReader(url, { fetchIt, keep }, tokenizer, progress);
     await reader;
     post({ type: FromWorker.readerReady });
   } catch (err) {
@@ -122,11 +146,11 @@ scope.onmessage = (e: MessageEvent<ToWorkerMessage>) => {
   const m = e.data;
   switch (m.type) {
     case ToWorker.load:
-      return void load();
+      return void load(m.bundled);
     case ToWorker.embed:
       return void embed(m.id, m.texts, m.keep);
     case ToWorker.loadReader:
-      return void startReader(m.url, m.fetch);
+      return void startReader(m.url, m.fetch, m.keep);
     case ToWorker.read:
       return void read(m.id, m.input);
   }

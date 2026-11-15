@@ -57,6 +57,27 @@ the same detail, by the tokenizer's character offsets.
 Dev scores come from the teacher's own data, so they say the model learned the teacher; whether it reads people is
 the gate's held-out test set (ADR 0065, step 5).
 
+## Putting it in the app
+
+The phone app comes with its models (ADR 0065, amendment of 2026-11-15). Trim the reader and the embedding model to
+the pieces the phone reads, in one run so both keep the same pieces, keeping the eval sets out of the corpus:
+
+```bash
+uv run trim.py --tokenizer ../../data/reader/model-v6 --top 20000 \
+  --corpus ../../packages ../../apps/mobile/src ../../data/reader/v1 ../../data/reader/hinglish-v1 \
+  --model ../../data/reader/model-v6 ../../data/reader/model-v6-trim \
+  --model <Transformers.js cache>/Xenova/multilingual-e5-small ../../data/reader/e5-small-trim
+```
+
+Score the trimmed pair as phones read it (copy `e5-small-trim` into Transformers.js's cache as `gigsync/e5-small-trim`
+for `EMBEDDING_MODEL` to find it), then put both in a native build:
+
+```bash
+READER_MODEL=data/reader/model-v6-trim EMBEDDING_MODEL=gigsync/e5-small-trim pnpm eval:find --reader phone --offline --set hinglish-held
+pnpm build && pnpm models:bundle --embedder data/reader/e5-small-trim --reader data/reader/model-v6-trim
+pnpm --filter @gigsync/mobile exec cap sync android
+```
+
 ## Putting it on phones
 
 A trained reader goes to GigSync's model host, an R2 bucket, at a folder per version that is never overwritten:
