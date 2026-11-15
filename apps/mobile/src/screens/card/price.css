@@ -91,8 +91,8 @@
   padding-bottom: 2px;
   border-bottom: 2px solid transparent;
   font-family: var(--serif);
-  /* As big as fits beside − and + with its unit on the same line: 40px on most phones, a little less at 360px. */
-  font-size: clamp(32px, 9.6vw, 40px);
+  /* Big enough to lead the card, not to shout: 34px on most phones, a little less at 360px. */
+  font-size: clamp(30px, 8.8vw, 34px);
   font-weight: 600;
   line-height: 1.1;
   font-variant-numeric: lining-nums;
@@ -236,6 +236,13 @@
   background: var(--accent);
   color: var(--on-accent);
 }
+/* "Stays on this phone": a quiet line with its lock, not a badge. */
 .price-private {
-  justify-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: -6px 0 0;
+  font-size: 14px;
+  color: var(--text2);
 }

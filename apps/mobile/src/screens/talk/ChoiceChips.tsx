@@ -15,6 +15,11 @@ const PICTURE_PX = 18;
 const DONE_KEY: MessageKey = "iv.done";
 /** Before how many are picked, after the chip's gap: "Done · 2". */
 const COUNT_JOINER = "· ";
+/**
+ * The chips that answer even where the others toggle: Done, with those ticked, and None (No other language), which
+ * answers with none at once instead of being ticked beside the others.
+ */
+const ANSWERS: ReadonlySet<string> = new Set([CardPick.yes, CardPick.none]);
 /** The composer's field in the dock, where an answer in the owner's own words goes. */
 const COMPOSER_FIELD = ".composer input";
 
@@ -61,9 +66,11 @@ export function Choices({
   const toggles = picked !== undefined;
   const on = (c: Choice) => picked?.includes(c.value) ?? false;
   const done = choices.filter(on).map((c) => t(c.key, c.params));
+  // Done and None answer; every other chip of a question that toggles ticks on or off where it stands.
+  const answers = (c: Choice) => !toggles || ANSWERS.has(c.value);
   const tap = (c: Choice) => {
-    if (toggles && c.value !== CardPick.yes) return toggleInterview(c.value);
-    tapInterview(c.value, toggles && done.length > 0 ? done.join(LIST_JOINER) : t(c.key, c.params));
+    if (!answers(c)) return toggleInterview(c.value);
+    tapInterview(c.value, c.value === CardPick.yes && done.length > 0 ? done.join(LIST_JOINER) : t(c.key, c.params));
   };
   const chip = (c: Choice) => {
     const picture = workPicture(c.value);
@@ -72,11 +79,11 @@ export function Choices({
       <button
         key={c.value}
         type={C.button}
-        aria-pressed={toggles && c.value !== CardPick.yes ? on(c) : undefined}
+        aria-pressed={answers(c) ? undefined : on(c)}
         className={isDone ? `${C.chip} iv-done` : on(c) ? C.chipOn : C.chip}
         onClick={() => tap(c)}
       >
-        {picture && <Picture of={picture} />}
+        {on(c) ? <Icon name="tick" size={PICTURE_PX} /> : picture && <Picture of={picture} />}
         {t(c.key, c.params)}
         {isDone && done.length > 0 && <span aria-hidden="true">{`${COUNT_JOINER}${done.length}`}</span>}
       </button>

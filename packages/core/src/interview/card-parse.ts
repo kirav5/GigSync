@@ -10,6 +10,7 @@ import { chooseWhichRate, edit, editSaid, hearWhichRate, onUnlist } from "./card
 import { suggestedAmount } from "./card-estimate.js";
 import { chooseFiling, hearFiling } from "./card-guess.js";
 import { chooseKind, hearKind } from "./card-kind.js";
+import { languagesPicked, toggleLanguage } from "./card-languages.js";
 import { choosePriceArrangement } from "./card-price.js";
 import { onTrades, onWork } from "./card-work.js";
 import { chooseRest, hearRest } from "./card-work-rates.js";
@@ -183,8 +184,11 @@ export function choose(state: InterviewState, value: string): InterviewState {
       return choosePriceArrangement(state, value);
     }
     case Slot.languages: {
+      // No other language answers at once; a language ticks on or off; Done answers with those ticked.
+      if (value === Pick.none) return onLanguages(state, []);
+      if (value === Pick.yes) return onLanguages(state, languagesPicked(state));
       const lang = Lang.options.find((l) => l === value);
-      return lang || value === Pick.none ? onLanguages(state, lang ? [lang] : []) : state;
+      return lang ? toggleLanguage(state, lang) : state;
     }
     case Slot.about:
       return value === Pick.skip ? onAbout(state, undefined) : state;

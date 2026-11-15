@@ -80,8 +80,22 @@ test("a cook prices her work by the month on the price card, with her days and m
   await shoot("lowest-card", { worker: page }, FOLDER);
   await nextTurn(page, en, "iv.ask.languages", () => tap(page, t(en, "cardflow.lowest_next")));
 
-  // The rest as any card: no other languages, nothing about the work, no asking first, no list, the agent waits.
-  await nextTurn(page, en, "iv.ask.about", () => tap(page, t(en, "iv.none")));
+  // Languages tick on and off where they stand, ticked with a tick; Done answers with those ticked.
+  const language = (key: MessageKey) =>
+    log(page)
+      .getByRole("button", { name: t(en, key), exact: true })
+      .last();
+  await language("lang.hi").click();
+  await language("lang.kn").click();
+  await language("lang.kn").click();
+  await expect(language("lang.hi")).toHaveAttribute("aria-pressed", "true");
+  await expect(language("lang.kn")).toHaveAttribute("aria-pressed", "false");
+  await expect(log(page).getByText(textOf(en, "iv.ask.about"))).toHaveCount(0);
+  await shoot("languages-picked", { worker: page }, FOLDER);
+  await nextTurn(page, en, "iv.ask.about", () => tap(page, t(en, "iv.done")));
+  await expect(log(page).getByText(t(en, "lang.hi"), { exact: true }).last()).toBeVisible();
+
+  // The rest as any card: nothing about the work, no asking first, no list, the agent waits.
   await nextTurn(page, en, "iv.ask.ask_first", () => tap(page, t(en, "iv.skip")));
   await nextTurn(page, en, "iv.ask.asks", () => tap(page, t(en, "flag.no")));
   await nextTurn(page, en, "iv.ask.auto", () => tap(page, t(en, "iv.skip")));

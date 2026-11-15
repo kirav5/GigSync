@@ -15,7 +15,6 @@ import type { Account } from "../../adapters/account.js";
 import { tapInterview } from "../../card/interviewStore.js";
 import { draftCard, radiusOf } from "../../card/publish.js";
 import { useI18n } from "../../i18n.js";
-import { Badge, BadgeTone } from "../../ui/Badge.js";
 import { C } from "../../ui/cls.js";
 import { Icon } from "../../ui/Icon.js";
 import { CardFace } from "../card/CardFace.js";
@@ -27,8 +26,10 @@ import { LocateArea } from "./LocateArea.js";
 import { LowestAsk, PriceAsk } from "./PriceAsk.js";
 import { RadiusAsk } from "./RadiusAsk.js";
 
-/** The question whose answer is private: its turn carries the lock badge even once answered. */
+/** The question whose answer is private: its turn carries the lock line even once answered. */
 const MIN_QUESTION: MessageKey = "iv.ask.min";
+/** The lock beside "Stays on this phone", the size of its words, as on the lowest card (PriceAsk.tsx). */
+const LOCK_PX = 16;
 /** The estimate under another arrangement's rate, with where its lines start in the turn; none for others. */
 function bandOf(lines: readonly Line[], state: InterviewState): { found: FoundEstimate; from: number } | undefined {
   if (state.slot !== Slot.more_rates) return undefined;
@@ -62,7 +63,7 @@ function RateCard({ found, lines }: { found: FoundEstimate; lines: readonly Line
 /**
  * One turn of the card interview: the agent's lines and, while it is the question now asked (`live`), what goes with
  * it: the price card under the usual rate (PriceAsk.tsx), the lowest card under the private one, the going rate's card
- * under another arrangement's rate, the lock badge on the private one once answered, the picture chips, Use my
+ * under another arrangement's rate, the lock line on the private one once answered, the picture chips, Use my
  * location under the area, the distance map, its quick chips and slider over how far they go, and at the summary the
  * card face above it all (W5). There the dock asks to put it on the board, so the yes and no chips stand aside.
  */
@@ -91,11 +92,10 @@ export function CardTurn({
       <Ask lines={lines} split={band?.from}>
         {band && <RateCard found={band.found} lines={lines.slice(band.from)} />}
         {secret && (
-          <span className="iv-private">
-            <Badge icon="lock" tone={BadgeTone.green}>
-              {t("cardflow.private")}
-            </Badge>
-          </span>
+          <p className="price-private iv-private">
+            <Icon name="lock" size={LOCK_PX} />
+            {t("cardflow.private")}
+          </p>
         )}
         {live?.slot === Slot.radius && <RadiusAsk draft={draftOf(live)} />}
         {live && card === Slot.rate && <PriceAsk state={live} />}

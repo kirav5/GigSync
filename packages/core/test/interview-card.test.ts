@@ -237,7 +237,21 @@ describe("the card interview's checks", () => {
     // The recognizer now listens for Hindi words.
     expect(ask.hints.length).toBeGreaterThan(0);
     expect(ask.hints.every((h) => /\p{Script=Devanagari}/u.test(h))).toBe(true);
-    expect(ask.choices?.map((c) => c.value)).toEqual(["en", "kn", "none"]);
+    expect(ask.choices?.map((c) => c.value)).toEqual(["en", "kn", "none", "yes"]);
+  });
+
+  it("ticks languages on and off in place, answers with those ticked on Done, and none at once", () => {
+    const atLanguages = run(start(config("hi")), ["cook", "no", "monthly", "Koramangala", "10", "9000", "7000"]);
+    expect(atLanguages.slot).toBe(Slot.languages);
+    const ticked = choose(choose(choose(atLanguages, "kn"), "en"), "kn");
+    expect(ticked.slot).toBe(Slot.languages);
+    expect(prompt(ticked).picked).toEqual(["en"]);
+    const done = choose(ticked, "yes");
+    expect(done.slot).toBe(Slot.about);
+    expect(draftOf(done).languages).toEqual(["hi", "en"]);
+    const none = choose(ticked, "none");
+    expect(none.slot).toBe(Slot.about);
+    expect(draftOf(none).languages).toEqual(["hi"]);
   });
 
   it("ignores a tap the prompt did not offer", () => {

@@ -9,6 +9,7 @@ import { fieldsFor, unlistPrompt, whichRatePrompt } from "./card-edit.js";
 import { estimatePrompt } from "./card-estimate.js";
 import { filingPrompt } from "./card-guess.js";
 import { kindPrompt } from "./card-kind.js";
+import { languagesPrompt } from "./card-languages.js";
 import { priceUnit, windowsSummary } from "./card-price.js";
 import { termsSummary } from "./card-terms.js";
 import { restPrompt, workRatesSummary } from "./card-work-rates.js";
@@ -170,14 +171,7 @@ function question(state: InterviewState): Prompt {
       return estimate ? { ...asked, ...estimate, lines: [...asked.lines, ...estimate.lines], hints: [] } : asked;
     }
     case Slot.languages:
-      return {
-        lines: [{ key: "iv.ask.languages", names: { lang: [`lang.${own}`] } }],
-        choices: [
-          ...Lang.options.filter((l) => l !== own).map((l) => ({ value: l, key: `lang.${l}` as const })),
-          { value: Pick.none, key: "iv.none" },
-        ],
-        hints: Lang.options.map((l) => t(own, `lang.${l}`)),
-      };
+      return languagesPrompt(state);
     case Slot.about:
       return { lines: [{ key: "iv.ask.about" }], choices: [{ value: Pick.skip, key: "iv.skip" }], hints: [] };
     case Slot.ask_first: {

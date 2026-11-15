@@ -10,8 +10,8 @@ import { Arrangement, ISO_WEEKDAYS, type IsoWeekday } from "@gigsync/protocol";
 import { type RefObject, useEffect, useRef, useState } from "react";
 import { priceInterview, tapInterview, toggleInterview } from "../../card/interviewStore.js";
 import { useI18n } from "../../i18n.js";
-import { Badge, BadgeTone } from "../../ui/Badge.js";
 import { C } from "../../ui/cls.js";
+import { Icon } from "../../ui/Icon.js";
 import { money, rupeesOf } from "../../ui/places.js";
 import { AmountDial, paiseIn, Segmented } from "../card/AmountDial.js";
 import { lineText } from "./Bubbles.js";
@@ -20,6 +20,8 @@ import { DayPick, PartPick } from "./WhenPick.js";
 /** Between the parts of the owner's answer as it reads in the chat: "₹4,500 / month · Mon, Tue · Morning". */
 const PART_JOINER = " · ";
 const DAY_JOINER = ", ";
+/** The lock beside "Stays on this phone", the size of its words. */
+const PRIVATE_ICON_PX = 16;
 /** A price with no unit of its own (work of their own, not yet priced by any arrangement) steps as a visit's. */
 const PLAIN_STEP = AMOUNT_STEP_PAISE[Arrangement.enum.visit];
 
@@ -88,7 +90,7 @@ export function PriceAsk({ state }: { state: InterviewState }) {
   );
 }
 
-/** The least they take, private: one amount, "Stays on this phone", and the button. Typed in the composer works too. */
+/** The least they take, private: its title, one amount, "Stays on this phone" quietly under it, and the button. Typed in the composer works too. */
 export function LowestAsk({ state }: { state: InterviewState }) {
   const { t } = useI18n();
   const field = useRef<HTMLInputElement>(null);
@@ -101,6 +103,7 @@ export function LowestAsk({ state }: { state: InterviewState }) {
   };
   return (
     <div className={`${C.card} price-card`}>
+      <h3 className="price-title">{t("cardflow.lowest_title")}</h3>
       <AmountDial
         label={t("cardflow.lowest_title")}
         step={unit ? AMOUNT_STEP_PAISE[unit] : PLAIN_STEP}
@@ -108,11 +111,10 @@ export function LowestAsk({ state }: { state: InterviewState }) {
         inputRef={field}
         onAmount={touch}
       />
-      <span className="price-private">
-        <Badge icon="lock" tone={BadgeTone.green}>
-          {t("cardflow.private")}
-        </Badge>
-      </span>
+      <p className="price-private">
+        <Icon name="lock" size={PRIVATE_ICON_PX} />
+        {t("cardflow.private")}
+      </p>
       <button type={C.button} className={C.wide} onClick={send}>
         {t("cardflow.lowest_next")}
       </button>
