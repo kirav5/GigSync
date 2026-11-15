@@ -144,3 +144,27 @@ GigSync's model reads Hinglish at 100%, so this trades accuracy for keeping the 
 set is not fully blind: some of the Hindi words the problems run was given are in conversations `model-v4` missed. The
 8-bit export loses 0.0101 span F1 against PyTorch on dev, just over the export's 0.01 slack, and ships as measured.
 Kanglish still goes to GigSync's model first, Hindi and Kannada in their scripts too, until each is trained.
+
+## Amendment (2026-11-15): both models come with the phone app, trimmed to the languages it reads
+
+The founders want the phone to read from its first launch, offline, with nothing to download. The understanding pack's
+embedding model and the reader were about 113 MB each, and 96 MB of each is one table: the tokenizer's 250,000 pieces
+for about a hundred languages. `training/reader/trim.py` keeps the pieces the phone needs (every piece of the
+Devanagari and Kannada scripts, every single letter, digit and symbol, every piece the app's own words and the data
+runs use, and the 20,000 likeliest Latin pieces): 38,531 pieces, and 35 MB a model. A word whose piece was dropped is
+split into smaller kept pieces, as any rare word is. Both models are trimmed to the same pieces in one run, since the
+reader reads with the embedding model's tokenizer.
+
+Measured against the untrimmed `model-v6` and embedding model, with the eval sets kept out of the trim's corpus:
+
+| Check                                        | Result                             |
+| -------------------------------------------- | ---------------------------------- |
+| `eval:find --reader phone --offline`, 6 sets | Every case the same, all 175       |
+| Eval messages tokenized differently          | 4 of 548                           |
+| Embedding vectors                            | 544 of 548 identical, lowest 0.988 |
+
+A native build carries both under `models/` (`pnpm models:bundle` after the web build, before `cap sync`), with a
+manifest the app reads at launch: it then loads them from its own files, with ONNX Runtime's WebAssembly from the build
+instead of a CDN, and never fetches the reader from `VITE_READER_URL`, whose untrimmed pieces would not match. The
+website has no bundle and fetches as before. A new reader now comes with an app release. Release builds in CI do not
+bundle yet: the models stay off git, so CI needs them from somewhere first.

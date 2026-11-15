@@ -1,6 +1,8 @@
+import { Capacitor } from "@capacitor/core";
 import { Collection, type Embedder, log, mayResumeAlone, type Reader, type Storage } from "@gigsync/core";
-import type { ReaderInput, ReaderResult } from "@gigsync/protocol";
+import { ModelBundle, type ReaderInput, type ReaderResult } from "@gigsync/protocol";
 import {
+  type Bundled,
   EMBEDDING_MODEL,
   FromWorker,
   type FromWorkerMessage,
@@ -24,6 +26,27 @@ export { EMBEDDING_MODEL };
  * build time (`VITE_READER_URL`). A build without it has no reader, and Find reads as before.
  */
 const READER_URL = import.meta.env.VITE_READER_URL?.replace(/\/+$/, "") || undefined;
+/**
+ * Where a native app keeps the models it came with (`pnpm models:bundle`), beside its own files: the trimmed embedding
+ * model and the reader trimmed to the same pieces. With them the phone reads from its first launch,
+ * offline, and never fetches either model; the web, which has no bundle, fetches as before.
+ */
+const BUNDLE = "/models/";
+const BUNDLE_MANIFEST = `${BUNDLE}manifest.json`;
+const BUNDLED_READER = `${BUNDLE}reader`;
+
+/** The bundle's manifest, in a native app built with one; undefined everywhere else. */
+async function findBundle(): Promise<Bundled | undefined> {
+  if (!Capacitor.isNativePlatform()) return undefined;
+  try {
+    const response = await fetch(BUNDLE_MANIFEST);
+    if (!response.ok) return undefined;
+    const manifest = ModelBundle.safeParse(await response.json());
+    return manifest.success ? { base: BUNDLE, embedder: manifest.data.embedder } : undefined;
+  } catch {
+    return undefined;
+  }
+}
 /** Remembers that the pack was fetched, so later launches load it from the cache without asking again. */
 const SETTINGS_KEY = "understanding_pack";
 /** Where Transformers.js keeps fetched files (its browser Cache name), and the files this model needs. */
@@ -50,6 +73,8 @@ export class UnderstandingPack implements Embedder, Reader {
   state: PackState = PackState.downloadable;
   /** The reader's own state once the embedding model is ready; undefined in a build with no reader. */
   readerState: PackState | undefined = READER_URL ? PackState.downloadable : undefined;
+  /** The models the app came with, once `load` looked; the reader then comes from there and never from the host. */
+  private bundled: Bundled | undefined;
   private settleReader: (() => void) | undefined;
   private readonly readings = new Map<number, (result: ReaderResult | null) => void>();
   private worker: Worker | undefined;
@@ -67,12 +92,21 @@ export class UnderstandingPack implements Embedder, Reader {
    */
   async load(storage: Storage): Promise<void> {
     this.storage = storage;
+    this.bundled = await findBundle();
+    if (this.bundled) return this.loadBundled();
     const fetched = await storage.get<boolean>(Collection.settings, SETTINGS_KEY);
     const wifi = mayResumeAlone(currentNetwork());
     if (fetched && (await this.cached())) await this.start();
     else if (wifi) return this.prepare();
     // A reader newer than the pack on this phone comes the same way.
     await this.startReader(wifi);
+  }
+
+  /** Both models from the app's own files: no network, no cache, on every launch. */
+  private async loadBundled(): Promise<void> {
+    this.readerState = PackState.downloadable;
+    await this.start();
+    await this.startReader(true);
   }
 
   /** Fetches the pack, once, then keeps it: the embedding model, then the reader. */
@@ -84,11 +118,13 @@ export class UnderstandingPack implements Embedder, Reader {
 
   /** The reader, once the embedding model is ready: from the device at launch, from the host only with the pack. */
   private startReader(fetchIt: boolean): Promise<void> {
-    if (!READER_URL || this.state !== PackState.ready || this.readerState === PackState.ready) return Promise.resolve();
+    // A bundled embedding model was trimmed with its reader: a reader from the host would not share its pieces.
+    const url = this.bundled ? BUNDLED_READER : READER_URL;
+    if (!url || this.state !== PackState.ready || this.readerState === PackState.ready) return Promise.resolve();
     if (fetchIt) this.setReader(PackState.downloading);
     return new Promise((resolve) => {
       this.settleReader = resolve;
-      this.send({ type: ToWorker.loadReader, url: READER_URL, fetch: fetchIt });
+      this.send({ type: ToWorker.loadReader, url, fetch: fetchIt, keep: !this.bundled });
     });
   }
 
@@ -164,7 +200,7 @@ export class UnderstandingPack implements Embedder, Reader {
         this.loading = ok ? this.loading : undefined;
         resolve();
       };
-      this.send({ type: ToWorker.load });
+      this.send({ type: ToWorker.load, bundled: this.bundled });
     });
     return this.loading;
   }

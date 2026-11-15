@@ -41,6 +41,9 @@ const END_MAX_PX = 480;
 const GAP_PX = 18;
 const FOOT_PX = 30;
 
+/** A hidden box as tall as the screen shows now (dvh: taller once a phone's bars slide away), for laying out the end. */
+const SHOWN_SCREEN = "position:absolute;top:0;left:0;width:0;height:100dvh;visibility:hidden;pointer-events:none";
+
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 /** A node's box relative to the camera. */
 const boxIn = (node, base) => {
@@ -60,10 +63,14 @@ export function startScene(parts) {
   const heroParts = [...parts.heroParts];
   const rootsParts = [...parts.rootsParts];
   const [rootsTop, rootsBottom] = rootsParts;
-  const turn = ring.parentElement;
+  const turn = ring.closest(".mo-ring-turn");
   const shade = camera.querySelector(".mo-shade");
   const header = camera.querySelector(".site-header");
   const layers = [village, turn, heart];
+  const screenNow = document.createElement("div");
+  screenNow.style.cssText = SHOWN_SCREEN;
+  screenNow.setAttribute("aria-hidden", "true");
+  camera.append(screenNow);
   const fits = matchMedia(FITS);
   const reduced = matchMedia(REDUCED_MOTION);
   const direct = new URLSearchParams(location.search).get(FLIGHT_PARAM) === DIRECT;
@@ -99,7 +106,9 @@ export function startScene(parts) {
     opening.dataset[MOTION] = TRUE;
     for (const node of layers) node.style.transform = "";
     const base = camera.getBoundingClientRect();
-    const view = { width: base.width, height: base.height };
+    // the camera is a large viewport tall, so a phone's bars sliding away never uncover the page below it; the heart's
+    // end place is laid out in the screen as it shows now, and laid out again (resize) when the bars come or go
+    const view = { width: base.width, height: Math.min(base.height, screenNow.offsetHeight || base.height) };
     corners = layers.map((node) => boxIn(node, base));
     ringHalf = corners[1].width / 2;
     const hero = corners[2];

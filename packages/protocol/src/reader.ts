@@ -98,3 +98,15 @@ export const ReaderResult = z.object({
   spans: z.array(ReadSpan).max(READER_SPANS_MAX),
 });
 export type ReaderResult = z.infer<typeof ReaderResult>;
+
+/**
+ * The models a phone app comes with (ADR 0065 amendment, 2026-11-15): `pnpm models:bundle` writes this beside them in
+ * a native build, so the phone reads with no download. `embedder` names the trimmed embedding model, so vectors it
+ * makes are never mixed with another's; `pieces` is its vocabulary, which the bundled reader was trimmed to as well.
+ */
+export const ModelBundle = z.object({
+  embedder: z.string().min(1).max(100),
+  reader: z.string().min(1).max(100),
+  pieces: z.number().int().positive(),
+});
+export type ModelBundle = z.infer<typeof ModelBundle>;

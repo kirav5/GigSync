@@ -7,8 +7,8 @@ import { InferenceSession, Tensor } from "onnxruntime-web";
 /**
  * The phone's reader (ADR 0065), inside the understanding pack's worker: GigSync's fine-tuned copy of the embedding
  * model, 8-bit, fetched once from GigSync's model host and kept in the browser's Cache Storage, then read from the
- * device. Its tokenizer is the embedding model's, unchanged by training, so only the weights and the labels are
- * fetched. ONNX Runtime is the one Transformers.js loads, so both models share its settings and its WebAssembly.
+ * device; or, in a native app, read from the files it came with (`pnpm models:bundle`). Its tokenizer is the
+ * embedding model's, unchanged by training, so only the weights and the labels are fetched. ONNX Runtime is the one Transformers.js loads, so both models share its settings and its WebAssembly.
  */
 
 const MODEL_FILE = "onnx/model_quantized.onnx";
@@ -29,15 +29,26 @@ export interface LoadedReader {
   tokenizer: PreTrainedTokenizer;
 }
 
+/** Where the reader's files may come from: the network when `fetchIt`, kept in the browser's cache when `keep`. */
+export interface ReaderSource {
+  fetchIt: boolean;
+  keep: boolean;
+}
+
 /**
- * A file from the device's cache, or else from the host when `fetch` allows, kept for later launches. Progress is
- * reported for the weights, which are most of the download.
+ * A file from the device's cache, or else from the host when `fetchIt` allows, kept for later launches when `keep`
+ * (the app's own files are on the device already). Progress is reported for the weights, most of the download.
  */
-async function cachedFile(url: string, fetchIt: boolean, progress?: (percent: number) => void): Promise<Response> {
+async function cachedFile(url: string, from: ReaderSource, progress?: (percent: number) => void): Promise<Response> {
+  if (!from.keep) {
+    const own = await fetch(url);
+    if (!own.ok) throw new Error(`reader file ${own.status}`);
+    return own;
+  }
   const cache = await caches.open(READER_CACHE);
   const kept = await cache.match(url);
   if (kept) return kept;
-  if (!fetchIt) throw new Error("reader not on this device");
+  if (!from.fetchIt) throw new Error("reader not on this device");
   const response = await fetch(url);
   if (!response.ok || !response.body) throw new Error(`reader fetch ${response.status}`);
   const total = Number(response.headers.get("content-length") ?? 0);
@@ -58,12 +69,12 @@ async function cachedFile(url: string, fetchIt: boolean, progress?: (percent: nu
 
 export async function loadReader(
   url: string,
-  fetchIt: boolean,
+  from: ReaderSource,
   tokenizer: PreTrainedTokenizer,
   progress: (percent: number) => void,
 ): Promise<LoadedReader> {
-  const labels = (await (await cachedFile(`${url}/${LABELS_FILE}`, fetchIt)).json()) as ReaderLabels;
-  const weights = await (await cachedFile(`${url}/${MODEL_FILE}`, fetchIt, progress)).arrayBuffer();
+  const labels = (await (await cachedFile(`${url}/${LABELS_FILE}`, from)).json()) as ReaderLabels;
+  const weights = await (await cachedFile(`${url}/${MODEL_FILE}`, from, progress)).arrayBuffer();
   const session = await InferenceSession.create(new Uint8Array(weights), { executionProviders: [WASM] });
   return { session, labels, tokenizer };
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ModelBundle,
   NO_READER_WORK,
   READER_SPANS_MAX,
   READER_TEXT_MAX,
@@ -62,5 +63,22 @@ describe("the reader's answer", () => {
     for (const work of ["plumber", "tv_repair", NO_READER_WORK])
       expect(ReaderResult.safeParse({ ...answer, work }).success).toBe(true);
     expect(ReaderResult.safeParse({ ...answer, work: "astrologer" }).success).toBe(false);
+  });
+});
+
+describe("ModelBundle", () => {
+  it("takes the manifest models:bundle writes", () => {
+    expect(ModelBundle.parse({ embedder: "e5-small-trim", reader: "model-v6-trim", pieces: 38531 })).toEqual({
+      embedder: "e5-small-trim",
+      reader: "model-v6-trim",
+      pieces: 38531,
+    });
+  });
+
+  it("refuses one without a model's name or with no pieces", () => {
+    expect(ModelBundle.safeParse({ embedder: "", reader: "model-v6-trim", pieces: 38531 }).success).toBe(false);
+    expect(ModelBundle.safeParse({ embedder: "e5-small-trim", reader: "model-v6-trim", pieces: 0 }).success).toBe(
+      false,
+    );
   });
 });
