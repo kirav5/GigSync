@@ -14,7 +14,7 @@
   color: var(--ivory);
 }
 .mo[data-motion="true"] {
-  height: calc(100svh + 190svh);
+  height: calc(100lvh + 190svh);
 }
 .mo-camera {
   /* narrow screens: the header, the eyebrow, the ring and the foot stacked and centred as one column */
@@ -27,10 +27,12 @@
   overflow: hidden;
   background: var(--earth);
 }
+/* The camera is as tall as the screen with the address bar gone (lvh): with the bar shown its foot is under the bar,
+   and once a phone's bar slides away on scrolling it still covers the screen, so no strip of the page below shows. */
 .mo[data-motion="true"] .mo-camera {
   position: sticky;
   top: 0;
-  height: 100svh;
+  height: 100lvh;
 }
 @media (min-width: 1100px) and (min-aspect-ratio: 7 / 5) {
   .mo-camera {
@@ -121,8 +123,9 @@
 }
 .mo[data-motion="true"] .mo-hero {
   position: absolute;
-  inset: 0;
-  height: auto;
+  inset: 0 0 auto;
+  /* the screen with the bars shown, as before: the camera is taller (lvh), but the hero's words keep their places */
+  height: 100svh;
 }
 .mo-hero {
   display: grid;
@@ -596,5 +599,35 @@
 @media (prefers-reduced-motion: reduce) {
   .mo-turns > span {
     animation: none;
+  }
+}
+
+/* Phones: the step into the circle takes a shorter scroll, and the opening is there at once instead of easing in. */
+@media (max-width: 700px) {
+  .mo[data-motion="true"] {
+    height: calc(100lvh + 110svh);
+  }
+  .mo-world {
+    animation-duration: 0.45s;
+  }
+  .mo-ring {
+    animation-duration: 240s, 0.6s;
+  }
+  .mo-header {
+    animation-duration: 0.4s;
+    animation-delay: 0s;
+  }
+  .mo-eyebrow {
+    animation-duration: 0.45s;
+    animation-delay: 0.05s;
+  }
+  .mo-centre h1 {
+    animation-duration: 0.5s;
+    animation-delay: 0.1s;
+  }
+  .mo-foot > *,
+  .mo-button {
+    animation-duration: 0.5s;
+    animation-delay: 0.15s;
   }
 }

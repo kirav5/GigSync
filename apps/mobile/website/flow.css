@@ -384,8 +384,8 @@
   position: sticky;
   top: 0;
   z-index: -2;
-  height: 100svh;
-  margin-bottom: -100svh;
+  height: 100lvh;
+  margin-bottom: -100lvh;
   display: grid;
   place-items: center;
   pointer-events: none;
@@ -739,4 +739,12 @@ h2[data-lines][data-arrived] .line > span {
 .say-cap span {
   border-radius: 999px;
   padding-inline: 22px;
+}
+
+/* Phones: the headings' lines rise in half the time, one close behind the other. */
+@media (max-width: 700px) {
+  h2[data-lines] .line > span {
+    transition-duration: 0.5s;
+    transition-delay: calc(var(--i) * 0.05s);
+  }
 }
