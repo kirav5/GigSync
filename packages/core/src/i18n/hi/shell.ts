@@ -11,8 +11,6 @@ export const shell: Readonly<Record<keyof typeof en, string>> = {
   "a11y.back": "वापस",
   "shell.menu": "मेन्यू",
   "shell.drawer": "GigSync मेन्यू",
-  "shell.need_you.one": "{count} काम आपका इंतज़ार कर रहा है",
-  "shell.need_you.other": "{count} काम आपका इंतज़ार कर रहे हैं",
   "shell.edit_card": "मेरा कार्ड बदलें",
   "profile.card_off": "आपका कार्ड अभी बोर्ड पर नहीं है",
   "profile.language": "भाषा",

@@ -9,6 +9,7 @@ import { estimate } from "../src/i18n/en/estimate.js";
 import { explain } from "../src/i18n/en/explain.js";
 import { findflow } from "../src/i18n/en/findflow.js";
 import { home } from "../src/i18n/en/home.js";
+import { idcheck } from "../src/i18n/en/idcheck.js";
 import { install } from "../src/i18n/en/install.js";
 import { interview } from "../src/i18n/en/interview.js";
 import { job } from "../src/i18n/en/job.js";
@@ -80,6 +81,7 @@ const AREAS: Readonly<Record<string, object>> = {
   ledger,
   findflow,
   me,
+  idcheck,
 };
 
 describe("string areas", () => {

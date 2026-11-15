@@ -18,10 +18,6 @@ export const worker = {
   "settings.save": "Save",
   "settings.vpa_about":
     "Shown only inside your payment QR, or sent locked to a customer you are working with. Never stored on a server.",
-  "settings.look": "Look",
-  "look.auto": "Auto",
-  "look.light": "Light",
-  "look.dark": "Dark",
   "settings.err_vpa": "That does not look like a UPI ID (name@bank).",
   "settings.err_name": "Enter the name customers will see when they pay you.",
   "settings.err_name_long": "Keep the name to {max} characters.",

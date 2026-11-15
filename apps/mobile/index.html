@@ -6,23 +6,12 @@
     <meta name="color-scheme" content="light dark" />
     <title>GigSync</title>
     <meta name="description" content="A gig worker's own agent: agrees the job, holds back their number, keeps the signed record of their work and pay." />
-    <!-- One theme-color, the look's background: the script below and ui/look.ts set it to the look actually shown. -->
-    <meta name="theme-color" content="#f5eddd" />
+    <!-- One theme-color, the page's cream background: GigSync is light only (ui/look.ts). -->
+    <meta name="theme-color" content="#faf6ee" />
     <link rel="icon" type="image/svg+xml" href="./icon.svg" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="GigSync" />
-    <script>
-      // The look chosen in Settings (Auto follows the device), applied before anything paints, with the status bar in
-      // the same colour as the page so the two read as one band. ui/look.ts keeps both in step from here on.
-      let look = null;
-      try {
-        look = localStorage.getItem("gigsync-look");
-      } catch {}
-      const dark = look === "dark" || (look !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
-      document.documentElement.dataset.look = dark ? "dark" : "light";
-      document.querySelector('meta[name="theme-color"]').content = dark ? "#1c120d" : "#f5eddd";
-    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,0 +1,164 @@
+/* Get verified (GetVerified.tsx): a seal at the top, the serif title, a short line, the steps and what is kept, then
+   the scan button; after a check, the seal turns green with the card's few fields. Light, from the UI kit. */
+.verify {
+  gap: 14px;
+  justify-items: center;
+  text-align: center;
+}
+.verify-seal {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  margin-top: 12px;
+  border-radius: 50%;
+  background: var(--picked);
+  color: var(--accent);
+}
+.verify-seal::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border: 2px dashed var(--hairline);
+  border-radius: 50%;
+}
+.verify-seal[data-done] {
+  background: var(--done-fill);
+  color: var(--fresh);
+  animation: verify-pop 360ms var(--ease-out) both;
+}
+.verify-title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: var(--fs-display);
+  font-weight: 600;
+  line-height: var(--lh-head);
+}
+.verify-line {
+  margin: 0;
+  font-size: var(--fs-body);
+  font-weight: 600;
+}
+.verify-steps,
+.verify-keep {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: start;
+}
+.verify-keep {
+  padding: 14px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  background: var(--surface);
+}
+.verify-keep li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.verify-keep .ic {
+  color: var(--fresh);
+}
+.verify-keep li[data-never] .ic {
+  color: var(--accent);
+}
+.verify-pill {
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: var(--radius-chip);
+  background: var(--picked);
+  color: var(--picked-ink);
+  font-size: var(--fs-label);
+}
+.verify .btn-big,
+.verify .btn {
+  width: 100%;
+}
+@keyframes verify-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  70% {
+    transform: scale(1.08);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .verify-seal[data-done] {
+    animation: none;
+  }
+}
+
+/* Choose from gallery: a full-width quiet button under the scan button; the file input inside it is hidden. */
+.verify-gallery {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  cursor: pointer;
+}
+
+/* The e-KYC sheet (EkycSheet.tsx): UIDAI's three steps, the myAadhaar link, the ZIP picker, the share code, Check. */
+.verify-ekyc {
+  gap: 12px;
+  width: 100%;
+  text-align: start;
+}
+.verify-ekyc-steps {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-inline-start: 22px;
+}
+.verify-ekyc .btn,
+.verify-ekyc .btn-big {
+  width: 100%;
+}
+.verify-ekyc a.btn {
+  text-align: center;
+  text-decoration: none;
+}
+/* myAadhaar's file names are one long number: let the chosen one wrap anywhere. */
+.verify-ekyc .verify-gallery {
+  overflow-wrap: anywhere;
+}
+
+/* Where do I get these? (WhereSheet.tsx): three short lines, one per way. */
+.verify-where {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding-inline-start: 20px;
+  text-align: start;
+}
+
+/* The number linked to the Aadhaar (BindNumber.tsx): India's +91 inside the field's start, the digits after it. */
+.verify-number {
+  width: 100%;
+  text-align: start;
+}
+.verify-phone {
+  position: relative;
+  display: block;
+}
+.verify-dial {
+  position: absolute;
+  inset-inline-start: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text2);
+  font-weight: 600;
+}
+.verify-phone .field {
+  width: 100%;
+  padding-inline-start: 56px;
+}
+.verify .code-boxes {
+  justify-content: center;
+}

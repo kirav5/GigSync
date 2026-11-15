@@ -4,10 +4,15 @@ import { type BrowserContext, expect, type Locator, type Page, test } from "@pla
 import {
   APP,
   chatList,
+  composerButton,
+  greeting,
+  morePick,
   newChat,
   newPhone,
   onScreen,
   open,
+  profileButton,
+  profileSheet,
   Role,
   RUN,
   SHOTS,
@@ -20,34 +25,36 @@ import {
 import { publishCard, unlistCards } from "./journey.js";
 
 /**
- * The app's frame: four tabs at the foot of a tab's screen (Home, Jobs, Money and Me for a worker; Find, Jobs, Pay and
- * Me for a household), Back in the top bar on a screen opened from inside one, and the same tabs as a rail beside the
- * content on a wide screen. The chats are a screen of their own, with New chat. A waiting decision is a count on Jobs.
+ * The app's frame: three tabs at the foot of a tab's screen (Home, Jobs, and Earnings or Payments; a household's Home is
+ * Find), Back in the top bar on a screen opened from inside one, the owner's pages in the profile sheet from the round
+ * button at the top right, and the same tabs as a rail beside the content on a wide screen. The chats are a screen of
+ * their own, with New chat, behind the round button at the top left. A waiting decision is a count on Jobs.
  */
 
 const { en } = Lang.enum;
 const say = (key: MessageKey) => t(en, key);
 const PHONE = { width: 390, height: 844 };
 const WIDE = { width: 1280, height: 800 };
-const SCHEMES = ["light", "dark"] as const;
+const SCHEMES = ["light"] as const;
 const MY_QR = /\/v1\/qr\/me$/;
 
-/** What shows that each tab or Me row opened, for a worker and a household. */
+/** What shows that each tab or profile row opened, for a worker and a household. */
 const WORKER_SCREENS: readonly [MessageKey, (page: Page) => Locator][] = [
   ["nav.activity", (page) => page.getByRole("heading", { level: 1, name: say("activity.headline") })],
   ["nav.records", (page) => page.getByRole("heading", { level: 1, name: /₹/ })],
   ["nav.card", (page) => page.getByRole("region", { name: say("page.card_seen") })],
   ["nav.about", (page) => page.getByRole("form", { name: say("settings.paid_to") })],
   ["nav.privacy", (page) => page.getByRole("region", { name: say("records.privacy_title") })],
-  ["nav.settings", (page) => page.getByRole("region", { name: say("settings.look") })],
+  ["nav.settings", (page) => page.getByRole("region", { name: say("me.this_phone") })],
 ];
 const HOUSEHOLD_SCREENS: readonly [MessageKey, (page: Page) => Locator][] = [
   ["nav.activity", (page) => page.getByRole("heading", { level: 1, name: say("activity.headline") })],
   ["nav.records", (page) => page.getByText(say("page.records_empty"))],
   ["nav.card", (page) => page.getByRole("region", { name: say("qr.mine") })],
-  ["nav.about", (page) => page.getByRole("region", { name: say("profile.language") })],
+  ["nav.about", (page) => page.getByRole("region", { name: say("memory.title") })],
+  ["me.language", (page) => page.getByRole("region", { name: say("profile.language") })],
   ["nav.privacy", (page) => page.getByRole("region", { name: say("records.privacy_title") })],
-  ["nav.settings", (page) => page.getByRole("region", { name: say("settings.look") })],
+  ["nav.settings", (page) => page.getByRole("region", { name: say("me.this_phone") })],
 ];
 
 let contexts: BrowserContext[] = [];
@@ -63,7 +70,7 @@ async function phone(browser: { newContext: (o: object) => Promise<BrowserContex
   return context.newPage();
 }
 
-/** Saves the screen in both looks, under screenshots/<engine>/shell/. */
+/** Saves the screen in the light look, under screenshots/<engine>/shell/. */
 async function shots(page: Page, name: string) {
   const dir = `${SHOTS}${test.info().project.name}/shell/`;
   for (const colorScheme of SCHEMES) {
@@ -78,23 +85,38 @@ test("on a phone the tabs stand at the foot of a tab's screen; a screen inside o
 }) => {
   const page = await phone(browser);
   await signIn(page, { role: Role.worker, name: `Shanti ${RUN}`, phone: newPhone() });
-  for (const key of ["nav.home", "nav.jobs", "nav.money", "nav.me"] as const)
-    await expect(tab(page, key)).toBeVisible();
+  for (const key of ["nav.home", "nav.jobs", "nav.earnings"] as const) await expect(tab(page, key)).toBeVisible();
+  // Three tabs only: the owner's pages are in the profile, behind the round button with their initial.
+  await expect(tabBar(page).getByRole("button")).toHaveCount(3);
+  await expect(profileButton(page)).toBeVisible();
   await shots(page, "01-phone-talk");
 
-  await tab(page, "nav.me").click();
-  await onScreen(page, "nav.me");
-  await shots(page, "02-phone-me");
-  await page.getByRole("button", { name: say("nav.card"), exact: true }).click();
+  await profileButton(page).click();
+  await onScreen(page, "profile.title");
+  await shots(page, "02-phone-profile");
+  await profileSheet(page)
+    .getByRole("button", { name: say("nav.card"), exact: true })
+    .click();
+  await expect(profileSheet(page)).toBeHidden();
   await onScreen(page, "nav.card");
   await expect(tabBar(page)).toBeHidden();
   await expect(page.getByRole("banner").getByRole("button", { name: say("a11y.back"), exact: true })).toBeVisible();
+  // Back comes to where she opened the profile from: Talk, where she landed.
   await page.goBack();
-  await onScreen(page, "nav.me");
+  await onScreen(page, "nav.talk");
   expect(page.url().startsWith(APP)).toBe(true);
+
+  // A tab is a top place, as Home is: the tab bar moves between them, and its top bar has no Back.
+  for (const key of ["nav.jobs", "nav.earnings"] as const) {
+    await tab(page, key).click();
+    await onScreen(page, key);
+    await expect(page.getByRole("banner").getByRole("button", { name: say("a11y.back"), exact: true })).toHaveCount(0);
+  }
 });
 
-test("a worker reaches every screen from the tabs and Me, and New chat opens an empty chat", async ({ browser }) => {
+test("a worker reaches every screen from the tabs and the profile, and New chat opens an empty chat", async ({
+  browser,
+}) => {
   const page = await phone(browser);
   await signIn(page, { role: Role.worker, name: `Gauri ${RUN}`, phone: newPhone() });
   await expect(page.getByText(textOf(en, "iv.ask.trade"))).toBeVisible();
@@ -104,32 +126,35 @@ test("a worker reaches every screen from the tabs and Me, and New chat opens an 
   }
   await shots(page, "03-phone-settings");
   await newChat(page);
+  // Home is the new chat: the brand in the top bar and the greeting, as a household's.
+  await expect(greeting(page)).toBeVisible();
   await expect(page.getByText(say("agent.empty"))).toBeVisible();
-  await expect(page.getByRole("banner")).toContainText(say("chats.new"));
   await showChats(page);
   await expect(chatList(page).getByRole("listitem")).toHaveCount(1);
 });
 
-test("a household reaches every screen from the tabs and Me, and New chat starts Find again", async ({ browser }) => {
+test("a household reaches every screen from the tabs and the profile, and New chat starts Find again", async ({
+  browser,
+}) => {
   const page = await phone(browser);
   await signIn(page, { role: Role.consumer, name: `Rekha ${RUN}`, phone: newPhone(), address: "HSR Layout" });
   const log = page.getByRole("log");
-  await expect(log).toContainText(say("need.start"));
+  await expect(greeting(page)).toBeVisible();
   for (const [row, shows] of HOUSEHOLD_SCREENS) {
     await open(page, row);
     await expect(shows(page)).toBeVisible();
   }
   await expect(page.getByRole("form", { name: say("settings.paid_to") })).toHaveCount(0);
   await open(page, "nav.find");
-  // ADR 0051: the opening has one chip to the list of work, not the trades themselves.
-  await page.getByRole("button", { name: say("need.pick_work"), exact: true }).click();
+  // ADR 0051: the list of work is one pick behind the composer's "+", not the trades themselves.
+  await morePick(page, "need.pick_work");
   await page.getByRole("button", { name: say("group.home_repairs"), exact: true }).click();
   await page.getByRole("button", { name: say("trade.plumber"), exact: true }).click();
   await expect(log).toContainText(say("kind_ask.plumber"));
   await newChat(page);
-  await expect(log).toContainText(say("need.start"));
-  await expect(log).not.toContainText(say("kind_ask.plumber"));
-  await expect(log.getByRole("button", { name: say("need.pick_work"), exact: true })).toBeVisible();
+  await expect(greeting(page)).toBeVisible();
+  await expect(page.getByText(say("kind_ask.plumber"))).toHaveCount(0);
+  await expect(composerButton(page, "composer.more")).toBeVisible();
 });
 
 test("a waiting decision shows as a count on the Jobs tab, which leads to it", async ({ browser }) => {
@@ -168,8 +193,43 @@ test("on a wide screen the tabs stand as a rail beside the content", async ({ br
   expect(side?.x).toBe(0);
   expect((content?.x ?? 0) + 1).toBeGreaterThanOrEqual((side?.x ?? 0) + (side?.width ?? 0));
   await shots(page, "06-wide-talk");
-  await open(page, "nav.about");
+  await open(page, "me.language");
   await expect(tabBar(page)).toBeVisible();
   await expect(page.getByRole("region", { name: say("profile.language") })).toBeVisible();
   await shots(page, "07-wide-about");
+});
+
+/** The sheet's panel: its edges, and the name of each animation running on it (paused at `at` ms when given). */
+const panelNow = (page: Page, at?: number) =>
+  page.locator(".sheet-panel").evaluate((panel, ms) => {
+    const running = panel.getAnimations();
+    for (const a of running) {
+      if (ms === undefined) continue;
+      a.pause();
+      a.currentTime = ms;
+    }
+    const box = panel.getBoundingClientRect();
+    const names = running.map((a) => (a instanceof CSSAnimation ? a.animationName : ""));
+    return { top: box.top, bottom: box.bottom, names, height: window.innerHeight };
+  }, at);
+
+test("the profile sheet slides up from the bottom edge, and back down on Done", async ({ browser }) => {
+  const page = await phone(browser);
+  await signIn(page, { role: Role.worker, name: `Rise ${RUN}`, phone: newPhone() });
+  await profileButton(page).click();
+  // Held at its first frame, the panel sits wholly below the screen; let go, it ends flush with the bottom edge.
+  const start = await panelNow(page, 0);
+  expect(start.names).toContain("sheet-rise");
+  expect(start.top).toBeGreaterThanOrEqual(start.height - 1);
+  await page.locator(".sheet-panel").evaluate((panel) => {
+    for (const a of panel.getAnimations()) a.finish();
+  });
+  const end = await panelNow(page);
+  expect(Math.abs(end.bottom - end.height)).toBeLessThanOrEqual(2);
+  // Done slides it back down before the dialog closes.
+  await profileSheet(page)
+    .getByRole("button", { name: say("profile.done"), exact: true })
+    .click();
+  await expect.poll(async () => (await panelNow(page)).names).toContain("sheet-sink");
+  await expect(profileSheet(page)).toBeHidden();
 });

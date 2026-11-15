@@ -1,4 +1,4 @@
-import { type JobRecordSubmit, JobSubmitState, RecordRefusal, type UserId } from "@gigsync/protocol";
+import { type JobRecordSubmit, JobSubmitState, type PlaceKey, RecordRefusal, type UserId } from "@gigsync/protocol";
 import { householdAgreed } from "../db/agree-signatures.js";
 import { type Db, transaction } from "../db/client.js";
 import { activeDeviceIds, activeDevices } from "../db/devices.js";
@@ -34,7 +34,13 @@ export type Attested = { state: JobSubmitState } | { refusal: RecordRefusal } | 
 const mayStandAlone = async (db: Db, s: JobRecordSubmit, sender: UserId): Promise<boolean> =>
   sideOf(s.role) === Side.worker && householdAgreed(db, s.engagement, s.counterpart, sender);
 
-export async function attest(db: Db, sender: UserId, s: JobRecordSubmit, now: Date): Promise<Attested> {
+export async function attest(
+  db: Db,
+  sender: UserId,
+  s: JobRecordSubmit,
+  now: Date,
+  fallbackCity: PlaceKey,
+): Promise<Attested> {
   const fields = jobFields(sender, s);
   const text = fieldsText(fields);
   const [mineKeys, theirDevices] = await Promise.all([activeDevices(db, sender), activeDeviceIds(db, s.counterpart)]);
@@ -59,7 +65,8 @@ export async function attest(db: Db, sender: UserId, s: JobRecordSubmit, now: Da
       return { state: S.pending };
     }
     const attested = theirs !== undefined;
-    if (!(await upsertRecord(db, fields, columnsOf(fields.work, fields.terms), attested, now))) return differs;
+    if (!(await upsertRecord(db, fields, columnsOf(fields.work, fields.terms), attested, now, fallbackCity)))
+      return differs;
     const theirQuantities = theirs ? fieldsFrom(theirs.fields).quantities : undefined;
     await setQuantities(db, s.engagement, mergeQuantities(fields.quantities, theirQuantities));
     const state = attested ? S.stored : S.one_sided;

@@ -43,7 +43,7 @@ test("a worker's two open phones answer one request once", async ({ browser }) =
   await signIn(second, { role: Role.worker, name: workerName, phone: workerPhone, elsewhere: MovePrompt.notNow });
   // The second phone's card came back from GigSync without the lowest price; the worker gives it on Home there too,
   // so whichever phone claims the request quotes at once instead of waiting for the worker.
-  await Promise.all([open(first, "nav.activity"), open(second, "nav.home")]);
+  await Promise.all([open(first, "nav.activity"), open(second, "nav.jobs")]);
   const floor = second.getByRole("form", { name: say("phone.floor_title") });
   await floor.getByLabel(say("phone.floor_label")).fill("550");
   await floor.getByRole("button", { name: say("settings.save") }).click();

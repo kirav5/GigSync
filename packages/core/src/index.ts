@@ -1,4 +1,5 @@
 export * from "./address/book.js";
+export * from "./address/live-cities.js";
 export * from "./address/served.js";
 export * from "./agent.js";
 export * from "./chat/index.js";
@@ -24,6 +25,7 @@ export * from "./i18n/schedule-text.js";
 export * from "./i18n/t.js";
 export * from "./i18n/terms-text.js";
 export * from "./i18n/translate.js";
+export * from "./identity/index.js";
 export {
   awaitingModel,
   currentQuestion,
@@ -169,6 +171,7 @@ export * from "./mentor/types.js";
 export * from "./model-reply.js";
 export * from "./moving/index.js";
 export * from "./net/api.js";
+export { PhoneSignInClient } from "./net/phone-signin.js";
 export { claimLegacyRecords } from "./owner/claim.js";
 export * from "./owner/storage.js";
 export * from "./payments/book.js";
@@ -210,6 +213,7 @@ export * from "./router/newcomers.js";
 export * from "./router/reply-schema.js";
 export * from "./router/route-chat.js";
 export * from "./schedule/index.js";
+export { closestKinds, MAX_CLOSEST } from "./skills/closest.js";
 export {
   cardKinds,
   categoryPicked,

@@ -32,44 +32,13 @@ interface Props {
   onScanned: (code: QrCode) => void;
 }
 
-/** "Make a new QR", quiet, and its one confirm: the old QR and its link stop finding the owner. */
-function NewQr({ busy, onRenew }: { busy: boolean; onRenew: () => Promise<boolean> }) {
-  const { t } = useI18n();
-  const [confirming, setConfirming] = useState(false);
-  const label = t("qr.new");
-  if (!confirming)
-    return (
-      <button type={C.button} className={C.quiet} onClick={() => setConfirming(true)}>
-        {label}
-      </button>
-    );
-  return (
-    <div className={`${C.cardWait} qr-confirm`} role="dialog" aria-label={label}>
-      <span>{t("qr.new_about")}</span>
-      <div className={C.actions}>
-        <button
-          type={C.button}
-          className={C.accent}
-          disabled={busy}
-          aria-busy={busy}
-          onClick={() => void onRenew().then((made) => made && setConfirming(false))}
-        >
-          {label}
-        </button>
-        <button type={C.button} className={C.secondary} onClick={() => setConfirming(false)}>
-          {t("qr.keep")}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 /**
  * My card under who the owner is (`children`): the QR on a white tile in its own card (drawn at once from the code kept
  * on this phone; a blank tile the first time) with what scanning it does; Share as the one primary action, Save QR
- * beside it and Copy link quieter; Scan a QR as a row with any `rows` after it; `below`; and at the foot, quiet, Make a
- * new QR. Anyone's phone camera opens the link; the app routes it after sign-in. Scanning here asks for the camera only
- * when tapped. One region holds it all, named `label`, for the worker's card and the household's alike.
+ * beside it and Copy link quieter; Scan a QR as a row with any `rows` after it; then `below`. The QR carries only a
+ * code that finds the owner: whoever scans it sees their card as it is at that moment, so changing the card never
+ * needs a new QR. Anyone's phone camera opens the link; the app routes it after sign-in. Scanning here asks for the
+ * camera only when tapped. One region holds it all, named `label`, for the worker's card and the household's alike.
  */
 export function MyQr({ ports, account, label, children, scanLine, scanSub, rows, below, share, onScanned }: Props) {
   const { t } = useI18n();
@@ -117,7 +86,6 @@ export function MyQr({ ports, account, label, children, scanLine, scanSub, rows,
         <span className={C.faint} role="status" aria-live="polite">
           {mine.status && t(mine.status)}
         </span>
-        {qr && <NewQr busy={mine.busy} onRenew={mine.renew} />}
       </section>
       {scanning && <QrScan onCode={onScanned} onClose={() => setScanning(false)} />}
     </>

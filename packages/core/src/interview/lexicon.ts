@@ -12,7 +12,7 @@ import { distance, type Finder, finder, firstIn, normalize, SPACE } from "./norm
 const T = Trade.enum;
 const L = Lang.enum;
 
-const TRADE_WORDS: Readonly<Record<Trade, readonly string[]>> = {
+export const TRADE_WORDS: Readonly<Record<Trade, readonly string[]>> = {
   [T.cook]: [
     "cook",
     "cooking",
@@ -32,6 +32,12 @@ const TRADE_WORDS: Readonly<Record<Trade, readonly string[]>> = {
     "maid",
     "housework",
     "house work",
+    "cleaning",
+    "cleaner",
+    "sweeping",
+    "mopping",
+    "dishes",
+    "utensils",
     "jhadu",
     "pocha",
     "bartan",

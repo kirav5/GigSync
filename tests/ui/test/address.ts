@@ -48,11 +48,17 @@ export const doorField = (form: Locator, lang: Lang) =>
     .getByLabel(t(lang, "addr.door_field"), { exact: true })
     .or(form.getByLabel(t(lang, "addr.house"), { exact: true }));
 
-/** The address form's save button: "This is my door" on the door pin, else Save. */
-export const addressSave = (form: Locator, lang: Lang) =>
-  form
-    .getByRole("button", { name: t(lang, "addr.door_save"), exact: true })
-    .or(form.getByRole("button", { name: t(lang, "addr.save"), exact: true }));
+/**
+ * The address form's save button: "This is my door" on the door pin, else Save. On Saved places the door pin's stands
+ * in the screen's dock, outside the form (it submits it by the form's id).
+ */
+export const addressSave = (form: Locator, lang: Lang) => {
+  const name = (key: "addr.door_save" | "addr.save") => ({ name: t(lang, key), exact: true });
+  return form
+    .getByRole("button", name("addr.door_save"))
+    .or(form.getByRole("button", name("addr.save")))
+    .or(form.page().locator(".dock").getByRole("button", name("addr.door_save")));
+};
 
 /** Opens the door pin's "More details" (area, PIN, building), where the form has it; the typed form shows them already. */
 export async function moreDetails(form: Locator, lang: Lang) {
@@ -73,7 +79,7 @@ export async function fillAddressForm(page: Page, lang: Lang, a: NewAddress) {
   } else await house.fill(a.house);
   await form.getByLabel(t(lang, "addr.area"), { exact: true }).fill(a.area);
   await form.getByLabel(t(lang, "addr.pin"), { exact: true }).fill(TEST_PIN);
-  const save = form.getByRole("button", { name: t(lang, pinned ? "addr.door_save" : "addr.save"), exact: true });
+  const save = addressSave(form, lang);
   await save.click();
   const check = form.getByRole("status").filter({ hasText: t(lang, "addr.check_pin") });
   await expect.poll(async () => (await check.isVisible()) || !(await form.isVisible())).toBe(true);

@@ -7,7 +7,7 @@ import {
   ToWorker,
   type ToWorkerMessage,
 } from "./embed/messages.js";
-import { currentNetwork } from "./model-device.js";
+import { currentNetwork } from "./network.js";
 
 /**
  * The understanding pack (ADR 0042): a small multilingual embedding model that runs inside this app, through ONNX

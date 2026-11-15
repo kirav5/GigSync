@@ -4,8 +4,7 @@ import type { agent as en } from "../en/agent.js";
 export const agent: Readonly<Record<keyof typeof en, string>> = {
   "agent.headline": "अपने एजेंट से बात करें।",
   "agent.soft": "आपके नोट यहीं रहते हैं।",
-  "agent.placeholder": "बोलिए या लिखिए…",
-  "agent.empty": "कुछ पूछिए, या इनमें से कुछ चुनिए।",
+  "agent.empty": "आपका एजेंट क्या करे?",
   "agent.suggest_rate": "मेरा रेट बदलें",
   "agent.suggest_earned": "इस हफ़्ते मैंने कितना कमाया?",
   "agent.earnings": "इस हफ़्ते आपको {week} मिले, और इस महीने {month}। अभी आने बाकी: {waiting}।",

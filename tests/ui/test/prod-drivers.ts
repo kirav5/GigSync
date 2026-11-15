@@ -15,6 +15,8 @@ import { putOnBoard } from "./talk.js";
 const en = Lang.enum.en;
 export const AREA = "HSR Layout";
 const AREA_KEY = "area.hsr_layout";
+/** How far each persona goes, asked right after the area. */
+const RADIUS_KM = 10;
 const TURNS_MAX = 30;
 /** How long one agent turn may take before the chat counts as stuck: a model call plus a sync or two. */
 const TURN_MS = 60_000;
@@ -90,12 +92,16 @@ async function cardStep(page: Page, p: KindPersona, said: CardSaid): Promise<"do
         .click();
     await tap("iv.done");
   } else if (await says(page, "iv.ask.area")) await tap(AREA_KEY as MessageKey);
+  else if (await says(page, "iv.ask.radius")) await type(String(RADIUS_KM));
   else if (await says(page, "iv.check_amount")) await tap("flag.yes");
   else if (await says(page, "iv.ask.min")) await type(String(p.min));
   else if (await says(page, "iv.ask.same_rate")) await tap(p.alsoRate ? "flag.no" : "flag.yes");
   else if (await says(page, "iv.ask.work_rate")) await type(String(p.alsoRate ?? p.rate));
-  else if (await saysAny(page, RATE_ASKS)) await type(String(p.rate));
-  else if (await says(page, "iv.ask.languages")) await tap("iv.none");
+  else if (await saysAny(page, RATE_ASKS)) {
+    // How the work is priced is a segment of the price card; the amount is typed, as the composer still takes it.
+    if (p.arrangement) await tapIf(chip(page, `cardflow.seg.${p.arrangement}` as MessageKey));
+    await type(String(p.rate));
+  } else if (await says(page, "iv.ask.languages")) await tap("iv.none");
   else if (await says(page, "iv.ask.about")) await type(p.about);
   else if (await says(page, "iv.ask.ask_first")) await tap("flag.no");
   else if (await says(page, "iv.ask.asks")) await type(p.asks);

@@ -1,7 +1,20 @@
 import { type ApiClient, plural, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, type Page, test } from "@playwright/test";
-import { listWorker, newPhone, onScreen, open, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
+import {
+  greeting,
+  listWorker,
+  morePick,
+  newPhone,
+  onScreen,
+  open,
+  Role,
+  RUN,
+  reveal,
+  shoot,
+  signIn,
+  textOf,
+} from "./helpers.js";
 
 /**
  * A household finds a worker by talking, the way a worker makes their card in Talk: one sentence in their own words,
@@ -60,7 +73,7 @@ test("a household says what they need in one sentence and is asked only for the 
 
   // Find opens as the chat, like Talk.
   const log = page.getByRole("log");
-  await expect(log).toContainText(t(en, "need.start"));
+  await expect(greeting(page, en)).toBeVisible();
   await say(page, en, "Bedroom fan not working, need an electrician tomorrow morning, up to 700");
 
   // Only where is missing: no question about the problem, the day or the budget. She has a saved address (ADR 0045).
@@ -110,12 +123,13 @@ test("a Hindi household finds an electrician by tapping the choices", async ({ b
   });
 
   const log = page.getByRole("log");
-  await expect(log).toContainText(t(hi, "need.start"));
+  await expect(greeting(page, hi)).toBeVisible();
   // ADR 0051: the opening offers one chip to the list of work, for whoever cannot say or type it.
-  await tap(page, t(hi, "need.pick_work"));
+  await morePick(page, "need.pick_work", hi);
   await tap(page, t(hi, "group.home_repairs"));
   await tap(page, t(hi, "trade.electrician"));
-  await expect(log).toContainText(t(hi, "question.problem"));
+  // The work's own first question (ADR 0065 §3): what usually breaks, for an electrician.
+  await expect(log).toContainText(t(hi, "kind_ask.electrician"));
   await tap(page, t(hi, "iv.skip"));
   await tap(page, t(hi, "area.koramangala"));
   // The skipped clarifying question settles what the job is (ADR 0042 §7), so the price questions go straight on to
@@ -139,7 +153,7 @@ test("a Hindi household finds an electrician by tapping the choices", async ({ b
 
   // Back on Find, a new need starts afresh.
   await open(page, "nav.find", hi);
-  await expect(log).toContainText(t(hi, "need.start"));
-  await expect(log).not.toContainText(t(hi, "need.asked"));
+  await expect(greeting(page, hi)).toBeVisible();
+  await expect(log.filter({ hasText: t(hi, "need.asked") })).toHaveCount(0);
   await context.close();
 });

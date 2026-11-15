@@ -1,7 +1,5 @@
 /** The household's Find: the privacy card, address cards, the budget band, worker cards and a card opened by QR. */
 export const findflow = {
-  "find.private_line": "Workers' agents see the job, never your limit.",
-  "find.example": "Like: a cook for two meals, every day…",
   "find.door_check": "Is the pin on your door? Move the map until it is.",
   "find.door_saved": "Pin saved on your door. A worker gets it only after you both sign.",
   "find.say_it": "I'll say it",

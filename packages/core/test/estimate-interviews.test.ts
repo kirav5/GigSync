@@ -11,6 +11,7 @@ import {
   type InterviewState,
   NeedSlot,
   type NeedState,
+  nearYouLine,
   needEstimate,
   needPrompt,
   needRequest,
@@ -19,10 +20,11 @@ import {
   Slot,
   start,
   startNeed,
+  suggestedAmount,
   withEstimate,
 } from "../src/index.js";
 import { Pick } from "../src/interview/card.js";
-import { COOK_GIGSYNC, COOK_MONTH, PAINT_2BHK } from "./estimate-fixtures.js";
+import { COOK_MONTH, PAINT_2BHK } from "./estimate-fixtures.js";
 
 const T = Trade.enum;
 const city = City.enum.bengaluru;
@@ -42,12 +44,14 @@ describe("the estimate under the card's rate questions", () => {
     expect(s.slot).toBe(Slot.also);
     return choose(s, Pick.yes);
   };
-  const atRate = (trade: string, own: Lang = "en"): InterviewState =>
-    // A cook says which work they take first (ADR 0051): monthly, as every cook's card before.
-    [...(trade === T.cook ? ["monthly"] : []), "Koramangala"].reduce(
+  // How far they go comes right after the area (10 km here); its readback is left out, so the rate question is alone.
+  const atRate = (trade: string, own: Lang = "en"): InterviewState => ({
+    ...["Koramangala", "10"].reduce(
       (s, a) => hear(s, a),
       pastAlso(hear(start({ own, areas: AREAS, rates: CITY_RATES }), trade)),
-    );
+    ),
+    notes: [],
+  });
 
   it("keeps the suggested amount when it is tapped under another arrangement's rate", () => {
     const draft = {
@@ -64,88 +68,29 @@ describe("the estimate under the card's rate questions", () => {
     expect(s.draft.other_rates?.visit).toBe(1_100_000);
   });
 
-  it("shows a painter the range with its scope and what it rests on, and suggests opening at the typical figure", () => {
+  it("puts one line under the price card, the range near them, and keeps the chat to the question", () => {
     const s = withEstimate(atRate("painter"), painterFound());
-    const p = prompt(s);
-    expect(keys(p.lines)).toEqual([
-      "iv.ask.rate_visit",
-      "estimate.range_job",
-      "driver.basis_line",
-      "estimate.suggest_rate",
-    ]);
-    expect(p.lines[1]).toEqual({
-      key: "estimate.range_job",
-      names: { trade: ["trade.painter"], city: ["city.bengaluru"] },
-      params: { scope: " (2 BHK, labour only)" },
-      prices: { low: 1_400_000, high: 1_800_000 },
-    });
-    expect(p.lines[2]).toEqual({
-      key: "driver.basis_line",
-      params: { parts: "Bengaluru rate card: GigSync seed, unverified" },
-    });
-    expect(p.choices).toEqual([{ value: Pick.suggested, key: "estimate.use", params: { price: "₹16,000" } }]);
-  });
-
-  it("the chip uses the suggestion; a worker's own amount is taken instead just the same", () => {
-    const s = withEstimate(atRate("painter"), painterFound());
-    const used = choose(s, Pick.suggested);
-    expect(used.draft.rate_paise).toBe(1_600_000);
-    expect(used.slot).toBe(Slot.min);
-    // The least question: only the least suggested, not the range again.
-    expect(keys(prompt(used).lines)).toEqual(["iv.got_rate", "iv.ask.min", "estimate.suggest_min"]);
-    expect(choose(used, Pick.suggested).draft.limit_paise).toBe(1_400_000);
+    expect(keys(prompt(s).lines)).toEqual(["iv.ask.rate_visit"]);
+    expect(prompt(s).choices).toBeUndefined();
+    expect(nearYouLine(s)).toEqual({ key: "iv.near_you", prices: { low: 1_400_000, high: 1_800_000 } });
+    // The card opens at the amount suggested; the lowest card at the least suggested.
+    expect(suggestedAmount(s, false)).toBe(1_600_000);
+    expect(suggestedAmount(s, true)).toBe(1_400_000);
     expect(hear(s, "15000").draft.rate_paise).toBe(1_500_000);
   });
 
-  it("puts the legal minimum under both questions for a cook, and nothing below it is suggested", () => {
+  it("the lowest question is one line too, private, answered with the card's amount", () => {
     const found = { request: estimateRequest(city, T.cook, MONTHLY) as EstimateRequest, estimate: COOK_MONTH };
-    const s = withEstimate(atRate("cook"), found);
-    expect(keys(prompt(s).lines)).toContain("estimate.legal_min");
-    const min = choose(s, Pick.suggested);
-    expect(keys(prompt(min).lines)).toEqual([
-      "iv.got_rate",
-      "iv.ask.min",
-      "estimate.legal_min",
-      "estimate.suggest_min",
-    ]);
+    const min = hear(withEstimate(atRate("cook"), found), "11000");
+    expect(keys(prompt(min).lines)).toEqual(["iv.got_rate", "iv.ask.min"]);
+    expect(prompt(min).secret).toBe(true);
+    expect(choose(min, "950000").draft.limit_paise).toBe(950_000);
   });
 
-  it("a range from GigSync's jobs says how many and where, with no sources to open", () => {
-    const found = { request: estimateRequest(city, T.cook, MONTHLY) as EstimateRequest, estimate: COOK_GIGSYNC };
-    const lines = prompt(withEstimate(atRate("cook"), found)).lines;
-    expect(lines.find((l) => l.key === "estimate.jobs.other")).toEqual({
-      key: "estimate.jobs.other",
-      params: { count: 34 },
-      names: { place: ["area.jayanagar"] },
-    });
-    expect(lines.find((l) => l.key === "estimate.range_month")?.names?.city).toEqual(["area.jayanagar"]);
-    expect(keys(lines)).not.toContain("estimate.basis.other");
-  });
-
-  it("a city-wide GigSync range names the city", () => {
-    const { area: _, ...citywide } = COOK_GIGSYNC.basis;
-    const found = {
-      request: estimateRequest(city, T.cook, MONTHLY) as EstimateRequest,
-      estimate: { ...COOK_GIGSYNC, basis: citywide },
-    };
-    const line = prompt(withEstimate(atRate("cook"), found)).lines.find((l) => l.key === "estimate.jobs.other");
-    expect(line?.names).toEqual({ place: ["city.bengaluru"] });
-  });
-
-  it("an estimate for another trade is ignored: the city band shows, and the chip does nothing", () => {
+  it("an estimate for another trade is ignored: no line near them", () => {
     const s = withEstimate(atRate("cook"), painterFound());
-    expect(keys(prompt(s).lines)).toContain("iv.band_month");
-    expect(prompt(s).choices).toBeUndefined();
+    expect(nearYouLine(s)).toBeUndefined();
     expect(choose(s, Pick.suggested)).toBe(s);
-  });
-
-  it("without an estimate the card asks as before", () => {
-    expect(keys(prompt(atRate("cook")).lines)).toEqual([
-      "iv.ask.rate_month",
-      "iv.band_month",
-      "iv.legal_min",
-      "iv.band_seed",
-    ]);
   });
 });
 

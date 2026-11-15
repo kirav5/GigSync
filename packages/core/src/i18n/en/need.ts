@@ -40,7 +40,7 @@ export const need = {
   "need.confirm_to": "Shall I ask {name}?",
   "need.asking_to": "Asking {name}…",
   "need.composer": "Tell me what you need",
-  "need.placeholder": "Type what you need…",
+  "need.placeholder": "What's needed?",
   "need.reading": "Reading what you said…",
   "need.date_ok": "Use this date",
   "need.understood": "Understood: {what}.",

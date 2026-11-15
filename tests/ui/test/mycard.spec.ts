@@ -16,7 +16,7 @@ const en = Lang.enum.en;
 const say = (key: MessageKey, params?: Params) => t(en, key, params);
 const PHONE = { width: 390, height: 844 };
 const TALL_PHONE = { width: PHONE.width, height: 1400 };
-const SCHEMES = ["light", "dark"] as const;
+const SCHEMES = ["light"] as const;
 const FOLDER = "mycard";
 const MY_QR = `${API}/v1/qr/me`;
 const BOARD_PROFILE = `${API}/v1/board/profile`;
@@ -45,7 +45,7 @@ async function phone(browser: { newContext: (o: object) => Promise<BrowserContex
   return context.newPage();
 }
 
-/** My card in both looks, the whole card, under screenshots/<engine>/mycard/. */
+/** My card in the light look, the whole card, under screenshots/<engine>/mycard/. */
 async function shots(page: Page, name: string) {
   const dir = `${SHOTS}${test.info().project.name}/${FOLDER}/`;
   // The app scrolls inside its own panel, so a taller phone shows the whole page, down to Edit my card.
@@ -104,8 +104,10 @@ test("a worker's My card shows their card, their record, the QR and one Edit my 
   await expect(mine).toContainText(plural(en, "record.card_rated", 4));
   await expect(mine.getByRole("img", { name: say("qr.alt", { name }) })).toBeVisible();
   await expect(mine).toContainText(say("qr.about_worker", { name: "Lakshmi" }));
-  for (const key of ["qr.share", "qr.copy", "qr.scan", "qr.new"] as const)
+  for (const key of ["qr.share", "qr.copy", "qr.scan"] as const)
     await expect(mine.getByRole("button", { name: say(key), exact: true })).toBeVisible();
+  // No "Make a new QR": the QR carries a code, and whoever scans it sees the card as it is now.
+  await expect(mine.getByRole("button", { name: /new QR/i })).toHaveCount(0);
   await expect(mine.getByRole("link", { name: say("qr.download") })).toBeVisible();
   await expect(page.getByRole("button", { name: say("shell.edit_card"), exact: true })).toHaveCount(1);
   await expect(page.getByRole("button", { name: say("card.change_by_talking"), exact: true })).toHaveCount(1);

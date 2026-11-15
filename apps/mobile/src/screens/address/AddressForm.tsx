@@ -18,6 +18,8 @@ export interface AddressFormProps {
   onCancel: () => void;
   /** Opened from "Use my current location": the location step starts at once. */
   locateFirst?: boolean;
+  /** On its own screen (Saved places): the save button stands in the screen's dock, not at the form's foot. */
+  docked?: boolean;
 }
 
 /**
@@ -75,7 +77,7 @@ function TypedAddress({ session, storage, onSaved, onCancel, locateFirst = false
           {t(NOT_SERVED)}
         </p>
       )}
-      <PlaceSearch session={session} onPick={(p) => draft.fillFrom(p, p.point, PointFrom.search)} />
+      <PlaceSearch session={session} near={draft.centre} onPick={(p) => draft.fillFrom(p, p.point, PointFrom.search)} />
       {draft.found && (
         <p className={C.muted} role="status">
           {t("addr.found", { area: draft.found })}

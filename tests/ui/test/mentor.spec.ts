@@ -10,7 +10,7 @@ import { type } from "./talk.js";
  * Mentors without a gate (round4-spec §2) through the app's real screens. A worker whose own phone counts enough
  * signed work offers to help newcomers in Talk and answers the listing's questions there; a newcomer says in Talk she
  * is moving, asks to find someone who knows the city, says she is a woman (women-only turns on), asks her, reads the
- * safety words and says when she arrives; the mentor helps from Today; the newcomer accepts on Home and a 30-day
+ * safety words and says when she arrives; the mentor helps from Today; the newcomer accepts on Jobs and a 30-day
  * mentor link opens, with renew, report and block. Then an introduction: someone linked with two people introduces them, nothing scanned.
  */
 
@@ -135,15 +135,15 @@ test("a newcomer picks a woman mentor from the list, they link for 30 days, then
   await expect(asha.page.getByRole("log")).toContainText(t(hi, "moving.sent", { name: lataName }));
   await shoot("newcomer-picks", shots, folder);
 
-  // ── Lata sees the request on Home and offers to help ──────────────────────────────────────────────────────────
-  await open(lata.page, "nav.home", kn);
+  // ── Lata sees the request on Jobs and offers to help ──────────────────────────────────────────────────────────
+  await open(lata.page, "nav.jobs", kn);
   const help = lata.page.getByRole("button", { name: t(kn, "mentor.help", { name: ashaName }) });
   await expect(help).toBeVisible();
   await shoot("mentor-decides", shots, folder);
   await help.click();
 
-  // ── Asha accepts on Home; the mentor link opens on both phones, for 30 days ───────────────────────────────────
-  await open(asha.page, "nav.home", hi);
+  // ── Asha accepts on Jobs; the mentor link opens on both phones, for 30 days ───────────────────────────────────
+  await open(asha.page, "nav.jobs", hi);
   const accept = asha.page.getByRole("button", { name: t(hi, "mentor.accept_offer", { name: lataName }) });
   await expect(accept).toBeVisible();
   await shoot("offer", shots, folder);
@@ -182,7 +182,7 @@ const linksOn = ({ page, lang }: Phone) => page.getByRole("region", { name: t(la
 
 /** On Today: the introduction's safety words, then Meet. */
 async function meet(p: Phone, name: string) {
-  await open(p.page, "nav.home", p.lang);
+  await open(p.page, "nav.jobs", p.lang);
   const intros = p.page.getByRole("region", { name: t(p.lang, "mentor.intros") });
   await intros.getByRole("button", { name: t(p.lang, "mentor.safety_ok") }).click();
   await intros.getByRole("button", { name: t(p.lang, "mentor.intro_meet", { name }) }).click();

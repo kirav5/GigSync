@@ -1,7 +1,7 @@
 import { priceText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, type Page, test } from "@playwright/test";
-import { API, newPhone, open, Role, RUN, shoot, signIn, textOf } from "./helpers.js";
+import { API, greeting, newPhone, open, Role, RUN, shoot, signIn, textOf } from "./helpers.js";
 
 /**
  * ADR 0041 through the real screens: a household types "4 BHK villa painting, outside too, 2 floors" in Find and is
@@ -43,7 +43,7 @@ function countEstimates(page: Page): { count: number } {
 async function villaAsked(page: Page) {
   await signIn(page, { role: Role.consumer, name: `Asha ${RUN}`, phone: newPhone(), address: "HSR", lang: en });
   await open(page, "nav.find");
-  await expect(page.getByRole("log")).toContainText(t(en, "need.start"));
+  await expect(greeting(page, en)).toBeVisible();
   await say(page, VILLA);
   // A long description is read into chips to confirm first (ADR 0033 §5): "4 rooms".
   await tap(page, t(en, "terms.scope_ok"));

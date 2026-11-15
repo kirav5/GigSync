@@ -74,13 +74,3 @@ export function legalLines(rates: RateCard, trade: Trade, law: LegalMinimum = LE
 /** The note that the card is a seed nobody has checked yet, when any of the trades has a band from it. */
 export const rateNote = (rates: RateCard, trades: readonly Trade[]): Line[] =>
   rates.signed_by === SEED_SIGNER && rates.bands.some((b) => trades.includes(b.trade)) ? [{ key: "iv.band_seed" }] : [];
-
-/**
- * What is shown under a rate question for the worker's first trade. The usual rate gets the range, the minimum and the
- * note; the least-they-will-take question, asked right after, gets only the legal minimum, so a voice user does not hear
- * the same range twice in a row.
- */
-export function rateLines(rates: RateCard, trade: Trade | undefined, least = false): Line[] {
-  if (!trade) return [];
-  return least ? legalLines(rates, trade) : [...rateHint(rates, trade), ...rateNote(rates, [trade])];
-}

@@ -1,4 +1,4 @@
-import { CardPick, type Choice } from "@gigsync/core";
+import { CardPick, type Choice, type MessageKey } from "@gigsync/core";
 import { stopSpeaking } from "../../adapters/speech.js";
 import { pauseInterview, tapInterview, toggleInterview } from "../../card/interviewStore.js";
 import { useI18n } from "../../i18n.js";
@@ -11,6 +11,10 @@ import type { SayChip } from "./cardAsk.js";
 const LIST_JOINER = ", ";
 /** A chip's picture, a little smaller than a button's icon. */
 const PICTURE_PX = 18;
+/** The chip that ends a question answered by several taps; filled, so it reads as the way on. */
+const DONE_KEY: MessageKey = "iv.done";
+/** Before how many are picked, after the chip's gap: "Done · 2". */
+const COUNT_JOINER = "· ";
 /** The composer's field in the dock, where an answer in the owner's own words goes. */
 const COMPOSER_FIELD = ".composer input";
 
@@ -38,7 +42,11 @@ function Picture({ of }: { of: WorkPicture }) {
 /**
  * The tap answers under the newest question, as picture chips where the answer is a trade (W1); `say`, when given, is
  * one more chip that hands the answer to the composer; and "Finish later", quieter, which pauses the interview. Where
- * the choices toggle (`picked`), a tap turns one on or off in place, and Done answers with all of them at once.
+ * the choices toggle (`picked`), a tap turns one on or off in place, and Done answers with all of them at once. Done is
+ * always the filled chip, with how many are picked once there are any ("Done · 2"); the count is drawn, not read, so
+ * the button's name stays "Done" and a screen reader hears each chip's own pressed state instead. As the UI kit lays
+ * it out, the answers come first with `say` as a dashed chip after them, and Done and Finish later sit on their own
+ * line underneath, so the way on is never lost among the answers.
  */
 export function Choices({
   choices,
@@ -57,32 +65,40 @@ export function Choices({
     if (toggles && c.value !== CardPick.yes) return toggleInterview(c.value);
     tapInterview(c.value, toggles && done.length > 0 ? done.join(LIST_JOINER) : t(c.key, c.params));
   };
-  return (
-    <div className={`${C.row} iv-choices`}>
-      {choices.map((c) => {
-        const picture = workPicture(c.value);
-        return (
-          <button
-            key={c.value}
-            type={C.button}
-            aria-pressed={toggles && c.value !== CardPick.yes ? on(c) : undefined}
-            className={on(c) ? C.chipOn : C.chip}
-            onClick={() => tap(c)}
-          >
-            {picture && <Picture of={picture} />}
-            {t(c.key, c.params)}
-          </button>
-        );
-      })}
-      {say && (
-        <button type={C.button} className={C.chip} onClick={sayOwn}>
-          {say.icon && <Icon name={say.icon} size={PICTURE_PX} />}
-          {t(say.key)}
-        </button>
-      )}
-      <button type={C.button} className={`${C.chip} iv-later`} onClick={later}>
-        {t("iv.later")}
+  const chip = (c: Choice) => {
+    const picture = workPicture(c.value);
+    const isDone = c.key === DONE_KEY;
+    return (
+      <button
+        key={c.value}
+        type={C.button}
+        aria-pressed={toggles && c.value !== CardPick.yes ? on(c) : undefined}
+        className={isDone ? `${C.chip} iv-done` : on(c) ? C.chipOn : C.chip}
+        onClick={() => tap(c)}
+      >
+        {picture && <Picture of={picture} />}
+        {t(c.key, c.params)}
+        {isDone && done.length > 0 && <span aria-hidden="true">{`${COUNT_JOINER}${done.length}`}</span>}
       </button>
+    );
+  };
+  return (
+    <div className="iv-choices">
+      <div className={C.row}>
+        {choices.filter((c) => c.key !== DONE_KEY).map(chip)}
+        {say && (
+          <button type={C.button} className={`${C.chip} iv-say-own`} onClick={sayOwn}>
+            {say.icon && <Icon name={say.icon} size={PICTURE_PX} />}
+            {t(say.key)}
+          </button>
+        )}
+      </div>
+      <div className={`${C.row} iv-way-on`}>
+        {choices.filter((c) => c.key === DONE_KEY).map(chip)}
+        <button type={C.button} className={`${C.chip} iv-later`} onClick={later}>
+          {t("iv.later")}
+        </button>
+      </div>
     </div>
   );
 }

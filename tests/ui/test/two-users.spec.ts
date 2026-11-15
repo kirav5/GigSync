@@ -21,7 +21,7 @@ import {
   signIn,
   statusTag,
 } from "./helpers.js";
-import { finishWork } from "./jobs.js";
+import { expand, finishWork } from "./jobs.js";
 import { fillAsk, publishCard, unlistCards } from "./journey.js";
 import { downloadRecord } from "./records.js";
 
@@ -40,8 +40,9 @@ const ADDRESS = `Flat 302, 3rd floor, 5th Cross (${RUN})`;
 const UTR = "412345678901";
 /** The manual flow's tabs, gone with it. Written out: their keys are deleted after this change. ("My record" is a Me row now.) */
 const GONE_TABS = ["Jobs in person", "Get paid"];
-/** The tabs and the Me tab's rows, as a worker sees them. */
-const NAV_ROWS: MessageKey[] = ["nav.activity", "nav.records", "nav.card", "nav.about", "nav.privacy", "nav.settings"];
+/** The tabs, and the profile sheet's rows, as a worker sees them. */
+const NAV_TABS: MessageKey[] = ["nav.activity", "nav.records"];
+const NAV_ROWS: MessageKey[] = ["nav.card", "nav.about", "nav.privacy", "nav.settings"];
 const SIGN = /^Sign deal for/;
 
 let contexts: BrowserContext[] = [];
@@ -94,9 +95,10 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
     listWorker(`Esha ${RUN}`, ["plumber"], { lat: INDIRANAGAR.lat, lon: INDIRANAGAR.lon + 0.01 }, 60000),
   ]);
 
-  // ── Anil signs in: Jobs and Money as tabs, his pages under Me, none of the manual flow's ─────────────────────
+  // ── Anil signs in: Jobs and Money as tabs, his pages in the profile, none of the manual flow's ──────────────
   await signIn(anil, { role: Role.worker, name: anilName, phone: newPhone() });
-  await open(anil, "nav.me");
+  for (const row of NAV_TABS) await expect(navRow(anil, row)).toBeVisible();
+  await open(anil, "profile.title");
   for (const row of NAV_ROWS) await expect(navRow(anil, row)).toBeVisible();
   for (const gone of GONE_TABS) await expect(anil.getByRole("button", { name: gone })).toHaveCount(0);
 
@@ -157,8 +159,10 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
       name: SIGN,
     });
   const first = await whichever([anil, priya], SIGN);
-  // The agents' talk is open on the card while they are at it: his question, her answer, and the offers.
+  // The agents' talk is on the card: his question, her answer, and the offers. Under Needs you the deal to sign leads
+  // and the talk is folded at the card's end, so it is opened first.
   const talk = first.getByRole("list", { name: say("talk.title") });
+  await expand(first, "talk.title");
   await expect(talk).toBeVisible();
   await expect(talk).toContainText("It hums but does not spin");
   await expect(priya.getByLabel(say("a11y.contact"))).toHaveCount(0);
@@ -175,7 +179,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   // ── Both signed: contacts cross, and only now. She asked for today, so it is one of his jobs for today ─────────
   await expect(priya.getByLabel(say("a11y.contact"))).toContainText(anilName);
   await showTab(anil, "activity.tab_agreed");
-  await expect(inSection(anil, "home.today").getByLabel(say("a11y.contact"))).toContainText(ADDRESS);
+  await expect(inSection(anil, "schedule.today").getByLabel(say("a11y.contact"))).toContainText(ADDRESS);
   const deal = ((await priya.getByLabel(say("a11y.deal")).textContent()) ?? "").match(/₹(\d+)/)?.[1];
   expect(Number(deal)).toBeGreaterThanOrEqual(550);
   expect(Number(deal)).toBeLessThanOrEqual(650);
@@ -245,7 +249,8 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await open(anil, "nav.activity");
   await expect(anil.getByRole("button", { name: say("activity.tab_closed"), exact: true })).toContainText("1");
 
-  // ── Priya rates the job; it is closed on both phones, in Records ──────────────────────────────────────────────
+  // ── Her Money lists the job she paid, though Jobs keeps it for her review; she rates it; closed on both phones ──
+  await openRecordRow(priya, anilName);
   const review = priya.getByRole("form", { name: say("a11y.review") });
   await reveal(priya, review);
   await review.getByLabel(say("a11y.review_text")).fill("Quick and tidy");

@@ -2,8 +2,6 @@ import type { findflow as en } from "../en/findflow.js";
 
 /** Kannada: the household's Find: the privacy card, address cards, the budget band, worker cards and a card opened by QR. */
 export const findflow: Readonly<Record<keyof typeof en, string>> = {
-  "find.private_line": "ಕೆಲಸಗಾರರ ಏಜೆಂಟ್‌ಗಳಿಗೆ ಕೆಲಸ ಮಾತ್ರ ಕಾಣುತ್ತದೆ, ನಿಮ್ಮ ಮಿತಿ ಎಂದೂ ಕಾಣುವುದಿಲ್ಲ.",
-  "find.example": "ಉದಾ: ದಿನಾ ಎರಡು ಹೊತ್ತಿನ ಅಡುಗೆ…",
   "find.door_check": "ಪಿನ್ ನಿಮ್ಮ ಬಾಗಿಲಿನ ಮೇಲಿದೆಯೇ? ನಕ್ಷೆಯನ್ನು ಸರಿಸಿ ಅದನ್ನು ಬಾಗಿಲಿಗೆ ತನ್ನಿ.",
   "find.door_saved": "ಪಿನ್ ನಿಮ್ಮ ಬಾಗಿಲಿಗೆ ಉಳಿಸಲಾಗಿದೆ. ಇಬ್ಬರೂ ಸಹಿ ಹಾಕಿದ ನಂತರವೇ ಕೆಲಸಗಾರರಿಗೆ ಸಿಗುತ್ತದೆ.",
   "find.say_it": "ನಾನೇ ಹೇಳುತ್ತೇನೆ",

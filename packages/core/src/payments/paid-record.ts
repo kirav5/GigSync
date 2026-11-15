@@ -1,4 +1,5 @@
 import { type EngagementId, type Payment, PaymentStatus, type UserId } from "@gigsync/protocol";
+import { workDone } from "../job/groups.js";
 import type { JobRecord } from "../job/store.js";
 import { localDay } from "../job/when.js";
 import { receiptsOf } from "./receipts.js";
@@ -24,7 +25,26 @@ export interface PaidRecord {
 }
 
 /**
- * What a household paid for its completed work (`done`, from core's `recordsOf`): one row per job, filed by its day
+ * A household's completed work for Money: Records' (`done`, from core's `recordsOf`), and one-off work handed over and
+ * paid that Activity still keeps for the household's review. Its money is in Money's total, so its row is under it:
+ * never "Nothing completed yet" under a total paid.
+ */
+export function paidWork(
+  done: readonly JobRecord[],
+  jobs: readonly JobRecord[],
+  payments: readonly Payment[],
+  me: UserId,
+): JobRecord[] {
+  const filed = new Set<EngagementId>(done.map((j) => j.engagement.id));
+  const reviewing = new Map<EngagementId, JobRecord>();
+  for (const { job } of receiptsOf(jobs, payments, me)) {
+    if (workDone(job) && !filed.has(job.engagement.id)) reviewing.set(job.engagement.id, job);
+  }
+  return [...done, ...reviewing.values()];
+}
+
+/**
+ * What a household paid for its completed work (`done`, from `paidWork`): one row per job, filed by its day
  * the way the worker's record files it, so both sides see a job under the same month.
  */
 export function paidRecord(

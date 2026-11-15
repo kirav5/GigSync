@@ -1,8 +1,8 @@
 import { activityOf, countsOf, groupJobs, type JobRecord, type MessageKey } from "@gigsync/core";
-import { type ReactNode, useId, useMemo } from "react";
+import { type ReactNode, useMemo } from "react";
 import { useI18n } from "../../i18n.js";
-import { C } from "../../ui/cls.js";
 import { phoneDay } from "../jobGroups.js";
+import { Day, DoneGroup, EmptyJobs, Foot, Group } from "./ActivityParts.js";
 import type { CardProps } from "./JobLists.js";
 import { JobRow } from "./JobRow.js";
 import { useOpenRows } from "./useOpenRows.js";
@@ -17,31 +17,31 @@ export interface MoreAwaiting {
 interface Props extends CardProps {
   now: Date;
   more?: MoreAwaiting;
-  /** Agreed by day (Today's jobs, Coming up, Other jobs) for a worker; one list for a household. */
-  byDay: boolean;
-  /** What to ask in the chat, said while there is nothing at all. */
+  /** What to ask in the chat, said while there are no jobs at all. */
   hint: MessageKey;
-  /** Opens the Money tab (Pay for a household), where finished jobs are. */
+  /** Opens the Money tab (Pay for a household), where finished jobs are kept. */
   onRecords: () => void;
+  /** What the owner alone is asked, under the heading (a worker's nudges). */
+  lead?: ReactNode;
 }
 
-/** A section's look: Needs you is drawn in rust, the other two plain. */
+/** A section's look: Needs you is drawn in rust, the others plain. */
 const NEEDS = "needs";
 
 /**
- * The Jobs tab (design H6): three sections one under the other, in the order the owner must act: Needs you, Agents
- * talking, Agreed. Each job is one line that opens its card in place; a new decision's line opens by itself. Finished
- * jobs are never listed here: the foot leads to them on Money (Pay), where they are counted.
+ * The Jobs tab, for both owners, laid out as an activity page: what needs the owner first, then what the agents are
+ * talking over, then the work agreed by day (Today, Coming up, Other days), then the latest finished jobs by the day
+ * they were finished. Each job is a compact card (the person, the work, a status pill, when, the amount) that opens
+ * its whole card in place; a new decision's card opens by itself. A section with nothing in it is not drawn.
  */
-export function ActivityFrame({ now, more, byDay, hint, onRecords, ...card }: Props) {
+export function ActivityFrame({ now, more, hint, onRecords, lead, ...card }: Props) {
   const { t, time } = useI18n();
-  const closedId = useId();
   const { jobs, tasks, payments, syncedAt } = card.view;
   const day = phoneDay(now);
   const activity = useMemo(() => activityOf(groupJobs({ jobs, tasks, payments, day })), [jobs, tasks, payments, day]);
   const counts = countsOf(activity, more?.count ?? 0);
   const rows = useOpenRows(tasks);
-  const list = (shown: readonly JobRecord[], today = false) =>
+  const list = (shown: readonly JobRecord[], { today = false, decide = false } = {}) =>
     shown.length > 0 && (
       <ul className="job-rows">
         {shown.map((job) => {
@@ -50,7 +50,9 @@ export function ActivityFrame({ now, more, byDay, hint, onRecords, ...card }: Pr
             <JobRow
               key={id}
               job={job}
+              day={day}
               today={today}
+              decide={decide}
               open={rows.isOpen(id)}
               onToggle={() => rows.toggle(id)}
               {...card}
@@ -63,74 +65,22 @@ export function ActivityFrame({ now, more, byDay, hint, onRecords, ...card }: Pr
   return (
     <>
       <h1 className="jobs-heading">{t("activity.headline")}</h1>
-      <Group title="activity.tab_awaiting" empty={counts.awaiting === 0 && "activity.empty_awaiting"} look={NEEDS}>
+      {lead}
+      {jobs.length + (more?.count ?? 0) === 0 && <EmptyJobs hint={hint} />}
+      <Group title="activity.tab_awaiting" count={counts.awaiting} look={NEEDS}>
         {more?.node}
-        {list(activity.awaiting)}
+        {list(activity.awaiting, { decide: true })}
       </Group>
-      <Group title="activity.tab_talks" empty={counts.talks === 0 && "activity.empty_talks"}>
+      <Group title="activity.tab_talks" count={counts.talks}>
         {list(activity.talks)}
       </Group>
-      <Group title="activity.tab_agreed" empty={counts.agreed === 0 && "activity.empty_agreed"}>
-        {byDay ? (
-          <>
-            <Day title="home.today">{list(today, true)}</Day>
-            <Day title="home.upcoming">{list(upcoming)}</Day>
-            <Day title="home.other">{list(other)}</Day>
-          </>
-        ) : (
-          list([...today, ...upcoming, ...other])
-        )}
+      <Group title="activity.tab_agreed" count={counts.agreed}>
+        <Day title="schedule.today">{list(today, { today: true })}</Day>
+        <Day title="jobs.day.coming">{list(upcoming)}</Day>
+        <Day title="jobs.day.other">{list(other)}</Day>
       </Group>
-      {jobs.length + (more?.count ?? 0) === 0 && <p className={C.muted}>{t(hint)}</p>}
-      <p className="activity-foot">
-        <span className={C.faint}>{t("activity.records_line")}</span>
-        <button
-          type={C.button}
-          className={C.linkBtn}
-          aria-label={t("activity.tab_closed")}
-          aria-describedby={closedId}
-          onClick={onRecords}
-        >
-          {t("activity.tab_closed")} <b id={closedId}>{counts.closed}</b>
-        </button>
-        {syncedAt && <span className={C.faint}>{t("requests.checked", { time: time(syncedAt) })}</span>}
-      </p>
-    </>
-  );
-}
-
-/** One of the three sections, named by its heading; what it says when it has nothing in it. */
-function Group({
-  title,
-  empty,
-  look,
-  children,
-}: {
-  title: MessageKey;
-  empty: MessageKey | false;
-  look?: string;
-  children: ReactNode;
-}) {
-  const { t } = useI18n();
-  const id = useId();
-  return (
-    <section className={`job-group ${look ?? ""}`} aria-labelledby={id}>
-      <h2 id={id} className="section-label">
-        {t(title)}
-      </h2>
-      {empty ? <p className="fine">{t(empty)}</p> : children}
-    </section>
-  );
-}
-
-/** A worker's day inside Agreed (Today's jobs, Coming up, Other jobs); nothing at all when it has no jobs. */
-function Day({ title, children }: { title: MessageKey; children: ReactNode }) {
-  const { t } = useI18n();
-  if (!children) return null;
-  return (
-    <>
-      <h3 className="job-day">{t(title)}</h3>
-      {children}
+      <DoneGroup jobs={activity.records.done} view={card.view} today={day} onOpen={onRecords} />
+      <Foot closed={counts.closed} checked={syncedAt && time(syncedAt)} onOpen={onRecords} />
     </>
   );
 }

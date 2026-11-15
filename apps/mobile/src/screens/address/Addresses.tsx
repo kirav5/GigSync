@@ -30,6 +30,7 @@ export function Addresses({ ports, session }: { ports: Ports; session: Session }
           reload();
         }}
         onCancel={() => setAdding(false)}
+        docked
       />
     );
   return (

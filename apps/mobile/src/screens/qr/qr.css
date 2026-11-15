@@ -76,15 +76,19 @@
   height: 64px;
   font-size: 28px;
 }
-/* The tile stays white in both looks, so any camera reads the code. */
+/*
+ * The tile stays white in both looks, so any camera reads the code: a plain square with a quiet white margin round it
+ * (with the picture's own, about four modules), never rounded, which would clip the three corner squares a camera
+ * finds the code by. The card around it carries the rounding.
+ */
 .share-card .qr,
 .qr-card .qr {
   display: block;
   width: 200px;
   aspect-ratio: 1;
   background: #fff;
-  padding: 10px;
-  border-radius: var(--radius-btn);
+  padding: 14px;
+  border-radius: 0;
 }
 /* Before the first QR is drawn: the same white tile, so nothing moves when it comes. */
 .qr-blank {

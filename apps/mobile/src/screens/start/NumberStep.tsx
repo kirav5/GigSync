@@ -1,109 +1,97 @@
-import { useEffect, useRef } from "react";
-import { AccountRole } from "../../adapters/account.js";
+import { useEffect, useRef, useState } from "react";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
+import type { Country } from "../../ui/countries.js";
 import { Icon } from "../../ui/Icon.js";
 import { InstallCard } from "../../ui/InstallCard.js";
+import { typedNumber } from "../../ui/phone.js";
+import { CountryButton, CountrySheet } from "./CountrySheet.js";
 import { Field, FORM_ID } from "./form.js";
+import { Art, StartArt } from "./StartArt.js";
 import { StartBar } from "./StartBar.js";
 
-/** Stands where the link goes in the sign-in line, so each language puts it where its grammar wants it. */
-const LINK_SLOT = "⁣";
-
 /**
- * The number, under the promise that matters most here: it reaches the other side only once both have signed a job,
- * and only for that job (protocol job.ts ContactCard; ADR 0039 §3). The name is asked here too: the board, the QR card
- * and the payee need it, and nothing asks it later. On iPhone the install card comes now, before sign-in, because the
+ * The number, and nothing else: the name comes after the code, once the number is known to be theirs. Under it, the
+ * promise that matters most here: it reaches the other side only once both have agreed a job, and only for that job
+ * (protocol job.ts ContactCard; ADR 0039 §3). On iPhone the install card comes now, before sign-in, because the
  * home-screen app keeps its own data.
  */
+/** The placeholder's digit, as many as the chosen country's numbers have. */
+const PLACEHOLDER = "0";
+
 export function NumberStep({
-  role,
-  name,
+  step,
   phone,
-  onName,
   onPhone,
+  country,
+  onCountry,
   onBack,
 }: {
-  role: AccountRole;
-  name: string;
+  /** Where this step sits in the dots at the top. */
+  step: number;
   phone: string;
-  onName: (name: string) => void;
   onPhone: (phone: string) => void;
+  /** Where the number is from: India unless the owner picks another from the flag at the field's start. */
+  country: Country;
+  onCountry: (country: Country) => void;
   onBack: () => void;
 }) {
   const { lang, t } = useI18n();
-  const nameField = useRef<HTMLInputElement>(null);
-  const phoneField = useRef<HTMLInputElement>(null);
-  // Arriving from the role, the keyboard comes up on the name; back from the code to change it, on the number.
-  useEffect(() => {
-    (nameField.current?.value ? phoneField : nameField).current?.focus();
-  }, []);
+  const field = useRef<HTMLInputElement>(null);
+  const [picking, setPicking] = useState(false);
+  useEffect(() => field.current?.focus(), []);
 
   return (
     <>
-      <StartBar title={t("start.number_title")} onBack={onBack} />
-      <h1 className="hero-title">{t("signin.soft")}</h1>
-      <p className={C.muted}>
-        {t(role === AccountRole.worker ? "start.number_why_worker" : "start.number_why_household")}
-      </p>
-      <label className={C.fieldLabel}>
-        <span className={C.muted}>{t("signin.name")}</span>
+      <StartBar step={step} onBack={onBack} />
+      <StartArt art={Art.phone} small />
+      <h1 className="start-title">{t("start.number_title")}</h1>
+      <span className="start-label" id={Field.phone}>
+        {t("signin.phone")}
+      </span>
+      <span className="start-phone">
+        <CountryButton country={country} onOpen={() => setPicking(true)} />
         <input
-          ref={nameField}
+          ref={field}
           className={C.field}
-          name={Field.name}
+          name={Field.phone}
           required
-          autoComplete={Field.name}
-          value={name}
-          onChange={(e) => onName(e.target.value)}
+          aria-labelledby={Field.phone}
+          placeholder={typedNumber(PLACEHOLDER.repeat(country.digits[1]), country)}
+          type="tel"
+          inputMode="numeric"
+          autoComplete="tel-national"
+          value={phone}
+          onChange={(e) => onPhone(typedNumber(e.target.value, country))}
         />
-      </label>
-      <label className={C.fieldLabel}>
-        <span className={C.muted}>{t("signin.phone")}</span>
-        <span className="start-phone">
-          <Icon name="call" size={18} />
-          <input
-            ref={phoneField}
-            className={C.field}
-            name={Field.phone}
-            required
-            placeholder="98000 00000"
-            type="tel"
-            autoComplete="tel"
-            value={phone}
-            onChange={(e) => onPhone(e.target.value)}
-          />
-        </span>
-      </label>
+      </span>
+      {picking && (
+        <CountrySheet
+          country={country}
+          onPick={(picked) => {
+            setPicking(false);
+            onCountry(picked);
+            onPhone(typedNumber(phone, picked));
+            field.current?.focus();
+          }}
+          onClose={() => setPicking(false)}
+        />
+      )}
+      <p className="start-pill" data-tone="leaf">
+        <Icon name="shield" size={16} />
+        {t("start.number_why")}
+      </p>
       <InstallCard lang={lang} />
     </>
   );
 }
 
-/** The number step's dock: Send code, and the agreement line under it. */
-export function NumberActions({ busy, onTerms }: { busy: boolean; onTerms: () => void }) {
+/** The number step's dock: Send code. The agreement line is on the welcome, before anything is asked. */
+export function NumberActions({ busy }: { busy: boolean }) {
   const { t } = useI18n();
   return (
-    <>
-      <button type={C.submit} form={FORM_ID} className={`${C.wide} btn-big`} disabled={busy} aria-busy={busy}>
-        {t("signin.send_code")}
-      </button>
-      <AgreeLine onTerms={onTerms} />
-    </>
-  );
-}
-
-/** "By continuing, you agree to GigSync's Terms and Privacy Notice", the documents' name a link (ADR 0039 §4). */
-function AgreeLine({ onTerms }: { onTerms: () => void }) {
-  const { t } = useI18n();
-  const [before, after = ""] = t("records.signin_line", { link: LINK_SLOT }).split(LINK_SLOT);
-  return (
-    <p className="fine start-agree">
-      {before}
-      <button type={C.button} className={C.linkBtn} onClick={onTerms}>
-        {t("records.signin_link")}
-      </button>
-      {after}
-    </p>
+    <button type={C.submit} form={FORM_ID} className={`${C.wide} btn-big`} disabled={busy} aria-busy={busy}>
+      {t("signin.send_code")}
+    </button>
   );
 }

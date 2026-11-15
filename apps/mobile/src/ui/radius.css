@@ -1,0 +1,58 @@
+/* The distance map (RadiusMap.tsx): a rounded map with the circle and the place's dark label at its centre, and the
+   slider under it with the distance in large type, as Hinge's maximum distance screen lays it out. */
+.radius-map {
+  display: grid;
+  gap: 14px;
+}
+.radius-map-frame {
+  position: relative;
+  height: 300px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: 24px;
+  background: var(--surface2);
+}
+.radius-map-frame[hidden] {
+  display: none;
+}
+/* Two classes, so MapLibre's own stylesheet (loaded with the map, after this one) cannot make it `position: relative`
+   at no height, which hid the drawn map and left the frame's beige ground with the label. */
+.radius-map-frame > .radius-map-canvas {
+  position: absolute;
+  inset: 0;
+}
+.radius-map-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  max-width: 70%;
+  padding: 8px 14px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.radius-map-slider {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+.radius-map-km {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 600;
+}
+.radius-map-slider input {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: var(--tap);
+  accent-color: var(--accent);
+}

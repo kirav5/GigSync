@@ -46,7 +46,7 @@ export function MyCardPage({ ports, account, syncedAt, onTalk, onCardForm, onSca
   return (
     <>
       {/* The top bar says My card already; the heading stays for readers who move by headings. */}
-      <h1 className="my-card-title">{t("nav.card")}</h1>
+      <h1 className="my-card-title">{t(isWorker ? "nav.card" : "profile.my_qr")}</h1>
       <p className="fine">{t(isWorker ? "page.card_soft_worker" : "page.card_soft")}</p>
       <MyQr
         ports={ports}

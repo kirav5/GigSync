@@ -5,6 +5,7 @@ import { skipPriceQuestions } from "./findChat.js";
 import {
   completeSignIn,
   drawer,
+  greeting,
   listWorker,
   newPhone,
   onScreen,
@@ -56,14 +57,15 @@ test("chats are kept: a new chat keeps the last, a past one reopens and carries 
   await nextTurn(page, en, "iv.ask.also", () => type(page, en, TRADE));
   await nextTurn(page, en, "iv.ask.area", () => type(page, en, "no"));
 
-  await test.step("New chat opens an empty chat with the suggestions; the card waits in the first", async () => {
+  await test.step("New chat opens an empty chat with the greeting; the card waits in the first", async () => {
     await openDrawer(page);
     await drawer(page)
       .getByRole("button", { name: say("chats.new"), exact: true })
       .click();
     await expect(page.getByText(say("agent.empty"))).toBeVisible();
+    await expect(page.getByRole("button", { name: say("home.suggest_jobs"), exact: true })).toBeVisible();
     await expect(page.getByText(textOf(en, "iv.ask.area"))).toHaveCount(0);
-    await page.getByRole("button", { name: EARNED, exact: true }).click();
+    await type(page, en, EARNED);
     await expect(talkLog(page).getByText(EARNINGS)).toBeVisible();
   });
 
@@ -84,7 +86,8 @@ test("chats are kept: a new chat keeps the last, a past one reopens and carries 
     await expect(talkLog(page).getByText(TRADE, { exact: true })).toBeVisible();
     await expect(talkLog(page).getByText(EARNINGS)).toHaveCount(0);
     await page.getByRole("button", { name: say("iv.resume") }).click();
-    await nextTurn(page, en, "iv.ask.rate_visit", () => type(page, en, "Koramangala"));
+    await nextTurn(page, en, "iv.ask.radius", () => type(page, en, "Koramangala"));
+    await nextTurn(page, en, "iv.ask.rate_visit", () => type(page, en, "10 km"));
   });
 
   await test.step("after a reload, both chats are there and the card is where it was", async () => {
@@ -97,7 +100,7 @@ test("chats are kept: a new chat keeps the last, a past one reopens and carries 
 
   await test.step("Delete asks first; Keep it keeps the chat, Delete removes it, also after a reload", async () => {
     const remove = () => row(page, EARNED).getByRole("button", { name: say("chats.delete_label", { title: EARNED }) });
-    const confirm = page.getByRole("dialog", { name: say("chats.delete_label", { title: EARNED }) });
+    const confirm = page.getByRole("dialog", { name: say("chats.delete_title", { title: EARNED }) });
     await remove().click();
     await expect(confirm).toContainText(say("chats.delete_confirm"));
     await confirm.getByRole("button", { name: say("chats.keep") }).click();
@@ -151,8 +154,8 @@ async function tell(page: Page, words: string) {
 async function startAgain(page: Page) {
   await expect(talkLog(page)).toContainText(say("need.asked"));
   await page.getByRole("button", { name: NEW_NEED }).click();
-  await expect(talkLog(page)).toContainText(say("need.start"));
-  await expect(talkLog(page)).not.toContainText(FAN);
+  await expect(greeting(page)).toBeVisible();
+  await expect(talkLog(page).filter({ hasText: FAN })).toHaveCount(0);
 }
 
 /** Opens a chat from the menu by the start of its title. */
@@ -175,7 +178,7 @@ test("a household's Find chats are kept: a sent need stays to read, new chats ke
   const meena = { role: Role.consumer, name: `Meena ${RUN}`, phone: newPhone(), address: "Flat 4, HSR", lang: en };
   try {
     await signIn(page, meena);
-    await expect(talkLog(page)).toContainText(say("need.start"));
+    await expect(greeting(page)).toBeVisible();
 
     await test.step("a need sent to workers stays in the menu; back on Find, the next need starts afresh", async () => {
       await tell(page, FAN);
@@ -199,8 +202,8 @@ test("a household's Find chats are kept: a sent need stays to read, new chats ke
         .click();
       await onScreen(page, "nav.my_jobs");
       await toChat(page);
-      await expect(talkLog(page)).toContainText(say("need.start"));
-      await expect(talkLog(page)).not.toContainText(say("need.asked"));
+      await expect(greeting(page)).toBeVisible();
+      await expect(talkLog(page).filter({ hasText: say("need.asked") })).toHaveCount(0);
       await showChats(page);
       await expect(chatList(page).getByRole("listitem")).toHaveCount(1);
       await expect(row(page, FAN_START)).not.toContainText(say("chats.need_unsent"));
@@ -222,8 +225,8 @@ test("a household's Find chats are kept: a sent need stays to read, new chats ke
       await drawer(page)
         .getByRole("button", { name: say("chats.new"), exact: true })
         .click();
-      await expect(talkLog(page)).toContainText(say("need.start"));
-      await expect(talkLog(page)).not.toContainText(TAP);
+      await expect(greeting(page)).toBeVisible();
+      await expect(talkLog(page).filter({ hasText: TAP })).toHaveCount(0);
       await showChats(page);
       await expect(chatList(page).getByRole("listitem")).toHaveCount(2);
     });
@@ -246,8 +249,8 @@ test("a household's Find chats are kept: a sent need stays to read, new chats ke
 
     await test.step("a reload opens a new chat; both are listed, and the unsent need carries on from the list", async () => {
       await page.reload();
-      await expect(talkLog(page)).toContainText(say("need.start"));
-      await expect(talkLog(page)).not.toContainText(TAP);
+      await expect(greeting(page)).toBeVisible();
+      await expect(talkLog(page).filter({ hasText: TAP })).toHaveCount(0);
       await showChats(page);
       await expect(chatList(page).getByRole("listitem")).toHaveCount(2);
       await reopen(page, TAP);
@@ -258,7 +261,8 @@ test("a household's Find chats are kept: a sent need stays to read, new chats ke
     await test.step("Delete says the job stays in My jobs; the chat goes, also after a reload, the job stays", async () => {
       const label = say("chats.delete_label", { title: FAN_TITLE });
       const remove = () => row(page, FAN_START).getByRole("button", { name: label });
-      const confirm = page.getByRole("dialog", { name: label });
+      const confirm = page.getByRole("dialog", { name: say("chats.delete_title", { title: FAN_TITLE }) });
+      await showChats(page);
       await remove().click();
       await expect(confirm).toContainText(say("chats.delete_confirm_sent"));
       await confirm.getByRole("button", { name: say("chats.keep") }).click();
@@ -278,13 +282,13 @@ test("a household's Find chats are kept: a sent need stays to read, new chats ke
       await signOutHere(page);
       const geeta = { role: Role.consumer, name: `Geeta ${RUN}`, phone: newPhone(), address: "HSR", lang: en };
       await completeSignIn(page, geeta);
-      await expect(talkLog(page)).toContainText(say("need.start"));
-      await expect(talkLog(page)).not.toContainText(TAP);
+      await expect(greeting(page)).toBeVisible();
+      await expect(talkLog(page).filter({ hasText: TAP })).toHaveCount(0);
       await showChats(page);
       await expect(chatList(page)).toContainText(say("chats.empty"));
       await signOutHere(page);
       await completeSignIn(page, meena);
-      await expect(talkLog(page)).toContainText(say("need.start"));
+      await expect(greeting(page)).toBeVisible();
       await showChats(page);
       await expect(row(page, TAP)).toHaveCount(1);
     });

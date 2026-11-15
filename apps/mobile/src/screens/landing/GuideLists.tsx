@@ -1,34 +1,22 @@
 import { type CityGuide, JourneyStep } from "@gigsync/protocol";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
+import { CallRows } from "../help/CallRows.js";
 import { ExternalLink, GUIDE_LANG, GuideText, SectionView } from "./SectionView.js";
 
-const TEL = "tel:";
 const LIST = "guide-list";
-const SPACES = /\s+/g;
+/** A fold of the guide: a card whose summary reads as a row with a chevron that turns when open. */
+const FOLD = `${C.card} guide-fold`;
 
-/** The guide's numbers, each a tap to call. */
+/** The guide's numbers, each a tap to call, as rows like Help's. */
 export function Helplines({ guide }: { guide: CityGuide }) {
   const { t } = useI18n();
-  const title = t("landing.helplines");
-  return (
-    <section className={C.card} aria-label={title}>
-      <span className={C.label}>{title}</span>
-      <ul className={LIST}>
-        {guide.helplines.map((h) => (
-          <li key={h.number}>
-            <a
-              className="helpline"
-              href={`${TEL}${h.number.replace(SPACES, "")}`}
-              aria-label={t("landing.call", { name: h.name, number: h.number })}
-            >
-              <span className={C.money}>{h.number}</span> <GuideText text={h.name} original={false} />
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
+  const lines = guide.helplines.map((h) => ({
+    name: <GuideText text={h.name} original={false} />,
+    said: h.name,
+    number: h.number,
+  }));
+  return <CallRows label={t("landing.helplines")} lines={lines} />;
 }
 
 /** The guide's places, said plainly to be from public sources and vouched for by nobody. */
@@ -36,7 +24,7 @@ export function Places({ guide }: { guide: CityGuide }) {
   const { t } = useI18n();
   const title = t("landing.places");
   return (
-    <details className={C.card}>
+    <details className={FOLD}>
       <summary className={C.label}>{title}</summary>
       <section className={C.stack} aria-label={title}>
         <span className={C.muted}>{t("landing.places_note")}</span>
@@ -62,7 +50,7 @@ export function Registration({ guide }: { guide: CityGuide }) {
   const title = t("landing.register_title");
   const sections = guide.sections.filter((s) => s.step === JourneyStep.enum.registered);
   return (
-    <details className={C.card}>
+    <details className={FOLD}>
       <summary className={C.label}>{title}</summary>
       <section className={C.stack} aria-label={title}>
         <span className={C.muted}>{t("landing.register_note")}</span>
@@ -79,7 +67,7 @@ export function NotChecked({ guide }: { guide: CityGuide }) {
   const { t } = useI18n();
   const title = t("landing.unchecked");
   return (
-    <details className={C.card}>
+    <details className={FOLD}>
       <summary className={C.label}>{title}</summary>
       <section className={C.stack} aria-label={title}>
         <span className={C.muted}>{t("landing.unchecked_note")}</span>

@@ -36,9 +36,10 @@ const WHEN_KEYS: ReadonlySet<string> = new Set(Object.values(WhenDetail));
  * One job as this owner sees it, laid out as the design's job screen: who, the work and when; the step line once both
  * signed; then the one thing to do now (JobActions), with the agents' talk beside it while they talk; then the
  * contact, the deal, and what the job has on record. What the agents said once settled, and the request's details
- * and the plan, are folded away at the end.
+ * and the plan, are folded away at the end. `foldTalk` (a card under Needs you) folds the talk to the end even while
+ * the agents talk, so the decision is what the card shows.
  */
-export function JobThread(props: JobActionProps) {
+export function JobThread({ foldTalk = false, ...props }: JobActionProps & { foldTalk?: boolean }) {
   const { job, view, device, run } = props;
   const { lang, t } = useI18n();
   const e = job.engagement;
@@ -55,8 +56,8 @@ export function JobThread(props: JobActionProps) {
   // A restored job's messages never reached the server, and another phone answers an elsewhere one (ADR 0045):
   // neither has moves here, so the talk, if any, stays at the end.
   const live = !job.restored && !job.elsewhere;
-  const talkFirst = live && TALKING.has(e.status);
-  const talk = <AgentTalk job={job} them={them} from={theirs} device={device} />;
+  const talkFirst = live && TALKING.has(e.status) && !foldTalk;
+  const talk = <AgentTalk job={job} them={them} from={theirs} device={device} folded={foldTalk} />;
 
   return (
     <article

@@ -1,30 +1,30 @@
-import type { MessageKey } from "@gigsync/core";
 import { useI18n } from "../../i18n.js";
-import { C } from "../../ui/cls.js";
+import { Greeting, type GreetingRow } from "../home/Greeting.js";
 
-/** One way into Talk, shown only while the conversation is empty. */
-export interface Suggestion {
-  label: MessageKey;
-  /** Runs the suggestion; it gets the words as shown, so they appear as the owner's own. */
-  run: (said: string) => void;
+interface Props {
+  /** The worker's name, for the greeting. */
+  name: string;
+  /** The worker has a card: its price can change; without one, the row makes it. */
+  hasCard: boolean;
+  /** Opens the Jobs tab, where today's jobs are. */
+  onJobs: () => void;
+  /** Starts the card chat at the price, with the row's words as the worker's own. */
+  onPrice: (said: string) => void;
+  /** Starts the card chat from the beginning. */
+  onMakeCard: () => void;
+  /** Opens Get verified, the ID check on this phone. */
+  onVerify: () => void;
 }
 
-/**
- * An empty Talk: a line saying what to do, and up to three things workers ask most. They go away after the first
- * message, as in other assistants; voice and typing do the same and more.
- */
-export function Suggestions({ items }: { items: readonly Suggestion[] }) {
+/** An empty Talk: the design's greeting and its three ways in, today's jobs, the price (or the card), and verifying. */
+export function TalkStart({ name, hasCard, onJobs, onPrice, onMakeCard, onVerify }: Props) {
   const { t } = useI18n();
-  return (
-    <div className={C.stack}>
-      <span className={C.muted}>{t("agent.empty")}</span>
-      <div className={C.row}>
-        {items.map(({ label, run }) => (
-          <button key={label} type={C.button} className={C.chip} onClick={() => run(t(label))}>
-            {t(label)}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+  const rows: GreetingRow[] = [
+    { icon: "jobs", label: "home.suggest_jobs", onPick: onJobs },
+    hasCard
+      ? { icon: "pencil", label: "agent.suggest_rate", onPick: () => onPrice(t("agent.suggest_rate")) }
+      : { icon: "card", label: "home.make_card", onPick: onMakeCard },
+    { icon: "shield", label: "home.suggest_verify", onPick: onVerify },
+  ];
+  return <Greeting name={name} line="agent.empty" rows={rows} />;
 }

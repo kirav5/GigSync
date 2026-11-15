@@ -15,10 +15,6 @@ export const qr = {
   "qr.copy": "Copy link",
   "qr.copied": "Link copied.",
   "qr.copy_failed": "This phone did not allow copying.",
-  "qr.new": "Make a new QR",
-  "qr.new_about": "Your old QR and its link stop finding you at once.",
-  "qr.keep": "Keep this one",
-  "qr.new_done": "New QR made. The old one no longer finds you.",
   // Scanning
   "qr.scan": "Scan a QR",
   "qr.scan_close": "Close",

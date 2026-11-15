@@ -2,7 +2,7 @@ import { hourText, plural, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { skipPriceQuestions } from "./findChat.js";
-import { expand, newPhone, open, openCard, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
+import { expand, greeting, newPhone, open, openCard, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
 import { cleanUpLater, type Phone, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -75,7 +75,7 @@ test("a long description becomes confirmed chips, the agents settle the terms, a
   await signIn(homePage, { role: Role.consumer, name: `Lata ${RUN}`, phone: newPhone(), address: "HSR", lang: en });
   await open(homePage, "nav.find");
   const log = homePage.getByRole("log");
-  await expect(log).toContainText(t(en, "need.start"));
+  await expect(greeting(homePage, en)).toBeVisible();
   await say(homePage, DESCRIPTION);
 
   // The scope read from her words waits as chips; nothing about the estimate until she confirms them.

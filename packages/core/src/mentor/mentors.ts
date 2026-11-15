@@ -197,7 +197,12 @@ export class Mentors {
     return safety.block(this.m, user);
   }
 
-  /** Everyone this owner blocked, newest first. There is no unblock: the server was told never to match the two. */
+  /** Lets someone blocked back in: on this phone at once, then with the server. */
+  unblock(user: UserId): Promise<void> {
+    return safety.unblock(this.m, user);
+  }
+
+  /** Everyone this owner blocked, newest first. */
   blocked(): Promise<BlockedPerson[]> {
     return blockedPeople(this.m);
   }

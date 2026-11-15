@@ -1,10 +1,10 @@
 import { log } from "@gigsync/core";
 import { coarsePoint, MAX_ADDRESSES, type Place } from "@gigsync/protocol";
 import { type FormEvent, useEffect, useId, useRef, useState } from "react";
-import { homeCity } from "../../adapters/cities.js";
 import { placesAt } from "../../adapters/geo.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
+import { Dock } from "../../ui/Dock.js";
 import { Icon } from "../../ui/Icon.js";
 import { PlaceMap } from "../../ui/PlaceMap.js";
 import { AddressFields, F, FIELDS, LabelChips, NearestArea } from "./AddressFields.js";
@@ -32,18 +32,20 @@ const DOOR_LABEL = { [F.house]: "addr.door_field" } as const;
  * label, and "This is my door". The rest of the address is behind "More details", opened by itself when the map
  * cannot name the place. A map that never moved is not a door: the typed area places the pin, for the owner to check.
  */
-export function DoorPin({ session, storage, onSaved, onCancel, locateFirst = false }: AddressFormProps) {
+export function DoorPin(props: AddressFormProps) {
+  const { session, storage, onSaved, onCancel, locateFirst = false, docked = false } = props;
   const { t } = useI18n();
   const draft = useAddressDraft(session, storage, onSaved);
-  const { values, spot, setSpot, problem, cities } = draft;
+  const { values, spot, setSpot, problem } = draft;
   const [mapShown, setMapShown] = useState(false);
   const [checking, setChecking] = useState(false);
   const [more, setMore] = useState(false);
   const moreId = useId();
+  const formId = useId();
   /** The last point the geocoder named. */
   const named = useRef<Place | undefined>(undefined);
 
-  const centre = cities?.find((c) => c.key === homeCity())?.centre ?? cities?.[0]?.centre;
+  const { centre } = draft;
   useEffect(() => {
     if (centre && !spot) setSpot({ at: centre, from: PointFrom.seed });
   }, [centre, spot, setSpot]);
@@ -90,17 +92,29 @@ export function DoorPin({ session, storage, onSaved, onCancel, locateFirst = fal
 
   const place = draft.found && [draft.found, values.city].filter(Boolean).join(", ");
   return (
-    <form className={`${C.card} door-pin`} aria-label={t("addr.add")} onSubmit={save} noValidate>
-      <h2 className="door-title">{t("addr.door_title")}</h2>
-      <p className={C.muted}>{t("addr.door_hint")}</p>
-      {spot && (
-        <PlaceMap
-          at={spot.at}
-          label={t("map.of", { place: draft.found ?? (values.area || values.city) })}
-          onMove={(at) => void onMove(at)}
-          onShown={() => setMapShown(true)}
+    <form id={formId} className="door-pin" aria-label={t("addr.add")} onSubmit={save} noValidate>
+      <div className="door-head">
+        <h2 className="door-title">{t("addr.door_title")}</h2>
+        <p className={C.muted}>{t("addr.door_hint")}</p>
+      </div>
+      {/* The map first and large, the pin in its middle and "Use my current location" floating on it. */}
+      <div className="door-map">
+        {spot && (
+          <PlaceMap
+            at={spot.at}
+            label={t("map.of", { place: draft.found ?? (values.area || values.city) })}
+            onMove={(at) => void onMove(at)}
+            onShown={() => setMapShown(true)}
+          />
+        )}
+        <LocateStep
+          session={session}
+          onFound={(p, at) => draft.fillFrom(p, at, PointFrom.phone) && placed(at)}
+          precise
+          chip
+          asked={locateFirst}
         />
-      )}
+      </div>
       {place && (
         <p className="door-place" role="status">
           <Icon name="pin" size={16} />
@@ -117,18 +131,11 @@ export function DoorPin({ session, storage, onSaved, onCancel, locateFirst = fal
           {t(NOT_SERVED)}
         </p>
       )}
-      <div className="door-find">
-        <LocateStep
-          session={session}
-          onFound={(p, at) => draft.fillFrom(p, at, PointFrom.phone) && placed(at)}
-          precise
-          asked={locateFirst}
-        />
-        <PlaceSearch
-          session={session}
-          onPick={(p) => draft.fillFrom(p, p.point, PointFrom.search) && placed(p.point)}
-        />
-      </div>
+      <PlaceSearch
+        session={session}
+        near={centre}
+        onPick={(p) => draft.fillFrom(p, p.point, PointFrom.search) && placed(p.point)}
+      />
       <AddressFields fields={DOOR_FIELD} values={values} onChange={draft.set} required={false} labels={DOOR_LABEL} />
       <LabelChips label={draft.label} onPick={draft.setLabel} />
       <button
@@ -160,14 +167,28 @@ export function DoorPin({ session, storage, onSaved, onCancel, locateFirst = fal
       )}
       <p className="fine">{t("addr.door_note")}</p>
       <div className="door-actions">
-        <button type={C.submit} className={`${C.wide} btn-big`} disabled={draft.busy} aria-busy={draft.busy}>
-          <Icon name="tick" />
-          {t("addr.door_save")}
-        </button>
+        {docked ? (
+          <Dock>
+            <DoorSave form={formId} busy={draft.busy} />
+          </Dock>
+        ) : (
+          <DoorSave form={formId} busy={draft.busy} />
+        )}
         <button type={C.button} className="btn quiet wide" onClick={onCancel}>
           {t("addr.cancel")}
         </button>
       </div>
     </form>
+  );
+}
+
+/** "This is my door": tied to its form by id, so it submits the form from the screen's dock as well as inside it. */
+function DoorSave({ form, busy }: { form: string; busy: boolean }) {
+  const { t } = useI18n();
+  return (
+    <button type={C.submit} form={form} className={`${C.wide} btn-big`} disabled={busy} aria-busy={busy}>
+      <Icon name="tick" />
+      {t("addr.door_save")}
+    </button>
   );
 }

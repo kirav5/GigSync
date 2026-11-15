@@ -52,7 +52,7 @@ export function SignCard({ price, terms, asked, place, them, theirHash, say, onS
   const deal = { price };
   return (
     <fieldset className={`${C.stack} sign-card`} aria-label={t("a11y.sign")}>
-      <div className={`${J.earth} sign-hero`}>
+      <div className={`${J.amount} sign-hero`}>
         <div className="row-between">
           <span className={C.muted}>{t("job.reached")}</span>
           <SpeakButton lang={lang} text={say} />

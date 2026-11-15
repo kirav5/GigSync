@@ -1,28 +1,29 @@
-import { asciiDigits } from "@gigsync/core";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useI18n } from "../../i18n.js";
+import { CodeBoxes } from "../../ui/CodeBoxes.js";
 import { C } from "../../ui/cls.js";
-import { CODE_LENGTH, DEV_CODE, Field } from "./form.js";
+import { DEV_CODE, Field } from "./form.js";
+import { Art, StartArt, Tone } from "./StartArt.js";
 import { StartBar } from "./StartBar.js";
 
-const NOT_A_DIGIT = /\D/g;
-const BOXES = Array.from({ length: CODE_LENGTH }, (_, i) => i);
-
-/** What was typed or pasted, as the code's digits: any script's numbers, nothing else, no more than the code holds. */
-const codeDigits = (typed: string) => asciiDigits(typed).replace(NOT_A_DIGIT, "").slice(0, CODE_LENGTH);
+/** How long before the code can be sent again: an SMS usually lands well inside it. */
+const RESEND_AFTER_S = 30;
+const SECOND_MS = 1000;
 
 /**
  * The code from the SMS: one numeric field, drawn as a box per number, that signs in by itself when the last number is
- * in. iPhone's keyboard offers the code from the SMS (`one-time-code`); there is no call-me fallback, because nothing
- * on the server can place a call, so Send the code again stands in its place.
+ * in. iPhone's keyboard offers the code from the SMS (`one-time-code`), Android's from its SMS suggestion; there is
+ * no call-me fallback, so Send again stands in its place.
  */
 export function CodeStep({
+  step,
   phone,
   code,
   busy,
   onCode,
   onBack,
 }: {
+  step: number;
   /** The number as the owner typed it. */
   phone: string;
   code: string;
@@ -31,58 +32,43 @@ export function CodeStep({
   onBack: () => void;
 }) {
   const { t } = useI18n();
-  const field = useRef<HTMLInputElement>(null);
-  useEffect(() => field.current?.focus(), []);
-
   return (
     <>
-      <StartBar title={t("signin.code")} onBack={onBack} />
-      <h1 className={C.title}>{t("start.code_sent", { phone: phone.trim() })}</h1>
-      <div className="code-boxes">
-        <input
-          ref={field}
-          className="code-input"
-          name={Field.code}
-          aria-label={t("signin.code")}
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          maxLength={CODE_LENGTH}
-          required
-          readOnly={busy}
-          value={code}
-          onChange={(e) => onCode(codeDigits(e.target.value))}
-        />
-        {BOXES.map((i) => (
-          <span key={i} className="code-box" data-next={i === code.length || undefined} aria-hidden="true">
-            {code[i]}
-          </span>
-        ))}
+      <StartBar step={step} onBack={onBack} />
+      <StartArt art={Art.code} tone={Tone.leaf} small />
+      <div className="start-head">
+        <h1 className="start-title">{t("start.code_title")}</h1>
+        <p className={C.muted}>
+          {t("start.code_sent", { phone: phone.trim() })} ·{" "}
+          <button type={C.button} className={C.linkBtn} onClick={onBack}>
+            {t("start.change_number")}
+          </button>
+        </p>
       </div>
+      <CodeBoxes name={Field.code} label={t("signin.code")} code={code} busy={busy} onCode={onCode} />
       <p className={C.muted}>{t("start.code_auto")}</p>
       {import.meta.env.DEV && <p className="fine">{t("signin.code_dev", { code: DEV_CODE })}</p>}
     </>
   );
 }
 
-/** The code step's dock: the code again, or back to the number to change it. */
-export function CodeActions({
-  busy,
-  onResend,
-  onChange,
-}: {
-  busy: boolean;
-  onResend: () => void;
-  onChange: () => void;
-}) {
+/** Seconds left before the code can be sent again, counting down from each send (`sentAt` moves on every one). */
+function useWait(sentAt: number): number {
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Date.now()), SECOND_MS);
+    return () => clearInterval(tick);
+  }, []);
+  return Math.min(RESEND_AFTER_S, Math.max(0, RESEND_AFTER_S - Math.floor((now - sentAt) / SECOND_MS)));
+}
+
+/** The code step's dock: the code again once the wait is over. */
+export function CodeActions({ busy, sentAt, onResend }: { busy: boolean; sentAt: number; onResend: () => void }) {
   const { t } = useI18n();
+  const wait = useWait(sentAt);
   return (
-    <div className="start-actions">
-      <button type={C.button} className={C.secondary} disabled={busy} onClick={onResend}>
-        {t("start.code_again")}
-      </button>
-      <button type={C.button} className="btn ghost" onClick={onChange}>
-        {t("start.change_number")}
-      </button>
-    </div>
+    <button type={C.button} className={C.secondary} disabled={busy || wait > 0} onClick={onResend}>
+      {wait > 0 ? t("start.code_again_in", { seconds: wait }) : t("start.code_again")}
+    </button>
   );
 }

@@ -16,6 +16,11 @@ export interface Env {
   ALLOWED_ORIGINS?: string;
   /** Secret: the code that always verifies until the SMS gateway exists. Unset means nobody can sign in. */
   DEV_OTP?: string;
+  /**
+   * Public: the Firebase project whose phone sign-in the app uses to send SMS codes; ID tokens must be issued for it.
+   * Unset or empty means `/v1/auth/phone/verify` answers 503 and only the DEV_OTP path signs in.
+   */
+  FIREBASE_PROJECT_ID?: string;
   /** Secret: HMAC key for phone-number hashes. `wrangler secret put PHONE_HMAC_KEY`. */
   PHONE_HMAC_KEY?: string;
   /** Secret: the key admin-only routes (setting a mentor's vouched badge) expect. Unset means nobody is admin. */
@@ -41,6 +46,11 @@ export interface Env {
   MODEL_ACCESS_ID?: string;
   /** Secret: that token's secret. */
   MODEL_ACCESS_SECRET?: string;
+  /**
+   * Public: which of the directory's live cities are served (ADR 0061), as a comma list of keys ("bengaluru,kanpur").
+   * Unset means all of them; `*` means every place, inside a city or not, for development and testing anywhere.
+   */
+  LIVE_CITIES?: string;
   /** Public: who push services may contact about these pushes, `mailto:` or an `https:` page. */
   VAPID_SUBJECT?: string;
 }

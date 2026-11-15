@@ -1,7 +1,7 @@
 import { priceText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, type Page, test } from "@playwright/test";
-import { newPhone, open, Role, RUN, shoot, signIn, textOf } from "./helpers.js";
+import { greeting, newPhone, open, Role, RUN, shoot, signIn, textOf } from "./helpers.js";
 
 /**
  * The phone's own model names what the chat asks (ADR 0040). The page's model is a fake standing in for Ollama, the
@@ -54,7 +54,7 @@ test("Talk answers a market question only the model heard", async ({ page }) => 
   await page.getByRole("button", { name: t(en, "iv.later"), exact: true }).click();
 
   const box = page.getByRole("form", { name: t(en, "nav.talk") });
-  await box.getByPlaceholder(t(en, "agent.placeholder")).fill(QUESTION);
+  await box.getByPlaceholder(t(en, "composer.ask")).fill(QUESTION);
   await page.getByRole("button", { name: t(en, "a11y.send"), exact: true }).click();
   await expect(log(page).getByText(QUESTION)).toBeVisible();
   await expect(log(page)).toContainText(RANGE);
@@ -67,7 +67,7 @@ test("Find answers it too, and the need waits", async ({ page }) => {
   const model = await fakeModel(page);
   await signIn(page, { role: Role.consumer, name: `Lata ${RUN}`, phone: newPhone(), address: "Jayanagar", lang: en });
   await open(page, "nav.find");
-  await expect(log(page)).toContainText(t(en, "need.start"));
+  await expect(greeting(page, en)).toBeVisible();
   const box = page.getByRole("form", { name: t(en, "need.composer") });
   await box.getByRole("textbox").fill(QUESTION);
   await box.getByRole("button", { name: t(en, "a11y.send") }).click();

@@ -1,10 +1,10 @@
 import { useId } from "react";
 import type { Account } from "../../adapters/account.js";
-import { publicCard } from "../../card/publish.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { Icon } from "../../ui/Icon.js";
 import { cardWork } from "../../ui/work.js";
+import { workAreaName } from "../me/WorkAreaPage.js";
 
 /** Between the languages a worker speaks. */
 const LIST = ", ";
@@ -40,11 +40,20 @@ function CardField({ label, value, onOpen }: { label: string; value: string; onO
  * About me's work, area and distance, and languages, as the worker's card holds them (design P2). Each opens the card's
  * form; before there is a card, each says so and opens the form to make one.
  */
-export function AboutFields({ account, onEditCard }: { account: Account; onEditCard: () => void }) {
+export function AboutFields({
+  account,
+  onEditCard,
+  onEditArea,
+}: {
+  account: Account;
+  onEditCard: () => void;
+  /** The area opens its own page, with the map and the distance. */
+  onEditArea: () => void;
+}) {
   const { t } = useI18n();
   const rules = account.worker;
   const none = t("me.not_on_card");
-  const area = publicCard(account)?.area_name ?? rules?.base_name;
+  const area = workAreaName(account, t);
   const langs = (account.languages ?? []).map((l) => t(`lang.${l}`)).join(LIST);
   return (
     <div className={C.stack}>
@@ -52,7 +61,7 @@ export function AboutFields({ account, onEditCard }: { account: Account; onEditC
       <CardField
         label={t("me.area")}
         value={rules && area ? t("me.area_km", { area, km: rules.radius_km }) : none}
-        onOpen={onEditCard}
+        onOpen={rules ? onEditArea : onEditCard}
       />
       <CardField label={t("me.languages")} value={langs || none} onOpen={onEditCard} />
     </div>

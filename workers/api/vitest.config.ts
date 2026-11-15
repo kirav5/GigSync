@@ -24,6 +24,8 @@ export default defineConfig({
           ADMIN_KEY: "test-only-admin-key",
           OLA_MAPS_API_KEY: "test-only-ola-key",
           ENVIRONMENT: "local",
+          // The directory's live cities, whatever a developer's .dev.vars says (README "Live cities").
+          LIVE_CITIES: "",
         },
       },
     }),

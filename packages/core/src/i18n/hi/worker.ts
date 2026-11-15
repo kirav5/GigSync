@@ -20,10 +20,6 @@ export const worker: Readonly<Record<keyof typeof en, string>> = {
   "settings.save": "सेव करें",
   "settings.vpa_about":
     "सिर्फ़ आपके भुगतान क्यूआर में दिखता है, या जिस ग्राहक का काम चल रहा है उसे लॉक करके भेजा जाता है। सर्वर पर कभी नहीं रखा जाता।",
-  "settings.look": "रूप",
-  "look.auto": "अपने-आप",
-  "look.light": "हल्का",
-  "look.dark": "गहरा",
   "settings.err_vpa": "यह यूपीआई आईडी जैसा नहीं लगता (name@bank)।",
   "settings.err_name": "वह नाम लिखें जो ग्राहकों को पैसे देते समय दिखेगा।",
   "settings.err_name_long": "नाम {max} अक्षरों तक रखें।",

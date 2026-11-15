@@ -186,6 +186,40 @@ Restart `pnpm dev:app`; the header shows `ollama qwen3.5:2b-q4_K_M`, the 4-bit b
 (docs/gigsync/model-comparison.md). Any small open model Ollama can pull works; the release builds never include
 Ollama or any model that is not on the device.
 
+### Live cities
+
+The pilot runs in Bengaluru. The cities GigSync serves are data in the directory (`cities` and `city_areas`,
+[ADR 0061](docs/adr/0061-cities-and-areas-are-data.md)): each city's names, centre, radius, state and areas. Today
+that is Bengaluru, with its five pilot areas, and Kanpur. A place outside every live city's circle gets "Sorry,
+we're not in your area yet" on the address form.
+
+The API's `LIVE_CITIES` var narrows or opens that list, and `GET /v1/cities` tells the phone what it allows:
+
+| `LIVE_CITIES`                                          | What is served                                                                                  |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `bengaluru` (the deployed default, in `wrangler.toml`) | Only the cities listed, comma-separated (`bengaluru,kanpur`)                                    |
+| unset                                                  | Every live city in the directory (Bengaluru and Kanpur today)                                   |
+| `*`                                                    | Anywhere: every live city as usual, and any other place the geocoder finds or the phone reports |
+
+`*` is for development and testing from anywhere (Sitapur, say). Nothing is blocked: sign-up, a worker's area, a
+household's address and search all work. A place outside the live cities gets no rate card, estimate or city guide,
+and its job records are kept apart from Bengaluru's prices. To allow anywhere locally, add it to
+`workers/api/.dev.vars` and restart `pnpm dev:workers`:
+
+```bash
+echo 'LIVE_CITIES=*' >> workers/api/.dev.vars
+```
+
+The UI tests run with it unset, and so do the API tests (`workers/api/vitest.config.ts` pins it). The deployed Worker
+serves Bengaluru alone for the pilot (`LIVE_CITIES = "bengaluru"` under `[vars]` in `workers/api/wrangler.toml`);
+the UI tests' API serves every directory city, as the moving specs go to Kanpur.
+
+Launching a new city: add it, with its areas, with `PUT /v1/admin/cities` (or a numbered migration, as Kanpur's in
+`infra/postgres/directory/0021_kanpur.sql`), and add it to `LIVE_CITIES` if that is set to a list. Its rate card
+(`packages/core/src/job/city-rates.ts`) and city guide (the `City` enum in `packages/protocol/src/content.ts` and its
+file in `workers/api/content/`) come when they are ready; until then its households see no price until its own jobs
+give one. To take a city off, set `live: false` with the same admin call.
+
 ## Logs
 
 One logger (`@gigsync/core/log`) for the app and every Worker. What it prints depends on where it runs:
@@ -252,7 +286,8 @@ Secrets to add in the repository settings when ready: `CLOUDFLARE_API_TOKEN`, `C
 
 ## What is a stub in M0
 
-- OTP: the `DEV_OTP` secret always verifies (`000000` locally via `.dev.vars`; a random pilot code on the deployed Worker). The SMS gateway comes with M0 hardening.
+- OTP: the `DEV_OTP` secret always verifies (`000000` locally via `.dev.vars`; a random pilot code on the deployed Worker). Real SMS codes go through Firebase phone sign-in once it is set up: [docs/setup/firebase-phone-sign-in.md](docs/setup/firebase-phone-sign-in.md).
+- Get verified (the Aadhaar Secure QR check on the phone) needs UIDAI's public key in the app: [docs/setup/uidai-secure-qr-key.md](docs/setup/uidai-secure-qr-key.md).
 - Sessions: opaque tokens in D1; signed tokens later.
 - Envelope signatures are not yet verified by the API (M2), and sealing is a placeholder until libsignal is wired in.
 - The LLM plugin returns "no model" on every platform; the agent runs in lite mode (keyword router, note search).

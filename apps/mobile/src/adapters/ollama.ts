@@ -7,8 +7,8 @@ const JSON_FORMAT = "json";
 const GENERATE_PATH = "/api/generate";
 
 /**
- * DEV ONLY: a model served by Ollama on this computer, so the web build can be tried with a real model before the
- * phones' on-device engines exist. Chosen in Settings › On-device model (dev builds only).
+ * DEV ONLY: a model served by Ollama on this computer, so a development build can be tried with a local model instead
+ * of GigSync's. Chosen with `VITE_OLLAMA_MODEL` (model.ts); no screen offers it.
  */
 export class OllamaModel implements Model {
   constructor(

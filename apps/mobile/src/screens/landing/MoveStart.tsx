@@ -5,8 +5,8 @@ import type { Account } from "../../adapters/account.js";
 import { useServedCities } from "../../adapters/cities.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
-import { Icon } from "../../ui/Icon.js";
 import { useBusy } from "../../ui/useBusy.js";
+import { PageFrame } from "../pages/PageFrame.js";
 import { ComesWithYou } from "./ComesWithYou.js";
 import { NoGuideCity } from "./NoGuideCity.js";
 import type { MovePicks } from "./useLanding.js";
@@ -46,11 +46,41 @@ function useCityChips(account: Account): CityChip[] {
   return [...guides, ...others];
 }
 
+/** One chip of a set where one is picked: pressed when picked, as the kit's chips are. */
+function Chip({ on, name, onPick }: { on: boolean; name: string; onPick: () => void }) {
+  return (
+    <button type={C.button} aria-pressed={on} className={on ? C.chipOn : C.chip} onClick={onPick}>
+      {name}
+    </button>
+  );
+}
+
+/** The day and the work, in one card, for a city with a guide. */
+function YourMove({ trade, onTrade }: { trade: Trade | undefined; onTrade: (t: Trade) => void }) {
+  const { t } = useI18n();
+  const title = t("landing.your_move");
+  return (
+    <section className={`${C.card} move-plan`} aria-label={title}>
+      <span className={C.label}>{title}</span>
+      <label className={C.fieldLabel}>
+        {t("landing.arrival")}
+        <input className={C.field} type="date" name={ARRIVAL} required />
+      </label>
+      <span className={C.fieldLabel}>{t("landing.trade")}</span>
+      <fieldset className={C.row} aria-label={t("landing.trade")}>
+        {Trade.options.map((tr) => (
+          <Chip key={tr} on={trade === tr} name={t(`trade.${tr}`)} onPick={() => onTrade(tr)} />
+        ))}
+      </fieldset>
+    </section>
+  );
+}
+
 /**
- * Where are you moving? (design W18): the city, what comes along, the day and the work, then "Start my move", the one
- * primary, for a city with a guide; a mentor for that city beside it. Any other city, or Somewhere else, gets what helps
- * anywhere instead, since there is no guide to follow. The day stays a date (the journey counts from it) and the work is
- * the card's until the owner picks another.
+ * Where are you moving? (design W18): the question and one line on what a move here gives, the city as chips, what you
+ * get there, then the day and the work in one card and "Start my move", the one primary, for a city with a guide. Any
+ * other city, or Somewhere else, gets what helps anywhere instead, since there is no guide to follow. The day stays a
+ * date (the journey counts from it) and the work is the card's until the owner picks another.
  */
 export function MoveStart({ ports, account, city, onStart, onFindMentor }: Props) {
   const { t } = useI18n();
@@ -70,49 +100,27 @@ export function MoveStart({ ports, account, city, onStart, onFindMentor }: Props
     await guard(async () => setProblem(await onStart({ city: guide ?? "", arrival, trade: trade ?? "" })));
   }
 
-  const chip = (key: string, name: string) => (
-    <button
-      key={key}
-      type={C.button}
-      aria-pressed={chosen === key}
-      className={chosen === key ? C.chipOn : C.chip}
-      onClick={() => setChosen(key)}
-    >
-      {name}
-    </button>
-  );
-
   return (
-    <>
+    <PageFrame title={title} subtitle={t("landing.start_lead")}>
       <form className="move-start" aria-label={title} onSubmit={(e) => void start(e)}>
-        <h2 className="hero-title">{title}</h2>
         <fieldset className={C.row} aria-label={t("landing.city")}>
-          {chips.map((c) => chip(c.key, c.name))}
-          {chip(ELSEWHERE, t("me.move_elsewhere"))}
+          {chips.map((c) => (
+            <Chip key={c.key} on={chosen === c.key} name={c.name} onPick={() => setChosen(c.key)} />
+          ))}
+          <Chip on={chosen === ELSEWHERE} name={t("me.move_elsewhere")} onPick={() => setChosen(ELSEWHERE)} />
         </fieldset>
-        <span className={C.faint}>{t("landing.city_only")}</span>
-        <ComesWithYou ports={ports} account={account} city={guide} picked={chosen !== undefined} trade={trade} />
+        <ComesWithYou
+          ports={ports}
+          account={account}
+          city={guide}
+          picked={chosen !== undefined}
+          trade={trade}
+          onFindMentor={onFindMentor}
+        />
         {chosen !== undefined && !guide && <NoGuideCity />}
         {guide && (
           <>
-            <label className={C.fieldLabel}>
-              {t("landing.arrival")}
-              <input className={C.field} type="date" name={ARRIVAL} required />
-            </label>
-            <span className={C.label}>{t("landing.trade")}</span>
-            <fieldset className={C.row} aria-label={t("landing.trade")}>
-              {Trade.options.map((tr) => (
-                <button
-                  key={tr}
-                  type={C.button}
-                  aria-pressed={trade === tr}
-                  className={trade === tr ? C.chipOn : C.chip}
-                  onClick={() => setTrade(tr)}
-                >
-                  {t(`trade.${tr}`)}
-                </button>
-              ))}
-            </fieldset>
+            <YourMove trade={trade} onTrade={setTrade} />
             <button type={C.submit} className={`${C.wide} btn-big`} disabled={busy} aria-busy={busy}>
               {t("landing.start")}
             </button>
@@ -124,13 +132,6 @@ export function MoveStart({ ports, account, city, onStart, onFindMentor }: Props
           </p>
         )}
       </form>
-      {guide && (
-        // Outside the form: its name holds the city's, which the city chip's name must not share inside it.
-        <button type={C.button} className={`${C.secondary} wide`} onClick={onFindMentor}>
-          <Icon name="people" size={18} />
-          {t("me.move_mentor_in", { city: t(`landing.city.${guide}`) })}
-        </button>
-      )}
-    </>
+    </PageFrame>
   );
 }

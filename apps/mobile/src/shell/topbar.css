@@ -1,0 +1,111 @@
+/* The title row as the design's Home draws it (TopBar.tsx), the same for both owners: a round white button on the left
+   (the chats, or Back), the sun and "gigsync" beside it on Home and the screen's title elsewhere, and the round
+   profile button with the owner's initial on the right. */
+.topbar {
+  gap: 10px;
+}
+.topbar .topbar-title {
+  flex: 1;
+  text-align: start;
+  /* One line box no taller than its words, so the title (or the sun and "gigsync") centres on the round buttons. */
+  line-height: 1.2;
+}
+.topbar .brand {
+  display: flex;
+}
+.topbar .brand-word {
+  font-size: 19px;
+  font-weight: 600;
+}
+.topbar .bar-end {
+  margin: 0;
+}
+.topbar .bar-end:empty {
+  display: none;
+}
+.round-btn,
+.topbar .back {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgb(43 30 23 / 0.1);
+  cursor: pointer;
+}
+.round-btn .ic {
+  width: 20px;
+  height: 20px;
+}
+.profile-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+/* The initial fills the button, so it is the menu's size and sits on the gutter as the menu does on the other side. */
+.profile-btn .avatar.rust {
+  width: 100%;
+  height: 100%;
+  font-size: 19px;
+  border: 2px solid var(--surface);
+  background: var(--picked);
+  color: var(--accent);
+  font-family: var(--serif);
+  box-shadow: 0 1px 4px rgb(43 30 23 / 0.15);
+}
+/* Something waits on the owner: alerts, or a mentor note. */
+.profile-dot {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--bg);
+}
+
+/* Home's warm glow (shell/nav.ts `glows`): a soft gold light rising from the foot of the screen, behind the composer
+   and the tabs' line. It is drawn, not read, and takes no taps. */
+.shell.glow .main {
+  position: relative;
+  isolation: isolate;
+  /* The light is wider and taller than the screen; clipped here, so the page never grows past the phone's width. */
+  overflow: clip;
+}
+.shell.glow .main::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -80px;
+  right: -80px;
+  bottom: -220px;
+  height: 440px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(216 178 118 / 0.55), rgb(232 170 140 / 0.25) 55%, transparent);
+  pointer-events: none;
+}
+/* The composer and the tabs sit inside the glow, as the design's Home: no fill of their own, only the tabs' hairline. */
+.shell.glow .dock,
+.shell.glow .tabbar {
+  background: transparent;
+}
+@media (min-width: 821px) {
+  .shell.glow .main::after {
+    left: 240px;
+  }
+}

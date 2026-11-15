@@ -9,6 +9,12 @@ Amended 2026-11-01 (round 2): a shorter prompt, 4.0 s per message
 Amended 2026-11-01: Qwen3.5-2B on the phones that can carry it, and a router that reads every language
 ([Amendment](#amendment-2026-11-01-qwen35-2b-and-a-router-for-every-language)).
 
+**Note 2026-11-15:** the app no longer offers, downloads or loads a generative model on any platform: the web
+app's WebLLM offer (about 1,050 MB) is gone, as the Android and iPhone apps never had one. Auto is GigSync's model,
+then lite mode; the understanding pack ([ADR 0042](0042-meaning-router-small-embedding-model.md),
+[ADR 0065](0065-a-reader-on-every-phone.md)) is the only model on the phone. `plugins/gigsync-llm` is kept only for
+the intent eval (`scripts/eval-intent`).
+
 ## Context
 
 Every intent in Talk and Find is matched today by word lists: editing the card, offering to help newcomers, moving,

@@ -27,8 +27,8 @@ import { field, mic, nextTurn } from "./talk.js";
 const { hi } = Lang.enum;
 const HINDI = "hi-IN";
 const Mode = { listen: "listen", speak: "speak" } as const;
-/** A cook is asked which work she takes next (ADR 0051). */
-const ANSWERS = ["मैं खाना बनाती हूँ", "हर महीने"];
+/** A cook is asked which work she takes next (ADR 0051). Her work named outright: with no model the word lists never guess it from a sentence (#75). */
+const ANSWERS = ["मैं कुक हूँ", "हर महीने"];
 /** "Download" on a button or a line, in any of the app's languages. */
 const DOWNLOAD = /download|डाउनलोड|ಡೌನ್‌ಲೋಡ್/i;
 /** A fake fetch ends in 1.5 s (FETCH_MS in the app's speech-fake.ts) and the composer checks every 3 s. */
@@ -43,19 +43,13 @@ const speaker = (page: Page) => page.getByRole("button", { name: t(hi, "speech.r
 const fetchesOf = async (page: Page, mode: string) => (await fakeFetches(page)).filter((f) => f.mode === mode);
 const question = (page: Page) => page.getByText(textOf(hi, "iv.ask.trade"));
 
-/**
- * Talk, the voice section of Settings, and no download link for voice on either. Settings' model section has its own
- * downloads (the understanding pack, ADR 0042, and the on-device model), offered on a tap; those are not voice.
- */
+/** Talk, the voice section of Settings, and no download link on either: the phone offers no model to download. */
 async function noDownloadLink(page: Page) {
   await expect(page.getByRole("button", { name: DOWNLOAD })).toHaveCount(0);
   await expect(page.getByText(DOWNLOAD)).toHaveCount(0);
   await open(page, "nav.settings", hi);
   await expect(page.getByRole("region", { name: t(hi, "speech.title") })).toHaveCount(0);
-  const models = page.getByRole("region", { name: t(hi, "model.title") });
-  const outsideModels = async () =>
-    (await page.getByText(DOWNLOAD).count()) - (await models.getByText(DOWNLOAD).count());
-  await expect.poll(outsideModels).toBe(0);
+  await expect(page.getByText(DOWNLOAD)).toHaveCount(0);
   await open(page, "nav.talk", hi);
 }
 

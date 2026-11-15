@@ -8,7 +8,7 @@ import { answerInterview } from "./interviewStore.js";
  * is no maid's work). With no model, or nothing that fits, the words are kept as they are.
  */
 export async function answerCard(ports: Ports, state: InterviewState, text: string, aloud: boolean): Promise<void> {
-  if (state.slot !== Slot.trade || state.kind || isGreeting(text)) return answerInterview(text, aloud);
+  if (state.slot !== Slot.trade || state.kind || state.filing || isGreeting(text)) return answerInterview(text, aloud);
   const words = spokenSkill(text);
   const read = readSkill(words, state.config.own);
   const named = "trade" in read || ("skill" in read && read.skill.category !== undefined);

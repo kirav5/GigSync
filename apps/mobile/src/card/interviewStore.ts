@@ -8,7 +8,9 @@ import {
   type InterviewState,
   isLastSlot,
   keepPlace,
+  keepPrice,
   type Line,
+  type PriceAnswer,
   prompt,
   Slot,
   type WorkMatch,
@@ -140,8 +142,9 @@ export function tapInterview(value: string, label: string): void {
 }
 
 /**
- * A choice that toggles (which kinds of work the worker takes): turned on or off where it stands, so the question is
- * not asked again for every tap. Done answers it as any tap does.
+ * A choice that toggles (which kinds of work the worker takes) or only picks (how the price card prices the work):
+ * changed where it stands, so the question above is not asked again for every tap and keeps its words. Done, or the
+ * card's own button, answers it as any tap does.
  */
 export function toggleInterview(value: string): void {
   // Only the interview moves: what is on screen stays, and the chips read which are on from it.
@@ -184,23 +187,34 @@ export function relanguageInterview(config: InterviewConfig): void {
 }
 
 /**
- * The rate estimate for the worker's first trade arrived (or none did). A rate question already on screen, with
- * nothing said after it, shows it in place, so the range and the suggested amount appear without a second question.
+ * The rate estimate for the worker's first trade arrived (or none did). The price cards read it from the interview
+ * (PriceAsk.tsx); another arrangement's rate question already on screen, with nothing said after it, shows it in
+ * place, so the range and the suggested amount appear without a second question.
  */
 export function interviewEstimate(found: FoundEstimate | undefined): void {
   updateTalk((t) => {
     const live = t.live;
     if (!live || live.state.estimate === found) return t;
     const state = withEstimate(live.state, found);
-    const turns = turnsIn(t, live.chat);
-    const last = turns.at(-1);
-    const open = (state.slot === Slot.rate || state.slot === Slot.min) && state.pending === undefined;
-    if (!open || last?.who !== Speaker.app || cardEstimate(state) === cardEstimate(live.state))
+    if (state.slot !== Slot.more_rates || cardEstimate(state) === cardEstimate(live.state))
       return { ...t, live: { ...live, state } };
-    const p = prompt(state);
-    const shown: Turn = { ...last, lines: p.lines, choices: p.choices ?? [] };
-    return { ...withChatTurns(t, live.chat, [...turns.slice(0, -1), shown]), live: { ...live, state } };
+    return { ...askedAgain(t, live, state), live: { ...live, state } };
   });
+}
+
+/** The open question's turn shown as `state` asks it now, in place: no second question under it. */
+function askedAgain(t: Talk, live: LiveInterview, state: InterviewState): Talk {
+  const turns = turnsIn(t, live.chat);
+  const last = turns.at(-1);
+  if (last?.who !== Speaker.app) return t;
+  const p = prompt(state);
+  const shown: Turn = { ...last, lines: p.lines, choices: p.choices ?? [] };
+  return withChatTurns(t, live.chat, [...turns.slice(0, -1), shown]);
+}
+
+/** The price card answered: how the work is priced, the amount, the days and the part of the day, as one answer. */
+export function priceInterview(answer: PriceAnswer, label: string): void {
+  answered((state) => keepPrice(state, answer), label);
 }
 
 /**

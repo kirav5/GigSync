@@ -1,0 +1,10 @@
+/* A number to call (CallRows.tsx): a list row that is a link, so it drops the link's colour and underline, and its
+   number in even figures under the name. */
+a.call-row {
+  color: inherit;
+  text-decoration: none;
+}
+.call-number {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}

@@ -30,7 +30,19 @@
   color: var(--text3);
 }
 .iv-choices {
+  display: grid;
+  gap: 12px;
   padding-top: 4px;
+}
+/* "Something else": dashed, in terracotta, so it reads as a way to add your own rather than one more answer. */
+.chip.iv-say-own {
+  border-style: dashed;
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+/* Done and Finish later, together on their own line under the answers. */
+.iv-way-on {
+  gap: 4px;
 }
 /* Find's form/chat switch, at the end of its line. */
 .talk-head {
@@ -82,10 +94,19 @@
   white-space: nowrap;
 }
 /* A trade's chip leads with its picture; Finish later is quieter than the answers. */
-.iv-later {
+.chip.iv-later {
   border-color: transparent;
   background: none;
   color: var(--text2);
+}
+/* Done, where several taps answer one question: filled in the composer's terracotta, so it reads as the way on. The
+   deep end of the gradient carries the words, where ivory holds 4.5:1. */
+.chip.iv-done {
+  background: linear-gradient(135deg, #a4512b 0%, var(--accent) 100%);
+  border-color: transparent;
+  color: var(--on-accent);
+  font-weight: 600;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 /* The private question's lock: under the bubble, at its start, not stretched across the turn. */
 .iv-private {

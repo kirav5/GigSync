@@ -20,6 +20,7 @@ import {
   type JobRecord,
   type OwnerTask,
   paidRecord,
+  paidWork,
   TaskKind,
   taskId,
 } from "../src/index.js";
@@ -205,5 +206,16 @@ describe("a household's Records", () => {
     expect(october?.rows.map((r) => [r.paid_paise, r.confirmed])).toEqual([[65_000, false]]);
     expect(september?.rows.map((r) => [r.paid_paise, r.confirmed])).toEqual([[65_000, true]]);
     expect(record.paid_paise).toBe(130_000);
+  });
+
+  it("lists work handed over and paid while Activity keeps it for the review, so the total has its rows", () => {
+    const paidFor = job({ status: "delivered", role: "requester", day: DAY });
+    const unpaid = job({ status: "delivered", role: "requester", day: DAY });
+    const closed = job({ status: "closed", role: "requester", day: "2026-10-12" });
+    const payments = [pay(paidFor, "confirmed"), pay(paidFor, "paid", { amount: 5_000 })];
+    const jobs = [paidFor, unpaid, closed];
+    // Waiting on her review, it is still Activity's; Records alone would leave Money with nothing under its total.
+    expect(ids(activity(jobs, [], payments).records.done)).toEqual([closed.engagement.id]);
+    expect(ids(paidWork([closed], jobs, payments, ME))).toEqual(ids([closed, paidFor]));
   });
 });

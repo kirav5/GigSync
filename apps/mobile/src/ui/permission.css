@@ -20,6 +20,26 @@
   color: var(--text);
   overflow-y: auto;
 }
+/* It slides up from the bottom edge as every sheet does (sheet.css); Reduce Motion fades it. The attribute outranks
+   motion.css's small arrival for dialogs. */
+.perm-sheet[role="dialog"] {
+  animation: perm-rise 260ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .perm-sheet[role="dialog"] {
+    animation-name: perm-fade;
+  }
+}
+@keyframes perm-rise {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes perm-fade {
+  from {
+    opacity: 0;
+  }
+}
 .perm-main,
 .perm-actions {
   width: 100%;

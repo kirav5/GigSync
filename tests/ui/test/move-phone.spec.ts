@@ -5,7 +5,9 @@ import jsQR from "jsqr";
 import { skipPriceQuestions } from "./findChat.js";
 import {
   drawer,
+  greeting,
   MovePrompt,
+  morePick,
   newPhone,
   open,
   openCard,
@@ -105,8 +107,8 @@ const tap = (page: Page, label: string) =>
 async function signedJob(meena: Phone, priya: Phone, meenaName: string) {
   const page = priya.page;
   await open(page, "nav.find");
-  await expect(page.getByRole("log")).toContainText(t(en, "need.start"));
-  await tap(page, t(en, "need.pick_work"));
+  await expect(greeting(page, en)).toBeVisible();
+  await morePick(page, "need.pick_work", en);
   await tap(page, t(en, "group.house_help"));
   await tap(page, t(en, "trade.maid"));
   await say(page, ROOMS);
@@ -190,7 +192,7 @@ test("a worker's card comes back on a new phone, and moving brings the lowest pr
 
   // A fresh sign-in on another phone: not moving yet. The card comes back from the board; only the lowest price is asked.
   await signIn(newPage, { ...anil, elsewhere: MovePrompt.notNow });
-  await open(newPage, "nav.home");
+  await open(newPage, "nav.jobs");
   const floor = newPage.getByRole("form", { name: t(en, "phone.floor_title") });
   await expect(floor).toContainText(t(en, "phone.floor_about"));
   await shoot("card-back", { new: newPage }, FOLDER);

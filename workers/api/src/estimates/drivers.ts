@@ -12,6 +12,7 @@ import {
   EstimateBasisKind,
   type EstimateRequest,
   type EstimateResponse,
+  NO_CITY,
   NoEstimateReason,
   tradeDriversOnly,
 } from "@gigsync/protocol";
@@ -38,6 +39,8 @@ const K = EstimateBasisKind.enum;
 
 /** The estimate for a request: from its drivers, or from its scope buckets read as drivers when it sends none. */
 export async function serveEstimate(db: Db, req: EstimateRequest, now: Date): Promise<EstimateResponse> {
+  // A place in no live city (LIVE_CITIES=*) has no card and no market: its jobs come from anywhere at all.
+  if (req.city === NO_CITY) return { none: NONE.unavailable };
   const trade = req.trade;
   // The schema checked each trade's drivers; the cast only widens that union to the shape every trade shares.
   const sent = req.drivers as DriverValues | undefined;

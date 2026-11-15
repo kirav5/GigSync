@@ -44,17 +44,20 @@ const TALKING: ReadonlySet<EngagementStatus> = new Set([
  * left, this owner's agent's on the right, and what belongs to both (the agreement, the contacts) between them. The
  * request, the worker's agent's questions and the household's answers (translated when the other side wrote them),
  * every offer, the agreement, each signature and the contacts. It ends by saying the reader's own limit never left
- * the phone.
+ * the phone. `folded` starts it closed even while the agents talk: a decision waits on the owner, and the talk is
+ * only how it came about.
  */
 export function AgentTalk({
   job,
   them,
   from,
   device,
+  folded = false,
 }: {
   job: JobRecord;
   them: string;
   from: Lang | undefined;
+  folded?: boolean | undefined;
   device: GigDevice;
 }) {
   const { lang, t } = useI18n();
@@ -149,7 +152,7 @@ export function AgentTalk({
   const side = (s: TalkStep) => ("by" in s ? (mine(s.by) ? "mine" : "theirs") : "both");
   const title = t("talk.title");
   return (
-    <details className="job-talk" open={TALKING.has(job.engagement.status)}>
+    <details className="job-talk" open={!folded && TALKING.has(job.engagement.status)}>
       <summary>{title}</summary>
       <p className="section-label">{t("jobcard.talk_sides", { name: them })}</p>
       <ol className="talk" aria-label={title}>

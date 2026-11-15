@@ -4,6 +4,7 @@ import {
   edit,
   type GigDevice,
   isLastSlot,
+  type MessageKey,
   movingIntent,
   type Ports,
   prompt,
@@ -12,16 +13,11 @@ import {
 } from "@gigsync/core";
 import type { City } from "@gigsync/protocol";
 import { useEffect, useRef } from "react";
-import { type Account, AccountRole } from "../adapters/account.js";
+import type { Account } from "../adapters/account.js";
 import { interviewConfig } from "../card/choices.js";
 import { answerCard } from "../card/interviewKind.js";
-import {
-  addNote,
-  beginInterview,
-  pauseInterview,
-  relanguageInterview,
-  resumeInterview,
-} from "../card/interviewStore.js";
+import { beginInterview, pauseInterview, relanguageInterview, resumeInterview } from "../card/interviewStore.js";
+import { OpenInterview } from "../card/openInterview.js";
 import { accountDraft } from "../card/publish.js";
 import { useI18n } from "../i18n.js";
 import { openChat, useTalk } from "../talk/talkStore.js";
@@ -29,23 +25,24 @@ import { useMoves } from "../talk/useMoves.js";
 import { useNotes } from "../talk/useNotes.js";
 import { BarTitle } from "../ui/Bar.js";
 import { Composer, Via } from "../ui/Composer.js";
+import type { ComposerPick } from "../ui/ComposerMore.js";
 import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
 import type { GigView } from "../useGig.js";
 import { Interview } from "./Interview.js";
-import { ModelNotice } from "./model/ModelNotice.js";
 import { PublishActions } from "./talk/CardTurn.js";
 import { placeholderKey, readyToPublish } from "./talk/cardAsk.js";
 import { Thinking } from "./talk/NoteView.js";
-import { type Suggestion, Suggestions } from "./talk/TalkStart.js";
+import { TalkStart } from "./talk/TalkStart.js";
+import { useEndInView } from "./talk/useEndInView.js";
 import "./talk.css";
 
 interface TalkProps {
   agent: CoreAgent;
   ports: Ports;
   account: Account;
-  /** Start (or resume) the card interview on opening Talk. */
-  interview: boolean;
+  /** Whether opening Talk starts (or carries on) the card interview. */
+  interview: OpenInterview;
   /** Talk opened the interview: it is not opened again when Talk next opens. */
   onInterviewOpened: () => void;
   /** The account after the interview published the card. */
@@ -54,6 +51,10 @@ interface TalkProps {
   onChecklist: (city: City) => void;
   /** Opens Find a mentor, the fallback with introductions, when nobody in the chat's search matches. */
   onFindMentor: () => void;
+  /** Opens the Jobs tab, from the greeting's "Show today's jobs". */
+  onJobs: () => void;
+  /** Opens Get verified, from the greeting's row. */
+  onVerify: () => void;
   /** This phone's jobs and payments, for "what did I earn this week?". */
   view: GigView;
   device: GigDevice;
@@ -77,17 +78,19 @@ export function AgentScreen(props: TalkProps) {
   const { ready, open, state, turns, paused, interviewIn } = useTalk();
   const moves = useMoves({ ports, account, device, run, lang }, { onChecklist, onMoreWays: onFindMentor });
   const opened = useRef(false);
-  const end = useRef<HTMLDivElement>(null);
   const active = state !== undefined && !paused;
   const current = active ? prompt(state) : undefined;
 
   // Opening Talk to make or change the card starts the interview; one already under way carries on where it was, in
   // the chat it belongs to. One paused ("Later", or left for another chat) stays paused until the owner taps "Carry on".
   useEffect(() => {
-    if (opened.current || !interview || !ready) return;
+    if (opened.current || interview === OpenInterview.no || !ready) return;
     opened.current = true;
-    if (!interviewIn) beginInterview(start(interviewConfig(lang), accountDraft(account), account.listed === false));
-    else if (interviewIn !== open) openChat(interviewIn);
+    if (interviewIn) {
+      if (interviewIn !== open) openChat(interviewIn);
+    } else if (interview === OpenInterview.yes) {
+      beginInterview(start(interviewConfig(lang), accountDraft(account), account.listed === false));
+    }
     onInterviewOpened();
   }, [interview, ready, interviewIn, open, lang, account, onInterviewOpened]);
 
@@ -96,12 +99,12 @@ export function AgentScreen(props: TalkProps) {
     if (state && state.config.own !== lang) relanguageInterview(interviewConfig(lang));
   }, [state, lang]);
 
-  // The newest turn, or the answer that just came to a note, stays in view.
-  useEffect(() => {
-    if (turns.length > 0) end.current?.scrollIntoView({ block: "end" });
-  }, [turns]);
+  // The newest turn, or the answer that just came to a note, stays in view, with all that goes under it.
+  const end = useEndInView(turns);
 
   const fresh = () => start(interviewConfig(lang), accountDraft(account), account.listed === false);
+  /** The card chat at the price, with the words that asked for it as the worker's own. */
+  const priced = (said: string) => beginInterview(edit(fresh(), Slot.rate), said);
   /**
    * A first card's interview paused at "What work do you do?" ("Finish later"), and then the work said to the agent
    * ("I am a TV mechanic"): it answers the question, instead of the interview starting over and asking it again.
@@ -119,7 +122,7 @@ export function AgentScreen(props: TalkProps) {
     void answerCard(ports, state, said, false);
     return true;
   };
-  const { busy, sendNote, choose, answerEarnings } = useNotes({
+  const { busy, sendNote, choose } = useNotes({
     agent,
     ports,
     account,
@@ -131,20 +134,20 @@ export function AgentScreen(props: TalkProps) {
     carryOn,
   });
 
-  const isWorker = account.role === AccountRole.worker;
-  /** Ways in for an empty Talk, at most three; changing the rate needs a card, a move is for a worker. */
-  const suggestions: Suggestion[] = [
-    ...(account.worker
-      ? [
-          {
-            label: "agent.suggest_rate",
-            run: (said: string) => beginInterview(edit(fresh(), Slot.rate), said),
-          } as const,
-        ]
-      : []),
-    { label: "agent.suggest_earned", run: (said: string) => answerEarnings(addNote(said)) },
-    ...(isWorker ? [{ label: "moving.suggest", run: (said: string) => moves.start(said, undefined) } as const] : []),
-  ];
+  /** An empty chat: the greeting and its ways in stand over the composer, instead of the headline. */
+  const empty = ready && turns.length === 0 && !active;
+  const saidCard = (key: MessageKey) => beginInterview(fresh(), t(key));
+  /** The composer's "+": the card (made, or changed), the price, and Get verified, said as the worker's own words. */
+  const picks: ComposerPick[] = account.worker
+    ? [
+        { icon: "card", label: t("choose.editCard"), onPick: () => saidCard("choose.editCard") },
+        { icon: "pencil", label: t("agent.suggest_rate"), onPick: () => priced(t("agent.suggest_rate")) },
+        { icon: "shield", label: t("home.suggest_verify"), onPick: props.onVerify },
+      ]
+    : [
+        { icon: "card", label: t("home.make_card"), onPick: () => saidCard("home.make_card") },
+        { icon: "shield", label: t("home.suggest_verify"), onPick: props.onVerify },
+      ];
 
   /**
    * Mid-interview, words go to the interview, except words that only mean moving: a newcomer often has no card yet, so
@@ -162,12 +165,13 @@ export function AgentScreen(props: TalkProps) {
     <>
       {active && <BarTitle text={t("cardflow.title")} />}
       {/* While the card is made the top bar names the screen; the heading stays for readers who move by headings. */}
-      <div className={active ? "talk-head-hidden" : C.stack}>
-        <h1 className={C.headline}>
-          {t("agent.headline")} <span className={C.soft}>{t("agent.soft")}</span>
-        </h1>
-      </div>
-      <ModelNotice />
+      {!empty && (
+        <div className={active ? "talk-head-hidden" : C.stack}>
+          <h1 className={C.headline}>
+            {t("agent.headline")} <span className={C.soft}>{t("agent.soft")}</span>
+          </h1>
+        </div>
+      )}
       {turns.length > 0 && (
         <Interview
           ports={ports}
@@ -186,7 +190,16 @@ export function AgentScreen(props: TalkProps) {
           </button>
         </div>
       )}
-      {ready && turns.length === 0 && !active && <Suggestions items={suggestions} />}
+      {empty && (
+        <TalkStart
+          name={account.contact.name}
+          hasCard={account.worker !== undefined}
+          onJobs={props.onJobs}
+          onPrice={priced}
+          onMakeCard={() => beginInterview(fresh())}
+          onVerify={props.onVerify}
+        />
+      )}
       <div ref={end} />
       <Dock>
         {active && readyToPublish(state) && <PublishActions />}
@@ -198,6 +211,7 @@ export function AgentScreen(props: TalkProps) {
           hints={current?.hints ?? []}
           numeric={current?.numeric ?? false}
           onDeviceOnly={current?.secret ?? false}
+          picks={picks}
         />
       </Dock>
     </>

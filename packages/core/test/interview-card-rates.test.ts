@@ -6,6 +6,7 @@ import {
   type InterviewState,
   LEGAL_MINIMUM,
   legalMonthly,
+  nearYouLine,
   prompt,
   rateHint,
   rateNote,
@@ -18,12 +19,13 @@ const T = Trade.enum;
 const AREAS = [{ key: "koramangala", names: ["Koramangala", "कोरमंगला", "ಕೋರಮಂಗಲ"] }];
 const config = (own: Lang, rates: RateCard = CITY_RATES) => ({ own, areas: AREAS, rates });
 const run = (state: InterviewState, answers: readonly string[]) => answers.reduce((s, a) => hear(s, a), state);
-/** A maid, cook or driver says which work they take first (ADR 0046, 0051): monthly, as every card before arrangements. */
-const ARRANGED = new Set(["maid", "cook", "driver"]);
 /** "Do you also do any of these?" (ADR 0061) follows the work; "no" moves on with nothing added. */
 const NO_OTHER_WORK = "no";
-const atRate = (trade: string, rates?: RateCard) =>
-  run(start(config("en", rates)), [trade, NO_OTHER_WORK, ...(ARRANGED.has(trade) ? ["monthly"] : []), "Koramangala"]);
+/** How far they go comes right after the area (10 km here); its readback is left out, so the question is alone. */
+const atRate = (trade: string, rates?: RateCard): InterviewState => ({
+  ...run(start(config("en", rates)), [trade, NO_OTHER_WORK, "Koramangala", "10"]),
+  notes: [],
+});
 /** A union-signed card in another city, with a band for a per-visit trade. */
 const MYSURU = RateCard.parse({
   city: "Mysuru",
@@ -36,30 +38,19 @@ const MYSURU = RateCard.parse({
 });
 
 describe("the city's usual pay under the card's rate questions", () => {
-  it("shows a cook the band, the legal minimum and the seed note under the rate, and only the minimum under the least", () => {
+  it("asks a cook's rate and least in one line each: the city's band stays off the chat (the price card has the going rate)", () => {
     const rate = atRate("cook");
-    expect(prompt(rate).lines).toEqual([
-      { key: "iv.ask.rate_month" },
-      {
-        key: "iv.band_month",
-        names: { trade: ["trade.cook"], city: ["city.bengaluru"] },
-        prices: { low: 700000, high: 1200000 },
-      },
-      { key: "iv.legal_min", names: { trade: ["trade.cook"] }, params: { hours: 2.5 }, prices: { min: 642200 } },
-      { key: "iv.band_seed" },
-    ]);
+    expect(prompt(rate).lines).toEqual([{ key: "iv.ask.rate_month" }]);
+    // Without an estimate there is no "Near you" line: the city's band alone is not shown as one.
+    expect(nearYouLine(rate)).toBeUndefined();
     const min = hear(rate, "9000");
     expect(min.slot).toBe(Slot.min);
     expect(prompt(min).secret).toBe(true);
-    // Heard a moment ago under the rate question, so the range is not read out again.
-    expect(prompt(min).lines.map((l) => l.key)).toEqual(["iv.got_rate", "iv.ask.min", "iv.legal_min"]);
+    expect(prompt(min).lines.map((l) => l.key)).toEqual(["iv.got_rate", "iv.ask.min"]);
   });
 
-  it("is public, so it is read aloud; the worker's typed lowest is not, nor is it on any hint", () => {
+  it("never reads the worker's typed lowest aloud", () => {
     const min = hear(atRate("maid"), "5000");
-    const hint = prompt(min).lines.slice(2);
-    expect(hint.every((l) => !l.silent)).toBe(true);
-    expect(JSON.stringify(hint)).not.toContain("500000");
     expect(hear(min, "4000").notes).toEqual([{ key: "iv.got_min", prices: { price: 400000 }, silent: true }]);
   });
 
@@ -70,17 +61,12 @@ describe("the city's usual pay under the card's rate questions", () => {
       expect(band.low_paise).toBeGreaterThanOrEqual(legalMonthly(CITY_RATES, band.trade)?.month_paise ?? 0);
   });
 
-  it("says there is no usual range for a trade without a band, with no minimum and no seed note", () => {
-    expect(prompt(atRate("electrician")).lines).toEqual([
-      { key: "iv.ask.rate_visit" },
-      { key: "iv.band_none", names: { trade: ["trade.electrician"] } },
-    ]);
-  });
-
   it("asks a per-visit trade per visit, and its band is a visit's, never a month's", () => {
-    const lines = prompt(atRate("electrician", MYSURU)).lines;
-    expect(lines.map((l) => l.key)).toEqual(["iv.ask.rate_visit", "iv.band_visit"]);
-    expect(lines[1]).toMatchObject({ prices: { low: 30000, high: 60000 } });
+    expect(prompt(atRate("electrician", MYSURU)).lines).toEqual([{ key: "iv.ask.rate_visit" }]);
+    expect(rateHint(MYSURU, T.electrician)[0]).toMatchObject({
+      key: "iv.band_visit",
+      prices: { low: 30000, high: 60000 },
+    });
     expect(
       rateHint(CITY_RATES, T.electrician, {
         ...LEGAL_MINIMUM,

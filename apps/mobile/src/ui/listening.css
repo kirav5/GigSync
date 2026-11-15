@@ -1,0 +1,183 @@
+/* The listening sheet (ListeningSheet.tsx, the design's "Listening · clear Done, easy Cancel"): a modal <dialog> over
+   the whole chat, cream with the warm glow at its foot, rising from the bottom as the other sheets do. Under the
+   language line, a gold-to-terracotta orb that breathes and five terracotta bars; the words in the middle, settled in
+   ink and still-changing muted; at the foot a round light × and a wide terracotta Done. The orb's, the halo's and the
+   muted words' colours are the design's, named here as nothing else draws them. Reduce Motion: everything still. */
+.listen-sheet {
+  --listen-orb-light: #f3ddb4;
+  --listen-orb-warm: #c8693e;
+  --listen-halo: rgb(217 138 95 / 0.45);
+  --listen-changing: #b5a493;
+  /* The lighter end of Done's gradient, where its ivory word still holds 4.5:1. */
+  --listen-done-light: #b25a32;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  overflow: hidden;
+}
+.listen-sheet[open] {
+  display: flex;
+}
+.listen-sheet::backdrop {
+  background: rgb(59 33 24 / 0.24);
+}
+.listen-panel {
+  position: relative;
+  isolation: isolate;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: max(20px, env(safe-area-inset-top)) var(--gutter) max(22px, env(safe-area-inset-bottom));
+  overflow: hidden;
+  background: var(--bg);
+  animation: listen-rise 260ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+/* The warm glow, as Home's, a little taller. */
+.listen-panel::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -80px;
+  right: -80px;
+  bottom: -120px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(216 178 118 / 0.55), rgb(232 170 140 / 0.25) 55%, transparent);
+  pointer-events: none;
+}
+.listen-lang {
+  margin: 12px 0 0;
+  color: var(--text2);
+  font: 600 var(--fs-2) / 1.3 var(--sans);
+}
+.listen-orb {
+  flex: none;
+  width: 180px;
+  height: 180px;
+  margin-top: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--listen-orb-light), var(--gold) 30%, var(--listen-orb-warm) 75%);
+  box-shadow: 0 20px 60px var(--listen-halo);
+  animation: listen-breathe 2.4s ease-in-out infinite;
+}
+.listen-level {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  margin-top: 22px;
+}
+.listen-level i {
+  width: 6px;
+  height: 36px;
+  border-radius: 3px;
+  background: var(--accent);
+  animation: listen-wave 1s ease-in-out infinite;
+}
+.listen-level i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.listen-level i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.listen-level i:nth-child(4) {
+  animation-delay: 0.45s;
+}
+.listen-level i:nth-child(5) {
+  animation-delay: 0.6s;
+}
+.listen-heard {
+  flex: 1;
+  width: 100%;
+  max-width: 560px;
+  margin: 20px 0 0;
+  padding-inline: 12px;
+  overflow-y: auto;
+  font: 500 22px / 1.4 var(--sans);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+:lang(hi) .listen-heard,
+:lang(kn) .listen-heard {
+  font-size: 23px;
+  line-height: 1.6;
+}
+.listen-changing {
+  color: var(--listen-changing);
+}
+.listen-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 560px;
+}
+.listen-cancel {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--tap-lg);
+  height: var(--tap-lg);
+  padding: 0;
+  border: 1px solid var(--hairline);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.listen-done {
+  flex: 1;
+  height: var(--tap-lg);
+  border: 0;
+  border-radius: var(--radius-btn);
+  background: linear-gradient(135deg, var(--accent), var(--listen-done-light));
+  color: var(--on-accent);
+  box-shadow: 0 6px 16px rgb(164 81 43 / 0.25);
+  font: 600 var(--fs-btn) / 1 var(--sans);
+  cursor: pointer;
+}
+@keyframes listen-rise {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes listen-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+@keyframes listen-wave {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .listen-panel,
+  .listen-orb,
+  .listen-level i {
+    animation: none;
+  }
+  .listen-level i {
+    transform: scaleY(0.6);
+  }
+}

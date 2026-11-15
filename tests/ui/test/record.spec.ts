@@ -99,9 +99,9 @@ test("a paid finished job moves from Agreed to Records, under its month, and ope
   await card.getByRole("button", { name: say("getpaid.cash") }).click();
   await card.getByRole("button", { name: say("flag.yes"), exact: true }).click();
   await expect(card).toHaveCount(0);
-  await expect(workerPage.getByRole("region", { name: say("activity.tab_agreed"), exact: true })).toContainText(
-    say("activity.empty_agreed"),
-  );
+  // Nothing left agreed, so the section is not drawn; the job is under Done instead.
+  await expect(workerPage.getByRole("region", { name: say("activity.tab_agreed"), exact: true })).toHaveCount(0);
+  await expect(workerPage.getByRole("region", { name: say("jobs.done"), exact: true })).toContainText(householdName);
 
   // ── Records: the summary, the month, and the job's row with its money state ─────────────────────────────────────
   await open(workerPage, "nav.records");
@@ -136,7 +136,7 @@ test("a paid finished job moves from Agreed to Records, under its month, and ope
   await expect(job).toHaveCount(0);
 
   // ── In Hindi: the same record, its month and summary in her phone's own words ──────────────────────────────────
-  await open(workerPage, "nav.about");
+  await open(workerPage, "me.language");
   await workerPage
     .getByRole("group", { name: say("a11y.language") })
     .getByRole("button", { name: say("lang.hi") })
@@ -153,7 +153,7 @@ test("a paid finished job moves from Agreed to Records, under its month, and ope
   await shoot("record-hindi", shots, FOLDER);
 
   // Back to English, so the clean-up finds its way, then the card comes off the board.
-  await open(workerPage, "nav.about", hi);
+  await open(workerPage, "me.language", hi);
   await workerPage
     .getByRole("group", { name: t(hi, "a11y.language") })
     .getByRole("button", { name: t(hi, "lang.en") })

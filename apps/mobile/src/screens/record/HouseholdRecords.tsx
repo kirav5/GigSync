@@ -1,4 +1,4 @@
-import { agreedPrice, type PaidRow, paidRecord, paidTotals, receiptsOf } from "@gigsync/core";
+import { agreedPrice, type PaidRow, paidRecord, paidTotals, paidWork, receiptsOf } from "@gigsync/core";
 import { type EngagementId, Role } from "@gigsync/protocol";
 import { useMemo, useState } from "react";
 import type { Account } from "../../adapters/account.js";
@@ -45,7 +45,7 @@ export function HouseholdRecords({ account, ...card }: Props) {
   const { done, notDone } = useRecords(view, now);
   const { record, totals } = useMemo(
     () => ({
-      record: paidRecord(done, view.payments, me, now, phoneOffset(now)),
+      record: paidRecord(paidWork(done, view.jobs, view.payments, me), view.payments, me, now, phoneOffset(now)),
       totals: paidTotals(receiptsOf(view.jobs, view.payments, me), now, phoneOffset(now)),
     }),
     [done, view.jobs, view.payments, me, now],

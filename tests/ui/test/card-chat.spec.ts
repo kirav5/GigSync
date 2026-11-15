@@ -66,10 +66,7 @@ test("a worker sets their hours, days and how far they go in the chat, and the b
   await page.getByRole("button", { name: t(en, "shell.edit_card"), exact: true }).click();
   const form = page.getByRole("form", { name: t(en, "a11y.my_card") });
   await expect(form.getByLabel(t(en, "terms.card_from"))).toHaveValue(String(NINE));
-  await expect(form.getByRole("button", { name: t(en, "card.km", { km: FAR_KM }), exact: true })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
+  await expect(form.getByRole("slider", { name: t(en, "card.radius"), exact: true })).toHaveValue(String(FAR_KM));
 });
 
 test("a worker takes their card off the board in the chat, after saying yes once more", async ({ page }) => {

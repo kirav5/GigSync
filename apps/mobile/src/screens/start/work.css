@@ -1,0 +1,127 @@
+/* The first card's work, picked as chips the way Hinge and Tinder show interests (start/WorkStep.tsx, WorkChips.tsx):
+   a word in a white pill with a thin line; a picked one is tinted with a rust line and a tick that pops in. No
+   pictures. Motion is transform and opacity only, and still under reduced motion. */
+.work-step {
+  padding-bottom: 8px;
+}
+
+.work-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  color: var(--text2);
+}
+.work-search > svg {
+  position: absolute;
+  left: 14px;
+  pointer-events: none;
+}
+.work-search .field {
+  padding-left: 44px;
+  padding-right: 52px;
+  border-radius: var(--radius-row);
+}
+.work-mic {
+  position: absolute;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent);
+}
+.work-search[data-listening] .work-mic {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* A group's name, small, over its chips. */
+.work-group {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+}
+.work-group-title {
+  margin: 0;
+  color: var(--text2);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.work-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.work-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-2);
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform var(--pop-ms, 160ms) ease-out;
+}
+.work-chip:active {
+  transform: scale(0.96);
+}
+.work-chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--picked);
+  color: var(--picked-ink);
+}
+.work-chip[aria-pressed="true"] svg {
+  animation: work-tick-pop var(--pop-ms, 160ms) ease-out;
+}
+.work-chip:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+@keyframes work-tick-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .work-chip,
+  .work-chip[aria-pressed="true"] svg {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* The worker's own words as a chip, with a dashed line until it is added; the closest kinds sit under it. */
+.work-add[aria-pressed="false"] {
+  border-style: dashed;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.work-closest {
+  display: grid;
+  gap: 8px;
+}
+
+.work-actions {
+  display: grid;
+  gap: 4px;
+}

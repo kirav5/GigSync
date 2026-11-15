@@ -22,6 +22,16 @@ export async function block(m: MentorContext, user: UserId): Promise<void> {
   await apiOf(m).blockMentor(user);
 }
 
+/**
+ * Unblocks someone: they show again wherever this phone shows the people it knows, and what they send reaches it
+ * again; then the server may match the two again. What the block ended (a link, open requests) stays ended:
+ * connecting again starts afresh. The phone's part stands even when the server cannot be reached.
+ */
+export async function unblock(m: MentorContext, user: UserId): Promise<void> {
+  await m.store.unblock(user);
+  await apiOf(m).blockMentor(user, false);
+}
+
 /** Reports someone to GigSync with one of the fixed reasons; no words of anyone's travel with it. */
 export async function report(m: MentorContext, user: UserId, reason: ReportReason): Promise<void> {
   await apiOf(m).reportMentor({ user, reason });

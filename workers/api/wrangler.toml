@@ -53,6 +53,13 @@ LOG_PII = "false"
 ALLOWED_ORIGINS = "https://gigsync.network,https://www.gigsync.network,capacitor://localhost,https://localhost"
 # DEV_OTP is a secret, not a var: the code that always verifies until the SMS gateway exists.
 # Local dev reads it from .dev.vars (see .dev.vars.example); the deployed Worker from `wrangler secret put DEV_OTP`.
+# Real SMS codes through Firebase phone sign-in: the Firebase project id (public; it is in every ID token). Empty
+# means phone sign-in is off and only DEV_OTP signs in. Setup: docs/setup/firebase-phone-sign-in.md.
+FIREBASE_PROJECT_ID = ""
+# Live cities (README "Live cities"): Bengaluru alone for the pilot, though the directory also has Kanpur. A comma
+# list keeps only those cities; unset serves every live city in the directory; "*" lets every place in, for testing
+# from anywhere (Sitapur): set LIVE_CITIES=* in .dev.vars, which wins over this locally.
+LIVE_CITIES = "bengaluru"
 # Job alerts (ADR 0043): the public half of the VAPID pair, which every phone subscribes with, and the contact the
 # push services may write to. The private half is `wrangler secret put VAPID_PRIVATE_KEY`; without it, no alerts.
 VAPID_PUBLIC_KEY = "BCViIeyH1H-yLP9j37xoSZfgGJI91upzAJWrgLqDMgtLQzLYLw7FoUBiic1AZ-jyAPW_jIpUb6jPvsuzY5W65ls"

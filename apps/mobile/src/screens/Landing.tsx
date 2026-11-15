@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Account } from "../adapters/account.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
+import { ListCard, ListRow } from "../ui/ListRow.js";
 import { AskGuide } from "./landing/AskGuide.js";
 import { CashPlan } from "./landing/CashPlan.js";
 import { dayAt } from "./landing/day.js";
@@ -12,6 +13,7 @@ import { Helplines, NotChecked, Places, Registration } from "./landing/GuideList
 import { JourneySteps } from "./landing/JourneySteps.js";
 import { MoveStart } from "./landing/MoveStart.js";
 import { useLanding } from "./landing/useLanding.js";
+import { PageFrame } from "./pages/PageFrame.js";
 import "./landing/landing.css";
 
 interface Props {
@@ -25,15 +27,13 @@ interface Props {
   onFindMentor: () => void;
 }
 
-/** Someone who knows the city: the mentor screens, where the newcomer chooses. */
+/** Someone who knows the city: a row that opens the mentor screens, where the newcomer chooses. */
 function Mentor({ onFindMentor }: Pick<Props, "onFindMentor">) {
   const { t } = useI18n();
   return (
-    <div className={C.actions}>
-      <button type={C.button} className={C.secondary} onClick={onFindMentor}>
-        {t("landing.mentor")}
-      </button>
-    </div>
+    <ListCard>
+      <ListRow icon="people" title={t("landing.mentor")} sub={t("me.move_mentor_sub")} onClick={onFindMentor} />
+    </ListCard>
   );
 }
 
@@ -62,20 +62,21 @@ function RemoveMove({ onRemove }: { onRemove: () => void }) {
   );
 }
 
-/** The move under way: the guide's label, Ask the guide, the steps and checklist, then the guide's lists. */
+/**
+ * The move under way: "Your move" over the city, the day and the work; the guide's label; Ask the guide (its composer
+ * in the dock, as in Talk); the steps and checklist; the numbers to call; a mentor; then the guide's lists as folds.
+ */
 function JourneyView(props: Props & { journey: Journey; loaded: LoadedGuide; landing: ReturnType<typeof useLanding> }) {
   const { journey, loaded, landing, ports, onFindMentor } = props;
   const { t, date } = useI18n();
   const { guide } = loaded;
+  const arriving = t("landing.arriving", {
+    city: t(`landing.city.${journey.city}`),
+    date: date(dayAt(journey.arrival)),
+    trade: t(`trade.${journey.trade}`),
+  });
   return (
-    <>
-      <span className={C.muted}>
-        {t("landing.arriving", {
-          city: t(`landing.city.${journey.city}`),
-          date: date(dayAt(journey.arrival)),
-          trade: t(`trade.${journey.trade}`),
-        })}
-      </span>
+    <PageFrame title={t("landing.your_move")} subtitle={arriving}>
       <GuideLabel loaded={loaded} />
       <AskGuide guide={guide} model={ports.model} />
       <JourneySteps journey={journey} guide={guide} onChange={(next) => void landing.change(next)} />
@@ -86,14 +87,15 @@ function JourneyView(props: Props & { journey: Journey; loaded: LoadedGuide; lan
       <CashPlan guide={guide} arrival={journey.arrival} />
       <NotChecked guide={guide} />
       <RemoveMove onRemove={() => void landing.remove()} />
-    </>
+    </PageFrame>
   );
 }
 
 /**
- * Moving to a new city for work (round 4, flow 3; design W18), from a move in Talk or from Me: pick the city and see what
- * comes along, the day and the work, then a journey kept on this phone, step by step, from the city's guide. The guide
- * is a draft from public sources and every part of this screen says so; once downloaded it opens without a network.
+ * Moving to a new city for work (round 4, flow 3; design W18), from a move in Talk or from Help: pick the city and see
+ * what you get there, the day and the work, then a journey kept on this phone, step by step, from the city's guide. The
+ * screen's name is in the top bar, so each part opens on what it is for. The guide is a draft from public sources and
+ * every part of this screen says so; once downloaded it opens without a network.
  */
 export function Landing(props: Props) {
   const { ports, account, jobs, city, onFindMentor } = props;
@@ -102,7 +104,6 @@ export function Landing(props: Props) {
   const { journey, guide } = landing;
   return (
     <>
-      <h1 className="hero-title">{t("landing.title")}</h1>
       {journey === null && (
         <MoveStart ports={ports} account={account} city={city} onStart={landing.start} onFindMentor={onFindMentor} />
       )}

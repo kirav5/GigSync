@@ -2,6 +2,7 @@ import { type MessageKey, t } from "@gigsync/core";
 import { groupOf, type Lang, type WorkKind } from "@gigsync/protocol";
 import { expect, type Locator, type Page } from "@playwright/test";
 import { fillAddressForm } from "./address.js";
+import { greeting } from "./composer.js";
 
 /**
  * Driving Find's chat the way a household answers it: the need in their own words, then whatever the agent still
@@ -131,8 +132,10 @@ async function answer(phone: Phone, ask: NeedAnswers): Promise<boolean> {
  */
 export async function tellNeed(phone: Phone, ask: NeedAnswers) {
   const { page, lang } = phone;
-  await expect(newest(page)).toBeVisible();
-  let before = await agentTurns(page, lang).count();
+  // An empty chat shows Home's greeting, its opening question unseen until the first words: that question counts.
+  await expect(newest(page).or(greeting(page, lang))).toBeVisible();
+  const opening = (await greeting(page, lang).isVisible()) ? 1 : 0;
+  let before = (await agentTurns(page, lang).count()) + opening;
   await say(phone, ask.need);
   let timeSaid = !ask.time;
   for (let turn = 0; turn < TURNS_MAX; turn++) {

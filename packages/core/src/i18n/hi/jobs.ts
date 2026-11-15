@@ -11,7 +11,6 @@ export const jobs: Readonly<Record<keyof typeof en, string>> = {
   "jobs.word.ask": "{price} माँगें",
   "jobs.word.review": "राय दें",
   "jobs.word.set_off": "निकल पड़े?",
-  "jobs.word.talks": "बातचीत में",
   // ...and the line under the name, after the work
   "jobs.line.reached": "एजेंटों ने {price} तय किया",
   "jobs.line.questions.one": "आपके लिए {count} सवाल",
@@ -22,9 +21,16 @@ export const jobs: Readonly<Record<keyof typeof en, string>> = {
   "jobs.line.request": "नई रिक्वेस्ट, देख लीजिए",
   "jobs.line.paid": "कहते हैं {price} भेज दिए",
   "jobs.line.turn": "{max} में से बारी {n}",
+  // The Jobs tab: the day a job is on, or was finished on, as a heading over its jobs
+  "jobs.day.yesterday": "बीता कल",
+  "jobs.day.week": "इस हफ़्ते",
+  "jobs.day.coming": "आगे",
+  "jobs.day.earlier": "पहले",
+  "jobs.day.other": "दूसरे दिन",
+  // ...the finished jobs under the open ones, and the page with no jobs at all
+  "jobs.done": "पूरे हुए",
+  "jobs.empty": "अभी कोई काम नहीं",
   // Home: the money card under the week's total, and the way into Talk
   "jobs.payments.one": "{count} भुगतान",
   "jobs.payments.other": "{count} भुगतान",
-  "jobs.waiting_from": "{names} से {price} आना बाकी",
-  "jobs.talk_sub": "किसी काम, अपने पैसे या कार्ड के बारे में पूछिए",
 };

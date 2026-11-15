@@ -1,4 +1,4 @@
-import type { Estimate, EstimateRequest } from "@gigsync/protocol";
+import { type Estimate, type EstimateRequest, NO_CITY } from "@gigsync/protocol";
 import { beforeEach, describe, expect, it } from "vitest";
 import { clearUnits, seedUnitJobs, serveAt, times } from "./unit-helpers.js";
 
@@ -34,5 +34,10 @@ describe("estimates by city", () => {
     expect(e.basis).toMatchObject({ kind: "gigsync", blend: ["gigsync"], gigsync_jobs: ENOUGH });
     expect(e.basis.legal_minimum_paise).toBeUndefined();
     expect(e.typical_paise).toBeLessThan(1_000_000);
+  });
+
+  it("give a place in no live city nothing, even with jobs kept there (LIVE_CITIES=*)", async () => {
+    await seedUnitJobs(times(ENOUGH, cookJob(800_000, NO_CITY)), NOW);
+    expect(await serveAt(cook(NO_CITY), NOW)).toEqual({ none: "unavailable" });
   });
 });

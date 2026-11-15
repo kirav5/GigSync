@@ -39,8 +39,17 @@ export const ServedCity = z.object({
 });
 export type ServedCity = z.infer<typeof ServedCity>;
 
-/** `GET /v1/cities`: the live cities and their live areas. */
-export const ServedCities = z.object({ cities: z.array(ServedCity) });
+/**
+ * The city of a place outside every live city, when the server lets every place in (`LIVE_CITIES=*`, for testing): a
+ * key with no rate card, guide or jobs of its own, so nothing there is priced from Bengaluru's.
+ */
+export const NO_CITY: PlaceKey = "elsewhere";
+
+/**
+ * `GET /v1/cities`: the live cities and their live areas; `anywhere` when the server lets every place in (for
+ * development and testing), so no place is "not in your area yet".
+ */
+export const ServedCities = z.object({ cities: z.array(ServedCity), anywhere: z.boolean().optional() });
 export type ServedCities = z.infer<typeof ServedCities>;
 
 /** `PUT /v1/admin/cities`: a city and its areas added or changed; `live: false` takes it off without deleting it. */

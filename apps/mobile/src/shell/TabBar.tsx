@@ -7,7 +7,7 @@ import { C } from "../ui/cls.js";
 import { Icon } from "../ui/Icon.js";
 import { useChatList } from "./chatLists.js";
 import { DrawerChats } from "./DrawerChats.js";
-import { COUNTED_TAB, DOTTED_TAB, type Tab, tabsOf } from "./nav.js";
+import { COUNTED_TAB, type Tab, tabsOf } from "./nav.js";
 
 /** A tab on its own screen, and one whose screen lies under the open one. */
 const TAB = "tab";
@@ -19,18 +19,17 @@ interface TabProps {
   current: boolean;
   /** The open screen lies under this tab. */
   on: boolean;
-  /** A count after the label, or a dot's words; empty for none. */
+  /** A count after the label; empty for none. */
   count: string;
-  dot: string;
   onOpen: () => void;
 }
 
-/** One tab: its icon over its name, with a count or a dot, rust while the owner is under it. */
-function TabButton({ tab, current, on, count, dot, onOpen }: TabProps) {
+/** One tab: its icon over its name, with a count, rust while the owner is under it. */
+function TabButton({ tab, current, on, count, onOpen }: TabProps) {
   const { t } = useI18n();
   const id = useId();
-  const about = count || dot ? id : undefined;
-  // Named by its label alone, so tests and screen readers find it by name; the count or the dot is its description.
+  const about = count ? id : undefined;
+  // Named by its label alone, so tests and screen readers find it by name; the count is its description.
   return (
     <button
       type={C.button}
@@ -41,13 +40,12 @@ function TabButton({ tab, current, on, count, dot, onOpen }: TabProps) {
       onClick={onOpen}
     >
       <span className="tab-icon">
-        <Icon name={tab.icon} size={24} />
+        <Icon name={tab.icon} size={22} />
         {count && (
           <span id={about} className="tab-count">
             {count}
           </span>
         )}
-        {dot && <span id={about} className="tab-dot" role="img" aria-label={dot} />}
       </span>
       <span className="tab-label">{t(tab.label)}</span>
     </button>
@@ -82,9 +80,8 @@ interface TabBarProps {
   /** The open screen, and the tab it lies under. */
   screen: Screen;
   section: Screen;
-  /** Decisions waiting for the owner (a count on Jobs), and mentor notes not read yet (a dot on Me). */
+  /** Decisions waiting for the owner, a count on Jobs. */
   tasks: number;
-  unread: number;
   /** A wide screen: the tabs stand as a rail beside the content, with the brand, and the chats while one is open. */
   wide: boolean;
   /** A chat is open (Talk or Find): the rail lists the others. */
@@ -95,13 +92,13 @@ interface TabBarProps {
 }
 
 /**
- * The four tabs, at the bottom of a tab's screen on a phone: Home, Jobs, Money and Me for a worker; Find, Jobs, Pay and
- * Me for a household. Plain buttons in a navigation landmark, not ARIA tabs: Jobs has tabs of its own. On a wide
- * screen the same tabs stand in a rail beside the content.
+ * The three tabs, at the bottom of a tab's screen on a phone: Home, Jobs and Money for both, a household's Home being
+ * Find. Plain buttons in a navigation landmark, not ARIA tabs: Jobs has tabs of its own. On a wide screen the same
+ * tabs stand in a rail beside the content.
  */
 export function TabBar(props: TabBarProps) {
-  const { account, screen, section, tasks, unread, wide, chatOpen, onTab, onNewChat, onChatOpened } = props;
-  const { t, plural } = useI18n();
+  const { account, screen, section, tasks, wide, chatOpen, onTab, onNewChat, onChatOpened } = props;
+  const { t } = useI18n();
   return (
     <nav className="tabbar" aria-label={t("shell.tabs")}>
       {wide && (
@@ -117,7 +114,6 @@ export function TabBar(props: TabBarProps) {
             current={tab.screen === screen}
             on={tab.screen === section}
             count={tab.screen === COUNTED_TAB && tasks > 0 ? String(tasks) : ""}
-            dot={tab.screen === DOTTED_TAB && unread > 0 ? plural("mentor.unread", unread) : ""}
             onOpen={() => onTab(tab.screen)}
           />
         ))}

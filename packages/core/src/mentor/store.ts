@@ -114,6 +114,10 @@ export class MentorStore {
     return this.storage.put(Collection.blocked, user, { user, at: at.toISOString() } satisfies BlockRecord);
   }
 
+  unblock(user: UserId): Promise<void> {
+    return this.storage.delete(Collection.blocked, user);
+  }
+
   private exclusive<T>(step: () => Promise<T>): Promise<T> {
     const run = this.queue.then(step, step);
     this.queue = run.catch(() => undefined);

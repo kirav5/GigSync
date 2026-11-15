@@ -4,8 +4,7 @@ import type { agent as en } from "../en/agent.js";
 export const agent: Readonly<Record<keyof typeof en, string>> = {
   "agent.headline": "ನಿಮ್ಮ ಏಜೆಂಟ್ ಜೊತೆ ಮಾತಾಡಿ.",
   "agent.soft": "ನಿಮ್ಮ ಟಿಪ್ಪಣಿಗಳು ಇಲ್ಲೇ ಇರುತ್ತವೆ.",
-  "agent.placeholder": "ಮಾತಾಡಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ…",
-  "agent.empty": "ಏನಾದರೂ ಕೇಳಿ, ಅಥವಾ ಇವುಗಳಲ್ಲಿ ಒಂದನ್ನು ಒತ್ತಿ.",
+  "agent.empty": "ನಿಮ್ಮ ಏಜೆಂಟ್ ಏನು ಮಾಡಬೇಕು?",
   "agent.suggest_rate": "ನನ್ನ ದರ ಬದಲಾಯಿಸಿ",
   "agent.suggest_earned": "ಈ ವಾರ ನಾನು ಎಷ್ಟು ಸಂಪಾದಿಸಿದೆ?",
   "agent.earnings": "ಈ ವಾರ ನಿಮಗೆ {week} ಬಂದಿದೆ, ಈ ತಿಂಗಳು {month}. ಇನ್ನೂ ಬರಬೇಕಿರುವುದು: {waiting}.",

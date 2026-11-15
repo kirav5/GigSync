@@ -4,7 +4,6 @@ import { type Account, saveAccount } from "../../adapters/account.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { ListCard } from "../../ui/ListRow.js";
-import { ModelSettings } from "../ModelSettings.js";
 import { TacticSetting } from "../TacticSetting.js";
 import { ToggleRow } from "./ToggleRow.js";
 
@@ -57,7 +56,7 @@ function AutoSign({ ports, account, onSaved }: Props) {
 
 /**
  * Settings' "Your agent" (design P4): signing deals without asking (workers, whose card form has the same box), how it
- * bargains (ADR 0033), and the model on this phone once it has one. The design's "Ask me before quoting" and "Take jobs on
+ * bargains (ADR 0033). The design's "Ask me before quoting" and "Take jobs on
  * my day off" are not here: the first is no rule the agent has, and the days a worker works are on their card.
  */
 export function AgentSection({ ports, account, onSaved, isWorker }: Props & { isWorker: boolean }) {
@@ -66,7 +65,6 @@ export function AgentSection({ ports, account, onSaved, isWorker }: Props & { is
     <ListCard label={t("me.section_agent")}>
       {isWorker && <AutoSign ports={ports} account={account} onSaved={onSaved} />}
       <TacticSetting ports={ports} />
-      <ModelSettings />
     </ListCard>
   );
 }

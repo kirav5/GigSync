@@ -11,9 +11,6 @@ project(':capacitor-keyboard').projectDir = new File('../../../node_modules/.pnp
 include ':capacitor-preferences'
 project(':capacitor-preferences').projectDir = new File('../../../node_modules/.pnpm/@capacitor+preferences@8.0.1_@capacitor+core@8.5.3/node_modules/@capacitor/preferences/android')
 
-include ':gigsync-plugin-llm'
-project(':gigsync-plugin-llm').projectDir = new File('../node_modules/@gigsync/plugin-llm/android')
-
 include ':gigsync-plugin-speech'
 project(':gigsync-plugin-speech').projectDir = new File('../node_modules/@gigsync/plugin-speech/android')
 

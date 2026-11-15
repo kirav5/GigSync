@@ -4,18 +4,19 @@ import { expect, type Page, test } from "@playwright/test";
 import { newPhone, Role, RUN, shoot, signIn, textOf } from "./helpers.js";
 
 /**
- * Talk asks when the phone's model cannot tell what a note means (ADR 0042 amendment 2026-11-03): the agent shows it is
+ * Talk asks when the model cannot tell what a note means (ADR 0042 amendment 2026-11-03): the agent shows it is
  * thinking while the model reads, then asks with one choice per meaning; a choice, or words typed in reply that name
- * one, answers the note first written. Walked with the dev build's fake engine (model-fake.ts), scripted to be unsure.
+ * one, answers the note first written. The model is a fake standing in for Ollama, the dev build's local model (as in
+ * model-route.spec.ts), scripted to be unsure.
  */
 
 const { en } = Lang.enum;
 const FOLDER = "clarify";
-const FAKE_MODEL_KEY = "gigsync-fake-model";
-const READY_KEY = "gigsync-fake-model-ready";
-const RECORD_KEY = "CapacitorStorage.settings:model_device";
-const MODEL_ID = "Qwen3.5-2B-q4f16_1-MLC";
-const DONE = JSON.stringify({ offer: "download", readySaid: true });
+const OLLAMA_GENERATE = "http://localhost:11434/api/generate";
+/** The Settings choice that sends every model call to Ollama, kept where the app keeps it. */
+const MODEL_SETTING = { key: "CapacitorStorage.settings:model", value: { choice: "ollama", ollamaModel: "fake" } };
+/** The line a routing prompt ends with (packages/core/src/router/model-prompt.ts), the message as JSON after it. */
+const MESSAGE_LINE = "Message: ";
 /** Long enough to see the agent thinking, short enough to stay under the router's limit. */
 const ROUTING_MS = 1500;
 const BOOKING = "I have a booking from 2-3PM tomorrow";
@@ -27,26 +28,31 @@ const ROUTES = {
   [SAVE_IT]: JSON.stringify({ intent: "remember", note: SAVE_IT }),
 };
 
-/** A phone whose model is downloaded and ready, and unsure about the messages above. */
+/** The scripted reply for the message a routing prompt ends with, or empty for anything else. */
+function routeReply(prompt: string): string {
+  const line = prompt
+    .split("\n")
+    .reverse()
+    .find((l) => l.startsWith(MESSAGE_LINE));
+  if (!line) return "";
+  const said: unknown = JSON.parse(line.slice(MESSAGE_LINE.length));
+  return typeof said === "string" ? (ROUTES[said as keyof typeof ROUTES] ?? "") : "";
+}
+
+/** A phone whose model answers slowly, and is unsure about the messages above. */
 async function phone(page: Page) {
-  await page.addInitScript(
-    ({ key, script, seed }) => {
-      localStorage.setItem(key, JSON.stringify(script));
-      if (sessionStorage.getItem(key)) return;
-      sessionStorage.setItem(key, "1");
-      for (const [k, v] of Object.entries(seed)) localStorage.setItem(k, v);
-    },
-    {
-      key: FAKE_MODEL_KEY,
-      script: { mode: "capable", routes: ROUTES, delayMs: ROUTING_MS },
-      seed: { [READY_KEY]: MODEL_ID, [RECORD_KEY]: DONE },
-    },
-  );
+  await page.addInitScript(({ key, value }) => localStorage.setItem(key, JSON.stringify(value)), MODEL_SETTING);
+  await page.route(OLLAMA_GENERATE, async (route) => {
+    const { prompt } = route.request().postDataJSON() as { prompt: string };
+    const response = routeReply(prompt);
+    if (response) await new Promise((done) => setTimeout(done, ROUTING_MS));
+    await route.fulfill({ json: { response }, headers: { "access-control-allow-origin": "*" } });
+  });
 }
 
 async function say(page: Page, words: string) {
   const box = page.getByRole("form", { name: t(en, "nav.talk") });
-  await box.getByPlaceholder(t(en, "agent.placeholder")).fill(words);
+  await box.getByPlaceholder(t(en, "composer.ask")).fill(words);
   await page.getByRole("button", { name: t(en, "a11y.send"), exact: true }).click();
 }
 

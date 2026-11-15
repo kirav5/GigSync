@@ -81,7 +81,7 @@ test("iPhone Safari: sign-in asks to install before the number, in the language 
   const page = await context.newPage();
   await page.goto(APP);
   await page.getByRole("button", { name: t(hi, "lang.hi"), exact: true }).click();
-  await page.getByRole("radio", { name: t(hi, "signin.worker"), exact: true }).click();
+  await page.getByRole("button", { name: t(hi, "start.welcome_go"), exact: true }).click();
 
   const install = card(page, hi);
   await expect(install).toBeVisible();

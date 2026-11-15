@@ -25,7 +25,10 @@ const admin = { [ADMIN_HEADER]: ADMIN_KEY };
 describe("served cities", () => {
   it("start with Bengaluru and its five areas", async () => {
     const p = await signIn("+919844900001");
-    const { cities } = (await (await call(p, HttpMethod.get, "/cities")).json()) as ServedCities;
+    const served = (await (await call(p, HttpMethod.get, "/cities")).json()) as ServedCities;
+    const { cities } = served;
+    // LIVE_CITIES is unset here: the directory's live cities, and no place outside them.
+    expect(served.anywhere).toBeUndefined();
     const bengaluru = cities.find((c) => c.key === "bengaluru");
     expect(bengaluru?.areas.map((a) => a.key).sort()).toEqual([
       "hsr_layout",

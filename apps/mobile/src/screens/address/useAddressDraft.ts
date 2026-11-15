@@ -10,7 +10,7 @@ import {
 import { AddressLabel, type GeoPlace, PinCode, type Place, SavedAddress, type Session } from "@gigsync/protocol";
 import { useState } from "react";
 import { ulid } from "ulid";
-import { useServedCities } from "../../adapters/cities.js";
+import { homeCity, servesAnywhere, useServedCities } from "../../adapters/cities.js";
 import { placesNamed } from "../../adapters/geo.js";
 import { EMPTY, FIELDS, type FieldName, type Values } from "./AddressFields.js";
 
@@ -34,9 +34,9 @@ export interface Spot {
 }
 
 /** The point of a typed address, from search, when the owner neither used their location nor picked a place. */
-async function pointFor(session: Session, v: Values): Promise<Place | undefined> {
+async function pointFor(session: Session, v: Values, near: Place | undefined): Promise<Place | undefined> {
   try {
-    const [place] = await placesNamed(session, `${v.area} ${v.city} ${v.pin}`);
+    const [place] = await placesNamed(session, `${v.area} ${v.city} ${v.pin}`, near);
     return place?.point;
   } catch (err) {
     log.warn("finding the typed area failed", { error: err instanceof Error ? err.name : typeof err });
@@ -51,7 +51,9 @@ async function pointFor(session: Session, v: Values): Promise<Place | undefined>
  */
 export function useAddressDraft(session: Session, storage: Storage, onSaved: (address: SavedAddress) => void) {
   const cities = useServedCities(session);
-  const isServed = (at: Place) => served(at, cities);
+  const isServed = (at: Place) => served(at, cities, servesAnywhere());
+  /** The centre of the city in use: where the map opens and the places search looks first. */
+  const centre = cities?.find((c) => c.key === homeCity())?.centre ?? cities?.[0]?.centre;
   const [values, setValues] = useState<Values>({ ...EMPTY, city: PILOT_CITY_NAME });
   const [label, setLabel] = useState<AddressLabel>(AddressLabel.enum.home);
   const [spot, setSpot] = useState<Spot>();
@@ -83,7 +85,7 @@ export function useAddressDraft(session: Session, storage: Storage, onSaved: (ad
 
   /** Where the typed address is: found by search, else its pilot area by name; undefined when GigSync cannot tell. */
   async function placeTyped(): Promise<Place | undefined> {
-    const at = (await pointFor(session, values)) ?? pilotAreaOf(values);
+    const at = (await pointFor(session, values, centre)) ?? pilotAreaOf(values);
     return at && { lat: at.lat, lon: at.lon };
   }
 
@@ -122,6 +124,7 @@ export function useAddressDraft(session: Session, storage: Storage, onSaved: (ad
 
   return {
     cities,
+    centre,
     isServed,
     values,
     set,

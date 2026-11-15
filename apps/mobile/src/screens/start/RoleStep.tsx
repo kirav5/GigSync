@@ -1,92 +1,69 @@
 import { type MessageKey, t as textIn } from "@gigsync/core";
-import { Lang, WorkGroup } from "@gigsync/protocol";
-import { type ReactNode, useId } from "react";
+import { Lang } from "@gigsync/protocol";
+import { useId } from "react";
 import { AccountRole } from "../../adapters/account.js";
 import { useI18n } from "../../i18n.js";
-import { Avatar, AvatarSize } from "../../ui/Avatar.js";
-import { Brand } from "../../ui/Brand.js";
-import { C } from "../../ui/cls.js";
-import { Icon } from "../../ui/Icon.js";
+import { Art, artSrc } from "./StartArt.js";
+import { StartBar } from "./StartBar.js";
+import "./role.css";
 
 const { kn } = Lang.enum;
-const G = WorkGroup.enum;
 /**
- * The work named under "I do the work": the groups most asked for in the pilot, by the names Find shows (ADR 0061),
- * so the card never promises a kind of work the app does not list.
- */
-const SHOWN_GROUPS: readonly WorkGroup[] = [G.house_help, G.cleaning, G.care, G.home_repairs, G.vehicles];
-/** Says the list goes on. */
-const AND_MORE = "…";
-const ROLE_CARD = "card role-card";
-
-/**
- * Who you are, as two big cards, the worker's first and in earth: one tap chooses and moves on to the number. Each
- * card is a radio inside the sign-in form, named by its title alone. One account has one role (adapters/account.ts),
- * so nothing here says it can be switched later.
+ * Find work or find help: the question, one short line, and the two choices under it as one block in the top part of
+ * the screen. Each choice is a tall card with its drawing filling the top and the title and its line below; a ring in
+ * the corner turns into a tick when picked, and one tap picks and the name comes next. Asked after the code, and only
+ * for a number this phone keeps nothing for: a returning number keeps the side it had. No way back, as the code is
+ * already used. Each card is a radio inside the sign-in form, named by its title alone. One account has one side
+ * (adapters/account.ts), so nothing here says it can be switched later.
  */
 export function RoleStep({
+  step,
   role,
   onRole,
-  onLanguage,
 }: {
+  /** Where this step sits in the dots at the top. */
+  step: number;
   role: AccountRole | undefined;
   onRole: (role: AccountRole) => void;
-  /** Back to the first screen to pick another language. */
-  onLanguage: () => void;
 }) {
-  const { lang, t } = useI18n();
-  const groups = `${SHOWN_GROUPS.map((g) => t(`group.${g}`)).join(", ")}${AND_MORE}`;
+  const { t } = useI18n();
   return (
     <>
-      <Brand />
-      <h1 className={C.headline}>{t("start.role_title")}</h1>
+      <StartBar step={step} />
+      <div className="start-head">
+        <h1 className="start-title">{t("start.role_title")}</h1>
+        <p className="role-sub">{t("start.role_sub")}</p>
+      </div>
       <fieldset className="role-cards" aria-label={t("a11y.role")}>
         <RoleCard
           title="signin.worker"
-          about={groups}
-          picture={<Avatar size={AvatarSize.xl} />}
+          line="start.role_work_line"
+          art={Art.roleWork}
           checked={role === AccountRole.worker}
           onPick={() => onRole(AccountRole.worker)}
-          earth
         />
         <RoleCard
           title="signin.consumer"
-          about={t("start.household_about")}
-          picture={
-            <span className="role-picture">
-              <Icon name="home" size={34} />
-            </span>
-          }
+          line="start.role_help_line"
+          art={Art.roleHelp}
           checked={role === AccountRole.consumer}
           onPick={() => onRole(AccountRole.consumer)}
         />
       </fieldset>
-      <p className="fine">
-        {t("signin.language", { lang: t(`lang.${lang}`) })} ·{" "}
-        <button type={C.button} className={C.linkBtn} onClick={onLanguage}>
-          {t("signin.change")}
-        </button>
-      </p>
     </>
   );
 }
 
 /**
- * One card: the picture, the title over its line, and the title again in Kannada, the pilot's language, for an owner
- * who reads it better than the one on screen. The radio covers the card, so a tap anywhere on it is the radio's.
+ * One card: the drawing as a wide tile across its top, then the title with the same title in Kannada, the pilot's
+ * language, beside it for an owner who reads it better than the one on screen, and the line under them. The radio
+ * covers the card, so a tap anywhere on it is the radio's.
  */
-function RoleCard(card: {
-  title: MessageKey;
-  about: string;
-  picture: ReactNode;
-  checked: boolean;
-  onPick: () => void;
-  earth?: boolean;
-}) {
+function RoleCard(card: { title: MessageKey; line: MessageKey; art: Art; checked: boolean; onPick: () => void }) {
   const { lang, t } = useI18n();
   const id = useId();
   return (
-    <label className={card.earth ? `${ROLE_CARD} card-earth` : ROLE_CARD}>
+    <label className="role-card">
       <input
         type="radio"
         name="role"
@@ -94,22 +71,27 @@ function RoleCard(card: {
         readOnly
         onClick={card.onPick}
         aria-labelledby={`${id}-title`}
-        aria-describedby={`${id}-about`}
+        aria-describedby={`${id}-line`}
       />
-      {card.picture}
+      <span className="role-picture">
+        <img src={artSrc(card.art)} alt="" decoding="async" />
+      </span>
       <span className="role-words">
-        <span id={`${id}-title`} className="role-title">
-          {t(card.title)}
+        <span className="role-name">
+          <span id={`${id}-title`} className="role-title">
+            {t(card.title)}
+          </span>
+          {lang !== kn && (
+            <span className="role-echo" lang={kn} aria-hidden="true">
+              {textIn(kn, card.title)}
+            </span>
+          )}
         </span>
-        <span id={`${id}-about`} className="role-about">
-          {card.about}
+        <span id={`${id}-line`} className="role-line">
+          {t(card.line)}
         </span>
       </span>
-      {lang !== kn && (
-        <span className="role-echo" lang={kn} aria-hidden="true">
-          {textIn(kn, card.title)}
-        </span>
-      )}
+      <span className="role-mark" aria-hidden="true" />
     </label>
   );
 }

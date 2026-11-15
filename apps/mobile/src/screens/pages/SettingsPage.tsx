@@ -1,47 +1,10 @@
-import type { MessageKey, Ports } from "@gigsync/core";
-import { useState } from "react";
+import type { Ports } from "@gigsync/core";
 import type { Account } from "../../adapters/account.js";
-import { useI18n } from "../../i18n.js";
-import { C } from "../../ui/cls.js";
-import { ListCard } from "../../ui/ListRow.js";
-import { Look, savedLook, saveLook } from "../../ui/look.js";
 import { AlertsSettings } from "../AlertsSettings.js";
 import { SpeechSettings } from "../SpeechSettings.js";
 import { AgentSection } from "./AgentSection.js";
 import { ThisPhone } from "./ThisPhone.js";
 import "./pages.css";
-
-const LOOKS: readonly { look: Look; label: MessageKey }[] = [
-  { look: Look.auto, label: "look.auto" },
-  { look: Look.light, label: "look.light" },
-  { look: Look.dark, label: "look.dark" },
-];
-
-/** Light, dark, or the phone's own setting: a group of its own, named by its label. */
-function LookPicker() {
-  const { t } = useI18n();
-  const [look, setLook] = useState<Look>(savedLook());
-  return (
-    <ListCard label={t("settings.look")}>
-      <div className={`${C.row} setting-block`}>
-        {LOOKS.map((l) => (
-          <button
-            key={l.look}
-            type={C.button}
-            aria-pressed={look === l.look}
-            className={look === l.look ? C.chipOn : C.chip}
-            onClick={() => {
-              saveLook(l.look);
-              setLook(l.look);
-            }}
-          >
-            {t(l.label)}
-          </button>
-        ))}
-      </div>
-    </ListCard>
-  );
-}
 
 interface Props {
   ports: Ports;
@@ -62,9 +25,9 @@ interface Props {
 }
 
 /**
- * Settings (design P4), in four groups: the agent (signing deals, how it bargains, what runs it and the model on this
- * phone), alerts (job notifications, and the voice services a worker allowed), the look, and this phone (moving, Install,
- * the Terms, Sign out). Each saves as it changes, on this phone. Saved addresses are a household's own screen, from Me.
+ * Settings (design P4), in three groups: the agent (signing deals, how it bargains, what runs it and the model on this
+ * phone), alerts (job notifications, and the voice services a worker allowed), and this phone (moving, Install, the
+ * Terms, Sign out). There is no look to pick: GigSync is light only. Each saves as it changes, on this phone. Saved addresses are a household's own screen, from Me.
  */
 export function SettingsPage(props: Props) {
   const { ports, account, isWorker, onSaved, ...phone } = props;
@@ -73,7 +36,6 @@ export function SettingsPage(props: Props) {
       <AgentSection ports={ports} account={account} isWorker={isWorker} onSaved={onSaved} />
       <AlertsSettings session={account.session} />
       {isWorker && <SpeechSettings />}
-      <LookPicker />
       <ThisPhone {...phone} />
     </>
   );

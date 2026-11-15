@@ -7,13 +7,15 @@ import type { WorkMatch } from "../skills/suggest.js";
 import { alsoKinds } from "./card-also.js";
 import { arranged, missingRate } from "./card-arrangements.js";
 import type { InterviewConfig } from "./card-config.js";
+import type { Filing } from "./card-guess.js";
 import type { Line } from "./card-lines.js";
+import { Slot } from "./card-slots.js";
 import { asksWorkRates, missingWorkRate } from "./card-work-list.js";
 import type { FoundEstimate } from "./estimate-lines.js";
-import type { Field } from "./lexicon.js";
 
 export type { AreaChoice, InterviewConfig } from "./card-config.js";
 export type { Choice, Line, Prompt } from "./card-lines.js";
+export { FIELDS, Pick, Slot } from "./card-slots.js";
 
 /**
  * The card interview's shape and how it moves: what it gathers, the order of the questions, and where an answer or
@@ -53,46 +55,6 @@ export interface CardDraft {
   terms?: TermPrefs;
 }
 
-/** Where the interview is: the field being asked, then confirm, then done. */
-export const Slot = {
-  trade: "trade",
-  /** The other kinds of work in the same group, to tick (ADR 0061). */
-  also: "also",
-  /** Which arrangements a maid or driver takes (ADR 0046). */
-  arrangements: "arrangements",
-  area: "area",
-  rate: "rate",
-  min: "min",
-  /** The usual rate for each other arrangement picked. */
-  more_rates: "more_rates",
-  /** "The same price for all your work?" for a card with more than one kind (ADR 0062). */
-  same_rate: "same_rate",
-  /** The usual rate for each other kind, after a no to that. */
-  work_rate: "work_rate",
-  languages: "languages",
-  about: "about",
-  ask_first: "ask_first",
-  /** What the worker needs to know before quoting (ADR 0063). */
-  asks: "asks",
-  auto: "auto",
-  /** Asked only when the owner wants them changed: a first card stays as short as it was (ADR 0053 §7). */
-  hours: "hours",
-  hours_to: "hours_to",
-  days: "days",
-  radius: "radius",
-  materials: "materials",
-  max_hours: "max_hours",
-  /** Which of several rates to change. */
-  which_rate: "which_rate",
-  /** "Take your card off the board?" */
-  unlist: "unlist",
-  confirm: "confirm",
-  done: "done",
-  /** Said yes to taking the card off the board. */
-  unlisted: "unlisted",
-} as const;
-export type Slot = (typeof Slot)[keyof typeof Slot];
-
 /** The interview between turns. Treat as opaque outside this module. */
 export interface InterviewState {
   readonly config: InterviewConfig;
@@ -128,36 +90,16 @@ export interface InterviewState {
   readonly kind?: WorkMatch | undefined;
   /** The skill that question is about. */
   readonly asking?: Skill | undefined;
+  /** Work in the worker's own words from the work step, asked about against the kinds closest to it (`card-guess.ts`). */
+  readonly filing?: Filing | undefined;
 }
 
-/** The values tap choices carry besides trades, areas, languages and fields. */
-export const Pick = { yes: "yes", no: "no", none: "none", skip: "skip", suggested: "suggested", any: "any" } as const;
-
-/** The fields an owner can change from confirm, in the order the chips show them. */
-export const FIELDS: readonly Field[] = [
-  Slot.trade,
-  Slot.arrangements,
-  Slot.area,
-  Slot.radius,
-  Slot.rate,
-  Slot.min,
-  Slot.same_rate,
-  Slot.hours,
-  Slot.days,
-  Slot.languages,
-  Slot.about,
-  Slot.ask_first,
-  Slot.asks,
-  Slot.materials,
-  Slot.max_hours,
-  Slot.auto,
-  Slot.unlist,
-];
 const ORDER: readonly Slot[] = [
   Slot.trade,
   Slot.also,
   Slot.arrangements,
   Slot.area,
+  Slot.radius,
   Slot.rate,
   Slot.min,
   Slot.more_rates,
@@ -175,10 +117,10 @@ const ORDER: readonly Slot[] = [
 export const askable = (trades: readonly Trade[]): QuestionKey[] =>
   [...ASK_FIRST_DETAILS].filter((k) => trades.some((tr) => QUESTIONS[tr].includes(k)));
 
-/** The card names some work: a trade, or a skill of the worker's own. */
 /** The interview has been answered for good: the card is being sent, or taken off the board. */
 export const isLastSlot = (slot: Slot): boolean => slot === Slot.done || slot === Slot.unlisted;
 
+/** The card names some work: a trade, or a skill of the worker's own. */
 export const hasWork = (d: CardDraft): boolean => !!d.trades?.length || !!d.skills?.length;
 
 const complete = (d: CardDraft): boolean =>
@@ -192,7 +134,6 @@ const complete = (d: CardDraft): boolean =>
 
 function firstMissing(d: CardDraft): Slot {
   if (!hasWork(d)) return Slot.trade;
-  if (arranged(d) && d.arrangements === undefined) return Slot.arrangements;
   if (d.area === undefined) return Slot.area;
   if (d.rate_paise === undefined) return Slot.rate;
   if (d.limit_paise === undefined || d.limit_paise > d.rate_paise) return Slot.min;
@@ -236,7 +177,10 @@ function nextSlot(s: InterviewState, draft: CardDraft): Slot {
   const skipped = (slot: Slot | undefined) =>
     (slot === Slot.also && alsoKinds(draft).length === 0) ||
     (slot === Slot.ask_first && !asks) ||
-    (slot === Slot.arrangements && !arranged(draft)) ||
+    // The price card asks how the work is priced (`card-price.ts`); the chips for several are for an edit.
+    slot === Slot.arrangements ||
+    // How far they go is asked once, right after the area; a card that has it keeps it.
+    (slot === Slot.radius && draft.radius_km !== undefined) ||
     (slot === Slot.more_rates && !missingRate(draft)) ||
     (slot === Slot.same_rate && !asksWorkRates(draft)) ||
     (slot === Slot.work_rate && !missingWorkRate(draft));
@@ -257,6 +201,7 @@ const BETWEEN_QUESTIONS = {
   heard: undefined,
   kind: undefined,
   asking: undefined,
+  filing: undefined,
 } as const;
 
 /** The current field answered: on to the next one, with an optional readback. */

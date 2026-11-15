@@ -1,5 +1,5 @@
 import { type MessageKey, priceText, t } from "@gigsync/core";
-import { EstimateBasisKind, Lang } from "@gigsync/protocol";
+import { Lang } from "@gigsync/protocol";
 import { expect, test } from "@playwright/test";
 import {
   drawer,
@@ -30,12 +30,14 @@ const { en, hi, kn } = Lang.enum;
 
 /** A Hindi cook's answers, as she would say them, and what the app asks after each. */
 const HINDI: readonly (readonly [said: string, next: MessageKey])[] = [
-  // A cook says which work she takes (ADR 0051): every month.
-  ["मैं खाना बनाती हूँ", "iv.ask.also"],
+  // Her work named outright: with no model the word lists never guess it from a sentence (#75).
+  ["मैं कुक हूँ", "iv.ask.also"],
   // The rest of house help (ADR 0061): she does none of it.
-  ["नहीं", "iv.ask.arrangements"],
-  ["हर महीने", "iv.ask.area"],
-  ["कोरमंगला", "iv.ask.rate_month"],
+  // How she is hired is on the price card (by the month unless she picks another), so the area comes next.
+  ["नहीं", "iv.ask.area"],
+  ["कोरमंगला", "iv.ask.radius"],
+  // How far she goes (ADR 0045), asked right after the area.
+  ["दस किलोमीटर", "iv.ask.rate_month"],
   ["नौ हज़ार", "iv.ask.min"],
   ["साढ़े सात हज़ार", "iv.ask.languages"],
   ["कोई नहीं", "iv.ask.about"],
@@ -64,31 +66,21 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
   await onScreen(page, "nav.talk", hi);
   await expect(page.getByText(textOf(hi, "iv.ask.trade"))).toBeVisible();
 
+  // Up to the rate question: the work, the rest of house help, the area and how far she goes.
   const [head, tail] = [HINDI.slice(0, 4), HINDI.slice(4)];
   for (const [, next] of head) await nextTurn(page, hi, next, () => mic(page, hi).click());
 
-  await test.step("under the rate question, the estimate for a cook in Bengaluru, what it rests on and the legal minimum", async () => {
+  await test.step("under the rate question, the price card with the going rate for a cook near her, in one line", async () => {
     // What the API answers now for a cook (3–4 people, two meals) in Koramangala (ADR 0041): GigSync's rate blended
     // with the city's rate card when the shared database holds enough cooking jobs from the record seeds, else the
     // rate card alone.
     const e = await estimateNow({ ...COOK_REQUEST, area: "koramangala" });
     expect(e).toBeDefined();
-    const cook = t(hi, "trade.cook");
-    const city = t(hi, "city.bengaluru");
-    const scope = t(hi, "estimate.scope", {
-      scope: `${t(hi, "estimate.people.3_4")}, ${t(hi, "estimate.meals.2")}`,
-    });
     const prices = { low: priceText(e?.low_paise ?? 0), high: priceText(e?.high_paise ?? 0) };
-    await expect(
-      page.getByText(textOf(hi, "estimate.range_month", { trade: cook, city, scope, ...prices })),
-    ).toBeVisible();
-    const basis = page.getByText(textOf(hi, "driver.basis_line")).last();
-    await expect(basis).toContainText(t(hi, "driver.basis.rate_card", { city, sources: "" }));
-    if (e?.basis.kind === EstimateBasisKind.enum.gigsync) {
-      await expect(basis).toContainText(t(hi, "driver.basis.gigsync.other", { count: e.basis.gigsync_jobs }));
-    }
-    await expect(page.getByText(textOf(hi, "estimate.legal_min", { min: "₹6,430" }))).toBeVisible();
-    await expect(page.getByText(textOf(hi, "estimate.suggest_rate"))).toBeVisible();
+    await expect(page.getByText(t(hi, "iv.near_you", prices), { exact: true })).toBeVisible();
+    // The rate card's long notes stay off the chat.
+    await expect(page.getByText(textOf(hi, "driver.basis_line"))).toHaveCount(0);
+    await expect(page.getByText(textOf(hi, "estimate.legal_min"))).toHaveCount(0);
   });
 
   await test.step("going to another screen keeps her place", async () => {
@@ -146,7 +138,7 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
       .click();
     await expect(page.getByText(t(hi, "agent.empty"))).toBeVisible();
     await expect(page.getByText(NOTE, { exact: true })).toHaveCount(0);
-    await page.getByRole("button", { name: t(hi, "agent.suggest_earned"), exact: true }).click();
+    await type(page, hi, t(hi, "agent.suggest_earned"));
     await expect(page.getByText(t(hi, "agent.earnings", { week: "₹0", month: "₹0", waiting: "₹0" }))).toBeVisible();
     await expect(page.getByText(t(hi, "agent.empty"))).toHaveCount(0);
     // The chat she left is listed by her first words, with the rate change she has not finished.
@@ -167,12 +159,11 @@ test("a Kannada electrician types and taps, says no at the summary, and changes 
   await nextTurn(page, kn, "iv.ask.also", () => type(page, kn, "ನಾನು ಎಲೆಕ್ಟ್ರಿಷಿಯನ್"));
   await nextTurn(page, kn, "iv.ask.area", () => type(page, kn, "ಇಲ್ಲ"));
   const hsr = page.getByRole("button", { name: t(kn, "area.hsr_layout"), exact: true });
-  await nextTurn(page, kn, "iv.ask.rate_visit", () => hsr.last().click());
-  // No band for electricians yet: the app says so rather than guess, and shows no monthly number under a visit's rate.
-  const electrician = t(kn, "trade.electrician");
-  await expect(page.getByText(textOf(kn, "iv.band_none", { trade: electrician }))).toBeVisible();
+  await nextTurn(page, kn, "iv.ask.radius", () => hsr.last().click());
+  await nextTurn(page, kn, "iv.ask.rate_visit", () => type(page, kn, "ಹತ್ತು"));
+  // An electrician's going rate from the city's seed rates (ADR 0041), one line on the price card; typing still answers.
+  await expect(page.getByText(textOf(kn, "iv.near_you"))).toBeVisible();
   await expect(page.getByText(textOf(kn, "iv.band_month"))).toHaveCount(0);
-  await expect(page.getByText(textOf(kn, "iv.legal_min"))).toHaveCount(0);
   await nextTurn(page, kn, "iv.ask.min", () => type(page, kn, "೫೦೦"));
   await nextTurn(page, kn, "iv.ask.languages", () => type(page, kn, "400"));
   await nextTurn(page, kn, "iv.ask.about", () => type(page, kn, "ಯಾವುದೂ ಇಲ್ಲ"));
@@ -196,15 +187,15 @@ test("a worker who switches to Hindi part-way gets the rest of the interview, an
   await signIn(page, { role: Role.worker, name: `Divya ${RUN}`, phone: newPhone() });
   for (const [answer, next] of [
     ["cook", "iv.ask.also"],
-    ["no", "iv.ask.arrangements"],
-    ["monthly", "iv.ask.area"],
-    ["Koramangala", "iv.ask.rate_month"],
+    ["no", "iv.ask.area"],
+    ["Koramangala", "iv.ask.radius"],
+    ["10 km", "iv.ask.rate_month"],
     ["9000", "iv.ask.min"],
     ["7000", "iv.ask.languages"],
   ] as const) {
     await nextTurn(page, en, next, () => type(page, en, answer));
   }
-  await open(page, "nav.about", en);
+  await open(page, "me.language", en);
   const language = page.getByRole("region", { name: t(en, "profile.language") });
   await language.getByRole("button", { name: t(en, "lang.hi") }).click();
   await open(page, "nav.talk", hi);
@@ -225,7 +216,8 @@ test("with no speech recognition at all, the mic says to type and puts the curso
 test("with only a cloud recognizer, the mic asks before her voice leaves the phone, and Settings takes it back", async ({
   page,
 }) => {
-  await fakeSpeech(page, ["मैं खाना बनाती हूँ", "हर महीने", "नौ हज़ार"], FakeSpeechMode.cloud);
+  // Her work named outright: with no model the word lists never guess it from a sentence (#75).
+  await fakeSpeech(page, ["मैं कुक हूँ", "कोरमंगला", "नौ हज़ार"], FakeSpeechMode.cloud);
   await signIn(page, { role: Role.worker, name: `Sunita ${RUN}`, phone: newPhone(), lang: hi });
   const { ask, allow, typeInstead } = consent(page, hi);
 
@@ -241,11 +233,10 @@ test("with only a cloud recognizer, the mic asks before her voice leaves the pho
   // Asked again, she allows it once: that answer is heard, and so is the next, with no second question.
   await mic(page, hi).click();
   await expect(ask).toBeVisible();
-  // A cook is asked which work she takes (ADR 0051), then her area.
   await nextTurn(page, hi, "iv.ask.also", () => allow.click());
-  await nextTurn(page, hi, "iv.ask.arrangements", () => type(page, hi, "नहीं"));
-  await nextTurn(page, hi, "iv.ask.area", () => mic(page, hi).click());
-  await nextTurn(page, hi, "iv.ask.rate_month", () => type(page, hi, "कोरमंगला"));
+  await nextTurn(page, hi, "iv.ask.area", () => type(page, hi, "नहीं"));
+  await nextTurn(page, hi, "iv.ask.radius", () => mic(page, hi).click());
+  await nextTurn(page, hi, "iv.ask.rate_month", () => type(page, hi, "दस किलोमीटर"));
 
   // Settings say where her voice goes, and stop it; the mic then asks again.
   await open(page, "nav.settings", hi);
