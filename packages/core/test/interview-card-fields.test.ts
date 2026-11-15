@@ -48,9 +48,11 @@ const card = (draft: CardDraft = CARPENTER, offBoard = false) => start(config(),
 const open = (field: Field, draft?: CardDraft) => choose(card(draft), field);
 
 describe("a first card", () => {
-  it("asks none of the new questions", () => {
-    const answers = ["electrician", "no", "Koramangala", "800", "600", "none", "skip"];
-    const asked = answers.reduce((s, a) => hear(s, a), start(config()));
+  it("asks how far they go right after the area, and none of the other new questions", () => {
+    const atArea = ["electrician", "no", "Koramangala"].reduce((s, a) => hear(s, a), start(config()));
+    expect(atArea.slot).toBe(Slot.radius);
+    const asked = ["10", "800", "600", "none", "skip"].reduce((s, a) => hear(s, a), atArea);
+    expect(asked.draft.radius_km).toBe(10);
     const seen = new Set<string>();
     let s = asked;
     while (s.slot !== Slot.confirm) {

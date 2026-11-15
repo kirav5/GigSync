@@ -10,7 +10,8 @@ export const J = {
   /** A secondary action, full width. */
   second: "btn secondary wide",
   sage: "card card-sage",
-  earth: "card card-earth",
+  /** The amount a decision turns on: a white card on the light line, the figure large in ink, its label muted. */
+  amount: "card job-amount",
   fine: "fine",
   label: "section-label",
   heroLine: "hero-line",

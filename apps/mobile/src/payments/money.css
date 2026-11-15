@@ -46,8 +46,9 @@
   max-width: 280px;
   aspect-ratio: 1;
   background: #fff;
-  padding: 6px;
-  border-radius: var(--radius-btn);
+  /* A quiet white margin, never rounded: rounding clips the corner squares a camera finds the code by. */
+  padding: 14px;
+  border-radius: 0;
 }
 .pay-other img {
   max-width: 200px;

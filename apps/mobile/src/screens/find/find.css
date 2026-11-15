@@ -1,62 +1,6 @@
-/* The household's Find (app-journey H1–H5): the address row and privacy card above the chat, the saved doors as cards,
+/* The household's Find (app-journey H1–H5): the saved doors as cards,
    the budget band, the readback's two buttons, and the workers found as cards with a round tick. Tokens only, so the
    dark look follows. */
-
-/* H1: the address in use as one line, a rust pin before it and a chevron after; tapping opens the address turn. */
-.address-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-height: var(--tap);
-  max-width: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--text);
-  font: inherit;
-  font-size: var(--fs-label);
-  text-align: start;
-  cursor: pointer;
-}
-.address-row > .ic:first-child {
-  flex: none;
-  color: var(--rust);
-}
-.address-row > .ic:last-child {
-  flex: none;
-  color: var(--text3);
-}
-.address-row-text {
-  display: flex;
-  gap: 6px;
-  min-width: 0;
-}
-.address-row-label {
-  flex: none;
-  font-weight: 600;
-}
-.address-row-line {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--text2);
-}
-.address-row-label + .address-row-line::before {
-  content: "· ";
-}
-
-/* The promise that the budget stays here, in place of a headline: green words on sage, the line under them quieter. */
-.privacy-note {
-  display: grid;
-  gap: 2px;
-  padding: 12px 16px;
-}
-.privacy-note > strong {
-  color: var(--fresh);
-  font-size: var(--fs-label);
-  font-weight: 600;
-}
 
 /* H2: saved doors first, as two-line cards (the one in use dark), then the chips. */
 .where-cards {

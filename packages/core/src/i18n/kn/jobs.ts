@@ -11,7 +11,6 @@ export const jobs: Readonly<Record<keyof typeof en, string>> = {
   "jobs.word.ask": "{price} ಕೇಳಿ",
   "jobs.word.review": "ಅಭಿಪ್ರಾಯ ನೀಡಿ",
   "jobs.word.set_off": "ಹೊರಟಿರಾ?",
-  "jobs.word.talks": "ಮಾತುಕತೆಯಲ್ಲಿ",
   // ...and the line under the name, after the work
   "jobs.line.reached": "ಏಜೆಂಟ್‌ಗಳು {price}ಗೆ ಒಪ್ಪಿದವು",
   "jobs.line.questions.one": "ನಿಮಗೆ {count} ಪ್ರಶ್ನೆ",
@@ -22,9 +21,16 @@ export const jobs: Readonly<Record<keyof typeof en, string>> = {
   "jobs.line.request": "ಹೊಸ ರಿಕ್ವೆಸ್ಟ್, ನೋಡಿ",
   "jobs.line.paid": "{price} ಕಳುಹಿಸಿದ್ದೇವೆ ಎನ್ನುತ್ತಾರೆ",
   "jobs.line.turn": "{max}ರಲ್ಲಿ {n}ನೇ ಸರದಿ",
+  // The Jobs tab: the day a job is on, or was finished on, as a heading over its jobs
+  "jobs.day.yesterday": "ನಿನ್ನೆ",
+  "jobs.day.week": "ಈ ವಾರ",
+  "jobs.day.coming": "ಮುಂದೆ",
+  "jobs.day.earlier": "ಹಿಂದೆ",
+  "jobs.day.other": "ಇತರ ದಿನಗಳು",
+  // ...the finished jobs under the open ones, and the page with no jobs at all
+  "jobs.done": "ಮುಗಿದವು",
+  "jobs.empty": "ಇನ್ನೂ ಯಾವ ಕೆಲಸವೂ ಇಲ್ಲ",
   // Home: the money card under the week's total, and the way into Talk
   "jobs.payments.one": "{count} ಪಾವತಿ",
   "jobs.payments.other": "{count} ಪಾವತಿಗಳು",
-  "jobs.waiting_from": "{names} ಅವರಿಂದ {price} ಬರಬೇಕಿದೆ",
-  "jobs.talk_sub": "ಕೆಲಸ, ನಿಮ್ಮ ಹಣ ಅಥವಾ ಕಾರ್ಡ್ ಬಗ್ಗೆ ಕೇಳಿ",
 };

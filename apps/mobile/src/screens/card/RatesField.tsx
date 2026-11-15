@@ -1,9 +1,10 @@
-import { type CardDraft, cardWorks, parseAmount, type WorkId, workNameOf } from "@gigsync/core";
-import type { Arrangement, Skill, Trade } from "@gigsync/protocol";
-import type { Ref } from "react";
+import { AMOUNT_STEP_PAISE, type CardDraft, cardWorks, parseAmount, type WorkId, workNameOf } from "@gigsync/core";
+import { Arrangement, type Skill, type Trade } from "@gigsync/protocol";
+import type { RefObject } from "react";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { rupeesOf } from "../../ui/places.js";
+import { AmountDial } from "./AmountDial.js";
 
 /** The form's names for the rate fields; each other kind's are these with its id after. */
 /** Amounts are typed on the number pad. */
@@ -54,8 +55,8 @@ export function RatesField({
   draft: CardDraft;
   work: Work;
   main: Arrangement | undefined;
-  rateRef: Ref<HTMLInputElement>;
-  minRef: Ref<HTMLInputElement>;
+  rateRef: RefObject<HTMLInputElement | null>;
+  minRef: RefObject<HTMLInputElement | null>;
 }) {
   const { t } = useI18n();
   const others = cardWorks(work).slice(1);
@@ -65,30 +66,36 @@ export function RatesField({
     return "trade" in name ? t(`trade.${name.trade}`) : name.text;
   };
   const own = draft.same_rate === false;
+  const rateLabel = t(main ? `card.rate.${main}` : "card.rate");
+  // The same amount as the card chat's (PriceAsk.tsx): typed, or stepped with − and +.
+  const step = AMOUNT_STEP_PAISE[main ?? Arrangement.enum.visit];
+  const per = main && t(`cardflow.per.${main}`);
   return (
     <>
-      <label className={C.fieldLabel}>
-        <span className={C.muted}>{t(main ? `card.rate.${main}` : "card.rate")}</span>
-        <input
-          className={C.field}
+      <div className={C.fieldLabel}>
+        <span className={C.muted}>{rateLabel}</span>
+        <AmountDial
+          label={rateLabel}
           name={RateField.rate}
-          ref={rateRef}
-          inputMode={NUMERIC}
+          inputRef={rateRef}
           required
-          defaultValue={rupeesOf(draft.rate_paise)}
+          initial={draft.rate_paise}
+          step={step}
+          unit={per}
         />
-      </label>
-      <label className={C.fieldLabel}>
+      </div>
+      <div className={C.fieldLabel}>
         <span className={C.muted}>{t("card.min")}</span>
-        <input
-          className={C.field}
+        <AmountDial
+          label={t("card.min")}
           name={RateField.min}
-          ref={minRef}
-          inputMode={NUMERIC}
+          inputRef={minRef}
           required
-          defaultValue={rupeesOf(draft.limit_paise)}
+          initial={draft.limit_paise}
+          step={step}
+          unit={per}
         />
-      </label>
+      </div>
       {others.length > 0 && (
         <fieldset className={C.stack} aria-label={t("card.work_rates")}>
           <span className={C.label}>{t("card.work_rates")}</span>

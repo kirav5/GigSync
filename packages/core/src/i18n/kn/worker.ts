@@ -20,10 +20,6 @@ export const worker: Readonly<Record<keyof typeof en, string>> = {
   "settings.save": "ಉಳಿಸಿ",
   "settings.vpa_about":
     "ನಿಮ್ಮ ಪಾವತಿ ಕ್ಯೂಆರ್‌ನಲ್ಲಿ ಮಾತ್ರ ಕಾಣುತ್ತದೆ, ಅಥವಾ ನೀವು ಕೆಲಸ ಮಾಡುತ್ತಿರುವ ಗ್ರಾಹಕರಿಗೆ ಲಾಕ್ ಮಾಡಿ ಕಳುಹಿಸಲಾಗುತ್ತದೆ. ಸರ್ವರ್‌ನಲ್ಲಿ ಎಂದೂ ಇಡುವುದಿಲ್ಲ.",
-  "settings.look": "ನೋಟ",
-  "look.auto": "ತಾನಾಗಿಯೇ",
-  "look.light": "ಲೈಟ್",
-  "look.dark": "ಡಾರ್ಕ್",
   "settings.err_vpa": "ಇದು ಯುಪಿಐ ಐಡಿಯಂತೆ ಕಾಣುತ್ತಿಲ್ಲ (name@bank).",
   "settings.err_name": "ಗ್ರಾಹಕರು ಪಾವತಿಸುವಾಗ ಕಾಣುವ ಹೆಸರನ್ನು ಬರೆಯಿರಿ.",
   "settings.err_name_long": "ಹೆಸರನ್ನು {max} ಅಕ್ಷರಗಳೊಳಗೆ ಇಡಿ.",

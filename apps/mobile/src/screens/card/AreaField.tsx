@@ -1,11 +1,18 @@
-import { RADII_KM } from "@gigsync/core";
 import type { GeoPlace, Place, Session } from "@gigsync/protocol";
-import { pilotPlace, workPlace } from "../../card/workPlace.js";
+import { pointOnlyPlace, workPlace } from "../../card/workPlace.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { PlaceMap } from "../../ui/PlaceMap.js";
 import { AREAS } from "../../ui/places.js";
+import { RadiusMap } from "../../ui/RadiusMap.js";
 import { LocateStep } from "../address/LocateStep.js";
+import { PlaceSearch } from "../address/PlaceSearch.js";
+
+/** The pilot area picked, or the first while none is. */
+const areaOf = (key: string | undefined) => AREAS.find((a) => a.key === key) ?? AREAS[0];
+const areaKey = (key: string | undefined) => areaOf(key).key;
+/** A pilot area's centre, where the distance circle is drawn when no place was found by location. */
+const areaPoint = (key: string | undefined) => ({ lat: areaOf(key).lat, lon: areaOf(key).lon });
 
 /** The worker's area: a pilot area's key, or a place they found with their location (its name and coarse point). */
 export interface WorkArea {
@@ -15,9 +22,9 @@ export interface WorkArea {
 }
 
 /**
- * Where a worker works from and how far they go (ADR 0045): a pilot area from the list, or "Use my location", which
- * names their locality from a coarse point (or, when the server cannot name places, the pilot area that point is in,
- * keeping the point itself); and a radius. Only the coarse point goes on the board.
+ * Where a worker works from and how far they go (ADR 0045): a pilot area from the list, a place found by name, or
+ * "Use my location", which names their locality from a coarse point (or, when the server cannot name places, the pilot
+ * area that point is in, keeping the point itself); and a radius. Only the coarse point goes on the board.
  */
 export function AreaField({
   session,
@@ -35,9 +42,9 @@ export function AreaField({
   };
   /** No place names from the server: the pilot area the phone is in, at the phone's own coarse point. */
   const nearby = (point: Place): boolean => {
-    const pilot = pilotPlace(point);
-    if (pilot) onChange({ ...value, ...pilot });
-    return pilot !== undefined;
+    const found = pointOnlyPlace(point);
+    if (found) onChange({ ...value, ...found });
+    return found !== undefined;
   };
   return (
     <div className={C.stack}>
@@ -62,6 +69,9 @@ export function AreaField({
         </select>
       </label>
       <LocateStep session={session} onFound={located} onPointOnly={nearby} label="card.use_location" />
+      {/* Or the place by name, as the address form finds one, looked for first around where they work now. */}
+      <span className={C.muted}>{t("card.area_search")}</span>
+      <PlaceSearch session={session} near={value.place ?? areaPoint(value.area)} onPick={(p) => located(p, p.point)} />
       {value.place && (
         <p className={C.muted} role="status">
           {t("card.area_found", { area: value.place.name })}
@@ -72,23 +82,17 @@ export function AreaField({
         <PlaceMap
           at={value.place}
           label={t("map.of", { place: value.place.name })}
+          hint="map.move_area"
           onMove={(at) => value.place && onChange({ ...value, place: { ...value.place, lat: at.lat, lon: at.lon } })}
         />
       )}
-      <fieldset className={C.row} aria-label={t("card.radius")}>
-        <span className={C.muted}>{t("card.radius")}</span>
-        {RADII_KM.map((km) => (
-          <button
-            key={km}
-            type={C.button}
-            aria-pressed={value.radius_km === km}
-            className={value.radius_km === km ? C.chipOn : C.chip}
-            onClick={() => onChange({ ...value, radius_km: km })}
-          >
-            {t("card.km", { km })}
-          </button>
-        ))}
-      </fieldset>
+      {/* How far they go, as Hinge sets a maximum distance: a circle on the map of their area, a slider under it. */}
+      <RadiusMap
+        at={value.place ?? areaPoint(value.area)}
+        name={value.place?.name ?? t(`area.${areaKey(value.area)}`)}
+        km={value.radius_km}
+        onKm={(radius_km) => onChange({ ...value, radius_km })}
+      />
     </div>
   );
 }

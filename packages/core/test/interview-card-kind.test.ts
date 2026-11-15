@@ -52,7 +52,7 @@ describe("the work question in the card interview", () => {
     for (const yes of [hear(said(), "yes"), choose(said(), "yes")]) {
       expect(yes.draft.skills).toEqual([{ text: "TV mechanic", lang: "en", category: "tv_repair" }]);
       expect(yes.kind).toBeUndefined();
-      expect(pastAlso(yes).slot).toBe(Slot.arrangements);
+      expect(pastAlso(yes).slot).toBe(Slot.area);
     }
   });
 
@@ -76,9 +76,9 @@ describe("the work question in the card interview", () => {
   });
 
   it("asks nothing when the words are a kind of work's own name, or with no suggestion", () => {
-    expect(pastAlso(hear(start(config()), "Tailor", false, TV as never)).slot).toBe(Slot.arrangements);
+    expect(pastAlso(hear(start(config()), "Tailor", false, TV as never)).slot).toBe(Slot.area);
     // Words filed under no kind have no group, so nothing else is offered either.
-    expect(hear(start(config()), "TV mechanic").slot).toBe(Slot.arrangements);
+    expect(hear(start(config()), "TV mechanic").slot).toBe(Slot.area);
   });
 });
 

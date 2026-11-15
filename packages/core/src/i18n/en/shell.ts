@@ -9,8 +9,6 @@ export const shell = {
   "a11y.back": "Back",
   "shell.menu": "Menu",
   "shell.drawer": "GigSync menu",
-  "shell.need_you.one": "{count} needs you",
-  "shell.need_you.other": "{count} need you",
   "shell.edit_card": "Edit my card",
   "profile.card_off": "Your card is not on the board",
   "profile.language": "Language",

@@ -1,25 +1,24 @@
 /**
- * The screens of the app. Four bottom tabs per role are the roots (`shell/nav.ts`): Home, Jobs, Money and Me for a
- * worker; Find, Jobs, Pay and Me for a household. Every other screen is opened from inside one of them, and Back
- * steps out the way it came in (`shell/useNav.ts`).
+ * The screens of the app. Three bottom tabs per role are the roots (`shell/nav.ts`): Home, Jobs and Money, Home being
+ * the owner's chat: Talk for a worker, Find's chat for a household. The owner's own pages open from the profile sheet
+ * (the round button with their initial, top right; "from Me" below means from there). Every other screen is opened from inside another, and Back steps out
+ * the way it came in (`shell/useNav.ts`).
  */
 export const Screen = {
-  /** A worker's Home tab: what needs them today and the way into Talk. */
-  home: "home",
-  /** A household's first tab: Find's chat (or its form). */
+  /** A household's Home tab: Find's chat (or its form). */
   find: "find",
-  /** Talk, a worker's chats with their agent, opened from Home (or where a worker without a card lands). */
+  /** A worker's Home tab: Talk, their chats with their agent. */
   talk: "talk",
   /** The Jobs tab: Awaiting you, In talks and Agreed, for a worker and a household alike. */
   activity: "activity",
-  /** The Money tab (Pay for a household): earnings and the work record for a worker; what a household paid. */
+  /** The Money tab: earnings and the work record for a worker; what a household paid. */
   records: "records",
-  /** The Me tab: who the owner is, and the rows to their card, record, About me, Privacy, Settings and the rest. */
-  me: "me",
   /** The chats kept on this phone, a worker's Talk chats or a household's Find chats, with New chat. */
   chats: "chats",
-  /** What needs the owner now, from the bell on Home, Jobs and Find. */
+  /** What happened and what needs the owner now, from the profile sheet's Alerts row. */
   alerts: "alerts",
+  /** Get verified: the Aadhaar QR check on this phone, from the profile sheet. */
+  verify: "verify",
   /** Help: a mentor and where to turn, from Me. */
   help: "help",
   /** The workers a household has had a job signed with, to ask again, from Me. */
@@ -28,6 +27,8 @@ export const Screen = {
   language: "language",
   /** A household's saved addresses (ADR 0045), from Me. */
   addresses: "addresses",
+  /** A worker's work area and how far they go, on the map, from Me and About me. */
+  workArea: "work_area",
   /** A worker's record as GigSync keeps it, and whether their card shows it, from Me. */
   myRecord: "my_record",
   /** The owner's card at a glance and their QR code. */
@@ -36,7 +37,7 @@ export const Screen = {
   about: "about",
   /** Price sharing and mentor links. */
   privacy: "privacy",
-  /** Look, voice actions, the on-device model, how the agent bargains, and this phone: Install, moving, Sign out. */
+  /** Look, voice actions, how the agent bargains, and this phone: Install, moving, Sign out. */
   settings: "settings",
   /** The worker's card as a form, to review and change; opened from My card. */
   cardEdit: "card_edit",

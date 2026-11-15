@@ -12,11 +12,12 @@ import { Collection, type Storage } from "../ports.js";
  */
 
 /**
- * GigSync serves a place inside one of its cities' circles; anywhere else, "not in your area yet". The cities come
- * from the directory (ADR 0061); before the phone has them, the city the app shipped with stands in.
+ * GigSync serves a place inside one of its cities' circles; anywhere else, "not in your area yet", unless the server
+ * lets every place in (`anywhere`, for testing). The cities come from the directory (ADR 0061); before the phone has
+ * them, the city the app shipped with stands in.
  */
-export const served = (point: Place, cities?: readonly ServedCity[]): boolean =>
-  (cities ?? Object.values(CITY_AREA)).some((city) => kmBetween(point, city.centre) <= city.radius_km);
+export const served = (point: Place, cities?: readonly ServedCity[], anywhere = false): boolean =>
+  anywhere || (cities ?? Object.values(CITY_AREA)).some((city) => kmBetween(point, city.centre) <= city.radius_km);
 
 /** The served city a place is in, nearest first; undefined outside every one (ADR 0061). */
 export function cityAt(point: Place, cities: readonly ServedCity[]): ServedCity["key"] | undefined {

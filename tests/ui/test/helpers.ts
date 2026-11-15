@@ -1,14 +1,16 @@
 import { mkdirSync } from "node:fs";
 import { ApiClient, Header, type MessageKey, type Params, type PluralKey, SecretKeys, t } from "@gigsync/core";
 import { newDeviceSecrets } from "@gigsync/crypto";
-import { type BoardProfile, DEFAULT_LANG, type Lang, type Place, type Trade } from "@gigsync/protocol";
+import { type BoardProfile, DEFAULT_LANG, type Lang, MAX_TRADES, type Place, type Trade } from "@gigsync/protocol";
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { areaIn, saveAddress } from "./address.js";
 import { open } from "./menu.js";
 
+/** Home's greeting and the one composer, with its "+", small mic and voice button (composer.ts). */
+export * from "./composer.js";
 /** Job cards on Activity and Records, wherever a job is filed now (jobs.ts). */
 export * from "./jobs.js";
-/** The app's frame, as the specs reach it (menu.ts): the tabs, Me's rows, the chat and its list, sign-out and My card's form. */
+/** The app's frame, as the specs reach it (menu.ts): the tabs, the profile's rows, the chat and its list, sign-out and My card's form. */
 export * from "./menu.js";
 
 /** The app and the API (stack.ts); absolute, so pages without a base URL (a phone over DevTools) work too. */
@@ -80,54 +82,79 @@ interface Person {
   lang?: Lang;
   /** The number is signed in on another device too: what to do with the move prompt. */
   elsewhere?: MovePrompt;
+  /** A worker with no card is left on the work step for the test to pick on, instead of its Later. */
+  pickWork?: true;
 }
 
-/** Signs in through the app's own screens, in the person's language: language first, then role, name, number, code. */
+/**
+ * Signs in through the app's own screens, in the person's language: language, number, code, then, for a new number,
+ * find work or help and the name.
+ */
 export async function signIn(page: Page, who: Person) {
   await chooseLanguage(page, who.lang ?? DEFAULT_LANG);
   await completeSignIn(page, who);
 }
 
 /**
- * Goes through the sign-in steps already showing and signs in: the role (a tap moves on), name and number, then the
- * code, which signs in by itself on its last number. A caller already on the number step is taken back to the role.
- * The fields are in the form; Send code and Back to it are in the dock and the step's bar.
+ * Goes through the sign-in steps already showing and signs in: past the welcome, the number, then the code, which
+ * signs in by itself on its last number; then, for a number this phone keeps nothing for, find work or find help (a
+ * tap moves on) and the name. A number this phone signed in before goes straight in with the side and name it had.
+ * The fields are in the form; Send code, Continue and Back to it are in the dock and the step's bar.
  */
 export async function completeSignIn(page: Page, who: Person) {
   const lang = who.lang ?? DEFAULT_LANG;
   const form = page.getByRole("form", { name: t(lang, "signin.label") });
   const role = form.getByRole("radio", { name: t(lang, `signin.${who.role}`), exact: true });
+  // The welcome comes first, with the agreement line: Get started moves on to the number.
+  const welcome = page.getByRole("button", { name: t(lang, "start.welcome_go"), exact: true });
+  const number = form.getByLabel(t(lang, "signin.phone"));
   const name = form.getByLabel(t(lang, "signin.name"));
-  await expect(role.or(name)).toBeVisible();
-  if (await name.isVisible()) await form.getByRole("button", { name: t(lang, "a11y.back"), exact: true }).click();
-  await role.click();
-  await name.fill(who.name);
-  await form.getByLabel(t(lang, "signin.phone")).fill(who.phone);
+  await expect(number.or(welcome)).toBeVisible();
+  if (await welcome.isVisible()) await welcome.click();
+  await number.fill(who.phone);
   await page.getByRole("button", { name: t(lang, "signin.send_code"), exact: true }).click();
   const code = form.getByLabel(t(lang, "signin.code"), { exact: true });
   await code.fill(DEV_OTP);
   // The API lets one network address check 10 codes a minute, and a test run signs many people in from one machine:
   // when it says so, wait the minute out and type the same code again (a refused code empties the boxes).
   const tooMany = page.getByText(t(lang, "net.too_many"));
-  // A worker with no card is first shown how GigSync works; its one button opens Talk on the card, as before.
-  const howItWorks = page.getByRole("button", { name: t(lang, "start.how_go"), exact: true });
+  // A worker with no card first picks their work as chips (nothing picked yet); its Later lands on Home's greeting,
+  // where "Make my card by talking" opens the card chat, which asks the work itself, as before.
+  // tests/ui/test/work-step.spec.ts picks chips instead.
+  const workStep = page.getByRole("button", { name: t(lang, "work.continue", { n: 0, max: MAX_TRADES }), exact: true });
+  const later = page.getByRole("button", { name: t(lang, "start.later"), exact: true });
   // Signed in, the top bar shows (only the signed-in frame has one), whichever screen opened first.
   const banner = page.getByRole("banner");
-  await expect(banner.or(howItWorks).or(tooMany).first()).toBeVisible();
+  await expect(banner.or(workStep).or(tooMany).or(role).or(name).first()).toBeVisible();
   if (await tooMany.isVisible()) {
     await page.waitForTimeout(RATE_WINDOW_MS);
     await code.fill(DEV_OTP);
-    await expect(banner.or(howItWorks).first()).toBeVisible();
+    await expect(banner.or(workStep).or(role).or(name).first()).toBeVisible();
   }
-  // A new phone is first asked whether it is moving from the old one; that screen takes over from How it works.
+  // A number this phone keeps nothing for picks its side after the code; a tap moves on to the name.
+  if (await role.isVisible()) {
+    await role.click();
+    await expect(name).toBeVisible();
+  }
+  // A number this phone has no name for is asked it once, after the code; a returning one goes straight in.
+  if (await name.isVisible()) {
+    await name.fill(who.name);
+    await page.getByRole("button", { name: t(lang, "start.continue"), exact: true }).click();
+    await expect(banner.or(workStep).first()).toBeVisible();
+  }
+  // A new phone is first asked whether it is moving from the old one; that screen takes over from the work step.
   if (who.elsewhere) {
     const notNow = page.getByRole("button", { name: t(lang, "phone.in_not_now"), exact: true });
     await expect(notNow).toBeVisible();
     if (who.elsewhere === MovePrompt.notNow) await notNow.click();
     else return;
-    await expect(banner.or(howItWorks).first()).toBeVisible();
+    await expect(banner.or(workStep).first()).toBeVisible();
   }
-  if (await howItWorks.isVisible()) await howItWorks.click();
+  if (who.pickWork) return void (await expect(workStep).toBeVisible());
+  if (await workStep.isVisible()) {
+    await later.click();
+    await page.getByRole("button", { name: t(lang, "home.make_card"), exact: true }).click();
+  }
   await expect(banner).toBeVisible();
   // No address at sign-in any more (ADR 0045): a household saves one, as it would from Settings.
   if (who.address) await saveAddress(page, lang, { house: who.address, area: who.area ?? areaIn(who.address) });

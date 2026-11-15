@@ -2,6 +2,18 @@
  * The first screens (Language.tsx, start/*): language, who you are, your number, the code, how it works. Built on the
  * kit in styles.css (.option-row, .card-earth, .hero-title, .fine); this file holds only what is theirs.
  */
+
+/* The first screens' own measures: big rounded tiles, the tint behind the mural's figures, and how fast a pick lands. */
+:root {
+  --radius-tile: 24px;
+  --art-terra: #f4e6d6;
+  --art-leaf: #e7eddc;
+  --pick-ring: #f1dccb;
+  --pick-ms: 160ms;
+  --pop-ms: 360ms;
+  --rise-ms: 280ms;
+  --welcome-glow: rgba(216, 178, 118, 0.38);
+}
 .start {
   gap: 18px;
 }
@@ -27,6 +39,7 @@
   position: relative;
 }
 .lang-row .option-row {
+  border-radius: var(--radius-tile);
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
@@ -49,70 +62,107 @@
   background: none;
 }
 
-/* Who you are: two big cards, each a radio that covers the whole card, so a tap anywhere picks it. */
-.role-cards {
-  display: grid;
-  gap: 14px;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
+/* The mural figure on a tinted tile, above a step's words. A small one gives way to the keyboard. */
+.start-art {
+  border-radius: var(--radius-tile);
+  background: var(--art-terra);
 }
-.role-card {
-  position: relative;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 14px 16px;
-  padding: 20px;
-  cursor: pointer;
+.start-art[data-tone="leaf"] {
+  background: var(--art-leaf);
 }
-.role-card input {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-.role-card:has(input:focus-visible) {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-.role-card:has(input:checked) {
-  box-shadow: 0 0 0 2px var(--accent);
-}
-.role-card .avatar,
-.role-picture {
-  width: 72px;
-  height: 72px;
-}
-.role-picture {
+.start-art {
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  background: var(--sage);
-  color: var(--rust);
+  height: 210px;
 }
-.role-words {
-  display: grid;
-  gap: 4px;
+.start-art img {
+  max-width: 92%;
+  max-height: 190px;
 }
-.role-title {
+.start-art[data-small] {
+  height: 150px;
+}
+.start-art[data-small] img {
+  max-height: 118px;
+}
+html[data-keyboard="open"] .start-art[data-small] {
+  display: none;
+}
+.start-title {
+  margin: 0;
   font-family: var(--serif);
-  font-size: calc(var(--fs-heading) + 2px);
+  font-size: var(--fs-display);
+  font-weight: 600;
   line-height: var(--lh-head);
 }
-.role-about {
+.start-label {
   color: var(--text2);
   font-size: var(--fs-label);
-  line-height: 1.45;
-}
-.role-echo {
-  grid-column: 1 / -1;
-  font-size: var(--fs-2);
   font-weight: 600;
+}
+/* One short line in a soft pill, in place of a paragraph. */
+.start .start-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: start;
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: var(--radius-chip);
+  background: var(--art-terra);
+  color: var(--text);
+  font-size: var(--fs-label);
+  font-weight: 500;
+}
+.start .start-pill[data-tone="leaf"] {
+  background: var(--art-leaf);
+}
+
+/* Each step comes in with its parts rising one after another; a pick pops. Fast, and fades only with Reduce Motion. */
+.start > * {
+  animation: start-rise var(--rise-ms) var(--ease-out) both;
+}
+.start > :nth-child(2) {
+  animation-delay: 40ms;
+}
+.start > :nth-child(3) {
+  animation-delay: 80ms;
+}
+.start > :nth-child(4) {
+  animation-delay: 120ms;
+}
+.start > :nth-child(n + 5) {
+  animation-delay: 160ms;
+}
+@keyframes start-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes start-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .start > * {
+    animation-name: start-fade;
+  }
+}
+@keyframes start-fade {
+  from {
+    opacity: 0;
+  }
 }
 
 /* The steps after it: Back and the step's name, as the signed-in top bar draws them, at the top of the content. */
@@ -135,28 +185,97 @@
   color: var(--text);
   cursor: pointer;
 }
-.start-bar-title {
-  min-width: 0;
-  font-family: var(--serif);
-  font-size: var(--fs-title);
-  line-height: var(--lh-head);
+.start-dots {
+  display: flex;
+  gap: 6px;
+  margin-inline-start: auto;
+  padding-inline-end: 4px;
 }
-/* The number field with the handset at its start. */
+.start-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--hairline);
+  transition: width var(--pick-ms) var(--ease-out);
+}
+.start-dot[data-on] {
+  width: 22px;
+  background: var(--accent);
+}
+/* The number field with the country's flag and code at its start, a button set off by a line. */
 .start-phone {
   position: relative;
   display: block;
 }
-.start-phone .ic {
+.start-cc {
   position: absolute;
-  inset-inline-start: 14px;
-  top: 0;
-  bottom: 0;
-  margin: auto 0;
+  inset-inline-start: 8px;
+  top: 10px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px 0 8px;
+  border: 0;
+  border-inline-end: 1px solid var(--hairline);
+  border-radius: 12px 0 0 12px;
+  background: none;
   color: var(--text2);
-  pointer-events: none;
+  font: inherit;
+  font-size: 18px;
+  cursor: pointer;
+}
+.start-cc:hover,
+.start-cc:focus-visible {
+  background: var(--picked);
+}
+.start-flag {
+  font-size: 22px;
+  line-height: 1;
 }
 .start-phone .field {
-  padding-inline-start: 42px;
+  padding-inline-start: 132px;
+}
+/* The country list in its sheet: one tappable row each, the chosen one tinted. */
+.country-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.country-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.country-row[aria-pressed="true"] {
+  background: var(--picked);
+  border-color: var(--accent);
+  color: var(--picked-ink);
+}
+.country-name {
+  flex: 1;
+}
+.country-dial {
+  color: var(--text2);
+}
+.start .field {
+  min-height: 60px;
+  border-width: 1.5px;
+  border-radius: 18px;
+  font-size: 20px;
+  font-weight: 600;
 }
 .start-agree {
   margin-top: 6px;
@@ -166,74 +285,131 @@
   gap: 4px;
 }
 
-/* The code: one real field laid over a box per number, invisible itself, so the phone's keyboard, its SMS suggestion
-   and a paste all land in one place; the boxes show what it holds and where the next number goes. */
-.code-boxes {
-  position: relative;
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 52px);
-  gap: 8px;
-  justify-content: start;
+/* A wide screen: the mural's figures as a panel of tiles on the left, the steps in a centred column on the right with
+   their buttons right under them, not at the foot of the window. */
+.start-side {
+  display: none;
 }
-.code-input {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  outline: none;
-  background: transparent;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  caret-color: transparent;
-  font-size: 16px;
-}
-.code-input::selection {
-  background: transparent;
-}
-.code-box {
-  display: grid;
-  place-items: center;
-  height: var(--tap-lg);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-btn);
-  background: var(--surface);
-  font-family: var(--serif-latin);
-  font-size: 24px;
-  font-variant-numeric: tabular-nums lining-nums;
-}
-.code-box:not(:empty) {
-  border-color: var(--text);
-}
-.code-boxes:focus-within .code-box[data-next] {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+@media (min-width: 1024px) {
+  .start-frame {
+    display: grid;
+    grid-template-columns: minmax(400px, 44%) minmax(0, 1fr);
+  }
+  .start-side {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    height: 100%;
+    min-height: 0;
+    box-sizing: border-box;
+    padding: 32px;
+    overflow: hidden;
+    background: var(--surface2);
+  }
+  /* The panel carries the pictures here, so the column keeps only its words and fields. */
+  .start-frame .start-art {
+    display: none;
+  }
+  .start-side-tile {
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    border-radius: var(--radius-tile);
+    background: var(--surface);
+    animation: start-rise 500ms var(--ease-out) both;
+  }
+  .start-side-tile:first-child {
+    grid-column: 1 / -1;
+    background: var(--art-terra);
+  }
+  .start-side-tile:nth-child(3) {
+    background: var(--art-leaf);
+  }
+  .start-side-tile:nth-child(2) {
+    animation-delay: 80ms;
+  }
+  .start-side-tile:nth-child(3) {
+    animation-delay: 160ms;
+  }
+  .start-side-tile:nth-child(n + 4) {
+    animation-delay: 240ms;
+  }
+  .start-side-tile {
+    overflow: hidden;
+  }
+  .start-side-tile img {
+    width: auto;
+    max-width: 72%;
+    height: 78%;
+    object-fit: contain;
+  }
+  .start-frame .main {
+    justify-content: center;
+    min-height: 0;
+  }
+  .start-frame .content {
+    flex: 0 1 auto;
+  }
+  .start-frame .inner,
+  .start-frame .dock {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 480px;
+    margin-inline: auto;
+  }
 }
 
-/* How it works: three numbered cards, each an icon tile and two lines. */
-.how-steps {
+/* The welcome: the sun turning slowly, the title, three promises with their icons, and a soft warm glow behind them,
+   the light cousin of Gemini's. */
+.start-welcome {
+  position: relative;
   display: grid;
   gap: 10px;
-  margin: 0;
+  justify-items: center;
+  padding-top: 32px;
+  text-align: center;
+}
+.start-welcome::before {
+  content: "";
+  position: absolute;
+  inset: auto -40% -60% -40%;
+  z-index: -1;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--welcome-glow), transparent);
+  pointer-events: none;
+}
+.start-welcome-sun {
+  color: var(--accent);
+  animation: start-turn 18s linear infinite;
+}
+.start-points {
+  display: grid;
+  gap: 18px;
+  margin: 22px 0 0;
   padding: 0;
   list-style: none;
+  text-align: start;
 }
-.how-step {
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  gap: 12px;
-  padding: 14px 16px;
-}
-.how-words {
+.start-points li {
   display: grid;
-  gap: 2px;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  font-size: var(--fs-body);
+  line-height: 1.45;
 }
-.how-title {
-  font-size: var(--fs-2);
-  font-weight: 600;
-  line-height: var(--lh-head);
+.start-points .ic {
+  color: var(--accent);
+}
+@keyframes start-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .start-welcome-sun {
+    animation: none;
+  }
 }

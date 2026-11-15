@@ -2,7 +2,7 @@ import { type MessageKey, t } from "@gigsync/core";
 import { type GeoResult, Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { addressSave, doorField, moreDetails } from "./address.js";
-import { API, listWorker, newPhone, open, Role, RUN, shoot, signIn } from "./helpers.js";
+import { API, listWorker, morePick, newPhone, open, Role, RUN, shoot, signIn } from "./helpers.js";
 import { openCard } from "./menu.js";
 
 /**
@@ -87,7 +87,7 @@ test("a household saves its home from its location and asks for a maid by the ho
 
   // Find: a maid, for a few hours, at home.
   await open(page, "nav.find", en);
-  await chip(page, en, "need.pick_work").click();
+  await morePick(page, "need.pick_work", en);
   await chip(page, en, "group.house_help").click();
   await chip(page, en, "trade.maid").click();
   await chip(page, en, "iv.skip").click();
@@ -123,7 +123,7 @@ for (const lang of [hi, kn]) {
   test(`Find asks how long the work is for, in ${lang}`, async ({ browser }) => {
     const page = await phoneHere(browser);
     await signIn(page, { role: Role.consumer, name: `Ravi ${RUN}`, phone: newPhone(), lang });
-    await chip(page, lang, "need.pick_work").click();
+    await morePick(page, "need.pick_work", lang);
     await chip(page, lang, "group.vehicles").click();
     await chip(page, lang, "trade.driver").click();
     // A driver's first question is the route; skipped here.
@@ -155,7 +155,7 @@ test("a maid says on her card which work she takes, with a rate for each, and ho
   await form.getByRole("button", { name: t(en, "card.use_location"), exact: true }).click();
   await page.getByRole("button", { name: t(en, "addr.allow"), exact: true }).click();
   await expect(form.getByText(t(en, "card.area_found", { area: LOCALITY }))).toBeVisible();
-  await form.getByRole("button", { name: t(en, "card.km", { km: 5 }), exact: true }).click();
+  await form.getByRole("slider", { name: t(en, "card.radius"), exact: true }).fill("5");
   await shoot("card-arrangements", { worker: page }, FOLDER);
   const sent = page.waitForRequest((r) => r.url() === `${API}/v1/board/profile` && r.method() === "PUT");
   await page.getByRole("button", { name: t(en, "card.publish"), exact: true }).click();

@@ -13,6 +13,7 @@ import { explain } from "./explain.js";
 import { findflow } from "./findflow.js";
 import { group } from "./group.js";
 import { home } from "./home.js";
+import { idcheck } from "./idcheck.js";
 import { install } from "./install.js";
 import { interview } from "./interview.js";
 import { job } from "./job.js";
@@ -21,10 +22,10 @@ import { jobs } from "./jobs.js";
 import { kindAsk } from "./kind-ask.js";
 import { landing } from "./landing.js";
 import { ledger } from "./ledger.js";
+import { legal } from "./legal.js";
 import { me } from "./me.js";
 import { memory } from "./memory.js";
 import { mentor } from "./mentor.js";
-import { model } from "./model.js";
 import { money } from "./money.js";
 import { moving } from "./moving.js";
 import { need } from "./need.js";
@@ -58,7 +59,6 @@ export const en = {
   ...group,
   ...screens,
   ...worker,
-  ...model,
   ...agent,
   ...shell,
   ...money,
@@ -94,12 +94,14 @@ export const en = {
   ...contacts,
   ...tabs,
   ...start,
+  ...legal,
   ...cardflow,
   ...jobcard,
   ...jobs,
   ...ledger,
   ...findflow,
   ...me,
+  ...idcheck,
 } as const;
 
 export type MessageKey = keyof typeof en;

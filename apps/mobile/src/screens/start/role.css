@@ -1,0 +1,170 @@
+/* Find work or find help (RoleStep.tsx): the question, its line and the two choices as one block from the top, never
+   floating in the middle. Each choice is a tall white card: its drawing fills a tinted tile across the top, the title
+   and its line sit under it, and a ring in the corner becomes a tick when picked. A soft layered shadow and a thin warm
+   edge from terracotta to gold; pressed it gives a little, picked it gets a tinted ring. Side by side when wide. */
+
+.role-sub {
+  color: var(--text2);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+.role-cards {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  margin: 6px 0 24px;
+  padding: 0;
+  border: 0;
+}
+
+.role-card {
+  --role-edge: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 45%, transparent),
+    color-mix(in srgb, var(--gold) 55%, transparent)
+  );
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 14px;
+  padding: 10px 10px 18px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-tile);
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    var(--role-edge) border-box;
+  box-shadow:
+    0 1px 2px rgb(60 30 10 / 6%),
+    0 6px 16px rgb(60 30 10 / 6%),
+    0 18px 40px rgb(60 30 10 / 6%);
+  cursor: pointer;
+  transition:
+    transform var(--pick-ms) var(--ease-out),
+    box-shadow var(--pick-ms) var(--ease-out);
+}
+.role-card input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.role-card:active {
+  transform: scale(0.98);
+}
+.role-card:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.role-card:has(input:checked) {
+  box-shadow:
+    0 0 0 4px var(--pick-ring),
+    0 6px 16px rgb(60 30 10 / 8%);
+}
+
+/* The drawing: a wide tile across the card's top, the figures sized by the tile's width so the strip reads whole. */
+.role-picture {
+  display: grid;
+  place-items: center;
+  height: 132px;
+  border-radius: calc(var(--radius-tile) - 8px);
+  background: var(--art-terra);
+  overflow: hidden;
+}
+.role-picture img {
+  width: 70%;
+  max-height: 116px;
+  object-fit: contain;
+}
+
+.role-words {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding-inline: 8px;
+}
+.role-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+.role-title {
+  font-family: var(--serif);
+  font-size: 24px;
+  line-height: var(--lh-head);
+}
+.role-line {
+  color: var(--text2);
+  font-size: var(--fs-label);
+  line-height: 1.4;
+}
+.role-echo {
+  color: var(--text3);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* The ring in the tile's corner until picked; then a filled tick in its place. */
+.role-mark {
+  position: absolute;
+  top: 20px;
+  inset-inline-end: 20px;
+  width: 28px;
+  height: 28px;
+  border: 2px solid color-mix(in srgb, var(--text3) 45%, transparent);
+  border-radius: 50%;
+  background: var(--surface);
+}
+.role-mark::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: var(--accent);
+  -webkit-mask:
+    var(--tick) center / 16px no-repeat,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    var(--tick) center / 16px no-repeat exclude,
+    linear-gradient(#000 0 0);
+  opacity: 0;
+  transform: scale(0.5);
+}
+.role-card:has(input:checked) .role-mark {
+  border-color: var(--accent);
+}
+.role-card:has(input:checked) .role-mark::after {
+  animation: start-pop var(--pop-ms) var(--ease-out) both;
+}
+
+/* Wide: the two side by side, each its drawing over its words. */
+@media (min-width: 720px) {
+  .role-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+  .role-picture {
+    height: 168px;
+  }
+  .role-picture img {
+    max-height: 140px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .role-card,
+  .role-card:active {
+    transition: none;
+    transform: none;
+  }
+  .role-card:has(input:checked) .role-mark::after {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

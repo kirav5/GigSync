@@ -4,6 +4,7 @@ import { useState } from "react";
 import { currentPoint, geocodingOff, LocateError, LocateFailure, placesAt } from "../../adapters/geo.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
+import { Icon } from "../../ui/Icon.js";
 
 /** Where the step is: the button, the reason asked first, the phone looking, or what came of it. */
 const Step = { idle: "idle", explain: "explain", locating: "locating" } as const;
@@ -26,6 +27,7 @@ export function LocateStep({
   onPointOnly,
   precise = false,
   asked = false,
+  chip = false,
   label = "addr.use_location",
 }: {
   session: Session;
@@ -38,6 +40,8 @@ export function LocateStep({
    * the point; it returns whether it could, and the step says why not otherwise.
    */
   onPointOnly?: (point: Place) => boolean;
+  /** Drawn as a small chip with the locate mark, for a map to float it over (the door pin). */
+  chip?: boolean;
   /** The button's words: a household's "Use my current location", a worker's "for my area". */
   label?: MessageKey;
   /** The place found and the phone's own point, for the form to fill in and the owner to check. */
@@ -87,11 +91,12 @@ export function LocateStep({
     <div className={C.stack}>
       <button
         type={C.button}
-        className={C.secondary}
+        className={chip ? "map-chip" : C.secondary}
         disabled={step === Step.locating}
         aria-busy={step === Step.locating}
         onClick={() => setStep(Step.explain)}
       >
+        {chip && step !== Step.locating && <Icon name="locate" size={18} />}
         {t(step === Step.locating ? "addr.locating" : label)}
       </button>
       {problem && (

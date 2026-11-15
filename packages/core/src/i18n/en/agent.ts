@@ -2,9 +2,8 @@
 export const agent = {
   "agent.headline": "Talk to your agent.",
   "agent.soft": "Your notes stay here.",
-  "agent.placeholder": "Speak or type…",
-  "agent.empty": "Ask me something, or tap one of these.",
-  "agent.suggest_rate": "Change my rate",
+  "agent.empty": "What should your agent do?",
+  "agent.suggest_rate": "Change my price",
   "agent.suggest_earned": "What did I earn this week?",
   "agent.earnings": "This week you received {week}, and {month} this month. Still to come: {waiting}.",
   "agent.sources.one": "from {count} note",

@@ -2,7 +2,7 @@ import { type MessageKey, t } from "@gigsync/core";
 import type { Lang } from "@gigsync/protocol";
 import { expect, type Page } from "@playwright/test";
 import { type NeedAnswers, pickOnly, tellNeed } from "./findChat.js";
-import { backToTabs, navRow, openCard, shoot, tab, textOf } from "./helpers.js";
+import { backToTabs, navRow, openCard, profileButton, shoot, textOf } from "./helpers.js";
 
 /** A phone in a journey, with the language its owner chose. */
 export interface Phone {
@@ -59,7 +59,7 @@ export async function unlistCards() {
     if (page.isClosed()) continue;
     try {
       await backToTabs(page, lang);
-      await tab(page, "nav.me", lang).click({ timeout: CLEANUP_MS });
+      await profileButton(page, lang).click({ timeout: CLEANUP_MS });
       await navRow(page, "nav.card", lang).click({ timeout: CLEANUP_MS });
       await page.getByRole("button", { name: t(lang, "shell.edit_card"), exact: true }).click({ timeout: CLEANUP_MS });
       const form = page.getByRole("form", { name: t(lang, "a11y.my_card") });

@@ -6,15 +6,19 @@ import { finishWork } from "./jobs.js";
 import { dealPaise, fillAsk, type Phone, publishCard, unlistCards } from "./journey.js";
 
 /**
- * The Jobs tab (both owners, one frame): "What your agents are doing" over three sections, one under the other. One job
- * walks through them: the deal to sign waits under Needs you; signed by one side it moves to Agents talking while the
- * other signs; signed by both it is Agreed; done and paid (and, for the household, reviewed) it leaves Jobs for Money
- * (Pay), counted under Closed at the foot, which opens it. Jobs never lists a finished job.
+ * The Jobs tab (both owners, one frame), an activity page: sections one under the other, each drawn only while it has
+ * jobs, each job a compact card (the person, the work, a status pill, when, the amount). One job walks through them:
+ * the deal to sign waits under Needs you; signed by one side it moves to Agents talking while the other signs; signed
+ * by both it is Agreed, under its day; done and paid (and, for the household, reviewed) it moves to Done, under the
+ * day it was finished, and is counted under Closed jobs at the foot, which opens Money (Pay) where it is kept.
  */
 
 const { en } = Lang.enum;
 const say = (key: MessageKey, params?: Params) => t(en, key, params);
 const FOLDER = "activity";
+/** The kit's light line (#E1D5C1) and its white card, as the browser reports them. */
+const HAIRLINE = "rgb(225, 213, 193)";
+const WHITE = "rgb(255, 255, 255)";
 
 let contexts: BrowserContext[] = [];
 test.afterEach(async () => {
@@ -23,12 +27,24 @@ test.afterEach(async () => {
   contexts = [];
 });
 
-/** One of the three sections, by its heading. */
+/** One of the sections, by its heading. */
 const section = (page: Page, key: MessageKey) => page.getByRole("region", { name: say(key), exact: true });
+/** The open sections, each named by its heading: an empty one is not drawn. */
+const OPEN_SECTIONS = ["activity.tab_awaiting", "activity.tab_talks", "activity.tab_agreed"] as const;
+/** A job card's face in a section: its status pill and the amount across from the name. */
+const pill = (scope: Locator) => scope.locator(".job-pill");
+const amountOn = (scope: Locator) => scope.locator(".job-row-amount");
 /** Closed: the count at the foot, which opens Money (Pay). */
 const closed = (page: Page) => page.getByRole("button", { name: say("activity.tab_closed"), exact: true });
 const signGroup = (page: Page) => page.getByRole("group", { name: say("a11y.sign") });
 const rupees = (paise: number) => `₹${(paise / 100).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+
+/** Folds every open job card back to its face. */
+async function closeRows(page: Page) {
+  const open = page.locator('.job-row[aria-expanded="true"]');
+  for (let left = await open.count(); left > 0; left--) await open.first().click();
+  await expect(open).toHaveCount(0);
+}
 
 /** Expects Closed to read `count`. */
 const counts = (counter: Locator, count: number) => expect(counter.locator("b")).toHaveText(String(count));
@@ -45,7 +61,7 @@ test("a job walks from Awaiting you to In talks to Agreed, then leaves Activity 
   const workerName = `Ganesh ${RUN}`;
   const householdName = `Rekha ${RUN}`;
 
-  // ── Nothing yet: Home says the agent stands by; Jobs has every section empty, and what to ask in the chat ─────
+  // ── Nothing yet: Home is the chat; Jobs has every section empty, and what to ask in the chat ─────────────────
   await signIn(workerPage, { role: Role.worker, name: workerName, phone: newPhone() });
   await publishCard(worker, {
     trade: say("trade.carpenter"),
@@ -55,15 +71,14 @@ test("a job walks from Awaiting you to In talks to Agreed, then leaves Activity 
     about: "Doors, windows and cupboards",
   });
   await open(workerPage, "nav.home");
-  await expect(workerPage.getByText(say("activity.standing_by"))).toBeVisible();
+  await onScreen(workerPage, "nav.talk");
   await open(workerPage, "nav.activity");
   await expect(workerPage.getByRole("heading", { level: 1, name: say("activity.headline") })).toBeVisible();
-  for (const key of ["activity.tab_awaiting", "activity.tab_talks", "activity.tab_agreed"] as const)
-    await lists(workerPage, key, 0);
-  await counts(closed(workerPage), 0);
-  await expect(section(workerPage, "activity.tab_awaiting")).toContainText(say("activity.empty_awaiting"));
+  // Nothing at all: no section is drawn, nor Closed jobs; one card says so, with what to ask in the chat.
+  for (const key of [...OPEN_SECTIONS, "jobs.done"] as const) await expect(section(workerPage, key)).toHaveCount(0);
+  await expect(closed(workerPage)).toHaveCount(0);
+  await expect(workerPage.getByText(say("jobs.empty"), { exact: true })).toBeVisible();
   await expect(workerPage.getByText(say("activity.hint_worker"))).toBeVisible();
-  await expect(workerPage.getByText(say("activity.records_line"))).toBeVisible();
   await expect(workerPage.getByRole("button", { name: /Agent log/ })).toHaveCount(0);
 
   // ── The household asks him; its agent answers his agent's question; the agents agree ───────────────────────────
@@ -96,6 +111,13 @@ test("a job walks from Awaiting you to In talks to Agreed, then leaves Activity 
   const second = first === workerPage ? householdPage : workerPage;
   await lists(first, "activity.tab_awaiting", 1);
   await expect(section(first, "activity.tab_awaiting").getByRole("group", { name: say("a11y.sign") })).toBeVisible();
+  // Its card: the one move as a rust pill, the price to sign across from the name.
+  await expect(pill(section(first, "activity.tab_awaiting"))).toHaveText(say("jobs.word.sign"));
+  await expect(amountOn(section(first, "activity.tab_awaiting"))).toHaveText(/^₹[\d,]+$/);
+  // The kit's colours: the card keeps the light line (a terracotta bar marks it), and the amount is a light card.
+  const needsCard = section(first, "activity.tab_awaiting").locator(".job-rows > li");
+  await expect(needsCard).toHaveCSS("border-top-color", HAIRLINE);
+  await expect(signGroup(first).locator(".sign-hero")).toHaveCSS("background-color", WHITE);
   await shoot("awaiting-you", shots, FOLDER);
 
   // ── Agents talking: signed by one side, it waits for the other's signature ────────────────────────────────────
@@ -105,7 +127,8 @@ test("a job walks from Awaiting you to In talks to Agreed, then leaves Activity 
   await lists(first, "activity.tab_awaiting", 0);
   await lists(first, "activity.tab_talks", 1);
   await showTab(first, "activity.tab_talks");
-  await expect(section(first, "activity.tab_talks").getByText(say("status.confirming"), { exact: true })).toBeVisible();
+  await expect(statusTag(section(first, "activity.tab_talks"), en, "status.confirming")).toBeVisible();
+  await expect(pill(section(first, "activity.tab_talks"))).toHaveText(say("status.confirming"));
   await expect(signGroup(second)).toBeVisible();
   await lists(second, "activity.tab_awaiting", 1);
   await shoot("in-talks", shots, FOLDER);
@@ -121,22 +144,33 @@ test("a job walks from Awaiting you to In talks to Agreed, then leaves Activity 
   }
   const job = workerPage.getByRole("article", { name: say("a11y.job_with", { name: householdName }) });
   await expect(
-    section(workerPage, "activity.tab_agreed").getByRole("heading", { name: say("home.today") }),
+    section(workerPage, "activity.tab_agreed").getByRole("heading", { name: say("schedule.today") }),
   ).toBeVisible();
   await expect(job.getByLabel(say("a11y.contact"))).toBeVisible();
   const amount = rupees(await dealPaise(household));
+  // His card: the price both signed, and the next move for today as the pill.
+  await expect(amountOn(section(workerPage, "activity.tab_agreed"))).toHaveText(amount);
+  await expect(pill(section(workerPage, "activity.tab_agreed"))).toHaveText(say("jobs.word.set_off"));
   await shoot("agreed", shots, FOLDER);
+  // Folded, each job is one compact card: the page at a glance. Opened again for the steps that follow.
+  for (const page of [workerPage, householdPage]) await closeRows(page);
+  await shoot("agreed-at-a-glance", shots, FOLDER);
+  for (const page of [workerPage, householdPage]) await showTab(page, "activity.tab_agreed");
 
-  // ── Handed over but not paid: still Agreed. Paid in cash at the door: it leaves his Jobs for Money ─────────────
+  // ── Handed over but not paid: still Agreed. Paid in cash at the door: it moves to Done, today, paid in green ───
   await finishWork(job);
   await expect(statusTag(job, en, "status.delivered")).toBeVisible();
   await lists(workerPage, "activity.tab_agreed", 1);
   await job.getByRole("button", { name: say("getpaid.cash") }).click();
   await job.getByRole("button", { name: say("flag.yes"), exact: true }).click();
   await expect(job).toHaveCount(0);
-  await lists(workerPage, "activity.tab_agreed", 0);
+  await expect(section(workerPage, "activity.tab_agreed")).toHaveCount(0);
   await counts(closed(workerPage), 1);
-  await expect(section(workerPage, "activity.tab_agreed")).toContainText(say("activity.empty_agreed"));
+  await lists(workerPage, "jobs.done", 1);
+  const done = section(workerPage, "jobs.done");
+  await expect(done.getByRole("heading", { name: say("schedule.today"), exact: true })).toBeVisible();
+  await expect(done.locator(".job-pill.paid")).toBeVisible();
+  await expect(amountOn(done)).toHaveText(amount);
   await shoot("worker-activity", { worker: workerPage }, FOLDER);
 
   // ── Closed opens Money: the job, done and paid, under its month ───────────────────────────────────────────────
@@ -148,7 +182,7 @@ test("a job walks from Awaiting you to In talks to Agreed, then leaves Activity 
   await expect(workerPage.getByRole("button", { name: say("records.download_title"), exact: true })).toBeVisible();
   await shoot("worker-records", { worker: workerPage }, FOLDER);
 
-  // ── The household: paid, the job waits for her review under Agreed; reviewed, it goes to Pay ──────────────────
+  // ── The household: paid, the job waits for her review under Agreed; reviewed, it goes to Done and Pay ──────────
   const hers = householdPage.getByRole("article", { name: say("a11y.job_with", { name: workerName }) });
   const review = hers.getByRole("form", { name: say("a11y.review") });
   await expect(review).toBeVisible();
@@ -156,6 +190,7 @@ test("a job walks from Awaiting you to In talks to Agreed, then leaves Activity 
   await review.getByRole("button", { name: say("job.send_review") }).click();
   await expect(hers).toHaveCount(0);
   await counts(closed(householdPage), 1);
+  await lists(householdPage, "jobs.done", 1);
   await expect(householdPage.getByText(say("activity.hint_household"))).toHaveCount(0);
   await shoot("household-activity", { household: householdPage }, FOLDER);
   await closed(householdPage).click();

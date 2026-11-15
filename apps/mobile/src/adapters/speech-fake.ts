@@ -11,6 +11,8 @@ import { ListenRefusal, type SpeechEngine, VoiceState } from "./speech.js";
  * localStorage["gigsync-fake-speech-installed"] is on the phone, as if installed outside the app. Each fetch is
  * logged to localStorage["gigsync-fake-speech-fetches"] with whether it came during a tap, and each text read aloud
  * to localStorage["gigsync-fake-speech-said"]. Otherwise reading aloud always has a voice and finishes at once.
+ * With localStorage["gigsync-fake-speech-hold"] set, a listen hears its words and then stays open until stopped
+ * (Done or Cancel), as a real one does while the owner speaks; otherwise it ends at once.
  * speech.ts loads this module only under import.meta.env.DEV, so release builds never contain it.
  */
 const QUEUE_KEY = "gigsync-fake-speech";
@@ -18,6 +20,7 @@ const MODE_KEY = "gigsync-fake-speech-mode";
 const FETCHES_KEY = "gigsync-fake-speech-fetches";
 const SAID_KEY = "gigsync-fake-speech-said";
 const INSTALLED_KEY = "gigsync-fake-speech-installed";
+const HOLD_KEY = "gigsync-fake-speech-hold";
 const FakeMode = { cloud: "cloud", none: "none", downloadable: "downloadable", unfetchable: "unfetchable" } as const;
 /** How long a fetched recognizer or voice takes to arrive, so a screen shows the wait. */
 const FETCH_MS = 1500;
@@ -110,6 +113,8 @@ export function fakeSpeech(): SpeechEngine | undefined {
   const queue = answers();
   if (!queue) return undefined;
   const { state, prepare } = phone(stored(MODE_KEY));
+  /** Ends a listen held open (HOLD_KEY) when the app stops it. */
+  let release: (() => void) | undefined;
   return {
     state: async (o) => state(o),
     prepare: async (o) => prepare(o),
@@ -121,9 +126,13 @@ export function fakeSpeech(): SpeechEngine | undefined {
       }
       const text = queue.shift() ?? "";
       if (text) onPartial(text);
+      if (stored(HOLD_KEY)) await new Promise<void>((done) => (release = done));
       return { text, engine: onDevice ? ENGINE : CLOUD.engine, onDevice };
     },
-    stop: async () => {},
+    stop: async () => {
+      release?.();
+      release = undefined;
+    },
     async speak({ lang, text }) {
       if (state({ lang, mode: SPEAK }).state !== VoiceState.available) {
         throw Object.assign(new Error("fake: no voice"), { code: ListenRefusal.unavailable });

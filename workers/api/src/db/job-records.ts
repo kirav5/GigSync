@@ -1,4 +1,4 @@
-import type { EngagementId, JobRecordStatus, RecordsPage, UserId } from "@gigsync/protocol";
+import type { EngagementId, JobRecordStatus, PlaceKey, RecordsPage, UserId } from "@gigsync/protocol";
 import type { JobColumns, JobFields } from "../records/fields.js";
 import { AGREED, DONE, Side } from "../records/sides.js";
 import type { Db } from "./client.js";
@@ -8,8 +8,8 @@ import type { QuantityColumns } from "./record-quantities.js";
 export const DEFAULT_CITY = "bengaluru";
 const KM_PER_DEGREE = 111;
 /**
- * The job's city (ADR 0061): the nearest live city whose circle holds the worker's card ($2), else $25. Distance is
- * flat-earth, exact enough across a city; the worker's area is rounded to a kilometre already.
+ * The job's city (ADR 0061): the nearest live city whose circle holds the worker's card ($2), else the fallback
+ * ($25). Distance is flat-earth, exact enough across a city; the worker's area is rounded to a kilometre already.
  */
 const CITY_OF_WORKER = `COALESCE((SELECT c.city_key FROM cities c JOIN worker_profiles p ON p.user_id = $2
   CROSS JOIN LATERAL (SELECT $26::float8 * sqrt(power(c.lat - p.area_lat, 2)
@@ -20,8 +20,16 @@ const CITY_OF_WORKER = `COALESCE((SELECT c.city_key FROM cities c JOIN worker_pr
  * Stores a job as agreed: attested by both sides, or one-sided (the worker's side only). Over the same worker's
  * one-sided job it replaces the fields (her correction, or the household's match making it attested) and keeps the
  * status, payments and stars. False when the engagement holds an attested job or another worker's: nothing changed.
+ * `fallbackCity` is the job's city when the worker's card is in no live city (`recordFallbackCity`).
  */
-export async function upsertRecord(db: Db, f: JobFields, c: JobColumns, attested: boolean, at: Date): Promise<boolean> {
+export async function upsertRecord(
+  db: Db,
+  f: JobFields,
+  c: JobColumns,
+  attested: boolean,
+  at: Date,
+  fallbackCity: PlaceKey,
+): Promise<boolean> {
   const { rowCount } = await db.query(
     `INSERT INTO job_records (engagement_id, worker_id, household_id, trade, scope_problem, scope_rooms,
        scope_frequency, scope_people, scope_meals, scope_hours_band, scope_labour_only, work_day, work_daily,
@@ -64,7 +72,7 @@ export async function upsertRecord(db: Db, f: JobFields, c: JobColumns, attested
       attested,
       f.area ?? null,
       c.work_hour,
-      DEFAULT_CITY,
+      fallbackCity,
       KM_PER_DEGREE,
     ],
   );

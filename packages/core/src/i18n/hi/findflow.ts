@@ -2,8 +2,6 @@ import type { findflow as en } from "../en/findflow.js";
 
 /** Hindi: the household's Find: the privacy card, address cards, the budget band, worker cards and a card opened by QR. */
 export const findflow: Readonly<Record<keyof typeof en, string>> = {
-  "find.private_line": "काम करने वालों के एजेंट काम देखते हैं, आपकी सीमा कभी नहीं।",
-  "find.example": "जैसे: रोज़ दो वक़्त का खाना बनाना…",
   "find.door_check": "क्या पिन आपके दरवाज़े पर है? नक्शा खिसकाकर उसे दरवाज़े पर लाएँ।",
   "find.door_saved": "पिन आपके दरवाज़े पर सहेज लिया। दोनों के हस्ताक्षर के बाद ही यह काम करने वाले को मिलता है।",
   "find.say_it": "मैं ख़ुद बताऊँ",

@@ -100,7 +100,7 @@ export function estimateLines(own: Lang, found: FoundEstimate): Line[] {
 }
 
 /** The legal minimum the estimate was floored at, as a line, when one is known. */
-export function estimateLegalLines({ estimate }: FoundEstimate): Line[] {
+function estimateLegalLines({ estimate }: FoundEstimate): Line[] {
   const law = estimate.basis.legal_minimum_paise;
   return law ? [{ key: "estimate.legal_min", prices: { min: law } }] : [];
 }

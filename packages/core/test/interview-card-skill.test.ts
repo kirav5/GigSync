@@ -1,6 +1,6 @@
 import type { Lang } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import { CITY_RATES, choose, edit, hear, prompt, Slot, start } from "../src/index.js";
+import { CITY_RATES, choose, edit, hear, priceArrangements, prompt, Slot, start } from "../src/index.js";
 import { Pick } from "../src/interview/card.js";
 
 const AREAS = [{ key: "koramangala", names: ["Koramangala", "कोरमंगला", "ಕೋರಮಂಗಲ"] }];
@@ -15,12 +15,9 @@ describe("the card interview, for work outside the trades (ADR 0047)", () => {
     expect(said.slot).toBe(Slot.also);
     expect(prompt(said).lines[0]).toEqual({ key: "iv.skill_kept", params: { skill: "tailor" } });
     const s = choose(said, Pick.yes);
-    // ADR 0051: work of their own may be taken any way, so the card asks which, before the area.
-    expect(s.slot).toBe(Slot.arrangements);
-    expect(prompt(s).choices?.map((c) => c.value)).toEqual(["hourly", "visit", "weekly", "monthly", "yes"]);
-    const taken = hear(s, "by the hour and by the month");
-    expect(taken.draft.arrangements).toEqual(["hourly", "monthly"]);
-    expect(taken.slot).toBe(Slot.area);
+    // ADR 0051: work of their own may be taken any way, so the price card offers all four; the area comes first.
+    expect(s.slot).toBe(Slot.area);
+    expect(priceArrangements(s.draft)).toEqual(["visit", "hourly", "weekly", "monthly"]);
   });
 
   it("takes a trade the model reads and the word lists agree on, dropping a skill said earlier", () => {

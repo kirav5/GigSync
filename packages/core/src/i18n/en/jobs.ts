@@ -9,7 +9,6 @@ export const jobs = {
   "jobs.word.ask": "Ask for {price}",
   "jobs.word.review": "Review",
   "jobs.word.set_off": "On the way?",
-  "jobs.word.talks": "In talks",
   // ...and the line under the name, after the work
   "jobs.line.reached": "Your agents reached {price}",
   "jobs.line.questions.one": "{count} question for you",
@@ -20,9 +19,16 @@ export const jobs = {
   "jobs.line.request": "A new request to check",
   "jobs.line.paid": "Says they paid {price}",
   "jobs.line.turn": "Turn {n} of {max}",
+  // The Jobs tab: the day a job is on, or was finished on, as a heading over its jobs
+  "jobs.day.yesterday": "Yesterday",
+  "jobs.day.week": "This week",
+  "jobs.day.coming": "Coming up",
+  "jobs.day.earlier": "Earlier",
+  "jobs.day.other": "Other days",
+  // ...the finished jobs under the open ones, and the page with no jobs at all
+  "jobs.done": "Done",
+  "jobs.empty": "No jobs yet",
   // Home: the money card under the week's total, and the way into Talk
   "jobs.payments.one": "{count} payment",
   "jobs.payments.other": "{count} payments",
-  "jobs.waiting_from": "{price} waiting from {names}",
-  "jobs.talk_sub": "Ask about a job, your money or your card",
 } as const;

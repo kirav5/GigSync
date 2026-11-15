@@ -79,7 +79,7 @@ export function StuckCard(props: Props & { detail: TakeOverDetail | undefined })
   const isWorker = job.engagement.role === Role.enum.provider;
   return (
     <fieldset className={C.stack} aria-label={t("a11y.takeover")}>
-      <div className={J.earth}>
+      <div className={J.amount}>
         <span className={C.muted}>{t("decide.takeover_title")}</span>
         {price && waiting && <p className={J.heroLine}>{t("decide.waiting_body", { name: them, price })}</p>}
         {price && !waiting && (
@@ -110,7 +110,7 @@ export function TakeOver(props: Props) {
   const limit = job.mandate && jobPrice(lang, job.request, job.mandate.limit_paise);
   return (
     <div className={C.stack}>
-      <div className={J.sage}>
+      <div className="job-turn">
         {(turn > 0 || limit) && (
           <strong className="turn-line">
             {turn > 0 && t("jobcard.turn", { count: turn, max: AGENT_OFFERS })}

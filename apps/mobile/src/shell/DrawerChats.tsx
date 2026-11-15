@@ -4,6 +4,7 @@ import { stopSpeaking } from "../adapters/speech.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { Icon } from "../ui/Icon.js";
+import { Sheet } from "../ui/Sheet.js";
 import type { ChatList } from "./chatLists.js";
 
 /** The heading over each day of the list. */
@@ -19,7 +20,10 @@ function going(to: () => void) {
   to();
 }
 
-/** The trash button on one chat, and its one confirm, which says what goes with the chat and what stays. */
+/**
+ * The trash button on one chat, and its one confirm in a sheet from the bottom: the chat's title, and a line on what goes
+ * with it and what stays.
+ */
 function DeleteChat({ title, confirm, onDelete }: { title: string; confirm: MessageKey; onDelete: () => void }) {
   const { t } = useI18n();
   const [asking, setAsking] = useState(false);
@@ -30,17 +34,20 @@ function DeleteChat({ title, confirm, onDelete }: { title: string; confirm: Mess
         <Icon name="trash" size={16} />
       </button>
       {asking && (
-        <div className={`${C.cardWait} chat-confirm`} role="dialog" aria-label={label}>
-          <p>{t(confirm)}</p>
-          <div className={C.actions}>
-            <button type={C.button} className={C.danger} onClick={() => going(onDelete)}>
-              {t("chats.delete_yes")}
-            </button>
-            <button type={C.button} className={C.secondary} onClick={() => setAsking(false)}>
-              {t("chats.keep")}
-            </button>
-          </div>
-        </div>
+        <Sheet
+          title={t("chats.delete_title", { title })}
+          line={t(confirm)}
+          icon="trash"
+          danger
+          onClose={() => setAsking(false)}
+        >
+          <button type={C.button} className={C.danger} onClick={() => going(onDelete)}>
+            {t("chats.delete_yes")}
+          </button>
+          <button type={C.button} className="btn ghost" onClick={() => setAsking(false)}>
+            {t("chats.keep")}
+          </button>
+        </Sheet>
       )}
     </>
   );

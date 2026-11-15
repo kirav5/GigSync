@@ -8,16 +8,6 @@ const STARTUP_MS = 120_000;
  * a failure on its own before believing it. Tests inside one file always run in order.
  */
 const WORKERS = Number(process.env.PW_WORKERS ?? 1);
-/**
- * Headless Chromium and WebKit on a Mac have a real WebGPU adapter, so the app would offer every test phone the
- * on-device model. Each phone starts as one that cannot run it (the dev build's fake model engine,
- * apps/mobile/src/adapters/model-fake.ts), and on-device-model.spec.ts says otherwise for its own phones.
- */
-const FAKE_MODEL_KEY = "gigsync-fake-model";
-const NO_MODEL = {
-  cookies: [],
-  origins: [{ origin: new URL(APP).origin, localStorage: [{ name: FAKE_MODEL_KEY, value: '{"mode":"incapable"}' }] }],
-};
 
 export default defineConfig({
   testDir: "test",
@@ -36,7 +26,6 @@ export default defineConfig({
     // page. layout.spec.ts sets a 360×640 phone itself, and install.spec.ts an iPhone.
     viewport: { width: 400, height: 1400 },
     deviceScaleFactor: 2,
-    storageState: NO_MODEL,
   },
   // Chrome's engine and Safari's, as Playwright ships them (`pnpm exec playwright install chromium webkit`): a
   // Homebrew or downloaded Chrome may be quarantined by macOS and refuse to start headless. Pick one with --project.

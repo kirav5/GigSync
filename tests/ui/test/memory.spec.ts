@@ -2,7 +2,7 @@ import { plural, questionText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { skipPriceQuestions } from "./findChat.js";
-import { newPhone, open, Role, RUN, reveal, shoot, signIn } from "./helpers.js";
+import { greeting, morePick, newPhone, open, Role, RUN, reveal, shoot, signIn } from "./helpers.js";
 import { type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -81,8 +81,8 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await expect(memorySection(priyaPage)).toContainText(t(en, "memory.empty"));
   await open(priyaPage, "nav.find");
   const log = priyaPage.getByRole("log");
-  await expect(log).toContainText(t(en, "need.start"));
-  await tap(priyaPage, t(en, "need.pick_work"));
+  await expect(greeting(priyaPage, en)).toBeVisible();
+  await morePick(priyaPage, "need.pick_work", en);
   await tap(priyaPage, t(en, "group.house_help"));
   await tap(priyaPage, t(en, "trade.maid"));
   await expect(log).toContainText(t(en, "question.rooms"));
@@ -132,8 +132,8 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
     "true",
   );
   await open(priyaPage, "nav.find");
-  await expect(log).toContainText(t(en, "need.start"));
-  await tap(priyaPage, t(en, "need.pick_work"));
+  await expect(greeting(priyaPage, en)).toBeVisible();
+  await morePick(priyaPage, "need.pick_work", en);
   await tap(priyaPage, t(en, "group.house_help"));
   await tap(priyaPage, t(en, "trade.maid"));
   await expect(log).toContainText(t(en, "memory.offer_detail", roomsParams));
@@ -173,8 +173,8 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
     "true",
   );
   await open(priyaPage, "nav.find");
-  await expect(log).toContainText(t(en, "need.start"));
-  await tap(priyaPage, t(en, "need.pick_work"));
+  await expect(greeting(priyaPage, en)).toBeVisible();
+  await morePick(priyaPage, "need.pick_work", en);
   await tap(priyaPage, t(en, "group.house_help"));
   await tap(priyaPage, t(en, "trade.maid"));
   await expect(log).toContainText(t(en, "memory.filled_detail", roomsParams));

@@ -14,10 +14,7 @@ export const records = {
   "records.signin_line": "By continuing, you agree to GigSync's {link}",
   "records.signin_link": "Terms and Privacy Notice",
   "records.terms_title": "Terms and Privacy Notice",
-  "records.terms_writing":
-    "GigSync's Terms and Privacy Notice are being written. Until they are ready, this is what applies:",
   "records.terms_about": "What you agreed to, and what GigSync keeps and never keeps.",
-  "records.terms_back": "Back",
   "records.consent_toast":
     "Using GigSync means you agree to its Terms and Privacy Notice. You can read them in Settings.",
   // Privacy

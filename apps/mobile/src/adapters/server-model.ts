@@ -20,7 +20,7 @@ import { API_BASE } from "./api.js";
 /**
  * GigSync's own model (ADR 0052): the prompt goes to GigSync's API with the owner's session, and the model on GigSync's
  * computer answers. Null whenever it cannot (signed out, no API, the server's model not set up or down, too slow), and
- * the app falls back to the phone's own model or lite mode.
+ * the app falls back to lite mode.
  */
 
 const GENERATE_PATH = "/v1/model/generate";
@@ -106,7 +106,7 @@ export class ServerModel implements Model {
       const reply = ModelGenerateReply.safeParse(await res.json());
       if (!reply.success) return this.failed(res.status);
       this.failures = 0;
-      // How GigSync's computer did, beside the phone's own timing (model.ts): for tuning, never the words.
+      // How GigSync's computer did, beside the app's own timing (model.ts): for tuning, never the words.
       if (reply.data.usage) log.info("server model usage", { purpose: options?.purpose, ...reply.data.usage });
       return reply.data.text;
     } catch (err) {

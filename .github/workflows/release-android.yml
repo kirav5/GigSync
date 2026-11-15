@@ -15,6 +15,12 @@ jobs:
       # The phone's reader (ADR 0065) on GigSync's model host, e.g. https://models.gigsync.network/reader/v3, from
       # `pnpm reader:publish`. Unset, the app has no reader and Find reads as before.
       VITE_READER_URL: ${{ vars.READER_URL }}
+      # Real SMS sign-in codes through Firebase (docs/setup/firebase-phone-sign-in.md), from repository variables.
+      # Unset, the app signs in with the API's dev code.
+      VITE_FIREBASE_API_KEY: ${{ vars.FIREBASE_API_KEY }}
+      VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.FIREBASE_AUTH_DOMAIN }}
+      VITE_FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+      VITE_FIREBASE_APP_ID: ${{ vars.FIREBASE_APP_ID }}
       HAS_SIGNING: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
     steps:
       - uses: actions/checkout@v4

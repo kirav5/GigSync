@@ -4,6 +4,7 @@ import { Fragment, useId } from "react";
 import { Brand } from "../ui/Brand.js";
 import { C } from "../ui/cls.js";
 import { SpeakButton } from "../ui/SpeakButton.js";
+import { Art, StartArt } from "./start/StartArt.js";
 import "./start/start.css";
 
 const { kn, hi } = Lang.enum;
@@ -26,6 +27,7 @@ export function LanguageChooser({ suggested, onChoose }: { suggested: Lang; onCh
   return (
     <section className={`${C.stack} ${C.textRoot} start`} lang={suggested} aria-label={t(suggested, "onboard.title")}>
       <Brand />
+      <StartArt art={Art.welcome} />
       <div className="start-head">
         <h1 className={C.headline}>
           {ORDER.map((l, i) => (

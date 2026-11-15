@@ -1,8 +1,11 @@
-/* Voice (P3): the composer, the cloud consent sheet above it, the speaker button on questions and decisions, and the
-   read-aloud switch in Settings. The composer is one pill: the field and, at its right end, one round rust button,
-   the biggest thing on a chat screen: the mic until words are typed, then send. It comes first in the markup, so a
-   reader meets it first; `order` draws it last, where the design puts it. */
+/* Voice (P3): the composer, the cloud consent sheet above it, and the speaker button on questions and decisions.
+   The composer is the design's Home pill, white on a soft shadow, centred with a max width on a wide screen: the "+",
+   the field, the enter button (dim until words are typed), a small mic, and at its end one round voice button in a
+   terracotta-to-gold gradient. The icons are 40px wide and a full 48px tall, so the field keeps room for its whole
+   placeholder on a 360px phone. While listening, the listening sheet (listening.css) stands over it. Light only; the
+   gradient's warm stop is the design's, named here as nothing else draws it. */
 .composer {
+  --voice-warm: #c8693e;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -11,20 +14,31 @@
   align-self: flex-start;
 }
 .composer-row {
+  position: relative;
+  isolation: isolate;
   display: flex;
-  gap: 4px;
+  gap: 2px;
   align-items: center;
-  max-width: 860px;
+  max-width: 720px;
   width: 100%;
   margin: 0 auto;
-  padding: 4px;
-  padding-inline-start: 8px;
-  background: var(--surface);
+  padding: 6px;
   border: 1px solid var(--hairline);
-  border-radius: var(--radius-chip);
+  border-radius: 30px;
+  box-shadow: 0 6px 24px color-mix(in srgb, var(--earth) 10%, transparent);
 }
 .composer-row:focus-within {
-  border-color: var(--accent);
+  border-color: var(--voice-warm);
+}
+/* The pill's paper, under the row's controls inside its own stacking context. */
+.composer-row::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--surface);
+  pointer-events: none;
 }
 .composer input {
   flex: 1;
@@ -33,57 +47,62 @@
   border: 0;
   outline: none;
   background: transparent;
-  padding: 6px 8px;
+  padding: 6px 2px;
 }
 .composer input::placeholder {
   color: var(--text3);
 }
-.composer input[readonly] {
-  color: var(--text2);
-}
-.composer-mic {
-  order: 1;
+/* The "+", the enter button and the small mic: plain icons in the words' colour, a full tap tall. */
+.composer-icon {
   flex: none;
   display: grid;
   place-items: center;
-  width: var(--tap-lg, 56px);
-  height: var(--tap-lg, 56px);
+  width: 40px;
+  height: var(--tap);
+  padding: 0;
   border: 0;
   border-radius: 50%;
-  background: var(--accent);
-  color: var(--on-accent);
+  background: none;
+  color: var(--text);
   cursor: pointer;
 }
-.composer-mic .ic {
-  width: 26px;
-  height: 26px;
-  stroke-width: 2;
-}
-.composer-mic[data-listening] {
-  background: var(--inverse);
-  color: var(--on-inverse);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent);
-  animation: composer-listening 1.4s ease-in-out infinite;
-}
-/* Nothing on this phone can listen in this language: still tappable, so it can say "please type". */
-.composer-mic[data-off] {
-  background: var(--surface2);
+.composer-icon[data-off] {
   color: var(--text3);
 }
-.composer-mic:disabled {
+.composer-icon:disabled {
   opacity: 0.4;
 }
-@keyframes composer-listening {
-  50% {
-    box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 20%, transparent);
-  }
+/* The round voice button. */
+.composer-voice {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: var(--tap);
+  height: var(--tap);
+  margin-inline-start: auto;
+  border: 0;
+  border-radius: var(--radius-chip);
+  background: linear-gradient(135deg, var(--voice-warm), var(--gold));
+  color: var(--on-accent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--voice-warm) 35%, transparent);
+  cursor: pointer;
 }
-@media (prefers-reduced-motion: reduce) {
-  .composer-mic[data-listening] {
-    animation: none;
-  }
+.composer-voice .ic {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2;
 }
-
+/* Nothing on this phone can listen in this language: still tappable, so it can say "please type". */
+.composer-voice[data-off] {
+  background: var(--surface2);
+  color: var(--text3);
+  box-shadow: none;
+}
+.composer-voice:disabled {
+  opacity: 0.4;
+}
 .composer-sheet {
   display: grid;
   gap: 12px;
@@ -113,4 +132,24 @@
 .speak-btn .ic {
   width: 22px;
   height: 22px;
+}
+
+/* The "+" sheet's quick picks: white rows with a rust icon, as the greeting's suggestions. */
+.composer-pick {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--tap-lg);
+  padding: 12px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+  font: 500 var(--fs-2) / 1.3 var(--sans);
+  text-align: start;
+  cursor: pointer;
+}
+.composer-pick .ic {
+  flex: none;
+  color: var(--accent);
 }

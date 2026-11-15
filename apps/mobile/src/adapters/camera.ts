@@ -13,8 +13,13 @@ const REFUSED: ReadonlySet<string> = new Set(["NotAllowedError", "SecurityError"
 /** The camera on the back of a phone; a laptop's only camera is used when it has no such thing. */
 const BACK_CAMERA = "environment";
 const QR_FORMAT = "qr_code";
+const CANVAS_2D = "2d";
 /** jsQR reads a frame at most this wide: enough for a code at arm's length, small enough to read 4 times a second. */
 const MAX_FRAME_PX = 640;
+/** A chosen photo is read as it is, then enlarged: a page screenshot's QR is too fine to read at 1x. */
+const PHOTO_SCALES = [1, 2, 3] as const;
+/** The largest side a chosen photo is drawn at, so an enlarged phone photo stays within a phone's memory. */
+const MAX_PHOTO_PX = 5200;
 
 /**
  * Opens the camera for scanning, as a stream for a `<video>`. On a native phone the web view asks the phone's own
@@ -38,7 +43,7 @@ export function closeCamera(stream: MediaStream): void {
 
 /** The browser's own barcode reader where it has one (Chrome on Android, macOS); not in TypeScript's DOM types yet. */
 interface Detector {
-  detect(source: HTMLVideoElement): Promise<{ rawValue: string }[]>;
+  detect(source: HTMLVideoElement | HTMLCanvasElement): Promise<{ rawValue: string }[]>;
 }
 interface DetectorClass {
   new (options: { formats: string[] }): Detector;
@@ -57,7 +62,7 @@ export async function qrReader(): Promise<QrReader> {
   }
   const { default: jsQR } = await import("jsqr");
   const canvas = document.createElement("canvas");
-  const context = canvas.getContext("2d", { willReadFrequently: true });
+  const context = canvas.getContext(CANVAS_2D, { willReadFrequently: true });
   return async (video) => {
     if (!context || video.videoWidth === 0) return undefined;
     const scale = Math.min(1, MAX_FRAME_PX / video.videoWidth);
@@ -67,4 +72,49 @@ export async function qrReader(): Promise<QrReader> {
     const frame = context.getImageData(0, 0, canvas.width, canvas.height);
     return jsQR(frame.data, frame.width, frame.height)?.data;
   };
+}
+
+/**
+ * Reads the text of a QR code in a photo the owner chose (gallery or files), or undefined when it holds none. A
+ * screenshot of a whole e-Aadhaar page draws its dense QR at about one pixel a square, too fine for any reader, so the
+ * photo is tried as it is, then enlarged with hard pixel edges (2x read the first real e-Aadhaar tried, in 90 ms).
+ */
+export async function readQrInPhoto(photo: Blob): Promise<string | undefined> {
+  const bitmap = await createImageBitmap(photo);
+  try {
+    const native = (globalThis as { BarcodeDetector?: DetectorClass }).BarcodeDetector;
+    const detector =
+      native && (await native.getSupportedFormats()).includes(QR_FORMAT) ? new native({ formats: [QR_FORMAT] }) : null;
+    const { default: jsQR } = detector ? { default: null } : await import("jsqr");
+    for (const scale of PHOTO_SCALES) {
+      const canvas = enlarged(bitmap, scale);
+      if (!canvas) continue;
+      const found = detector ? (await detector.detect(canvas))[0]?.rawValue : readWithJsQr(jsQR, canvas);
+      if (found) return found;
+    }
+    return undefined;
+  } finally {
+    bitmap.close();
+  }
+}
+
+/** The photo drawn at `scale` with hard pixel edges, or undefined when that would be larger than a phone can hold. */
+function enlarged(bitmap: ImageBitmap, scale: number): HTMLCanvasElement | undefined {
+  const width = Math.round(bitmap.width * scale);
+  const height = Math.round(bitmap.height * scale);
+  if (Math.max(width, height) > MAX_PHOTO_PX) return undefined;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext(CANVAS_2D);
+  if (!context) return undefined;
+  context.imageSmoothingEnabled = false;
+  context.drawImage(bitmap, 0, 0, width, height);
+  return canvas;
+}
+
+function readWithJsQr(jsQR: typeof import("jsqr").default | null, canvas: HTMLCanvasElement): string | undefined {
+  const image = canvas.getContext(CANVAS_2D)?.getImageData(0, 0, canvas.width, canvas.height);
+  if (!jsQR || !image) return undefined;
+  return jsQR(image.data, image.width, image.height, { inversionAttempts: "attemptBoth" })?.data;
 }

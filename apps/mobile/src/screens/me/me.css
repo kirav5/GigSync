@@ -1,52 +1,39 @@
-/* Me (design P1, P7): who the owner is on one card, then one list of rows. A worker's card is the dark earth one,
-   a household's the light surface; the name in the serif (the sans in Hindi and Kannada, styles.css), the line small. */
-.me-head {
-  display: grid;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-card);
-  background: var(--surface);
-  color: var(--text);
-}
-.me-head.earth {
-  border-color: transparent;
-  background: var(--earth);
-  color: var(--ivory);
-}
-.me-who {
+/* The profile sheet (Profile.tsx): who the owner is on one white card (their initial on the terracotta tint, the name,
+   "✓ Phone verified" in green), then the grouped rows. */
+.profile-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-width: 0;
+  gap: 14px;
+  width: 100%;
+  padding: 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 22px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: start;
 }
-.me-words {
+.profile-head .avatar.rust {
+  background: var(--picked);
+  color: var(--accent);
+  font-family: var(--serif);
+}
+.profile-words {
+  flex: 1;
   display: grid;
   gap: 2px;
   min-width: 0;
 }
-.me-name {
-  margin: 0;
-  font-family: var(--serif);
-  font-size: var(--fs-heading);
-  font-weight: 400;
-  line-height: var(--lh-head);
+.profile-name {
+  font-size: var(--fs-title);
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
-.me-line {
-  margin: 0;
-  font-size: var(--fs-label);
-  color: var(--text2);
-}
-.me-head.earth .me-line {
-  color: var(--gold);
-}
-.me-badges {
+.profile-verified {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  gap: 2px 12px;
+  font-size: var(--fs-2);
+  color: var(--fresh);
 }
 
 /* A person row's end (screens/me/PersonRow.tsx): room for a short action ("Ask again") beside a long name. */

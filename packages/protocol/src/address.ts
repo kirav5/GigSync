@@ -12,7 +12,7 @@ export const AddressId = prefixedId("adr");
 export type AddressId = z.infer<typeof AddressId>;
 
 /** What an address is called on its chip. */
-export const AddressLabel = z.enum(["home", "work", "other"]);
+export const AddressLabel = z.enum(["home", "parents", "work", "other"]);
 export type AddressLabel = z.infer<typeof AddressLabel>;
 
 /** An Indian PIN code: six digits, never starting with 0. */
@@ -62,11 +62,23 @@ export type GeoReverseQuery = z.infer<typeof GeoReverseQuery>;
 export const GEO_QUERY_MIN = 3;
 export const GEO_QUERY_MAX = 80;
 
-/** `GET /v1/geo/search?q`: what the owner typed, at least a few letters (the app waits for them to stop typing). */
-export const GeoSearchQuery = z.object({ q: z.string().trim().min(GEO_QUERY_MIN).max(GEO_QUERY_MAX) });
+/**
+ * `GET /v1/geo/search?q[&lat&lon]`: what the owner typed, at least a few letters (the app asks once they pause), and
+ * optionally where to look first: the centre of the city in use, never the owner's own fix, rounded to the coarse grid
+ * by the phone and again by the API.
+ */
+export const GeoSearchQuery = z.object({
+  q: z.string().trim().min(GEO_QUERY_MIN).max(GEO_QUERY_MAX),
+  lat: GeoReverseQuery.shape.lat.optional(),
+  lon: GeoReverseQuery.shape.lon.optional(),
+});
 export type GeoSearchQuery = z.infer<typeof GeoSearchQuery>;
 
-/** A place a geocoder found: the parts the address form fills in, and its point on the coarse grid. */
+/**
+ * A place a geocoder found: the parts the address form fills in, and its point. For the owner's own point (reverse)
+ * that is the coarse grid; for a place found by search it is the place's own, to about a metre (`precisePoint`), with
+ * its area named from that point, so a picked building lands on its door and in its own locality (ADR 0045, 2026-11-16).
+ */
 export const GeoPlace = z.object({
   /** The provider's whole line, shown in a search result. */
   label: text(LONG_MAX * 2),

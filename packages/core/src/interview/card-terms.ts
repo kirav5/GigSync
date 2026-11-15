@@ -1,4 +1,12 @@
-import { DAY_HOURS, ISO_WEEKDAYS, type IsoWeekday, MAX_HOURS, MaterialsBy, MIN_HOURS } from "@gigsync/protocol";
+import {
+  DAY_HOURS,
+  ISO_WEEKDAYS,
+  type IsoWeekday,
+  MAX_HOURS,
+  MAX_RADIUS_KM,
+  MaterialsBy,
+  MIN_HOURS,
+} from "@gigsync/protocol";
 import type { MessageKey } from "../i18n/t.js";
 import { hourText } from "../i18n/terms-text.js";
 import { range } from "../job/terms.js";
@@ -20,13 +28,17 @@ import { anyHoursSaid, daysSaid, hoursSaid, materialsSaid } from "./card-words.j
 
 /**
  * What a worker's card says besides the price (ADR 0033 §3, ADR 0053 §1, §7), by chat: the hours and days they work,
- * how far they go, who buys the materials and the most hours a day. All are asked only when the owner wants them
- * changed, so a first card stays short; a card without them works any time, as every card did.
+ * how far they go, who buys the materials and the most hours a day. All but how far they go are asked only when the
+ * owner wants them changed, so a first card stays short; a card without them works any time, as every card did.
  */
 
-/** How far a worker may say they go, in km (ADR 0045). */
-export const RADII_KM = [3, 5, 10, 25] as const;
-const FARTHEST_KM = Math.max(...RADII_KM);
+/**
+ * How far a worker goes, in km (ADR 0045): asked right after the area, with these as quick chips and a slider over a
+ * map of their area for any other distance up to the board's limit, which starts at `ASKED_RADIUS_KM`.
+ */
+export const RADII_KM = [5, 10] as const;
+export const ASKED_RADIUS_KM = 10;
+const FARTHEST_KM = MAX_RADIUS_KM;
 /** The most-hours choices a worker taps; any other number within the limit may be said. */
 export const MOST_HOURS = [4, 6, 8, 10] as const;
 /** The latest a worker's day ends: one hour after the last start hour a household can pick. */
@@ -189,7 +201,8 @@ export function chooseTerms(s: InterviewState, value: string): InterviewState {
     case Slot.days:
       return chooseDays(s, value);
     case Slot.radius:
-      return RADII_KM.some((km) => km === n) ? keepRadius(s, n) : s;
+      // A chip, or the slider's own distance: any whole number of km within the board's limit.
+      return Number.isInteger(n) ? keepRadius(s, n) : s;
     case Slot.materials: {
       if (value === Pick.any) return keepMaterials(s, null);
       return MaterialsBy.safeParse(value).success ? keepMaterials(s, MaterialsBy.parse(value)) : s;

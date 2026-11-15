@@ -15,6 +15,7 @@ import { z } from "zod";
 import { ApiError, type AppEnv, USER_PARAM, Var } from "../context.js";
 import { activeDeviceIds, deviceSigningKey, pushAddresses } from "../db/devices.js";
 import { offerTaken } from "../db/qr-offers.js";
+import { recordFallbackCity } from "../live-cities.js";
 import { vapidOf, WAKE_KINDS, wakeAll } from "../push/webpush.js";
 import { OFFER_SEND_MS } from "../qr/rules.js";
 import { noteDeliveredAgree } from "../records/one-sided.js";
@@ -69,7 +70,7 @@ mail.post(`/mailbox/:${USER_PARAM}`, envelopeLimit, async (c) => {
   }
   const box = c.env.MAILBOX.get(c.env.MAILBOX.idFromName(to.data));
   const out = await box.deliver({ envelope: e, devices: sealed });
-  await noteDeliveredAgree(db, e, c.get(Var.requestId));
+  await noteDeliveredAgree(db, e, c.get(Var.requestId), recordFallbackCity(c.env));
   log.info("envelope delivered", {
     requestId: c.get(Var.requestId),
     messageId: e.id,

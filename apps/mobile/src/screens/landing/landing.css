@@ -81,23 +81,51 @@
   font-size: var(--fs-2);
 }
 
-/* A helpline is one tap to call: a full-height row. */
-.helpline {
+/* A fold of the guide (places, registration, money, not yet checked): closed, a card that reads as one list row, its
+   title and a chevron at the end that turns down when open. */
+.card.guide-fold {
+  padding: 0;
+  gap: 0;
+}
+.guide-fold > summary {
   display: flex;
-  gap: 10px;
-  align-items: baseline;
-  min-height: var(--tap);
-  padding: 8px 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--tap-lg);
+  padding: 12px 16px;
   color: var(--text);
-  text-decoration: none;
+  font-size: calc(var(--fs-2) + 1px);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  list-style: none;
+  cursor: pointer;
+}
+.guide-fold > summary::-webkit-details-marker {
+  display: none;
+}
+.guide-fold > summary::after {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-inline-end: 4px;
+  border-right: 1.7px solid var(--text3);
+  border-bottom: 1.7px solid var(--text3);
+  transform: rotate(-45deg);
+  transition: transform var(--pick-ms, 160ms) ease;
+}
+.guide-fold[open] > summary::after {
+  transform: rotate(45deg);
+}
+.guide-fold > section {
+  padding: 0 16px 16px;
 }
 
-/* Where are you moving? (design W18): the question, the city chips, what comes with you, then the day and the work. */
+/* Where are you moving? (design W18): the city chips, what you get, then the day and the work in one card. */
 .move-start {
   display: grid;
-  gap: 14px;
+  gap: 18px;
   min-width: 0;
-}
-.move-start > .btn-big {
-  margin-top: 4px;
 }

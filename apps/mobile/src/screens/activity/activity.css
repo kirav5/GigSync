@@ -1,6 +1,6 @@
-/* The Jobs tab (design H6): three sections one under the other, each a small uppercase label over one card of job
-   lines; Needs you's card has a rust rule. A line opens its job's card in place, inside the same card. Home lists its
-   jobs with the same lines. Sizes and colours come from styles.css. */
+/* The Jobs tab, laid out as an activity page: sections one under the other (Needs you, Agents talking, Agreed by day,
+   Done by day), each a small uppercase label with its count over compact job cards. A card opens its job's whole card
+   in place, inside the same card. Home lists its jobs with the same cards. Sizes and colours come from styles.css. */
 
 /* The tab's heading, for readers: the top bar already says Jobs. */
 .jobs-heading {
@@ -17,13 +17,37 @@
 
 .job-group {
   display: grid;
+  gap: 10px;
+}
+.job-group-head {
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
-.job-group.needs > .section-label {
+.job-group.needs .section-label {
   color: var(--rust);
 }
+/* How many jobs a section holds: a small round count, rust under Needs you. */
+.job-count,
+.activity-closed b {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: var(--radius-chip);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: calc(var(--fs-label) - 1px);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.job-group.needs .job-count {
+  background: var(--rust);
+  color: var(--on-accent);
+}
 
-/* A worker's day inside Agreed: Today's jobs, Coming up, Other jobs. */
+/* A day inside a section: Today, Coming up, Other days; Yesterday, This week, Earlier under Done. */
 .job-day {
   margin: 4px 0 0;
   font-size: var(--fs-label);
@@ -32,24 +56,26 @@
   color: var(--text2);
 }
 
+/* Each job its own white card, a little apart from the next. */
 .job-rows {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
+  gap: 8px;
+}
+.job-rows > li {
   background: var(--surface);
   border: 1px solid var(--hairline);
-  border-radius: var(--radius-card);
+  border-radius: var(--radius-row);
   overflow: hidden;
 }
-.job-group.needs .job-rows {
-  border-color: var(--rust);
-}
-.job-rows > li + li {
-  border-top: 1px solid var(--hairline);
+/* Needs you: the normal light line, and a terracotta bar down the card's leading edge. */
+.job-group.needs .job-rows > li {
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
-/* One line: the person's tile, their name over the work and where it stands, the word at the end, a chevron. */
+/* One card's face: the person's tile; the name with the amount across; the work; the status pill and when. */
 .job-row {
   display: flex;
   align-items: center;
@@ -57,7 +83,7 @@
   width: 100%;
   min-height: var(--tap-lg);
   margin: 0;
-  padding: 12px 16px;
+  padding: 12px 14px;
   border: 0;
   background: none;
   color: inherit;
@@ -74,11 +100,30 @@
   display: grid;
   gap: 2px;
 }
+.job-row-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
 .job-row-name {
+  min-width: 0;
   font-size: calc(var(--fs-2) + 1px);
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.3;
   overflow-wrap: anywhere;
+}
+.job-row-amount {
+  flex: none;
+  font-size: calc(var(--fs-2) + 1px);
+  font-weight: 600;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+/* While the agents talk, the amount is only the latest offer: quieter than a price agreed. */
+.job-row-amount.talk {
+  font-weight: 500;
+  color: var(--text2);
 }
 .job-row-line {
   font-size: var(--fs-label);
@@ -86,25 +131,47 @@
   color: var(--text2);
   overflow-wrap: anywhere;
 }
-/* The word at the end wraps rather than squeezing the name: Hindi and Kannada words run long at 360px. */
-.job-row-word {
-  flex: none;
-  max-width: 36%;
+.job-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-top: 4px;
   font-size: var(--fs-label);
-  font-weight: 600;
-  line-height: 1.3;
-  text-align: end;
-  overflow-wrap: anywhere;
-}
-.job-row-word.act {
-  color: var(--rust);
-}
-.job-row-word.talk {
+  line-height: 1.35;
   color: var(--text2);
 }
-.job-row-word.done {
-  color: var(--green);
+
+/* The status pill: rust when the move is the owner's, plain while the agents talk, the picked tint once agreed,
+   green only once the money is in. Hindi and Kannada words run long at 360px, so it wraps rather than overflowing. */
+.job-pill {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 2px 10px;
+  border-radius: var(--radius-chip);
+  font-size: calc(var(--fs-tag) - 1px);
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
+.job-pill.act {
+  background: var(--rust);
+  color: var(--on-accent);
+}
+.job-pill.talk {
+  background: var(--surface2);
+  color: var(--text2);
+}
+.job-pill.done {
+  background: var(--picked);
+  color: var(--picked-ink);
+}
+.job-pill.paid {
+  background: var(--done-fill);
+  color: var(--fresh);
+}
+
 .job-row-chev {
   flex: none;
   display: grid;
@@ -120,7 +187,9 @@
   }
 }
 
-/* The job's own card, opened under its line: it sits inside the list's card instead of drawing a second one. */
+/* The job's own card, opened under its face: it sits inside the same card instead of drawing a second one, and its
+   head drops the person's tile and name, which the face above already shows. The work and when stay: the time there
+   may be the other side's own words, translated. */
 .job-row-open {
   padding-bottom: 4px;
   border-top: 1px dashed var(--hairline);
@@ -131,15 +200,66 @@
   background: transparent;
   box-shadow: none;
 }
+.job-row-open .job-head > .avatar,
+.job-row-open .job-head .job-name {
+  display: none;
+}
 
-/* The foot: finished jobs are with the payments, the way there with their count, and when the phone last checked. */
-.activity-foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 10px;
+/* No jobs at all: one quiet card with what the tab is for and what to ask. */
+.jobs-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 28px 20px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-card);
+}
+.jobs-empty p {
   margin: 0;
 }
-.activity-foot b {
-  font-variant-numeric: tabular-nums;
+.jobs-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--picked);
+  color: var(--picked-ink);
+}
+.jobs-empty-title {
+  font-family: var(--serif);
+  font-size: var(--fs-title);
+  line-height: 1.25;
+}
+
+/* The foot: the way to every finished job on Money with their count, then when the phone last checked. */
+.activity-foot {
+  display: grid;
+  gap: 8px;
+}
+.activity-closed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--tap);
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-row);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  font-size: var(--fs-2);
+  font-weight: 500;
+  text-align: start;
+  cursor: pointer;
+}
+.activity-closed > span {
+  flex: 1;
+}
+.activity-closed > svg {
+  color: var(--text3);
 }

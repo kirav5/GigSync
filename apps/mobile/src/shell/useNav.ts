@@ -26,23 +26,13 @@ function opened(stack: readonly Screen[], to: Screen, landing: Screen, tab: bool
   return [...stack, to];
 }
 
-/** The same stack on a new landing screen: a worker whose card was just made lands on Home, with Talk above it. */
-const rebased = (stack: readonly Screen[], landing: Screen): readonly Screen[] =>
-  stack[0] === landing ? stack : [landing, ...stack.filter((s) => s !== landing)];
-
 /**
  * The navigation stack, as a phone app's: a tab tap starts it again at that tab (above the landing screen, so Back
  * from any tab comes to the landing one, then leaves), a screen opened from inside another goes on top, and Back pops
- * it. `isTab` says which screens are this owner's tabs; the landing screen can change (a worker's first card).
+ * it. `isTab` says which screens are this owner's tabs; the landing screen is the owner's Home, their chat.
  */
 export function useNav(landing: Screen, isTab: (s: Screen) => boolean): Nav {
   const [stack, setStack] = useState<readonly Screen[]>([landing]);
-  const [base, setBase] = useState(landing);
-  // The landing screen moved: the stack moves onto it, and the open screen stays open.
-  if (base !== landing) {
-    setBase(landing);
-    setStack((now) => rebased(now, landing));
-  }
 
   const go = useCallback((to: Screen) => setStack((now) => opened(now, to, landing, isTab(to))), [landing, isTab]);
   const goFrom = useCallback(

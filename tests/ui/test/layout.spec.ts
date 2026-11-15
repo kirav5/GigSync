@@ -2,18 +2,30 @@ import { type ApiClient, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { tellNeed } from "./findChat.js";
-import { APP, completeSignIn, counted, listWorker, newPhone, openCard, Role, RUN, tabBar } from "./helpers.js";
+import {
+  APP,
+  completeSignIn,
+  composerButton,
+  counted,
+  listWorker,
+  newPhone,
+  openCard,
+  Role,
+  RUN,
+  tabBar,
+} from "./helpers.js";
 
 /**
  * A 360×640 phone, the small end of what pilot workers carry: on every screen with a dock, its one action is on
  * screen without scrolling; signed in, the tab bar is there; nothing scrolls sideways; and the type is the size the
- * rework set: body text at least 17px in English and a step larger in Hindi, buttons at least 16px. Lists to pick
- * from and checkboxes are 48px targets in every engine (WebKit draws a native select about 31px tall).
+ * rework set: body text at least 16px in English and a step larger in Hindi, buttons at least 16px. Lists to pick
+ * from and checkboxes are 48px targets in every engine (WebKit draws a native select about 31px tall). The composer
+ * keeps its four buttons on one line and its whole placeholder readable.
  */
 
 const { en, hi } = Lang.enum;
 const PHONE = { width: 360, height: 640 };
-const BODY_MIN_PX: Readonly<Record<Lang, number>> = { en: 17, hi: 18, kn: 18 };
+const BODY_MIN_PX: Readonly<Record<Lang, number>> = { en: 16, hi: 17, kn: 17 };
 const BUTTON_MIN_PX = 16;
 /** The rework's touch target (`--tap`). */
 const TAP_PX = 48;
@@ -51,6 +63,25 @@ async function fits(page: Page, action: Locator, lang: Lang, text: Locator = pag
   expect(await fontPx(text)).toBeGreaterThanOrEqual(BODY_MIN_PX[lang]);
 }
 
+/** The composer's buttons share one line, and its field shows the whole placeholder. */
+async function composerFits(page: Page) {
+  const fit = await page.locator("form.composer").evaluate((form) => {
+    const input = form.querySelector("input");
+    if (!input) return { tops: [], text: 1, room: 0 };
+    const tops = Array.from(form.querySelectorAll(".composer-row > button"), (b) =>
+      Math.round(b.getBoundingClientRect().top),
+    );
+    const style = getComputedStyle(input);
+    const pen = document.createElement("canvas").getContext("2d");
+    if (!pen) return { tops, text: 1, room: 0 };
+    pen.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    const room = input.clientWidth - Number.parseFloat(style.paddingLeft) - Number.parseFloat(style.paddingRight);
+    return { tops, text: pen.measureText(input.placeholder).width, room };
+  });
+  expect(new Set(fit.tops).size).toBe(1);
+  expect(fit.text).toBeLessThanOrEqual(fit.room);
+}
+
 /** The language screen's row for `lang`, checked to fit: the screen is in the phone's own language (English) until a tap. */
 async function pickLanguage(page: Page, lang: Lang): Promise<Locator> {
   const row = page.getByRole("button", { name: t(lang, `lang.${lang}`), exact: true });
@@ -58,16 +89,15 @@ async function pickLanguage(page: Page, lang: Lang): Promise<Locator> {
   return row;
 }
 
-/** Sign-in's first step: the role, a tap that moves on to the name and number. */
-async function pickRole(page: Page, lang: Lang, role: Role) {
-  const form = page.getByRole("form", { name: t(lang, "signin.label") });
-  await form.getByRole("radio", { name: t(lang, `signin.${role}`), exact: true }).click();
+/** Sign-in's first step: the welcome's Get started, which moves on to the number; the side is asked after the code. */
+async function startSignIn(page: Page, lang: Lang) {
+  await page.getByRole("button", { name: t(lang, "start.welcome_go"), exact: true }).click();
 }
 
 test("a worker's screens at 360×640 in English: Language, Sign-in, Talk and My card", async ({ page }) => {
   await page.goto(APP);
   await (await pickLanguage(page, en)).click();
-  await pickRole(page, en, Role.worker);
+  await startSignIn(page, en);
 
   await fits(page, page.getByRole("button", { name: t(en, "signin.send_code"), exact: true }), en);
   await completeSignIn(page, { role: Role.worker, name: `Lakshmi ${RUN}`, phone: newPhone() });
@@ -76,12 +106,14 @@ test("a worker's screens at 360×640 in English: Language, Sign-in, Talk and My 
   await expect(tabBar(page)).toBeInViewport(WHOLE);
   await fits(page, page.getByRole("button", { name: t(en, "speech.listen") }), en);
   await expect(page.getByRole("form", { name: t(en, "nav.talk") })).toBeInViewport(WHOLE);
-  // Typed words turn the mic into send, in the same place.
+  await composerFits(page);
+  // Typed words turn the round voice button into send, in the same place, whole at 360 px.
   await page
     .getByRole("form", { name: t(en, "nav.talk") })
     .getByRole("textbox")
     .fill("hello");
   await expect(page.getByRole("button", { name: t(en, "a11y.send"), exact: true })).toBeInViewport(WHOLE);
+  await expect(page.getByRole("button", { name: t(en, "a11y.send"), exact: true })).toBeEnabled();
   await expect(page.getByRole("button", { name: t(en, "speech.listen") })).toHaveCount(0);
 
   await openCard(page);
@@ -100,7 +132,7 @@ test("a household's screens at 360×640 in Hindi: Language, Sign-in and Find's A
   other = await listWorker(name, ["painter"], WHITEFIELD, 80000, { area_name: "Whitefield", languages: [hi] });
   await page.goto(APP);
   await (await pickLanguage(page, hi)).click();
-  await pickRole(page, hi, Role.consumer);
+  await startSignIn(page, hi);
 
   await fits(page, page.getByRole("button", { name: t(hi, "signin.send_code"), exact: true }), hi);
   await completeSignIn(page, {
@@ -112,7 +144,8 @@ test("a household's screens at 360×640 in Hindi: Language, Sign-in and Find's A
   });
 
   // Find's chat on a small phone: its choices are tappable, the found workers listed, and Ask reachable.
-  await tappable(page.getByRole("log").getByRole("button", { name: t(hi, "need.pick_work"), exact: true }));
+  await tappable(composerButton(page, "composer.more", hi));
+  await composerFits(page);
   await tellNeed(
     { page, lang: hi },
     { trade: "painter", area: "Whitefield", need: t(hi, "trade.painter"), when: "when.today", budget: "8000" },

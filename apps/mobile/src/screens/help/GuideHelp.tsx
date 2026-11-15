@@ -1,69 +1,61 @@
-import { type CityGuide, PlaceKind } from "@gigsync/protocol";
+import { type CityGuide, type GuidePlace, PlaceKind } from "@gigsync/protocol";
+import { useState } from "react";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
-import { Icon } from "../../ui/Icon.js";
-import { ListCard } from "../../ui/ListRow.js";
+import { ListCard, ListRow } from "../../ui/ListRow.js";
+import { Sheet } from "../../ui/Sheet.js";
 import { ExternalLink, GUIDE_LANG, GuideText } from "../landing/SectionView.js";
+import { CallRows } from "./CallRows.js";
 
-const TEL = "tel:";
-const SPACES = /\s+/g;
-
-/** The guide's numbers as rows of one card, each a tap to call (as on the landing journey and No mentor). */
+/** The guide's numbers as rows of one card, each a tap to call (as on the moving journey). */
 export function GuideLines({ guide }: { guide: CityGuide }) {
   const { t } = useI18n();
-  if (guide.helplines.length === 0) return null;
+  const lines = guide.helplines.map((h) => ({
+    name: <GuideText text={h.name} original={false} />,
+    said: h.name,
+    number: h.number,
+  }));
+  return <CallRows label={t("mentor.helplines")} lines={lines} />;
+}
+
+/** One union in a sheet: what the sources say, and the source. */
+function UnionSheet({ union, onClose }: { union: GuidePlace; onClose: () => void }) {
+  const { t } = useI18n();
   return (
-    <ListCard label={t("mentor.helplines")}>
-      {guide.helplines.map((h) => (
-        <a
-          key={h.number}
-          className="list-row"
-          href={`${TEL}${h.number.replace(SPACES, "")}`}
-          aria-label={t("landing.call", { name: h.name, number: h.number })}
-        >
-          <span className="list-row-icon">
-            <Icon name="call" size={20} />
-          </span>
-          <span className="list-row-text">
-            <span className="list-row-title">
-              <GuideText text={h.name} original={false} />
-            </span>
-            <span className={`list-row-sub ${C.money}`}>{h.number}</span>
-          </span>
-        </a>
-      ))}
-    </ListCard>
+    <Sheet title={union.name} line={union.area} icon="people" done={t("progress.done")} onClose={onClose}>
+      <div className={C.stack}>
+        <GuideText text={union.detail} />
+        <ExternalLink href={union.source}>{t("landing.source")}</ExternalLink>
+      </div>
+    </Sheet>
   );
 }
 
 /**
- * The unions the guide lists, as it lists them: the name, the area (whose office it marks not verified), what the
- * sources say, and the source. No steward, no "your union" and no call button: the guide gives no number, and GigSync is
+ * The unions the guide lists, a row each with its area (whose office it marks not verified); a tap opens what the
+ * sources say and the source. No steward, no "your union" and no call button: the guide gives no number, and GigSync is
  * no part of any union (ADR 0017 is not built).
  */
 export function GuideUnions({ guide, city }: { guide: CityGuide; city: string }) {
   const { t } = useI18n();
+  const [open, setOpen] = useState<GuidePlace>();
   const unions = guide.places.filter((p) => p.kind === PlaceKind.enum.union);
   if (unions.length === 0) return null;
-  const title = t("me.unions", { city });
   return (
-    <section className={C.card} aria-label={title}>
-      <span className={C.label}>{title}</span>
-      <ul className="help-unions">
+    <>
+      <ListCard label={t("me.unions", { city })}>
         {unions.map((u) => (
-          <li key={u.name} className={C.stack}>
-            <strong className={C.title} lang={GUIDE_LANG}>
-              {u.name}
-            </strong>
-            <span className={C.faint} lang={GUIDE_LANG}>
-              {u.area}
-            </span>
-            <GuideText text={u.detail} />
-            <ExternalLink href={u.source}>{t("landing.source")}</ExternalLink>
-          </li>
+          <ListRow
+            key={u.name}
+            icon="people"
+            title={u.name}
+            sub={<span lang={GUIDE_LANG}>{u.area}</span>}
+            onClick={() => setOpen(u)}
+          />
         ))}
-      </ul>
+      </ListCard>
       <p className="fine">{t("me.unions_about")}</p>
-    </section>
+      {open && <UnionSheet union={open} onClose={() => setOpen(undefined)} />}
+    </>
   );
 }

@@ -29,6 +29,7 @@ import { map } from "./routes/map.js";
 import { me } from "./routes/me.js";
 import { mentors } from "./routes/mentors.js";
 import { model } from "./routes/model.js";
+import { phoneConfirm } from "./routes/phone-confirm.js";
 import { qr } from "./routes/qr.js";
 import { transfer } from "./routes/transfer.js";
 
@@ -113,6 +114,7 @@ app.route(`${V1}/find`, find);
 app.route(`${V1}/geo/map`, map);
 app.route(`${V1}/geo`, geo);
 app.route(`${V1}/model`, model);
+app.route(`${V1}/phone/confirm`, phoneConfirm);
 app.route(`${V1}/qr`, qr);
 app.route(`${V1}/transfer`, transfer);
 

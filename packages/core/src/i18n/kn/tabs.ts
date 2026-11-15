@@ -1,16 +1,29 @@
 import type { tabs as en } from "../en/tabs.js";
 
-/** Kannada: the bottom tabs and the top bar's own words. */
+/** Kannada: the bottom tabs, the top bar's own words, the profile sheet and Home's greeting. */
 export const tabs: Readonly<Record<keyof typeof en, string>> = {
   "shell.tabs": "ಮುಖ್ಯ ಟ್ಯಾಬ್‌ಗಳು",
   "nav.home": "ಮುಖಪುಟ",
   "nav.jobs": "ಕೆಲಸಗಳು",
-  "nav.money": "ಹಣ",
-  "nav.pay": "ಪಾವತಿ",
-  "nav.me": "ನಾನು",
+  "nav.earnings": "ಗಳಿಕೆ",
+  "nav.payments": "ಪಾವತಿಗಳು",
   "tabs.namaste": "ನಮಸ್ತೆ, {name}",
-  "tabs.find_title": "ಸಹಾಯ ಹುಡುಕಿ",
   "tabs.alerts": "ಸೂಚನೆಗಳು",
   "tabs.alerts_none": "ಈಗ ನಿಮಗಾಗಿ ಏನೂ ಕಾಯುತ್ತಿಲ್ಲ.",
-  "home.talk_agent": "ನಿಮ್ಮ ಏಜೆಂಟ್ ಜೊತೆ ಮಾತನಾಡಿ",
+  "profile.open": "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್",
+  "profile.title": "ಪ್ರೊಫೈಲ್",
+  "profile.done": "ಆಯಿತು",
+  "profile.verified": "✓ ಫೋನ್ ಸಂಖ್ಯೆ ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
+  "profile.group_card": "ನಿಮ್ಮ ಕಾರ್ಡ್",
+  "profile.group_home": "ನಿಮ್ಮ ಮನೆ",
+  "profile.group_help": "ಸೂಚನೆಗಳು ಮತ್ತು ಸಹಾಯ",
+  "profile.group_prefs": "ಆದ್ಯತೆಗಳು",
+  "profile.my_qr": "ನನ್ನ QR",
+  "profile.my_qr_sub": "ಕೆಲಸಗಾರರು ಇದನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ನಿಮ್ಮಲ್ಲಿ ಕೆಲಸ ಮಾಡಲು ಮುಂದಾಗಬಹುದು",
+  "home.ask_household": "ನಿಮಗೆ ಯಾವ ಕೆಲಸಕ್ಕೆ ಸಹಾಯ ಬೇಕು?",
+  "home.suggest_jobs": "ಇಂದಿನ ಕೆಲಸಗಳನ್ನು ತೋರಿಸಿ",
+  "home.suggest_verify": "ಗುರುತು ಪರಿಶೀಲಿಸಿಕೊಳ್ಳಿ",
+  "home.suggest_cook": "ಪ್ರತಿದಿನ ಅಡುಗೆಗೆ ಒಬ್ಬರು",
+  "home.suggest_clean": "ಮನೆಗೆಲಸಕ್ಕೆ ಒಬ್ಬರು",
+  "home.my_places": "ನನ್ನ ಸ್ಥಳಗಳು",
 };

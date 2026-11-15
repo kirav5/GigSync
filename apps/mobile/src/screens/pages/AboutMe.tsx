@@ -9,7 +9,6 @@ import { Dock } from "../../ui/Dock.js";
 import { Icon } from "../../ui/Icon.js";
 import { MemorySection } from "../memory/MemorySection.js";
 import { AboutFields } from "./AboutFields.js";
-import { LanguagePicker } from "./LanguagePicker.js";
 import "./pages.css";
 
 interface Props {
@@ -18,17 +17,20 @@ interface Props {
   isWorker: boolean;
   /** Opens the worker's card as a form, where work, area and languages are changed. */
   onEditCard: () => void;
+  /** Opens the work area on its map, where the area and the distance are changed. */
+  onEditArea: () => void;
   /** Opens Talk on the card interview: the worker changes their card by saying it (ADR 0053 §7). */
   onTalk: () => void;
 }
 
 /**
  * About me (design P2): who the owner is, then for a worker their work, area and languages as fields that open the
- * card's form, and where they are paid (the UPI ID, asked for nowhere else); then the language and what their agent
- * remembers, for both sides. The name is shown, not edited: it is on the board card and the QR, so changing it here
- * would need the card published again. A worker's one big action is changing the card by talking.
+ * card's form, and where they are paid (the UPI ID, asked for nowhere else); then what their agent remembers, for both
+ * sides; the language is the profile's Language row, not here again. The name is shown, not edited: it is on the board
+ * card and the QR, so changing it here would need the card published again. A worker's one big action is changing the
+ * card by talking.
  */
-export function AboutMe({ ports, account, isWorker, onEditCard, onTalk }: Props) {
+export function AboutMe({ ports, account, isWorker, onEditCard, onEditArea, onTalk }: Props) {
   const { t } = useI18n();
   const name = account.contact.name;
   return (
@@ -36,10 +38,10 @@ export function AboutMe({ ports, account, isWorker, onEditCard, onTalk }: Props)
       <div className="about-head">
         <Avatar name={name} size={AvatarSize.xl} />
         <h1 className="hero-title">{name}</h1>
+        {account.nickname && <p className={C.muted}>{t("idcheck.nickname", { name: account.nickname })}</p>}
       </div>
-      {isWorker && <AboutFields account={account} onEditCard={onEditCard} />}
+      {isWorker && <AboutFields account={account} onEditCard={onEditCard} onEditArea={onEditArea} />}
       {isWorker && <PayeeForm ports={ports} defaultName={name.slice(0, PAYEE_NAME_MAX)} />}
-      <LanguagePicker />
       <MemorySection ports={ports} account={account} />
       {isWorker && (
         <Dock>

@@ -13,9 +13,15 @@ ADMIN_KEY=dev-only-admin-key
 # VAPID_PUBLIC_KEY=
 # VAPID_PRIVATE_KEY=
 # VAPID_SUBJECT=mailto:ops@gigsync.network
+# Real SMS codes through Firebase phone sign-in (docs/setup/firebase-phone-sign-in.md): the Firebase project id. Unset
+# means /v1/auth/phone/verify answers 503 and only DEV_OTP signs in. Deployed: FIREBASE_PROJECT_ID in wrangler.toml.
+# FIREBASE_PROJECT_ID=
 # Geocoding for the address form (ADR 0045): an Ola Maps key. Unset means the geo routes answer 503 and the app
 # offers typing the address instead. Deployed: `wrangler secret put OLA_MAPS_API_KEY`.
 # OLA_MAPS_API_KEY=
+# Live cities (README "Live cities"): unset serves the directory's live cities; a comma list only those
+# (bengaluru,kanpur); `*` lets every place in, for testing from anywhere. Leave it unset for the UI tests.
+# LIVE_CITIES=*
 
 # GigSync's own model (ADR 0052): Ollama on the Mac Studio. Unset, the model route answers 503 and phones use their
 # own model or lite mode. Locally, the Studio's LAN address; deployed, the Cloudflare Tunnel's hostname, set as vars,

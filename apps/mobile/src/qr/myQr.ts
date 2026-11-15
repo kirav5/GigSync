@@ -1,4 +1,4 @@
-import { keepQr, qrOwner, type Storage, showMyQr } from "@gigsync/core";
+import { qrOwner, type Storage, showMyQr } from "@gigsync/core";
 import { type MyQr, QrRole } from "@gigsync/protocol";
 import { type Account, AccountRole, apiClient } from "../adapters/account.js";
 import { myQrLink } from "../adapters/links.js";
@@ -24,7 +24,7 @@ async function shown(mine: MyQr): Promise<ShownQr> {
 
 /**
  * The owner's live QR, drawn on this phone: at once from the code kept in their storage, then again only if the
- * server (which makes it on first ask) says it changed, as after a new QR on another device. `show` gets each picture
+ * server (which makes it on first ask) gives a different code. `show` gets each picture
  * in order; a slower drawing of an older code never replaces a newer one.
  */
 export async function loadMyQr(account: Account, storage: Storage, show: (qr: ShownQr) => void): Promise<void> {
@@ -36,13 +36,6 @@ export async function loadMyQr(account: Account, storage: Storage, show: (qr: Sh
     });
   };
   await showMyQr(storage, () => myQrOf(account), draw);
-}
-
-/** A new QR in place of the old one, which stops finding the owner at once; kept on this phone from now on. */
-export async function replaceMyQr(account: Account, storage: Storage): Promise<ShownQr> {
-  const mine = await apiClient(account.session).replaceQr(ownerOf(account));
-  await keepQr(storage, mine);
-  return shown(mine);
 }
 
 /** The name a downloaded QR picture is saved under. */

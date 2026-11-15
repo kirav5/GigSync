@@ -14,6 +14,7 @@ import { deviceProtocol } from "../db/devices.js";
 import { paymentsFor } from "../db/job-payments.js";
 import { partyOf, recordsPage, setStatus } from "../db/job-records.js";
 import { countHit, RateAction } from "../db/rate-windows.js";
+import { recordFallbackCity } from "../live-cities.js";
 import { requireConsent } from "../middleware/consent.js";
 import { attest } from "../records/attest.js";
 import { exportPage } from "../records/export.js";
@@ -38,7 +39,7 @@ jobRecords.post(Path.submit, requireConsent, async (c) => {
   const now = new Date();
   const hits = await countHit(db, user, RateAction.jobSubmit, now, new Date(now.getTime() - HOUR_MS));
   if (hits > RECORD_SUBMISSIONS_PER_HOUR) return c.json({ error: ApiError.tooManyAttempts }, 429);
-  const out = await attest(db, user, submit.data, now);
+  const out = await attest(db, user, submit.data, now, recordFallbackCity(c.env));
   const requestId = c.get(Var.requestId);
   if ("unknownCounterpart" in out) return c.json({ error: ApiError.recipientNotFound }, 404);
   if ("refusal" in out) {

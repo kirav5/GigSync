@@ -91,7 +91,7 @@ export const mentor: Readonly<Record<keyof typeof en, string>> = {
   "mentor.links_about": "ನಿಮ್ಮ ಮಾರ್ಗದರ್ಶಕರು ಮತ್ತು ನೀವು ಸಹಾಯ ಮಾಡುವವರು. ನಿಮ್ಮಲ್ಲಿ ಯಾರಾದರೂ ಮುಂದುವರಿಸದಿದ್ದರೆ ಜೋಡಣೆ 30 ದಿನ ಇರುತ್ತದೆ.",
   "mentor.unread.one": "{count} ಹೊಸ ಸಂದೇಶ",
   "mentor.unread.other": "{count} ಹೊಸ ಸಂದೇಶಗಳು",
-  "mentor.placeholder": "{name} ಅವರಿಗೆ ಸಂದೇಶ",
+  "mentor.placeholder": "{name}ಗೆ ಸಂದೇಶ",
   "mentor.thread_empty": "{name} ಅವರಿಗೆ ನಮಸ್ಕಾರ ಹೇಳಿ.",
   "mentor.end": "ಜೋಡಣೆ ಮುಗಿಸಿ",
   "mentor.end_confirm": "{name} ಅವರೊಂದಿಗಿನ ಜೋಡಣೆ ಮುಗಿಸಲೇ? ಅವರೊಂದಿಗಿನ ಸಂದೇಶಗಳು ಈ ಫೋನ್‌ನಿಂದ ಅಳಿಸಿಹೋಗುತ್ತವೆ.",

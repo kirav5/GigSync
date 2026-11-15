@@ -1,25 +1,21 @@
 import { Collection, type GenerateOptions, log, type Model, pii, type Storage, withoutReasoning } from "@gigsync/core";
 import type { Session } from "@gigsync/protocol";
 import { useSyncExternalStore } from "react";
-import { OnDevice } from "./model-device.js";
 import { OllamaModel } from "./ollama.js";
 import { ServerModel } from "./server-model.js";
-
-export { Notice } from "./model-device.js";
 
 /**
  * Which model the agent uses, chosen in Settings and kept on this device. Everything goes through core's `Model`
  * port, so the agent never knows which engine answered (HLD principle 6).
- *   auto:   GigSync's own model on GigSync's computer (ADR 0052); when it cannot answer, the device's own model once
- *           it is downloaded and ready; otherwise lite mode
- *   device: always try the device's own model (WebLLM in the web app; LiteRT-LM on Android, Apple Foundation Models)
+ *   auto:   GigSync's own model on GigSync's computer (ADR 0052); when it cannot answer, lite mode
+ *   lite:   no generative model: the Privacy switch turned off, so nothing typed leaves the phone
  *   ollama: development builds only, a model served by Ollama on this computer
- * `server` is never chosen as such: it is what answers under auto while GigSync's model can be asked. `lite` is never
- * chosen either, nor named on any screen: it is what answers when no model can, and rules and templates do every job.
+ * `server` is never chosen as such: it is what answers under auto while GigSync's model can be asked. Lite is named on
+ * no screen: rules, templates and the understanding pack (embedder.ts, ADR 0042 and 0065) do every job. No generative
+ * model runs on the phone on any platform (2026-11-15): the web no longer downloads one, as the apps never did.
  */
 export const ModelChoice = {
   auto: "auto",
-  device: "device",
   lite: "lite",
   ollama: "ollama",
   server: "server",
@@ -36,6 +32,8 @@ export interface ModelSettings {
 export const OLLAMA_OFFERED = import.meta.env.DEV;
 
 const SETTINGS_KEY = "model";
+/** The choice once saved for the phone's own generative model, read as lite now that there is none. */
+const RETIRED_DEVICE_CHOICE = "device";
 /** A development build given an Ollama model (`VITE_OLLAMA_MODEL`) uses it; there is no screen to pick one. */
 const DEV_OLLAMA = OLLAMA_OFFERED ? (import.meta.env.VITE_OLLAMA_MODEL ?? "") : "";
 const DEFAULTS: ModelSettings = {
@@ -47,24 +45,24 @@ export class ChosenModel implements Model {
   private settings: ModelSettings = DEFAULTS;
   private readonly listeners = new Set<() => void>();
   private version = 0;
-  /** The phone's own model: its status and the download. */
-  readonly device = new OnDevice(() => this.notify(), import.meta.env.VITE_MODEL_BASE_URL);
   /** GigSync's own model, through the API (ADR 0052). */
   readonly server = new ServerModel(() => this.notify());
-  /** A secret answer is being read (the lowest rate): only a model on this phone may see it. */
+  /** A secret answer is being read (the lowest rate): it never leaves the phone, so no model reads it. */
   private secret = false;
 
   get current(): ModelSettings {
     return this.settings;
   }
 
-  /** Reads the saved choice and asks the device what it has. */
+  /** Reads the saved choice. */
   async load(storage: Storage): Promise<void> {
     const saved = await storage.get<Partial<ModelSettings>>(Collection.settings, SETTINGS_KEY);
     if (saved) this.settings = { ...DEFAULTS, ...saved };
-    // Lite was a choice once: the phone's own model keeps its promise (nothing leaves the phone) and falls back the same.
-    if (this.settings.choice === ModelChoice.lite) this.settings = { ...this.settings, choice: ModelChoice.device };
-    await this.device.load(storage);
+    // The phone's own model was a choice once: lite keeps its promise (nothing leaves the phone).
+    if ((this.settings.choice as string) === RETIRED_DEVICE_CHOICE) {
+      this.settings = { ...this.settings, choice: ModelChoice.lite };
+    }
+    this.notify();
   }
 
   /** The signed-in owner's session, for GigSync's model; none once signed out. */
@@ -104,31 +102,24 @@ export class ChosenModel implements Model {
 
   private async ask(prompt: string, options?: GenerateOptions): Promise<string | null> {
     switch (this.answering()) {
-      case ModelChoice.server: {
-        // GigSync's model first; when it gives nothing (down, too slow), the phone's own model if it has one.
-        const reply = await this.server.generate(prompt, options);
-        if (reply !== null || !this.device.usable()) return reply;
-        return this.device.generate(prompt, options);
-      }
+      case ModelChoice.server:
+        return this.server.generate(prompt, options);
       case ModelChoice.ollama:
         return new OllamaModel(this.settings.ollamaModel).generate(prompt, options);
-      case ModelChoice.device:
-        return this.device.generate(prompt, options);
       default:
         return null;
     }
   }
 
-  /** Which engine answers right now: GigSync's model, the device's own, Ollama, or none at all (`lite`). */
+  /** Which engine answers right now: GigSync's model, Ollama, or none at all (`lite`). */
   answering(): ModelChoice {
     switch (this.settings.choice) {
       case ModelChoice.ollama:
         return OLLAMA_OFFERED && this.settings.ollamaModel ? ModelChoice.ollama : ModelChoice.lite;
-      case ModelChoice.device:
-        return this.device.status?.available ? ModelChoice.device : ModelChoice.lite;
+      case ModelChoice.lite:
+        return ModelChoice.lite;
       default:
-        if (!this.secret && this.server.available) return ModelChoice.server;
-        return this.device.usable() ? ModelChoice.device : ModelChoice.lite;
+        return !this.secret && this.server.available ? ModelChoice.server : ModelChoice.lite;
     }
   }
 
@@ -148,7 +139,7 @@ export class ChosenModel implements Model {
 /** The app's single model router. */
 export const chosenModel = new ChosenModel();
 
-/** Re-renders a component whenever the model choice or the device's status changes. */
+/** Re-renders a component whenever the model choice or GigSync's model's reach changes. */
 export function useChosenModel(): ChosenModel {
   useSyncExternalStore(chosenModel.subscribe, chosenModel.snapshot);
   return chosenModel;

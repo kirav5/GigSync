@@ -1,5 +1,5 @@
 /* The signed-in frame (design kit: top(), tabs()): the title row (styles.css), the screen, the dock, and on a tab's
-   screen the four tabs at the foot. Wide (≥821px, adapters/wide.ts) the tabs stand as a rail on the left.
+   screen the three tabs at the foot. Wide (≥821px, adapters/wide.ts) the tabs stand as a rail on the left.
    Each safe area comes off once: the title row takes the top, the tabs (or the dock without them) the bottom. */
 .app.shell {
   /* The tab bar's height without the home indicator: a toast lifts this much on a tab's screen (toast.css). */
@@ -35,13 +35,16 @@
   height: 22px;
 }
 
-/* The tabs: an icon over its name, the one the owner is under in rust. */
+/* The tabs (the design's Home): an icon over a small name, the one the owner is under in rust, on warm paper a shade
+   lighter than the page with one hairline above, never a white bar. */
 .tabbar {
+  --tabbar-bg: #fbf7f0;
+  --tabbar-line: #ede3d3;
   flex: none;
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--hairline);
-  background: var(--surface);
+  border-top: 1px solid var(--tabbar-line);
+  background: var(--tabbar-bg);
   padding-bottom: env(safe-area-inset-bottom);
 }
 .tabbar .tabs {
@@ -76,8 +79,9 @@
   place-items: center;
 }
 .tab .ic {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
+  stroke-width: 1.8;
 }
 .tab-label {
   max-width: 100%;
@@ -85,7 +89,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* Decisions waiting, on Jobs; an unread mentor note, on Me. */
+/* Decisions waiting, on Jobs. */
 .tab-count {
   position: absolute;
   top: -5px;
@@ -98,17 +102,7 @@
   color: var(--on-accent);
   font: 700 11px / 18px var(--sans);
   text-align: center;
-  box-shadow: 0 0 0 2px var(--surface);
-}
-.tab-dot {
-  position: absolute;
-  top: -1px;
-  right: -3px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 2px var(--surface);
+  box-shadow: 0 0 0 2px var(--tabbar-bg);
 }
 /* With the keyboard up the tabs would ride on it and push the screen's field out of sight. */
 html[data-keyboard="open"] .tabbar {
@@ -193,11 +187,6 @@ html[data-keyboard="open"] .tabbar {
     background: var(--surface2);
   }
 }
-/* The confirm takes the row's whole width, under the chat it is about. */
-.chat-confirm {
-  flex-basis: 100%;
-}
-
 /* Wide: the tabs stand in a rail beside the title row, the screen and the dock, with the brand at the top and, while
    a chat is open, the other chats under the tabs. */
 @media (min-width: 821px) {

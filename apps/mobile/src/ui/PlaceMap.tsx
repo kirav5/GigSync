@@ -1,3 +1,4 @@
+import type { MessageKey } from "@gigsync/core";
 import type { Place } from "@gigsync/protocol";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
@@ -13,11 +14,15 @@ const STREET_ZOOM = 16;
  * the owner moves and zooms around it to see the way there. Nothing is
  * drawn when the map cannot be had (no key on the server, no connection): the screen around it works the same.
  */
+/** The picking hint for an address: the pin goes on the door. */
+const DOOR_HINT: MessageKey = "map.move_pin";
+
 export function PlaceMap({
   at,
   onMove,
   onShown,
   label,
+  hint = DOOR_HINT,
 }: {
   at: Place;
   onMove?: (place: Place) => void;
@@ -25,6 +30,8 @@ export function PlaceMap({
   onShown?: () => void;
   /** What the map is of, for screen readers. */
   label: string;
+  /** The line over a map being picked on: the door for an address, the starting point for a worker's area. */
+  hint?: MessageKey;
 }) {
   const { t } = useI18n();
   const box = useRef<HTMLDivElement>(null);
@@ -75,7 +82,7 @@ export function PlaceMap({
     <div className="place-map" hidden={!shown} role="img" aria-label={label}>
       <div ref={box} className="place-map-canvas" />
       {picking && <span className="place-map-pin" aria-hidden="true" />}
-      {picking && shown && <span className="place-map-hint">{t("map.move_pin")}</span>}
+      {picking && shown && <span className="place-map-hint">{t(hint)}</span>}
     </div>
   );
 }

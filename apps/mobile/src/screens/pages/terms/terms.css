@@ -1,0 +1,116 @@
+/* The Terms and Privacy Notice page (TermsPage.tsx): a long document set for reading, its own top bar when opened
+   from sign-in. Sizes and colours are the tokens in styles.css, so the dark look and Hindi and Kannada follow. */
+
+/* A plain page set for reading, not a card. */
+.legal {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 0 0 32px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* From sign-in: Back and the title, held at the top while the page scrolls under it. */
+.legal-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: var(--tap);
+  margin: -8px calc(-1 * var(--gutter)) 0;
+  padding: 4px var(--gutter) 4px calc(var(--gutter) - 12px);
+  border-bottom: 1px solid var(--hairline);
+  background: var(--bg);
+}
+.legal-back {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+.legal-title {
+  margin: 0;
+  font-size: var(--fs-title);
+  line-height: var(--lh-head);
+}
+
+/* Not in English: the full text below is. */
+.legal-note {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-row);
+  background: var(--surface2);
+  color: var(--text2);
+}
+
+.legal-contents {
+  padding: 14px 16px;
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+.legal-contents-title {
+  margin: 0 0 6px;
+  font-size: var(--fs-label);
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.legal-contents ol {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.legal-contents button {
+  min-height: 36px;
+  color: var(--text);
+  text-align: start;
+  text-decoration: none;
+}
+
+/* Each section: the numbered heading, its summary, then the full text. The heading clears the sticky bar on a jump. */
+.legal-section {
+  display: grid;
+  gap: 8px;
+  scroll-margin-top: calc(var(--tap) + 16px);
+}
+.legal-heading {
+  margin: 8px 0 0;
+  font-family: var(--serif);
+  font-size: var(--fs-heading);
+  line-height: var(--lh-head);
+}
+.legal-summary {
+  margin: 0;
+  font-weight: 600;
+}
+.legal-body {
+  display: grid;
+  gap: 8px;
+  color: var(--text2);
+  line-height: var(--lh-body);
+}
+.legal-body p {
+  margin: 0;
+}
+.legal-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-inline-start: 20px;
+}
+.legal-list strong {
+  color: var(--text);
+}

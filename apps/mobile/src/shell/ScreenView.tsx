@@ -1,13 +1,15 @@
 import type { Agent, GigDevice, NeedTo, Ports } from "@gigsync/core";
 import type { City, QrCode, UserId } from "@gigsync/protocol";
 import { type Account, AccountRole } from "../adapters/account.js";
+import type { OpenInterview } from "../card/openInterview.js";
 import type { ChosenWorker } from "../find/ask.js";
 import { Alerts } from "../screens/alerts/Alerts.js";
 import { HelpUnion } from "../screens/help/HelpUnion.js";
 import { Landing } from "../screens/Landing.js";
 import { MyCard } from "../screens/MyCard.js";
 import { AddressesPage } from "../screens/me/AddressesPage.js";
-import { KnownWorkers } from "../screens/me/KnownWorkers.js";
+import { People } from "../screens/me/People.js";
+import { WorkAreaPage } from "../screens/me/WorkAreaPage.js";
 import { FindMentor } from "../screens/mentor/FindMentor.js";
 import { LinkScreen } from "../screens/mentor/LinkScreen.js";
 import { MoveIn } from "../screens/move/MoveIn.js";
@@ -21,11 +23,12 @@ import { SettingsPage } from "../screens/pages/SettingsPage.js";
 import { TermsPage } from "../screens/pages/TermsPage.js";
 import { Person } from "../screens/qr/Person.js";
 import { MyRecord } from "../screens/record/MyRecord.js";
+import { GetVerified } from "../screens/verify/GetVerified.js";
 import { Screen } from "../state.js";
 import type { GigView } from "../useGig.js";
 import { ChatsScreen } from "./ChatsScreen.js";
 import { chatOf, landingOf } from "./nav.js";
-import { FindTab, HomeTab, JobsTab, MeTab, MoneyTab, TalkScreen } from "./TabScreens.js";
+import { FindTab, JobsTab, MoneyTab, TalkScreen } from "./TabScreens.js";
 
 /** What the open screen is about: the owner, this phone, and what was picked on the way to it. */
 export interface ScreenData {
@@ -35,8 +38,8 @@ export interface ScreenData {
   device: GigDevice;
   view: GigView;
   run: (work: () => Promise<unknown>) => Promise<unknown>;
-  /** Talk opens on the card interview. */
-  interview: boolean;
+  /** Whether Talk opens on the card interview. */
+  interview: OpenInterview;
   openLink: UserId | undefined;
   movingTo: City | undefined;
   personCode: QrCode | undefined;
@@ -62,7 +65,7 @@ export interface ScreenMoves {
   signOut: () => void;
 }
 
-/** The screens under Me: the owner's card, pages and settings, and the screens opened from those. */
+/** The screens the profile sheet opens: the owner's card, pages and settings, and the screens opened from those. */
 function MeScreen({ screen, d, m }: { screen: Screen; d: ScreenData; m: ScreenMoves }) {
   const { ports, account, device, view, run } = d;
   const isWorker = account.role === AccountRole.worker;
@@ -90,11 +93,12 @@ function MeScreen({ screen, d, m }: { screen: Screen; d: ScreenData; m: ScreenMo
           account={account}
           isWorker={isWorker}
           onEditCard={() => m.go(Screen.cardEdit)}
+          onEditArea={() => m.go(Screen.workArea)}
           onTalk={m.talkCard}
         />
       );
     case Screen.privacy:
-      return <Privacy ports={ports} account={account} device={device} view={view} isWorker={isWorker} />;
+      return <Privacy ports={ports} account={account} view={view} isWorker={isWorker} />;
     case Screen.settings:
       return (
         <SettingsPage
@@ -117,16 +121,22 @@ function MeScreen({ screen, d, m }: { screen: Screen; d: ScreenData; m: ScreenMo
           onFindMentor={() => m.go(Screen.findMentor)}
           onOpenLink={m.showLink}
           onJobs={() => m.go(Screen.activity)}
+          onMoving={() => m.go(Screen.landing)}
+          onTerms={() => m.go(Screen.terms)}
         />
       );
     case Screen.people:
       return (
-        <KnownWorkers ports={ports} account={account} device={device} syncedAt={view.syncedAt} onAsk={m.findFor} />
+        <People ports={ports} account={account} device={device} run={run} syncedAt={view.syncedAt} onAsk={m.findFor} />
       );
     case Screen.language:
       return <LanguagePage />;
+    case Screen.verify:
+      return <GetVerified ports={ports} account={account} onAccount={m.saved} />;
     case Screen.addresses:
       return <AddressesPage ports={ports} session={account.session} />;
+    case Screen.workArea:
+      return <WorkAreaPage ports={ports} account={account} onSaved={m.saved} onCard={() => m.go(Screen.card)} />;
     case Screen.terms:
       return <TermsPage />;
     case Screen.moveOut:
@@ -154,8 +164,6 @@ function MeScreen({ screen, d, m }: { screen: Screen; d: ScreenData; m: ScreenMo
 export function ScreenView({ screen, d, m }: { screen: Screen; d: ScreenData; m: ScreenMoves }) {
   const { ports, account, device, view, run } = d;
   switch (screen) {
-    case Screen.home:
-      return <HomeTab d={d} m={m} />;
     case Screen.find:
       return <FindTab d={d} m={m} />;
     case Screen.talk:
@@ -164,8 +172,6 @@ export function ScreenView({ screen, d, m }: { screen: Screen; d: ScreenData; m:
       return <JobsTab d={d} m={m} />;
     case Screen.records:
       return <MoneyTab d={d} m={m} />;
-    case Screen.me:
-      return <MeTab d={d} m={m} />;
     case Screen.chats:
       return (
         <ChatsScreen

@@ -40,7 +40,6 @@ import {
   RecommendLink,
   type RecommendRequest,
   ServedCities,
-  type ServedCity,
   Session,
   type UserId,
 } from "@gigsync/protocol";
@@ -100,9 +99,9 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
     await this.call(HttpMethod.post, ApiPath.signOut);
   }
 
-  /** The cities and areas GigSync serves (ADR 0061). */
-  async cities(): Promise<ServedCity[]> {
-    return ServedCities.parse(await this.call(HttpMethod.get, ApiPath.cities)).cities;
+  /** The cities and areas GigSync serves (ADR 0061), and whether it lets every place in (`LIVE_CITIES=*`). */
+  async cities(): Promise<ServedCities> {
+    return ServedCities.parse(await this.call(HttpMethod.get, ApiPath.cities));
   }
 
   async directory(user: UserId): Promise<DirectoryEntry> {
@@ -214,8 +213,9 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
     return this.call(HttpMethod.post, ApiPath.mentorReport, report);
   }
 
-  blockMentor(user: UserId): Promise<unknown> {
-    return this.call(HttpMethod.post, ApiPath.mentorBlock, { user });
+  /** Blocks `user` for the caller; with `blocked` false, lifts the caller's own block of them. */
+  blockMentor(user: UserId, blocked = true): Promise<unknown> {
+    return this.call(HttpMethod.post, blocked ? ApiPath.mentorBlock : ApiPath.mentorUnblock, { user });
   }
 
   /** Tells the directory this device speaks `protocol` now, after an app update. */
@@ -252,9 +252,9 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
     return GeoResult.parse(await this.call(HttpMethod.get, `${ApiPath.geoReverse}?${params}`)).places;
   }
 
-  /** Places matching what the owner typed. */
-  async searchPlaces(q: string): Promise<GeoPlace[]> {
-    const params = new URLSearchParams({ q });
+  async searchPlaces(q: string, near?: Place): Promise<GeoPlace[]> {
+    const b = near && coarsePoint(near); // Typed words, favouring a city's centre: coarse, as every point sent.
+    const params = new URLSearchParams({ q, ...(b && { lat: String(b.lat), lon: String(b.lon) }) });
     return GeoResult.parse(await this.call(HttpMethod.get, `${ApiPath.geoSearch}?${params}`)).places;
   }
 

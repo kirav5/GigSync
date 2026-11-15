@@ -2,7 +2,7 @@ import { plural, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { pickOnly, say } from "./findChat.js";
-import { newPhone, open, openCard, Role, RUN, shoot, signIn, textOf } from "./helpers.js";
+import { greeting, newPhone, open, openCard, Role, RUN, shoot, signIn, textOf } from "./helpers.js";
 import { reveal } from "./jobs.js";
 import { cleanUpLater, unlistCards } from "./journey.js";
 
@@ -77,7 +77,7 @@ test("a worker lists her own skill and a household who asks for it finds and ask
     lang: en,
   });
   const household = { page: meena, lang: en };
-  await expect(log(meena)).toContainText(t(en, "need.start"));
+  await expect(greeting(meena, en)).toBeVisible();
   await say(household, "Need someone for saree pleating");
   // Matched on her phone to the skill Lakshmi listed; what the work is comes first, as there is no trade to go by.
   await expect(log(meena)).toContainText(t(en, "need.skill_found", { skill: SKILL }));

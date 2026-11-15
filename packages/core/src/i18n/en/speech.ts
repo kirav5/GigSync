@@ -1,8 +1,14 @@
 /** Voice: the mic, reading aloud, and the owner's consent before a cloud recognizer hears them (ADR 0023). */
 export const speech = {
   "speech.listen": "Speak your answer",
-  "speech.stop": "Stop listening",
+  "speech.done": "Done",
+  "speech.cancel": "Cancel",
   "speech.listening": "Listening…",
+  "speech.listening_in": "Listening in {lang}",
+  "composer.ask": "Ask anything",
+  "composer.more": "More",
+  "composer.more_title": "What would you like to do?",
+  "composer.dictate": "Type by speaking",
   "speech.unavailable": "Speaking in {lang} doesn't work on this phone yet. Please type.",
   "speech.fetching": "Getting {lang} voice typing… type meanwhile",
   "speech.denied": "GigSync can't use the microphone. Allow it in the phone's settings.",

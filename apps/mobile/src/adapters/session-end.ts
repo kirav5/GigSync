@@ -1,9 +1,10 @@
 import type { Fetch } from "@gigsync/core";
 
 /**
- * A session the server no longer takes (it expired, the device was retired or revoked, or the account was frozen) ends
- * here too: every signed-in call that answers 401 tells the app, once, and the app returns to sign-in instead of
- * failing every sync from then on.
+ * A session the server no longer takes (it expired, the device was retired or revoked, the account was frozen, or the
+ * server lost it, as the test API does on every restart) ends here too: every signed-in call that answers 401 tells
+ * the app, once, and the app opens sign-in on the same number with "Sign in again" instead of failing every sync from
+ * then on. Only a 401 does this: offline, or any other error, keeps the owner signed in.
  */
 
 const UNAUTHORIZED = 401;

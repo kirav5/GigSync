@@ -59,7 +59,7 @@ describe("changing a card the owner already has", () => {
 
   it("asks the minimum again when a new rate falls below it", () => {
     const s = run(edit(start(config("hi"), FULL), Slot.rate), ["सात हज़ार"]);
-    expect(keys(s)).toEqual(["iv.got_rate", "iv.ask.min", "iv.legal_min"]);
+    expect(keys(s)).toEqual(["iv.got_rate", "iv.ask.min"]);
     expect(draftOf(hear(s, "छह हज़ार"))).toMatchObject({ rate_paise: 700000, limit_paise: 600000 });
     expect(hear(s, "छह हज़ार").slot).toBe(Slot.confirm);
   });

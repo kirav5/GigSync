@@ -14,9 +14,7 @@ export const records: Readonly<Record<keyof typeof en, string>> = {
   "records.signin_line": "ಮುಂದುವರಿಯುವ ಮೂಲಕ, ನೀವು GigSync ನ {link} ಒಪ್ಪುತ್ತೀರಿ",
   "records.signin_link": "ನಿಯಮಗಳು ಮತ್ತು ಗೌಪ್ಯತಾ ಸೂಚನೆಯನ್ನು",
   "records.terms_title": "ನಿಯಮಗಳು ಮತ್ತು ಗೌಪ್ಯತಾ ಸೂಚನೆ",
-  "records.terms_writing": "GigSync ನ ನಿಯಮಗಳು ಮತ್ತು ಗೌಪ್ಯತಾ ಸೂಚನೆಯನ್ನು ಬರೆಯಲಾಗುತ್ತಿದೆ. ಅಲ್ಲಿಯವರೆಗೆ ಇದು ಅನ್ವಯಿಸುತ್ತದೆ:",
   "records.terms_about": "ನೀವು ಏನನ್ನು ಒಪ್ಪಿದ್ದೀರಿ, ಮತ್ತು GigSync ಏನನ್ನು ಇಡುತ್ತದೆ, ಏನನ್ನು ಎಂದಿಗೂ ಇಡುವುದಿಲ್ಲ.",
-  "records.terms_back": "ಹಿಂದೆ",
   "records.consent_toast":
     "GigSync ಬಳಸುವುದು ಎಂದರೆ ನೀವು ಅದರ ನಿಯಮಗಳು ಮತ್ತು ಗೌಪ್ಯತಾ ಸೂಚನೆಯನ್ನು ಒಪ್ಪುತ್ತೀರಿ. ಅವುಗಳನ್ನು ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಓದಬಹುದು.",
   "records.privacy_title": "GigSync ಬಳಿ ನನ್ನ ದಾಖಲೆಗಳು",

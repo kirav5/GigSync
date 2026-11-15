@@ -3,8 +3,14 @@ import type { speech as en } from "../en/speech.js";
 /** Kannada: voice: the mic, reading aloud, and the owner's consent before a cloud recognizer hears them. */
 export const speech: Readonly<Record<keyof typeof en, string>> = {
   "speech.listen": "ಮಾತಾಡಿ ಉತ್ತರಿಸಿ",
-  "speech.stop": "ಕೇಳುವುದನ್ನು ನಿಲ್ಲಿಸಿ",
+  "speech.done": "ಆಯಿತು",
+  "speech.cancel": "ರದ್ದು ಮಾಡಿ",
   "speech.listening": "ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದ್ದೇನೆ…",
+  "speech.listening_in": "{lang} ಭಾಷೆಯಲ್ಲಿ ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದ್ದೇನೆ",
+  "composer.ask": "ಏನಾದರೂ ಕೇಳಿ",
+  "composer.more": "ಇನ್ನಷ್ಟು",
+  "composer.more_title": "ನೀವು ಏನು ಮಾಡಲು ಬಯಸುತ್ತೀರಿ?",
+  "composer.dictate": "ಮಾತಾಡಿ ಬರೆಯಿರಿ",
   "speech.unavailable": "ಈ ಫೋನ್‌ನಲ್ಲಿ ಇನ್ನೂ {lang} ಭಾಷೆಯಲ್ಲಿ ಮಾತಾಡಿ ಬರೆಯಲು ಆಗುವುದಿಲ್ಲ. ದಯವಿಟ್ಟು ಟೈಪ್ ಮಾಡಿ.",
   "speech.fetching": "{lang} ಭಾಷೆಯ ಧ್ವನಿ ಟೈಪಿಂಗ್ ಬರುತ್ತಿದೆ… ಅಲ್ಲಿಯವರೆಗೆ ಟೈಪ್ ಮಾಡಿ",
   "speech.denied": "GigSync ಗೆ ಮೈಕ್ ಬಳಸಲು ಆಗುತ್ತಿಲ್ಲ. ಫೋನ್ ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಅನುಮತಿ ಕೊಡಿ.",

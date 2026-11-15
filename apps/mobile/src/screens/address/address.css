@@ -1,29 +1,138 @@
-/* The door pin (app-journey S9) and the saved addresses: the map first, the place under the pin, one field, then the
-   rest of the address folded behind "More details". */
+/* The door pin (app-journey S9) and the saved addresses, laid out as a map app's "add address": no card around it; the
+   map large at the top with the pin in its middle and "Use my current location" floating on it, the place under the
+   pin, one search field, the flat, "Save as" chips, then the rest of the address folded behind "More details". */
+.door-pin {
+  --door-map-h: 300px;
+  display: grid;
+  gap: 16px;
+}
+.door-pin p {
+  margin: 0;
+}
+.door-head {
+  display: grid;
+  gap: 4px;
+}
 .door-title {
   margin: 0;
   font-family: var(--serif);
-  font-size: var(--fs-heading);
+  font-size: var(--fs-title);
   font-weight: 400;
   line-height: var(--lh-head);
 }
-.door-pin > p {
-  margin: 0;
+.door-map {
+  position: relative;
+  display: grid;
+  gap: 10px;
+}
+.door-map .place-map {
+  height: var(--door-map-h);
+  border-radius: 16px;
+}
+/* The location chip floats on the map's foot while the map shows; with no map it stays a plain button in the flow. */
+.map-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--tap);
+  padding: 0 18px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-chip);
+  background: var(--surface);
+  color: var(--accent-ink);
+  font: 600 var(--fs-2) / 1.2 var(--sans);
+  cursor: pointer;
+}
+.door-map:has(> .place-map:not([hidden])) .map-chip {
+  position: absolute;
+  top: calc(var(--door-map-h) - var(--tap) - 14px);
+  left: 0;
+  right: 0;
+  width: max-content;
+  margin-inline: auto;
+  box-shadow: 0 2px 10px rgb(43 30 23 / 0.16);
 }
 .door-place {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--fs-label);
-  font-weight: 500;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--fs-2);
+  font-weight: 600;
 }
-.door-place > .ic {
+.door-place > svg {
   flex: none;
-  color: var(--rust);
+  margin-top: 2px;
+  color: var(--accent);
 }
-.door-find {
+
+/* The search: one field with the glass inside it, and the arrow at its end that searches (Enter does too). */
+.place-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.place-search > svg {
+  position: absolute;
+  inset-inline-start: 16px;
+  color: var(--text2);
+  pointer-events: none;
+}
+.place-search > .field {
+  padding-inline: 46px 52px;
+}
+/* The arrow is the field's one button at its end: the browser's own clear cross would stand beside it in blue. */
+.place-search > .field::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.place-search-go {
+  position: absolute;
+  inset-inline-end: 4px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--picked);
+  color: var(--picked-ink);
+  cursor: pointer;
+}
+
+/* "Save as": the chips, each with its mark; the picked one tinted, with no radio dot. */
+.label-chips {
   display: grid;
   gap: 8px;
+}
+.label-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip.label-chip {
+  position: relative;
+  min-height: 40px;
+  padding: 6px 14px;
+  font-size: var(--fs-2);
+}
+.label-chip > svg {
+  color: var(--text2);
+}
+.label-chip.on > svg {
+  color: currentColor;
+}
+.label-chip > input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.label-chip:has(> input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 .door-more {
   justify-self: start;
@@ -52,4 +161,45 @@
   display: grid;
   justify-items: start;
   gap: 4px;
+}
+
+/* Places a search found: one row each, a pin, the place in bold and the rest of its address muted on two lines at
+   most; the list closes once one is picked. */
+.place-results {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.place-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.place-result > svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--accent);
+}
+.place-result strong {
+  display: block;
+  font-weight: 600;
+}
+.place-rest {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--text2);
+  font-size: var(--fs-2);
 }

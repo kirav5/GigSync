@@ -16,6 +16,7 @@ export * from "./estimate-drivers.js";
 export * from "./estimate-facts.js";
 export * from "./estimate-scope.js";
 export * from "./find-counts.js";
+export * from "./firebase.js";
 export * from "./geo-provider.js";
 export * from "./grant.js";
 export * from "./ids.js";

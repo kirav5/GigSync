@@ -1,7 +1,7 @@
 import { type MessageKey, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, type Page, test } from "@playwright/test";
-import { newPhone, Role, RUN, shoot, signIn } from "./helpers.js";
+import { composerButton, greeting, newPhone, Role, RUN, shoot, signIn } from "./helpers.js";
 import { openCard } from "./menu.js";
 
 /**
@@ -30,9 +30,9 @@ async function say(page: Page, lang: Lang, words: string) {
 for (const lang of [en, hi, kn]) {
   test(`Find asks a cook as a cook is hired, with no grid of trades first, in ${lang}`, async ({ page }) => {
     await signIn(page, { role: Role.consumer, name: `Kavya ${RUN}`, phone: newPhone(), address: "Flat 4, HSR", lang });
-    await expect(log(page)).toContainText(t(lang, "need.start"));
-    // The opening invites the need in her words, with one chip to the list for whoever cannot say or type it.
-    await expect(chip(page, lang, "need.pick_work")).toBeVisible();
+    await expect(greeting(page, lang)).toBeVisible();
+    // The greeting invites the need in her words; the list is behind the composer's "+", for whoever cannot say it.
+    await expect(composerButton(page, "composer.more", lang)).toBeVisible();
     await expect(chip(page, lang, "trade.cook")).toHaveCount(0);
     await shoot(`opening-${lang}`, { household: page }, FOLDER);
 

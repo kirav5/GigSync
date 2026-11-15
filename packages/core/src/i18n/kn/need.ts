@@ -42,7 +42,7 @@ export const need: Readonly<Record<keyof typeof en, string>> = {
   "need.confirm_to": "{name} ಅವರನ್ನು ಕೇಳಲೇ?",
   "need.asking_to": "{name} ಅವರನ್ನು ಕೇಳುತ್ತಿದ್ದೇನೆ…",
   "need.composer": "ನಿಮಗೆ ಏನು ಬೇಕು ಹೇಳಿ",
-  "need.placeholder": "ನಿಮಗೆ ಏನು ಬೇಕು ಬರೆಯಿರಿ…",
+  "need.placeholder": "ಏನು ಬೇಕು?",
   "need.reading": "ನೀವು ಹೇಳಿದ್ದನ್ನು ಓದುತ್ತಿದ್ದೇನೆ…",
   "need.date_ok": "ಈ ದಿನಾಂಕ ಇರಲಿ",
   "need.understood": "ಅರ್ಥವಾಯಿತು: {what}.",

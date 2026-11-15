@@ -34,10 +34,6 @@
 .tier-icon.green {
   background: var(--green);
 }
-/* The dark look's earth is the page itself: the tile keeps an edge so it does not vanish into it. */
-:root[data-look="dark"] .tier-icon.earth {
-  box-shadow: inset 0 0 0 1px var(--hairline);
-}
 
 .shared-log > summary {
   list-style: none;

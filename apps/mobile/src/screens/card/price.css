@@ -1,0 +1,248 @@
+/* The price cards in the card chat and the amount on My card (AmountDial.tsx, PriceAsk.tsx, WhenPick.tsx), as the
+   design's board 10 "Your price" draws them: one calm white card on the paper. The amount is the hero, one serif
+   "₹199 / visit" between round − and +; the unit is a thin track over it; the days are round letters, filled in
+   terracotta when picked; the part of the day the kit's chips; one terracotta button at the foot. */
+.price-card {
+  display: grid;
+  /* One column no wider than the card: the amount's field must shrink, not push the row past the edge. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  margin-top: 4px;
+  padding: 18px 16px 16px;
+}
+.price-title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: var(--lh-head);
+}
+.segmented,
+.price-when {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+/* A light track, the picked unit a white pill on it: a choice, not a block. */
+.segmented {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--hairline);
+}
+.segmented > button {
+  flex: 1;
+  min-width: 0;
+  /* The pill is 38px; the track's padding makes the row's tap height 44. */
+  min-height: 38px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.segmented > button.on {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow:
+    0 0 0 1px var(--hairline),
+    0 1px 2px rgba(43, 30, 23, 0.1);
+}
+/* The hero: − and + at the two ends, the amount and its unit as one line between them. */
+.amount-dial {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+.amount-step {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: 50%;
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.amount-value {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  column-gap: 6px;
+  cursor: text;
+}
+/* The rupee sign and the number as one word: no gap, the same serif, the field as wide as its digits. */
+.amount-figure {
+  display: inline-flex;
+  align-items: baseline;
+  padding-bottom: 2px;
+  border-bottom: 2px solid transparent;
+  font-family: var(--serif);
+  /* Big enough to lead the card, not to shout: 34px on most phones, a little less at 360px. */
+  font-size: clamp(30px, 8.8vw, 34px);
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: lining-nums;
+}
+.amount-value:focus-within .amount-figure {
+  border-bottom-color: var(--accent);
+}
+.amount-figure input {
+  width: 4ch;
+  min-width: 1ch;
+  max-width: 7ch;
+  field-sizing: content;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+.amount-figure input:focus {
+  outline: none;
+}
+.amount-value small {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text2);
+  white-space: nowrap;
+}
+.near-you {
+  margin: -10px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text2);
+}
+/* The when: a hairline above it parts it from the price, each part with its small label. */
+.price-when {
+  display: grid;
+  gap: 10px;
+}
+.price-card .price-days {
+  padding-top: 18px;
+  border-top: 1px solid var(--hairline);
+}
+.price-when-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 8px;
+  /* The 48px taps of the quick choices, drawn 32px: the row takes no more room than the pills. */
+  margin: -8px 0;
+}
+.price-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+/* Every day and Weekdays, and the parts of the day: outlined pills, in the kit's picked tint when picked. */
+.price-quick,
+.price-parts {
+  display: flex;
+  gap: 4px;
+}
+/* The button is the 48px tap; the pill is drawn inside it, smaller, so the card stays light. */
+.price-quick > button,
+.price-parts > button {
+  height: var(--tap);
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+.price-quick span,
+.price-parts span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 500;
+}
+.price-quick > button.on span,
+.price-parts > button.on span {
+  border-color: var(--accent);
+  background: var(--picked);
+  color: var(--picked-ink);
+  font-weight: 600;
+}
+/* The parts of the day share the row evenly, a little taller than the quick choices. */
+.price-parts {
+  gap: 8px;
+  margin: -4px 0;
+}
+.price-parts > button {
+  flex: 1;
+}
+.price-parts span {
+  width: 100%;
+  height: 40px;
+  font-size: 14px;
+  color: var(--text);
+}
+/* Seven round letters across: each button is the whole column (the tap), the circle inside it. */
+.day-dots {
+  display: flex;
+  gap: 4px;
+}
+.day-dots > button {
+  flex: 1;
+  min-width: 0;
+  height: var(--tap);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+.day-dots span {
+  display: grid;
+  place-items: center;
+  width: min(38px, 100%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+.day-dots > button.on span {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+/* "Stays on this phone": a quiet line with its lock, not a badge. */
+.price-private {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: -6px 0 0;
+  font-size: 14px;
+  color: var(--text2);
+}

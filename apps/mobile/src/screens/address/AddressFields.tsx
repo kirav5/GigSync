@@ -2,12 +2,13 @@ import type { MessageKey, PilotArea } from "@gigsync/core";
 import { AddressLabel } from "@gigsync/protocol";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
-import type { IconName } from "../../ui/Icon.js";
+import { Icon, type IconName } from "../../ui/Icon.js";
 import { AREAS } from "../../ui/places.js";
 
 /** Each label's mark, on a saved address's card or row: a house, a briefcase, a pin. */
 export const LABEL_ICON: Readonly<Record<AddressLabel, IconName>> = {
   [AddressLabel.enum.home]: "home",
+  [AddressLabel.enum.parents]: "heart",
   [AddressLabel.enum.work]: "jobs",
   [AddressLabel.enum.other]: "pin",
 };
@@ -92,18 +93,22 @@ export function AddressFields({
   ));
 }
 
-/** "Save as": Home, Work or Other, the name the address goes by in Find. */
+/** "Save as": Home, Parents' home, Work or Other, each a chip with its mark; the name the address goes by in Find. */
 export function LabelChips({ label, onPick }: { label: AddressLabel; onPick: (label: AddressLabel) => void }) {
   const { t } = useI18n();
   return (
-    <fieldset className={C.row} aria-label={t("addr.label")}>
+    <fieldset className="label-chips" aria-label={t("addr.label")}>
       <span className={C.muted}>{t("addr.label")}</span>
-      {AddressLabel.options.map((l) => (
-        <label key={l} className={label === l ? C.chipOn : C.chip}>
-          <input type="radio" name="label" checked={label === l} onChange={() => onPick(l)} />
-          {t(`addr.label.${l}`)}
-        </label>
-      ))}
+      <div className="label-chips-row">
+        {AddressLabel.options.map((l) => (
+          <label key={l} className={`${label === l ? C.chipOn : C.chip} label-chip`}>
+            {/* The radio stays for keyboards and readers; the chip, its mark and its tint, is what shows. */}
+            <input type="radio" name="label" checked={label === l} onChange={() => onPick(l)} />
+            <Icon name={LABEL_ICON[l]} size={18} />
+            {t(`addr.label.${l}`)}
+          </label>
+        ))}
+      </div>
     </fieldset>
   );
 }

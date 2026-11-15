@@ -12,3 +12,10 @@ export function phoneDay(now: Date): string {
 export function dayDate(day: string): Date {
   return new Date(day + LOCAL_NOON);
 }
+
+const DAY_MS = 86_400_000;
+
+/** Whole days from `from` to `day` (both "YYYY-MM-DD"): 1 is tomorrow, -1 yesterday; rounded over a clock change. */
+export function daysFrom(from: string, day: string): number {
+  return Math.round((dayDate(day).getTime() - dayDate(from).getTime()) / DAY_MS);
+}

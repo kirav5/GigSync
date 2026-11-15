@@ -2,7 +2,7 @@ import { DetailFlag, Trade } from "@gigsync/protocol";
 import { countIn } from "../job/details.js";
 import { EVERY_DAY } from "../job/when.js";
 import { type Line, Pick } from "./card.js";
-import { minAloud } from "./card-parse.js";
+import { minAloud } from "./card-amount.js";
 import { withWordDrivers } from "./driver-ask.js";
 import { areaIn, yesNo } from "./lexicon.js";
 import {

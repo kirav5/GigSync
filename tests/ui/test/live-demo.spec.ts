@@ -1,6 +1,6 @@
 import { plural, t } from "@gigsync/core";
 import { expect, type Page, test } from "@playwright/test";
-import { newPhone, open, Role, RUN, signIn } from "./helpers.js";
+import { greeting, newPhone, open, Role, RUN, signIn } from "./helpers.js";
 import { publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -63,7 +63,7 @@ test("live demo", async ({ browser }) => {
     address: `22, 5th Cross, HSR Layout (${RUN})`,
   });
   const log = home.getByRole("log");
-  await expect(log).toContainText(t("en", "need.start"));
+  await expect(greeting(home, "en")).toBeVisible();
   await pause(home);
   await say(home, "Bedroom fan is not working, need an electrician tomorrow morning, up to 750");
   await expect(log).toContainText(t("en", "need.ask.address"), { timeout: 30_000 });

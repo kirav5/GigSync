@@ -1,6 +1,7 @@
 import { HttpMethod, t } from "@gigsync/core";
 import { Lang, MyQr, type QrCode } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
+import jsQR from "jsqr";
 import { tellNeed } from "./findChat.js";
 import {
   API,
@@ -10,6 +11,7 @@ import {
   navRow,
   newPhone,
   open,
+  openCard,
   Role,
   RUN,
   shoot,
@@ -18,8 +20,8 @@ import {
 import { publishCard, unlistCards } from "./journey.js";
 
 /**
- * Personal QR codes (ADR 0034) through the app's screens, against the real API and mailbox: my QR shows, downloads and
- * is replaced; a household opens a worker's QR link and asks them; a worker opens a household's link and offers, and the
+ * Personal QR codes (ADR 0034) through the app's screens, against the real API and mailbox: my QR shows, scans, downloads
+ * and keeps one code while the card behind it changes; a household opens a worker's QR link and asks them; a worker opens a household's link and offers, and the
  * household asks from My jobs. Each test signs in new numbers, well inside the API's caps on lookups and offers.
  */
 
@@ -30,9 +32,10 @@ const priyaName = `${priyaFirst} ${RUN}`;
 const ADDRESS = `Flat 7, 2nd Cross (${RUN})`;
 const ABOUT = "Wiring, fans and switchboards";
 const FOLDER = "qr";
-/** The routes that answer the owner's live code: `PUT` gets it (made on first ask), `POST` replaces it. */
+/** The route that answers the owner's live code: `PUT` gets it, made on first ask. */
 const MY_QR = `${API}/v1/qr/me`;
-const REPLACE_QR = `${MY_QR}/replace`;
+/** Where a worker's card goes on the board. */
+const BOARD_PROFILE = `${API}/v1/board/profile`;
 
 let contexts: BrowserContext[] = [];
 
@@ -89,33 +92,74 @@ async function sendAsk(page: Page, worker: string) {
   await expect(page.getByRole("form", { name: t(en, "a11y.answer") })).toBeVisible();
 }
 
-test("my QR shows, downloads and copies; a new QR ends the old link", async ({ browser }) => {
+/**
+ * What a camera reads off the QR as the screen draws it (its white margin and any rounding included, not the picture
+ * file): the element's screenshot, turned back into pixels in the page, read by jsQR here.
+ */
+async function scanOnScreen(page: Page, name: string): Promise<string | undefined> {
+  const shot = await page.getByRole("img", { name: t(en, "qr.alt", { name }) }).screenshot();
+  const picture = await page.evaluate(async (png) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${png}`;
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const context = canvas.getContext("2d");
+    context?.drawImage(image, 0, 0);
+    const pixels = context?.getImageData(0, 0, canvas.width, canvas.height).data ?? [];
+    return { width: canvas.width, height: canvas.height, pixels: Array.from(pixels) };
+  }, shot.toString("base64"));
+  return jsQR(Uint8ClampedArray.from(picture.pixels), picture.width, picture.height)?.data;
+}
+
+test("my QR shows, scans as drawn, downloads and copies, and keeps one code: there is no Make a new QR", async ({
+  browser,
+}) => {
   const [priya, anil] = await pages(browser);
   await signIn(priya, { role: Role.consumer, name: priyaName, phone: newPhone(), address: ADDRESS });
-  const old = await openMyQr(priya, priyaName, "profile");
+  const code = await openMyQr(priya, priyaName, "profile");
   await expect(priya.getByText(t(en, "qr.about_household"))).toBeVisible();
+  // A plain square with a quiet margin: the corner squares a camera finds the code by are whole on screen.
+  expect(await scanOnScreen(priya, priyaName)).toContain(`to=${code}`);
   const download = priya.waitForEvent("download");
   await priya.getByRole("link", { name: t(en, "qr.download") }).click();
   expect((await download).suggestedFilename()).toBe("gigsync-qr.png");
   await priya.getByRole("button", { name: t(en, "qr.copy") }).click();
   await expect(priya.getByRole("status").filter({ hasText: /Link copied|did not allow copying/ })).toBeVisible();
+  await expect(priya.getByRole("button", { name: /new QR/i })).toHaveCount(0);
   await shoot("my-qr", { household: priya }, FOLDER);
 
-  await priya.getByRole("button", { name: t(en, "qr.new") }).click();
-  const confirm = priya.getByRole("dialog", { name: t(en, "qr.new") });
-  const replaced = codeFrom(priya, HttpMethod.post, REPLACE_QR);
-  await confirm.getByRole("button", { name: t(en, "qr.new") }).click();
-  await expect(priya.getByRole("status").filter({ hasText: t(en, "qr.new_done") })).toBeVisible();
-  const next = await replaced;
-  expect(next).not.toBe(old);
-
+  // Opened again, it is the same code: nothing to re-issue.
+  expect(await openMyQr(priya, priyaName)).toBe(code);
   await signIn(anil, { role: Role.worker, name: anilName, phone: newPhone() });
-  await anil.goto(`${APP}/?to=${old}`);
-  await expect(anil.getByText(t(en, "qr.ended"))).toBeVisible();
-  await expect(anil).not.toHaveURL(/to=/);
-  await anil.goto(`${APP}/?to=${next}`);
+  await anil.goto(`${APP}/?to=${code}`);
   await expect(anil.getByRole("region", { name: priyaFirst })).toBeVisible();
-  await shoot("new-qr", { household: priya, worker: anil }, FOLDER);
+});
+
+test("a worker changes his card and the QR he already shared shows the change, with no new QR", async ({ browser }) => {
+  const [anil, priya] = await pages(browser);
+  await anilWithCard(anil);
+  const code = await openMyQr(anil, anilName);
+  await signIn(priya, { role: Role.consumer, name: priyaName, phone: newPhone(), address: ADDRESS });
+  await priya.goto(`${APP}/?to=${code}`);
+  await expect(priya.getByText(ABOUT)).toBeVisible();
+
+  const changed = "Fans, inverters and new wiring";
+  await openCard(anil, en);
+  const form = anil.getByRole("form", { name: t(en, "a11y.my_card") });
+  await form.getByLabel(t(en, "card.about")).fill(changed);
+  const saved = anil.waitForResponse(
+    (r) => r.url() === BOARD_PROFILE && r.request().method() === HttpMethod.put && r.ok(),
+  );
+  await anil.getByRole("button", { name: t(en, "card.publish"), exact: true }).click();
+  await saved;
+  expect(await openMyQr(anil, anilName)).toBe(code);
+
+  await priya.goto(`${APP}/?to=${code}`);
+  await expect(priya.getByText(changed)).toBeVisible();
+  await expect(priya.getByText(ABOUT)).toHaveCount(0);
+  await shoot("qr-follows-card", { worker: anil, household: priya }, FOLDER);
 });
 
 test("a household opens a worker's QR link before signing in, and asks him", async ({ browser }) => {
