@@ -10,8 +10,9 @@ import "./role.css";
 const { kn } = Lang.enum;
 /**
  * Find work or find help: the question, one short line, and the two choices under it as one block in the top part of
- * the screen. Each choice is a tall card with its drawing filling the top and the title and its line below; a ring in
- * the corner turns into a tick when picked, and one tap picks and the name comes next. Asked after the code, and only
+ * the screen. Each choice is a tall card with its drawing filling the top and the title and its line below. The whole
+ * card is the choice: picked, its edge turns terracotta and a tick sits on its corner; one tap picks and the name
+ * comes next. Asked after the code, and only
  * for a number this phone keeps nothing for: a returning number keeps the side it had. No way back, as the code is
  * already used. Each card is a radio inside the sign-in form, named by its title alone. One account has one side
  * (adapters/account.ts), so nothing here says it can be switched later.

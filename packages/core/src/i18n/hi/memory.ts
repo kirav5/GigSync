@@ -2,10 +2,10 @@ import type { memory as en } from "../en/memory.js";
 
 /** Hindi: what the agent remembers from past jobs, what the agent says using it, and its setting. */
 export const memory: Readonly<Record<keyof typeof en, string>> = {
-  "memory.title": "मेरे एजेंट को क्या याद है",
+  "memory.title": "मेरे सहायक को क्या याद है",
   "memory.about":
-    "सिर्फ़ इसी फ़ोन पर रहता है, ताकि आपका एजेंट दोबारा न पूछे। साइन आउट करने पर भी रहता है; इस फ़ोन पर साइन इन करने वाला कोई और इसे नहीं देखता।",
-  "memory.empty": "अभी कुछ नहीं। जिस काम पर आप दोनों ने साइन किया, उससे एजेंट ने जो सीखा वह यहाँ दिखेगा।",
+    "सिर्फ़ इसी फ़ोन पर रहता है, ताकि आपका सहायक दोबारा न पूछे। साइन आउट करने पर भी रहता है; इस फ़ोन पर साइन इन करने वाला कोई और इसे नहीं देखता।",
+  "memory.empty": "अभी कुछ नहीं। जिस काम पर आप दोनों ने साइन किया, उससे सहायक ने जो सीखा वह यहाँ दिखेगा।",
   "memory.area": "आपका इलाका",
   "memory.unnamed": "जिनके साथ आपने काम किया",
   "memory.jobs.one": "साथ में {count} काम",
@@ -28,7 +28,7 @@ export const memory: Readonly<Record<keyof typeof en, string>> = {
   "memory.change": "बदलें",
   "memory.change_detail": "{detail} बदलें",
   "memory.change_area": "इलाका बदलें",
-  "memory.answer_label": "जब मेरे एजेंट को पिछले कामों से कोई जवाब पता हो",
+  "memory.answer_label": "जब मेरे सहायक को पिछले कामों से कोई जवाब पता हो",
   "memory.answer_ask": "पहले मुझसे पूछें",
   "memory.answer_auto": "मेरी ओर से जवाब दें",
 };

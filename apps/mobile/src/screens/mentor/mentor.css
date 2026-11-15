@@ -17,8 +17,8 @@
   justify-self: start;
   padding: 2px 9px;
   border-radius: var(--radius-chip);
-  background: var(--done-fill);
-  color: var(--fresh);
+  background: var(--picked);
+  color: var(--picked-ink);
   font-size: 0.85em;
   font-weight: 600;
 }

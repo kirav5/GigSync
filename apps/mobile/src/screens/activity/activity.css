@@ -219,14 +219,11 @@
 .jobs-empty p {
   margin: 0;
 }
+/* The tab's own line icon above the title, in terracotta, with no disc behind it. */
 .jobs-empty-icon {
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--picked);
-  color: var(--picked-ink);
+  color: var(--accent);
 }
 .jobs-empty-title {
   font-family: var(--serif);

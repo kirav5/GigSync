@@ -2,15 +2,15 @@ import type { agent as en } from "../en/agent.js";
 
 /** Hindi: the agent screen and its cards, translation on the phone, and the rate card's source line. */
 export const agent: Readonly<Record<keyof typeof en, string>> = {
-  "agent.headline": "अपने एजेंट से बात करें।",
+  "agent.headline": "अपने सहायक से बात करें।",
   "agent.soft": "आपके नोट यहीं रहते हैं।",
-  "agent.empty": "आपका एजेंट क्या करे?",
+  "agent.empty": "आपका सहायक क्या करे?",
   "agent.suggest_rate": "मेरा रेट बदलें",
   "agent.suggest_earned": "इस हफ़्ते मैंने कितना कमाया?",
   "agent.earnings": "इस हफ़्ते आपको {week} मिले, और इस महीने {month}। अभी आने बाकी: {waiting}।",
   "agent.sources.one": "{count} नोट से",
   "agent.sources.other": "{count} नोटों से",
-  "card.text": "एजेंट",
+  "card.text": "सहायक",
   "card.saved": "सेव हुआ",
   "card.answer": "जवाब",
   "card.draft": "ड्राफ़्ट",

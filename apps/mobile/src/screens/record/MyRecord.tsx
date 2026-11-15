@@ -61,7 +61,7 @@ export function MyRecord({ ports, account, view, onCard }: Props) {
         </p>
         <ul className="my-record-badges" aria-label={t("me.badges")}>
           <li>
-            <Badge icon="check" tone={BadgeTone.green}>
+            <Badge icon="check" tone={BadgeTone.checked}>
               {t("me.phone")}
             </Badge>
           </li>

@@ -1,7 +1,8 @@
 /* Find work or find help (RoleStep.tsx): the question, its line and the two choices as one block from the top, never
    floating in the middle. Each choice is a tall white card: its drawing fills a tinted tile across the top, the title
-   and its line sit under it, and a ring in the corner becomes a tick when picked. A soft layered shadow and a thin warm
-   edge from terracotta to gold; pressed it gives a little, picked it gets a tinted ring. Side by side when wide. */
+   and its line sit under it. The whole card is the choice, with no radio dot: a soft layered shadow and a thin warm
+   edge from terracotta to gold; pressed it gives a little; picked, the edge turns terracotta and a tick badge sits on
+   the card's corner, clear of the drawing. Side by side when wide. */
 
 .role-sub {
   color: var(--text2);
@@ -61,8 +62,11 @@
   outline-offset: 3px;
 }
 .role-card:has(input:checked) {
+  --role-edge: linear-gradient(var(--accent), var(--accent));
+  border-width: 2px;
+  padding: 9.5px 9.5px 17.5px;
   box-shadow:
-    0 0 0 4px var(--pick-ring),
+    0 0 0 3px var(--pick-ring),
     0 6px 16px rgb(60 30 10 / 8%);
 }
 
@@ -87,11 +91,13 @@
   min-width: 0;
   padding-inline: 8px;
 }
+/* The title and its Kannada echo on one baseline, never wrapping apart. */
 .role-name {
   display: flex;
-  flex-wrap: wrap;
   align-items: baseline;
-  gap: 4px 10px;
+  gap: 10px;
+  min-width: 0;
+  white-space: nowrap;
 }
 .role-title {
   font-family: var(--serif);
@@ -100,7 +106,7 @@
 }
 .role-line {
   color: var(--text2);
-  font-size: var(--fs-label);
+  font-size: var(--fs-2);
   line-height: 1.4;
 }
 .role-echo {
@@ -109,37 +115,29 @@
   font-weight: 600;
 }
 
-/* The ring in the tile's corner until picked; then a filled tick in its place. */
+/* Nothing in the corner until picked; then a filled tick badge sits on the card's own corner, outside the drawing,
+   ringed in the page colour so it reads on the edge. */
 .role-mark {
   position: absolute;
-  top: 20px;
-  inset-inline-end: 20px;
+  top: -10px;
+  inset-inline-end: -10px;
+  display: none;
   width: 28px;
   height: 28px;
-  border: 2px solid color-mix(in srgb, var(--text3) 45%, transparent);
+  border: 2px solid var(--bg);
   border-radius: 50%;
-  background: var(--surface);
+  background: var(--accent);
 }
 .role-mark::after {
   content: "";
   position: absolute;
-  inset: -2px;
-  border-radius: 50%;
-  background: var(--accent);
-  -webkit-mask:
-    var(--tick) center / 16px no-repeat,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    var(--tick) center / 16px no-repeat exclude,
-    linear-gradient(#000 0 0);
-  opacity: 0;
-  transform: scale(0.5);
+  inset: 0;
+  background: var(--surface);
+  -webkit-mask: var(--tick) center / 14px no-repeat;
+  mask: var(--tick) center / 14px no-repeat;
 }
 .role-card:has(input:checked) .role-mark {
-  border-color: var(--accent);
-}
-.role-card:has(input:checked) .role-mark::after {
+  display: block;
   animation: start-pop var(--pop-ms) var(--ease-out) both;
 }
 
@@ -162,9 +160,7 @@
     transition: none;
     transform: none;
   }
-  .role-card:has(input:checked) .role-mark::after {
+  .role-card:has(input:checked) .role-mark {
     animation: none;
-    opacity: 1;
-    transform: none;
   }
 }

@@ -1,5 +1,5 @@
 /* The profile sheet (Profile.tsx): who the owner is on one white card (their initial on the terracotta tint, the name,
-   "✓ Phone verified" in green), then the grouped rows. */
+   "✓ Phone verified" in muted ink: green is for money paid alone), then the grouped rows. */
 .profile-head {
   display: flex;
   align-items: center;
@@ -33,7 +33,7 @@
   flex-wrap: wrap;
   gap: 2px 12px;
   font-size: var(--fs-2);
-  color: var(--fresh);
+  color: var(--text2);
 }
 
 /* A person row's end (screens/me/PersonRow.tsx): room for a short action ("Ask again") beside a long name. */

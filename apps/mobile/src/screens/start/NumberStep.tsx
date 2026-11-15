@@ -1,3 +1,4 @@
+import type { MessageKey } from "@gigsync/core";
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
@@ -10,15 +11,16 @@ import { Field, FORM_ID } from "./form.js";
 import { Art, StartArt } from "./StartArt.js";
 import { StartBar } from "./StartBar.js";
 
-/**
- * The number, and nothing else: the name comes after the code, once the number is known to be theirs. Under it, the
- * promise that matters most here: it reaches the other side only once both have agreed a job, and only for that job
- * (protocol job.ts ContactCard; ADR 0039 §3). On iPhone the install card comes now, before sign-in, because the
- * home-screen app keeps its own data.
- */
 /** The placeholder's digit, as many as the chosen country's numbers have. */
 const PLACEHOLDER = "0";
 
+/**
+ * The number, and nothing else: the name comes after the code, once the number is known to be theirs. Under it, the
+ * promise that matters most here, as one quiet line: it reaches the other side only once both have agreed a job, and
+ * only for that job (protocol job.ts ContactCard; ADR 0039 §3). `notice` says, under the title, why sign-in is back
+ * (a session the server stopped taking). On iPhone the install card comes now, before sign-in, because the
+ * home-screen app keeps its own data.
+ */
 export function NumberStep({
   step,
   phone,
@@ -26,6 +28,7 @@ export function NumberStep({
   country,
   onCountry,
   onBack,
+  notice,
 }: {
   /** Where this step sits in the dots at the top. */
   step: number;
@@ -35,6 +38,7 @@ export function NumberStep({
   country: Country;
   onCountry: (country: Country) => void;
   onBack: () => void;
+  notice?: MessageKey | undefined;
 }) {
   const { lang, t } = useI18n();
   const field = useRef<HTMLInputElement>(null);
@@ -45,7 +49,10 @@ export function NumberStep({
     <>
       <StartBar step={step} onBack={onBack} />
       <StartArt art={Art.phone} small />
-      <h1 className="start-title">{t("start.number_title")}</h1>
+      <div className="start-head">
+        <h1 className="start-title">{t("start.number_title")}</h1>
+        {notice && <p className={C.muted}>{t(notice)}</p>}
+      </div>
       <span className="start-label" id={Field.phone}>
         {t("signin.phone")}
       </span>
@@ -77,8 +84,8 @@ export function NumberStep({
           onClose={() => setPicking(false)}
         />
       )}
-      <p className="start-pill" data-tone="leaf">
-        <Icon name="shield" size={16} />
+      <p className="start-note">
+        <Icon name="lock" size={16} />
         {t("start.number_why")}
       </p>
       <InstallCard lang={lang} />

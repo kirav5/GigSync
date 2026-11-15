@@ -45,7 +45,7 @@ export function NameStep({
           onChange={(e) => onName(e.target.value)}
         />
       </label>
-      <p className="start-pill">
+      <p className="start-note">
         {t(role === AccountRole.worker ? "start.name_why_worker" : "start.name_why_household")}
       </p>
     </>

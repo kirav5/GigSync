@@ -526,9 +526,11 @@ select.field {
   margin: 0;
   overflow-wrap: anywhere;
 }
+/* Nothing here yet: a plain white card with a solid hairline, as the Jobs tab's own (a dashed edge read as unfinished). */
 .empty {
-  border: 1px dashed var(--hairline);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-card);
+  background: var(--surface);
   padding: 18px;
   color: var(--text2);
   display: grid;
@@ -898,7 +900,7 @@ html[data-keyboard="open"] .dock {
   display: grid;
   gap: 2px;
   padding: 12px 14px;
-  border: 1px solid var(--fresh);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-card);
 }
 
@@ -1315,8 +1317,10 @@ button.list-row {
 .badge .ic {
   stroke-width: 2.2;
 }
-.badge.green {
-  color: var(--fresh);
+/* Checked or signed (the phone's code, both signatures): the terracotta tint, as a picked chip; green is for money paid. */
+.badge.checked {
+  background: var(--picked);
+  color: var(--picked-ink);
 }
 .badge.rust {
   color: var(--accent-ink);

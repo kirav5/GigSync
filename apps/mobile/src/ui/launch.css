@@ -1,75 +1,179 @@
-/* The opening (ui/LaunchSun.tsx): the paper, the sun rising with its rays drawing out, the name writing in, then the
-   mark gliding to the screen's own logo while the paper fades. Transform and opacity only, plus the rays' dash, which
-   a cheap phone draws without laying the page out. */
+/* The opening (ui/LaunchSun.tsx), a sunrise: a horizon draws, the sun rises from behind it and its rays draw out, the
+   name comes in letter by letter with its line beneath, and the lockup holds. Then the paper fades while the mark,
+   on its own layer and never faded, glides to the screen's logo and hands over to it. Every time comes from the
+   component's timeline (the --launch-* properties), and only transform, opacity and the rays' dash move, which a cheap
+   phone draws without laying the page out. The paper is index.html's first frame (#launch-static), so the two match. */
 .launch {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  display: grid;
-  place-items: center;
-  background: var(--bg);
-  transition: opacity 380ms var(--ease-out);
 }
-.launch[data-phase="leave"] {
-  opacity: 0;
+.launch[data-phase="leave"],
+.launch[data-phase="land"] {
   pointer-events: none;
+}
+.launch-paper {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  transition: opacity var(--launch-leave-ms) var(--ease-out);
+}
+.launch-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  transition:
+    transform var(--launch-leave-ms) var(--ease-out),
+    opacity var(--launch-leave-ms) var(--ease-out);
 }
 .launch-lockup {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
-.launch-sun {
+
+/* The sun: a disc that rises inside a sky cut off at the horizon, and the rays over it. The mark is the part that
+   flies, so the horizon sits beside it in the sun's box, not inside it. */
+.launch-sunbox {
+  position: relative;
   display: inline-block;
+}
+.launch-mark {
+  position: relative;
+  display: block;
   width: 64px;
   height: 64px;
-  color: var(--accent);
-  animation: launch-rise 520ms var(--ease-out) both;
-  transition: transform 380ms var(--ease-out);
+  color: var(--brand);
+  transition:
+    transform var(--launch-leave-ms) cubic-bezier(0.4, 0, 0.2, 1),
+    opacity var(--launch-land-ms) linear;
 }
-.launch[data-phase="leave"] .launch-sun {
-  transform: var(--fly, scale(0.4));
-}
-.launch-sun svg {
-  width: 100%;
-  height: 100%;
+.launch-mark svg {
+  display: block;
+  width: 64px;
+  height: 64px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
   overflow: visible;
 }
-.launch-ray {
-  stroke-dasharray: 4;
-  stroke-dashoffset: 4;
-  animation: launch-draw 260ms var(--ease-out) forwards;
+/* The sky reaches down to the horizon's top edge and hides what is below it. */
+.launch-sky {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(100% + 4px);
+  overflow: hidden;
 }
+.launch-disc {
+  animation: launch-rise var(--launch-rise-ms) var(--ease-out) var(--launch-rise-at) both;
+}
+.launch-rays {
+  position: absolute;
+  inset: 0;
+}
+.launch-rays path {
+  stroke-dasharray: 1;
+  animation: launch-draw var(--launch-ray-ms) var(--ease-out)
+    calc(var(--launch-rays-at) + var(--i) * var(--launch-ray-stagger)) both;
+}
+.launch-horizon {
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 104px;
+  height: 4px;
+  margin-left: -52px;
+  border-radius: 2px;
+  background: var(--brand);
+  animation: launch-horizon var(--launch-horizon-ms) var(--ease-out) both;
+}
+
+/* The name, as ui/Brand.tsx sets it, larger; each letter its own box so it can rise. */
 .launch-word {
   font-family: var(--serif-latin);
-  font-size: 40px;
+  font-size: 44px;
+  font-weight: 400;
   line-height: 1;
-  color: var(--text);
   letter-spacing: -0.01em;
-  clip-path: inset(0 100% 0 0);
-  animation: launch-write 360ms var(--ease-out) 460ms forwards;
+  color: var(--text);
+  white-space: nowrap;
 }
-.launch[data-phase="leave"] .launch-word {
+.launch-word span {
+  display: inline-block;
+  animation: launch-letter var(--launch-letter-ms) var(--ease-out)
+    calc(var(--launch-word-at) + var(--i) * var(--launch-letter-stagger)) both;
+}
+.launch-tagline {
+  margin: 28px 0 0;
+  font-size: var(--fs-2);
+  color: var(--text2);
+  text-align: center;
+}
+.launch-tagline span {
+  display: inline-block;
+  animation: launch-letter var(--launch-tagline-ms) var(--ease-out) var(--launch-tagline-at) both;
+}
+
+/* Leaving: the paper and the words fade; the mark glides to the logo at full strength and fades only once there. */
+.launch:not([data-phase="rise"]) .launch-paper,
+.launch:not([data-phase="rise"]) :is(.launch-word, .launch-tagline, .launch-horizon) {
   opacity: 0;
-  transition: opacity 200ms var(--ease-out);
+}
+.launch:not([data-phase="rise"]) :is(.launch-word, .launch-tagline, .launch-horizon) {
+  transition: opacity calc(var(--launch-leave-ms) / 2) var(--ease-out);
+}
+.launch[data-flies="true"]:not([data-phase="rise"]) .launch-mark {
+  transform: var(--fly);
+}
+.launch[data-flies="true"][data-phase="land"] .launch-mark {
+  opacity: 0;
+}
+/* No logo on the screen: the whole lockup draws back a little as it fades. */
+.launch[data-flies="false"]:not([data-phase="rise"]) .launch-stage {
+  transform: scale(0.94);
+  opacity: 0;
+}
+
+@keyframes launch-horizon {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 @keyframes launch-rise {
   from {
-    opacity: 0;
-    transform: translateY(28px) scale(0.7);
+    transform: translateY(52px);
   }
   to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 @keyframes launch-draw {
+  from {
+    opacity: 0;
+    stroke-dashoffset: 1;
+  }
   to {
+    opacity: 1;
     stroke-dashoffset: 0;
   }
 }
-@keyframes launch-write {
+@keyframes launch-letter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
   to {
-    clip-path: inset(0 0 0 0);
+    opacity: 1;
+    transform: translateY(0);
   }
 }

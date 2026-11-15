@@ -17,7 +17,7 @@ export const schedule: Readonly<Record<keyof typeof en, string>> = {
   "schedule.tomorrow": "कल",
   "schedule.job": "GigSync का काम: {when}",
   "schedule.title": "आपकी बुकिंग",
-  "schedule.hint": "जो बुकिंग आपने 'बात करें' में अपने एजेंट को बताईं। इन समयों पर एजेंट कोई काम तय नहीं करेगा।",
+  "schedule.hint": "जो बुकिंग आपने 'बात करें' में अपने सहायक को बताईं। इन समयों पर सहायक कोई काम तय नहीं करेगा।",
   "schedule.delete": "हटाएँ",
   "schedule.delete_named": "{when} हटाएँ",
   "schedule.soon": "{minutes} मिनट में शुरू",

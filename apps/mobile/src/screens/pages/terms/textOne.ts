@@ -12,15 +12,15 @@ export const TEXT_ONE: SectionText<"about" | "service" | "account" | "agent" | "
     ],
   ],
   service: [
-    "The app helps households and workers near each other find one another and agree on work directly. It is a directory of workers' cards plus a personal agent on each person's phone.",
+    "The app helps households and workers near each other find one another and agree on work directly. It is a directory of workers' cards plus a personal AI assistant on each person's phone.",
     [
       [
         "A directory.",
         "Workers publish a card: their work, area, how far they travel, their usual price and the days they work. Households search it.",
       ],
       [
-        "An agent for each person.",
-        "The app on your phone can ask questions, suggest a fair price from local rates, and talk to the other person's agent within the limits you set.",
+        "An AI assistant for each person.",
+        "The app on your phone can ask questions, suggest a fair price from local rates, and talk to the other person's assistant within the limits you set.",
       ],
       [
         "Not an employer or an agency.",
@@ -56,15 +56,15 @@ export const TEXT_ONE: SectionText<"about" | "service" | "account" | "agent" | "
     ],
   ],
   agent: [
-    "Your agent acts for you only within the limits you set, and a job is agreed only when it is signed.",
+    "Your assistant acts for you only within the limits you set, and a job is agreed only when it is signed.",
     [
       [
         "What it does.",
-        "Your agent may answer, ask and propose prices for you. Your lowest price (worker) and highest budget (household) stay on your phone and are never shown to the other side.",
+        "Your assistant may answer, ask and propose prices for you. Your lowest price (worker) and highest budget (household) stay on your phone and are never shown to the other side.",
       ],
       [
         "You sign.",
-        "A job is agreed only when both people sign it in the app. If you turn on auto-sign in Settings, your agent may sign for you within your limits; you can turn it off at any time.",
+        "A job is agreed only when both people sign it in the app. If you turn on auto-sign in Settings, your assistant may sign for you within your limits; you can turn it off at any time.",
       ],
       [
         "Guides, not promises.",

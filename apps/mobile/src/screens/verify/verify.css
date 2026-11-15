@@ -1,31 +1,18 @@
 /* Get verified (GetVerified.tsx): a seal at the top, the serif title, a short line, the steps and what is kept, then
-   the scan button; after a check, the seal turns green with the card's few fields. Light, from the UI kit. */
+   the scan button; after a check, a tick in its place with the card's few fields. Light, from the UI kit. */
 .verify {
   gap: 14px;
   justify-items: center;
   text-align: center;
 }
+/* The seal is the line icon alone, in terracotta: no disc or ring around it, as a drawn shape in a shape says nothing. */
 .verify-seal {
-  position: relative;
   display: grid;
   place-items: center;
-  width: 112px;
-  height: 112px;
   margin-top: 12px;
-  border-radius: 50%;
-  background: var(--picked);
   color: var(--accent);
 }
-.verify-seal::after {
-  content: "";
-  position: absolute;
-  inset: -8px;
-  border: 2px dashed var(--hairline);
-  border-radius: 50%;
-}
 .verify-seal[data-done] {
-  background: var(--done-fill);
-  color: var(--fresh);
   animation: verify-pop 360ms var(--ease-out) both;
 }
 .verify-title {
@@ -62,8 +49,9 @@
   gap: 10px;
   align-items: start;
 }
+/* What is kept takes an ink tick, what never is the terracotta cross: green is for money paid alone. */
 .verify-keep .ic {
-  color: var(--fresh);
+  color: var(--text);
 }
 .verify-keep li[data-never] .ic {
   color: var(--accent);

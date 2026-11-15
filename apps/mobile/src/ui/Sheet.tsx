@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { Avatar, AvatarSize, AvatarTone } from "./Avatar.js";
 import { C } from "./cls.js";
 import { Icon, type IconName } from "./Icon.js";
 import "./sheet.css";
@@ -9,6 +10,8 @@ interface SheetProps {
   line?: string;
   /** An icon in a tile beside the title; `danger` tints the tile red, as for a delete. */
   icon?: IconName;
+  /** A person's name: their round initial beside the title in place of an icon, as their row in a list draws it. */
+  avatar?: string;
   danger?: boolean;
   /**
    * The words of a Done button at the top right. With it the sheet is the tall one, nearly the screen's height, whose
@@ -32,7 +35,7 @@ const CLOSE_MS = 320;
  * and the tabs whatever they transform. Mount it to open it and unmount it to close it; focus goes to the sheet and,
  * after, back to the button that opened it (by hand, as an unmounted dialog does not hand it back).
  */
-export function Sheet({ title, line, icon, danger, done, onClose, children }: SheetProps) {
+export function Sheet({ title, line, icon, avatar, danger, done, onClose, children }: SheetProps) {
   const id = useId();
   const ref = useRef<HTMLDialogElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -102,7 +105,7 @@ export function Sheet({ title, line, icon, danger, done, onClose, children }: Sh
             <div className="sheet-body">{children}</div>
           </>
         ) : (
-          <ShortHead id={id} title={title} line={line} icon={icon} danger={danger}>
+          <ShortHead id={id} title={title} line={line} icon={icon} avatar={avatar} danger={danger}>
             {children}
           </ShortHead>
         )}
@@ -116,16 +119,18 @@ interface ShortHeadProps {
   title: string;
   line: string | undefined;
   icon: IconName | undefined;
+  avatar: string | undefined;
   danger: boolean | undefined;
   children: ReactNode;
 }
 
-/** A short sheet's head (its icon tile, title and line) and its answers under it. */
-function ShortHead({ id, title, line, icon, danger, children }: ShortHeadProps) {
+/** A short sheet's head (its icon tile or a person's initial, title and line) and its answers under it. */
+function ShortHead({ id, title, line, icon, avatar, danger, children }: ShortHeadProps) {
   return (
     <>
       <div className="sheet-head">
-        {icon && (
+        {avatar !== undefined && <Avatar name={avatar} size={AvatarSize.md} tone={AvatarTone.rust} />}
+        {avatar === undefined && icon && (
           <span className={danger ? "sheet-tile danger" : "sheet-tile"} aria-hidden>
             <Icon name={icon} size={22} />
           </span>

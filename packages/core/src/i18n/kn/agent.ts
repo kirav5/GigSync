@@ -2,15 +2,15 @@ import type { agent as en } from "../en/agent.js";
 
 /** Kannada: the agent screen and its cards, translation on the phone, and the rate card's source line. */
 export const agent: Readonly<Record<keyof typeof en, string>> = {
-  "agent.headline": "ನಿಮ್ಮ ಏಜೆಂಟ್ ಜೊತೆ ಮಾತಾಡಿ.",
+  "agent.headline": "ನಿಮ್ಮ ಸಹಾಯಕನ ಜೊತೆ ಮಾತಾಡಿ.",
   "agent.soft": "ನಿಮ್ಮ ಟಿಪ್ಪಣಿಗಳು ಇಲ್ಲೇ ಇರುತ್ತವೆ.",
-  "agent.empty": "ನಿಮ್ಮ ಏಜೆಂಟ್ ಏನು ಮಾಡಬೇಕು?",
+  "agent.empty": "ನಿಮ್ಮ ಸಹಾಯಕ ಏನು ಮಾಡಬೇಕು?",
   "agent.suggest_rate": "ನನ್ನ ದರ ಬದಲಾಯಿಸಿ",
   "agent.suggest_earned": "ಈ ವಾರ ನಾನು ಎಷ್ಟು ಸಂಪಾದಿಸಿದೆ?",
   "agent.earnings": "ಈ ವಾರ ನಿಮಗೆ {week} ಬಂದಿದೆ, ಈ ತಿಂಗಳು {month}. ಇನ್ನೂ ಬರಬೇಕಿರುವುದು: {waiting}.",
   "agent.sources.one": "{count} ಟಿಪ್ಪಣಿಯಿಂದ",
   "agent.sources.other": "{count} ಟಿಪ್ಪಣಿಗಳಿಂದ",
-  "card.text": "ಏಜೆಂಟ್",
+  "card.text": "ಸಹಾಯಕ",
   "card.saved": "ಉಳಿಸಲಾಗಿದೆ",
   "card.answer": "ಉತ್ತರ",
   "card.draft": "ಡ್ರಾಫ್ಟ್",

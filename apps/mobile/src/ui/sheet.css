@@ -78,6 +78,10 @@
   align-items: flex-start;
   gap: 14px;
 }
+/* A person's initial beside their name and line, centred on the two as their row in the list has it. */
+.sheet-head:has(> .avatar) {
+  align-items: center;
+}
 .sheet-tile {
   flex: none;
   display: grid;

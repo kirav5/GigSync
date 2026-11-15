@@ -87,7 +87,7 @@
   margin: 0;
 }
 .payee-form .saved {
-  color: var(--fresh);
+  color: var(--text2);
 }
 
 /* A saved UPI ID: one line, the ID over the name payers see, with Change at the end. */

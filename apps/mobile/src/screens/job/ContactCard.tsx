@@ -31,7 +31,7 @@ export function ContactCard({ job, primary }: { job: JobRecord; primary: boolean
     <fieldset className={`contact ${C.card}`} aria-label={t("a11y.contact")}>
       {hash && (
         <span>
-          <Badge icon="tick" tone={BadgeTone.green}>
+          <Badge icon="tick" tone={BadgeTone.checked}>
             {t("jobcard.both_signed", { hash })}
           </Badge>
         </span>

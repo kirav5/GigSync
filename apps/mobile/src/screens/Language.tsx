@@ -25,11 +25,15 @@ const BETWEEN = " · ";
 export function LanguageChooser({ suggested, onChoose }: { suggested: Lang; onChoose: (lang: Lang) => void }) {
   const id = useId();
   return (
-    <section className={`${C.stack} ${C.textRoot} start`} lang={suggested} aria-label={t(suggested, "onboard.title")}>
+    <section
+      className={`${C.stack} ${C.textRoot} start start-lang`}
+      lang={suggested}
+      aria-label={t(suggested, "onboard.title")}
+    >
       <Brand />
-      <StartArt art={Art.welcome} />
+      <StartArt art={Art.welcome} bare />
       <div className="start-head">
-        <h1 className={C.headline}>
+        <h1 className="start-title">
           {ORDER.map((l, i) => (
             <Fragment key={l}>
               {i > 0 && BETWEEN}
