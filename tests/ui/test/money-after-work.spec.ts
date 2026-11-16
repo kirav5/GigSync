@@ -64,7 +64,7 @@ async function signedJob(browser: { newContext: () => Promise<BrowserContext> },
 }
 
 test("the worker's card offers one step at a time, and asks for the money after the work", async ({ browser }) => {
-  const { job, hers } = await signedJob(browser, "steps");
+  const { job, hers } = await signedJob(browser, "money");
   const button = (key: MessageKey) => job.getByRole("button", { name: say(key), exact: true });
 
   // Signed: the first step, Cancel and an advance, and a quiet Mark done for a job done without the steps; not the

@@ -51,6 +51,9 @@ function OneOf<V extends string | number>(p: {
 /** A list with nothing in it is no preference: left out. */
 const orNone = <T,>(list: T[]): T[] | undefined => (list.length > 0 ? list : undefined);
 
+/** A chip's word with its first letter up ("Morning"): the same word sits lowercase inside sentences. */
+const startUpper = (word: string, lang: string): string => word.charAt(0).toLocaleUpperCase(lang) + word.slice(1);
+
 /**
  * A worker's own preferences for the terms besides the price (ADR 0033 §3), on their card: the hours they work, from–to
  * on the clock (ADR 0053 §1), else the parts of the day they take work (none ticked means any), the days, who buys the
@@ -66,7 +69,7 @@ export function TermPrefsField({
   prefs: TermPrefs;
   onChange: (next: TermPrefs) => void;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const negotiates = (key: TermKey) => trades.some((tr) => TRADE_TERMS[tr].includes(key));
   const windows = prefs.windows ?? [];
   const clock = prefs.from !== undefined && prefs.to !== undefined;
@@ -88,7 +91,12 @@ export function TermPrefsField({
           <span className={C.muted}>{t("terms.card_windows")}</span>
           <div className={C.row}>
             {TimeWindow.options.map((w) => (
-              <Chip key={w} on={windows.includes(w)} label={t(`terms.window.${w}`)} onClick={() => toggle(w)} />
+              <Chip
+                key={w}
+                on={windows.includes(w)}
+                label={startUpper(t(`terms.window.${w}`), lang)}
+                onClick={() => toggle(w)}
+              />
             ))}
           </div>
         </>

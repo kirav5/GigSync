@@ -18,7 +18,7 @@ export const address = {
   "addr.denied": "Location is off for GigSync. Search or type the address instead.",
   "addr.failed": "Could not find your area. Search or type it instead.",
   "addr.found": "You are in {area}. Check the details and add your house or flat number.",
-  "addr.search": "Search for your area or building",
+  "addr.search": "Search area or building",
   "addr.find": "Search",
   "addr.search_none": "Nothing found. Type the address below.",
   "addr.search_off": "Search is not available right now. Type the address below.",

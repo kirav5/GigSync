@@ -22,7 +22,11 @@ export function FindTab({ d, m }: TabProps) {
       ports={d.ports}
       account={d.account}
       device={d.device}
-      onAsked={() => m.go(Screen.activity)}
+      onAsked={() => {
+        // The asked job is on Activity as it opens: read it now, not at the next check.
+        void d.run(async () => undefined);
+        m.go(Screen.activity);
+      }}
       onPlaces={() => m.go(Screen.addresses)}
       recent={<RecentJobs view={d.view} onOpen={() => m.go(Screen.activity)} />}
     />

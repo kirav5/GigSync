@@ -152,6 +152,15 @@
 .rec-stars dt::before {
   content: "· ";
 }
+/* "Jobs done" is said for readers only: the badge shows it counted, "1 job done". */
+.rec-badges .rec-term {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 
 /* The Ask button stays in the found group, stuck to the bottom of the screen while the cards scroll under it. */
 .found-ask {

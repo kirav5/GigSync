@@ -14,8 +14,8 @@ export function RecordBadges({ record }: { record: WorkerRecord }) {
   return (
     <dl className="rec-badges" aria-label={t("record.card_label")}>
       <div className="badge">
-        <dt>{t("record.card_jobs")}</dt>
-        <dd>{record.jobs}</dd>
+        <dt className="rec-term">{t("record.card_jobs")}</dt>
+        <dd>{plural("record.jobs_done", record.jobs)}</dd>
       </div>
       {ratingShown(record) && (
         <div className="badge rec-stars">

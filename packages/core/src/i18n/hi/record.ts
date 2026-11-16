@@ -18,6 +18,8 @@ export const record: Readonly<Record<keyof typeof en, string>> = {
   // On the worker's card, for households to see (ADR 0036)
   "record.card_label": "काम का रिकॉर्ड",
   "record.card_jobs": "पूरे किए काम",
+  "record.jobs_done.one": "{count} काम पूरा किया",
+  "record.jobs_done.other": "{count} काम पूरे किए",
   "record.card_rated.one": "{count} रेटिंग",
   "record.card_rated.other": "{count} रेटिंग",
   "record.card_not_rated": "अभी रेटिंग नहीं",

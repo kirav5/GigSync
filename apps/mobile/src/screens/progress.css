@@ -85,7 +85,7 @@
   display: grid;
   justify-items: end;
   max-width: 30vw;
-  font: 700 24px / 1.05 var(--serif-latin);
+  font: 700 21px / 1.05 var(--serif-latin);
   color: var(--live-glow);
   text-align: end;
   overflow-wrap: anywhere;
@@ -128,11 +128,9 @@
   background: var(--danger);
 }
 .step-name {
-  overflow: hidden;
-  font: 500 10.5px / 1.2 var(--sans);
+  font: 500 10.5px / 1.15 var(--sans);
   color: var(--live-faint);
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 .job-steps li[aria-current="step"] .step-name {
   font-weight: 600;

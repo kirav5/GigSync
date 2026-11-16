@@ -1,4 +1,4 @@
-import { type ApiClient, HttpMethod, type MessageKey, type Params, t } from "@gigsync/core";
+import { type ApiClient, HttpMethod, type MessageKey, type Params, plural, t } from "@gigsync/core";
 import { Lang, MyQr, type QrCode } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import {
@@ -274,12 +274,11 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   const mine = anil.getByRole("region", { name: say("page.card_seen") });
   await expect(mine.getByRole("definition")).toHaveText(["1", say("record.card_stars", { stars: "5" })]);
   const code = await qr;
+  const badges = [plural(en, "record.jobs_done", 1), say("record.card_stars", { stars: "5" })];
   await expect(async () => {
     await priya.goto(`${APP}/?to=${code}`);
     const seen = priya.getByRole("region", { name: "Anil" });
-    await expect(seen.getByRole("definition")).toHaveText(["1", say("record.card_stars", { stars: "5" })], {
-      timeout: 5000,
-    });
+    await expect(seen.getByRole("definition")).toHaveText(badges, { timeout: 5000 });
   }).toPass();
   await shoot("record-on-card", phones);
 
