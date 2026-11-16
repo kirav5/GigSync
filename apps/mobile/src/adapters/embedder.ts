@@ -1,5 +1,5 @@
 import { Capacitor } from "@capacitor/core";
-import { Collection, type Embedder, log, mayResumeAlone, type Reader, type Storage } from "@gigsync/core";
+import { Collection, type Embedder, log, mayFetchPackAlone, type Reader, type Storage } from "@gigsync/core";
 import { ModelBundle, type ReaderInput, type ReaderResult } from "@gigsync/protocol";
 import {
   type Bundled,
@@ -9,44 +9,56 @@ import {
   ToWorker,
   type ToWorkerMessage,
 } from "./embed/messages.js";
-import { currentNetwork } from "./network.js";
+import { currentNetwork, onComputer } from "./network.js";
 
 /**
  * The understanding pack (ADR 0042): a small multilingual embedding model that runs inside this app, through ONNX
- * Runtime in the browser or webview, and turns a sentence into a vector core compares with its labelled sayings. It is
- * fetched once, by itself on Wi-Fi, and kept by the browser's cache; after that it loads from the device and nothing
- * typed ever leaves the phone, so it stays on whichever model answers, or none. The model itself runs in a worker
- * (embed/worker.ts), so loading and embedding never hold up typing or the screen.
+ * Runtime in the browser or webview, and turns a sentence into a vector core compares with its labelled sayings. It
+ * comes with the app, or is fetched once, by itself, and kept by the browser's cache; after that it loads from the
+ * device and nothing typed ever leaves the phone, so it stays on whichever model answers, or none. The model itself
+ * runs in a worker (embed/worker.ts), so loading and embedding never hold up typing or the screen.
  */
 
 export { EMBEDDING_MODEL };
 
 /**
- * The phone's reader (ADR 0065), fetched with the pack from GigSync's model host: the folder its files are in, set at
- * build time (`VITE_READER_URL`). A build without it has no reader, and Find reads as before.
+ * The phone's two models as one bundle (`pnpm models:bundle`, ADR 0065): the trimmed embedding model and the reader
+ * trimmed to the same pieces, with a manifest naming them. A native app carries it beside its own files, so it reads
+ * from its first launch, offline, and never fetches either model. The web fetches the same bundle once from GigSync's
+ * model host, a folder per version set at build time (`VITE_MODELS_URL`), and keeps it in the browser's cache. A web
+ * build without it fetches the embedding model from Hugging Face and has no reader.
  */
-const READER_URL = import.meta.env.VITE_READER_URL?.replace(/\/+$/, "") || undefined;
-/**
- * Where a native app keeps the models it came with (`pnpm models:bundle`), beside its own files: the trimmed embedding
- * model and the reader trimmed to the same pieces. With them the phone reads from its first launch,
- * offline, and never fetches either model; the web, which has no bundle, fetches as before.
- */
-const BUNDLE = "/models/";
-const BUNDLE_MANIFEST = `${BUNDLE}manifest.json`;
-const BUNDLED_READER = `${BUNDLE}reader`;
+const OWN_BUNDLE = "/models/";
+const MODELS_URL = import.meta.env.VITE_MODELS_URL?.replace(/\/*$/, "/") || undefined;
+const MANIFEST = "manifest.json";
+const READER_FOLDER = "reader";
+/** Where a hosted bundle's manifest is kept, so a later launch offline still knows which models it fetched. */
+const MANIFEST_CACHE = "gigsync-models";
 
-/** The bundle's manifest, in a native app built with one; undefined everywhere else. */
-async function findBundle(): Promise<Bundled | undefined> {
-  if (!Capacitor.isNativePlatform()) return undefined;
+/** A bundle's manifest, from the app's own files or the cache, else fetched from the host and kept. */
+async function manifestAt(base: string, hosted: boolean): Promise<Response> {
+  const url = `${base}${MANIFEST}`;
+  if (!hosted) return fetch(url);
+  const cache = await caches.open(MANIFEST_CACHE);
+  const kept = await cache.match(url);
+  if (kept) return kept;
+  const response = await fetch(url);
+  if (response.ok) await cache.put(url, response.clone());
+  return response;
+}
+
+/** The bundle at `base`, or undefined when there is none there or its manifest does not check. */
+async function bundleAt(base: string, hosted: boolean): Promise<Bundled | undefined> {
   try {
-    const response = await fetch(BUNDLE_MANIFEST);
+    const response = await manifestAt(base, hosted);
     if (!response.ok) return undefined;
     const manifest = ModelBundle.safeParse(await response.json());
-    return manifest.success ? { base: BUNDLE, embedder: manifest.data.embedder } : undefined;
+    return manifest.success ? { base, embedder: manifest.data.embedder, hosted } : undefined;
   } catch {
     return undefined;
   }
 }
+
 /** Remembers that the pack was fetched, so later launches load it from the cache without asking again. */
 const SETTINGS_KEY = "understanding_pack";
 /** Where Transformers.js keeps fetched files (its browser Cache name), and the files this model needs. */
@@ -72,8 +84,8 @@ type Vectors = (readonly number[] | null)[];
 export class UnderstandingPack implements Embedder, Reader {
   state: PackState = PackState.downloadable;
   /** The reader's own state once the embedding model is ready; undefined in a build with no reader. */
-  readerState: PackState | undefined = READER_URL ? PackState.downloadable : undefined;
-  /** The models the app came with, once `load` looked; the reader then comes from there and never from the host. */
+  readerState: PackState | undefined = MODELS_URL ? PackState.downloadable : undefined;
+  /** The bundle both models come from, once `load` looked; the reader comes only with one. */
   private bundled: Bundled | undefined;
   private settleReader: (() => void) | undefined;
   private readonly readings = new Map<number, (result: ReaderResult | null) => void>();
@@ -87,19 +99,25 @@ export class UnderstandingPack implements Embedder, Reader {
 
   /**
    * Loads the pack when it was fetched on this device before and the browser still holds every file of it. Otherwise
-   * it fetches the pack by itself on Wi-Fi, never on mobile data or where the browser can't tell (Settings has no
-   * button for it: the pack is meant to come with the app, and until it does, Wi-Fi brings it).
+   * it fetches the pack by itself where `mayFetchPackAlone` allows, never on mobile data (Settings has no button
+   * for it: the pack is meant to come with the app, and on the web Wi-Fi or a computer brings it).
    */
   async load(storage: Storage): Promise<void> {
     this.storage = storage;
-    this.bundled = await findBundle();
-    if (this.bundled) return this.loadBundled();
+    if (Capacitor.isNativePlatform()) {
+      this.bundled = await bundleAt(OWN_BUNDLE, false);
+      if (this.bundled) return this.loadBundled();
+    } else if (MODELS_URL) {
+      // A web build set to a bundle waits for its manifest rather than load another model the reader would not fit.
+      this.bundled = await bundleAt(MODELS_URL, true);
+      if (!this.bundled) return;
+    }
     const fetched = await storage.get<boolean>(Collection.settings, SETTINGS_KEY);
-    const wifi = mayResumeAlone(currentNetwork());
+    const alone = mayFetchPackAlone(currentNetwork(), onComputer());
     if (fetched && (await this.cached())) await this.start();
-    else if (wifi) return this.prepare();
-    // A reader newer than the pack on this phone comes the same way.
-    await this.startReader(wifi);
+    else if (alone) return this.prepare();
+    // A reader newer than the pack on this device comes the same way.
+    await this.startReader(alone);
   }
 
   /** Both models from the app's own files: no network, no cache, on every launch. */
@@ -116,15 +134,18 @@ export class UnderstandingPack implements Embedder, Reader {
     await this.startReader(true);
   }
 
-  /** The reader, once the embedding model is ready: from the device at launch, from the host only with the pack. */
+  /**
+   * The reader, once the embedding model is ready, from the same bundle: it was trimmed with that embedding model and
+   * reads with its tokenizer. From the device at launch; from the host only with the pack.
+   */
   private startReader(fetchIt: boolean): Promise<void> {
-    // A bundled embedding model was trimmed with its reader: a reader from the host would not share its pieces.
-    const url = this.bundled ? BUNDLED_READER : READER_URL;
-    if (!url || this.state !== PackState.ready || this.readerState === PackState.ready) return Promise.resolve();
+    const bundle = this.bundled;
+    if (!bundle || this.state !== PackState.ready || this.readerState === PackState.ready) return Promise.resolve();
     if (fetchIt) this.setReader(PackState.downloading);
     return new Promise((resolve) => {
       this.settleReader = resolve;
-      this.send({ type: ToWorker.loadReader, url, fetch: fetchIt, keep: !this.bundled });
+      const url = `${bundle.base}${READER_FOLDER}`;
+      this.send({ type: ToWorker.loadReader, url, fetch: fetchIt, keep: bundle.hosted });
     });
   }
 
@@ -133,7 +154,9 @@ export class UnderstandingPack implements Embedder, Reader {
     try {
       if (!(await caches.has(TRANSFORMERS_CACHE))) return false;
       const cache = await caches.open(TRANSFORMERS_CACHE);
-      const base = `${MODEL_HOST}${EMBEDDING_MODEL}/resolve/${REVISION}/`;
+      const base = this.bundled
+        ? `${this.bundled.base}${this.bundled.embedder}/`
+        : `${MODEL_HOST}${EMBEDDING_MODEL}/resolve/${REVISION}/`;
       const found = await Promise.all(MODEL_FILES.map((file) => cache.match(`${base}${file}`)));
       return found.every((hit) => hit !== undefined);
     } catch {

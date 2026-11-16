@@ -168,3 +168,22 @@ manifest the app reads at launch: it then loads them from its own files, with ON
 instead of a CDN, and never fetches the reader from `VITE_READER_URL`, whose untrimmed pieces would not match. The
 website has no bundle and fetches as before. A new reader now comes with an app release. Release builds in CI do not
 bundle yet: the models stay off git, so CI needs them from somewhere first.
+
+## Amendment (2026-11-16): one bundle for the web and the phone
+
+The website no longer reads with models of its own. It fetched the untrimmed embedding model from Hugging Face and
+would have needed an untrimmed reader beside it (about 231 MB), while the phone carries the trimmed pair (72 MB): two
+sets of models, so a test on one said nothing for the other. Now both read with the same bundle:
+- `pnpm models:bundle` writes the bundle (the manifest, the trimmed embedding model, the reader trimmed with it) into
+  a native build as before, or alone with `--out`, a folder per version.
+- `pnpm models:publish` puts that folder on the model host (it replaces `reader:publish`), and the website's build
+  reads it from `VITE_MODELS_URL`, which replaces `VITE_READER_URL`. The website fetches the manifest and both models
+  from there once and keeps them in the browser's cache, the manifest too, so a later visit offline knows what it has.
+  ONNX Runtime's WebAssembly comes from the build there too, not a CDN.
+- A website build set to a bundle loads nothing else: without its manifest it waits, rather than load an embedding
+  model the reader would not fit. A website build without `VITE_MODELS_URL` fetches the embedding model from Hugging
+  Face as before and has no reader. A native app reads only the bundle it came with.
+- The understanding pack now fetches by itself on a computer whose browser does not say what the connection is, as
+  well as on Wi-Fi (`mayFetchPackAlone`). Desktop Chrome, Safari and Firefox never say, so a computer never fetched it;
+  a computer is almost never on mobile data. A phone that does not say (every iPhone browser) still waits for Wi-Fi it
+  can see, and nothing fetches on mobile data or with the data saver on.

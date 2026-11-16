@@ -12,9 +12,6 @@ jobs:
     env:
       # The API address baked into the app build. Set the API_BASE repository variable to move it (e.g. a custom domain).
       VITE_API_BASE: ${{ vars.API_BASE || 'https://api.gigsync.network' }}
-      # The phone's reader (ADR 0065) on GigSync's model host, e.g. https://models.gigsync.network/reader/v3, from
-      # `pnpm reader:publish`. Unset, the app has no reader and Find reads as before.
-      VITE_READER_URL: ${{ vars.READER_URL }}
       # Real SMS sign-in codes through Firebase (docs/setup/firebase-phone-sign-in.md), from repository variables.
       # Unset, the app signs in with the API's dev code.
       VITE_FIREBASE_API_KEY: ${{ vars.FIREBASE_API_KEY }}

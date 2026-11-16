@@ -44,15 +44,24 @@ const post = (m: FromWorkerMessage) => scope.postMessage(m);
 const nameOf = (err: unknown) => (err instanceof Error ? err.name : String(err));
 let pipe: Promise<FeatureExtractionPipeline> | undefined;
 
+/** Where a hosted bundle keeps each model: a folder named after it, beside the manifest. */
+const BUNDLE_FOLDER = "{model}/";
+
 /**
- * Points Transformers.js at the app's own files, with no network and no second copy: the models, and ONNX Runtime's
- * WebAssembly, which the build already ships beside this worker (Transformers.js would fetch it from a CDN instead).
+ * Points Transformers.js at a model bundle. The app's own files load with no network and no second copy; a hosted
+ * bundle loads from GigSync's model host and is kept in the browser's cache, as Hugging Face's files were. Either way
+ * ONNX Runtime's WebAssembly is the one the build ships beside this worker (Transformers.js would fetch it from a CDN).
  */
 function fromBundle(bundled: Bundled): string {
-  env.allowRemoteModels = false;
-  env.allowLocalModels = true;
-  env.localModelPath = bundled.base;
-  env.useBrowserCache = false;
+  if (bundled.hosted) {
+    env.remoteHost = bundled.base;
+    env.remotePathTemplate = BUNDLE_FOLDER;
+  } else {
+    env.allowRemoteModels = false;
+    env.allowLocalModels = true;
+    env.localModelPath = bundled.base;
+    env.useBrowserCache = false;
+  }
   const wasm = env.backends.onnx.wasm;
   if (wasm) delete wasm.wasmPaths;
   VECTORS_CACHE = vectorsCache(bundled.embedder);
@@ -61,7 +70,7 @@ function fromBundle(bundled: Bundled): string {
 
 async function load(bundled: Bundled | undefined): Promise<void> {
   // Files come from the app's bundle, or else from the browser's cache when it has them, else from the model's host:
-  // the app asks for a load only when the cache is complete, or on the owner's tap.
+  // the app asks for a load only when the cache is complete, or when it may fetch (embedder.ts).
   env.allowRemoteModels = true;
   env.allowLocalModels = false;
   const model = bundled ? fromBundle(bundled) : EMBEDDING_MODEL;
