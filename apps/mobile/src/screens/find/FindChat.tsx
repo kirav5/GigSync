@@ -205,7 +205,13 @@ export function FindChat({ ports, account, device, onAsked, onPlaces }: Props) {
       turns={turns}
       busy={busy}
       onAsk={(turn) => void ask(turn)}
-      where={{ saved: saved ?? [], storage: ports.storage, onSaved: (a) => added(open, a), onAdd: setAdding }}
+      where={{
+        saved: saved ?? [],
+        storage: ports.storage,
+        session: account.session,
+        onSaved: (a) => added(open, a),
+        onAdd: setAdding,
+      }}
       onSay={(text) => void send(text, Via.typed)}
       onTap={(value, label) => {
         if (state) countFind(account.session, findEventOf(state, value));

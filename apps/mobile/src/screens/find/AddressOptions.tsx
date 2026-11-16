@@ -1,5 +1,5 @@
 import type { Choice, Storage } from "@gigsync/core";
-import type { Place, SavedAddress } from "@gigsync/protocol";
+import type { Place, SavedAddress, Session } from "@gigsync/protocol";
 import { useState } from "react";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
@@ -14,6 +14,8 @@ export interface WhereTools {
   /** The household's saved addresses, for each card's own line. */
   saved: readonly SavedAddress[];
   storage: Storage;
+  /** For naming the place under a moved pin. */
+  session: Session;
   /** An address saved again from the chat (its pin put on the door). */
   onSaved: (address: SavedAddress) => void;
   /** "Add an address" or "Use my current location": the app opens the address form (ADR 0045). */
@@ -81,7 +83,9 @@ export function AddressOptions({
           </button>
         }
       />
-      {hasPoint(check) && <DoorCheck address={check} storage={where.storage} onSaved={where.onSaved} />}
+      {hasPoint(check) && (
+        <DoorCheck address={check} storage={where.storage} session={where.session} onSaved={where.onSaved} />
+      )}
     </>
   );
 }
