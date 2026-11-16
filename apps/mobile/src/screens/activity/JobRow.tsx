@@ -3,7 +3,6 @@ import { useId } from "react";
 import { useI18n } from "../../i18n.js";
 import { Avatar, AvatarSize, AvatarTone } from "../../ui/Avatar.js";
 import { C } from "../../ui/cls.js";
-import { Icon } from "../../ui/Icon.js";
 import type { GigView } from "../../useGig.js";
 import { JobThread } from "../JobThread.js";
 import type { CardProps } from "./JobLists.js";
@@ -22,33 +21,39 @@ function useRow(job: JobRecord, view: GigView, day: string, today: boolean): { n
   };
 }
 
+/** Between the work and when it is, on the row's second line. */
+const DOT = " · ";
+
 /**
- * The row's face, as an order or a trip in a list: the person's tile; their name with the amount across from it; the
- * work under it; then the status pill (rust when the move is the owner's) and when the work is.
+ * The row's face, as an order or a trip in a list: the person's tile; their name, and the work and when under it; the
+ * amount at the end with the status pill under it (rust when the move is the owner's, green once paid).
  */
 function Face({ id, name, words }: { id: string; name: string; words: RowWords }) {
   return (
     <>
       <Avatar name={name} size={AvatarSize.md} tone={AvatarTone.rust} />
       <span className="job-row-text">
-        <span className="job-row-top">
-          <span id={`${id}n`} className="job-row-name">
-            {name}
-          </span>
-          {words.amount && (
-            <span id={`${id}a`} className={`job-row-amount ${words.tone}`}>
-              {words.amount}
-            </span>
+        <span id={`${id}n`} className="job-row-name">
+          {name}
+        </span>
+        <span className="job-row-line">
+          <span id={`${id}l`}>{words.line}</span>
+          {words.meta && (
+            <>
+              {DOT}
+              <span id={`${id}m`}>{words.meta}</span>
+            </>
           )}
         </span>
-        <span id={`${id}l`} className="job-row-line">
-          {words.line}
-        </span>
-        <span className="job-row-meta">
-          <span id={`${id}w`} className={`job-pill ${words.tone}`}>
-            {words.word}
+      </span>
+      <span className="job-row-end">
+        {words.amount && (
+          <span id={`${id}a`} className={`job-row-amount ${words.tone}`}>
+            {words.amount}
           </span>
-          {words.meta && <span id={`${id}m`}>{words.meta}</span>}
+        )}
+        <span id={`${id}w`} className={`job-pill ${words.tone}`}>
+          {words.word}
         </span>
       </span>
     </>
@@ -59,14 +64,6 @@ function Face({ id, name, words }: { id: string; name: string; words: RowWords }
 function named(id: string, words: RowWords) {
   const parts = [`${id}l`, `${id}w`, words.meta && `${id}m`, words.amount && `${id}a`];
   return { "aria-labelledby": `${id}n`, "aria-describedby": parts.filter(Boolean).join(" ") };
-}
-
-function Chevron({ down }: { down?: boolean }) {
-  return (
-    <span className="job-row-chev" aria-hidden="true">
-      <Icon name={down ? "chev_down" : "chev"} size={18} />
-    </span>
-  );
 }
 
 interface RowProps extends CardProps {
@@ -100,7 +97,6 @@ export function JobRow({ job, day, today = false, decide = false, open, onToggle
         {...named(id, words)}
       >
         <Face id={id} name={name} words={words} />
-        <Chevron down />
       </button>
       {open && (
         <div id={panel} className="job-row-open">
@@ -121,7 +117,6 @@ export function DoneRow({ job, view, onOpen }: { job: JobRecord; view: GigView; 
     <li>
       <button type={C.button} className={ROW} onClick={onOpen} {...named(id, words)}>
         <Face id={id} name={name} words={words} />
-        <Chevron />
       </button>
     </li>
   );

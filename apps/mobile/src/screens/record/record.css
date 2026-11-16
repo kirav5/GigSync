@@ -3,25 +3,10 @@
    styles.css, so Hindi and Kannada get their larger type and taller lines from :lang() there, and the dark look
    follows on its own. */
 
-/* The head: the amount on its own line, what it is and what is said beside it under it. The label stays its own
-   element, and the amount sits in the same parent, so a reader (or a test) finds one beside the other. */
+/* The head is the hero card (money-hero.css); the two tiles sit under it. */
 .money-top {
   display: grid;
-  gap: 14px;
-}
-.money-head {
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  font-size: var(--fs-2);
-  font-weight: 400;
-  line-height: 1.4;
-  color: var(--text2);
-}
-.money-head > .money-big {
-  flex-basis: 100%;
-  color: var(--text);
+  gap: 12px;
 }
 /* What nobody has asked for yet: one quiet line under the tiles, its amount at the end. */
 .money-line {

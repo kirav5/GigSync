@@ -22,6 +22,11 @@ export const greeting = (page: Page, lang: Lang = DEFAULT_LANG) =>
 export const composerButton = (page: Page, key: MessageKey, lang: Lang = DEFAULT_LANG) =>
   composer(page).getByRole("button", { name: t(lang, key), exact: true });
 
+/** Waits until the assistant has written out its newest reply: while it writes, a blinking cursor follows the words. */
+export async function written(page: Page) {
+  await expect(page.locator(".typed-cursor")).toHaveCount(0);
+}
+
 /** Taps one of the rows under the Home greeting, as "Pick from a list" on a household's Home (the "+" is photos). */
 export async function homePick(page: Page, key: MessageKey, lang: Lang = DEFAULT_LANG) {
   const row = page.locator(".greet").getByRole("button", { name: t(lang, key), exact: true });

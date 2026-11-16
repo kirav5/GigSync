@@ -47,7 +47,7 @@ export function NeedTurns({
       );
     }
     return (
-      <Ask key={turn.id} lines={turn.lines}>
+      <Ask key={turn.id} lines={turn.lines} typing={turn.id === lastQuestion}>
         {asking && turn.id === lastQuestion && (
           <Answers
             {...tools}

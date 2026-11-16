@@ -162,62 +162,6 @@
   font-size: var(--fs-2);
 }
 
-/* The signed deal: two faces with ticks, the words, the price large and "Fixed", centred like a receipt's total. */
-.deal {
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  padding: 18px 16px;
-  border: 1px solid var(--hairline);
-  border-radius: 18px;
-  background: var(--surface);
-  text-align: center;
-  font-size: var(--fs-2);
-}
-.deal > .stack {
-  justify-self: stretch;
-  text-align: start;
-}
-.deal-faces {
-  display: flex;
-  margin-bottom: 6px;
-}
-.deal-face {
-  position: relative;
-}
-.deal-faces {
-  gap: 14px;
-}
-.deal-face .avatar {
-  box-shadow: 0 0 0 3px var(--surface);
-}
-.deal-tick {
-  position: absolute;
-  right: -3px;
-  bottom: -3px;
-  display: grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 2px var(--surface);
-  --icon: #fff;
-  color: #fff;
-}
-.deal-title {
-  font-family: var(--serif);
-  font-size: var(--fs-heading);
-  font-weight: 500;
-}
-.deal-price {
-  font-family: var(--serif-latin);
-  font-size: 30px;
-  font-weight: 600;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums lining-nums;
-}
-
 /* "⋯ More" under the job's button, and the small print in its sheet. */
 .more-btn {
   min-height: 44px;

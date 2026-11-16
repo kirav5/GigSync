@@ -1,9 +1,11 @@
 import { type GigDevice, type JobRecord, type MessageKey, nextWorkerStep, type WorkerStep } from "@gigsync/core";
 import { UpdateCode } from "@gigsync/protocol";
 import { useI18n } from "../../i18n.js";
-import type { Step } from "../../payments/useStep.js";
+import { type Run, type Step, useStep } from "../../payments/useStep.js";
+import { BusyGroup } from "../../ui/BusyGroup.js";
 import { C } from "../../ui/cls.js";
 import { Icon, type IconName } from "../../ui/Icon.js";
+import { useBusy } from "../../ui/useBusy.js";
 import { J } from "./look.js";
 
 const U = UpdateCode.enum;
@@ -62,5 +64,20 @@ export function JobDay({ job, device, step, isWorker }: Props) {
         </span>
       )}
     </>
+  );
+}
+
+/**
+ * The day's step inside the live card (JobProgress): its own busy guard and error line, so a tap there waits for the
+ * sync as the card's other moves do.
+ */
+export function JobDayBox({ job, device, run, isWorker }: Omit<Props, "step"> & { run: Run }) {
+  const { busy, guard } = useBusy();
+  const { step, error } = useStep((work) => guard(() => run(work)));
+  return (
+    <BusyGroup busy={busy}>
+      <JobDay job={job} device={device} step={step} isWorker={isWorker} />
+      {error && <p className={C.error}>{error}</p>}
+    </BusyGroup>
   );
 }

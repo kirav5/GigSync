@@ -83,8 +83,6 @@
   --tabbar-h: 64px;
   /* The agent's sun in gold, for the disc beside its turns; gold is the same in both looks. */
   --sun-gold: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d8b276' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2'/%3E%3C/svg%3E");
-  /* The GigSync sun in terracotta lines: the agent's mark beside its words in chat, as the kit draws it. */
-  --sun-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a4512b' stroke-width='1.9' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1'/%3E%3C/svg%3E");
   /* A plain tick, drawn through a mask so it takes whatever colour its box is painted. */
   --tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 4 4 10-10'/%3E%3C/svg%3E");
   /* The tick on a done step's green dot, in the page colour so it stands out of the green in both looks. */
@@ -829,65 +827,45 @@ html[data-keyboard="open"] .dock {
   padding-bottom: 16px;
 }
 
-/* Agent chat. The agent's turn sits beside its mark, the sun's lines on a soft terracotta disc, its words on the surface with a
-   hairline, square at the corner nearest the disc; what follows them (chips, a form) hangs under the words. The
-   owner's words are opposite, in ink with ivory. */
-.agent-mark,
-.msg-agent::before {
-  display: inline-block;
-  flex: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--sun-mark) center / 17px no-repeat var(--picked);
-}
+/* Agent chat, as the assistant apps draw it: the owner's words on the right in a terracotta bubble with white text, the
+   assistant's as plain text across the page with no bubble and no mark; what follows them (chips, a form) hangs
+   under the words. */
 .msg-user {
   justify-self: end;
-  max-width: 78%;
+  max-width: 80%;
 }
 .msg-user .bubble {
-  background: var(--inverse);
-  color: var(--on-inverse);
-  padding: 10px 14px;
-  border-radius: 12px 2px 12px 12px;
+  background: var(--accent);
+  color: var(--on-accent);
+  padding: 10px 16px;
+  border-radius: 20px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 .msg-agent {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  column-gap: 8px;
+  grid-template-columns: minmax(0, 1fr);
   row-gap: 8px;
   align-items: start;
-  max-width: 92%;
-}
-.msg-agent::before {
-  content: "";
-  grid-column: 1;
-  grid-row: 1;
-}
-.msg-agent > * {
-  grid-column: 2;
 }
 .msg-agent > .text,
 .msg-agent > .iv-say,
 .msg-agent > p {
   margin: 0;
-  padding: 10px 14px;
-  background: var(--surface);
-  border: 1px solid var(--hairline);
-  border-radius: 2px 12px 12px 12px;
+  padding: 4px 0;
 }
 .msg-agent .text {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+/* What kind of note the assistant answered with (Saved, Answer), small and grey under its words. */
+.msg-kind {
+  font-size: var(--fs-label);
+  color: var(--text3);
+}
 @media (max-width: 599px) {
   .msg-user {
-    max-width: 92%;
-  }
-  .msg-agent {
-    max-width: 100%;
+    max-width: 85%;
   }
 }
 
@@ -1028,7 +1006,6 @@ fieldset {
    .tick-list       a list whose every row starts with a green tick
    .option-row      a big choice as a row with 12px corners; .on, aria-pressed="true" or aria-checked="true" makes it
                     the chosen one, in earth with ivory words (inverted in the dark look); its own line goes in a .sub
-   .agent-mark      the agent's small earth disc with the gold sun (the chat draws it by itself)
    The primitives below (ui/ListRow.tsx, Toggle.tsx, Avatar.tsx, Badge.tsx, Brand.tsx) draw the rest. */
 .hero-title {
   font-family: var(--serif);

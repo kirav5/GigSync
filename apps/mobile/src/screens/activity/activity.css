@@ -56,26 +56,27 @@
   color: var(--text2);
 }
 
-/* Each job its own white card, a little apart from the next. */
+/* Each job its own white card, lifted off the cream by a soft shadow, a little apart from the next. */
 .job-rows {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 .job-rows > li {
   background: var(--surface);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-row);
+  border-radius: 20px;
+  box-shadow: var(--lift);
   overflow: hidden;
 }
-/* Needs you: the normal light line, and a terracotta bar down the card's leading edge. */
+/* Needs you: the whole card in the terracotta tint, so the decision is the first thing seen. */
 .job-group.needs .job-rows > li {
-  box-shadow: inset 3px 0 0 var(--accent);
+  background: linear-gradient(165deg, #fbeadf 0%, #f3dacb 100%);
+  box-shadow: 0 16px 30px -18px rgb(164 81 43 / 0.6);
 }
 
-/* One card's face: the person's tile; the name with the amount across; the work; the status pill and when. */
+/* One card's face: the person's tile; the name, and the work and when under it; the amount and the pill at the end. */
 .job-row {
   display: flex;
   align-items: center;
@@ -83,7 +84,7 @@
   width: 100%;
   min-height: var(--tap-lg);
   margin: 0;
-  padding: 12px 14px;
+  padding: 14px 16px;
   border: 0;
   background: none;
   color: inherit;
@@ -94,105 +95,87 @@
 .job-row:focus-visible {
   outline-offset: -2px;
 }
+.job-row > .avatar {
+  background: var(--picked);
+  color: var(--accent-ink);
+}
 .job-row-text {
   flex: 1;
   min-width: 0;
   display: grid;
   gap: 2px;
 }
-.job-row-top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-}
 .job-row-name {
   min-width: 0;
-  font-size: calc(var(--fs-2) + 1px);
+  overflow: hidden;
+  font-size: calc(var(--fs-2) + 1.5px);
   font-weight: 600;
   line-height: 1.3;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.job-row-line {
+  overflow: hidden;
+  font-size: calc(var(--fs-2) - 0.5px);
+  line-height: 1.4;
+  color: var(--text2);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.job-row-end {
+  flex: none;
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+  max-width: 45%;
 }
 .job-row-amount {
-  flex: none;
-  font-size: calc(var(--fs-2) + 1px);
-  font-weight: 600;
-  line-height: 1.3;
-  font-variant-numeric: tabular-nums;
+  font: 600 17px / 1 var(--serif-latin);
+  font-variant-numeric: tabular-nums lining-nums;
 }
 /* While the agents talk, the amount is only the latest offer: quieter than a price agreed. */
 .job-row-amount.talk {
-  font-weight: 500;
-  color: var(--text2);
-}
-.job-row-line {
-  font-size: var(--fs-label);
-  line-height: 1.4;
-  color: var(--text2);
-  overflow-wrap: anywhere;
-}
-.job-row-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-  margin-top: 4px;
-  font-size: var(--fs-label);
-  line-height: 1.35;
   color: var(--text2);
 }
 
-/* The status pill: rust when the move is the owner's, plain while the agents talk, the picked tint once agreed,
-   green only once the money is in. Hindi and Kannada words run long at 360px, so it wraps rather than overflowing. */
+/* The status pill with a dot: rust when the move is the owner's, plain while the agents talk or once agreed, green
+   only once the money is in. Hindi and Kannada words run long at 360px, so it wraps rather than overflowing. */
 .job-pill {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   max-width: 100%;
-  padding: 2px 10px;
+  padding: 3px 10px;
   border-radius: var(--radius-chip);
+  background: rgb(107 91 77 / 0.11);
+  color: var(--text2);
   font-size: calc(var(--fs-tag) - 1px);
   font-weight: 600;
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
+.job-pill::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
 .job-pill.act {
-  background: var(--rust);
-  color: var(--on-accent);
-}
-.job-pill.talk {
-  background: var(--surface2);
-  color: var(--text2);
-}
-.job-pill.done {
-  background: var(--picked);
-  color: var(--picked-ink);
+  background: rgb(164 81 43 / 0.12);
+  color: var(--accent-ink);
 }
 .job-pill.paid {
-  background: var(--done-fill);
+  background: rgb(63 125 90 / 0.13);
   color: var(--fresh);
-}
-
-.job-row-chev {
-  flex: none;
-  display: grid;
-  color: var(--text3);
-  transition: transform var(--release-ms) var(--ease-out);
-}
-.job-row[aria-expanded="true"] .job-row-chev {
-  transform: rotate(180deg);
-}
-@media (prefers-reduced-motion: reduce) {
-  .job-row-chev {
-    transition: none;
-  }
 }
 
 /* The job's own card, opened under its face: it sits inside the same card instead of drawing a second one, and its
    head drops the person's tile and name, which the face above already shows. The work and when stay: the time there
    may be the other side's own words, translated. */
 .job-row-open {
-  padding-bottom: 4px;
-  border-top: 1px dashed var(--hairline);
+  padding: 0 4px 4px;
 }
 .job-row-open > article {
   border: 0;

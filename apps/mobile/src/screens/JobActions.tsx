@@ -6,7 +6,6 @@ import {
   TaskKind,
   type TimeAsk,
   termsLines,
-  UNDER_WAY,
   type WorkerRules,
 } from "@gigsync/core";
 import { EngagementStatus, type JobTerms, PaymentMethod, PaymentStatus, type Question, Role } from "@gigsync/protocol";
@@ -24,7 +23,6 @@ import type { GigView } from "../useGig.js";
 import { AnswerForm } from "./AnswerForm.js";
 import { SignCard } from "./JobDecide.js";
 import { AskAgain } from "./job/AskAgain.js";
-import { JobDay } from "./job/JobDay.js";
 import { shortHash } from "./job/look.js";
 import { MoreSheet } from "./job/MoreSheet.js";
 import { type ApproveDetail, RequestFits } from "./job/RequestFits.js";
@@ -125,8 +123,6 @@ export function JobActions(props: JobActionProps & { them: string; talk?: ReactN
         {talking && !stuck && !approve && <TakeOver {...decide} />}
         {talk}
         {onAgain && <AskAgain job={job} them={them} onAgain={onAgain} />}
-        {/* Until the work is handed over, either side may call the job off; the worker moves it on one step at a time. */}
-        {UNDER_WAY.has(status) && <JobDay job={job} device={device} step={step} isWorker={isWorker} />}
         {/* Only Today lists a worker's jobs, and it always passes onAddPayee. */}
         {isWorker && onAddPayee && (
           <WorkerPay job={job} view={view} device={device} run={act} onAddPayee={onAddPayee} />

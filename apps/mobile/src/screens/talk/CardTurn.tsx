@@ -89,7 +89,7 @@ export function CardTurn({
   return (
     <>
       {draft && face && <CardFace card={face} km={radiusOf(account, draft)} />}
-      <Ask lines={lines} split={band?.from}>
+      <Ask lines={lines} split={band?.from} typing={live !== undefined}>
         {band && <RateCard found={band.found} lines={lines.slice(band.from)} />}
         {secret && (
           <p className="price-private iv-private">

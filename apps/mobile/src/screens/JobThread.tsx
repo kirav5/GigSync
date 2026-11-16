@@ -11,6 +11,7 @@ import { PlanCard } from "./JobDecide.js";
 import { JobProgress } from "./JobProgress.js";
 import { RemovedLine, RestoredLine } from "./JobSettled.js";
 import { ContactCard } from "./job/ContactCard.js";
+import { JobDayBox } from "./job/JobDay.js";
 import { CancelLine, DealLine, Notes, PaymentLines, ReviewLine } from "./job/JobFacts.js";
 import { JobHead } from "./job/JobHead.js";
 import { ProblemCard } from "./ProblemCard.js";
@@ -67,7 +68,10 @@ export function JobThread({ foldTalk = false, ...props }: JobActionProps & { fol
       lang={lang}
     >
       <JobHead job={job} them={them} from={theirs} />
-      <JobProgress job={job} payments={payments} them={them} />
+      <JobProgress job={job} payments={payments} them={them} from={theirs}>
+        {/* The worker moves the job on one step at a time, from inside the live card. */}
+        {live && UNDER_WAY.has(e.status) && <JobDayBox job={job} device={device} run={run} isWorker={isWorker} />}
+      </JobProgress>
       {needShown && (
         <p className="job-need">
           <Said text={needShown} from={theirs} />

@@ -4,6 +4,7 @@ export const ledger = {
   "ledger.week_count.one": "{count} payment",
   "ledger.week_count.other": "{count} payments",
   "ledger.this_month": "This month",
+  "ledger.today": "{price} today",
   "ledger.waiting_from": "Waiting from {name}",
   "ledger.waiting_many": "Waiting from {count} households",
   "ledger.upi_line": "Your UPI: {vpa}",

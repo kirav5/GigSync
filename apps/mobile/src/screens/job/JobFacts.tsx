@@ -6,7 +6,10 @@ import { C } from "../../ui/cls.js";
 import { Icon } from "../../ui/Icon.js";
 import { jobPrice, money } from "../../ui/places.js";
 import { Said } from "../../ui/Said.js";
+import { requestWork } from "../../ui/work.js";
+import { dayWord } from "../JobProgress.js";
 import { TermsList } from "../terms/TermsList.js";
+import "./pass.css";
 
 /**
  * What a job has on record below the thing to do now: the deal both signed, the notes, how it ended, the money that
@@ -28,8 +31,9 @@ function Face({ name, signed }: { name: string; signed: boolean }) {
 }
 
 /**
- * The signed deal as two faces with ticks, the price large and "Fixed": the signature's hash and the rules about it
- * are under "⋯ More". Then the slot when the request had no structured day, and the terms besides the price.
+ * The signed deal as a pass: the work and the day on a terracotta strip; the place and the fixed price as two fields,
+ * the slot when the request had no structured day, and the terms besides the price; then a torn edge, both faces with
+ * their ticks and who signed. The signature's hash and the rules about it are under "⋯ More".
  */
 export function DealLine({ job, from, them }: { job: JobRecord; from: Lang | undefined; them: string }) {
   const { lang, t } = useI18n();
@@ -39,25 +43,46 @@ export function DealLine({ job, from, them }: { job: JobRecord; from: Lang | und
   // words, so the slot's machine-translated copy is left out. Older requests have only the slot.
   const slot = dayOf(job.request) === undefined ? terms.slot : undefined;
   const both = job.theirs !== undefined;
+  const day = dayOf(job.request);
+  // The locality the request named, short enough for the field; the door itself is on the contact card.
+  const place = job.request.locality ?? job.contact?.address;
   return (
     <fieldset className="deal" aria-label={t("a11y.deal")}>
-      <span className="deal-faces" aria-hidden="true">
-        <Face name={them} signed={both} />
-        <Face name={t("progress.you")} signed />
-      </span>
-      <strong className="deal-title">{t(both ? "job.agreed_title" : "job.their_signature")}</strong>
-      <span className="deal-price">{jobPrice(lang, job.request, terms.price_paise)}</span>
-      <span className={C.muted}>
-        {t("job.fixed")}
+      <div className="pass-strip">
+        <span>
+          {requestWork(t, job.request)}
+          {both && ` · ${t("job.both_signed")}`}
+        </span>
+        {day !== undefined && <span>{dayWord(day, lang, t)}</span>}
+      </div>
+      <div className="pass-body">
+        <div className="pass-fields">
+          {place && (
+            <div className="pass-field">
+              <span>{t("job.place")}</span>
+              <b>{place}</b>
+            </div>
+          )}
+          <div className="pass-field">
+            <span>{t("job.fixed_price")}</span>
+            <b className="deal-price">{jobPrice(lang, job.request, terms.price_paise)}</b>
+          </div>
+        </div>
         {slot && (
-          <>
-            {" · "}
+          <span className={C.muted}>
             <Said text={slot} from={from} />
-          </>
+          </span>
         )}
-        {both && ` · ${t("job.both_signed")}`}
-      </span>
-      <TermsList terms={terms.terms} />
+        <TermsList terms={terms.terms} />
+      </div>
+      <div className="pass-perf" aria-hidden="true" />
+      <div className="pass-foot">
+        <span className="deal-faces" aria-hidden="true">
+          <Face name={them} signed={both} />
+          <Face name={t("progress.you")} signed />
+        </span>
+        <span>{both ? t("job.you_and", { name: them }) : t("job.their_signature")}</span>
+      </div>
     </fieldset>
   );
 }

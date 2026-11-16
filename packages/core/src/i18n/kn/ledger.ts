@@ -6,6 +6,7 @@ export const ledger: Readonly<Record<keyof typeof en, string>> = {
   "ledger.week_count.one": "{count} ಪಾವತಿ",
   "ledger.week_count.other": "{count} ಪಾವತಿಗಳು",
   "ledger.this_month": "ಈ ತಿಂಗಳು",
+  "ledger.today": "ಇಂದು {price}",
   "ledger.waiting_from": "{name} ಅವರಿಂದ ಬರಬೇಕಿದೆ",
   "ledger.waiting_many": "{count} ಮನೆಗಳಿಂದ ಬರಬೇಕಿದೆ",
   "ledger.upi_line": "ನಿಮ್ಮ UPI: {vpa}",

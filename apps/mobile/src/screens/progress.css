@@ -1,60 +1,77 @@
-/* A signed job's progress (JobProgress.tsx) as one status card: a drawing of the next move, one big line saying what
-   comes next and a small one saying where the job is, a speaker, then the steps as a thin bar of segments. The step
-   names and times are read out from the bar and listed under "⋯ More"; on the card they would be five more labels to
-   read. Green stays for paid and finished; the job moving now is rust. */
+/* A signed job's progress (JobProgress.tsx) as the live card: warm dark brown while the job moves, so it is the
+   first thing found on a cream screen; a drawing of the next move, the next move in one line and where the job is
+   under it, the time of the work large at the end; then the steps as a bar of segments with their names under them,
+   and the worker's one move in cream. A finished or cancelled job sits on the light beige instead. */
 .job-progress {
-  --step-done: var(--rust, #915236);
-  --step-paid: var(--green, #4f7a4a);
-  --step-ahead: var(--hairline);
+  --live-ink: var(--on-cocoa);
+  --live-soft: rgb(255 243 228 / 0.66);
+  --live-faint: rgb(255 243 228 / 0.55);
+  --live-glow: #ffd6b3;
+  --step-done: var(--cocoa-accent);
+  --step-paid: #8cc29b;
+  --step-ahead: rgb(255 243 228 / 0.18);
   display: grid;
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
+  padding: 16px;
+  border-radius: 26px;
+  background: var(--cocoa);
+  color: var(--live-ink);
+  box-shadow: 0 18px 32px -20px rgb(43 30 23 / 0.85);
+}
+.job-progress:not([data-live]) {
+  --live-ink: var(--text);
+  --live-soft: var(--text2);
+  --live-faint: var(--text2);
+  --live-glow: var(--accent-ink);
+  --step-done: var(--accent);
+  --step-paid: var(--green);
+  --step-ahead: rgb(164 81 43 / 0.18);
+  background: var(--sand);
+  box-shadow: none;
 }
 
 .job-status {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
-  padding: 14px 14px 14px 12px;
-  border-radius: 18px;
-  background: var(--picked, #f5e4d8);
+  gap: 12px;
 }
 .job-status-art {
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--accent-ink);
-  --icon: var(--accent-ink);
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  background: rgb(255 243 228 / 0.1);
+  color: var(--live-glow);
+  --icon: var(--live-glow);
+}
+.job-progress:not([data-live]) .job-status-art {
+  background: rgb(255 255 255 / 0.7);
 }
 .job-status[data-state="stopped"] .job-status-art {
   color: var(--danger);
   --icon: var(--danger);
 }
 
-/* The next move in the serif, large; where the job is and since when under it, muted. */
+/* The next move, bold; where the job is and since when under it, softer. */
 .job-progress-status {
   display: grid;
-  gap: 2px;
+  gap: 3px;
   margin: 0;
   min-width: 0;
 }
 .job-progress-status strong {
-  font-family: var(--serif);
-  font-size: var(--fs-heading);
-  font-weight: 500;
-  line-height: 1.25;
-  color: var(--text);
+  font: 600 var(--fs-body) / 1.25 var(--sans);
+  color: var(--live-ink);
 }
 .job-status[data-state="stopped"] strong {
   color: var(--danger);
 }
 .job-progress-status .aside {
-  font-size: var(--fs-label);
-  color: var(--text2);
+  font-size: var(--fs-2);
+  color: var(--live-soft);
 }
 .job-progress-status .aside:empty {
   display: none;
@@ -63,7 +80,25 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* The steps: equal segments with a small gap, filled up to where the job is. */
+/* When the work is, large in the serif at the end; its day small under it. */
+.job-slot {
+  display: grid;
+  justify-items: end;
+  max-width: 30vw;
+  font: 700 24px / 1.05 var(--serif-latin);
+  color: var(--live-glow);
+  text-align: end;
+  overflow-wrap: anywhere;
+}
+.job-slot small {
+  margin-top: 5px;
+  font: 600 10.5px / 1.1 var(--sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--live-faint);
+}
+
+/* The steps: equal segments with a small gap, filled up to where the job is, each named under it. */
 .job-steps {
   display: grid;
   grid-auto-flow: column;
@@ -75,24 +110,41 @@
 }
 .job-steps li {
   position: relative;
-  height: 5px;
-  border-radius: 99px;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.job-steps li::before {
+  content: "";
+  height: 6px;
+  border-radius: 3px;
   background: var(--step-ahead);
 }
-.job-steps li[data-state="done"],
-.job-steps li[data-state="now"] {
+.job-steps li[data-state="done"]::before,
+.job-steps li[data-state="now"]::before {
   background: var(--step-done);
 }
-.job-steps li[data-state="stopped"] {
+.job-steps li[data-state="stopped"]::before {
   background: var(--danger);
 }
+.step-name {
+  overflow: hidden;
+  font: 500 10.5px / 1.2 var(--sans);
+  color: var(--live-faint);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.job-steps li[aria-current="step"] .step-name {
+  font-weight: 600;
+  color: var(--live-ink);
+}
 /* A job paid in full: the whole bar turns the money green. */
-.job-steps:not([data-live]) li[data-state="now"]:last-child,
-.job-steps:not([data-live]) li[data-state="done"]:has(~ li[data-state="now"]:last-child) {
+.job-steps:not([data-live]) li[data-state="now"]:last-child::before,
+.job-steps:not([data-live]) li[data-state="done"]:has(~ li[data-state="now"]:last-child)::before {
   background: var(--step-paid);
 }
 /* While the job moves, the segment it is on breathes; only opacity changes, which costs a cheap phone nothing. */
-.job-steps[data-live] [data-state="now"] {
+.job-steps[data-live] [data-state="now"]::before {
   animation: step-breathe 2.4s ease-in-out infinite;
 }
 @keyframes step-breathe {
@@ -101,9 +153,56 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .job-steps[data-live] [data-state="now"] {
+  .job-steps[data-live] [data-state="now"]::before {
     animation: none;
   }
+}
+
+/* The move and the speaker: the worker's next step in cream across the card, the speaker at its end; "Already done"
+   and "Running late" under it. */
+.job-live-foot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+.job-live-foot > *,
+.job-live-foot > * > * {
+  grid-column: 1 / -1;
+}
+.job-live-foot > .speak-btn {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  border: 0;
+  background: rgb(255 243 228 / 0.1);
+  color: var(--live-glow);
+  --icon: var(--live-glow);
+}
+.job-progress:not([data-live]) .job-live-foot > .speak-btn {
+  background: rgb(255 255 255 / 0.7);
+}
+.job-progress .job-live-foot .btn-big {
+  grid-column: 1;
+  grid-row: 1;
+  min-height: 52px;
+  border-radius: 26px;
+  background: var(--on-cocoa);
+  color: var(--cocoa);
+  --icon: var(--cocoa);
+}
+.job-progress .job-live-foot .link-btn {
+  justify-self: start;
+  color: var(--live-ink);
+}
+.job-live-foot .chip {
+  border-color: transparent;
+  background: rgb(255 243 228 / 0.1);
+  color: var(--live-ink);
+  --icon: var(--live-glow);
+}
+.job-live-foot .error {
+  color: var(--live-glow);
 }
 
 /* Said to screen readers for each segment (its name, state and time), never shown. */

@@ -1,8 +1,21 @@
-import { type JobRecord, jobProgress, LOCALE, type ProgressStep, Step, timeText } from "@gigsync/core";
-import { CancelReason, type Lang, type Payment, Role, StopReason } from "@gigsync/protocol";
+import {
+  dayOf,
+  EVERY_DAY,
+  type JobRecord,
+  jobProgress,
+  LOCALE,
+  type ProgressStep,
+  Step,
+  timeText,
+  WhenDetail,
+} from "@gigsync/core";
+import { CancelReason, type JobRequest, type Lang, type Payment, Role, StopReason } from "@gigsync/protocol";
+import type { ReactNode } from "react";
 import { type I18n, useI18n } from "../i18n.js";
 import { Icon, type IconName } from "../ui/Icon.js";
+import { Said } from "../ui/Said.js";
 import { SpeakButton } from "../ui/SpeakButton.js";
+import { dayDate } from "./jobGroups.js";
 import "./progress.css";
 
 /** A step's look: passed, the one the job is at now, still ahead, or where a cancelled job stopped. */
@@ -93,13 +106,47 @@ function artOf(drawn: readonly ProgressStep[], last: number, stopped: boolean): 
   return next !== undefined && isNextStep(next) ? ART[next] : ENDED_ART;
 }
 
+/** The work's day as a card says it: Today, Every day, or "18 Nov". */
+export function dayWord(day: string, lang: Lang, t: I18n["t"]): string {
+  if (day === EVERY_DAY) return t("when.daily");
+  const at = dayDate(day);
+  return sameDay(at, new Date()) ? t("schedule.today") : at.toLocaleDateString(LOCALE[lang], DAY_MONTH);
+}
+
+/** When the work is, large at the card's end: the time the household asked for, and the day under it. */
+function SlotTime({ request, from }: { request: JobRequest; from: Lang | undefined }) {
+  const { t, lang } = useI18n();
+  const day = dayOf(request);
+  const time = request.details[WhenDetail.time];
+  const dayText = day === undefined ? undefined : dayWord(day, lang, t);
+  if (!time && !dayText) return null;
+  return (
+    <span className="job-slot">
+      {time ? <Said text={time} from={from} /> : dayText}
+      {time && dayText && <small>{dayText}</small>}
+    </span>
+  );
+}
+
+interface Props {
+  job: JobRecord;
+  payments: readonly Payment[];
+  /** The other side's name, for "Lakshmi is on the way". */
+  them?: string;
+  /** The language the request was written in, for its time. */
+  from?: Lang | undefined;
+  /** The one move on the card: the worker's next step, drawn inside it. */
+  children?: ReactNode;
+}
+
 /**
- * A signed job's progress, left to right, the same on both apps: a plain line saying where the job is and what comes
- * next, then Agreed, On the way, Started, Done and Paid as nodes on a track, each reached one with when this phone saw
- * it. A cancelled job ends on a red node where it stopped; a closed one says so in the line. Nothing at all before
- * both have signed. `them` is the other side's name, for "Next: Lakshmi starts work".
+ * A signed job's progress as the live card, the same on both apps: dark, so the job happening now is found at once.
+ * A drawing of the next move, one big line saying what comes next and a small one saying where the job is and since
+ * when, the time of the work large at its end; then Agreed, On the way, Started, Done and Paid as a bar of segments
+ * with their names under it; then the move (`children`) and a speaker. A cancelled job ends on a red segment where it
+ * stopped; a closed one says so in the line. Nothing at all before both have signed.
  */
-export function JobProgress({ job, payments, them }: { job: JobRecord; payments: readonly Payment[]; them?: string }) {
+export function JobProgress({ job, payments, them, from, children }: Props) {
   const { lang, t } = useI18n();
   const steps = jobProgress(job, payments);
   if (!steps) return null;
@@ -116,7 +163,7 @@ export function JobProgress({ job, payments, them }: { job: JobRecord; payments:
   const now = new Date();
   const big = said ?? t(`progress.${current?.step ?? Step.agreed}`);
   return (
-    <div className="job-progress">
+    <div className="job-progress" data-state={stopped ? State.stopped : State.now} data-live={live || undefined}>
       {current && (
         <div className="job-status" data-state={stopped ? State.stopped : State.now}>
           <span className="job-status-art" aria-hidden="true">
@@ -131,15 +178,18 @@ export function JobProgress({ job, payments, them }: { job: JobRecord; payments:
               {current.at && <time dateTime={current.at}>{longWhen(lang, current.at, now)}</time>}
             </span>
           </p>
-          <SpeakButton lang={lang} text={big} />
+          <SlotTime request={job.request} from={from} />
         </div>
       )}
-      {/* The steps as a thin bar, a segment each; their names and times are read out, and listed under More. */}
+      {/* The steps as a bar, a segment each with its name under it; their times are read out, and listed under More. */}
       <ol className="job-steps" aria-label={t("progress.title")} data-live={live || undefined}>
         {drawn.map((s, i) => {
           const state = stateOf(s, i, last);
           return (
             <li key={s.step} data-state={state} aria-current={i === last ? "step" : undefined}>
+              <span className="step-name" aria-hidden="true">
+                {t(`progress.${s.step}`)}
+              </span>
               <span className="sr">
                 {t(`progress.${s.step}`)}, {t(`progress.state.${state}`)}
                 {s.reached && s.at && (
@@ -153,6 +203,10 @@ export function JobProgress({ job, payments, them }: { job: JobRecord; payments:
           );
         })}
       </ol>
+      <div className="job-live-foot">
+        {children}
+        <SpeakButton lang={lang} text={big} />
+      </div>
     </div>
   );
 }

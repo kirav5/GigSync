@@ -47,12 +47,13 @@
   border: 0;
   outline: none;
   background: transparent;
-  padding: 6px 2px;
+  /* The words start clear of the pill's round end, where the "+" used to stand. */
+  padding: 6px 2px 6px 14px;
 }
 .composer input::placeholder {
   color: var(--text3);
 }
-/* The "+", the enter button and the small mic: plain icons in the words' colour, a full tap tall. */
+/* The enter button and the small mic: plain icons in the words' colour, a full tap tall. */
 .composer-icon {
   flex: none;
   display: grid;

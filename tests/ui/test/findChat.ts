@@ -2,7 +2,7 @@ import { type MessageKey, t } from "@gigsync/core";
 import { groupOf, type Lang, type WorkKind } from "@gigsync/protocol";
 import { expect, type Locator, type Page } from "@playwright/test";
 import { fillAddressForm } from "./address.js";
-import { greeting } from "./composer.js";
+import { greeting, written } from "./composer.js";
 
 /**
  * Driving Find's chat the way a household answers it: the need in their own words, then whatever the agent still
@@ -90,6 +90,7 @@ async function tapIf(target: Locator): Promise<boolean> {
 /** Answers whatever the agent asks now; true at the readback, which the caller answers. */
 async function answer(phone: Phone, ask: NeedAnswers): Promise<boolean> {
   const { page, lang } = phone;
+  await written(page);
   if ((await says(page, lang, "need.confirm")) || (await says(page, lang, "need.confirm_to"))) return true;
   if (await says(page, lang, "need.ask.budget")) return say(phone, ask.budget).then(() => false);
   // The hour, once the day is known (ADR 0050 §1): the journeys take any time unless they say one.

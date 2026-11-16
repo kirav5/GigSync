@@ -139,6 +139,7 @@ export function Interview({
           text={turn.text}
           card={turn.card}
           thinking={thinking && newestNote}
+          typing={newestNote}
           onChoose={newestNote && !thinking ? (intent) => onChoose(turn, intent) : undefined}
         />
       );
