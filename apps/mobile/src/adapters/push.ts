@@ -2,29 +2,19 @@ import { Capacitor } from "@capacitor/core";
 import { log } from "@gigsync/core";
 import { type Lang, PushSubscribe, type Session } from "@gigsync/protocol";
 import { apiClient } from "./account.js";
+import { AlertState, firstOffer } from "./alertState.js";
 import { isIos, standalone } from "./install.js";
+import { isAndroidApp, nativeAlertState, refreshNative, turnOffNative, turnOnNative } from "./nativePush.js";
+
+export { AlertState } from "./alertState.js";
 
 /**
  * Notifications by Web Push (workers/api/src/push/webpush.ts, ADR 0043, 0044): with the owner's yes, this device
  * subscribes with the API's public key and gives the API its push address and keys. A push says, encrypted to this
  * device, what kind of message came and from whom; the service worker (sw/sw.js) names the sender from the names this
- * app gives it and words the notification in the owner's language.
+ * app gives it and words the notification in the owner's language. The installed Android app takes its alerts by
+ * FCM instead (nativePush.ts, ADR 0067); each function here hands over to it there.
  */
-
-/** Where alerts stand on this device, as Settings says it. */
-export const AlertState = {
-  on: "on",
-  off: "off",
-  /** The owner said no in the browser's own prompt; only the browser's site settings can undo it. */
-  blocked: "blocked",
-  /** An iPhone takes pushes only in the app added to the Home Screen. */
-  install: "install",
-  /** This browser has no Web Push, or this is a development build (no service worker). */
-  unsupported: "unsupported",
-  /** The API has no push key yet, so there is nothing to subscribe to. */
-  unavailable: "unavailable",
-} as const;
-export type AlertState = (typeof AlertState)[keyof typeof AlertState];
 
 const GRANTED: NotificationPermission = "granted";
 const DENIED: NotificationPermission = "denied";
@@ -33,8 +23,6 @@ const ASKED: NotificationPermission = "default";
 export const SW_LANG = "gigsync-lang";
 /** The message that gives the service worker the names of the people this owner has jobs with, by user id. */
 export const SW_NAMES = "gigsync-names";
-/** Set once this phone offered notifications on its own, so it never asks again unprompted. */
-const OFFERED_KEY = "gigsync-notifications-offered";
 
 const supported = () =>
   !Capacitor.isNativePlatform() &&
@@ -57,6 +45,7 @@ async function current(): Promise<PushSubscription | null> {
 
 /** Where alerts stand now, without asking the owner anything. */
 export async function alertState(): Promise<AlertState> {
+  if (isAndroidApp()) return nativeAlertState(offerSession);
   if (isIos() && !standalone()) return AlertState.install;
   if (!supported() || !(await navigator.serviceWorker.getRegistration())) return AlertState.unsupported;
   if (Notification.permission === DENIED) return AlertState.blocked;
@@ -65,11 +54,12 @@ export async function alertState(): Promise<AlertState> {
 
 /** Turns alerts on: the browser asks the owner (call only from their tap), then this device subscribes. */
 export async function turnOnAlerts(session: Session): Promise<AlertState> {
+  if (isAndroidApp()) return turnOnNative(session);
   const state = await alertState();
   if (state !== AlertState.off) return state;
   if ((await Notification.requestPermission()) !== GRANTED) return AlertState.blocked;
   const api = apiClient(session);
-  const key = await api.pushKey();
+  const key = (await api.pushKey()).public_key;
   if (!key) return AlertState.unavailable;
   const registration = await navigator.serviceWorker.ready;
   const subscription = await registration.pushManager.subscribe({
@@ -97,14 +87,13 @@ export const setOfferSession = (session: Session | undefined) => {
  * asks once. Never again on its own after that, whatever the answer; Settings can still turn them on.
  */
 export async function offerAlerts(): Promise<void> {
-  if (!supported() || !offerSession || Notification.permission !== ASKED) return;
-  if (!navigator.userActivation?.isActive) return;
-  try {
-    if (localStorage.getItem(OFFERED_KEY)) return;
-    localStorage.setItem(OFFERED_KEY, "1");
-  } catch {
+  if (isAndroidApp()) {
+    if (offerSession && firstOffer()) await turnOnNative(offerSession).catch(() => undefined);
     return;
   }
+  if (!supported() || !offerSession || Notification.permission !== ASKED) return;
+  if (!navigator.userActivation?.isActive) return;
+  if (!firstOffer()) return;
   try {
     await turnOnAlerts(offerSession);
   } catch (err) {
@@ -114,6 +103,7 @@ export async function offerAlerts(): Promise<void> {
 
 /** Turns alerts off here: the browser forgets the subscription, and the API the address. */
 export async function turnOffAlerts(session: Session): Promise<AlertState> {
+  if (isAndroidApp()) return turnOffNative(session);
   await (await current())?.unsubscribe();
   await apiClient(session).unsubscribePush();
   return AlertState.off;
@@ -129,6 +119,7 @@ export function tellNames(names: Readonly<Record<string, string>>): void {
  * changed them, and an address it called gone was dropped), and the service worker the owner's language.
  */
 export async function refreshAlerts(session: Session, lang: Lang): Promise<void> {
+  if (isAndroidApp()) return refreshNative(session, lang);
   if (!supported()) return;
   navigator.serviceWorker.controller?.postMessage({ type: SW_LANG, lang });
   try {

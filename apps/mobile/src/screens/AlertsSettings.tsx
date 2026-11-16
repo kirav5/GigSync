@@ -1,5 +1,6 @@
 import type { Session } from "@gigsync/protocol";
 import { useEffect, useState } from "react";
+import { isAndroidApp } from "../adapters/nativePush.js";
 import { AlertState, alertState, turnOffAlerts, turnOnAlerts } from "../adapters/push.js";
 import { useI18n } from "../i18n.js";
 import { ListCard, ListRow } from "../ui/ListRow.js";
@@ -12,6 +13,8 @@ const STATE_LINE = {
   [AlertState.unsupported]: "alerts.unsupported",
   [AlertState.unavailable]: "alerts.unavailable",
 } as const;
+/** In the Android app the alert says only "something new" (ADR 0067), and a no is undone in the phone's settings. */
+const APP_LINE = { [AlertState.blocked]: "alerts.blocked_app" } as const;
 
 /**
  * Settings › Alerts: a phone notification when a job moves on, for worker and household alike, as one switch. The
@@ -42,18 +45,21 @@ export function AlertsSettings({ session }: { session: Session }) {
   if (!state) return null;
   const title = t("me.alerts_job");
   const on = state === AlertState.on;
+  const app = isAndroidApp();
+  const about = app ? "alerts.about_app" : "alerts.about";
+  const lineOf = (s: keyof typeof STATE_LINE) => (app && s === AlertState.blocked ? APP_LINE[s] : STATE_LINE[s]);
   return (
     <ListCard label={t("me.section_alerts")}>
-      {on || state === AlertState.off ? (
+      {state === AlertState.on || state === AlertState.off ? (
         <ToggleRow
           title={title}
-          sub={t(on ? "alerts.on" : "alerts.about")}
+          sub={t(on ? "alerts.on" : about)}
           checked={on}
           onChange={(next) => void flip(next)}
           disabled={busy}
         />
       ) : (
-        <ListRow icon="bell" title={title} sub={t(STATE_LINE[state])} />
+        <ListRow icon="bell" title={title} sub={t(lineOf(state))} />
       )}
     </ListCard>
   );

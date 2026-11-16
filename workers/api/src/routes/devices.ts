@@ -1,9 +1,10 @@
 import { log } from "@gigsync/core/log";
-import { DeviceId, DeviceProtocol, type PushKey, PushSubscribe } from "@gigsync/protocol";
+import { DeviceId, DeviceProtocol, PushAddress, type PushKey } from "@gigsync/protocol";
 import { Hono } from "hono";
 import { ApiError, type AppEnv, DEVICE_PARAM, Var } from "../context.js";
 import { transaction } from "../db/client.js";
 import { raiseProtocol, revokeDevice, setPushAddress } from "../db/devices.js";
+import { fcmOf } from "../push/fcm.js";
 import { vapidOf } from "../push/webpush.js";
 
 /** The caller's own devices, behind the session middleware. */
@@ -18,21 +19,22 @@ const Path = {
 
 /**
  * The public VAPID key the browser subscribes with; none until both halves are set (a subscription the API could not
- * push to would only promise alerts that never come), and the app then says alerts are not switched on yet.
+ * push to would only promise alerts that never come), and the app then says alerts are not switched on yet. With the
+ * Firebase service account set, `native` says the Android app's alerts can go too (ADR 0067).
  */
 devices.get(Path.pushKey, (c) => {
   const vapid = vapidOf(c.env);
-  const key: PushKey = vapid ? { public_key: vapid.publicKey } : {};
+  const key: PushKey = { ...(vapid ? { public_key: vapid.publicKey } : {}), ...(fcmOf(c.env) ? { native: true } : {}) };
   return c.json(key);
 });
 
 /**
- * Where this device's browser takes pushes, and its keys: one of the big push services only (PushSubscribe). The app
- * sends it each time it opens with notifications on, so an address the service changed is replaced; DELETE turns
- * them off.
+ * Where this device takes pushes: its browser's address and keys, on one of the big push services only, or the Android
+ * app's FCM token and language (PushAddress). The app sends it each time it opens with notifications on, so an
+ * address the service changed is replaced; DELETE turns them off.
  */
 devices.put(Path.push, async (c) => {
-  const body = PushSubscribe.safeParse(await c.req.json().catch(() => undefined));
+  const body = PushAddress.safeParse(await c.req.json().catch(() => undefined));
   if (!body.success) return c.json({ error: ApiError.badRequest }, 400);
   const found = await setPushAddress(c.get(Var.db), c.get(Var.device), c.get(Var.user), body.data);
   if (!found) return c.json({ error: ApiError.notFound }, 404);

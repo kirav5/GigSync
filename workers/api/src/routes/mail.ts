@@ -16,7 +16,8 @@ import { ApiError, type AppEnv, USER_PARAM, Var } from "../context.js";
 import { activeDeviceIds, deviceSigningKey, pushAddresses } from "../db/devices.js";
 import { offerTaken } from "../db/qr-offers.js";
 import { recordFallbackCity } from "../live-cities.js";
-import { vapidOf, WAKE_KINDS, wakeAll } from "../push/webpush.js";
+import { sendersOf, wakeAll } from "../push/alerts.js";
+import { WAKE_KINDS } from "../push/webpush.js";
 import { OFFER_SEND_MS } from "../qr/rules.js";
 import { noteDeliveredAgree } from "../records/one-sided.js";
 
@@ -80,15 +81,15 @@ mail.post(`/mailbox/:${USER_PARAM}`, envelopeLimit, async (c) => {
     stored: out.stored,
     devices: out.devices,
   });
-  // News a person wants even with the app closed reaches their phones as a push saying what came and from whom,
-  // encrypted to each phone (push/webpush.ts). The addresses are read now, while the request's database connection
-  // is open; the pushes go after the answer.
-  const vapid = vapidOf(c.env);
-  if (vapid && out.stored && WAKE_KINDS.has(e.kind)) {
+  // News a person wants even with the app closed reaches their phones: a browser as a push saying what came and from
+  // whom, encrypted to it (push/webpush.ts), the Android app as a plain "something new" (push/fcm.ts). The addresses
+  // are read now, while the request's database connection is open; the pushes go after the answer.
+  const senders = sendersOf(c.env);
+  if (senders && out.stored && WAKE_KINDS.has(e.kind)) {
     const addresses = await pushAddresses(db, to.data);
     const news = { kind: e.kind, from: e.from.user };
     if (addresses.length > 0)
-      c.executionCtx.waitUntil(wakeAll(addresses, news, vapid, new Date(), c.get(Var.requestId)));
+      c.executionCtx.waitUntil(wakeAll(addresses, news, senders, new Date(), c.get(Var.requestId)));
   }
   return c.json(out, out.stored ? 201 : 200);
 });

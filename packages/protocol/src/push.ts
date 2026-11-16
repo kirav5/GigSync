@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { EnvelopeKind } from "./envelope.js";
 import { UserId } from "./ids.js";
+import { Lang } from "./lang.js";
 
 /**
  * Web Push notifications for job news (ADR 0043, 0044): a device tells the API where its browser's push service
@@ -57,8 +58,33 @@ export const PushSubscribe = z.object({
 });
 export type PushSubscribe = z.infer<typeof PushSubscribe>;
 
-/** `GET /devices/push-key`: the API's public VAPID key, for the browser to subscribe with. Absent: push is off. */
-export const PushKey = z.object({ public_key: z.string().min(1).max(200).optional() });
+/** Longest FCM registration token the API keeps; real ones run to about 160 characters. */
+export const FCM_TOKEN_MAX = 512;
+/** An FCM token's characters: letters, digits, and the few marks Google puts in them. */
+const FCM_TOKEN = /^[A-Za-z0-9_:-]+$/;
+
+/**
+ * `PUT /devices/me/push` from the Android app (ADR 0067): the token Firebase Cloud Messaging gave it, and the language
+ * its alert is worded in. The alert says only that something came, so there are no keys to encrypt to.
+ */
+export const NativePush = z.object({
+  fcm: z.string().min(1).max(FCM_TOKEN_MAX).regex(FCM_TOKEN),
+  lang: Lang,
+});
+export type NativePush = z.infer<typeof NativePush>;
+
+/** Where a device takes alerts: a browser's Web Push subscription, or the Android app's FCM token. */
+export const PushAddress = z.union([PushSubscribe, NativePush]);
+export type PushAddress = z.infer<typeof PushAddress>;
+
+/** Whether an address is the Android app's FCM token rather than a browser's subscription. */
+export const isNativePush = (address: PushAddress): address is NativePush => "fcm" in address;
+
+/**
+ * `GET /devices/push-key`: the API's public VAPID key, for the browser to subscribe with (absent: browsers get no
+ * alerts), and whether it can send to the Android app by FCM (ADR 0067).
+ */
+export const PushKey = z.object({ public_key: z.string().min(1).max(200).optional(), native: z.boolean().optional() });
 export type PushKey = z.infer<typeof PushKey>;
 
 /** What a push tells the phone, encrypted to it: the kind of message that came, and who sent it. Nothing more. */

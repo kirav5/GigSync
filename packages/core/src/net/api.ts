@@ -33,8 +33,8 @@ import {
   MyQr,
   type MyQrRequest,
   type Place,
+  type PushAddress,
   PushKey,
-  type PushSubscribe,
   type QrCode,
   QrPerson,
   RecommendLink,
@@ -223,16 +223,16 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
     return this.call(HttpMethod.put, ApiPath.deviceProtocol, { protocol });
   }
 
-  /** The key to subscribe to pushes with, or undefined while push is not set up on the API. */
-  async pushKey(): Promise<string | undefined> {
-    return PushKey.parse(await this.call(HttpMethod.get, ApiPath.pushKey)).public_key;
+  /** The key a browser subscribes to pushes with, and whether the Android app's alerts can go (ADR 0067). */
+  async pushKey(): Promise<PushKey> {
+    return PushKey.parse(await this.call(HttpMethod.get, ApiPath.pushKey));
   }
 
   /**
-   * Tells the API where this device's browser takes pushes and the keys to encrypt them to; only a real push service's
-   * address is kept.
+   * Tells the API where this device takes alerts: a browser's push address and the keys to encrypt them to (only a real
+   * push service's address is kept), or the Android app's FCM token and its language (ADR 0067).
    */
-  async subscribePush(subscription: PushSubscribe): Promise<void> {
+  async subscribePush(subscription: PushAddress): Promise<void> {
     await this.call(HttpMethod.put, ApiPath.devicePush, subscription);
   }
 

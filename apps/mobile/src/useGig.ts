@@ -11,6 +11,7 @@ import {
 import type { Payment } from "@gigsync/protocol";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { nameOf } from "./adapters/account.js";
+import { onPushArrived } from "./adapters/nativePush.js";
 import { offerAlerts } from "./adapters/push.js";
 import { syncPaused } from "./move/pause.js";
 
@@ -38,8 +39,8 @@ const EMPTY: GigView = { jobs: [], tasks: [], payments: [], offers: [], names: {
 /**
  * Keeps the job screens in step with the agent: syncs on a timer and after every owner action, one at a time, so an
  * action never races a sync over the same job. The timer is quick only while something is moving (an action, or a
- * message in or out, in the last minute), slow otherwise, and stops while the app is in the background; coming back
- * checks at once. A slow phone must not pile up timer syncs, and a sync queued for a
+ * message in or out, in the last minute), slow otherwise, and stops while the app is in the background; coming back,
+ * or an alert arriving (ADR 0067), checks at once. A slow phone must not pile up timer syncs, and a sync queued for a
  * replaced device (publishing a card makes a new one, with the worker's rules) must not run: the old device would
  * take a request it has no rules for and drop it. A sync the server did not answer (timed out, or no network) is
  * nothing to report: the next tick tries again, and every call has a deadline, so the queue never stays stuck.
@@ -139,9 +140,15 @@ export function useGig(ports: Ports, device: GigDevice | undefined) {
     };
     schedule();
     document.addEventListener("visibilitychange", shown);
+    // An alert says something came: look now, and keep looking quickly for a minute.
+    const offPush = onPushArrived(() => {
+      movedAt.current = Date.now();
+      shown();
+    });
     return () => {
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", shown);
+      offPush();
     };
   }, [device, run]);
 
