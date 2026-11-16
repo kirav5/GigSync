@@ -17,14 +17,14 @@ export interface Tab {
  */
 const WORKER_TABS: readonly Tab[] = [
   { screen: Screen.talk, label: "nav.home", icon: "home" },
-  { screen: Screen.activity, label: "nav.jobs", icon: "activity" },
+  { screen: Screen.activity, label: "nav.jobs", icon: "jobs" },
   { screen: Screen.records, label: "nav.earnings", icon: "rupee" },
 ];
 
 /** A household's three: Home is asking for help (Find's chat), then the jobs it led to and what they paid (Payments). */
 const HOUSEHOLD_TABS: readonly Tab[] = [
   { screen: Screen.find, label: "nav.home", icon: "home" },
-  { screen: Screen.activity, label: "nav.jobs", icon: "activity" },
+  { screen: Screen.activity, label: "nav.jobs", icon: "jobs" },
   { screen: Screen.records, label: "nav.payments", icon: "rupee" },
 ];
 

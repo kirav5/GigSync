@@ -16,7 +16,7 @@ import {
   startNeed,
 } from "@gigsync/core";
 import { FindEvent } from "@gigsync/protocol";
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
 import { cityOf, rememberHome, useServedCities } from "../../adapters/cities.js";
 import { meaningFor } from "../../adapters/meaning.js";
@@ -54,7 +54,6 @@ import { phoneDay } from "../jobGroups.js";
 import { AddAddress, type Adding } from "./AddAddress.js";
 import { AddressDesk } from "./AddressDesk.js";
 import { FindStart } from "./FindStart.js";
-import { useFindPicks } from "./findPicks.js";
 import { useNeedPhotos } from "./NeedPhotos.js";
 import { NeedTurns } from "./NeedTurns.js";
 import { needMemory, withMemory } from "./remembered.js";
@@ -68,6 +67,8 @@ interface Props {
   onAsked: () => void;
   /** Opens the saved places, from the greeting's My places. */
   onPlaces: () => void;
+  /** The latest jobs, shown under the greeting while the chat is empty. */
+  recent?: ReactNode;
 }
 
 /** The phone has a usable model now: it decides the price questions (ADR 0041 §2); lite mode asks the fixed ones. */
@@ -80,7 +81,7 @@ const modelOn = () => chosenModel.answering() !== ModelChoice.lite;
  * Each conversation is one of the household's chats (`find/findChats.ts`); once its workers were asked it stays to
  * read, with a way to ask for something else in a new chat.
  */
-export function FindChat({ ports, account, device, onAsked, onPlaces }: Props) {
+export function FindChat({ ports, account, device, onAsked, onPlaces, recent }: Props) {
   const i18n = useI18n();
   const { lang, t } = i18n;
   const { ready, open, state, turns, to } = useNeed();
@@ -157,8 +158,7 @@ export function FindChat({ ports, account, device, onAsked, onPlaces }: Props) {
 
   useNeedSearch({ state, open, account, i18n, ports, device, onAsked, saved });
   const { busy, ask } = useAskPicked({ ports, device, i18n, state, open, saved, onAsked });
-  const photos = useNeedPhotos(open, state);
-  const picks = [...(photos.pick ? [photos.pick] : []), ...useFindPicks(open, state, onPlaces)];
+  const { picks, strip } = useNeedPhotos(open, state);
 
   // Every message: read by the model where one is there, else the word lists (`find/readNeed.ts`). The first is the
   // need in the owner's words; its scope is read into chips the owner confirms before the estimate (ADR 0033 §5).
@@ -261,14 +261,19 @@ export function FindChat({ ports, account, device, onAsked, onPlaces }: Props) {
     );
   const thinking = state !== undefined && askingModel(state);
   const waiting = !state || state.slot === NeedSlot.done || state.slot === NeedSlot.found || thinking;
-  // Nothing said yet in a chat open to anyone: the greeting stands over the composer, alone; the agent's opening
-  // question is the greeting's line, and its "Pick from a list" is behind the composer's "+".
+  // Nothing said yet in a chat open to anyone: the greeting, its rows and the recent jobs, over the composer.
   const greet = state?.slot === NeedSlot.trade && !state.to && !turns.some((turn) => turn.who === NeedSpeaker.owner);
   return (
     <>
       {!greet && conversation}
       {greet && (
-        <FindStart name={account.contact.name} onSay={(text) => void send(text, Via.typed)} onPlaces={onPlaces} />
+        <FindStart
+          chat={open}
+          name={account.contact.name}
+          onSay={(text) => void send(text, Via.typed)}
+          onPlaces={onPlaces}
+          recent={recent}
+        />
       )}
       {desk}
       {form}
@@ -277,7 +282,7 @@ export function FindChat({ ports, account, device, onAsked, onPlaces }: Props) {
       <Working on={state?.slot === NeedSlot.done} />
       <div ref={end} />
       <Dock>
-        {photos.strip}
+        {strip}
         <Composer
           label={t("need.composer")}
           placeholder={t(greet ? "composer.ask" : "need.placeholder")}

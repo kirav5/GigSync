@@ -1,6 +1,7 @@
 import { AccountRole } from "../adapters/account.js";
 import { AgentScreen } from "../screens/Agent.js";
 import { FindChat } from "../screens/find/FindChat.js";
+import { RecentJobs } from "../screens/find/RecentJobs.js";
 import { Requests } from "../screens/Requests.js";
 import { HouseholdRecords } from "../screens/record/HouseholdRecords.js";
 import { WorkerRecords } from "../screens/record/WorkerRecords.js";
@@ -23,6 +24,7 @@ export function FindTab({ d, m }: TabProps) {
       device={d.device}
       onAsked={() => m.go(Screen.activity)}
       onPlaces={() => m.go(Screen.addresses)}
+      recent={<RecentJobs view={d.view} onOpen={() => m.go(Screen.activity)} />}
     />
   );
 }

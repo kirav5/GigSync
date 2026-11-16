@@ -144,7 +144,7 @@ test("a household's screens at 360×640 in Hindi: Language, Sign-in and Find's A
   });
 
   // Find's chat on a small phone: its choices are tappable, the found workers listed, and Ask reachable.
-  await tappable(composerButton(page, "composer.more", hi));
+  await tappable(composerButton(page, "photo.add", hi));
   await composerFits(page);
   await tellNeed(
     { page, lang: hi },

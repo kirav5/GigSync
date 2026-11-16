@@ -68,6 +68,8 @@ export const job: Readonly<Record<keyof typeof en, string>> = {
   "job.agreed_title": "आप दोनों राज़ी हैं",
   "job.fixed": "तय",
   "photo.add": "फ़ोटो जोड़ें",
+  "photo.camera": "फ़ोटो खींचें",
+  "photo.gallery": "गैलरी से चुनें",
   "photo.list": "काम की फ़ोटो",
   "photo.alt": "काम की फ़ोटो {n}",
   "photo.remove": "फ़ोटो {n} हटाएँ",

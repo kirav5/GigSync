@@ -2,7 +2,7 @@ import { type MessageKey, t } from "@gigsync/core";
 import { type GeoResult, Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { addressSave, doorField, moreDetails } from "./address.js";
-import { API, listWorker, morePick, newPhone, open, Role, RUN, shoot, signIn } from "./helpers.js";
+import { API, homePick, listWorker, newPhone, open, Role, RUN, shoot, signIn } from "./helpers.js";
 import { openCard } from "./menu.js";
 
 /**
@@ -87,7 +87,7 @@ test("a household saves its home from its location and asks for a maid by the ho
 
   // Find: a maid, for a few hours, at home.
   await open(page, "nav.find", en);
-  await morePick(page, "need.pick_work", en);
+  await homePick(page, "need.pick_work", en);
   await chip(page, en, "group.house_help").click();
   await chip(page, en, "trade.maid").click();
   await chip(page, en, "iv.skip").click();
@@ -123,7 +123,7 @@ for (const lang of [hi, kn]) {
   test(`Find asks how long the work is for, in ${lang}`, async ({ browser }) => {
     const page = await phoneHere(browser);
     await signIn(page, { role: Role.consumer, name: `Ravi ${RUN}`, phone: newPhone(), lang });
-    await morePick(page, "need.pick_work", lang);
+    await homePick(page, "need.pick_work", lang);
     await chip(page, lang, "group.vehicles").click();
     await chip(page, lang, "trade.driver").click();
     // A driver's first question is the route; skipped here.

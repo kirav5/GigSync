@@ -1,6 +1,6 @@
 import { canAddPhoto, log, type NeedState } from "@gigsync/core";
 import { type ReactNode, useRef, useState } from "react";
-import { PhotoError, shrinkPhoto } from "../../adapters/photo.js";
+import { nativePicker, PhotoError, pickPhoto, shrinkPhoto } from "../../adapters/photo.js";
 import { needPhotoAdded, needPhotoRemoved } from "../../find/needPhotos.js";
 import { useI18n } from "../../i18n.js";
 import type { ComposerPick } from "../../ui/ComposerMore.js";
@@ -12,11 +12,12 @@ import "./photos.css";
 const IMAGES = "image/*";
 
 /**
- * Photos of the job in the Find chat (ADR 0066): "Add a photo" behind the composer's "+" opens the phone's camera or
- * gallery, and each picked photo is shrunk on the phone and shown as a small tile above the composer, with a cross
+ * Photos of the job in the Find chat (ADR 0066): the composer's "+" is "Add a photo", as in WhatsApp or ChatGPT: in the
+ * app it opens the phone's own sheet (take a photo, or choose from the gallery), in a browser the file picker. Each
+ * picked photo is shrunk on the phone and shown as a small tile above the composer, with a cross
  * to take it off. They go with the request when the workers are asked.
  */
-export function useNeedPhotos(chat: string, state: NeedState | undefined): { pick?: ComposerPick; strip: ReactNode } {
+export function useNeedPhotos(chat: string, state: NeedState | undefined): { picks: ComposerPick[]; strip: ReactNode } {
   const { t } = useI18n();
   const input = useRef<HTMLInputElement>(null);
   const [problem, setProblem] = useState<string>();
@@ -25,7 +26,7 @@ export function useNeedPhotos(chat: string, state: NeedState | undefined): { pic
   const open = state !== undefined;
   const photos = state?.photos ?? [];
 
-  async function picked(file: File | undefined) {
+  async function picked(file: Blob | undefined) {
     if (!file) return;
     setAdding(true);
     try {
@@ -81,9 +82,16 @@ export function useNeedPhotos(chat: string, state: NeedState | undefined): { pic
       )}
     </>
   );
+  const choose = () =>
+    nativePicker()
+      ? void pickPhoto({
+          title: t("photo.add"),
+          camera: t("photo.camera"),
+          gallery: t("photo.gallery"),
+          cancel: t("mentor.cancel"),
+        }).then(picked)
+      : input.current?.click();
   const pick: ComposerPick | undefined =
-    open && canAddPhoto(state)
-      ? { icon: "camera", label: t("photo.add"), onPick: () => input.current?.click() }
-      : undefined;
-  return { ...(pick ? { pick } : {}), strip };
+    open && canAddPhoto(state) ? { icon: "camera", label: t("photo.add"), onPick: choose } : undefined;
+  return { picks: pick ? [pick] : [], strip };
 }

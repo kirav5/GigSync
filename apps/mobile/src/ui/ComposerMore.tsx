@@ -23,6 +23,20 @@ const ROW_ICON_PX = 20;
 export function ComposerMore({ picks, disabled }: { picks: readonly ComposerPick[]; disabled: boolean }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  const only = picks.length === 1 ? picks[0] : undefined;
+  // One pick (a household's "Add a photo"): the "+" is that pick, as an AI app's "+" opens the photos at once.
+  if (only)
+    return (
+      <button
+        type={C.button}
+        className="composer-icon"
+        aria-label={only.label}
+        disabled={disabled}
+        onClick={only.onPick}
+      >
+        <Icon name="plus" size={PLUS_PX} />
+      </button>
+    );
   return (
     <>
       <button

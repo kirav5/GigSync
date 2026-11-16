@@ -31,8 +31,9 @@ for (const lang of [en, hi, kn]) {
   test(`Find asks a cook as a cook is hired, with no grid of trades first, in ${lang}`, async ({ page }) => {
     await signIn(page, { role: Role.consumer, name: `Kavya ${RUN}`, phone: newPhone(), address: "Flat 4, HSR", lang });
     await expect(greeting(page, lang)).toBeVisible();
-    // The greeting invites the need in her words; the list is behind the composer's "+", for whoever cannot say it.
-    await expect(composerButton(page, "composer.more", lang)).toBeVisible();
+    // The greeting invites the need in her words; the list is one of its rows, for whoever cannot say it, and the "+"
+    // adds a photo.
+    await expect(composerButton(page, "photo.add", lang)).toBeVisible();
     await expect(chip(page, lang, "trade.cook")).toHaveCount(0);
     await shoot(`opening-${lang}`, { household: page }, FOLDER);
 

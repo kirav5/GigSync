@@ -17,6 +17,7 @@ export const home: Readonly<Record<keyof typeof en, string>> = {
   "home.make_card": "बोलकर कार्ड बनाएँ",
   "home.card_off": "आपका कार्ड बोर्ड से हटा है, इसलिए नए ग्राहक आपको नहीं ढूँढ पाएँगे।",
   "home.details": "पूरी जानकारी",
+  "home.recent": "हाल के काम",
   "home.say_approve": "नई रिक्वेस्ट: {name} को {trade} चाहिए। देखकर फ़ैसला कीजिए।",
   "home.say_answer": "{name} के सहायक के आपसे कुछ सवाल हैं।",
   "home.say_sign": "{name} {price} पर राज़ी हैं। क्या आप दस्तख़त करना चाहते हैं?",

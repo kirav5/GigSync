@@ -3,8 +3,8 @@ import { Lang } from "@gigsync/protocol";
 import { expect, type Page, test } from "@playwright/test";
 import {
   greeting,
+  homePick,
   listWorker,
-  morePick,
   newPhone,
   onScreen,
   open,
@@ -125,7 +125,7 @@ test("a Hindi household finds an electrician by tapping the choices", async ({ b
   const log = page.getByRole("log");
   await expect(greeting(page, hi)).toBeVisible();
   // ADR 0051: the opening offers one chip to the list of work, for whoever cannot say or type it.
-  await morePick(page, "need.pick_work", hi);
+  await homePick(page, "need.pick_work", hi);
   await tap(page, t(hi, "group.home_repairs"));
   await tap(page, t(hi, "trade.electrician"));
   // The work's own first question (ADR 0065 §3): what usually breaks, for an electrician.

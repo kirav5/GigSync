@@ -37,7 +37,8 @@ const SLACK_PX = 2;
 /** How far apart the top bar's three may sit from one centre line, in CSS pixels. */
 const CENTRE_SLACK_PX = 1;
 /** The composer's buttons, always there, left to right. */
-const COMPOSER_BUTTONS: readonly MessageKey[] = ["composer.more", "composer.dictate", "speech.listen"];
+const PLUS: MessageKey = "composer.more";
+const COMPOSER_BUTTONS: readonly MessageKey[] = [PLUS, "composer.dictate", "speech.listen"];
 const TABS: readonly MessageKey[] = ["nav.home", "nav.jobs", "nav.records"];
 const BRAND = "gigsync";
 /** What the fake recognizer hears on the household's taps: the small mic, the round button cancelled, then sent. */
@@ -86,8 +87,11 @@ async function sameStructure(page: Page) {
   await expect(greeting(page)).toBeVisible();
   const xs = [];
   for (const key of COMPOSER_BUTTONS) {
-    await expect(composerButton(page, key)).toBeVisible();
-    xs.push((await box(composerButton(page, key))).x);
+    // The "+" is a worker's quick picks and a household's photo picker: the same button in the same place.
+    const button =
+      key === PLUS ? composerButton(page, key).or(composerButton(page, "photo.add")) : composerButton(page, key);
+    await expect(button).toBeVisible();
+    xs.push((await box(button)).x);
   }
   expect(xs).toEqual([...xs].sort((a, b) => a - b));
   await expect(tabBar(page).getByRole("button")).toHaveCount(TABS.length);
@@ -175,17 +179,16 @@ test("a worker's Home and a household's are the same screen: top bar, greeting, 
     await composer(page).getByRole("textbox").fill("");
     await expect(composerButton(page, "speech.listen")).toBeVisible();
   }
-  // The "+" holds each owner's quick picks, in the same sheet.
-  for (const [page, picks] of [
-    [worker, ["choose.editCard", "agent.suggest_rate", "home.suggest_verify"]],
-    [household, ["need.pick_work", "home.my_places"]],
-  ] as const) {
-    await composerButton(page, "composer.more").click();
-    const sheet = page.getByRole("dialog", { name: say("composer.more_title") });
-    for (const key of picks) await expect(sheet.getByRole("button", { name: say(key), exact: true })).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(sheet).toBeHidden();
-  }
+  // A worker's "+" holds their quick picks in a sheet; a household's opens the photos, and the list of work and My
+  // places are rows under its greeting.
+  await composerButton(worker, PLUS).click();
+  const picks = worker.getByRole("dialog", { name: say("composer.more_title") });
+  for (const key of ["choose.editCard", "agent.suggest_rate", "home.suggest_verify"] as const)
+    await expect(picks.getByRole("button", { name: say(key), exact: true })).toBeVisible();
+  await worker.keyboard.press("Escape");
+  await expect(picks).toBeHidden();
+  for (const key of ["need.pick_work", "home.my_places"] as const)
+    await expect(household.locator(".greet").getByRole("button", { name: say(key), exact: true })).toBeVisible();
   // The small mic types by voice into the field and sends nothing; the round button listens and sends by itself. Each
   // opens the listening sheet with the words as they come; Done ends the listen and × drops it.
   const field = composer(household).getByRole("textbox");

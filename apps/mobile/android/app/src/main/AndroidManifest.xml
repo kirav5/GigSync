@@ -41,9 +41,9 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Only to scan a personal QR code, after the owner taps Scan a QR. Capacitor's web view asks for it at runtime
-         when the page opens the camera; without this line Android refuses at once. Phones without a camera can still
-         install GigSync. -->
+    <!-- Only after the owner taps: to scan a personal QR code, or to take a photo of the job from the chat's "+".
+         Capacitor asks for it at runtime; without this line Android refuses at once. Phones without a camera can still
+         install GigSync. Picking from the gallery uses Android's photo picker, which needs no permission. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <!-- Only when the owner taps Use my current location (ADR 0045), after GigSync says why. Coarse only: the app

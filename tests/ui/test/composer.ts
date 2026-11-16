@@ -22,13 +22,12 @@ export const greeting = (page: Page, lang: Lang = DEFAULT_LANG) =>
 export const composerButton = (page: Page, key: MessageKey, lang: Lang = DEFAULT_LANG) =>
   composer(page).getByRole("button", { name: t(lang, key), exact: true });
 
-/** Opens the composer's "+" and taps one of its quick picks, as "Pick from a list" on a household's Home. */
-export async function morePick(page: Page, key: MessageKey, lang: Lang = DEFAULT_LANG) {
-  await composerButton(page, "composer.more", lang).click();
-  const sheet = page.getByRole("dialog", { name: t(lang, "composer.more_title") });
-  await expect(sheet).toBeVisible();
-  await sheet.getByRole("button", { name: t(lang, key), exact: true }).click();
-  await expect(sheet).toBeHidden();
+/** Taps one of the rows under the Home greeting, as "Pick from a list" on a household's Home (the "+" is photos). */
+export async function homePick(page: Page, key: MessageKey, lang: Lang = DEFAULT_LANG) {
+  const row = page.locator(".greet").getByRole("button", { name: t(lang, key), exact: true });
+  await expect(row).toBeVisible();
+  await row.click();
+  await expect(row).toBeHidden();
 }
 
 /** Dev builds only: each listen of the fake engine hears its words and stays open until Done or Cancel stops it. */

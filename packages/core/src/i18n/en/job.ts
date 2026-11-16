@@ -66,6 +66,8 @@ export const job = {
   "job.agreed_title": "You both agreed",
   "job.fixed": "Fixed",
   "photo.add": "Add a photo",
+  "photo.camera": "Take a photo",
+  "photo.gallery": "Choose from gallery",
   "photo.list": "Photos of the job",
   "photo.alt": "Photo {n} of the job",
   "photo.remove": "Remove photo {n}",

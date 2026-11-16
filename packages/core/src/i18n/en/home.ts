@@ -15,6 +15,7 @@ export const home = {
   "home.make_card": "Make my card by talking",
   "home.card_off": "Your card is off the board, so new customers can't find you.",
   "home.details": "Details",
+  "home.recent": "Recent",
   "home.say_approve": "New request from {name} for {trade}. Please check it and decide.",
   "home.say_answer": "{name}'s assistant has a few questions for you.",
   "home.say_sign": "{name} agreed on {price}. Do you want to sign?",

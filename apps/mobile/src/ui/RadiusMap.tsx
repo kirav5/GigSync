@@ -144,7 +144,7 @@ export function RadiusMap({
     source.setData(circleFeature(here, km));
     m.fitBounds(circleBounds(here, km), { padding: FIT_PADDING, duration: FIT_MS });
   }, [km]);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: the place alone; the distance has its own effect above
+  // The place alone; the distance has its own effect above.
   useEffect(() => {
     const m = map.current;
     const source = m?.getSource<GeoJSONSource>(SOURCE);

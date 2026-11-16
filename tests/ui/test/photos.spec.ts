@@ -26,9 +26,8 @@ test.afterEach(async () => {
   contexts = [];
 });
 
-/** Adds the picture through the composer's "+" and the phone's file chooser. */
+/** Adds the picture through the composer's "+", which is "Add a photo" itself, and the browser's file chooser. */
 async function addPhoto(page: Page) {
-  await page.getByRole("button", { name: say("composer.more"), exact: true }).click();
   const chooser = page.waitForEvent("filechooser");
   await page.getByRole("button", { name: say("photo.add"), exact: true }).click();
   await (await chooser).setFiles({ name: "door.png", mimeType: "image/png", buffer: PNG });

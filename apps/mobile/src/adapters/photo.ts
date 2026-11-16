@@ -1,3 +1,5 @@
+import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { Capacitor } from "@capacitor/core";
 import { PHOTO_MAX_CHARS, PHOTO_PREFIX } from "@gigsync/protocol";
 
 /**
@@ -15,6 +17,46 @@ const JPEG = "image/jpeg";
 
 /** No size or quality made the photo small enough, or the file is not a picture the phone can draw. */
 export class PhotoError extends Error {}
+
+/** The words of the phone's own picker sheet, in the owner's language. */
+export interface PickerWords {
+  title: string;
+  camera: string;
+  gallery: string;
+  cancel: string;
+}
+
+/** The largest side the picker hands over, in pixels: the shrinking below makes it smaller still. */
+const PICK_SIDE = 1600;
+
+/** Whether the phone's own picker is there (the Android and iOS apps); the web uses a file input instead. */
+export const nativePicker = (): boolean => Capacitor.isNativePlatform();
+
+/**
+ * The phone's own sheet, "Take photo" or "Choose from gallery", as WhatsApp and ChatGPT open it, and the picture
+ * picked; undefined when the owner closed the sheet without one.
+ */
+export async function pickPhoto(words: PickerWords): Promise<Blob | undefined> {
+  try {
+    const photo = await Camera.getPhoto({
+      source: CameraSource.Prompt,
+      resultType: CameraResultType.Uri,
+      width: PICK_SIDE,
+      height: PICK_SIDE,
+      correctOrientation: true,
+      saveToGallery: false,
+      promptLabelHeader: words.title,
+      promptLabelPhoto: words.gallery,
+      promptLabelPicture: words.camera,
+      promptLabelCancel: words.cancel,
+    });
+    if (!photo.webPath) return undefined;
+    return await (await fetch(photo.webPath)).blob();
+  } catch {
+    // Closing the sheet rejects too; nothing was picked either way.
+    return undefined;
+  }
+}
 
 async function bitmapOf(file: Blob): Promise<ImageBitmap> {
   try {
