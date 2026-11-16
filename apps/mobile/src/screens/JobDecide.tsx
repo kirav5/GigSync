@@ -61,7 +61,7 @@ export function SignCard({ price, terms, asked, place, them, theirHash, say, onS
       </div>
       {theirHash && (
         <span>
-          <Badge icon="tick" tone={BadgeTone.green}>
+          <Badge icon="tick" tone={BadgeTone.checked}>
             {t("jobcard.they_signed", { name: them, hash: theirHash })}
           </Badge>
         </span>

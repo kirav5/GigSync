@@ -10,13 +10,16 @@ import { Dock } from "../../ui/Dock.js";
 import { errorKey } from "../../ui/errorKey.js";
 import { phoneE164, shownNumber, typedFrom } from "../../ui/phone.js";
 import { TermsPage } from "../pages/TermsPage.js";
-import { CodeActions, CodeStep } from "./CodeStep.js";
+import { CodeStep } from "./CodeStep.js";
 import { CODE_LENGTH, FORM_ID, Step } from "./form.js";
 import { NameActions, NameStep } from "./NameStep.js";
 import { NumberActions, NumberStep } from "./NumberStep.js";
 import { RoleStep } from "./RoleStep.js";
 import { WelcomeActions, WelcomeStep } from "./WelcomeStep.js";
 import "./start.css";
+
+/** Under the number's title when the server stopped taking this phone's session: why sign-in is back. */
+const SIGNED_OUT_NOTICE: MessageKey = "start.signin_again";
 
 /** Each step's place in the dots at the top; the welcome has none. */
 const STEP_NUMBER: Readonly<Record<Step, number>> = { welcome: 0, number: 1, code: 2, role: 3, name: 4 };
@@ -26,7 +29,7 @@ const STEP_NUMBER: Readonly<Record<Step, number>> = { welcome: 0, number: 1, cod
  * for a number this phone keeps nothing for, find work or find help and the name. A returning number goes straight in
  * with the side and name it had. What was typed lives here, so a step back, or the terms page, never loses it. The
  * code goes to the server; this phone's private keys never do. `again` is the number whose session the server stopped
- * taking: sign-in opens on it, with a line saying why.
+ * taking: sign-in opens on it, with a line under the title saying why.
  */
 export function SignIn({
   ports,
@@ -56,7 +59,7 @@ export function SignIn({
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<MessageKey>();
-  const [note, setNote] = useState<MessageKey | undefined>(again ? "start.signin_again" : undefined);
+  const [note, setNote] = useState<MessageKey>();
   const [terms, setTerms] = useState(false);
 
   /** Runs one call to the server, the dock saying what is under way (`doing`) or why it failed; true when it went through. */
@@ -179,6 +182,7 @@ export function SignIn({
             country={country}
             onCountry={setCountry}
             onBack={back}
+            notice={again ? SIGNED_OUT_NOTICE : undefined}
           />
         )}
         {step === Step.code && (
@@ -187,7 +191,9 @@ export function SignIn({
             phone={sentTo ? shownNumber(sentTo, country) : typed}
             code={code}
             busy={busy}
+            sentAt={sentAt}
             onCode={enter}
+            onResend={resend}
             onBack={back}
           />
         )}
@@ -205,7 +211,6 @@ export function SignIn({
             <WelcomeActions onStart={() => setStep(Step.number)} onTerms={() => setTerms(true)} />
           )}
           {step === Step.number && <NumberActions busy={busy} />}
-          {step === Step.code && <CodeActions busy={busy} sentAt={sentAt} onResend={resend} />}
           {step === Step.name && <NameActions busy={busy} />}
         </Dock>
       )}

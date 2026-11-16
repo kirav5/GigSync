@@ -6,7 +6,7 @@ export const money = {
   "passbook.week": "Received this week",
   "passbook.month": "Received this month",
   "passbook.not_asked": "Not asked for yet",
-  "passbook.empty": "Jobs you complete on GigSync, and the money from them, show here.",
+  "passbook.empty": "Your paid jobs show here.",
   "passbook.about": "Each line is a job you and the customer both signed. It stays on this phone.",
   "money.ask_again": "Ask for payment again",
   "money.ask_advance": "Ask for an advance",

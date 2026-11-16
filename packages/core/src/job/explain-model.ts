@@ -80,7 +80,7 @@ export function checkExplanation(text: string, c: CheckInput): boolean {
 /** Short and JSON-only: the facts as the template says them, to reword without adding anything. */
 export function explainPrompt(template: string, lang: Lang): string {
   return [
-    `Reword this note for a person whose agent is negotiating a job for them, in ${LANGUAGE_NAME[lang]}.`,
+    `Reword this note for a person whose AI assistant is negotiating a job for them, in ${LANGUAGE_NAME[lang]}.`,
     "One or two short, plain sentences. Keep every amount exactly as written; add no other number, advice or promise.",
     `Note: ${JSON.stringify(template)}`,
     'Reply with JSON only: {"text": "..."}',

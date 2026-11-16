@@ -38,6 +38,7 @@ export const address: Readonly<Record<keyof typeof en, string>> = {
   "addr.check_pin": 'क्या पिन आपके दरवाज़े पर है? नक्शा खिसकाकर उसे दरवाज़े पर लाएँ, फिर "यही मेरा दरवाज़ा है" दबाएँ।',
   "addr.cancel": "रद्द करें",
   "addr.err_pin": "पिन कोड छह अंकों का होता है।",
+  "addr.err_house": "घर या फ़्लैट नंबर लिखें।",
   "addr.err_missing": "मकान या फ़्लैट नंबर, इलाक़ा, शहर और पिन कोड भरें।",
   "addr.near": "GigSync यह पता नक्शे पर नहीं ढूँढ पाया। यह इनमें से किस इलाक़े के सबसे पास है?",
   "addr.remove": "हटाएँ",

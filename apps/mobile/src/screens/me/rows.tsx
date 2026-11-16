@@ -1,6 +1,7 @@
-import { t as say } from "@gigsync/core";
 import { useI18n } from "../../i18n.js";
 import { Screen } from "../../state.js";
+import { C } from "../../ui/cls.js";
+import { Icon, type IconName } from "../../ui/Icon.js";
 import { ListRow } from "../../ui/ListRow.js";
 import { useLinks } from "../mentor/links.js";
 
@@ -13,38 +14,13 @@ export type OpenScreen = (s: Screen) => void;
  */
 export function CardRow({ isWorker, onOpen }: { isWorker: boolean; onOpen: OpenScreen }) {
   const { t } = useI18n();
-  return (
-    <ListRow
-      icon="qr"
-      title={t(isWorker ? "nav.card" : "profile.my_qr")}
-      sub={t(isWorker ? "me.card_sub" : "profile.my_qr_sub")}
-      onClick={() => onOpen(Screen.card)}
-    />
-  );
+  return <ListRow icon="qr" title={t(isWorker ? "nav.card" : "profile.my_qr")} onClick={() => onOpen(Screen.card)} />;
 }
 
 /** People you know: everyone the owner worked with, to ask again, block or unblock. */
 export function PeopleRow({ onOpen }: { onOpen: OpenScreen }) {
   const { t } = useI18n();
-  return (
-    <ListRow icon="people" title={t("me.people")} sub={t("me.people_sub")} onClick={() => onOpen(Screen.people)} />
-  );
-}
-
-/** Alerts: what happened, day by day. The decisions waiting are counted on the Jobs tab, not here again. */
-export function AlertsRow({ onOpen }: { onOpen: OpenScreen }) {
-  const { t } = useI18n();
-  return (
-    <ListRow icon="bell" title={t("tabs.alerts")} sub={t("me.alerts_sub")} onClick={() => onOpen(Screen.alerts)} />
-  );
-}
-
-/** Privacy: who sees what. */
-export function PrivacyRow({ onOpen }: { onOpen: OpenScreen }) {
-  const { t } = useI18n();
-  return (
-    <ListRow icon="shield" title={t("nav.privacy")} sub={t("me.privacy_sub")} onClick={() => onOpen(Screen.privacy)} />
-  );
+  return <ListRow icon="people" title={t("me.people")} onClick={() => onOpen(Screen.people)} />;
 }
 
 /**
@@ -54,27 +30,34 @@ export function PrivacyRow({ onOpen }: { onOpen: OpenScreen }) {
 export function HelpRow({ onOpen }: { onOpen: OpenScreen }) {
   const { t, plural } = useI18n();
   const { unread } = useLinks();
-  const sub = unread > 0 ? plural("mentor.unread", unread) : t("me.help_sub");
+  const sub = unread > 0 ? plural("mentor.unread", unread) : undefined;
   return <ListRow icon="help" title={t("me.help")} sub={sub} onClick={() => onOpen(Screen.help)} />;
 }
 
-/** Language, with the one in use named in its own script. */
-export function LanguageRow({ onOpen }: { onOpen: OpenScreen }) {
-  const { t, lang } = useI18n();
+/** One of the three small buttons at the profile's foot, as the phone's own settings gear sits apart from the list. */
+function Chip({ icon, title, onClick }: { icon: IconName; title: string; onClick: () => void }) {
   return (
-    <ListRow
-      icon="globe"
-      title={t("me.language")}
-      end={<span lang={lang}>{say(lang, `lang.${lang}`)}</span>}
-      onClick={() => onOpen(Screen.language)}
-    />
+    <button type={C.button} className="profile-chip" onClick={onClick}>
+      <Icon name={icon} size={18} />
+      {title}
+    </button>
   );
 }
 
-/** Settings: the look, alerts, the agent's model and bargaining, and this phone. */
-export function SettingsLink({ onOpen }: { onOpen: OpenScreen }) {
+/** Language: its name in the app's language, which is the one in use. */
+export function LanguageChip({ onOpen }: { onOpen: OpenScreen }) {
   const { t } = useI18n();
-  return (
-    <ListRow icon="gear" title={t("nav.settings")} sub={t("me.settings_sub")} onClick={() => onOpen(Screen.settings)} />
-  );
+  return <Chip icon="globe" title={t("me.language")} onClick={() => onOpen(Screen.language)} />;
+}
+
+/** Privacy: who sees what. */
+export function PrivacyChip({ onOpen }: { onOpen: OpenScreen }) {
+  const { t } = useI18n();
+  return <Chip icon="shield" title={t("nav.privacy")} onClick={() => onOpen(Screen.privacy)} />;
+}
+
+/** Settings: the look, alerts, the assistant's model and bargaining, and this phone. */
+export function SettingsChip({ onOpen }: { onOpen: OpenScreen }) {
+  const { t } = useI18n();
+  return <Chip icon="gear" title={t("nav.settings")} onClick={() => onOpen(Screen.settings)} />;
 }

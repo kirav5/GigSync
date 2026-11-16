@@ -14,8 +14,12 @@ import { nameOf } from "./adapters/account.js";
 import { offerAlerts } from "./adapters/push.js";
 import { syncPaused } from "./move/pause.js";
 
-/** How often the phone checks its mailbox while the app is open. Push wake-ups replace this later (FCM). */
+/** How often the phone checks its mailbox while something is moving: just after an action, or a message in or out. */
 export const SYNC_MS = 2000;
+/** How often it checks while nothing has moved for a while; coming back to the app checks at once. */
+export const IDLE_SYNC_MS = 15_000;
+/** How long after the last action or message the phone keeps checking every SYNC_MS. */
+const BUSY_FOR_MS = 60_000;
 
 /** Everything the job screens show, read from this phone after each sync. */
 export interface GigView {
@@ -33,7 +37,9 @@ const EMPTY: GigView = { jobs: [], tasks: [], payments: [], offers: [], names: {
 
 /**
  * Keeps the job screens in step with the agent: syncs on a timer and after every owner action, one at a time, so an
- * action never races a sync over the same job. A slow phone must not pile up timer syncs, and a sync queued for a
+ * action never races a sync over the same job. The timer is quick only while something is moving (an action, or a
+ * message in or out, in the last minute), slow otherwise, and stops while the app is in the background; coming back
+ * checks at once. A slow phone must not pile up timer syncs, and a sync queued for a
  * replaced device (publishing a card makes a new one, with the worker's rules) must not run: the old device would
  * take a request it has no rules for and drop it. A sync the server did not answer (timed out, or no network) is
  * nothing to report: the next tick tries again, and every call has a deadline, so the queue never stays stuck.
@@ -43,6 +49,8 @@ export function useGig(ports: Ports, device: GigDevice | undefined) {
   const queue = useRef<Promise<unknown>>(Promise.resolve());
   const current = useRef(device);
   const timerQueued = useRef(false);
+  /** When something last moved: an owner action, or a sync that carried a message either way. */
+  const movedAt = useRef(Date.now());
 
   const read = useCallback(async () => {
     if (!device) return;
@@ -71,10 +79,16 @@ export function useGig(ports: Ports, device: GigDevice | undefined) {
         if (!device || current.current !== device) return;
         let acted = false;
         try {
-          if (work) await work();
+          if (work) {
+            movedAt.current = Date.now();
+            await work();
+          }
           acted = true;
           // While a move to a new phone is on, the mailbox waits for the new phone.
-          if (!syncPaused()) await device.sync();
+          if (!syncPaused()) {
+            const { received, sent } = await device.sync();
+            if (received + sent > 0) movedAt.current = Date.now();
+          }
         } catch (err) {
           // Done on the phone, but the server did not answer the sync: what is queued goes out on a later tick.
           if (acted && err instanceof NetError) return log.info("sync deferred: no answer", { reason: err.reason });
@@ -96,7 +110,8 @@ export function useGig(ports: Ports, device: GigDevice | undefined) {
     setView(EMPTY);
     if (!device) return;
     void run();
-    const timer = setInterval(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const tick = () => {
       if (timerQueued.current) return;
       timerQueued.current = true;
       void run()
@@ -104,8 +119,30 @@ export function useGig(ports: Ports, device: GigDevice | undefined) {
         .finally(() => {
           timerQueued.current = false;
         });
-    }, SYNC_MS);
-    return () => clearInterval(timer);
+    };
+    const schedule = () => {
+      clearTimeout(timer);
+      if (document.hidden) return;
+      const busy = Date.now() - movedAt.current < BUSY_FOR_MS;
+      timer = setTimeout(
+        () => {
+          tick();
+          schedule();
+        },
+        busy ? SYNC_MS : IDLE_SYNC_MS,
+      );
+    };
+    const shown = () => {
+      if (document.hidden) return clearTimeout(timer);
+      tick();
+      schedule();
+    };
+    schedule();
+    document.addEventListener("visibilitychange", shown);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", shown);
+    };
   }, [device, run]);
 
   return { view, run };

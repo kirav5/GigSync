@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Screen } from "../state.js";
 
 /** Where the owner is: the screens on the way to the open one, the landing screen first. */
@@ -15,6 +15,17 @@ export interface Nav {
   goFrom: (from: Screen, to: Screen) => void;
   /** Steps back one screen; false on the landing screen, where Back leaves the app. */
   back: () => boolean;
+  /** The profile sheet is open over the screen. */
+  profile: boolean;
+  setProfile: (open: boolean) => void;
+  /** Opens a screen from a row of the profile sheet: Back from that screen comes to the sheet again, as on iOS. */
+  goFromProfile: (to: Screen) => void;
+}
+
+/** A screen opened from the profile sheet, and where on the stack it stands. */
+interface FromSheet {
+  at: number;
+  screen: Screen;
 }
 
 /** The stack after opening `to`, given the landing screen and whether `to` is a tab. */
@@ -33,6 +44,8 @@ function opened(stack: readonly Screen[], to: Screen, landing: Screen, tab: bool
  */
 export function useNav(landing: Screen, isTab: (s: Screen) => boolean): Nav {
   const [stack, setStack] = useState<readonly Screen[]>([landing]);
+  const [profile, setProfile] = useState(false);
+  const [fromSheet, setFromSheet] = useState<FromSheet>();
 
   const go = useCallback((to: Screen) => setStack((now) => opened(now, to, landing, isTab(to))), [landing, isTab]);
   const goFrom = useCallback(
@@ -40,14 +53,28 @@ export function useNav(landing: Screen, isTab: (s: Screen) => boolean): Nav {
       setStack((now) => (now[now.length - 1] === from ? opened(now, to, landing, isTab(to)) : now)),
     [landing, isTab],
   );
+  const goFromProfile = useCallback(
+    (to: Screen) => {
+      const next = opened(stack, to, landing, isTab(to));
+      setStack(next);
+      setFromSheet({ at: next.length - 1, screen: to });
+    },
+    [stack, landing, isTab],
+  );
+  // A move that takes the sheet's screen off the stack (a tab, the landing screen) forgets it came from the sheet.
+  useEffect(() => {
+    if (fromSheet && stack[fromSheet.at] !== fromSheet.screen) setFromSheet(undefined);
+  }, [stack, fromSheet]);
   const back = useCallback((): boolean => {
     if (stack.length <= 1) return false;
+    const top = stack.length - 1;
     setStack(stack.slice(0, -1));
+    if (fromSheet?.at === top) setProfile(true);
     return true;
-  }, [stack]);
+  }, [stack, fromSheet]);
 
   return useMemo(
-    () => ({ screen: stack[stack.length - 1] ?? landing, stack, go, goFrom, back }),
-    [stack, landing, go, goFrom, back],
+    () => ({ screen: stack[stack.length - 1] ?? landing, stack, go, goFrom, back, profile, setProfile, goFromProfile }),
+    [stack, landing, go, goFrom, back, profile, goFromProfile],
   );
 }

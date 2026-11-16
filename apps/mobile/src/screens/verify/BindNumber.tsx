@@ -9,7 +9,7 @@ import { C } from "../../ui/cls.js";
 import { INDIA } from "../../ui/countries.js";
 import { errorKey } from "../../ui/errorKey.js";
 import { phoneE164, shownNumber, typedNumber } from "../../ui/phone.js";
-import { CodeActions } from "../start/CodeStep.js";
+import { SendAgain } from "../start/CodeStep.js";
 
 /** The server's answer to a wrong code. */
 const WRONG_CODE = 401;
@@ -104,7 +104,7 @@ export function BindNumber({
         <CodeBoxes name={CODE_FIELD} label={t("signin.code")} code={code} busy={busy} onCode={enter} />
         {import.meta.env.DEV && <p className="fine">{t("signin.code_dev", { code: DEV_CODE })}</p>}
         {line}
-        <CodeActions busy={busy} sentAt={sentAt} onResend={() => void checkNumber()} />
+        <SendAgain busy={busy} sentAt={sentAt} onResend={() => void checkNumber()} />
         <button type={C.button} className={C.secondary} onClick={() => setSentTo(undefined)}>
           {t("start.change_number")}
         </button>

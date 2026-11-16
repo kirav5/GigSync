@@ -2,7 +2,6 @@ import { type FormEvent, useEffect, useId, useRef, useState } from "react";
 import { Permission } from "../adapters/permissions.js";
 import { VoiceState } from "../adapters/speech.js";
 import { useI18n } from "../i18n.js";
-import { ComposerMore, type ComposerPick } from "./ComposerMore.js";
 import { C } from "./cls.js";
 import { Icon } from "./Icon.js";
 import { ListeningSheet } from "./ListeningSheet.js";
@@ -29,8 +28,6 @@ export interface ComposerProps {
   onDeviceOnly?: boolean;
   /** The longest message the receiver accepts; longer words stay in the field to shorten, typed or heard. */
   maxLength?: number;
-  /** The owner's quick picks behind the "+" at the start of the pill; none, and there is no "+". */
-  picks?: readonly ComposerPick[];
 }
 
 const NUMERIC = "numeric";
@@ -43,11 +40,9 @@ const ICON_PX = 24;
 /** The small mic's icon, beside the round button. */
 const MIC_PX = 20;
 const NO_HINTS: readonly string[] = [];
-const NO_PICKS: readonly ComposerPick[] = [];
 
 /**
- * Where the owner answers (spec §3.3, the design's Home), the same pill on every chat: the "+" with the owner's quick
- * picks, the field, a small mic that types by voice into the field (to read and change, sent only by the owner), and
+ * Where the owner answers (spec §3.3, the design's Home), the same pill on every chat: the field, a small mic that types by voice into the field (to read and change, sent only by the owner), and
  * at its end one round warm button: voice, which listens and sends by itself when the owner stops, because many owners
  * cannot proofread and every answer is read back. As in Gemini, that round button turns into send (an up arrow) once
  * something is typed, and the keyboard's Enter sends too. While either mic listens the listening sheet rises over the chat with
@@ -63,7 +58,6 @@ export function Composer({
   numeric = false,
   onDeviceOnly = false,
   maxLength,
-  picks = NO_PICKS,
 }: ComposerProps) {
   const { lang, t } = useI18n();
   const [text, setText] = useState("");
@@ -125,7 +119,6 @@ export function Composer({
       {mic.why && <PermissionSheet permission={Permission.mic} onAnswer={mic.explained} />}
       {listening && <ListeningSheet heard={text} onDone={mic.finish} onCancel={mic.cancel} />}
       <div className="composer-row">
-        {picks.length > 0 && <ComposerMore picks={picks} disabled={busy} />}
         <input
           ref={field}
           value={text}

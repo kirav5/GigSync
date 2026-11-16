@@ -3,9 +3,8 @@ import type { qr as en } from "../en/qr.js";
 /** Hindi: personal QR codes. */
 export const qr: Readonly<Record<keyof typeof en, string>> = {
   "qr.mine": "आपका QR कोड",
-  "qr.about_worker": "किसी भी फ़ोन के कैमरे से स्कैन करके {name} से काम के लिए पूछिए — कोई ऐप नहीं चाहिए।",
-  "qr.about_household":
-    "जो कामगार इसे स्कैन करे, वह सिर्फ़ आपका पहला नाम देखता है और आपके लिए काम करने की पेशकश कर सकता है। उनसे पूछना है या नहीं, यह आप तय करते हैं।",
+  "qr.about_worker": "स्कैन करें और {name} से काम के लिए पूछें।",
+  "qr.about_household": "कामगार इसे स्कैन करके आपको काम की पेशकश करते हैं। उन्हें सिर्फ़ आपका पहला नाम दिखता है।",
   "qr.alt": "{name} तक पहुँचाने वाला QR कोड",
   "qr.download": "QR सेव करें",
   "qr.share": "भेजें",

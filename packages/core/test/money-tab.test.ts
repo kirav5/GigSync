@@ -1,6 +1,15 @@
 import type { Agree, EngagementId, OfferId, Payment, PaymentId, PaymentStatus, Role, UserId } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import { type JobRecord, paidTotals, passbook, receiptsOf, waitingBy, weekPayments } from "../src/index.js";
+import {
+  type JobRecord,
+  paidTotals,
+  passbook,
+  receiptsOf,
+  waitingBy,
+  weekDayIndex,
+  weekDays,
+  weekPayments,
+} from "../src/index.js";
 
 const WORKER = "usr_01J0000000000000000000WWWW" as UserId;
 const PRIYA = "usr_01J0000000000000000000PPPP" as UserId;
@@ -94,6 +103,24 @@ describe("weekPayments", () => {
 
   it("is zero with nothing received", () => {
     expect(weekPayments([], NOW, IST)).toBe(0);
+  });
+});
+
+describe("weekDays", () => {
+  it("adds what came on each day of the local week, Monday first, and nothing from last week or not received", () => {
+    const j = job(PRIYA);
+    const payments = [
+      pay(j, PRIYA, "confirmed", 100, "2026-10-25T18:40:00Z"), // Monday 26 Oct, 00:10 in India
+      pay(j, PRIYA, "confirmed", 200, "2026-10-25T18:20:00Z"), // Sunday 25 Oct: last week
+      pay(j, PRIYA, "confirmed", 300, "2026-10-28T10:00:00Z"), // Wednesday
+      pay(j, PRIYA, "confirmed", 50, "2026-10-28T12:00:00Z"), // Wednesday again
+      pay(j, PRIYA, "requested", 400, "2026-10-29T03:00:00Z"), // asked, not received
+    ];
+    expect(weekDays(rowsOf([j], payments), NOW, IST)).toEqual([100, 0, 350, 0, 0, 0, 0]);
+  });
+
+  it("says Thursday is the fourth day of the week", () => {
+    expect(weekDayIndex(NOW, IST)).toBe(3);
   });
 });
 

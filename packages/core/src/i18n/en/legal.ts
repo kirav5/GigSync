@@ -5,18 +5,17 @@
  */
 export const legal = {
   "legal.updated": "Last updated {date}",
-  "legal.contents": "Contents",
   "legal.english_only": "The full text of each section is in English. If the versions differ, the English one applies.",
   "legal.about": "About these terms",
   "legal.about.sum": "By signing in you agree to these terms and the privacy notice in section 8.",
   "legal.service": "What the app is, and what it is not",
   "legal.service.sum":
-    "A matching app: your own agent finds and agrees work for you. We take no commission and are not an employer.",
+    "A matching app: your own AI assistant finds and agrees work for you. We take no commission and are not an employer.",
   "legal.account": "Who can use it, and your account",
   "legal.account.sum": "You must be 18 or older and in India. One account per mobile number, signed in with a code.",
-  "legal.agent": "Your agent",
+  "legal.agent": "Your AI assistant",
   "legal.agent.sum":
-    "Your agent acts only within the limits you set. You sign every deal unless you turn on auto-sign.",
+    "Your assistant acts only within the limits you set. You sign every deal unless you turn on auto-sign.",
   "legal.jobs": "Jobs and payments",
   "legal.jobs.sum": "A job is agreed between the two of you. You pay each other directly, by UPI or cash.",
   "legal.cancel": "Cancelling and problems with a job",

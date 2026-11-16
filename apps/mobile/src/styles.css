@@ -42,6 +42,12 @@
   --tint: #e7d5b5;
   --green: #4f7a4a;
   --knob: #fbf5e8;
+  /* The richer cards: the beige of a total or a QR card, the warm dark of the job happening now, and a soft lift. */
+  --sand: #f2e8d8;
+  --cocoa: #35261f;
+  --on-cocoa: #fff3e4;
+  --cocoa-accent: #e8896b;
+  --lift: 0 1px 2px rgb(74 44 30 / 0.06), 0 8px 22px -12px rgb(74 44 30 / 0.3);
   --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
   --sans:
     "Inter", "Noto Sans Devanagari", "Noto Sans Kannada", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
@@ -77,8 +83,6 @@
   --tabbar-h: 64px;
   /* The agent's sun in gold, for the disc beside its turns; gold is the same in both looks. */
   --sun-gold: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d8b276' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2'/%3E%3C/svg%3E");
-  /* The GigSync sun in terracotta lines: the agent's mark beside its words in chat, as the kit draws it. */
-  --sun-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a4512b' stroke-width='1.9' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1'/%3E%3C/svg%3E");
   /* A plain tick, drawn through a mask so it takes whatever colour its box is painted. */
   --tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 4 4 10-10'/%3E%3C/svg%3E");
   /* The tick on a done step's green dot, in the page colour so it stands out of the green in both looks. */
@@ -120,6 +124,15 @@
 [hidden] {
   display: none !important;
 }
+/* Words for a screen reader only: in the page, never drawn. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 html,
 body,
 #root {
@@ -134,6 +147,9 @@ body {
 }
 body {
   margin: 0;
+  /* Feels like an app, not a page: no double-tap zoom and no grey flash on a tap. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   background: var(--bg);
   color: var(--text);
   font-family: var(--sans);
@@ -526,14 +542,31 @@ select.field {
   margin: 0;
   overflow-wrap: anywhere;
 }
+/* Nothing here yet: a plain white card with a solid hairline, as the Jobs tab's own (a dashed edge read as unfinished). */
+/* An empty screen says one line under a small drawing: two Warli figures holding hands, in terracotta, as the start
+   screens draw people (a picture first, for someone who reads little). */
+:root {
+  --warli-pair: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 64' fill='black' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='20' cy='9' r='6' stroke='none'/%3E%3Ccircle cx='52' cy='9' r='6' stroke='none'/%3E%3Cpath stroke='none' d='M12 19h16L20 34zM20 34l-9 16h18zM44 19h16L52 34zM52 34l-9 16h18z'/%3E%3Cpath fill='none' d='M15 50l-3 12M25 50l3 12M47 50l-3 12M57 50l3 12M12 20l-7 8M60 20l7 8M28 20l8 7l8-7'/%3E%3C/svg%3E");
+}
 .empty {
-  border: 1px dashed var(--hairline);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-card);
-  padding: 18px;
+  background: var(--surface);
+  padding: 22px 18px;
   color: var(--text2);
   display: grid;
   gap: 10px;
-  justify-items: start;
+  justify-items: center;
+  text-align: center;
+}
+.empty::before,
+.jobs-empty-icon::before {
+  content: "";
+  width: 72px;
+  height: 64px;
+  background: var(--accent);
+  -webkit-mask: var(--warli-pair) center / contain no-repeat;
+  mask: var(--warli-pair) center / contain no-repeat;
 }
 
 /* Steps: Agreed · Working · Done · Paid. A dot over each word: green with a tick once done, rust for now. */
@@ -654,7 +687,8 @@ select.field {
   font-family: var(--serif-latin);
   font-size: 22px;
   font-weight: 400;
-  line-height: 1;
+  /* Room below the baseline for the tails of g and y, which a line height of 1 cut off where the row clips. */
+  line-height: 1.3;
   letter-spacing: -0.01em;
 }
 
@@ -709,11 +743,13 @@ select.field {
   width: 22px;
   height: 22px;
 }
+/* Only up and down: a screen never slides, stretches or bounces sideways under a thumb, as a phone's own apps do. */
 .content {
   flex: 1;
   min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
-  overscroll-behavior-y: contain;
+  overscroll-behavior: contain;
 }
 .main > .content:first-child {
   padding-top: env(safe-area-inset-top);
@@ -791,65 +827,45 @@ html[data-keyboard="open"] .dock {
   padding-bottom: 16px;
 }
 
-/* Agent chat. The agent's turn sits beside its mark, the sun's lines on a soft terracotta disc, its words on the surface with a
-   hairline, square at the corner nearest the disc; what follows them (chips, a form) hangs under the words. The
-   owner's words are opposite, in ink with ivory. */
-.agent-mark,
-.msg-agent::before {
-  display: inline-block;
-  flex: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--sun-mark) center / 17px no-repeat var(--picked);
-}
+/* Agent chat, as the assistant apps draw it: the owner's words on the right in a terracotta bubble with white text, the
+   assistant's as plain text across the page with no bubble and no mark; what follows them (chips, a form) hangs
+   under the words. */
 .msg-user {
   justify-self: end;
-  max-width: 78%;
+  max-width: 80%;
 }
 .msg-user .bubble {
-  background: var(--inverse);
-  color: var(--on-inverse);
-  padding: 10px 14px;
-  border-radius: 12px 2px 12px 12px;
+  background: var(--accent);
+  color: var(--on-accent);
+  padding: 10px 16px;
+  border-radius: 20px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 .msg-agent {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  column-gap: 8px;
+  grid-template-columns: minmax(0, 1fr);
   row-gap: 8px;
   align-items: start;
-  max-width: 92%;
-}
-.msg-agent::before {
-  content: "";
-  grid-column: 1;
-  grid-row: 1;
-}
-.msg-agent > * {
-  grid-column: 2;
 }
 .msg-agent > .text,
 .msg-agent > .iv-say,
 .msg-agent > p {
   margin: 0;
-  padding: 10px 14px;
-  background: var(--surface);
-  border: 1px solid var(--hairline);
-  border-radius: 2px 12px 12px 12px;
+  padding: 4px 0;
 }
 .msg-agent .text {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+/* What kind of note the assistant answered with (Saved, Answer), small and grey under its words. */
+.msg-kind {
+  font-size: var(--fs-label);
+  color: var(--text3);
+}
 @media (max-width: 599px) {
   .msg-user {
-    max-width: 92%;
-  }
-  .msg-agent {
-    max-width: 100%;
+    max-width: 85%;
   }
 }
 
@@ -898,7 +914,7 @@ html[data-keyboard="open"] .dock {
   display: grid;
   gap: 2px;
   padding: 12px 14px;
-  border: 1px solid var(--fresh);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-card);
 }
 
@@ -990,7 +1006,6 @@ fieldset {
    .tick-list       a list whose every row starts with a green tick
    .option-row      a big choice as a row with 12px corners; .on, aria-pressed="true" or aria-checked="true" makes it
                     the chosen one, in earth with ivory words (inverted in the dark look); its own line goes in a .sub
-   .agent-mark      the agent's small earth disc with the gold sun (the chat draws it by itself)
    The primitives below (ui/ListRow.tsx, Toggle.tsx, Avatar.tsx, Badge.tsx, Brand.tsx) draw the rest. */
 .hero-title {
   font-family: var(--serif);
@@ -1315,8 +1330,10 @@ button.list-row {
 .badge .ic {
   stroke-width: 2.2;
 }
-.badge.green {
-  color: var(--fresh);
+/* Checked or signed (the phone's code, both signatures): the terracotta tint, as a picked chip; green is for money paid. */
+.badge.checked {
+  background: var(--picked);
+  color: var(--picked-ink);
 }
 .badge.rust {
   color: var(--accent-ink);

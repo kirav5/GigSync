@@ -2,6 +2,7 @@ import type { MessageKey } from "@gigsync/core";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { Icon, type IconName } from "../../ui/Icon.js";
+import { Art, StartArt } from "./StartArt.js";
 
 /** Stands where the link goes in the agreement line, so each language puts it where its grammar wants it. */
 const LINK_SLOT = "⁣";
@@ -14,23 +15,24 @@ const POINTS: readonly { icon: IconName; text: MessageKey }[] = [
 ];
 
 /**
- * The welcome after the language, as Gemini's phone app opens: the sun, "Let's get started", three short promises,
- * the language with its "Change", and the agreement line at the foot, once, before anything is asked (ADR 0039 §4).
+ * The welcome after the language: the mandala straight on the page, "Let's get started", three short promises with
+ * their icons, the language with its "Change", and the agreement line right above Get started, once, before anything
+ * is asked (ADR 0039 §4). The block sits in the middle of the room above the dock, so a tall phone shows no empty band.
  * No back arrow: "Change" is the way back to the language screen.
  */
 export function WelcomeStep({ onLanguage }: { onLanguage: () => void }) {
   const { lang, t } = useI18n();
   return (
     <div className="start-welcome">
-      <span className="start-welcome-sun" aria-hidden="true">
-        <Icon name="sun" size={40} />
-      </span>
-      <h1 className="start-title">{t("start.welcome_title")}</h1>
-      <p className={C.muted}>{t("start.welcome_sub")}</p>
+      <StartArt art={Art.welcome} bare />
+      <div className="start-head">
+        <h1 className="start-title">{t("start.welcome_title")}</h1>
+        <p className={C.muted}>{t("start.welcome_sub")}</p>
+      </div>
       <ul className="start-points">
         {POINTS.map((p) => (
           <li key={p.text}>
-            <Icon name={p.icon} size={22} />
+            <Icon name={p.icon} size={20} />
             <span>{t(p.text)}</span>
           </li>
         ))}

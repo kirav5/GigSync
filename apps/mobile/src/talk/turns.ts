@@ -1,4 +1,5 @@
 import type { Card, Choice, Line } from "@gigsync/core";
+import { ownerSaidNow } from "../ui/saidClock.js";
 import { isMoveTurn, type MoveTurn } from "./moveTurns.js";
 
 /**
@@ -33,8 +34,15 @@ export function turnIdsSeen(max: number): void {
 
 /** The next turn id, for a turn of any kind. */
 export const nextTurnId = (): number => ++lastId;
-export const ownerTurn = (text: string): Turn => ({ id: ++lastId, who: Speaker.owner, text });
-export const noteTurn = (text: string): Turn => ({ id: ++lastId, who: Speaker.note, text });
+/** The owner's own words, typed, said or tapped: the reply to them is written out letter by letter (ui/Typed.tsx). */
+export function ownerTurn(text: string): Turn {
+  ownerSaidNow();
+  return { id: ++lastId, who: Speaker.owner, text };
+}
+export function noteTurn(text: string): Turn {
+  ownerSaidNow();
+  return { id: ++lastId, who: Speaker.note, text };
+}
 export const appTurn = (lines: readonly Line[], choices: readonly Choice[] = []): Turn => ({
   id: ++lastId,
   who: Speaker.app,

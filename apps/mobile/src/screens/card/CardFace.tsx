@@ -45,7 +45,7 @@ export function CardFace({ card, km }: { card: BoardProfile; km?: number | undef
       </div>
       <ul className="card-face-badges" aria-label={t("me.badges")}>
         <li>
-          <Badge icon="check" tone={BadgeTone.green}>
+          <Badge icon="check" tone={BadgeTone.checked}>
             {t("me.phone")}
           </Badge>
         </li>

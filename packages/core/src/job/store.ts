@@ -6,6 +6,7 @@ import type {
   Engagement,
   EngagementId,
   Estimate,
+  JobPhoto,
   JobRequest,
   JobReview,
   JobTerms,
@@ -157,6 +158,8 @@ export interface Need {
   terms?: Terms;
   /** Terms the owner said they do not mind changing a little ("any time that day"). */
   flexible?: TermKey[];
+  /** Photos of the job the owner added (ADR 0066), sent with each request. */
+  photos?: JobPhoto[];
 }
 
 export const TaskKind = {

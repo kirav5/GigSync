@@ -132,3 +132,19 @@ export async function finishWork(scope: Locator, lang: Lang = DEFAULT_LANG) {
     if (step === done) return;
   }
 }
+
+/** A signed job's "⋯ More" sheet (its note, advance, cancel or stop, and times), opened from the job's card. */
+export async function more(job: Locator, lang: Lang = DEFAULT_LANG): Promise<Locator> {
+  const sheet = job.getByRole("dialog", { name: t(lang, "job.more") });
+  if (!(await sheet.isVisible())) await job.getByRole("button", { name: t(lang, "job.more"), exact: true }).click();
+  await expect(sheet).toBeVisible();
+  return sheet;
+}
+
+/** Closes a job's "⋯ More" sheet, as Escape does, so the card behind it takes taps again. */
+export async function closeMore(job: Locator, lang: Lang = DEFAULT_LANG) {
+  const sheet = job.getByRole("dialog", { name: t(lang, "job.more") });
+  if (!(await sheet.isVisible())) return;
+  await job.page().keyboard.press("Escape");
+  await expect(sheet).toBeHidden();
+}

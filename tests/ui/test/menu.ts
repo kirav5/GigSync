@@ -68,16 +68,28 @@ export async function openProfile(page: Page, lang: Lang = DEFAULT_LANG) {
 export async function backToTabs(page: Page, lang: Lang = DEFAULT_LANG) {
   // The frame first: right after a reload the app has not drawn yet.
   await expect(page.getByRole("banner")).toBeVisible();
-  // An open profile sheet makes the page behind it inert: Done closes it.
-  if (await profileSheet(page, lang).isVisible()) {
-    await profileSheet(page, lang)
-      .getByRole("button", { name: t(lang, "profile.done"), exact: true })
-      .click();
-    await expect(profileSheet(page, lang)).toBeHidden();
+  await closeProfile(page, lang);
+  // An open chats drawer shades the screen behind it, as a phone's drawer does: Escape closes it.
+  const chats = page.getByRole("navigation", { name: t(lang, "chats.title"), exact: true });
+  if (await chats.isVisible()) {
+    await page.keyboard.press("Escape");
+    await expect(chats).toBeHidden();
   }
-  while (!(await tabBar(page, lang).isVisible()) && (await back(page, lang).isVisible()))
+  // Back from a screen opened from the profile sheet comes to the sheet again: Done closes it.
+  while (!(await tabBar(page, lang).isVisible()) && (await back(page, lang).isVisible())) {
     await back(page, lang).click();
+    await closeProfile(page, lang);
+  }
   await expect(tabBar(page, lang)).toBeVisible();
+}
+
+/** An open profile sheet makes the page behind it inert: Done closes it. */
+export async function closeProfile(page: Page, lang: Lang = DEFAULT_LANG) {
+  if (!(await profileSheet(page, lang).isVisible())) return;
+  await profileSheet(page, lang)
+    .getByRole("button", { name: t(lang, "profile.done"), exact: true })
+    .click();
+  await expect(profileSheet(page, lang)).toBeHidden();
 }
 
 /** Find's chat on a household's Home: its composer, or New need once its workers were asked. */
@@ -141,7 +153,11 @@ const nameOf = (screen: MessageKey, lang: Lang): RegExp =>
  * that exact name (a count or the line under a row is its description, never its name).
  */
 export const navRow = (page: Page, screen: MessageKey, lang: Lang = DEFAULT_LANG) =>
-  TABS[screen] ? tab(page, screen, lang) : profileSheet(page, lang).getByRole("button", { name: nameOf(screen, lang) });
+  TABS[screen]
+    ? tab(page, screen, lang)
+    : profileSheet(page, lang)
+        .getByRole("button", { name: nameOf(screen, lang) })
+        .first();
 
 /** Expects `screen` to be the one showing: its tab marked, Talk's composer, the sheet, or its name in the top bar. */
 export async function onScreen(page: Page, screen: MessageKey, lang: Lang = DEFAULT_LANG) {
@@ -160,6 +176,9 @@ export async function onScreen(page: Page, screen: MessageKey, lang: Lang = DEFA
   await expect(title(page)).toHaveText(nameOf(screen, lang));
 }
 
+/** Alerts open from the bell in the top bar, not from the profile. */
+const ALERTS = "tabs.alerts";
+
 /**
  * Opens a screen by its old menu key: the tab for Jobs (Activity, My jobs), Earnings or Payments (Records) and Home (Find, Talk);
  * the profile sheet for `profile.title`, and its row for My card, About me, Privacy, Settings and the other pages,
@@ -170,6 +189,11 @@ export async function open(page: Page, screen: MessageKey, lang: Lang = DEFAULT_
   await backToTabs(page, lang);
   if (TABS[screen]) {
     await tab(page, screen, lang).click();
+  } else if (screen === ALERTS) {
+    await page
+      .getByRole("banner")
+      .getByRole("button", { name: t(lang, ALERTS), exact: true })
+      .click();
   } else {
     await openProfile(page, lang);
     if (screen !== ME) await navRow(page, screen, lang).click();

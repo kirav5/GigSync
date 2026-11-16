@@ -22,7 +22,8 @@ const sameCell = (a: Place, b: Place) => {
 };
 /** The one field shown is the door's; the rest of the address waits behind "More details". */
 const DOOR_FIELD = [F.house] as const;
-const MORE_FIELDS = FIELDS.filter((f) => f !== F.house);
+/** The door field already takes the flat, floor or landmark: More details asks only what it does not. */
+const MORE_FIELDS = FIELDS.filter((f) => f !== F.house && f !== F.floor && f !== F.landmark);
 const DOOR_LABEL = { [F.house]: "addr.door_field" } as const;
 
 /**

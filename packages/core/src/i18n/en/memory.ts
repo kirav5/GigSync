@@ -1,9 +1,9 @@
 /** What the agent remembers from past jobs: the Profile section, what the agent says using it, and its setting. */
 export const memory = {
-  "memory.title": "What my agent remembers",
+  "memory.title": "What my assistant remembers",
   "memory.about":
-    "Kept only on this phone, so your agent does not ask again. It stays when you sign out; no one else signing in here sees it.",
-  "memory.empty": "Nothing yet. After a job you both signed, what your agent learned shows here.",
+    "Kept only on this phone, so your assistant does not ask again. It stays when you sign out; no one else signing in here sees it.",
+  "memory.empty": "Nothing yet. After a job you both signed, what your assistant learned shows here.",
   "memory.area": "Your area",
   "memory.unnamed": "Someone you worked with",
   "memory.jobs.one": "{count} job together",
@@ -26,7 +26,7 @@ export const memory = {
   "memory.change": "Change",
   "memory.change_detail": "Change {detail}",
   "memory.change_area": "Change the area",
-  "memory.answer_label": "When my agent knows an answer from my past jobs",
+  "memory.answer_label": "When my assistant knows an answer from my past jobs",
   "memory.answer_ask": "Ask me first",
   "memory.answer_auto": "Answer for me",
 } as const;

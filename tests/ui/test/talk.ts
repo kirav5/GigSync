@@ -1,7 +1,7 @@
 import { type MessageKey, t } from "@gigsync/core";
 import type { Lang } from "@gigsync/protocol";
 import { expect, type Page } from "@playwright/test";
-import { open, openCard, textOf } from "./helpers.js";
+import { open, openCard, textOf, written } from "./helpers.js";
 
 /** Talk's composer, its mic and the card interview, as the specs that drive them by voice or by typing see them. */
 
@@ -40,6 +40,7 @@ function searchFrom(text: string, re: RegExp, from: number): number {
 
 /** Asserts that each mark appears in Talk's conversation after the one before it: the turns are in the order said. */
 export async function inOrder(page: Page, marks: readonly (string | RegExp)[]) {
+  await written(page);
   const text = (await page.getByRole("log").textContent()) ?? "";
   let from = 0;
   for (const mark of marks) {

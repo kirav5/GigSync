@@ -37,8 +37,8 @@ export interface PassbookTotals {
 
 const S = PaymentStatus.enum;
 const E = EngagementStatus.enum;
-const MS_PER_DAY = 86_400_000;
-const DAYS_PER_WEEK = 7;
+export const MS_PER_DAY = 86_400_000;
+export const DAYS_PER_WEEK = 7;
 /** `Date.getUTCDay()` counts from Sunday; the passbook's week starts on Monday. */
 const MONDAY = 1;
 /** Length of "YYYY-MM" at the start of a "YYYY-MM-DD" day. */
@@ -75,7 +75,7 @@ const filedAt = (p: Payment, r: JobRecord) =>
   new Date(p.confirmed_at ?? p.paid_at ?? p.requested_at ?? r.engagement.created_at);
 
 /** The first and last day ("YYYY-MM-DD") of the local week around `now`. */
-function weekOf(now: Date, offsetMinutes: number): { first: string; last: string } {
+export function weekOf(now: Date, offsetMinutes: number): { first: string; last: string } {
   const today = new Date(`${localDay(now, offsetMinutes)}T00:00:00Z`);
   const sinceMonday = (today.getUTCDay() - MONDAY + DAYS_PER_WEEK) % DAYS_PER_WEEK;
   const first = new Date(today.getTime() - sinceMonday * MS_PER_DAY);

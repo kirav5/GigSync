@@ -6,8 +6,8 @@ import { skipPriceQuestions } from "./findChat.js";
 import {
   drawer,
   greeting,
+  homePick,
   MovePrompt,
-  morePick,
   newPhone,
   open,
   openCard,
@@ -108,12 +108,13 @@ async function signedJob(meena: Phone, priya: Phone, meenaName: string) {
   const page = priya.page;
   await open(page, "nav.find");
   await expect(greeting(page, en)).toBeVisible();
-  await morePick(page, "need.pick_work", en);
+  await homePick(page, "need.pick_work", en);
   await tap(page, t(en, "group.house_help"));
   await tap(page, t(en, "trade.maid"));
   await say(page, ROOMS);
   await tap(page, t(en, "need.arr.monthly"));
-  await tap(page, t(en, "area.hsr_layout"));
+  // Where: the saved address, as a card (areas are said, no longer offered as chips).
+  await tap(page, t(en, "addr.chip", { label: t(en, "addr.label.home"), area: "HSR Layout" }));
   await skipPriceQuestions(priya);
   // Every day, at an hour (ADR 0050 §1): any time.
   await tap(page, t(en, "when.any_time"));

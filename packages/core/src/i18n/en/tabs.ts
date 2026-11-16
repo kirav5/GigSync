@@ -2,7 +2,7 @@
 export const tabs = {
   "shell.tabs": "Main tabs",
   "nav.home": "Home",
-  "nav.jobs": "Jobs",
+  "nav.jobs": "Activity",
   // The ₹ tab, by whose money it is: what a worker earned, what a household paid.
   "nav.earnings": "Earnings",
   "nav.payments": "Payments",
@@ -22,9 +22,11 @@ export const tabs = {
   "profile.my_qr_sub": "For a worker to scan and offer you work",
   // Home's greeting, while its chat is empty.
   "home.ask_household": "What do you need help with?",
-  "home.suggest_jobs": "Show today's jobs",
+  "home.suggest_jobs": "Today's jobs",
   "home.suggest_verify": "Get verified",
   "home.suggest_cook": "A cook for every day",
   "home.suggest_clean": "Help with housework",
+  "home.chip_cook": "Cook",
+  "home.chip_clean": "Housework",
   "home.my_places": "My places",
 } as const;

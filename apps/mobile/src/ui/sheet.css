@@ -1,6 +1,7 @@
 /*
  * The sheet (Sheet.tsx): a native modal <dialog> filling the screen, its ::backdrop the light scrim and its panel at
- * the bottom, 8px in from the edges with 30px corners, as the phone's own sheets. It slides up from below the
+ * the bottom, flush with the screen's foot and sides with its top corners rounded, as the phone's own sheets; a finger
+ * can hold it by its handle and pull it down (useSheetDrag.ts). It slides up from below the
  * screen's edge in 260ms while the scrim fades in, and slides back down as it closes (Sheet.tsx sets data-closing
  * first). Only the panel's transform moves, so it reads as one solid sheet rising, not a card fading in. Reduce Motion
  * fades it instead. Wide, it is a card in the middle of the screen that rises a little as it fades in.
@@ -11,7 +12,7 @@
   /* Off quickly and settling gently, as the phone's own sheets move. */
   --sheet-ease: cubic-bezier(0.32, 0.72, 0, 1);
   --sheet-rise: 100%;
-  --sheet-gap: 8px;
+  --sheet-gap: 0px;
   position: fixed;
   inset: 0;
   width: 100%;
@@ -19,8 +20,8 @@
   max-width: none;
   max-height: none;
   margin: 0;
-  padding: 0 calc(var(--sheet-gap) + env(safe-area-inset-right)) max(var(--sheet-gap), env(safe-area-inset-bottom))
-    calc(var(--sheet-gap) + env(safe-area-inset-left));
+  /* Flush with the foot: the panel itself pads for the home indicator, so its paper runs under it. */
+  padding: 0 var(--sheet-gap);
   border: 0;
   background: transparent;
   color: var(--text);
@@ -54,14 +55,24 @@
   overflow-y: auto;
   display: grid;
   gap: 20px;
-  padding: 10px 20px 20px;
-  border-radius: 30px;
+  padding: 10px calc(20px + env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))
+    calc(20px + env(safe-area-inset-left));
+  border-radius: 30px 30px 0 0;
   background: var(--surface);
   box-shadow: 0 -2px 24px rgb(59 33 24 / 0.12);
   animation: sheet-rise var(--sheet-ms) var(--sheet-ease);
 }
 .sheet[data-closing] .sheet-panel {
   animation: sheet-sink var(--sheet-out-ms) ease-in forwards;
+}
+/* Held by a finger (useSheetDrag.ts) the panel follows it; pulled closed, it carries on down from there instead of
+   jumping back to replay the slide down. */
+.sheet .sheet-panel[data-dragging],
+.sheet[data-closing] .sheet-panel[data-flung] {
+  animation: none;
+}
+.sheet-handle {
+  touch-action: none;
 }
 .sheet-panel:focus {
   outline: none;
@@ -77,6 +88,10 @@
   display: flex;
   align-items: flex-start;
   gap: 14px;
+}
+/* A person's initial beside their name and line, centred on the two as their row in the list has it. */
+.sheet-head:has(> .avatar) {
+  align-items: center;
 }
 .sheet-tile {
   flex: none;
@@ -144,7 +159,8 @@
   }
   .sheet-panel {
     max-width: 400px;
-    padding-top: 24px;
+    padding: 24px 20px 20px;
+    border-radius: 30px;
     box-shadow: 0 8px 40px rgb(59 33 24 / 0.18);
   }
   .sheet-handle {

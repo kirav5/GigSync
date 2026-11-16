@@ -31,6 +31,7 @@ import { Own } from "./talk/Bubbles.js";
 import { CardTurn } from "./talk/CardTurn.js";
 import { Note } from "./talk/NoteView.js";
 import "./talk.css";
+import { ChatOpened, EMPTY_CHAT, useOpenedAt } from "../ui/Typed.js";
 
 /**
  * Talk's conversation, in the order it happened: notes to the agent with its answers, the card interview, each
@@ -128,6 +129,8 @@ export function Interview({
   }, [state, ports, account, lang, onSaved]);
 
   const last = turns.at(-1);
+  // Another chat opened, or this one again: what is already there shows whole, only new replies write themselves out.
+  const opened = useOpenedAt(String(turns[0]?.id ?? EMPTY_CHAT));
   const show = (turn: Turn) => {
     if (isMove(turn)) return <MoveTurnView key={turn.id} turn={turn} newest={turn.id === last?.id} moves={moves} />;
     if (turn.who === Speaker.owner) return <Own key={turn.id} text={turn.text} />;
@@ -139,6 +142,7 @@ export function Interview({
           text={turn.text}
           card={turn.card}
           thinking={thinking && newestNote}
+          typing={newestNote}
           onChoose={newestNote && !thinking ? (intent) => onChoose(turn, intent) : undefined}
         />
       );
@@ -155,8 +159,10 @@ export function Interview({
   };
   // A log, so a screen reader announces each new question, readback and answer; focus stays in the composer.
   return (
-    <div className="iv" role="log" aria-live="polite">
-      {turns.map(show)}
-    </div>
+    <ChatOpened.Provider value={opened}>
+      <div className="iv" role="log" aria-live="polite">
+        {turns.map(show)}
+      </div>
+    </ChatOpened.Provider>
   );
 }

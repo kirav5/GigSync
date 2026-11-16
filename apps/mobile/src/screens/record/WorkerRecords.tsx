@@ -1,4 +1,14 @@
-import { type Ports, passbook, type WaitingFrom, waitingBy, weekPayments, workRecord } from "@gigsync/core";
+import {
+  LOCALE,
+  type Ports,
+  passbook,
+  type WaitingFrom,
+  waitingBy,
+  weekDayIndex,
+  weekDays,
+  weekPayments,
+  workRecord,
+} from "@gigsync/core";
 import { type EngagementId, Role } from "@gigsync/protocol";
 import { useMemo, useState } from "react";
 import type { Account } from "../../adapters/account.js";
@@ -13,6 +23,9 @@ import { whoOf } from "./text.js";
 import { UpiLine } from "./UpiLine.js";
 import { phoneOffset, useRecords } from "./useRecords.js";
 import { WorkDone } from "./WorkDone.js";
+
+/** A day's shortest name, under its bar ("M", "T"). */
+const NARROW_DAY: Intl.DateTimeFormatOptions = { weekday: "narrow" };
 
 type Props = CardProps & {
   account: Account;
@@ -36,7 +49,7 @@ function waitingLabel(t: I18n["t"], waiting: readonly WaitingFrom[], names: Read
  * own card; a fold of jobs not completed; the work record to download; and the UPI ID payers see.
  */
 export function WorkerRecords({ account, ports, onAddPayee, ...card }: Props) {
-  const { t, plural } = useI18n();
+  const { t, plural, lang } = useI18n();
   const { view } = card;
   const me = account.session.user;
   const [openId, setOpenId] = useState<EngagementId>();
@@ -51,6 +64,18 @@ export function WorkerRecords({ account, ports, onAddPayee, ...card }: Props) {
   );
   const { totals } = book;
   const count = weekPayments(book.rows, now, phoneOffset(now));
+  const week = useMemo(() => {
+    const days = weekDays(book.rows, now, phoneOffset(now));
+    const today = weekDayIndex(now, phoneOffset(now));
+    // Each day's short name, from this week's own dates, in the owner's language.
+    const names = days.map((_: number, i: number) => {
+      const at = new Date(now);
+      at.setDate(now.getDate() + i - today);
+      return at.toLocaleDateString(LOCALE[lang], NARROW_DAY);
+    });
+    return { days, names, today };
+  }, [book.rows, now, lang]);
+  const todayPaise = week.days[week.today] ?? 0;
   const onToggle = (id: EngagementId) => setOpenId((open) => (open === id ? undefined : id));
 
   return (
@@ -59,6 +84,8 @@ export function WorkerRecords({ account, ports, onAddPayee, ...card }: Props) {
         paise={totals.week}
         label={t("passbook.week")}
         aside={count > 0 ? plural("ledger.week_count", count) : undefined}
+        today={todayPaise > 0 ? t("ledger.today", { price: money(todayPaise) }) : undefined}
+        week={week}
         stats={[
           { id: "month", paise: totals.month, label: t("ledger.this_month") },
           { id: "waiting", paise: totals.waiting, label: waitingLabel(t, waitingBy(book.rows), view.names) },
@@ -78,7 +105,6 @@ export function WorkerRecords({ account, ports, onAddPayee, ...card }: Props) {
       <NotCompleted jobs={notDone} onAddPayee={onAddPayee} {...card} />
       <DownloadRecord account={account} side={Role.enum.provider} />
       <UpiLine ports={ports} onChange={onAddPayee} />
-      <p className={C.faint}>{t("passbook.about")}</p>
     </>
   );
 }

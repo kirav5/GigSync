@@ -4,6 +4,7 @@ import { Ask, Own } from "../talk/Bubbles.js";
 import { Answers, type AnswerTools } from "./Answers.js";
 import { Found } from "./Found.js";
 import "./find.css";
+import { ChatOpened, useOpenedAt } from "../../ui/Typed.js";
 
 /**
  * Find's conversation in the order it happened: each question with its replay button and, under the newest, its
@@ -30,6 +31,8 @@ export function NeedTurns({
   const lastQuestion = newest(NeedSpeaker.app);
   const lastFound = newest(NeedSpeaker.found);
   const asking = state !== undefined && state.slot !== NeedSlot.done && state.slot !== NeedSlot.found;
+  // Another chat opened, or this one again: what is already there shows whole, only new replies write themselves out.
+  const opened = useOpenedAt(chat);
   const show = (turn: NeedTurn) => {
     if (turn.who === NeedSpeaker.owner) return <Own key={turn.id} text={turn.text} />;
     if (turn.who === NeedSpeaker.found) {
@@ -47,7 +50,7 @@ export function NeedTurns({
       );
     }
     return (
-      <Ask key={turn.id} lines={turn.lines}>
+      <Ask key={turn.id} lines={turn.lines} typing={turn.id === lastQuestion}>
         {asking && turn.id === lastQuestion && (
           <Answers
             {...tools}
@@ -63,8 +66,10 @@ export function NeedTurns({
   };
   // A log, so a screen reader announces each new question and answer; focus stays in the composer.
   return (
-    <div className="iv" role="log" aria-live="polite">
-      {turns.map(show)}
-    </div>
+    <ChatOpened.Provider value={opened}>
+      <div className="iv" role="log" aria-live="polite">
+        {turns.map(show)}
+      </div>
+    </ChatOpened.Provider>
   );
 }

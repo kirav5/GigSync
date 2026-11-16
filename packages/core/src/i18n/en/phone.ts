@@ -2,7 +2,7 @@
 export const phone = {
   // Settings rows
   "phone.move_out": "Move to a new phone",
-  "phone.move_out_about": "Everything your agent keeps here goes to your new phone with one scan.",
+  "phone.move_out_about": "Everything your assistant keeps here goes to your new phone with one scan.",
   "phone.move_in": "Moving from another phone? Scan its code",
   "phone.move_in_about": "Bring your jobs, money, memory and chats from your old phone.",
   // The old phone
@@ -59,8 +59,8 @@ export const phone = {
   // A worker's card, back after a reinstall
   "phone.floor_title": "Your card is back",
   "phone.floor_about":
-    "Your card came back from GigSync. Your lowest price stayed on your old phone: what is the least you take for a visit? Until you say, your agent asks you before every quote.",
+    "Your card came back from GigSync. Your lowest price stayed on your old phone: what is the least you take for a visit? Until you say, your assistant asks you before every quote.",
   "phone.floor_label": "Lowest price (₹)",
   "phone.floor_bad": "Enter an amount up to your usual rate, {price}.",
-  "phone.approve_no_floor": "Your lowest price is not on this phone yet, so your agent waits for you.",
+  "phone.approve_no_floor": "Your lowest price is not on this phone yet, so your assistant waits for you.",
 } as const;

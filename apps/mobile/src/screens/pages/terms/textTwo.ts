@@ -7,7 +7,7 @@ export const TEXT_TWO: SectionText<"privacy" | "deletion" | "rules" | "content" 
     [
       [
         "Stays on your phone:",
-        "your phone number and address, your lowest price or budget, your chats with your agent, your nickname, and the result of an Aadhaar check.",
+        "your phone number and address, your lowest price or budget, your chats with your assistant, your nickname, and the result of an Aadhaar check.",
       ],
       [
         "Shared only after both of you sign a job:",
@@ -18,7 +18,7 @@ export const TEXT_TWO: SectionText<"privacy" | "deletion" | "rules" | "content" 
         "a one-way protected form of your number (so the same number reaches the same account), your phone's public keys, workers' public cards, and blocks. Job records (date, kind of work, price, payments and stars) only if you agreed to them.",
       ],
       [
-        "Messages between agents",
+        "Messages between assistants",
         "pass through our servers sealed, so only the other phone can open them, and are deleted once delivered or expired.",
       ],
       ["Sign-in codes", "are sent through an SMS provider, which sees your number to deliver the code."],

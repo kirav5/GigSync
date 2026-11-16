@@ -1,16 +1,29 @@
 /* The profile sheet (Profile.tsx): who the owner is on one white card (their initial on the terracotta tint, the name,
-   "✓ Phone verified" in green), then the grouped rows. */
+   one muted line: green is for money paid alone) with the QR as a square beside it, then one list, then three small
+   buttons for language, privacy and settings. */
 .profile-head {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   width: 100%;
-  padding: 16px;
+  padding: 12px 12px 12px 16px;
   border: 1px solid var(--hairline);
   border-radius: 22px;
   background: var(--surface);
+}
+.profile-me {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 4px 0;
+  border: 0;
+  background: none;
   color: var(--text);
+  font: inherit;
   text-align: start;
+  cursor: pointer;
 }
 .profile-head .avatar.rust {
   background: var(--picked);
@@ -29,11 +42,42 @@
   overflow-wrap: anywhere;
 }
 .profile-verified {
+  font-size: var(--fs-2);
+  color: var(--text2);
+}
+.profile-qr {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--picked);
+  color: var(--accent-ink);
+  --icon: var(--accent-ink);
+  cursor: pointer;
+}
+.profile-prefs {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px 12px;
+  gap: 8px;
+}
+.profile-chip {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--tap);
+  padding: 0 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 99px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
   font-size: var(--fs-2);
-  color: var(--fresh);
+  cursor: pointer;
 }
 
 /* A person row's end (screens/me/PersonRow.tsx): room for a short action ("Ask again") beside a long name. */

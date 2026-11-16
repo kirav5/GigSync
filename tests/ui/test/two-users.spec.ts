@@ -264,7 +264,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
     await openRecordRow(priya, anilName);
   }).toPass();
   await expect(statusTag(priya, en, "status.closed")).toBeVisible();
-  await expect(priya.getByLabel(say("a11y.payment"))).toContainText(say("pay.thread.confirmed"));
+  await expect(priya.getByLabel(say("a11y.payment"), { exact: true })).toContainText(say("pay.thread.confirmed"));
   await shoot("paid-rated-closed", phones);
 
   // ── The job reached GigSync from both phones (ADR 0038): his card and the card Priya scans show the same record,

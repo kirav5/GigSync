@@ -2,7 +2,7 @@ import { PaymentStatus, type UserId } from "@gigsync/protocol";
 import type { JobRecord } from "../job/store.js";
 import { localDay } from "../job/when.js";
 import { OPEN_PAYMENT } from "./book.js";
-import { monthOf, type PassbookRow, passbook } from "./passbook.js";
+import { DAYS_PER_WEEK, MS_PER_DAY, monthOf, type PassbookRow, passbook, weekOf } from "./passbook.js";
 import type { Receipt } from "./receipts.js";
 
 /**
@@ -20,6 +20,27 @@ export function weekPayments(rows: readonly PassbookRow[], now: Date, offsetMinu
   const inWeek = ({ job, payment }: PassbookRow): boolean =>
     payment.status === S.confirmed && passbook([job], [payment], payment.payee, now, offsetMinutes).totals.week > 0;
   return rows.filter(inWeek).length;
+}
+
+/** What came on each day of this local week, Monday first, in paise: the bars under the week's total. */
+export function weekDays(rows: readonly PassbookRow[], now: Date, offsetMinutes: number): number[] {
+  const week = weekOf(now, offsetMinutes);
+  const first = new Date(`${week.first}T00:00:00Z`).getTime();
+  const days = new Array<number>(DAYS_PER_WEEK).fill(0);
+  for (const { payment } of rows) {
+    if (payment.status !== S.confirmed || !payment.confirmed_at) continue;
+    const day = localDay(new Date(payment.confirmed_at), offsetMinutes);
+    if (day < week.first || day > week.last) continue;
+    const at = Math.round((new Date(`${day}T00:00:00Z`).getTime() - first) / MS_PER_DAY);
+    days[at] = (days[at] ?? 0) + payment.amount_paise;
+  }
+  return days;
+}
+
+/** Which day of the local week `now` is, Monday 0 to Sunday 6. */
+export function weekDayIndex(now: Date, offsetMinutes: number): number {
+  const first = new Date(`${weekOf(now, offsetMinutes).first}T00:00:00Z`).getTime();
+  return Math.round((new Date(`${localDay(now, offsetMinutes)}T00:00:00Z`).getTime() - first) / MS_PER_DAY);
 }
 
 /** Money asked for, or marked paid, that one household has not settled yet: one of its jobs, for its name. */

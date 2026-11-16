@@ -4,9 +4,8 @@ import { type BrowserContext, expect, type Locator, type Page, test } from "@pla
 import {
   APP,
   chatList,
-  composerButton,
   greeting,
-  morePick,
+  homePick,
   newChat,
   newPhone,
   onScreen,
@@ -101,8 +100,11 @@ test("on a phone the tabs stand at the foot of a tab's screen; a screen inside o
   await onScreen(page, "nav.card");
   await expect(tabBar(page)).toBeHidden();
   await expect(page.getByRole("banner").getByRole("button", { name: say("a11y.back"), exact: true })).toBeVisible();
-  // Back comes to where she opened the profile from: Talk, where she landed.
+  // Back comes to the profile sheet she opened it from, then to Talk, where she landed.
   await page.goBack();
+  await expect(profileSheet(page)).toBeVisible();
+  await page.goBack();
+  await expect(profileSheet(page)).toBeHidden();
   await onScreen(page, "nav.talk");
   expect(page.url().startsWith(APP)).toBe(true);
 
@@ -147,14 +149,13 @@ test("a household reaches every screen from the tabs and the profile, and New ch
   await expect(page.getByRole("form", { name: say("settings.paid_to") })).toHaveCount(0);
   await open(page, "nav.find");
   // ADR 0051: the list of work is one pick behind the composer's "+", not the trades themselves.
-  await morePick(page, "need.pick_work");
+  await homePick(page, "need.pick_work");
   await page.getByRole("button", { name: say("group.home_repairs"), exact: true }).click();
   await page.getByRole("button", { name: say("trade.plumber"), exact: true }).click();
   await expect(log).toContainText(say("kind_ask.plumber"));
   await newChat(page);
   await expect(greeting(page)).toBeVisible();
   await expect(page.getByText(say("kind_ask.plumber"))).toHaveCount(0);
-  await expect(composerButton(page, "composer.more")).toBeVisible();
 });
 
 test("a waiting decision shows as a count on the Jobs tab, which leads to it", async ({ browser }) => {

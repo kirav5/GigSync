@@ -20,6 +20,7 @@ import {
   needPrompt,
   needToSend,
   needWords,
+  OTHER_DAY_PICK,
   resolveDay,
   searchedNeed,
   searchFailed,
@@ -72,7 +73,7 @@ describe("the need interview", () => {
     expect(hour.slot).toBe(NeedSlot.when);
     expect(keys(hour)).toEqual(["need.ask.hour"]);
     const chips = needPrompt(hour).choices?.map((c) => c.value) ?? [];
-    expect(chips).toEqual(["at:7", "at:8", "at:9", "at:10", "at:11", "any_time"]);
+    expect(chips).toEqual(["at:7", "at:8", "at:9", "at:10", "at:11", "any_time", OTHER_DAY_PICK]);
     const atConfirm = hearNeed(hour, "10 am");
     expect(atConfirm.slot).toBe(NeedSlot.confirm);
     expect(atConfirm.draft).toMatchObject({
@@ -257,14 +258,15 @@ describe("the hour, once the day is known", () => {
       "don't know",
     ]);
 
-  it("asks what time, with a chip for each hour and Any time, and reads the window from the hour picked", () => {
+  it("asks what time, with a chip for each hour, Any time and Another day, and reads the window from the hour", () => {
     const s = chooseNeed(at(), "tomorrow");
     expect(s.slot).toBe(NeedSlot.when);
     expect(keys(s)).toEqual(["need.ask.hour"]);
     const values = needPrompt(s).choices?.map((c) => c.value) ?? [];
     expect(values.at(0)).toBe(`at:${FIRST_HOUR}`);
-    expect(values.at(-2)).toBe(`at:${LAST_HOUR}`);
-    expect(values.at(-1)).toBe(ANY_TIME_PICK);
+    expect(values.at(-3)).toBe(`at:${LAST_HOUR}`);
+    expect(values.at(-2)).toBe(ANY_TIME_PICK);
+    expect(values.at(-1)).toBe(OTHER_DAY_PICK);
     const two = chooseNeed(s, "at:14");
     expect(two.draft.time).toBe("2 pm");
     expect(windowOf(two.draft.time)).toBe("afternoon");

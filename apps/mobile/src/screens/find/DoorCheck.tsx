@@ -1,6 +1,7 @@
 import { log, type Storage, saveAddress } from "@gigsync/core";
-import type { Place, SavedAddress } from "@gigsync/protocol";
+import type { Place, SavedAddress, Session } from "@gigsync/protocol";
 import { useState } from "react";
+import { placesAt } from "../../adapters/geo.js";
 import { addressesChanged } from "../../find/addressDesk.js";
 import { useI18n } from "../../i18n.js";
 import { PlaceMap } from "../../ui/PlaceMap.js";
@@ -10,17 +11,35 @@ const STILL = 1e-6;
 const moved = (a: Place, b: Place) => Math.abs(a.lat - b.lat) > STILL || Math.abs(a.lon - b.lon) > STILL;
 
 /**
+ * The place under the pin, by name: the locality, city and PIN the geocoder gives for the point, kept as they were
+ * where it gives none or cannot be reached (the door is saved either way).
+ */
+async function namedAt(session: Session, address: SavedAddress, point: Place): Promise<SavedAddress> {
+  try {
+    const [place] = await placesAt(session, point);
+    if (!place?.locality) return address;
+    return { ...address, area: place.locality, city: place.city ?? address.city, pin: place.pin ?? address.pin };
+  } catch (err) {
+    log.warn("naming the pinned door failed", { error: err instanceof Error ? err.name : typeof err });
+    return address;
+  }
+}
+
+/**
  * The address in use when its point is not yet the door (typed without a map, or saved before pins): its map under the
  * "where" question, so the pin is put on the door once and reused (ADR 0050 §7). Moving the map saves that point as
- * the door; a worker gets it only after both sign. Nothing is drawn where there is no map.
+ * the door, and the area takes the name of the place the pin landed in; a worker gets the door only after both sign.
+ * Nothing is drawn where there is no map.
  */
 export function DoorCheck({
   address,
   storage,
+  session,
   onSaved,
 }: {
   address: SavedAddress & { point: Place };
   storage: Storage;
+  session: Session;
   /** The address saved again with its door, for the chat to send. */
   onSaved: (address: SavedAddress) => void;
 }) {
@@ -31,7 +50,7 @@ export function DoorCheck({
   async function pin(point: Place) {
     if (!moved(point, at)) return;
     setAt(point);
-    const next: SavedAddress = { ...address, point, pinned: true };
+    const next: SavedAddress = { ...(await namedAt(session, address, point)), point, pinned: true };
     try {
       await saveAddress(storage, next);
       onSaved(next);

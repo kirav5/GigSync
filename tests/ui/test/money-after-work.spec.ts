@@ -2,7 +2,7 @@ import { type MessageKey, type Params, plural, questionText, t } from "@gigsync/
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { newPhone, open, Role, RUN, setUpi, signIn, statusTag } from "./helpers.js";
-import { expand, finishWork } from "./jobs.js";
+import { closeMore, expand, finishWork, more } from "./jobs.js";
 import { fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -67,8 +67,11 @@ test("the worker's card offers one step at a time, and asks for the money after 
   const { job, hers } = await signedJob(browser, "steps");
   const button = (key: MessageKey) => job.getByRole("button", { name: say(key), exact: true });
 
-  // Signed: the first step, Cancel and an advance; not the steps after it, and no payment yet.
+  // Signed: the first step, Cancel and an advance, and a quiet Mark done for a job done without the steps; not the
+  // step in between, and no payment yet.
   await expect(button("update.on_my_way")).toBeVisible();
+  await expect(button("job.done_already")).toBeVisible();
+  await more(job);
   await expect(button("restored.cancel")).toBeVisible();
   await expect(button("money.ask_advance")).toBeVisible();
   for (const key of ["job.start_work", "job.mark_done", "getpaid.cash"] as const)
@@ -93,14 +96,17 @@ test("the worker's card offers one step at a time, and asks for the money after 
     .getByRole("button")
     .click();
   await expect(hers.getByText(say("job.pay_advance", { price: "₹100" }))).toBeVisible();
+  await closeMore(job);
 
   // Taken in cash, it does not settle the job: the steps go on, and Cancel becomes Stop once the work has started.
   await job.getByRole("button", { name: say("getpaid.cash") }).click();
   await job.getByRole("button", { name: say("flag.yes"), exact: true }).click();
   await button("update.on_my_way").click();
   await button("job.start_work").click();
+  await more(job);
   await expect(button("job.stop")).toBeVisible();
   await expect(button("restored.cancel")).toHaveCount(0);
+  await closeMore(job);
 
   // Done: he asks for what is left.
   await finishWork(job);
@@ -113,6 +119,7 @@ test("a job stopped after it started says why, on the other phone", async ({ bro
   const button = (key: MessageKey) => job.getByRole("button", { name: say(key), exact: true });
   await button("update.on_my_way").click();
   await button("job.start_work").click();
+  await more(job);
   await button("job.stop").click();
   await button("stop.not_safe").click();
   await job.getByRole("button", { name: say("jobcard.stop_tell", { name: names.household }), exact: true }).click();
@@ -120,4 +127,23 @@ test("a job stopped after it started says why, on the other phone", async ({ bro
   await open(householdPage, "nav.records");
   await expand(householdPage, NOT_COMPLETED);
   await expect(householdPage.getByText(say("job.stopped", { why: say("stop.not_safe") }))).toBeVisible();
+});
+
+test("a worker marks a signed job done in one tap, takes cash, and Earnings counts the job", async ({ browser }) => {
+  const { workerPage, job, hers, names } = await signedJob(browser, "cash");
+  const button = (key: MessageKey) => job.getByRole("button", { name: say(key), exact: true });
+
+  // Straight from Agreed to Done: no On the way or Started first. Both phones say Done.
+  await button("job.done_already").click();
+  await expect(statusTag(job, en, "status.delivered")).toBeVisible();
+  await expect(statusTag(hers, en, "status.delivered")).toBeVisible();
+
+  // Paid in cash, said once and confirmed: the job is settled and leaves the open jobs.
+  await job.getByRole("button", { name: say("getpaid.cash") }).click();
+  await job.getByRole("button", { name: say("flag.yes"), exact: true }).click();
+  await expect(job).toHaveCount(0);
+
+  // Earnings lists it, with her name.
+  await open(workerPage, "nav.records");
+  await expect(workerPage.getByText(names.household).first()).toBeVisible();
 });

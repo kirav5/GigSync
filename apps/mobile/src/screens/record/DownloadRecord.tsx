@@ -51,7 +51,8 @@ export function DownloadRecord({ account, side }: { account: Account; side: Role
         <Icon name="doc" />
         {t(loading ? "records.export_loading" : words.title)}
       </button>
-      <span id={about} className={C.faint}>
+      {/* Said to a screen reader with the button; on screen the button alone is enough. */}
+      <span id={about} className="sr-only">
         {t(words.about)}
       </span>
       <FileSaid pull={pull} empty={words.empty} />

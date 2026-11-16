@@ -64,9 +64,7 @@ export function EmptyJobs({ hint }: { hint: MessageKey }) {
   const { t } = useI18n();
   return (
     <div className="jobs-empty">
-      <span className="jobs-empty-icon" aria-hidden="true">
-        <Icon name="jobs" size={24} />
-      </span>
+      <span className="jobs-empty-icon" aria-hidden="true" />
       <p className="jobs-empty-title">{t("jobs.empty")}</p>
       <p className={C.muted}>{t(hint)}</p>
     </div>

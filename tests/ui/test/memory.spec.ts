@@ -2,7 +2,7 @@ import { plural, questionText, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { skipPriceQuestions } from "./findChat.js";
-import { greeting, morePick, newPhone, open, Role, RUN, reveal, shoot, signIn } from "./helpers.js";
+import { greeting, homePick, newPhone, open, Role, RUN, reveal, shoot, signIn } from "./helpers.js";
 import { type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -82,7 +82,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await open(priyaPage, "nav.find");
   const log = priyaPage.getByRole("log");
   await expect(greeting(priyaPage, en)).toBeVisible();
-  await morePick(priyaPage, "need.pick_work", en);
+  await homePick(priyaPage, "need.pick_work", en);
   await tap(priyaPage, t(en, "group.house_help"));
   await tap(priyaPage, t(en, "trade.maid"));
   await expect(log).toContainText(t(en, "question.rooms"));
@@ -90,7 +90,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await expect(log.getByRole("button", { name: t(en, "memory.use"), exact: true })).toHaveCount(0);
   // A maid: how long first (ADR 0046).
   await tap(priyaPage, t(en, "need.arr.monthly"));
-  await tap(priyaPage, t(en, "area.hsr_layout"));
+  await tap(priyaPage, t(en, "addr.chip", { label: t(en, "addr.label.home"), area: "HSR Layout" }));
   await skipPriceQuestions(priya);
   // Every day, at an hour (ADR 0050 §1): any time.
   await tap(priyaPage, t(en, "when.any_time"));
@@ -133,7 +133,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   );
   await open(priyaPage, "nav.find");
   await expect(greeting(priyaPage, en)).toBeVisible();
-  await morePick(priyaPage, "need.pick_work", en);
+  await homePick(priyaPage, "need.pick_work", en);
   await tap(priyaPage, t(en, "group.house_help"));
   await tap(priyaPage, t(en, "trade.maid"));
   await expect(log).toContainText(t(en, "memory.offer_detail", roomsParams));
@@ -142,7 +142,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   await tap(priyaPage, t(en, "need.arr.monthly"));
   await expect(log).toContainText(t(en, "need.ask.address"));
   await expect(log).not.toContainText(t(en, "memory.offer_area", { area: t(en, "area.hsr_layout") }));
-  await tap(priyaPage, t(en, "area.hsr_layout"));
+  await tap(priyaPage, t(en, "addr.chip", { label: t(en, "addr.label.home"), area: "HSR Layout" }));
   await skipPriceQuestions(priya);
   // Every day, at an hour (ADR 0050 §1): any time.
   await tap(priyaPage, t(en, "when.any_time"));
@@ -174,7 +174,7 @@ test("after a signed job the agent remembers, forgets on request, and answers fr
   );
   await open(priyaPage, "nav.find");
   await expect(greeting(priyaPage, en)).toBeVisible();
-  await morePick(priyaPage, "need.pick_work", en);
+  await homePick(priyaPage, "need.pick_work", en);
   await tap(priyaPage, t(en, "group.house_help"));
   await tap(priyaPage, t(en, "trade.maid"));
   await expect(log).toContainText(t(en, "memory.filled_detail", roomsParams));

@@ -190,7 +190,7 @@ function answerPrompt(question: string, notes: Episode[]): string {
  */
 function chatPrompt(message: string, recent: readonly ChatLine[] | undefined): string {
   return [
-    "You are the owner's own GigSync agent, on their phone in Bengaluru.",
+    "You are the owner's own GigSync assistant, on their phone in Bengaluru.",
     `GigSync connects households with people who do home work: ${TRADES}.`,
     "Answer the message warmly and only what it asks. If you do not know, say so: never make up jobs, prices, people or kinds of work.",
     "You only talk: you cannot book, arrange, send or agree to anything, so never say you did or will.",

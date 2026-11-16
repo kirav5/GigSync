@@ -15,22 +15,19 @@ export const Art = {
 } as const;
 export type Art = (typeof Art)[keyof typeof Art];
 
-/** The tile's ground: warm for most, green for help and for the code's check. */
-export const Tone = { terra: "terra", leaf: "leaf" } as const;
-export type Tone = (typeof Tone)[keyof typeof Tone];
-
 const ART_DIR = "/art/";
 const ART_TYPE = ".svg";
 
 export const artSrc = (art: Art) => `${ART_DIR}${art}${ART_TYPE}`;
 
 /**
- * A tile with one of the drawings, decorative only (the words beside it say everything). `small` tiles sit above a
- * field and give way to the keyboard: styles hide them while it is open, so the field stays in view.
+ * One of the drawings, decorative only (the words beside it say everything): on a tinted tile, or `bare`, straight on
+ * the page, for the round mandala that a square tile would box in. `small` ones sit above a field and give way to the
+ * keyboard: styles hide them while it is open, so the field stays in view.
  */
-export function StartArt({ art, tone = Tone.terra, small }: { art: Art; tone?: Tone; small?: boolean }) {
+export function StartArt({ art, small, bare }: { art: Art; small?: boolean; bare?: boolean }) {
   return (
-    <div className="start-art" data-tone={tone} data-small={small || undefined}>
+    <div className="start-art" data-small={small || undefined} data-bare={bare || undefined}>
       <img src={artSrc(art)} alt="" decoding="async" />
     </div>
   );

@@ -12,9 +12,10 @@ import { Role } from "@gigsync/protocol";
 import { useState } from "react";
 import { useI18n } from "../../i18n.js";
 import type { Step } from "../../payments/useStep.js";
+import { Avatar, AvatarSize, AvatarTone } from "../../ui/Avatar.js";
 import { C } from "../../ui/cls.js";
 import { Icon } from "../../ui/Icon.js";
-import { jobPrice } from "../../ui/places.js";
+import { jobPrice, money } from "../../ui/places.js";
 import type { GigView } from "../../useGig.js";
 import { OfferTerms } from "../terms/OfferTerms.js";
 import { J } from "./look.js";
@@ -98,28 +99,38 @@ export function StuckCard(props: Props & { detail: TakeOverDetail | undefined })
 }
 
 /**
- * While the agents talk (W9): which turn this is and the owner's own limit, which no offer crosses, then "Take over
- * from my agent", which opens the controls. Doing nothing leaves the agent to carry on.
+ * While the agents talk (W9): the other side's latest offer as one row, as inDrive shows one (who, the amount large,
+ * the usual range for the work), then the turn and the owner's own limit, which no offer crosses, in one muted line;
+ * then "Take over from my agent", which opens the controls. Doing nothing leaves the agent to carry on.
  */
 export function TakeOver(props: Props) {
-  const { job } = props;
+  const { job, them } = props;
   const { lang, t } = useI18n();
   const [open, setOpen] = useState(false);
   const isWorker = job.engagement.role === Role.enum.provider;
   const turn = Math.min(job.offers_made, AGENT_OFFERS);
   const limit = job.mandate && jobPrice(lang, job.request, job.mandate.limit_paise);
+  const latest = theirLatest(job);
+  const usual = job.estimate && { low: money(job.estimate.low_paise), high: money(job.estimate.high_paise) };
   return (
     <div className={C.stack}>
-      <div className="job-turn">
-        {(turn > 0 || limit) && (
-          <strong className="turn-line">
-            {turn > 0 && t("jobcard.turn", { count: turn, max: AGENT_OFFERS })}
-            {turn > 0 && limit && " "}
-            {limit && t(isWorker ? "jobcard.floor" : "jobcard.ceiling", { price: limit })}
-          </strong>
-        )}
-        <span className={J.fine}>{t("jobcard.turns_rule", { max: AGENT_OFFERS })}</span>
-      </div>
+      {latest && (
+        <div className="offer-now">
+          <Avatar name={them} size={AvatarSize.md} tone={AvatarTone.rust} />
+          <span className="offer-now-who">
+            <strong>{them}</strong>
+            {usual && <span className="usual-chip">{t("jobcard.usual", usual)}</span>}
+          </span>
+          <span className="offer-now-price">{jobPrice(lang, job.request, latest.price_paise)}</span>
+        </div>
+      )}
+      {(turn > 0 || limit) && (
+        <p className={`${J.fine} turn-line`}>
+          {turn > 0 && t("jobcard.turn", { count: turn, max: AGENT_OFFERS })}
+          {turn > 0 && limit && " "}
+          {limit && t(isWorker ? "jobcard.floor" : "jobcard.ceiling", { price: limit })}
+        </p>
+      )}
       {open ? (
         <Controls {...props} waiting={false} />
       ) : (
@@ -128,7 +139,6 @@ export function TakeOver(props: Props) {
             <Icon name="user" />
             {t("talks.take_over")}
           </button>
-          <p className={J.fine}>{t("jobcard.carry_on")}</p>
         </>
       )}
     </div>

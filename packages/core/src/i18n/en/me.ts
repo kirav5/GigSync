@@ -9,10 +9,10 @@ export const me = {
   "me.card_sub": "Your card and its QR, to share",
   "me.record_sub": "Your jobs, as GigSync keeps them",
   "me.about_worker": "Name, work, area, languages, UPI ID",
-  "me.about_household": "Your name and what your agent remembers",
+  "me.about_household": "Your name and what your assistant remembers",
   "me.privacy_sub": "Who sees what",
   "me.help_sub": "Helplines, unions, a mentor, moving city",
-  "me.settings_sub": "Your agent, alerts, this phone",
+  "me.settings_sub": "Your assistant, alerts, this phone",
   "me.addresses_sub": "Where workers come to you",
   "me.people_sub": "Everyone you worked with",
   "me.moving_sub": "A checklist for the first days",
@@ -41,31 +41,31 @@ export const me = {
   "me.tier.protected": "Protected",
   "me.tier.public": "Public",
   "me.tier.private_worker":
-    "Your lowest price and your rules for your agent. It bargains with them and never sends them. Your address is never sent.",
+    "Your lowest price and your rules for your assistant. It bargains with them and never sends them. Your address is never sent.",
   "me.tier.protected_worker":
     "Your phone number: given to the household after you both sign, for that one job, and removed from both phones once it is settled.",
   "me.tier.public_worker":
     "Your card on the board: name, work, area, usual rate, languages and hours, and your record if you show it.",
   "me.tier.private_household":
-    "Your budget and the most you would pay. Your agent bargains with it and never sends it.",
+    "Your budget and the most you would pay. Your assistant bargains with it and never sends it.",
   "me.tier.protected_household":
     "Your phone number and the job's address and door pin: given to the worker after you both sign, for that one job, and removed from both phones once it is settled.",
   "me.tier.public_household":
     "Only your first name, on the QR code workers scan. Before you sign, a worker sees the area of a job, never the address.",
   "me.model_switch": "Let GigSync's model read my chats",
   // Privacy: what the agent shared
-  "me.shared": "What your agent shared",
+  "me.shared": "What your assistant shared",
   "me.shared_sub": "A log, newest first",
   "me.shared_worker": "Your phone number",
   "me.shared_household": "Your phone number and the job's address",
   "me.shared_on": "{what}, {date}",
   "me.shared_removed": "Removed {date}",
   "me.shared_held": "Until the job is settled",
-  "me.shared_none": "Nothing yet. Your agent gives your number to someone only after you both sign a job.",
+  "me.shared_none": "Nothing yet. Your assistant gives your number to someone only after you both sign a job.",
   "me.shared_about":
     "Once a job is settled, this phone removes their details and their phone removes yours. A problem reported in time keeps them, at most 30 days.",
   // Settings
-  "me.section_agent": "Your agent",
+  "me.section_agent": "Your assistant",
   "me.section_alerts": "Alerts",
   "me.auto_sign": "Sign deals for me",
   "me.auto_sign_sub": "Only inside your prices. Otherwise you tap Sign each time.",
@@ -83,12 +83,12 @@ export const me = {
   "me.report": "Report a problem with a job",
   "me.report_sub": "Open the job in Jobs, then tap Report a problem",
   // Alerts
-  "me.alert.confirm_deal": "Your agents agreed {price}. Sign?",
-  "me.alert.deal": "Your agents agreed. Sign?",
+  "me.alert.confirm_deal": "Your assistants agreed {price}. Sign?",
+  "me.alert.deal": "Your assistants agreed. Sign?",
   "me.alert.confirm_payment": "Says they paid. Is the money there?",
-  "me.alert.answer_questions": "Asked something your agent could not answer",
+  "me.alert.answer_questions": "Asked something your assistant could not answer",
   "me.alert.approve_request": "A request with a detail you see first",
-  "me.alert.take_over": "The agents did not agree. Your turn.",
+  "me.alert.take_over": "The assistants did not agree. Your turn.",
   "me.alert.new_time": "Another time to look at",
   "me.alert.offer": "Offers to work for you",
   "me.alert.signed": "You both signed",

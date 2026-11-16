@@ -15,7 +15,7 @@ export const schedule = {
   "schedule.tomorrow": "Tomorrow",
   "schedule.job": "GigSync job: {when}",
   "schedule.title": "Your bookings",
-  "schedule.hint": "Bookings you told your agent in Talk. It will not agree to a job at these times.",
+  "schedule.hint": "Bookings you told your assistant in Talk. It will not agree to a job at these times.",
   "schedule.delete": "Delete",
   "schedule.delete_named": "Delete {when}",
   "schedule.soon": "Starts in {minutes} min",

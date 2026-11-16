@@ -4,7 +4,7 @@ import type { tabs as en } from "../en/tabs.js";
 export const tabs: Readonly<Record<keyof typeof en, string>> = {
   "shell.tabs": "ಮುಖ್ಯ ಟ್ಯಾಬ್‌ಗಳು",
   "nav.home": "ಮುಖಪುಟ",
-  "nav.jobs": "ಕೆಲಸಗಳು",
+  "nav.jobs": "ಚಟುವಟಿಕೆ",
   "nav.earnings": "ಗಳಿಕೆ",
   "nav.payments": "ಪಾವತಿಗಳು",
   "tabs.namaste": "ನಮಸ್ತೆ, {name}",
@@ -21,9 +21,11 @@ export const tabs: Readonly<Record<keyof typeof en, string>> = {
   "profile.my_qr": "ನನ್ನ QR",
   "profile.my_qr_sub": "ಕೆಲಸಗಾರರು ಇದನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ನಿಮ್ಮಲ್ಲಿ ಕೆಲಸ ಮಾಡಲು ಮುಂದಾಗಬಹುದು",
   "home.ask_household": "ನಿಮಗೆ ಯಾವ ಕೆಲಸಕ್ಕೆ ಸಹಾಯ ಬೇಕು?",
-  "home.suggest_jobs": "ಇಂದಿನ ಕೆಲಸಗಳನ್ನು ತೋರಿಸಿ",
+  "home.suggest_jobs": "ಇಂದಿನ ಕೆಲಸ",
   "home.suggest_verify": "ಗುರುತು ಪರಿಶೀಲಿಸಿಕೊಳ್ಳಿ",
   "home.suggest_cook": "ಪ್ರತಿದಿನ ಅಡುಗೆಗೆ ಒಬ್ಬರು",
   "home.suggest_clean": "ಮನೆಗೆಲಸಕ್ಕೆ ಒಬ್ಬರು",
+  "home.chip_cook": "ಅಡುಗೆ",
+  "home.chip_clean": "ಮನೆಗೆಲಸ",
   "home.my_places": "ನನ್ನ ಸ್ಥಳಗಳು",
 };

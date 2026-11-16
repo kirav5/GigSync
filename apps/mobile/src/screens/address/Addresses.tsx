@@ -48,7 +48,7 @@ export function Addresses({ ports, session }: { ports: Ports; session: Session }
                 <>
                   {addressLine(a)}
                   {a.pinned && (
-                    <Badge icon="pin" tone={BadgeTone.green}>
+                    <Badge icon="pin" tone={BadgeTone.checked}>
                       {t("me.door_pin")}
                     </Badge>
                   )}

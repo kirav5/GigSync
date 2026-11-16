@@ -3,8 +3,8 @@ import { Lang } from "@gigsync/protocol";
 import { expect, type Page, test } from "@playwright/test";
 import {
   greeting,
+  homePick,
   listWorker,
-  morePick,
   newPhone,
   onScreen,
   open,
@@ -125,13 +125,14 @@ test("a Hindi household finds an electrician by tapping the choices", async ({ b
   const log = page.getByRole("log");
   await expect(greeting(page, hi)).toBeVisible();
   // ADR 0051: the opening offers one chip to the list of work, for whoever cannot say or type it.
-  await morePick(page, "need.pick_work", hi);
+  await homePick(page, "need.pick_work", hi);
   await tap(page, t(hi, "group.home_repairs"));
   await tap(page, t(hi, "trade.electrician"));
   // The work's own first question (ADR 0065 §3): what usually breaks, for an electrician.
   await expect(log).toContainText(t(hi, "kind_ask.electrician"));
   await tap(page, t(hi, "iv.skip"));
-  await tap(page, t(hi, "area.koramangala"));
+  // Where: the saved address, as a card (areas are no longer offered as chips).
+  await tap(page, t(hi, "addr.chip", { label: t(hi, "addr.label.home"), area: "Koramangala" }));
   // The skipped clarifying question settles what the job is (ADR 0042 §7), so the price questions go straight on to
   // how many fittings, worded for an electrician.
   await expect(log).toContainText(t(hi, "driver.ask.points.electrician"));

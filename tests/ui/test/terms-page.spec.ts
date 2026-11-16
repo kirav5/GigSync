@@ -4,8 +4,8 @@ import { expect, test } from "@playwright/test";
 import { chooseLanguage, newPhone, shoot } from "./helpers.js";
 
 /**
- * The Terms and Privacy Notice from the sign-in welcome: a full page with Back and its title, the date it last changed,
- * a contents list that jumps to its numbered sections, and no company name in the text. Back returns to the welcome,
+ * The Terms and Privacy Notice from the sign-in welcome: one white page with Back and its title, the date it last
+ * changed, its numbered sections, and no company name in the text. Back returns to the welcome,
  * and the number typed before is still there.
  */
 const { en } = Lang.enum;
@@ -13,9 +13,7 @@ const FOLDER = "signin";
 /** No company or brand name in the terms' text. */
 const BRANDS = /gigsync|snabbit/i;
 
-test("Terms opens over sign-in with Back, contents and numbered sections, and Back keeps what was typed", async ({
-  page,
-}) => {
+test("Terms opens over sign-in with Back and numbered sections, and Back keeps what was typed", async ({ page }) => {
   await chooseLanguage(page, en);
   const form = page.getByRole("form", { name: t(en, "signin.label") });
   const welcome = page.getByRole("button", { name: t(en, "start.welcome_go"), exact: true });
@@ -32,10 +30,10 @@ test("Terms opens over sign-in with Back, contents and numbered sections, and Ba
   await expect(terms).toContainText(t(en, "legal.updated", { date: "" }).trim());
   await shoot("terms-top", { phone: page }, FOLDER);
 
-  // The contents jump to a section; each section's heading carries its number.
-  const contents = terms.getByRole("navigation", { name: t(en, "legal.contents") });
-  await contents.getByRole("button", { name: `8. ${t(en, "legal.privacy")}` }).click();
+  // No contents list: the sections follow, each heading carrying its number.
+  await expect(terms.getByRole("navigation")).toHaveCount(0);
   const privacy = terms.getByRole("heading", { level: 2, name: `8. ${t(en, "legal.privacy")}` });
+  await privacy.scrollIntoViewIfNeeded();
   await expect(privacy).toBeInViewport();
   await shoot("terms-privacy", { phone: page }, FOLDER);
   expect(await terms.textContent()).not.toMatch(BRANDS);

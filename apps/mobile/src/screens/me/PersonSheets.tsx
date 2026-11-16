@@ -54,7 +54,7 @@ export function PersonSheet({ name, line, onAsk, block, onChanged, onClose }: Pe
   const { busy, problem, go } = useAct(block, onChanged);
   if (!confirming)
     return (
-      <Sheet title={name} line={line} icon="user" onClose={onClose}>
+      <Sheet title={name} line={line} avatar={name} onClose={onClose}>
         {onAsk && (
           <button type={C.button} className={C.accent} onClick={onAsk}>
             {t("me.ask_again")}
@@ -69,13 +69,7 @@ export function PersonSheet({ name, line, onAsk, block, onChanged, onClose }: Pe
       </Sheet>
     );
   return (
-    <Sheet
-      title={t("me.block_title", { name })}
-      line={t("me.block_about", { name })}
-      icon="shield"
-      danger
-      onClose={onClose}
-    >
+    <Sheet title={t("me.block_title", { name })} line={t("me.block_about", { name })} onClose={onClose}>
       <BusyGroup busy={busy}>
         <button type={C.button} className={C.danger} onClick={() => void go("blocking failed", onClose)}>
           {t("mentor.block")}
@@ -102,12 +96,7 @@ export function UnblockSheet({ name, unblock, onChanged, onClose }: UnblockProps
   const { t } = useI18n();
   const { busy, problem, go } = useAct(unblock, onChanged);
   return (
-    <Sheet
-      title={t("me.unblock_title", { name })}
-      line={t("me.unblock_about", { name })}
-      icon="shield"
-      onClose={onClose}
-    >
+    <Sheet title={t("me.unblock_title", { name })} line={t("me.unblock_about", { name })} onClose={onClose}>
       <BusyGroup busy={busy}>
         <button type={C.button} className={C.accent} onClick={() => void go("unblocking failed", onClose)}>
           {t("me.unblock")}
