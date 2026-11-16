@@ -1,6 +1,6 @@
 import type { Ports } from "@gigsync/core";
 import { type ReactNode, useState } from "react";
-import type { Account } from "../adapters/account.js";
+import { type Account, AccountRole } from "../adapters/account.js";
 import { useWideScreen } from "../adapters/wide.js";
 import { useI18n } from "../i18n.js";
 import { ProfileSheet } from "../screens/me/Profile.js";
@@ -8,6 +8,7 @@ import { useLinks } from "../screens/mentor/links.js";
 import { Screen } from "../state.js";
 import { BarProvider } from "../ui/Bar.js";
 import { DockProvider } from "../ui/Dock.js";
+import { ChatDrawer } from "./ChatDrawer.js";
 import { chatOf, glows, isChat, isTab, sectionOf, titleOf } from "./nav.js";
 import { ProfileButton } from "./ProfileButton.js";
 import { TabBar } from "./TabBar.js";
@@ -45,7 +46,8 @@ function useProfileDot(): string {
  * The signed-in layout, top to bottom: the title row (the chats on its left, the profile on its right), the screen,
  * which alone scrolls, the dock with the screen's one primary action, and the three tabs on a tab's screen (and on the
  * landing one, so a worker without a card can reach them from Talk). On a wide screen the tabs stand beside it all as
- * a rail. The profile is a sheet over whatever is open; a row in it opens its screen above that one.
+ * a rail. The profile is a sheet over whatever is open; a row in it opens its screen above that one. On a phone the
+ * chats are a drawer from the left edge (the menu button, or a thumb pulling in from the edge); wide, a screen.
  */
 export function Shell({ ports, account, nav, tasks, onNewChat, children }: Props) {
   const { t } = useI18n();
@@ -53,6 +55,7 @@ export function Shell({ ports, account, nav, tasks, onNewChat, children }: Props
   const dot = useProfileDot();
   const [dock, setDock] = useState<HTMLDivElement | null>(null);
   const [profile, setProfile] = useState(false);
+  const [chats, setChats] = useState(false);
   const { screen, stack, go, back } = nav;
   // A tab is a top place, as Home is: the tab bar moves between them, so a tab's bar has no Back.
   const atTab = isTab(account, screen);
@@ -70,8 +73,9 @@ export function Shell({ ports, account, nav, tasks, onNewChat, children }: Props
             title={shownTitle}
             canBack={stack.length > 1 && !atTab}
             onBack={back}
-            onChats={() => go(Screen.chats)}
+            onChats={() => (wide ? go(Screen.chats) : setChats(true))}
             chatsAtEnd={isChat(screen)}
+            alerts={{ dot: tasks > 0, onOpen: () => go(Screen.alerts) }}
             profile={<ProfileButton name={account.contact.name} dot={dot} onOpen={() => setProfile(true)} />}
           />
           {/* Keyed by screen so each one opens scrolled to its top, not where the last one was left. */}
@@ -95,6 +99,16 @@ export function Shell({ ports, account, nav, tasks, onNewChat, children }: Props
             />
           )}
         </div>
+        {!wide && (
+          <ChatDrawer
+            open={chats}
+            onOpenChange={setChats}
+            isWorker={account.role === AccountRole.worker}
+            chatShown={isChat(screen)}
+            onOpened={() => go(chatOf(account))}
+            onNewChat={onNewChat}
+          />
+        )}
       </div>
       {profile && <ProfileSheet ports={ports} account={account} onOpen={go} onClose={() => setProfile(false)} />}
     </BarProvider>

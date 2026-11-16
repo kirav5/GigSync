@@ -5,13 +5,13 @@ import { Avatar, AvatarSize, AvatarTone } from "../../ui/Avatar.js";
 import { ListCard } from "../../ui/ListRow.js";
 import { Sheet } from "../../ui/Sheet.js";
 import { HouseholdGroup, WorkerGroup } from "./groups.js";
-import { AlertsRow, HelpRow, LanguageRow, type OpenScreen, PrivacyRow, SettingsLink } from "./rows.js";
+import { HelpRow, LanguageRow, type OpenScreen, PrivacyRow, SettingsLink } from "./rows.js";
 import { useIdChecked } from "./useIdCheck.js";
 import "./me.css";
 
 /**
- * Who the owner is, at the top: their initial, their name and what GigSync checked (the phone number by its code at
- * sign-in, and a worker's ID once this phone holds a passed check). It only says; About me, in the rows, opens.
+ * Who the owner is, at the top: their initial, their name and, once this phone holds a passed check, that their ID
+ * was checked. It only says; About me, in the rows, opens.
  */
 function ProfileHead({ name, idChecked }: { name: string; idChecked: boolean }) {
   const { t } = useI18n();
@@ -20,10 +20,12 @@ function ProfileHead({ name, idChecked }: { name: string; idChecked: boolean }) 
       <Avatar name={name} size={AvatarSize.lg} tone={AvatarTone.rust} />
       <span className="profile-words">
         <span className="profile-name">{name}</span>
-        <span className="profile-verified">
-          <span>{t("profile.verified")}</span>
-          {idChecked && <span>{t("idcheck.done")}</span>}
-        </span>
+        {/* Every signed-in number was checked by its code, so that goes unsaid; only an ID check is worth a line. */}
+        {idChecked && (
+          <span className="profile-verified">
+            <span>{t("idcheck.done")}</span>
+          </span>
+        )}
       </span>
     </div>
   );
@@ -60,10 +62,11 @@ export function ProfileSheet({ ports, account, onOpen, onClose }: Props) {
       ) : (
         <HouseholdGroup ports={ports} onOpen={open} />
       )}
-      <ListCard label={t("profile.group_help")}>
-        <AlertsRow onOpen={open} />
-        {isWorker && <HelpRow onOpen={open} />}
-      </ListCard>
+      {isWorker && (
+        <ListCard label={t("profile.group_help")}>
+          <HelpRow onOpen={open} />
+        </ListCard>
+      )}
       <ListCard label={t("profile.group_prefs")}>
         <LanguageRow onOpen={open} />
         <PrivacyRow onOpen={open} />

@@ -62,6 +62,7 @@ export const job: Readonly<Record<keyof typeof en, string>> = {
   "job.decline": "ನಿರಾಕರಿಸಿ",
   "job.start_work": "ತಲುಪಿ ಕೆಲಸ ಶುರು ಮಾಡಿ",
   "job.mark_done": "ಕೆಲಸ ಮುಗಿಸಿದ್ದೇನೆ",
+  "job.done_already": "ಕೆಲಸ ಆಗಿದೆ",
   "job.pay_advance": "{price} ಮುಂಗಡ ಯುಪಿಐ ಮೂಲಕ ಪಾವತಿಸಿ",
   "job.stop": "ಈ ಕೆಲಸ ನಿಲ್ಲಿಸಿ",
   "job.stop_why": "ಏಕೆ ನಿಲ್ಲಿಸುತ್ತಿದ್ದೀರಿ?",

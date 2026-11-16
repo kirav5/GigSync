@@ -108,7 +108,6 @@ export function RecommendWorker({ device, run, job, name, work }: Props) {
           </fieldset>
         )}
       </BusyGroup>
-      {!link && <p className="fine">{t("money.recommend_private")}</p>}
       <span className={C.muted} role="status" aria-live="polite">
         {status && t(status, { name })}
       </span>

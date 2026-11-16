@@ -67,10 +67,12 @@ test("the worker's card offers one step at a time, and asks for the money after 
   const { job, hers } = await signedJob(browser, "steps");
   const button = (key: MessageKey) => job.getByRole("button", { name: say(key), exact: true });
 
-  // Signed: the first step, Cancel and an advance; not the steps after it, and no payment yet.
+  // Signed: the first step, Cancel and an advance, and a quiet Mark done for a job done without the steps; not the
+  // step in between, and no payment yet.
   await expect(button("update.on_my_way")).toBeVisible();
   await expect(button("restored.cancel")).toBeVisible();
   await expect(button("money.ask_advance")).toBeVisible();
+  await expect(button("job.done_already")).toBeVisible();
   for (const key of ["job.start_work", "job.mark_done", "getpaid.cash"] as const)
     await expect(button(key)).toHaveCount(0);
   await expect(job.getByRole("button", { name: new RegExp(`^${say("money.ask_for", { price: "₹" })}`) })).toHaveCount(
@@ -120,4 +122,23 @@ test("a job stopped after it started says why, on the other phone", async ({ bro
   await open(householdPage, "nav.records");
   await expand(householdPage, NOT_COMPLETED);
   await expect(householdPage.getByText(say("job.stopped", { why: say("stop.not_safe") }))).toBeVisible();
+});
+
+test("a worker marks a signed job done in one tap, takes cash, and Earnings counts the job", async ({ browser }) => {
+  const { workerPage, job, hers, names } = await signedJob(browser, "cash");
+  const button = (key: MessageKey) => job.getByRole("button", { name: say(key), exact: true });
+
+  // Straight from Agreed to Done: no On the way or Started first. Both phones say Done.
+  await button("job.done_already").click();
+  await expect(statusTag(job, en, "status.delivered")).toBeVisible();
+  await expect(statusTag(hers, en, "status.delivered")).toBeVisible();
+
+  // Paid in cash, said once and confirmed: the job is settled and leaves the open jobs.
+  await job.getByRole("button", { name: say("getpaid.cash") }).click();
+  await job.getByRole("button", { name: say("flag.yes"), exact: true }).click();
+  await expect(job).toHaveCount(0);
+
+  // Earnings lists it, with her name.
+  await open(workerPage, "nav.records");
+  await expect(workerPage.getByText(names.household).first()).toBeVisible();
 });

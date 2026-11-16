@@ -29,7 +29,7 @@ export const start: Readonly<Record<keyof typeof en, string>> = {
   "start.code_title": "ಕೋಡ್ ಬರೆಯಿರಿ",
   "start.name_title": "ಜನರು ನಿಮ್ಮನ್ನು ಯಾವ ಹೆಸರಿನಿಂದ ಕರೆಯಬೇಕು?",
   "start.name_why_worker": "ನಿಮ್ಮ ಕಾರ್ಡ್‌ನಲ್ಲಿ ಇರುತ್ತದೆ",
-  "start.name_why_household": "ನಿಮ್ಮ ಸಹಾಯಕರಿಗೆ ಕಾಣುತ್ತದೆ",
+  "start.name_why_household": "ನಿಮ್ಮ ಕೆಲಸಗಾರರಿಗೆ ಕಾಣುತ್ತದೆ",
   "start.continue": "ಮುಂದುವರಿಸಿ",
   "start.code_again_in": "{time} ನಂತರ ಮತ್ತೆ ಕಳುಹಿಸಿ",
   "start.later": "ನಂತರ",

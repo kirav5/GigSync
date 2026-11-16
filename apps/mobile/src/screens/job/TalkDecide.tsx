@@ -128,7 +128,6 @@ export function TakeOver(props: Props) {
             <Icon name="user" />
             {t("talks.take_over")}
           </button>
-          <p className={J.fine}>{t("jobcard.carry_on")}</p>
         </>
       )}
     </div>

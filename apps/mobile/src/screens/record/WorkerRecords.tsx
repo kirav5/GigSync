@@ -78,7 +78,6 @@ export function WorkerRecords({ account, ports, onAddPayee, ...card }: Props) {
       <NotCompleted jobs={notDone} onAddPayee={onAddPayee} {...card} />
       <DownloadRecord account={account} side={Role.enum.provider} />
       <UpiLine ports={ports} onChange={onAddPayee} />
-      <p className={C.faint}>{t("passbook.about")}</p>
     </>
   );
 }

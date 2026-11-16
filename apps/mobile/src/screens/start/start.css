@@ -388,9 +388,10 @@ html[data-keyboard="open"] .start-art[data-small] {
   }
 }
 
-/* The language screen: the brand, the mandala and the greeting centred above the rows. */
+/* The language screen: the brand at the top left, where Home keeps it, then the mandala and the greeting centred
+   above the rows. */
 .start-lang > .brand {
-  justify-self: center;
+  justify-self: start;
 }
 .start-lang .start-art[data-bare] img {
   width: 144px;
@@ -414,11 +415,20 @@ html[data-keyboard="open"] .start-art[data-small] {
   justify-items: center;
   text-align: center;
 }
+/* The mandala grows with a taller phone, so the block fills the room instead of leaving a band above the dock. */
+.start-welcome .start-art[data-bare] img {
+  width: clamp(150px, 26vh, 230px);
+  height: clamp(150px, 26vh, 230px);
+}
+/* The promises as one white card of three rows, as the settings rows are drawn. */
 .start-points {
+  justify-self: stretch;
   display: grid;
-  gap: 14px;
-  margin: 8px 0 0;
-  padding: 0;
+  margin: 4px 0 0;
+  padding: 2px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-tile);
+  background: var(--surface);
   list-style: none;
   text-align: start;
 }
@@ -427,8 +437,12 @@ html[data-keyboard="open"] .start-art[data-small] {
   grid-template-columns: auto minmax(0, 1fr);
   gap: 12px;
   align-items: start;
+  padding: 14px 0;
   font-size: var(--fs-body);
   line-height: var(--lh-body);
+}
+.start-points li + li {
+  border-top: 1px solid var(--hairline);
 }
 .start-points .ic {
   margin-top: 2px;

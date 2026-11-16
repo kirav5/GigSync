@@ -16,8 +16,21 @@ interface Props {
   onChats: () => void;
   /** A chat opened from inside another screen (Talk from Home): Back takes the left, so the chats go to the end. */
   chatsAtEnd: boolean;
+  /** The bell to Alerts, on a top place (never beside Back); `dot` while something waits on the owner. */
+  alerts?: { dot: boolean; onOpen: () => void };
   /** The round profile button, last at the end. */
   profile: ReactNode;
+}
+
+/** The bell: what happened, a day at a time, with a dot while a decision waits. */
+function BellButton({ dot, onOpen }: { dot: boolean; onOpen: () => void }) {
+  const { t } = useI18n();
+  return (
+    <button type={C.button} className="round-btn bell-btn" aria-label={t("tabs.alerts")} onClick={onOpen}>
+      <Icon name="bell" size={20} />
+      {dot && <span className="bell-dot" aria-hidden />}
+    </button>
+  );
 }
 
 /** The round chats button: every chat kept on this phone, and New chat. */
@@ -39,10 +52,10 @@ function ChatsButton({ onOpen, icon }: { onOpen: () => void; icon: "menu" | "cha
 /**
  * The title row, one cream band with the phone's status bar above it, as the design's Home: on the left a round
  * button to the chats (Back instead, while there is somewhere to go back to), beside it the sun and "gigsync" on
- * Home and the screen's title elsewhere, and on the right the screen's own icon buttons (ui/Bar.tsx `BarEnd`) and the
- * round profile button with the owner's initial. The page's one banner.
+ * Home and the screen's title elsewhere, and on the right the screen's own icon buttons (ui/Bar.tsx `BarEnd`), the bell
+ * to Alerts on a top place, and the round profile button with the owner's initial. The page's one banner.
  */
-export function TopBar({ title, canBack, onBack, onChats, chatsAtEnd, profile }: Props) {
+export function TopBar({ title, canBack, onBack, onChats, chatsAtEnd, alerts, profile }: Props) {
   const { t } = useI18n();
   const bar = useBar();
   const shown = bar.title ?? title;
@@ -58,6 +71,7 @@ export function TopBar({ title, canBack, onBack, onChats, chatsAtEnd, profile }:
       <span className="topbar-title">{shown ?? <Brand />}</span>
       <span className="bar-end" ref={bar.setSlot} />
       {canBack && chatsAtEnd && <ChatsButton icon="chat" onOpen={onChats} />}
+      {!canBack && alerts && <BellButton dot={alerts.dot} onOpen={alerts.onOpen} />}
       {profile}
     </header>
   );

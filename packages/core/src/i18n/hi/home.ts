@@ -10,9 +10,8 @@ export const home: Readonly<Record<keyof typeof en, string>> = {
   "activity.tab_closed": "बंद काम",
   "activity.talking.one": "आपका सहायक {count} घर से बात कर रहा है",
   "activity.talking.other": "आपका सहायक {count} घरों से बात कर रहा है",
-  "activity.hint_worker":
-    "चैट में अपने सहायक को अपने काम के बारे में बताइए: “मैं घर पेंट करता हूँ, ₹800 रोज़”। घर वालों की रिक्वेस्ट यहाँ दिखेंगी।",
-  "activity.hint_household": "चैट में कुछ माँगिए: “शनिवार को पेंटर चाहिए”। आपके सहायक का काम यहाँ दिखेगा।",
+  "activity.hint_worker": "घरों के अनुरोध यहाँ दिखेंगे।",
+  "activity.hint_household": "आपके काम यहाँ दिखेंगे।",
   // The worker's Agreed by day, and their card nudges on Home
   "home.no_card": "अपना कार्ड बनाइए, ताकि आस-पास के ग्राहक आपको ढूँढ सकें।",
   "home.make_card": "बोलकर कार्ड बनाएँ",

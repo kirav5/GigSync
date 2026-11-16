@@ -1,8 +1,10 @@
-import { type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useId, useRef, useState } from "react";
+import { closeOnBack } from "../adapters/back.js";
 import { Avatar, AvatarSize, AvatarTone } from "./Avatar.js";
 import { C } from "./cls.js";
 import { Icon, type IconName } from "./Icon.js";
 import "./sheet.css";
+import { useSheetDrag } from "./useSheetDrag.js";
 
 interface SheetProps {
   title: string;
@@ -28,6 +30,12 @@ const SHEET = "sheet";
 const TALL = "sheet tall";
 /** The panel's slide down, in sheet.css; past this the sheet closes even if no animationend came (a hidden tab). */
 const CLOSE_MS = 320;
+/** Let go after a pull, the panel carries on down from where the finger left it, this fast. */
+const FLING = "transform 200ms cubic-bezier(0.4, 0, 1, 1)";
+const GONE = "translateY(110%)";
+/** Set on the panel when a pull closed it, so sheet.css does not also play the slide down from the top. */
+const FLUNG = "flung";
+const BODY = ".sheet-body";
 
 /**
  * A sheet that slides up from the bottom edge over a light scrim, as the phone's own sheets do (a centred card that
@@ -60,6 +68,20 @@ export function Sheet({ title, line, icon, avatar, danger, done, onClose, childr
     return () => clearTimeout(timer);
   }, [closing]);
   const close = () => setClosing(true);
+  const scroller = useCallback(() => panel.current?.querySelector<HTMLElement>(BODY) ?? panel.current, []);
+  const fling = useCallback(() => {
+    const el = panel.current;
+    if (el) {
+      el.dataset[FLUNG] = "";
+      el.style.transition = FLING;
+      el.style.transform = GONE;
+    }
+    setClosing(true);
+  }, []);
+  // Back closes the sheet, sliding down like the other ways out.
+  useEffect(() => closeOnBack(() => setClosing(true)), []);
+  // A finger can hold the sheet and pull it down to close it, as the phone's own sheets do.
+  useSheetDrag(panel, scroller, fling);
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: the scrim's keyboard twin is Escape, which the <dialog> handles itself.
     <dialog

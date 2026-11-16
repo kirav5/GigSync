@@ -75,6 +75,12 @@ export async function backToTabs(page: Page, lang: Lang = DEFAULT_LANG) {
       .click();
     await expect(profileSheet(page, lang)).toBeHidden();
   }
+  // An open chats drawer shades the screen behind it, as a phone's drawer does: Escape closes it.
+  const chats = page.getByRole("navigation", { name: t(lang, "chats.title"), exact: true });
+  if (await chats.isVisible()) {
+    await page.keyboard.press("Escape");
+    await expect(chats).toBeHidden();
+  }
   while (!(await tabBar(page, lang).isVisible()) && (await back(page, lang).isVisible()))
     await back(page, lang).click();
   await expect(tabBar(page, lang)).toBeVisible();
@@ -160,6 +166,9 @@ export async function onScreen(page: Page, screen: MessageKey, lang: Lang = DEFA
   await expect(title(page)).toHaveText(nameOf(screen, lang));
 }
 
+/** Alerts open from the bell in the top bar, not from the profile. */
+const ALERTS = "tabs.alerts";
+
 /**
  * Opens a screen by its old menu key: the tab for Jobs (Activity, My jobs), Earnings or Payments (Records) and Home (Find, Talk);
  * the profile sheet for `profile.title`, and its row for My card, About me, Privacy, Settings and the other pages,
@@ -170,6 +179,11 @@ export async function open(page: Page, screen: MessageKey, lang: Lang = DEFAULT_
   await backToTabs(page, lang);
   if (TABS[screen]) {
     await tab(page, screen, lang).click();
+  } else if (screen === ALERTS) {
+    await page
+      .getByRole("banner")
+      .getByRole("button", { name: t(lang, ALERTS), exact: true })
+      .click();
   } else {
     await openProfile(page, lang);
     if (screen !== ME) await navRow(page, screen, lang).click();

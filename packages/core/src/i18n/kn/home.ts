@@ -10,9 +10,8 @@ export const home: Readonly<Record<keyof typeof en, string>> = {
   "activity.tab_closed": "ಮುಗಿದ ಕೆಲಸಗಳು",
   "activity.talking.one": "ನಿಮ್ಮ ಸಹಾಯಕ {count} ಮನೆಯವರ ಜೊತೆ ಮಾತಾಡುತ್ತಿದೆ",
   "activity.talking.other": "ನಿಮ್ಮ ಸಹಾಯಕ {count} ಮನೆಯವರ ಜೊತೆ ಮಾತಾಡುತ್ತಿದೆ",
-  "activity.hint_worker":
-    "ಚಾಟ್‌ನಲ್ಲಿ ನಿಮ್ಮ ಕೆಲಸದ ಬಗ್ಗೆ ಸಹಾಯಕನಿಗೆ ಹೇಳಿ: “ನಾನು ಮನೆಗೆ ಬಣ್ಣ ಹಚ್ಚುತ್ತೇನೆ, ದಿನಕ್ಕೆ ₹800”. ಮನೆಯವರ ರಿಕ್ವೆಸ್ಟ್‌ಗಳು ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ.",
-  "activity.hint_household": "ಚಾಟ್‌ನಲ್ಲಿ ಏನಾದರೂ ಕೇಳಿ: “ಶನಿವಾರ ಪೇಂಟರ್ ಬೇಕು”. ನಿಮ್ಮ ಸಹಾಯಕನ ಕೆಲಸ ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತದೆ.",
+  "activity.hint_worker": "ಮನೆಯವರ ವಿನಂತಿಗಳು ಇಲ್ಲಿ ಕಾಣುತ್ತವೆ.",
+  "activity.hint_household": "ನಿಮ್ಮ ಕೆಲಸಗಳು ಇಲ್ಲಿ ಕಾಣುತ್ತವೆ.",
   // The worker's Agreed by day, and their card nudges on Home
   "home.no_card": "ಹತ್ತಿರದ ಗ್ರಾಹಕರು ನಿಮ್ಮನ್ನು ಹುಡುಕಲು ನಿಮ್ಮ ಕಾರ್ಡ್ ಮಾಡಿ.",
   "home.make_card": "ಮಾತಾಡಿ ಕಾರ್ಡ್ ಮಾಡಿ",

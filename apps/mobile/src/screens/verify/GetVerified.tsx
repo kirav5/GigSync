@@ -229,7 +229,6 @@ export function GetVerified({
           {stage === Stage.pdf && <PdfSheet onQr={(text) => void read(text)} onClose={() => setStage(Stage.intro)} />}
           {stage === Stage.where && <WhereSheet onClose={() => setStage(Stage.intro)} />}
           {resting && <IntroWays onPhoto={readPhoto} onSheet={setStage} />}
-          <p className="fine">{t("idcheck.free")}</p>
         </>
       )}
     </section>

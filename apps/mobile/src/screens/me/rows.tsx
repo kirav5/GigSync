@@ -13,38 +13,19 @@ export type OpenScreen = (s: Screen) => void;
  */
 export function CardRow({ isWorker, onOpen }: { isWorker: boolean; onOpen: OpenScreen }) {
   const { t } = useI18n();
-  return (
-    <ListRow
-      icon="qr"
-      title={t(isWorker ? "nav.card" : "profile.my_qr")}
-      sub={t(isWorker ? "me.card_sub" : "profile.my_qr_sub")}
-      onClick={() => onOpen(Screen.card)}
-    />
-  );
+  return <ListRow icon="qr" title={t(isWorker ? "nav.card" : "profile.my_qr")} onClick={() => onOpen(Screen.card)} />;
 }
 
 /** People you know: everyone the owner worked with, to ask again, block or unblock. */
 export function PeopleRow({ onOpen }: { onOpen: OpenScreen }) {
   const { t } = useI18n();
-  return (
-    <ListRow icon="people" title={t("me.people")} sub={t("me.people_sub")} onClick={() => onOpen(Screen.people)} />
-  );
-}
-
-/** Alerts: what happened, day by day. The decisions waiting are counted on the Jobs tab, not here again. */
-export function AlertsRow({ onOpen }: { onOpen: OpenScreen }) {
-  const { t } = useI18n();
-  return (
-    <ListRow icon="bell" title={t("tabs.alerts")} sub={t("me.alerts_sub")} onClick={() => onOpen(Screen.alerts)} />
-  );
+  return <ListRow icon="people" title={t("me.people")} onClick={() => onOpen(Screen.people)} />;
 }
 
 /** Privacy: who sees what. */
 export function PrivacyRow({ onOpen }: { onOpen: OpenScreen }) {
   const { t } = useI18n();
-  return (
-    <ListRow icon="shield" title={t("nav.privacy")} sub={t("me.privacy_sub")} onClick={() => onOpen(Screen.privacy)} />
-  );
+  return <ListRow icon="shield" title={t("nav.privacy")} onClick={() => onOpen(Screen.privacy)} />;
 }
 
 /**
@@ -54,7 +35,7 @@ export function PrivacyRow({ onOpen }: { onOpen: OpenScreen }) {
 export function HelpRow({ onOpen }: { onOpen: OpenScreen }) {
   const { t, plural } = useI18n();
   const { unread } = useLinks();
-  const sub = unread > 0 ? plural("mentor.unread", unread) : t("me.help_sub");
+  const sub = unread > 0 ? plural("mentor.unread", unread) : undefined;
   return <ListRow icon="help" title={t("me.help")} sub={sub} onClick={() => onOpen(Screen.help)} />;
 }
 
@@ -74,7 +55,5 @@ export function LanguageRow({ onOpen }: { onOpen: OpenScreen }) {
 /** Settings: the look, alerts, the agent's model and bargaining, and this phone. */
 export function SettingsLink({ onOpen }: { onOpen: OpenScreen }) {
   const { t } = useI18n();
-  return (
-    <ListRow icon="gear" title={t("nav.settings")} sub={t("me.settings_sub")} onClick={() => onOpen(Screen.settings)} />
-  );
+  return <ListRow icon="gear" title={t("nav.settings")} onClick={() => onOpen(Screen.settings)} />;
 }

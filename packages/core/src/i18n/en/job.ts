@@ -60,6 +60,7 @@ export const job = {
   "job.decline": "Decline",
   "job.start_work": "Arrived: start work",
   "job.mark_done": "Mark done",
+  "job.done_already": "Already done",
   "job.pay_advance": "Pay an advance of {price} by UPI",
   "job.stop": "Stop this job",
   "job.stop_why": "Why are you stopping?",

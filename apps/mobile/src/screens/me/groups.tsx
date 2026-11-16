@@ -42,8 +42,8 @@ export function WorkerGroup({
         end={idChecked ? t("idcheck.done") : undefined}
         onClick={() => onOpen(Screen.verify)}
       />
-      <ListRow icon="doc" title={t("me.record")} sub={t("me.record_sub")} onClick={() => onOpen(Screen.myRecord)} />
-      <ListRow icon="user" title={t("nav.about")} sub={t("me.about_worker")} onClick={() => onOpen(Screen.about)} />
+      <ListRow icon="doc" title={t("me.record")} onClick={() => onOpen(Screen.myRecord)} />
+      <ListRow icon="user" title={t("nav.about")} onClick={() => onOpen(Screen.about)} />
       <PeopleRow onOpen={onOpen} />
     </ListCard>
   );
@@ -64,7 +64,7 @@ export function HouseholdGroup({ ports, onOpen }: { ports: Ports; onOpen: OpenSc
       />
       <PeopleRow onOpen={onOpen} />
       <CardRow isWorker={false} onOpen={onOpen} />
-      <ListRow icon="user" title={t("nav.about")} sub={t("me.about_household")} onClick={() => onOpen(Screen.about)} />
+      <ListRow icon="user" title={t("nav.about")} onClick={() => onOpen(Screen.about)} />
     </ListCard>
   );
 }

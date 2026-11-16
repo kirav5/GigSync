@@ -62,6 +62,12 @@ export function JobDay({ job, device, step, them, isWorker }: Props) {
           {t(STEP_LABEL[next])}
         </button>
       )}
+      {/* The steps are a help, not a gate: a worker who did the job without them marks it done in one tap. */}
+      {next && next !== U.done && (
+        <button type={C.button} className={C.linkBtn} onClick={() => step(() => moveOn(U.done))}>
+          {t("job.done_already")}
+        </button>
+      )}
       {/* On the way and not there yet: late is the one thing worth a tap; anything else goes in a note. */}
       {next === U.started && (
         <span>

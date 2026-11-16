@@ -8,10 +8,8 @@ export const home = {
   "activity.tab_closed": "Closed jobs",
   "activity.talking.one": "Your assistant is talking to {count} household",
   "activity.talking.other": "Your assistant is talking to {count} households",
-  "activity.hint_worker":
-    "Tell your assistant about your work in the chat: “I paint houses, ₹800 a day”. Households' requests show up here.",
-  "activity.hint_household":
-    "Ask for something in the chat: “Need a painter on Saturday”. Your assistant's work shows up here.",
+  "activity.hint_worker": "Households' requests show up here.",
+  "activity.hint_household": "Your jobs show up here.",
   // Home's jobs for today, and the worker's card nudges there
   "home.no_card": "Make your card so customers near you can find you.",
   "home.make_card": "Make my card by talking",

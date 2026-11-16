@@ -5,7 +5,7 @@ export const money: Readonly<Record<keyof typeof en, string>> = {
   "passbook.week": "इस हफ़्ते मिले",
   "passbook.month": "इस महीने मिले",
   "passbook.not_asked": "अभी तक माँगे नहीं",
-  "passbook.empty": "GigSync पर पूरे किए काम, और उनसे मिले पैसे, यहाँ दिखेंगे।",
+  "passbook.empty": "पैसे मिले काम यहाँ दिखेंगे।",
   "passbook.about": "हर लाइन ऐसा काम है जिस पर आपने और ग्राहक, दोनों ने दस्तख़त किए। यह सब इसी फ़ोन पर रहता है।",
   "money.ask_again": "फिर से पैसे माँगें",
   "money.ask_advance": "एडवांस माँगें",

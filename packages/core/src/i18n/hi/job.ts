@@ -62,6 +62,7 @@ export const job: Readonly<Record<keyof typeof en, string>> = {
   "job.decline": "मना करें",
   "job.start_work": "पहुँचकर काम शुरू करें",
   "job.mark_done": "काम पूरा कर दिया",
+  "job.done_already": "काम हो चुका",
   "job.pay_advance": "{price} एडवांस यूपीआई से दें",
   "job.stop": "यह काम रोकें",
   "job.stop_why": "आप क्यों रोक रहे हैं?",

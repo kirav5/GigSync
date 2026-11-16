@@ -151,7 +151,9 @@ test("Download my work record, one quiet row in Records, pulls the record from G
   const page = await phone(browser);
   await seededCook(page, `Revathi ${RUN}`);
   await open(page, "nav.records");
-  await expect(page.getByText(t(en, "records.download_about"))).toBeVisible();
+  await expect(page.getByRole("button", { name: t(en, "records.download_title") })).toHaveAccessibleDescription(
+    t(en, "records.download_about"),
+  );
   await shot(page, "work-record");
   const { file, lines } = await downloadRecord(page);
   expect(lines[0]).toBe("Date,Work,Price (₹),Received (₹),Paid by,Status,Confirmed by,Stars");
