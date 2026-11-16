@@ -1,8 +1,9 @@
 import {
   type DeviceId,
   type DeviceRegistration,
+  isNativePush,
   MAX_RECIPIENT_DEVICES,
-  PushSubscribe,
+  PushAddress,
   type UserId,
 } from "@gigsync/protocol";
 import type { Db } from "./client.js";
@@ -101,17 +102,18 @@ export async function insertDevice(
 }
 
 /**
- * Where the caller's own active device takes pushes, or none (null). With its keys the subscription is kept whole, as
- * JSON, in `push_token` (it is the device's push address, keys included); an older app's bare address as it came.
- * False when the device is unknown or revoked.
+ * Where the caller's own active device takes pushes, or none (null). A subscription with its keys, or the Android
+ * app's FCM token with its language (ADR 0067), is kept whole, as JSON, in `push_token`; an older app's bare address
+ * as it came. False when the device is unknown or revoked.
  */
 export async function setPushAddress(
   db: Db,
   device: DeviceId,
   user: UserId,
-  address: PushSubscribe | null,
+  address: PushAddress | null,
 ): Promise<boolean> {
-  const token = address && (address.keys ? JSON.stringify(address) : address.endpoint);
+  const bare = address && !isNativePush(address) && !address.keys;
+  const token = address && (bare ? address.endpoint : JSON.stringify(address));
   const { rowCount } = await db.query(
     "UPDATE devices SET push_token = $3 WHERE device_id = $1 AND user_id = $2 AND revoked_at IS NULL",
     [device, user, token],
@@ -119,20 +121,23 @@ export async function setPushAddress(
   return (rowCount ?? 0) > 0;
 }
 
-/** A stored `push_token` read back: a whole subscription, or a bare address; anything else is not a push address. */
-function addressOf(token: string): PushSubscribe | undefined {
+/**
+ * A stored `push_token` read back: a whole subscription, an FCM token, or a bare address; anything else is not a push
+ * address.
+ */
+function addressOf(token: string): PushAddress | undefined {
   let value: unknown = { endpoint: token };
   try {
     if (token.startsWith("{")) value = JSON.parse(token);
   } catch {
     return undefined;
   }
-  const parsed = PushSubscribe.safeParse(value);
+  const parsed = PushAddress.safeParse(value);
   return parsed.success ? parsed.data : undefined;
 }
 
 /** The push addresses of a user's active devices that gave one: where a job message's notification goes. */
-export async function pushAddresses(db: Db, user: UserId): Promise<PushSubscribe[]> {
+export async function pushAddresses(db: Db, user: UserId): Promise<PushAddress[]> {
   const { rows } = await db.query<{ push_token: string }>(
     "SELECT push_token FROM devices WHERE user_id = $1 AND revoked_at IS NULL AND push_token IS NOT NULL",
     [user],

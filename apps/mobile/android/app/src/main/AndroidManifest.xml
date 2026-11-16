@@ -49,4 +49,7 @@
     <!-- Only when the owner taps Use my current location (ADR 0045), after GigSync says why. Coarse only: the app
          needs the area, about a kilometre, never the building. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Job alerts (ADR 0067): Android 13 and later asks the owner first, when they turn alerts on or on their first
+         job move; each alert says only "something new". -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 </manifest>

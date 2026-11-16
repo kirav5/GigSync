@@ -29,6 +29,11 @@ export interface Env {
   VAPID_PUBLIC_KEY?: string;
   /** Secret: its private half (base64url). `node scripts/vapid-keys.mjs` makes both; `wrangler secret put`. */
   VAPID_PRIVATE_KEY?: string;
+  /**
+   * Secret: the Firebase service account's key, the JSON Google gives, that the Android app's alerts are sent with (ADR
+   * 0067). `wrangler secret put FCM_SERVICE_ACCOUNT`. Unset means only browsers get alerts.
+   */
+  FCM_SERVICE_ACCOUNT?: string;
   /** Caps geocoding lookups per user (ADR 0045), so one account cannot spend the provider's allowance. */
   GEO_RATE_LIMIT: RateLimit;
   /** Secret: the Ola Maps key the geocoding routes call with (ADR 0045). Unset means they answer 503. */

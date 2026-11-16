@@ -30,6 +30,12 @@ export const progress = {
   "restored.cancel_yes": "Yes, cancel",
   "restored.keep": "Keep it",
   "alerts.title": "Notifications",
+  "alerts.native_body": "Something new on your job. Open GigSync to see it.",
+  "alerts.channel": "Job alerts",
+  "alerts.about_app":
+    "A notification on this phone when a job moves on. It says only that something is new, so nobody on the way learns more; open GigSync to see what.",
+  "alerts.blocked_app":
+    "Notifications are off for GigSync on this phone. Turn them on in the phone's Settings › Apps › GigSync › Notifications, then come back here.",
   "alerts.about":
     "A notification on this phone when a job moves on, saying who it is from and what happened: a new request, a deal signed, on the way, done, paid or cancelled. It never shows what was said, and Google or Apple cannot read it on the way.",
   "alerts.on": "On: notifications come to this phone.",
