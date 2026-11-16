@@ -1,0 +1,89 @@
+/* Photos of the job (NeedPhotos.tsx, JobPhotos.tsx): small square tiles in a row, the picture cropped to fill, a
+   round cross on the corner to take one off before the need is sent. */
+.need-photos,
+.job-photos {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.need-photos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 2px 8px;
+}
+.need-photo {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  background: var(--surface2);
+}
+.need-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+.need-photo-remove {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--bg);
+  --icon: var(--bg);
+  cursor: pointer;
+}
+/* While a photo is being shrunk: the tile's place, breathing. */
+.need-photo-wait {
+  animation: photo-wait 1.2s ease-in-out infinite;
+}
+@keyframes photo-wait {
+  50% {
+    opacity: 0.45;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .need-photo-wait {
+    animation: none;
+  }
+}
+
+/* On the job: the photos the household sent, larger, opening full size when tapped. */
+.job-photos {
+  display: flex;
+  gap: 10px;
+}
+.job-photo {
+  width: 96px;
+  height: 96px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 16px;
+  background: var(--surface2);
+  cursor: zoom-in;
+}
+.job-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photo-full {
+  display: block;
+  width: 100%;
+  max-height: 70vh;
+  border-radius: 16px;
+  object-fit: contain;
+  background: var(--surface2);
+}

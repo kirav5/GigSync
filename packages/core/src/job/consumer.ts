@@ -43,6 +43,7 @@ export async function startRequest(ctx: JobContext, need: Need, worker: UserId):
     details: need.details,
     lang: ctx.lang,
     ...requestTerms(need, terms, hours),
+    ...(need.photos?.length ? { photos: need.photos } : {}),
   };
   const r: JobRecord = {
     engagement: {

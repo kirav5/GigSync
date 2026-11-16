@@ -141,6 +141,7 @@ export function needOf(
     ...at,
     estimate: found && perJob(found.estimate, needDetails(d)),
     terms: needTerms(d, trade, day),
+    photos: state.photos,
   });
 }
 

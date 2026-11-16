@@ -1,5 +1,6 @@
 import {
   AnswerFromMemory,
+  type JobPhoto,
   JobTrade,
   type ListedRates,
   type QuestionKey,
@@ -103,6 +104,8 @@ export interface NeedState {
   readonly browsing?: WorkGroup | undefined;
   /** The kinds of work the words may be for, asked as "Is this for…?" before the list (`need-guess.ts`). */
   readonly guesses?: readonly WorkKind[] | undefined;
+  /** Photos of the job the owner added (ADR 0066); kept apart from the draft, so new words never drop them. */
+  readonly photos?: readonly JobPhoto[] | undefined;
 }
 
 /** The trade's first question, which the request answers up front so the worker's agent need not ask it. */

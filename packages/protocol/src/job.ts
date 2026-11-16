@@ -43,6 +43,20 @@ export const ROUNDS_BEFORE_OWNERS = 5;
 export const OWNER_OFFERS_PROTOCOL = 8;
 export const MAX_QUESTIONS = 5;
 
+/**
+ * ADR 0066: a photo of the job (the broken door, the stain), shrunk on the household's phone to a JPEG data URL. It
+ * travels inside the encrypted request and is kept only on the two phones; GigSync stores no photo. Two at most, each
+ * small enough that both fit one envelope (`MAX_CIPHERTEXT_CHARS`) with the rest of the request.
+ */
+export const MAX_PHOTOS = 2;
+export const PHOTO_MAX_CHARS = 36_000;
+export const PHOTO_PREFIX = "data:image/jpeg;base64,";
+export const JobPhoto = z
+  .string()
+  .max(PHOTO_MAX_CHARS)
+  .regex(/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/, "jpeg data url");
+export type JobPhoto = z.infer<typeof JobPhoto>;
+
 /** `request`: the consumer's need, as their agent may share it. Their budget never leaves the phone. */
 export const JobRequest = z
   .object({
@@ -60,6 +74,8 @@ export const JobRequest = z
     lang: Lang.default(DEFAULT_LANG),
     /** The terms the household asks for, from its own words and chips; only to phones at `TERMS_PROTOCOL`. */
     terms: Terms.optional(),
+    /** Photos of the job, if the household added any (ADR 0066). An older phone drops the field unread. */
+    photos: z.array(JobPhoto).min(1).max(MAX_PHOTOS).optional(),
   })
   .refine((r) => isTrade(r.trade) === (r.skill === undefined), "a skill exactly when the work is other");
 export type JobRequest = z.infer<typeof JobRequest>;

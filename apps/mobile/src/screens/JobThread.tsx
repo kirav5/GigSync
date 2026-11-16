@@ -13,6 +13,7 @@ import { RemovedLine, RestoredLine } from "./JobSettled.js";
 import { ContactCard } from "./job/ContactCard.js";
 import { CancelLine, DealLine, Notes, PaymentLines, ReviewLine } from "./job/JobFacts.js";
 import { JobHead } from "./job/JobHead.js";
+import { JobPhotos } from "./job/JobPhotos.js";
 import { ProblemCard } from "./ProblemCard.js";
 import { RecommendWorker } from "./qr/RecommendWorker.js";
 import { RestoredActions } from "./RestoredActions.js";
@@ -73,6 +74,7 @@ export function JobThread({ foldTalk = false, ...props }: JobActionProps & { fol
           <Said text={needShown} from={theirs} />
         </p>
       )}
+      <JobPhotos photos={job.request.photos} />
       <RestoredLine job={job} />
 
       {/* Another of this owner's phones claimed the request and negotiates it there (ADR 0045): nothing to do here. */}

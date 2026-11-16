@@ -71,6 +71,7 @@ export { isGreeting } from "./interview/need-greeting.js";
 export { chooseNeed, chooseNeedDate, hearNeed, NeedPick } from "./interview/need-hear.js";
 export { type NeedHint, understandNeed } from "./interview/need-model.js";
 export { type NeedFill, parseNeed, TIME_MAX } from "./interview/need-parse.js";
+export { canAddPhoto, needWithoutPhoto, needWithPhoto } from "./interview/need-photos.js";
 export { needPrompt } from "./interview/need-prompt.js";
 export {
   draftDetails,
