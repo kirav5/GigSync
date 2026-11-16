@@ -1,8 +1,9 @@
+import { log } from "@gigsync/core";
 import type { GeoPlace, Place, Session } from "@gigsync/protocol";
+import { placesAt } from "../../adapters/geo.js";
 import { pointOnlyPlace, workPlace } from "../../card/workPlace.js";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
-import { PlaceMap } from "../../ui/PlaceMap.js";
 import { AREAS } from "../../ui/places.js";
 import { RadiusMap } from "../../ui/RadiusMap.js";
 import { LocateStep } from "../address/LocateStep.js";
@@ -46,6 +47,18 @@ export function AreaField({
     if (found) onChange({ ...value, ...found });
     return found !== undefined;
   };
+  /** Dragged on the map: the start point moves there at once, and takes the name of the place it landed in. */
+  async function moved(at: Place) {
+    if (!value.place) return;
+    const here = { ...value, place: { ...value.place, lat: at.lat, lon: at.lon } };
+    onChange(here);
+    const [place] = await placesAt(session, at).catch((err: unknown) => {
+      log.warn("naming the work area failed", { error: err instanceof Error ? err.name : typeof err });
+      return [];
+    });
+    const found = place && workPlace(place, at);
+    if (found) onChange({ ...here, area: found.area, place: { ...found.place, lat: at.lat, lon: at.lon } });
+  }
   return (
     <div className={C.stack}>
       <label className={C.fieldLabel}>
@@ -77,17 +90,11 @@ export function AreaField({
           {t("card.area_found", { area: value.place.name })}
         </p>
       )}
-      {/* Where they start from, on the map (ADR 0050 §7): moving it moves the point; the board still gets only its coarse rounding. */}
-      {value.place && (
-        <PlaceMap
-          at={value.place}
-          label={t("map.of", { place: value.place.name })}
-          hint="map.move_area"
-          onMove={(at) => value.place && onChange({ ...value, place: { ...value.place, lat: at.lat, lon: at.lon } })}
-        />
-      )}
-      {/* How far they go, as Hinge sets a maximum distance: a circle on the map of their area, a slider under it. */}
+      {/* How far they go, as Hinge sets a maximum distance: a circle on the map of their area, a slider under it. The
+          same map is where they start from (ADR 0050 §7): dragging it moves the point; the board still gets only its
+          coarse rounding. */}
       <RadiusMap
+        onMove={value.place && ((at) => void moved(at))}
         at={value.place ?? areaPoint(value.area)}
         name={value.place?.name ?? t(`area.${areaKey(value.area)}`)}
         km={value.radius_km}

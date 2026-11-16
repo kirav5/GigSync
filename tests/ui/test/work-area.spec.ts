@@ -20,6 +20,12 @@ const VILLAS = "LGCL Bamboo Forest Villas, Rayasandra Main Rd, Choodasandra, Ben
 const FOUND: GeoResult = {
   places: [{ label: VILLAS, locality: "Choodasandra", city: "Bengaluru", point: { lat: 12.8773, lon: 77.6745 } }],
 };
+/** The place under the map once she drags it: the geocoder's answer for wherever it stops. */
+const DRAGGED: GeoResult = {
+  places: [
+    { label: "Bellandur, Bengaluru", locality: "Bellandur", city: "Bengaluru", point: { lat: 12.93, lon: 77.68 } },
+  ],
+};
 
 let contexts: BrowserContext[] = [];
 test.afterEach(async () => {
@@ -85,4 +91,38 @@ test("the profile's Work area row opens the map, finds a place as the worker typ
   await shoot("saved", { worker: page }, FOLDER);
   await openProfile(page, en);
   await expect(navRow(page, "me.work_area", en)).toContainText(say("me.area_km", { area: "Choodasandra", km: 15 }));
+});
+
+test("one map on the Work area: dragging it moves where she starts from and names the new place", async ({
+  browser,
+}) => {
+  const page = await phone(browser);
+  await page.route(`${API}/v1/geo/search**`, (route) => route.fulfill({ json: FOUND }));
+  await page.route(`${API}/v1/geo/reverse**`, (route) => route.fulfill({ json: DRAGGED }));
+  await signIn(page, { role: Role.worker, name: `Kavya drag ${RUN}`, phone: newPhone(), lang: en });
+  await publishCard(
+    { page, lang: en },
+    { trade: "Cook", area: "jayanagar", rate: "11000", min: "9000", about: "Home food" },
+  );
+  await open(page, "me.work_area", en);
+  await page.getByRole("searchbox", { name: say("addr.search") }).pressSequentially("lgcl bamboo", { delay: 30 });
+  await page.getByRole("button", { name: /^LGCL Bamboo Forest Villas/ }).click();
+  const found = (area: string) => page.getByRole("status").filter({ hasText: say("card.area_found", { area }) });
+  await expect(found("Choodasandra")).toBeVisible();
+  // One map, the circle's, with the hint to move it; no second map with a pin.
+  const frame = page.locator(".radius-map-frame");
+  await expect(frame).toBeVisible();
+  await expect(page.locator(".place-map")).toHaveCount(0);
+  await expect(frame.getByText(say("map.move_area"))).toBeVisible();
+
+  const box = await frame.boundingBox();
+  if (!box) throw new Error("no map");
+  const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x - 60, y - 40, { steps: 8 });
+  await page.mouse.move(x - 120, y - 80, { steps: 8 });
+  await page.mouse.up();
+  await expect(found("Bellandur")).toBeVisible();
+  await shoot("dragged", { worker: page }, FOLDER);
 });
