@@ -39,6 +39,7 @@ export const address = {
   "addr.check_pin": 'Is the pin on your door? Move the map until it is, then tap "This is my door".',
   "addr.cancel": "Cancel",
   "addr.err_pin": "A PIN code has six digits.",
+  "addr.err_house": "Add the house or flat number.",
   "addr.err_missing": "Add the house or flat number, area, city and PIN code.",
   "addr.near": "GigSync could not place this address. Which of these areas is it nearest to?",
   "addr.remove": "Remove",

@@ -101,11 +101,11 @@ describe("how long the work is for", () => {
 });
 
 describe("where the work is, from saved addresses", () => {
-  it("offers each saved address, Add an address, then the pilot areas", () => {
+  it("offers each saved address and Add an address; an area is said, not offered", () => {
     const s = chooseNeed(atArrangement("en", [HOME, WORK]), A.monthly);
     expect(s.slot).toBe(NeedSlot.area);
     expect(keys(s)).toEqual(["need.ask.address"]);
-    expect(values(s)).toEqual([HOME.id, WORK.id, ADD_ADDRESS, "koramangala", "hsr_layout"]);
+    expect(values(s)).toEqual([HOME.id, WORK.id, ADD_ADDRESS]);
     expect(needPrompt(s).choices?.[0]).toEqual({
       value: HOME.id,
       key: "addr.chip",

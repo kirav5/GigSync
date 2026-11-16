@@ -88,7 +88,7 @@ export { chipChoice, ScopePick, scopeDetails } from "./interview/need-scope.js";
 export { type SkillHow, withSkill } from "./interview/need-skill.js";
 export { namesOtherWork, offerSwitch, type WorkSwitch } from "./interview/need-switch.js";
 export { hourOf, needTerms, windowOf } from "./interview/need-terms.js";
-export { ANY_TIME, ANY_TIME_PICK, hoursOpen } from "./interview/need-time.js";
+export { ANY_TIME, ANY_TIME_PICK, hoursOpen, OTHER_DAY_PICK } from "./interview/need-time.js";
 export { hintOf, notHeard, turnContext, worthReading } from "./interview/need-turn.js";
 export type { AddressChoice } from "./interview/need-types.js";
 export {

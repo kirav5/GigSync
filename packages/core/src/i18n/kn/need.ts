@@ -14,6 +14,7 @@ export const need: Readonly<Record<keyof typeof en, string>> = {
   "need.ask.hour": "ಅವರು ಯಾವ ಸಮಯಕ್ಕೆ ಬರಬೇಕು?",
   "when.hour": "{time}",
   "when.any_time": "ಯಾವ ಸಮಯವಾದರೂ",
+  "when.other_day": "ಬೇರೆ ದಿನ",
   "hour.morning": "ಬೆಳಿಗ್ಗೆ {h} ಗಂಟೆ",
   "hour.afternoon": "ಮಧ್ಯಾಹ್ನ {h} ಗಂಟೆ",
   "hour.evening": "ಸಂಜೆ {h} ಗಂಟೆ",

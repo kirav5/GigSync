@@ -19,6 +19,8 @@ import type { NeedDraft } from "./need-types.js";
 /** A chip's value for an hour ("at:14"), and for any time. */
 const HOUR_PICK = "at:";
 export const ANY_TIME_PICK = "any_time";
+/** "Another day": back to the day question, whatever day was taken from the owner's words. */
+export const OTHER_DAY_PICK = "other_day";
 
 const startsToday = (s: NeedState) => s.draft.day === DayWord.today || s.draft.day === s.config.today;
 
@@ -35,7 +37,10 @@ export function hoursOpen(s: NeedState): number[] {
   );
 }
 
-/** "What time should they come?", with a chip for each hour open and "Any time" last. */
+/**
+ * "What time should they come?", with a chip for each hour open, "Any time", and "Another day" last: the day may have
+ * come from the owner's own words a few messages back, so it can always be changed here.
+ */
 export function hourPrompt(s: NeedState): Prompt {
   const own = s.config.own;
   const choices: Choice[] = [
@@ -45,6 +50,7 @@ export function hourPrompt(s: NeedState): Prompt {
       params: { time: hourText(own, h) },
     })),
     { value: ANY_TIME_PICK, key: "when.any_time" },
+    { value: OTHER_DAY_PICK, key: "when.other_day" },
   ];
   return { lines: [{ key: "need.ask.hour" }], choices, hints: choices.map((c) => t(own, c.key, c.params)) };
 }
@@ -52,6 +58,10 @@ export function hourPrompt(s: NeedState): Prompt {
 /** A tapped hour, or any time: the need moves on with its time set; any other value changes nothing. */
 export function chooseHour(s: NeedState, value: string): NeedState | undefined {
   if (value === ANY_TIME_PICK) return moveOn(s, { ...s.draft, time: ANY_TIME });
+  if (value === OTHER_DAY_PICK) {
+    const { day: _day, time: _time, ...rest } = s.draft;
+    return moveOn(s, rest);
+  }
   const hour = value.startsWith(HOUR_PICK) ? Number(value.slice(HOUR_PICK.length)) : Number.NaN;
   if (!hoursOpen(s).includes(hour)) return undefined;
   return moveOn(s, { ...s.draft, time: hourText(s.config.own, hour) });

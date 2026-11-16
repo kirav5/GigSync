@@ -4,7 +4,7 @@ import type { tabs as en } from "../en/tabs.js";
 export const tabs: Readonly<Record<keyof typeof en, string>> = {
   "shell.tabs": "ಮುಖ್ಯ ಟ್ಯಾಬ್‌ಗಳು",
   "nav.home": "ಮುಖಪುಟ",
-  "nav.jobs": "ಕೆಲಸಗಳು",
+  "nav.jobs": "ಚಟುವಟಿಕೆ",
   "nav.earnings": "ಗಳಿಕೆ",
   "nav.payments": "ಪಾವತಿಗಳು",
   "tabs.namaste": "ನಮಸ್ತೆ, {name}",

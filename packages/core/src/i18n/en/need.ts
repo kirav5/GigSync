@@ -12,6 +12,7 @@ export const need = {
   "need.ask.hour": "What time should they come?",
   "when.hour": "{time}",
   "when.any_time": "Any time",
+  "when.other_day": "Another day",
   "hour.morning": "{h} am",
   "hour.afternoon": "{h} pm",
   "hour.evening": "{h} pm",

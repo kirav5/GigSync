@@ -7,12 +7,20 @@ import {
   served,
   TooManyAddressesError,
 } from "@gigsync/core";
-import { AddressLabel, type GeoPlace, PinCode, type Place, SavedAddress, type Session } from "@gigsync/protocol";
+import {
+  AddressLabel,
+  type GeoPlace,
+  LOCALITY_MAX,
+  PinCode,
+  type Place,
+  SavedAddress,
+  type Session,
+} from "@gigsync/protocol";
 import { useState } from "react";
 import { ulid } from "ulid";
 import { homeCity, servesAnywhere, useServedCities } from "../../adapters/cities.js";
 import { placesNamed } from "../../adapters/geo.js";
-import { EMPTY, FIELDS, type FieldName, type Values } from "./AddressFields.js";
+import { EMPTY, F, FIELDS, type FieldName, type Values } from "./AddressFields.js";
 
 /** "Sorry, we're not in your area yet": a place outside every city GigSync serves. */
 export const NOT_SERVED: MessageKey = "addr.not_served";
@@ -20,6 +28,17 @@ export const NOT_SERVED: MessageKey = "addr.not_served";
 export const NEAR: MessageKey = "addr.near";
 const MISSING: MessageKey = "addr.err_missing";
 const ID_PREFIX = "adr_";
+/** What an address keeps of a city and a street line (`SavedAddress`). */
+const CITY_MAX = 60;
+const STREET_MAX = 120;
+/** Text cut to `max` characters at a word, for names the map gives that run longer than an address keeps. */
+const fit = (text: string, max: number): string => {
+  const trimmed = text.trim();
+  if (trimmed.length <= max) return trimmed;
+  const cut = trimmed.slice(0, max);
+  const space = cut.lastIndexOf(" ");
+  return (space > 0 ? cut.slice(0, space) : cut).replace(/[,\s]+$/, "");
+};
 /** The pilot's city, filled in for the owner to change: GigSync runs in Bengaluru first. */
 const PILOT_CITY_NAME = "Bengaluru";
 
@@ -71,12 +90,13 @@ export function useAddressDraft(session: Session, storage: Storage, onSaved: (ad
       return false;
     }
     setProblem(undefined);
+    // The map's names are cut to what an address keeps, so a long street line never stops the save.
     setValues((v) => ({
       ...v,
-      area: place.locality,
-      city: place.city ?? v.city,
+      area: fit(place.locality, LOCALITY_MAX),
+      city: fit(place.city ?? v.city, CITY_MAX),
       pin: place.pin ?? v.pin,
-      street: v.street || (place.street ?? ""),
+      street: v.street || fit(place.street ?? "", STREET_MAX),
     }));
     if (from) setSpot({ at, from });
     setFound(place.locality);
@@ -102,7 +122,9 @@ export function useAddressDraft(session: Session, storage: Storage, onSaved: (ad
     const filled = Object.fromEntries(FIELDS.map((f) => [f, values[f].trim()]).filter(([, v]) => v));
     const parsed = SavedAddress.safeParse({ id: `${ID_PREFIX}${ulid()}`, label, ...filled, point: at, pinned });
     if (!parsed.success) {
-      setProblem(MISSING);
+      // Say what is wrong: the door, the PIN, or else the area and city.
+      const field = parsed.error.issues[0]?.path[0];
+      setProblem(field === F.house ? "addr.err_house" : field === F.pin ? "addr.err_pin" : MISSING);
       return false;
     }
     await saveAddress(storage, parsed.data);
