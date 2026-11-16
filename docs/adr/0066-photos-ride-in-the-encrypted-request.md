@@ -1,6 +1,7 @@
 # ADR 0066: Photos of the job ride in the encrypted request
 
-Date: 2026-11-16. Status: proposed (asked for by the founders: "images only for now"). Builds on the encrypted
+Date: 2026-11-16. Status: deferred on 17 Nov 2026 ("don't implement the photo feature for now"): the app has no
+"+" and no photo picker; the request's `photos` field and its limits stay in the protocol, ready. Builds on the encrypted
 envelopes between phones (`packages/protocol/src/envelope.ts`) and the request a household sends
 (`JobRequest`, `packages/protocol/src/job.ts`).
 

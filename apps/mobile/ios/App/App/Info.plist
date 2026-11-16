@@ -25,9 +25,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>GigSync uses the camera only when you tap it: to scan someone's GigSync QR code, or to take a photo of the job for the worker you ask.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>GigSync opens your photos only when you tap +, to add a photo of the job for the worker you ask. Only the photo you pick is used.</string>
+	<string>GigSync uses the camera only when you tap Scan a QR, to read someone's GigSync QR code.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>GigSync uses your location only when you tap Use my current location, to fill in your area and PIN code. Only a rough point leaves your phone.</string>
 	<key>NSMicrophoneUsageDescription</key>

@@ -42,6 +42,12 @@
   --tint: #e7d5b5;
   --green: #4f7a4a;
   --knob: #fbf5e8;
+  /* The richer cards: the beige of a total or a QR card, the warm dark of the job happening now, and a soft lift. */
+  --sand: #f2e8d8;
+  --cocoa: #35261f;
+  --on-cocoa: #fff3e4;
+  --cocoa-accent: #e8896b;
+  --lift: 0 1px 2px rgb(74 44 30 / 0.06), 0 8px 22px -12px rgb(74 44 30 / 0.3);
   --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
   --sans:
     "Inter", "Noto Sans Devanagari", "Noto Sans Kannada", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,

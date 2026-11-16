@@ -3,7 +3,6 @@ import type { legal as en } from "../en/legal.js";
 /** ನಿಯಮಗಳು ಮತ್ತು ಗೌಪ್ಯತಾ ಸೂಚನೆ: ಪ್ರತಿ ಭಾಗದ ಶೀರ್ಷಿಕೆ ಮತ್ತು ಒಂದು ಸಾಲಿನ ಸಾರ. ಪೂರ್ಣ ಪಠ್ಯ ಈಗ ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಮಾತ್ರ. */
 export const legal: Readonly<Record<keyof typeof en, string>> = {
   "legal.updated": "ಕೊನೆಯ ಬದಲಾವಣೆ {date}",
-  "legal.contents": "ವಿಷಯಗಳು",
   "legal.english_only": "ಪ್ರತಿ ಭಾಗದ ಪೂರ್ಣ ಪಠ್ಯ ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿದೆ. ಎರಡರಲ್ಲಿ ವ್ಯತ್ಯಾಸವಿದ್ದರೆ ಇಂಗ್ಲಿಷ್‌ನದೇ ಅನ್ವಯ.",
   "legal.about": "ಈ ನಿಯಮಗಳ ಬಗ್ಗೆ",
   "legal.about.sum": "ಸೈನ್ ಇನ್ ಆಗುವ ಮೂಲಕ ನೀವು ಈ ನಿಯಮಗಳಿಗೆ ಮತ್ತು ಭಾಗ 8ರ ಗೌಪ್ಯತಾ ಸೂಚನೆಗೆ ಒಪ್ಪುತ್ತೀರಿ.",

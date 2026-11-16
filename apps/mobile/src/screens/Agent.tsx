@@ -4,7 +4,6 @@ import {
   edit,
   type GigDevice,
   isLastSlot,
-  type MessageKey,
   movingIntent,
   type Ports,
   prompt,
@@ -25,7 +24,6 @@ import { useMoves } from "../talk/useMoves.js";
 import { useNotes } from "../talk/useNotes.js";
 import { BarTitle } from "../ui/Bar.js";
 import { Composer, Via } from "../ui/Composer.js";
-import type { ComposerPick } from "../ui/ComposerMore.js";
 import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
 import type { GigView } from "../useGig.js";
@@ -136,18 +134,6 @@ export function AgentScreen(props: TalkProps) {
 
   /** An empty chat: the greeting and its ways in stand over the composer, instead of the headline. */
   const empty = ready && turns.length === 0 && !active;
-  const saidCard = (key: MessageKey) => beginInterview(fresh(), t(key));
-  /** The composer's "+": the card (made, or changed), the price, and Get verified, said as the worker's own words. */
-  const picks: ComposerPick[] = account.worker
-    ? [
-        { icon: "card", label: t("choose.editCard"), onPick: () => saidCard("choose.editCard") },
-        { icon: "pencil", label: t("agent.suggest_rate"), onPick: () => priced(t("agent.suggest_rate")) },
-        { icon: "shield", label: t("home.suggest_verify"), onPick: props.onVerify },
-      ]
-    : [
-        { icon: "card", label: t("home.make_card"), onPick: () => saidCard("home.make_card") },
-        { icon: "shield", label: t("home.suggest_verify"), onPick: props.onVerify },
-      ];
 
   /**
    * Mid-interview, words go to the interview, except words that only mean moving: a newcomer often has no card yet, so
@@ -211,7 +197,6 @@ export function AgentScreen(props: TalkProps) {
           hints={current?.hints ?? []}
           numeric={current?.numeric ?? false}
           onDeviceOnly={current?.secret ?? false}
-          picks={picks}
         />
       </Dock>
     </>

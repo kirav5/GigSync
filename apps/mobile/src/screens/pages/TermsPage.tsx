@@ -11,13 +11,11 @@ const { en } = Lang.enum;
 const LONG_DATE: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
 /** Read as local midday, so the date is the same day in every time zone. */
 const MIDDAY = "T12:00:00";
-const anchorOf = (id: string) => `legal-${id}`;
 
 /**
  * Where "Terms and Privacy Notice" leads, from the sign-in line and from Settings (ADR 0039 §4): one long readable
- * page, as the big home-services apps show theirs. The date it last changed, a contents list that jumps to each
- * section, then the numbered sections: each one's title and summary in the reader's language, its full text in
- * English. From Settings the shell's top bar has the title and Back; from sign-in, which has no top bar, the page
+ * white page, as the big home-services apps show theirs. The date it last changed, then the numbered sections: each
+ * one's title and summary in the reader's language, its full text in English. From Settings the shell's top bar has the title and Back; from sign-in, which has no top bar, the page
  * draws its own (`onBack`), over the form, which keeps what was typed.
  */
 export function TermsPage({ onBack }: { onBack?: () => void }) {
@@ -43,22 +41,6 @@ export function TermsPage({ onBack }: { onBack?: () => void }) {
         })}
       </p>
       {lang !== en && <p className="legal-note">{t("legal.english_only")}</p>}
-      <nav className="legal-contents" aria-label={t("legal.contents")}>
-        <h2 className="legal-contents-title">{t("legal.contents")}</h2>
-        <ol>
-          {TERMS_SECTIONS.map((s) => (
-            <li key={s.id}>
-              <button
-                type={C.button}
-                className={C.linkBtn}
-                onClick={() => document.getElementById(anchorOf(s.id))?.scrollIntoView({ block: "start" })}
-              >
-                {s.number}. {t(s.title)}
-              </button>
-            </li>
-          ))}
-        </ol>
-      </nav>
       {TERMS_SECTIONS.map((s) => (
         <SectionView key={s.id} section={s} english={lang === en} />
       ))}
@@ -70,7 +52,7 @@ export function TermsPage({ onBack }: { onBack?: () => void }) {
 function SectionView({ section, english }: { section: TermsSection; english: boolean }) {
   const { t } = useI18n();
   return (
-    <div className="legal-section" id={anchorOf(section.id)}>
+    <div className="legal-section">
       <h2 className="legal-heading">
         {section.number}. {t(section.title)}
       </h2>

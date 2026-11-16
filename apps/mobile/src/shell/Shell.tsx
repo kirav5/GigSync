@@ -46,7 +46,8 @@ function useProfileDot(): string {
  * The signed-in layout, top to bottom: the title row (the chats on its left, the profile on its right), the screen,
  * which alone scrolls, the dock with the screen's one primary action, and the three tabs on a tab's screen (and on the
  * landing one, so a worker without a card can reach them from Talk). On a wide screen the tabs stand beside it all as
- * a rail. The profile is a sheet over whatever is open; a row in it opens its screen above that one. On a phone the
+ * a rail. The profile is a sheet over whatever is open; a row in it opens its screen above that one, and Back from
+ * that screen comes to the sheet again. On a phone the
  * chats are a drawer from the left edge (the menu button, or a thumb pulling in from the edge); wide, a screen.
  */
 export function Shell({ ports, account, nav, tasks, onNewChat, children }: Props) {
@@ -54,9 +55,8 @@ export function Shell({ ports, account, nav, tasks, onNewChat, children }: Props
   const wide = useWideScreen();
   const dot = useProfileDot();
   const [dock, setDock] = useState<HTMLDivElement | null>(null);
-  const [profile, setProfile] = useState(false);
   const [chats, setChats] = useState(false);
-  const { screen, stack, go, back } = nav;
+  const { screen, stack, go, back, profile, setProfile } = nav;
   // A tab is a top place, as Home is: the tab bar moves between them, so a tab's bar has no Back.
   const atTab = isTab(account, screen);
   const tabbed = atTab || stack.length === 1;
@@ -110,7 +110,9 @@ export function Shell({ ports, account, nav, tasks, onNewChat, children }: Props
           />
         )}
       </div>
-      {profile && <ProfileSheet ports={ports} account={account} onOpen={go} onClose={() => setProfile(false)} />}
+      {profile && (
+        <ProfileSheet ports={ports} account={account} onOpen={nav.goFromProfile} onClose={() => setProfile(false)} />
+      )}
     </BarProvider>
   );
 }

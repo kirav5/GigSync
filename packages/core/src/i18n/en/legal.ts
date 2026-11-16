@@ -5,7 +5,6 @@
  */
 export const legal = {
   "legal.updated": "Last updated {date}",
-  "legal.contents": "Contents",
   "legal.english_only": "The full text of each section is in English. If the versions differ, the English one applies.",
   "legal.about": "About these terms",
   "legal.about.sum": "By signing in you agree to these terms and the privacy notice in section 8.",

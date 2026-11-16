@@ -22,20 +22,39 @@
 }
 /* The QR card: the code as the hero on its white tile, in a terracotta frame, as WhatsApp and PhonePe put it large
    under the name; one short line under it in the frame's light ink. */
+/* The QR on a light beige card, with two Warli figures faint in its corner, as the Earnings total. */
 .my-qr .qr-card {
+  position: relative;
+  overflow: hidden;
   justify-items: center;
   align-content: start;
   text-align: center;
   gap: 14px;
   padding: 22px 18px;
   border: 0;
-  background: var(--accent, #a4512b);
-  color: #fff;
+  border-radius: 26px;
+  background: var(--sand);
+  color: var(--text);
 }
-.my-qr .qr-card .share-top,
-.my-qr .qr-card .share-name,
-.my-qr .qr-card .muted {
-  color: #fff;
+.my-qr .qr-card::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 64px;
+  height: 56px;
+  background: var(--accent);
+  opacity: 0.18;
+  -webkit-mask: var(--warli-pair) center / contain no-repeat;
+  mask: var(--warli-pair) center / contain no-repeat;
+  pointer-events: none;
+}
+.my-qr .qr-card > * {
+  position: relative;
+  z-index: 1;
+}
+.my-qr .qr-card .qr {
+  border-radius: 16px;
 }
 .my-qr .qr-card .share-name {
   margin-top: 0;
@@ -45,7 +64,7 @@
   max-width: 280px;
   font-size: var(--fs-2);
   line-height: 1.4;
-  color: rgb(255 255 255 / 0.9);
+  color: var(--text2);
 }
 /* Share is the one primary action; Save QR sits beside it and keeps to its words. Both wrap on a narrow phone. */
 .qr-share {

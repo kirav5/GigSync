@@ -68,22 +68,28 @@ export async function openProfile(page: Page, lang: Lang = DEFAULT_LANG) {
 export async function backToTabs(page: Page, lang: Lang = DEFAULT_LANG) {
   // The frame first: right after a reload the app has not drawn yet.
   await expect(page.getByRole("banner")).toBeVisible();
-  // An open profile sheet makes the page behind it inert: Done closes it.
-  if (await profileSheet(page, lang).isVisible()) {
-    await profileSheet(page, lang)
-      .getByRole("button", { name: t(lang, "profile.done"), exact: true })
-      .click();
-    await expect(profileSheet(page, lang)).toBeHidden();
-  }
+  await closeProfile(page, lang);
   // An open chats drawer shades the screen behind it, as a phone's drawer does: Escape closes it.
   const chats = page.getByRole("navigation", { name: t(lang, "chats.title"), exact: true });
   if (await chats.isVisible()) {
     await page.keyboard.press("Escape");
     await expect(chats).toBeHidden();
   }
-  while (!(await tabBar(page, lang).isVisible()) && (await back(page, lang).isVisible()))
+  // Back from a screen opened from the profile sheet comes to the sheet again: Done closes it.
+  while (!(await tabBar(page, lang).isVisible()) && (await back(page, lang).isVisible())) {
     await back(page, lang).click();
+    await closeProfile(page, lang);
+  }
   await expect(tabBar(page, lang)).toBeVisible();
+}
+
+/** An open profile sheet makes the page behind it inert: Done closes it. */
+export async function closeProfile(page: Page, lang: Lang = DEFAULT_LANG) {
+  if (!(await profileSheet(page, lang).isVisible())) return;
+  await profileSheet(page, lang)
+    .getByRole("button", { name: t(lang, "profile.done"), exact: true })
+    .click();
+  await expect(profileSheet(page, lang)).toBeHidden();
 }
 
 /** Find's chat on a household's Home: its composer, or New need once its workers were asked. */

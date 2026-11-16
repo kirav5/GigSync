@@ -21,9 +21,11 @@ export const tabs: Readonly<Record<keyof typeof en, string>> = {
   "profile.my_qr": "मेरा QR",
   "profile.my_qr_sub": "कामगार इसे स्कैन करके आपके यहाँ काम की पेशकश कर सकते हैं",
   "home.ask_household": "आपको किस काम में मदद चाहिए?",
-  "home.suggest_jobs": "आज के काम दिखाएँ",
+  "home.suggest_jobs": "आज के काम",
   "home.suggest_verify": "पहचान जँचवाएँ",
   "home.suggest_cook": "रोज़ खाना बनाने के लिए कुक",
   "home.suggest_clean": "घर के काम के लिए कोई",
+  "home.chip_cook": "कुक",
+  "home.chip_clean": "घर का काम",
   "home.my_places": "मेरी जगहें",
 };

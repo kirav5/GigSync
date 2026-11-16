@@ -54,7 +54,6 @@ import { phoneDay } from "../jobGroups.js";
 import { AddAddress, type Adding } from "./AddAddress.js";
 import { AddressDesk } from "./AddressDesk.js";
 import { FindStart } from "./FindStart.js";
-import { useNeedPhotos } from "./NeedPhotos.js";
 import { NeedTurns } from "./NeedTurns.js";
 import { needMemory, withMemory } from "./remembered.js";
 import "../talk.css";
@@ -158,7 +157,6 @@ export function FindChat({ ports, account, device, onAsked, onPlaces, recent }: 
 
   useNeedSearch({ state, open, account, i18n, ports, device, onAsked, saved });
   const { busy, ask } = useAskPicked({ ports, device, i18n, state, open, saved, onAsked });
-  const { picks, strip } = useNeedPhotos(open, state);
 
   // Every message: read by the model where one is there, else the word lists (`find/readNeed.ts`). The first is the
   // need in the owner's words; its scope is read into chips the owner confirms before the estimate (ADR 0033 §5).
@@ -282,7 +280,6 @@ export function FindChat({ ports, account, device, onAsked, onPlaces, recent }: 
       <Working on={state?.slot === NeedSlot.done} />
       <div ref={end} />
       <Dock>
-        {strip}
         <Composer
           label={t("need.composer")}
           placeholder={t(greet ? "composer.ask" : "need.placeholder")}
@@ -291,7 +288,6 @@ export function FindChat({ ports, account, device, onAsked, onPlaces, recent }: 
           hints={current?.hints ?? []}
           numeric={current?.numeric ?? false}
           onDeviceOnly={current?.secret ?? false}
-          picks={picks}
         />
       </Dock>
     </>

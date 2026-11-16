@@ -6,8 +6,6 @@ export const speech = {
   "speech.listening": "Listening…",
   "speech.listening_in": "Listening in {lang}",
   "composer.ask": "Ask anything",
-  "composer.more": "More",
-  "composer.more_title": "What would you like to do?",
   "composer.dictate": "Type by speaking",
   "speech.unavailable": "Speaking in {lang} doesn't work on this phone yet. Please type.",
   "speech.fetching": "Getting {lang} voice typing… type meanwhile",

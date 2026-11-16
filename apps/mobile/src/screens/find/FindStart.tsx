@@ -4,10 +4,10 @@ import { tapNeed } from "../../find/needStore.js";
 import { useI18n } from "../../i18n.js";
 import { Greeting, type GreetingRow } from "../home/Greeting.js";
 
-/** The common needs the greeting offers, each said into the chat as the owner's own first words. */
-const NEEDS: readonly { icon: GreetingRow["icon"]; label: MessageKey }[] = [
-  { icon: "pot", label: "home.suggest_cook" },
-  { icon: "broom", label: "home.suggest_clean" },
+/** The common needs the greeting offers: a short chip, and the longer words it says into the chat as her own. */
+const NEEDS: readonly { icon: GreetingRow["icon"]; label: MessageKey; said: MessageKey }[] = [
+  { icon: "pot", label: "home.chip_cook", said: "home.suggest_cook" },
+  { icon: "broom", label: "home.chip_clean", said: "home.suggest_clean" },
 ];
 
 interface Props {
@@ -29,8 +29,8 @@ interface Props {
 export function FindStart({ chat, name, onSay, onPlaces, recent }: Props) {
   const { t } = useI18n();
   const rows: GreetingRow[] = [
-    ...NEEDS.map(({ icon, label }) => ({ icon, label, onPick: () => onSay(t(label)) })),
-    // The list of work, for whoever cannot say or type it (ADR 0051); it was behind the "+", which is photos now.
+    ...NEEDS.map(({ icon, label, said }) => ({ icon, label, onPick: () => onSay(t(said)) })),
+    // The list of work, for whoever cannot say or type it (ADR 0051).
     { icon: "search", label: "need.pick_work", onPick: () => tapNeed(chat, NeedPick.list, t("need.pick_work")) },
     { icon: "pin", label: "home.my_places", onPick: onPlaces },
   ];

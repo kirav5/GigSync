@@ -8,8 +8,6 @@ export const speech: Readonly<Record<keyof typeof en, string>> = {
   "speech.listening": "सुन रहा हूँ…",
   "speech.listening_in": "{lang} में सुन रहा हूँ",
   "composer.ask": "कुछ भी पूछिए",
-  "composer.more": "और",
-  "composer.more_title": "आप क्या करना चाहेंगे?",
   "composer.dictate": "बोलकर लिखें",
   "speech.unavailable": "इस फ़ोन पर अभी {lang} में बोलकर लिखने की सुविधा नहीं है। कृपया टाइप करें।",
   "speech.fetching": "{lang} में बोलकर लिखना आ रहा है… तब तक टाइप करें",
