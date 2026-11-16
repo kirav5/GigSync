@@ -81,7 +81,7 @@ export const me = {
   "me.terms_sub": "What you agreed to, and what GigSync keeps",
   "me.mentor_sub": "Someone who has done your work in the city",
   "me.report": "Report a problem with a job",
-  "me.report_sub": "Open the job in Jobs, then tap Report a problem",
+  "me.report_sub": "Open the job in Activity, then tap Report a problem",
   // Alerts
   "me.alert.confirm_deal": "Your assistants agreed {price}. Sign?",
   "me.alert.deal": "Your assistants agreed. Sign?",

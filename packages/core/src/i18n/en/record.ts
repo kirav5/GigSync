@@ -16,6 +16,8 @@ export const record = {
   // On the worker's card, for households to see (ADR 0036)
   "record.card_label": "Work record",
   "record.card_jobs": "Jobs done",
+  "record.jobs_done.one": "{count} job done",
+  "record.jobs_done.other": "{count} jobs done",
   "record.card_rated.one": "{count} rating",
   "record.card_rated.other": "{count} ratings",
   "record.card_not_rated": "Not yet rated",

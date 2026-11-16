@@ -127,7 +127,7 @@
   display: grid;
   justify-items: end;
   gap: 5px;
-  max-width: 45%;
+  max-width: 50%;
 }
 .job-row-amount {
   font: 600 17px / 1 var(--serif-latin);
@@ -152,7 +152,9 @@
   font-size: calc(var(--fs-tag) - 1px);
   font-weight: 600;
   line-height: 1.35;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .job-pill::before {
   content: "";
@@ -172,8 +174,7 @@
 }
 
 /* The job's own card, opened under its face: it sits inside the same card instead of drawing a second one, and its
-   head drops the person's tile and name, which the face above already shows. The work and when stay: the time there
-   may be the other side's own words, translated. */
+   head (who, the work, when, the status) is said to readers only, as the face above already shows all of it. */
 .job-row-open {
   padding: 0 4px 4px;
 }
@@ -183,9 +184,13 @@
   background: transparent;
   box-shadow: none;
 }
-.job-row-open .job-head > .avatar,
-.job-row-open .job-head .job-name {
-  display: none;
+.job-row-open .job-head {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* No jobs at all: one quiet card with what the tab is for and what to ask. */
@@ -226,10 +231,11 @@
   width: 100%;
   min-height: var(--tap);
   margin: 0;
-  padding: 10px 14px;
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-row);
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 18px;
   background: var(--surface);
+  box-shadow: var(--lift);
   color: inherit;
   font: inherit;
   font-size: var(--fs-2);

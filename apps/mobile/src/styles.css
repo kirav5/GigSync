@@ -493,8 +493,9 @@ select.field {
 /* Containers: a card is the surface with a hairline and 10px corners. */
 .card {
   background: var(--surface);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-card);
+  border: 0;
+  border-radius: 20px;
+  box-shadow: var(--lift);
   padding: 16px;
   display: grid;
   gap: 10px;
@@ -1072,8 +1073,9 @@ fieldset {
   align-content: start;
   padding: 14px;
   background: var(--surface);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-card);
+  border: 0;
+  border-radius: 18px;
+  box-shadow: var(--lift);
   min-width: 0;
 }
 .stat > b {
@@ -1152,8 +1154,9 @@ fieldset {
 .list-card {
   display: grid;
   background: var(--surface);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-card);
+  border: 0;
+  border-radius: 20px;
+  box-shadow: var(--lift);
   overflow: hidden;
 }
 .list-card > * + * {

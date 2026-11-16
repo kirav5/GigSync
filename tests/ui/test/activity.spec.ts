@@ -16,8 +16,7 @@ import { dealPaise, fillAsk, type Phone, publishCard, unlistCards } from "./jour
 const { en } = Lang.enum;
 const say = (key: MessageKey, params?: Params) => t(en, key, params);
 const FOLDER = "activity";
-/** The kit's light line (#E1D5C1) and its white card, as the browser reports them. */
-const HAIRLINE = "rgb(225, 213, 193)";
+/** The kit's white card, as the browser reports it. */
 const WHITE = "rgb(255, 255, 255)";
 
 let contexts: BrowserContext[] = [];
@@ -116,7 +115,7 @@ test("a job walks from Awaiting you to In talks to Agreed, then leaves Activity 
   await expect(amountOn(section(first, "activity.tab_awaiting"))).toHaveText(/^₹[\d,]+$/);
   // The kit's colours: the card keeps the light line (a terracotta bar marks it), and the amount is a light card.
   const needsCard = section(first, "activity.tab_awaiting").locator(".job-rows > li");
-  await expect(needsCard).toHaveCSS("border-top-color", HAIRLINE);
+  await expect(needsCard).toHaveCSS("background-image", /linear-gradient/);
   await expect(signGroup(first).locator(".sign-hero")).toHaveCSS("background-color", WHITE);
   await shoot("awaiting-you", shots, FOLDER);
 

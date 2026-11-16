@@ -169,8 +169,8 @@ export function AnswerForm({
   }
   return (
     <form className={C.stack} onSubmit={submit} aria-label={t("a11y.answer")}>
-      <div className="row-between">
-        <span className={C.label}>{say}</span>
+      <div className="answer-head">
+        <p className="answer-say">{say}</p>
         <SpeakButton lang={lang} text={say} />
       </div>
       {questions.map((q) => (

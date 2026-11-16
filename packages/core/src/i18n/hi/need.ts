@@ -38,7 +38,7 @@ export const need: Readonly<Record<keyof typeof en, string>> = {
   "need.found": "पास में ये लोग मदद कर सकते हैं। तीन तक चुनिए, फिर पूछिए।",
   "need.nobody": "{km} किमी के अंदर अभी कोई नहीं मिला। थोड़ा और दूर देखूँ, या कुछ बदलें?",
   "need.change": "कुछ बदलें",
-  "need.asked": "पूछ लिया। आगे काम में देखें।",
+  "need.asked": "पूछ लिया। आगे गतिविधि में देखें।",
   "need.start_to": "आपको {name} से क्या काम करवाना है? अपने शब्दों में बताइए।",
   "need.confirm_to": "क्या मैं {name} से पूछूँ?",
   "need.asking_to": "{name} से पूछ रहा हूँ…",

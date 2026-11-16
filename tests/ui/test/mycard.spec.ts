@@ -188,7 +188,7 @@ test("a household scanning a worker sees the record GigSync keeps, and none once
   await household.goto(`${APP}/?to=${qr}`);
   const seen = household.getByRole("region", { name: "Kavya" });
   await expect(seen).toContainText(ABOUT);
-  await expect(stats(seen)).toHaveText(["5", "★ 4.8"]);
+  await expect(stats(seen)).toHaveText([plural(en, "record.jobs_done", 5), "★ 4.8"]);
 
   const hidden = published(worker, (sent) => sent.show_record === false);
   await open(worker, "nav.privacy");

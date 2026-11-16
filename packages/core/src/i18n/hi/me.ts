@@ -77,7 +77,7 @@ export const me: Readonly<Record<keyof typeof en, string>> = {
   "me.terms_sub": "आपने किस बात पर हामी भरी, और GigSync क्या रखता है",
   "me.mentor_sub": "कोई जिसने इस शहर में आपका काम किया है",
   "me.report": "किसी काम की समस्या बताएँ",
-  "me.report_sub": "काम टैब में वह काम खोलें, फिर समस्या बताएँ पर टैप करें",
+  "me.report_sub": "गतिविधि में वह काम खोलें, फिर समस्या बताएँ पर टैप करें",
   "me.alert.confirm_deal": "आपके सहायकों ने {price} तय किया। हस्ताक्षर करें?",
   "me.alert.deal": "आपके सहायकों ने सौदा तय किया। हस्ताक्षर करें?",
   "me.alert.confirm_payment": "कहते हैं कि पैसे दे दिए। क्या पैसे आ गए?",

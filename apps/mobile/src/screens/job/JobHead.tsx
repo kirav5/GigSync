@@ -1,11 +1,11 @@
-import { dayOf, EVERY_DAY, type JobRecord, WhenDetail } from "@gigsync/core";
+import { dayOf, type JobRecord, WhenDetail } from "@gigsync/core";
 import { EngagementStatus, type JobRequest, type Lang } from "@gigsync/protocol";
 import { useI18n } from "../../i18n.js";
 import { Avatar, AvatarSize, AvatarTone } from "../../ui/Avatar.js";
 import { C } from "../../ui/cls.js";
 import { Said } from "../../ui/Said.js";
 import { requestWork } from "../../ui/work.js";
-import { dayDate } from "../jobGroups.js";
+import { dayWord } from "../JobProgress.js";
 import { J } from "./look.js";
 
 const S = EngagementStatus.enum;
@@ -61,13 +61,13 @@ export function JobHead({ job, them, from }: { job: JobRecord; them: string; fro
  * translated), then the time as the other side wrote it. A request from before the When chips has only its free text.
  */
 function When({ request, from }: { request: JobRequest; from: Lang | undefined }) {
-  const { t, date } = useI18n();
+  const { t, lang } = useI18n();
   const day = dayOf(request);
   const time = request.details[WhenDetail.time];
   if (day === undefined) return <Said text={request.when} from={from} />;
   return (
     <>
-      {day === EVERY_DAY ? t("when.daily") : date(dayDate(day))}
+      {dayWord(day, lang, t)}
       {time && (
         <>
           {DOT}

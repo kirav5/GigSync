@@ -176,3 +176,16 @@
   font-variant-numeric: tabular-nums;
   color: var(--text3);
 }
+
+/* Questions from the other side's assistant (AnswerForm.tsx): who asks, as a plain sentence, with its speaker. */
+.answer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.answer-say {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.35;
+}
