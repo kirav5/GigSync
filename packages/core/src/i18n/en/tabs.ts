@@ -2,7 +2,7 @@
 export const tabs = {
   "shell.tabs": "Main tabs",
   "nav.home": "Home",
-  "nav.jobs": "Jobs",
+  "nav.jobs": "Activity",
   // The ₹ tab, by whose money it is: what a worker earned, what a household paid.
   "nav.earnings": "Earnings",
   "nav.payments": "Payments",
