@@ -1,32 +1,59 @@
 import type { Ports } from "@gigsync/core";
+import { useId } from "react";
 import { type Account, AccountRole } from "../../adapters/account.js";
 import { useI18n } from "../../i18n.js";
+import { Screen } from "../../state.js";
 import { Avatar, AvatarSize, AvatarTone } from "../../ui/Avatar.js";
+import { C } from "../../ui/cls.js";
+import { Icon } from "../../ui/Icon.js";
 import { ListCard } from "../../ui/ListRow.js";
 import { Sheet } from "../../ui/Sheet.js";
-import { HouseholdGroup, WorkerGroup } from "./groups.js";
-import { HelpRow, LanguageRow, type OpenScreen, PrivacyRow, SettingsLink } from "./rows.js";
+import { HouseholdRows, WorkerRows } from "./groups.js";
+import { HelpRow, LanguageChip, type OpenScreen, PrivacyChip, SettingsChip } from "./rows.js";
 import { useIdChecked } from "./useIdCheck.js";
+import { workAreaName } from "./WorkAreaPage.js";
 import "./me.css";
 
+interface HeadProps {
+  account: Account;
+  idChecked: boolean;
+  onOpen: OpenScreen;
+}
+
 /**
- * Who the owner is, at the top: their initial, their name and, once this phone holds a passed check, that their ID
- * was checked. It only says; About me, in the rows, opens.
+ * Who the owner is, at the top, as WhatsApp puts it: their initial, name and one line (a worker's area, or that their
+ * ID was checked), the whole of it opening About me; and the QR as a square beside it, opening My card or My QR.
  */
-function ProfileHead({ name, idChecked }: { name: string; idChecked: boolean }) {
+function ProfileHead({ account, idChecked, onOpen }: HeadProps) {
   const { t } = useI18n();
+  const id = useId();
+  const isWorker = account.role === AccountRole.worker;
+  const name = account.contact.name;
+  const area = isWorker ? workAreaName(account, t) : undefined;
+  const line = [area, idChecked ? t("idcheck.done") : undefined].filter(Boolean).join(" · ");
   return (
     <div className="profile-head">
-      <Avatar name={name} size={AvatarSize.lg} tone={AvatarTone.rust} />
-      <span className="profile-words">
-        <span className="profile-name">{name}</span>
-        {/* Every signed-in number was checked by its code, so that goes unsaid; only an ID check is worth a line. */}
-        {idChecked && (
-          <span className="profile-verified">
-            <span>{t("idcheck.done")}</span>
-          </span>
-        )}
-      </span>
+      <button
+        type={C.button}
+        className="profile-me"
+        aria-label={t("nav.about")}
+        aria-describedby={id}
+        onClick={() => onOpen(Screen.about)}
+      >
+        <Avatar name={name} size={AvatarSize.lg} tone={AvatarTone.rust} />
+        <span id={id} className="profile-words">
+          <span className="profile-name">{name}</span>
+          {line && <span className="profile-verified">{line}</span>}
+        </span>
+      </button>
+      <button
+        type={C.button}
+        className="profile-qr"
+        aria-label={t("profile.my_qr")}
+        onClick={() => onOpen(Screen.card)}
+      >
+        <Icon name="qr" size={26} />
+      </button>
     </div>
   );
 }
@@ -40,11 +67,10 @@ interface Props {
 }
 
 /**
- * The profile (design: "Profile · from the photo, top right"), a tall sheet over the open screen, grouped as the
- * phone's own settings are: who the owner is, then their card (a worker) or their home (a household), each with the
- * people they know, then updates and help, then preferences. Each row opens a page of its own, and no two open the
- * same one; the sheet closes first, so the screen opens with nothing over it. The decisions waiting are counted on
- * the Jobs tab alone.
+ * The profile, a tall sheet over the open screen, kept short as studies of first-time phone users ask: who the owner
+ * is with their QR beside the name, then one list (a worker's card, area, check, record, people and help; a
+ * household's places and people), then Language, Privacy and Settings as three small buttons at the foot. Each opens
+ * a page of its own; the sheet closes first, so the screen opens with nothing over it.
  */
 export function ProfileSheet({ ports, account, onOpen, onClose }: Props) {
   const { t } = useI18n();
@@ -56,22 +82,20 @@ export function ProfileSheet({ ports, account, onOpen, onClose }: Props) {
   };
   return (
     <Sheet title={t("profile.title")} done={t("profile.done")} onClose={onClose}>
-      <ProfileHead name={account.contact.name} idChecked={idChecked} />
-      {isWorker ? (
-        <WorkerGroup account={account} idChecked={idChecked} onOpen={open} />
-      ) : (
-        <HouseholdGroup ports={ports} onOpen={open} />
-      )}
-      {isWorker && (
-        <ListCard label={t("profile.group_help")}>
-          <HelpRow onOpen={open} />
-        </ListCard>
-      )}
-      <ListCard label={t("profile.group_prefs")}>
-        <LanguageRow onOpen={open} />
-        <PrivacyRow onOpen={open} />
-        <SettingsLink onOpen={open} />
+      <ProfileHead account={account} idChecked={idChecked} onOpen={open} />
+      <ListCard>
+        {isWorker ? (
+          <WorkerRows account={account} idChecked={idChecked} onOpen={open} />
+        ) : (
+          <HouseholdRows ports={ports} onOpen={open} />
+        )}
+        {isWorker && <HelpRow onOpen={open} />}
       </ListCard>
+      <div className="profile-prefs">
+        <LanguageChip onOpen={open} />
+        <PrivacyChip onOpen={open} />
+        <SettingsChip onOpen={open} />
+      </div>
     </Sheet>
   );
 }

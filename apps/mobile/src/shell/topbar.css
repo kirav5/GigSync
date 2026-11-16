@@ -1,8 +1,10 @@
 /* The title row as the design's Home draws it (TopBar.tsx), the same for both owners: a round white button on the left
    (the chats, or Back), the sun and "gigsync" beside it on Home and the screen's title elsewhere, and the round
    profile button with the owner's initial on the right. */
+/* The round menu button and the screen's title or the logo beside it: a clear gap, so the title never reads as the
+   button's own label. */
 .topbar {
-  gap: 10px;
+  gap: 16px;
 }
 .topbar .topbar-title {
   flex: 1;

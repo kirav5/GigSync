@@ -3,10 +3,8 @@ import type { page as en } from "../en/page.js";
 /** Hindi: the pages the menu opens, each on its own: My card, Records, About me, Privacy and Settings. */
 export const page: Readonly<Record<keyof typeof en, string>> = {
   // My card
-  "page.card_soft_worker": "इसे भेजिए — कोई भी आपसे काम के लिए पूछ सकता है।",
   "page.card_seen": "घर वाले यह देखते हैं",
   "page.card_none": 'आपका कार्ड अभी नहीं बना। "मेरा कार्ड बदलें" से बनाइए, या चैट में अपने सहायक को अपने काम के बारे में बताइए।',
-  "page.card_soft": "इसे भेजिए — कामगार आपके लिए काम करने की पेशकश कर सकते हैं।",
   // Records: completed work, and for a household what it paid
   "page.records_soft_worker": "GigSync पर पूरे किए काम, और उनसे हुई कमाई।",
   "page.records_soft": "GigSync पर आपके लिए हुए काम, और आपने कितना चुकाया।",

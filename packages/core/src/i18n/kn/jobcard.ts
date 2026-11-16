@@ -15,7 +15,7 @@ export const jobcard: Readonly<Record<keyof typeof en, string>> = {
   "jobcard.turn": "{max} ರಲ್ಲಿ {count}ನೇ ಸರದಿ.",
   "jobcard.floor": "ನಿಮ್ಮ {price} ಗಿಂತ ಎಂದೂ ಕಡಿಮೆ ಇಲ್ಲ.",
   "jobcard.ceiling": "ನಿಮ್ಮ {price} ಗಿಂತ ಎಂದೂ ಹೆಚ್ಚಿಲ್ಲ.",
-  "jobcard.turns_rule": "{max} ಪ್ರಯತ್ನಗಳ ನಂತರ ನೀವು ನಿರ್ಧರಿಸುತ್ತೀರಿ.",
+  "jobcard.usual": "ಸಾಮಾನ್ಯ ದರ {low}–{high}",
   "jobcard.carry_on": "ನೀವು ಏನೂ ಮಾಡದಿದ್ದರೆ, ನಿಮ್ಮ ಸಹಾಯಕ ಮಾತು ಮುಂದುವರಿಸುತ್ತದೆ.",
   "jobcard.they_ask": "{name} ಅವರು {price} ಕೇಳುತ್ತಿದ್ದಾರೆ.",
   "jobcard.they_offer": "{name} ಅವರು {price} ಕೊಡುತ್ತಿದ್ದಾರೆ.",

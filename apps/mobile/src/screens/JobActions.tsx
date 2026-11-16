@@ -26,7 +26,7 @@ import { SignCard } from "./JobDecide.js";
 import { AskAgain } from "./job/AskAgain.js";
 import { JobDay } from "./job/JobDay.js";
 import { shortHash } from "./job/look.js";
-import { NoteBox } from "./job/NoteBox.js";
+import { MoreSheet } from "./job/MoreSheet.js";
 import { type ApproveDetail, RequestFits } from "./job/RequestFits.js";
 import { ReviewCard } from "./job/ReviewCard.js";
 import { StuckCard, TakeOver } from "./job/TalkDecide.js";
@@ -47,8 +47,6 @@ export interface JobActionProps {
 
 const S = EngagementStatus.enum;
 const P = PaymentStatus.enum;
-/** Once both have signed, a worker may leave a note for the customer. */
-const SIGNED: ReadonlySet<EngagementStatus> = new Set([S.agreed, S.in_progress, S.delivered]);
 /** A job its agents are still talking about: the owner may step in. */
 const TALKING: ReadonlySet<EngagementStatus> = new Set([S.sent, S.clarifying, S.negotiating]);
 /** Between the sentence read aloud and each term after it. */
@@ -123,12 +121,12 @@ export function JobActions(props: JobActionProps & { them: string; talk?: ReactN
             onDecline={() => step(() => device.declineDeal(id))}
           />
         )}
-        {talk}
         {/* Turning a request down already ends it: no second way out beside the request that fits. */}
         {talking && !stuck && !approve && <TakeOver {...decide} />}
+        {talk}
         {onAgain && <AskAgain job={job} them={them} onAgain={onAgain} />}
         {/* Until the work is handed over, either side may call the job off; the worker moves it on one step at a time. */}
-        {UNDER_WAY.has(status) && <JobDay job={job} device={device} step={step} them={them} isWorker={isWorker} />}
+        {UNDER_WAY.has(status) && <JobDay job={job} device={device} step={step} isWorker={isWorker} />}
         {/* Only Today lists a worker's jobs, and it always passes onAddPayee. */}
         {isWorker && onAddPayee && (
           <WorkerPay job={job} view={view} device={device} run={act} onAddPayee={onAddPayee} />
@@ -145,8 +143,19 @@ export function JobActions(props: JobActionProps & { them: string; talk?: ReactN
           />
         )}
         {error && <p className={C.error}>{error}</p>}
+        {/* A note, an advance, cancel and the record's small print: one tap away, not on the card. */}
+        <MoreSheet
+          job={job}
+          device={device}
+          step={step}
+          run={act}
+          onNote={(text) => run(() => device.update(id, text))}
+          them={them}
+          isWorker={isWorker}
+          payments={payments}
+          onAddPayee={onAddPayee}
+        />
       </BusyGroup>
-      {isWorker && SIGNED.has(status) && <NoteBox them={them} onSend={(text) => run(() => device.update(id, text))} />}
     </div>
   );
 }

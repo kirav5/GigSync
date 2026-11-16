@@ -13,7 +13,7 @@ export const jobcard = {
   "jobcard.turn": "Turn {count} of {max}.",
   "jobcard.floor": "Never below your {price}.",
   "jobcard.ceiling": "Never above your {price}.",
-  "jobcard.turns_rule": "After {max} tries, you decide.",
+  "jobcard.usual": "Usual {low}–{high}",
   "jobcard.carry_on": "Do nothing and your assistant carries on.",
   "jobcard.they_ask": "{name} asks {price}.",
   "jobcard.they_offer": "{name} offers {price}.",

@@ -47,7 +47,6 @@ export function MyCardPage({ ports, account, syncedAt, onTalk, onCardForm, onSca
     <>
       {/* The top bar says My card already; the heading stays for readers who move by headings. */}
       <h1 className="my-card-title">{t(isWorker ? "nav.card" : "profile.my_qr")}</h1>
-      <p className="fine">{t(isWorker ? "page.card_soft_worker" : "page.card_soft")}</p>
       <MyQr
         ports={ports}
         account={account}
@@ -62,8 +61,9 @@ export function MyCardPage({ ports, account, syncedAt, onTalk, onCardForm, onSca
           )
         }
         below={isWorker && account.worker && <BoardSwitch ports={ports} account={account} onSaved={onSaved} />}
+        head={!isWorker && <HouseholdTop name={first} />}
       >
-        {isWorker ? (
+        {isWorker && (
           <WorkerTop
             card={publicCard(account)}
             km={account.worker?.radius_km}
@@ -71,8 +71,6 @@ export function MyCardPage({ ports, account, syncedAt, onTalk, onCardForm, onSca
             record={own === undefined ? undefined : (own?.record ?? NO_JOBS)}
             hidden={own?.show_record === false}
           />
-        ) : (
-          <HouseholdTop name={first} />
         )}
       </MyQr>
       {isWorker && (

@@ -147,7 +147,11 @@ const nameOf = (screen: MessageKey, lang: Lang): RegExp =>
  * that exact name (a count or the line under a row is its description, never its name).
  */
 export const navRow = (page: Page, screen: MessageKey, lang: Lang = DEFAULT_LANG) =>
-  TABS[screen] ? tab(page, screen, lang) : profileSheet(page, lang).getByRole("button", { name: nameOf(screen, lang) });
+  TABS[screen]
+    ? tab(page, screen, lang)
+    : profileSheet(page, lang)
+        .getByRole("button", { name: nameOf(screen, lang) })
+        .first();
 
 /** Expects `screen` to be the one showing: its tab marked, Talk's composer, the sheet, or its name in the top bar. */
 export async function onScreen(page: Page, screen: MessageKey, lang: Lang = DEFAULT_LANG) {

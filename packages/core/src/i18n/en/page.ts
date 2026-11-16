@@ -1,11 +1,9 @@
 /** The pages the menu opens, each on its own: My card, Records, About me, Privacy and Settings. */
 export const page = {
   // My card
-  "page.card_soft_worker": "Share it — anyone can ask you for work.",
   "page.card_seen": "What households see",
   "page.card_none":
     "You have no card yet. Make one with Edit my card, or tell your assistant about your work in the chat.",
-  "page.card_soft": "Share it — workers can offer to work for you.",
   // Records: completed work, and for a household what it paid
   "page.records_soft_worker": "Work you completed on GigSync, and what it earned.",
   "page.records_soft": "Work done for you on GigSync, and what you paid.",

@@ -2,7 +2,7 @@ import { type MessageKey, type Params, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Locator, type Page, test } from "@playwright/test";
 import { open, progressStep, shoot, statusTag } from "./helpers.js";
-import { expand } from "./jobs.js";
+import { closeMore, expand, more } from "./jobs.js";
 import { unlistCards } from "./journey.js";
 import { signedJob } from "./signed-job.js";
 
@@ -42,7 +42,8 @@ test("the worker moves a signed job on one step at a time, and both progress lin
   await expect(button(job, "update.on_my_way")).toBeVisible();
   await expect(button(job, "job.start_work")).toHaveCount(0);
   await expect(button(job, "job.mark_done")).toHaveCount(0);
-  await expect(button(job, "restored.cancel")).toBeVisible();
+  await expect(button(await more(job), "restored.cancel")).toBeVisible();
+  await closeMore(job);
   await shoot("agreed", { worker: workerPage }, FOLDER);
 
   await button(job, "update.on_my_way").click();
@@ -56,14 +57,16 @@ test("the worker moves a signed job on one step at a time, and both progress lin
   await expect(button(job, "job.mark_done")).toBeVisible();
   await expect(button(job, "job.start_work")).toHaveCount(0);
   // Started: Cancel is now Stop, with a reason (ADR 0054).
-  await expect(button(job, "job.stop")).toBeVisible();
+  await expect(button(await more(job), "job.stop")).toBeVisible();
   await expect(button(job, "restored.cancel")).toHaveCount(0);
+  await closeMore(job);
   await expect(progressStep(householdPage, en, "progress.started")).toHaveAttribute("aria-current", "step");
   await shoot("started", { worker: workerPage, household: householdPage }, FOLDER);
 
   await button(job, "job.mark_done").click();
   await expect(statusTag(job, en, "status.delivered")).toBeVisible();
   // Handed over: nothing left to cancel or stop.
+  await more(job);
   await expect(button(job, "restored.cancel")).toHaveCount(0);
   await expect(button(job, "job.stop")).toHaveCount(0);
 });
@@ -74,7 +77,7 @@ test("the household cancels a signed job after a second tap, and it ends on both
   await open(householdPage, "nav.activity");
   const hers = jobWith(householdPage, names.worker);
   await expect(button(hers, "update.on_my_way")).toHaveCount(0);
-  await button(hers, "restored.cancel").click();
+  await button(await more(hers), "restored.cancel").click();
   await expect(hers.getByRole("group", { name: say("restored.cancel_sure") })).toBeVisible();
   await shoot("cancel-sure", { household: householdPage }, FOLDER);
   await button(hers, "restored.cancel_yes").click();

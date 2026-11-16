@@ -1,6 +1,7 @@
-import { t as say } from "@gigsync/core";
 import { useI18n } from "../../i18n.js";
 import { Screen } from "../../state.js";
+import { C } from "../../ui/cls.js";
+import { Icon, type IconName } from "../../ui/Icon.js";
 import { ListRow } from "../../ui/ListRow.js";
 import { useLinks } from "../mentor/links.js";
 
@@ -22,12 +23,6 @@ export function PeopleRow({ onOpen }: { onOpen: OpenScreen }) {
   return <ListRow icon="people" title={t("me.people")} onClick={() => onOpen(Screen.people)} />;
 }
 
-/** Privacy: who sees what. */
-export function PrivacyRow({ onOpen }: { onOpen: OpenScreen }) {
-  const { t } = useI18n();
-  return <ListRow icon="shield" title={t("nav.privacy")} onClick={() => onOpen(Screen.privacy)} />;
-}
-
 /**
  * Help (workers): a mentor, a problem with a job, and moving to a new city; with the unread mentor notes said under it
  * while there are any, as the mentor links live there.
@@ -39,21 +34,30 @@ export function HelpRow({ onOpen }: { onOpen: OpenScreen }) {
   return <ListRow icon="help" title={t("me.help")} sub={sub} onClick={() => onOpen(Screen.help)} />;
 }
 
-/** Language, with the one in use named in its own script. */
-export function LanguageRow({ onOpen }: { onOpen: OpenScreen }) {
-  const { t, lang } = useI18n();
+/** One of the three small buttons at the profile's foot, as the phone's own settings gear sits apart from the list. */
+function Chip({ icon, title, onClick }: { icon: IconName; title: string; onClick: () => void }) {
   return (
-    <ListRow
-      icon="globe"
-      title={t("me.language")}
-      end={<span lang={lang}>{say(lang, `lang.${lang}`)}</span>}
-      onClick={() => onOpen(Screen.language)}
-    />
+    <button type={C.button} className="profile-chip" onClick={onClick}>
+      <Icon name={icon} size={18} />
+      {title}
+    </button>
   );
 }
 
-/** Settings: the look, alerts, the agent's model and bargaining, and this phone. */
-export function SettingsLink({ onOpen }: { onOpen: OpenScreen }) {
+/** Language: its name in the app's language, which is the one in use. */
+export function LanguageChip({ onOpen }: { onOpen: OpenScreen }) {
   const { t } = useI18n();
-  return <ListRow icon="gear" title={t("nav.settings")} onClick={() => onOpen(Screen.settings)} />;
+  return <Chip icon="globe" title={t("me.language")} onClick={() => onOpen(Screen.language)} />;
+}
+
+/** Privacy: who sees what. */
+export function PrivacyChip({ onOpen }: { onOpen: OpenScreen }) {
+  const { t } = useI18n();
+  return <Chip icon="shield" title={t("nav.privacy")} onClick={() => onOpen(Screen.privacy)} />;
+}
+
+/** Settings: the look, alerts, the assistant's model and bargaining, and this phone. */
+export function SettingsChip({ onOpen }: { onOpen: OpenScreen }) {
+  const { t } = useI18n();
+  return <Chip icon="gear" title={t("nav.settings")} onClick={() => onOpen(Screen.settings)} />;
 }

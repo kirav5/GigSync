@@ -1,194 +1,112 @@
-/* A signed job's progress (JobProgress.tsx): a plain status line, then the steps left to right as nodes on a track,
-   each with its name and, once reached, its time. Five equal columns fit a 360px phone in Kannada: names wrap to two
-   lines under their node, and a word too long for its column breaks rather than push the row wider. Colours are the
-   palette's tokens, with the design's values as fallbacks until styles.css defines them. */
+/* A signed job's progress (JobProgress.tsx) as one status card: a drawing of the next move, one big line saying what
+   comes next and a small one saying where the job is, a speaker, then the steps as a thin bar of segments. The step
+   names and times are read out from the bar and listed under "⋯ More"; on the card they would be five more labels to
+   read. Green stays for paid and finished; the job moving now is rust. */
 .job-progress {
-  --step-node: 28px;
-  --step-track: 3px;
-  --step-done: var(--green, #4f7a4a);
-  --step-now: var(--rust, #915236);
-  --step-ahead: color-mix(in srgb, var(--text3) 55%, transparent);
-  /* The tick, the x and the dot drawn on a filled node: the card's own colour, light on the cream look, dark on dark. */
-  --step-ink: var(--surface);
+  --step-done: var(--rust, #915236);
+  --step-paid: var(--green, #4f7a4a);
+  --step-ahead: var(--hairline);
   display: grid;
   gap: 12px;
   min-width: 0;
 }
 
-/* "On the way · 8:02 am", then what comes next in muted words; on a phone the second half takes its own line. */
+.job-status {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 14px 14px 12px;
+  border-radius: 18px;
+  background: var(--picked, #f5e4d8);
+}
+.job-status-art {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--accent-ink);
+  --icon: var(--accent-ink);
+}
+.job-status[data-state="stopped"] .job-status-art {
+  color: var(--danger);
+  --icon: var(--danger);
+}
+
+/* The next move in the serif, large; where the job is and since when under it, muted. */
 .job-progress-status {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: 10px;
-  row-gap: 2px;
+  display: grid;
+  gap: 2px;
   margin: 0;
-  font-size: var(--fs-2);
-  line-height: 1.35;
-  color: var(--text2);
+  min-width: 0;
 }
 .job-progress-status strong {
-  font-weight: 600;
+  font-family: var(--serif);
+  font-size: var(--fs-heading);
+  font-weight: 500;
+  line-height: 1.25;
   color: var(--text);
 }
-.job-progress-status[data-state="stopped"] strong {
+.job-status[data-state="stopped"] strong {
   color: var(--danger);
+}
+.job-progress-status .aside {
+  font-size: var(--fs-label);
+  color: var(--text2);
+}
+.job-progress-status .aside:empty {
+  display: none;
 }
 .job-progress-status time {
   font-variant-numeric: tabular-nums;
 }
-.job-progress-status .aside {
-  flex-basis: 100%;
-  font-size: var(--fs-label);
-  color: var(--text3);
-}
-@media (min-width: 600px) {
-  .job-progress-status .aside {
-    flex-basis: auto;
-  }
-}
 
+/* The steps: equal segments with a small gap, filled up to where the job is. */
 .job-steps {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 .job-steps li {
   position: relative;
-  display: grid;
-  justify-items: center;
-  align-content: start;
-  row-gap: 6px;
-  min-width: 0;
-  padding: 0 2px;
-  text-align: center;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--step-ahead);
 }
-/* The track from the step before to this one: green once this step is reached, a hairline while it is ahead, and
-   broken red into the node where a cancelled job stopped. */
-.job-steps li + li::before {
-  content: "";
-  position: absolute;
-  top: calc((var(--step-node) - var(--step-track)) / 2);
-  left: calc(-50% + var(--step-node) / 2);
-  right: calc(50% + var(--step-node) / 2);
-  height: var(--step-track);
+.job-steps li[data-state="done"],
+.job-steps li[data-state="now"] {
   background: var(--step-done);
 }
-.job-steps li[data-state="next"]::before {
-  background: var(--hairline);
-}
-.job-steps li[data-state="stopped"]::before {
-  background: repeating-linear-gradient(90deg, var(--danger) 0 4px, transparent 4px 8px);
-}
-
-.job-steps .node {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  width: var(--step-node);
-  height: var(--step-node);
-  border: 2px solid var(--step-ahead);
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--text3);
-  font-size: 12px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-.job-steps .node .ic {
-  width: 16px;
-  height: 16px;
-  stroke-width: 2.4;
-}
-.job-steps [data-state="done"] .node {
-  border-color: var(--step-done);
-  background: var(--step-done);
-  color: var(--step-ink);
-}
-.job-steps [data-state="stopped"] .node {
-  border-color: var(--danger);
+.job-steps li[data-state="stopped"] {
   background: var(--danger);
-  color: var(--step-ink);
 }
-/* Where the job is now: solid rust with a dot in it, and a soft halo that breathes while the job is still moving. */
-.job-steps [data-state="now"] .node {
-  border-color: var(--step-now);
-  background: var(--step-now);
+/* A job paid in full: the whole bar turns the money green. */
+.job-steps:not([data-live]) li[data-state="now"]:last-child,
+.job-steps:not([data-live]) li[data-state="done"]:has(~ li[data-state="now"]:last-child) {
+  background: var(--step-paid);
 }
-.job-steps [data-state="now"] .node::after {
-  content: "";
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--step-ink);
+/* While the job moves, the segment it is on breathes; only opacity changes, which costs a cheap phone nothing. */
+.job-steps[data-live] [data-state="now"] {
+  animation: step-breathe 2.4s ease-in-out infinite;
 }
-.job-steps [data-state="now"] .node::before {
-  content: "";
-  position: absolute;
-  inset: -7px;
-  z-index: -1;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--step-now) 18%, transparent);
-}
-/* Only transform and opacity move, which a cheap phone's GPU does without painting the page again. */
-.job-steps[data-live] [data-state="now"] .node::before {
-  animation: step-halo 2.4s ease-in-out infinite;
-}
-@keyframes step-halo {
+@keyframes step-breathe {
   50% {
-    transform: scale(1.3);
-    opacity: 0.35;
+    opacity: 0.45;
   }
 }
-/* Reduce Motion keeps the halo, still. */
 @media (prefers-reduced-motion: reduce) {
-  .job-steps[data-live] [data-state="now"] .node::before {
+  .job-steps[data-live] [data-state="now"] {
     animation: none;
   }
 }
 
-.job-steps .name {
-  max-width: 100%;
-  font-size: 13px;
-  line-height: 1.25;
-  color: var(--text);
-  overflow-wrap: anywhere;
-}
-.job-steps [data-state="now"] .name {
-  font-weight: 700;
-}
-.job-steps [data-state="next"] .name {
-  color: var(--text3);
-}
-.job-steps [data-state="stopped"] .name {
-  font-weight: 700;
-  color: var(--danger);
-}
-.job-steps time {
-  margin-top: -2px;
-  font-size: 12px;
-  line-height: 1.25;
-  color: var(--text3);
-  font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-/* One step larger in Hindi and Kannada, whose stacked vowel signs also need taller lines (styles.css). */
-:lang(hi) .job-steps .name,
-:lang(kn) .job-steps .name {
-  font-size: 14px;
-  line-height: 1.35;
-}
-:lang(hi) .job-steps time,
-:lang(kn) .job-steps time {
-  font-size: 13px;
-}
-
-/* Said to screen readers after each name (done, current step, still to come), never shown. */
+/* Said to screen readers for each segment (its name, state and time), never shown. */
 .job-steps .sr {
   position: absolute;
   width: 1px;
@@ -196,4 +114,23 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* Under "⋯ More": each step the job reached and when, one row each. */
+.step-times {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-2);
+}
+.step-times li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.step-times time {
+  color: var(--text2);
+  font-variant-numeric: tabular-nums;
 }

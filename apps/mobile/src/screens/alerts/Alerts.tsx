@@ -1,6 +1,6 @@
 import type { GigDevice } from "@gigsync/core";
 import { useMemo } from "react";
-import { type I18n, useI18n } from "../../i18n.js";
+import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { ListCard } from "../../ui/ListRow.js";
 import { requestWork } from "../../ui/work.js";
@@ -13,7 +13,8 @@ import "./alerts.css";
 
 /** Between what happened and when, under the name. */
 const AT = " · ";
-const DAY_MS = 86_400_000;
+/** The group of everything before today. */
+const EARLIER = "earlier";
 
 /** What the end of a row says it needs. */
 const NEXT_WORDS = { [AlertNext.confirm]: "me.alert_confirm", [AlertNext.decide]: "me.alert_needs_you" } as const;
@@ -34,12 +35,15 @@ function AlertRow({ alert, names, onOpen }: { alert: AlertItem; names: GigView["
   );
 }
 
-/** A day's heading: Today, Yesterday, or its date. */
-function dayLabel(day: AlertDay, { t, date }: Pick<I18n, "t" | "date">): string {
-  const now = new Date();
-  if (day.day === dayOf(now)) return t("chats.today");
-  if (day.day === dayOf(new Date(now.getTime() - DAY_MS))) return t("chats.yesterday");
-  return date(new Date(day.items[0]?.at ?? now));
+/**
+ * Two groups, as a phone's notification list keeps them: Today, and everything Earlier (each row still says its time).
+ * A day's rows stay newest first.
+ */
+function todayAndEarlier(days: readonly AlertDay[]): AlertDay[] {
+  const today = dayOf(new Date());
+  const now = days.filter((d) => d.day === today);
+  const before = days.filter((d) => d.day !== today).flatMap((d) => d.items);
+  return before.length > 0 ? [...now, { day: EARLIER, items: before }] : now;
 }
 
 interface Props {
@@ -55,26 +59,27 @@ interface Props {
  * there too, on Today. Built from what the phone holds (alerts/feed.ts); no welfare count, which nothing counts yet.
  */
 export function Alerts({ view, device, onJobs }: Props) {
-  const i18n = useI18n();
-  const { t } = i18n;
+  const { t } = useI18n();
   const { intros, incoming } = useMentors(device, view.syncedAt);
   const days = useMemo(
     () =>
-      byDay(
-        alertFeed({
-          jobs: view.jobs,
-          tasks: view.tasks,
-          offers: view.offers,
-          intros,
-          incoming,
-          cityName: (city) => t(`mentor.city.${city}`),
-        }),
+      todayAndEarlier(
+        byDay(
+          alertFeed({
+            jobs: view.jobs,
+            tasks: view.tasks,
+            offers: view.offers,
+            intros,
+            incoming,
+            cityName: (city) => t(`mentor.city.${city}`),
+          }),
+        ),
       ),
     [view.jobs, view.tasks, view.offers, intros, incoming, t],
   );
   if (days.length === 0) return <p className={C.empty}>{t("tabs.alerts_none")}</p>;
   return days.map((day) => (
-    <ListCard key={day.day} label={dayLabel(day, i18n)}>
+    <ListCard key={day.day} label={t(day.day === EARLIER ? "chats.earlier" : "chats.today")}>
       {day.items.map((a) => (
         <AlertRow key={a.id} alert={a} names={view.names} onOpen={onJobs} />
       ))}

@@ -2,9 +2,8 @@
 export const qr = {
   // My card and my QR
   "qr.mine": "Your QR code",
-  "qr.about_worker": "Scan with any phone camera to ask {name} for work — no app needed.",
-  "qr.about_household":
-    "A worker who scans it sees only your first name and can offer to work for you. You decide whether to ask them.",
+  "qr.about_worker": "Scan to ask {name} for work.",
+  "qr.about_household": "Workers scan it to offer you work. They see only your first name.",
   "qr.alt": "QR code that finds {name}",
   "qr.download": "Save QR",
   "qr.share": "Share",

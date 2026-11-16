@@ -39,7 +39,7 @@ export function HouseholdTop({ name }: { name: string }) {
   const { t } = useI18n();
   return (
     <div className="share-top">
-      <Avatar name={name} size={AvatarSize.xl} />
+      <Avatar name={name} size={AvatarSize.md} />
       <strong className="share-name">{name}</strong>
       <span className={C.muted}>{t("qr.household")}</span>
     </div>

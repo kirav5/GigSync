@@ -1,6 +1,7 @@
 import { type MessageKey, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Locator, type Page, test } from "@playwright/test";
+import { more } from "./jobs.js";
 import { unlistCards } from "./journey.js";
 import { signedJob } from "./signed-job.js";
 
@@ -59,8 +60,8 @@ test("a tap on a job's move holds its card and rings that button until the job h
   await step.click();
   await expect(step).toHaveAttribute("aria-busy", "true");
   await expect(step).toBeDisabled();
-  await expect(button(job, "restored.cancel")).toBeDisabled();
-  await expect(button(job, "restored.cancel")).not.toHaveAttribute("aria-busy", "true");
+  await expect(button(job, "job.more")).toBeDisabled();
+  await expect(button(job, "job.more")).not.toHaveAttribute("aria-busy", "true");
   await expect(working).toBeVisible();
 
   await release();
@@ -98,7 +99,7 @@ test("a move that failed says so and can be tapped again, and a note says it is 
   await workerPage.unroute(API_CALLS);
 
   const release = await holdCalls(workerPage);
-  const note = job.getByRole("form", { name: say("a11y.note") });
+  const note = (await more(job)).getByRole("form", { name: say("a11y.note") });
   await note.getByRole("textbox").fill("Coming after lunch");
   await button(note, "job.send_note").click();
   await expect(note.getByRole("status")).toHaveText(say("busy.sending"));

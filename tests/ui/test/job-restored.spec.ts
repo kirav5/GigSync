@@ -90,11 +90,11 @@ test("a rebuilt job can still be finished, both phones agree on its progress, an
   await expect(step(worker, "progress.agreed")).toHaveAttribute("aria-current", "step");
   await workerJob.getByRole("button", { name: say("update.on_my_way") }).click();
   // His card moves to On the way with its time, and does not list it again as a note.
-  await expect(step(worker, "progress.on_my_way").locator("time")).toBeVisible();
+  await expect(step(worker, "progress.on_my_way").locator("time")).toBeAttached();
   await expect(workerJob.getByLabel(say("a11y.notes"))).toHaveCount(0);
   // The household's card moves to On the way, with when.
   await expect(step(household, "progress.on_my_way")).toHaveAttribute("aria-current", "step");
-  await expect(step(household, "progress.on_my_way").locator("time")).toBeVisible();
+  await expect(step(household, "progress.on_my_way").locator("time")).toBeAttached();
   await shoot("on-the-way", { worker, household }, FOLDER);
 
   // ── The worker's phone loses its jobs: a fresh browser, signed in with the same number ────────────────────────
@@ -120,7 +120,7 @@ test("a rebuilt job can still be finished, both phones agree on its progress, an
   // ── The household's phone follows the record: Done, with when, on the next look ───────────────────────────────
   // No reload: the app reads the record again every minute and whenever it comes back to the front.
   await expect(step(household, "progress.done")).toHaveAttribute("aria-current", "step", { timeout: 90_000 });
-  await expect(step(household, "progress.done").locator("time")).toBeVisible();
+  await expect(step(household, "progress.done").locator("time")).toBeAttached();
   await shoot("done-from-record", { worker: again, household }, FOLDER);
 
   // ── She asks the same worker again, from a new chat; his rebuilt phone gets the request ───────────────────────

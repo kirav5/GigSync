@@ -3,7 +3,6 @@ import {
   askAgain,
   askableNow,
   balanceDue,
-  canAskAdvance,
   canRequestPayment,
   type GigDevice,
   type JobRecord,
@@ -12,7 +11,6 @@ import {
 import { PaymentStatus, Role } from "@gigsync/protocol";
 import { useI18n } from "../i18n.js";
 import type { GigView } from "../useGig.js";
-import { AskAdvance } from "./AskAdvance.js";
 import { AskPayment } from "./AskPayment.js";
 import { ConfirmPaid } from "./ConfirmPaid.js";
 import { OpenPayment } from "./OpenPayment.js";
@@ -47,10 +45,8 @@ export function WorkerPay({ job, view, device, run, onAddPayee }: Props) {
   const asked = payments.find((p) => p.status === S.requested);
   if (asked) return <OpenPayment {...open} payment={asked} />;
   if (!canRequestPayment(job.engagement)) return null;
-  if (!askableNow(job))
-    return canAskAdvance(job, payments) ? (
-      <AskAdvance job={job} device={device} run={run} onAddPayee={onAddPayee} />
-    ) : null;
+  // Before the work is done the one money move is an advance, which waits under the job's "⋯ More".
+  if (!askableNow(job)) return null;
   const again = payments.length === 0 ? undefined : askAgain(job, payments, new Date());
   const repeats = recurs(job.request);
   const due = repeats ? agreedPrice(job) : balanceDue(job, payments);

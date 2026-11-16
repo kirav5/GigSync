@@ -57,7 +57,7 @@ export function JobThread({ foldTalk = false, ...props }: JobActionProps & { fol
   // neither has moves here, so the talk, if any, stays at the end.
   const live = !job.restored && !job.elsewhere;
   const talkFirst = live && TALKING.has(e.status) && !foldTalk;
-  const talk = <AgentTalk job={job} them={them} from={theirs} device={device} folded={foldTalk} />;
+  const talk = <AgentTalk job={job} them={them} from={theirs} device={device} />;
 
   return (
     <article
@@ -83,7 +83,7 @@ export function JobThread({ foldTalk = false, ...props }: JobActionProps & { fol
 
       {/* The household has no step of its own on the day: calling the worker is its main move then. */}
       <ContactCard job={job} primary={!isWorker && UNDER_WAY.has(e.status)} />
-      <DealLine job={job} from={theirs} />
+      <DealLine job={job} from={theirs} them={them} />
       {canRecommend(job) && (
         <RecommendWorker device={device} run={run} job={job} name={them} work={requestWork(t, job.request)} />
       )}

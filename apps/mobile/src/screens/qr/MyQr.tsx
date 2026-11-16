@@ -16,8 +16,10 @@ interface Props {
   account: Account;
   /** The card's name for screen readers. */
   label: string;
-  /** Above the QR: who the owner is, as others see them. */
-  children: ReactNode;
+  /** Above the QR card: who the owner is, as others see them (a worker's card face). */
+  children?: ReactNode;
+  /** Inside the QR card, above the code: a household's name, so the card alone says whose it is. */
+  head?: ReactNode;
   /** Under the QR: what scanning it does. */
   scanLine: string;
   /** Under "Scan a QR": whose QR the owner would scan (a worker scans a household's, and the other way round). */
@@ -40,7 +42,19 @@ interface Props {
  * needs a new QR. Anyone's phone camera opens the link; the app routes it after sign-in. Scanning here asks for the
  * camera only when tapped. One region holds it all, named `label`, for the worker's card and the household's alike.
  */
-export function MyQr({ ports, account, label, children, scanLine, scanSub, rows, below, share, onScanned }: Props) {
+export function MyQr({
+  ports,
+  account,
+  label,
+  children,
+  head,
+  scanLine,
+  scanSub,
+  rows,
+  below,
+  share,
+  onScanned,
+}: Props) {
   const { t } = useI18n();
   const mine = useMyQr(ports, account);
   const [scanning, setScanning] = useState(false);
@@ -50,6 +64,7 @@ export function MyQr({ ports, account, label, children, scanLine, scanSub, rows,
       <section className="my-qr" aria-label={label}>
         {children}
         <div className={`${C.card} qr-card`}>
+          {head}
           {qr ? (
             <img className="qr" src={qr.image} alt={t("qr.alt", { name: account.contact.name })} />
           ) : (
