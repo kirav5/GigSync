@@ -45,19 +45,18 @@
   box-shadow: 0 1px 4px rgb(43 30 23 / 0.1);
   cursor: pointer;
 }
-/* The bell beside the profile, with a terracotta dot while a decision waits (as the Jobs tab counts it). */
+/* The bell beside the profile, a round white button as the menu is, with a terracotta dot while a decision waits (as
+   the Jobs tab counts it). */
 .bell-btn {
   position: relative;
-  background: none;
-  box-shadow: none;
 }
 .bell-dot {
   position: absolute;
-  top: 10px;
-  right: 11px;
-  width: 9px;
-  height: 9px;
-  border: 2px solid var(--bg);
+  top: 11px;
+  right: 12px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--surface);
   border-radius: 50%;
   background: var(--accent);
 }
@@ -83,11 +82,11 @@
   width: 100%;
   height: 100%;
   font-size: 19px;
-  border: 2px solid var(--surface);
+  border: 0;
   background: var(--picked);
   color: var(--accent);
   font-family: var(--serif);
-  box-shadow: 0 1px 4px rgb(43 30 23 / 0.15);
+  box-shadow: 0 1px 4px rgb(43 30 23 / 0.1);
 }
 /* Something waits on the owner: alerts, or a mentor note. */
 .profile-dot {
@@ -99,6 +98,10 @@
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 0 2px var(--bg);
+}
+/* The bell and the profile, one group at the row's end with a little air between the two circles. */
+.topbar .bell-btn + .profile-btn {
+  margin-inline-start: 6px;
 }
 
 /* Home's warm glow (shell/nav.ts `glows`): a soft gold light rising from the foot of the screen, behind the composer
