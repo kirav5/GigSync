@@ -104,9 +104,12 @@ export function Shell({ ports, account, nav, tasks, onNewChat, children }: Props
             open={chats}
             onOpenChange={setChats}
             isWorker={account.role === AccountRole.worker}
+            name={account.contact.name}
             chatShown={isChat(screen)}
             onOpened={() => go(chatOf(account))}
             onNewChat={onNewChat}
+            onGo={go}
+            onProfile={() => setProfile(true)}
           />
         )}
       </div>

@@ -5,7 +5,9 @@ export const chats = {
   "chats.today": "Today",
   "chats.yesterday": "Yesterday",
   "chats.earlier": "Earlier",
-  "chats.empty": "No past chats yet. Every chat is kept here, on this phone.",
+  "chats.empty": "No chats yet.",
+  "chats.recent": "Recent",
+  "chats.close": "Close menu",
   "chats.kept":
     "Only on this phone. The newest {count} chats are kept; someone else signing in here sees none of them.",
   "chats.untitled": "Untitled chat",
