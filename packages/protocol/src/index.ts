@@ -6,6 +6,7 @@ export * from "./booking.js";
 export * from "./cities.js";
 export * from "./claim.js";
 export * from "./colleague.js";
+export * from "./connector.js";
 export * from "./content.js";
 export * from "./engagement.js";
 export * from "./envelope.js";

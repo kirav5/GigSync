@@ -1,13 +1,22 @@
 import { Header } from "@gigsync/core/http";
 import { LOCAL_ENVIRONMENT, log, pii, traced } from "@gigsync/core/log";
-import { type DeviceRegistration, OtpRequest, OtpVerify, type Phone, PhoneTokenVerify } from "@gigsync/protocol";
+import {
+  ConnectorSignIn,
+  type DeviceRegistration,
+  OtpRequest,
+  OtpVerify,
+  type Phone,
+  PhoneTokenVerify,
+} from "@gigsync/protocol";
 import { type Context, Hono } from "hono";
-import { isLocked, recordFailure } from "../auth/attempts.js";
+import { clearFailures, isLocked, recordFailure } from "../auth/attempts.js";
 import { googleKeys, TokenError, verifyIdToken } from "../auth/firebase.js";
 import { completeSignIn } from "../auth/signin.js";
 import { ApiError, type AppEnv, Var } from "../context.js";
 import { hmacHex, sameSecret } from "../crypto.js";
 import type { Db } from "../db/client.js";
+import { insertConnectorSession } from "../db/connector-sessions.js";
+import { userForPhone } from "../db/users.js";
 import { requireSecret } from "../env.js";
 
 /**
@@ -116,4 +125,50 @@ auth.post("/phone/verify", async (c) => {
   const attempt = await attemptFor(c, phone);
   if (await lockedOut(attempt)) return c.json({ error: ApiError.tooManyAttempts }, 429);
   return finish(c, attempt, body.data.device);
+});
+
+/** The number a connector sign-in proves: the dev code, or a Firebase ID token naming that same number. */
+async function connectorProof(
+  c: AuthContext,
+  body: ConnectorSignIn,
+): Promise<Phone | { error: string; status: 401 | 503 }> {
+  if ("code" in body) {
+    return c.env.DEV_OTP && (await sameSecret(body.code, c.env.DEV_OTP))
+      ? body.phone
+      : { error: ApiError.wrongCode, status: 401 };
+  }
+  const projectId = c.env.FIREBASE_PROJECT_ID;
+  if (!projectId) return { error: ApiError.phoneSignInOff, status: 503 };
+  try {
+    const phone = await verifyToken(body.id_token, projectId, new Date(), googleKeys.keyFor);
+    if (await sameSecret(phone, body.phone)) return phone;
+  } catch (err) {
+    if (!(err instanceof TokenError)) throw err;
+    log.warn("connector sign-in bad token", { requestId: c.get(Var.requestId), problem: err.problem });
+  }
+  return { error: ApiError.badToken, status: 401 };
+}
+
+/**
+ * A connected assistant signing in for its owner (ADR 0068): the same caps as the app, but no device and no new
+ * account. A number not yet on GigSync is refused: people join in the app, where their keys are made.
+ */
+auth.post("/connector", async (c) => {
+  const body = ConnectorSignIn.safeParse(await c.req.json().catch(() => null));
+  if (!(await withinIpLimit(c, body.data?.phone))) return c.json({ error: ApiError.tooManyAttempts }, 429);
+  if (!body.success) return c.json({ error: ApiError.badRequest }, 400);
+  const attempt = await attemptFor(c, body.data.phone);
+  if (await lockedOut(attempt)) return c.json({ error: ApiError.tooManyAttempts }, 429);
+  const proof = await connectorProof(c, body.data);
+  if (typeof proof !== "string") {
+    await failed(attempt.db, attempt.phoneHmac, attempt.now);
+    log.warn("connector sign-in refused", { ...attempt.who, error: proof.error });
+    return c.json({ error: proof.error }, proof.status);
+  }
+  const user = await userForPhone(attempt.db, attempt.phoneHmac);
+  if (!user) return c.json({ error: ApiError.noAccount }, 404);
+  const token = await insertConnectorSession(attempt.db, user, attempt.now);
+  await clearFailures(attempt.db, attempt.phoneHmac);
+  log.info("connector signed in", { ...attempt.who, user });
+  return c.json({ user, token });
 });
