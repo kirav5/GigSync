@@ -103,8 +103,8 @@ test("a cook prices her work by the month and by the visit, with her days and mo
   // The rest as any card: nothing about the work, no asking first, no list, the agent waits.
   await nextTurn(page, en, "iv.ask.ask_first", () => tap(page, t(en, "iv.skip")));
   await nextTurn(page, en, "iv.ask.asks", () => tap(page, t(en, "flag.no")));
-  await nextTurn(page, en, "iv.ask.auto", () => tap(page, t(en, "iv.skip")));
-  await nextTurn(page, en, "iv.confirm", () => tap(page, t(en, "flag.no")));
+  // No question about signing for her: the assistant always asks, so the summary comes next.
+  await nextTurn(page, en, "iv.confirm", () => tap(page, t(en, "iv.skip")));
   await expect(log(page)).toContainText(textOf(en, "iv.summary", { rate: "₹4,500" }));
   // The visit's own rate, from the price card: no question asked it again.
   await expect(log(page)).toContainText("₹300");

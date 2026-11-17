@@ -47,8 +47,6 @@ export interface Account {
   nickname?: string;
   /** A worker's private rules: trades, area, rates. Set when they publish their card. The UPI ID is not here. */
   worker?: WorkerRules;
-  /** Sign deals the agent reaches without asking first. Off unless the owner turns it on. */
-  autoConfirm?: boolean;
   /** The languages a worker listed on their card, their own first. */
   languages?: Lang[];
   /** The line about their work on the worker's card, kept here so publishing again does not wipe it. */
@@ -244,7 +242,6 @@ export function deviceFor(ports: Ports, account: Account, lang: Lang): GigDevice
     me: { user: account.session.user, device: account.session.device },
     contact: account.contact,
     ...(account.worker ? { worker: account.worker } : {}),
-    ...(account.autoConfirm ? { autoConfirm: true } : {}),
     model: ports.model,
     estimates: { api, cityOf },
     qrApi: api,

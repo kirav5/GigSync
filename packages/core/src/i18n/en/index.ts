@@ -2,7 +2,6 @@ import { address } from "./address.js";
 import { agent } from "./agent.js";
 import { arrangement } from "./arrangement.js";
 import { ask } from "./ask.js";
-import { bargain } from "./bargain.js";
 import { cardflow } from "./cardflow.js";
 import { category } from "./category.js";
 import { chats } from "./chats.js";
@@ -83,7 +82,6 @@ export const en = {
   ...skill,
   ...kindAsk,
   ...address,
-  ...bargain,
   ...terms,
   ...explain,
   ...chats,

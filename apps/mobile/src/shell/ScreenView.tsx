@@ -102,10 +102,8 @@ function MeScreen({ screen, d, m }: { screen: Screen; d: ScreenData; m: ScreenMo
     case Screen.settings:
       return (
         <SettingsPage
-          ports={ports}
           account={account}
           isWorker={isWorker}
-          onSaved={m.saved}
           onInstall={() => m.go(Screen.install)}
           onMoveOut={() => m.go(Screen.moveOut)}
           onMoveIn={() => m.go(Screen.moveIn)}

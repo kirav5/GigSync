@@ -45,7 +45,7 @@ describe("the card interview, start to finish", () => {
     const cook = hear(first, "मैं खाना बनाती हूँ", true, { trade: T.cook });
     const atConfirm = run(
       cook,
-      ["नहीं", "कोरमंगला", "दस किलोमीटर", "नौ हज़ार", "साढ़े सात हज़ार", "कोई नहीं", "छोड़ो", "हाँ ना", "छोड़ो", "नहीं"],
+      ["नहीं", "कोरमंगला", "दस किलोमीटर", "नौ हज़ार", "साढ़े सात हज़ार", "कोई नहीं", "छोड़ो", "हाँ ना", "छोड़ो"],
       true,
     );
     expect(atConfirm.slot).toBe(Slot.confirm);
@@ -68,7 +68,6 @@ describe("the card interview, start to finish", () => {
       limit_paise: 750000,
       languages: ["hi"],
       ask_me: ["pets"],
-      auto: false,
     });
   });
 
@@ -78,7 +77,7 @@ describe("the card interview, start to finish", () => {
     s = run(s, ["ಇಲ್ಲ"]);
     expect(prompt(s).choices?.map((c) => c.value)).toEqual(["koramangala", "hsr_layout", "jayanagar"]);
     s = choose(s, "jayanagar");
-    s = run(s, ["ಹತ್ತು", "ಎಂಟು ಸಾವಿರ", "ಏಳು ಸಾವಿರ", "ಹಿಂದಿ", "ಹತ್ತು ವರ್ಷದ ಅನುಭವ", "ಇಲ್ಲ", "ಬಿಡಿ", "ಹೌದು", "ಇಲ್ಲ"]);
+    s = run(s, ["ಹತ್ತು", "ಎಂಟು ಸಾವಿರ", "ಏಳು ಸಾವಿರ", "ಹಿಂದಿ", "ಹತ್ತು ವರ್ಷದ ಅನುಭವ", "ಇಲ್ಲ", "ಬಿಡಿ", "ಇಲ್ಲ"]);
     expect(s.slot).toBe(Slot.confirm);
     expect(keys(s)).toEqual(["iv.what_change"]);
     s = hear(s, "ದರ");
@@ -95,7 +94,6 @@ describe("the card interview, start to finish", () => {
       languages: ["kn", "hi"],
       about: "ಹತ್ತು ವರ್ಷದ ಅನುಭವ",
       ask_me: [],
-      auto: true,
     });
   });
 
@@ -112,9 +110,9 @@ describe("the card interview, start to finish", () => {
       // ADR 0063: what he needs to know before quoting, in his words.
       "which floor? is there a lift",
     ]);
-    expect(s.slot).toBe(Slot.auto);
+    expect(s.slot).toBe(Slot.confirm);
     expect(s.draft.asks).toEqual(["which floor", "is there a lift"]);
-    const done = run(s, ["yes", "yes"]);
+    const done = run(s, ["yes"]);
     expect(done.slot).toBe(Slot.done);
     expect(draftOf(done)).toMatchObject({
       trades: [T.electrician],
@@ -123,7 +121,6 @@ describe("the card interview, start to finish", () => {
       limit_paise: 40000,
       languages: ["en", "hi", "kn"],
       about: "10 years, wiring and fans",
-      auto: true,
     });
   });
 });
@@ -170,7 +167,7 @@ describe("the card interview's checks", () => {
     expect(hear(atMin, "सात हज़ार", true).notes).toEqual([{ key: "iv.got_min", prices: { price: 700000 } }]);
     const typed = hear(atMin, "सात हज़ार");
     expect(typed.notes).toEqual([{ key: "iv.got_min", prices: { price: 700000 }, silent: true }]);
-    const confirm = prompt(run(typed, ["हिंदी", "छोड़ो", "नहीं", "नहीं", "नहीं"])).lines;
+    const confirm = prompt(run(typed, ["हिंदी", "छोड़ो", "नहीं", "नहीं"])).lines;
     expect(confirm.find((l) => l.key === "iv.summary_min")?.silent).toBe(true);
     expect(confirm.filter((l) => l.silent).length).toBe(1);
   });
@@ -211,13 +208,10 @@ describe("the card interview's checks", () => {
     expect(askable([T.electrician, T.plumber, T.carpenter, T.ac_technician, T.painter, T.driver])).toEqual([]);
   });
 
-  it("settles on no after two unclear answers to auto-signing", () => {
-    const atAuto = run(atRate, ["नौ हज़ार", "सात हज़ार", "कोई नहीं", "छोड़ो", "नहीं", "छोड़ो"]);
-    expect(atAuto.slot).toBe(Slot.auto);
-    const unclear = run(atAuto, ["क्या", "क्या"]);
-    expect(unclear.slot).toBe(Slot.confirm);
-    expect(draftOf(unclear).auto).toBe(false);
-    expect(keys(hear(atAuto, "क्या"))).toEqual(["iv.again.yes_no", "iv.ask.auto"]);
+  it("never asks about signing for the worker: it goes from their questions to confirm", () => {
+    const atConfirm = run(atRate, ["नौ हज़ार", "सात हज़ार", "कोई नहीं", "छोड़ो", "नहीं", "छोड़ो"]);
+    expect(atConfirm.slot).toBe(Slot.confirm);
+    expect(draftOf(hear(atConfirm, "हाँ")).auto).toBeFalsy();
   });
 
   it("settles on the owner's language alone after two unclear answers", () => {

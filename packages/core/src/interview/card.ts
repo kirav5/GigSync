@@ -109,7 +109,7 @@ const ORDER: readonly Slot[] = [
   Slot.about,
   Slot.ask_first,
   Slot.asks,
-  Slot.auto,
+  // No auto-sign question: the assistant always asks before signing a deal.
   Slot.confirm,
 ];
 
