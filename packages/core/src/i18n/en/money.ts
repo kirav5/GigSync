@@ -17,7 +17,7 @@ export const money = {
   "money.show_qr": "Show my QR",
   "money.hide_qr": "Hide QR",
   "money.cash_confirm": "Record {price} received in cash?",
-  "money.need_upi": "Add the UPI ID customers pay you on, in About me.",
+  "money.need_upi": "Add the UPI ID customers pay you on.",
   "money.add_upi": "Add UPI ID",
   "money.nudge": "Add your UPI ID before this job ends, so the customer can pay you straight away.",
   "money.waiting": "Waiting for {name} to pay {price}.",

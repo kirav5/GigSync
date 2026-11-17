@@ -10,7 +10,7 @@ export const jobs: Readonly<Record<keyof typeof en, string>> = {
   "jobs.word.pay": "{price} ಪಾವತಿಸಿ",
   "jobs.word.ask": "{price} ಕೇಳಿ",
   "jobs.word.review": "ಅಭಿಪ್ರಾಯ ನೀಡಿ",
-  "jobs.word.set_off": "ಹೊರಟಿರಾ?",
+  "jobs.word.set_off": "ಹೊರಡುವ ಸಮಯ",
   // ...and the line under the name, after the work
   "jobs.line.reached": "ಸಹಾಯಕರು {price}ಗೆ ಒಪ್ಪಿದರು",
   "jobs.line.questions.one": "ನಿಮಗೆ {count} ಪ್ರಶ್ನೆ",

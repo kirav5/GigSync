@@ -5,6 +5,7 @@ export const interview = {
   "iv.ask.area": "Which area do you work in?",
   "iv.ask.rate_month": "How much do you usually take for a month?",
   "iv.ask.rate_visit": "How much do you usually take for one visit?",
+  "iv.ask.rate_ways": "How do you take this work, and how much for each?",
   "iv.ask.min": "What's the least you'll take? Nobody else sees this, not even a household's assistant.",
   "iv.band_month": "{trade} in {city}: usually {low}–{high} a month.",
   "iv.band_visit": "{trade} in {city}: usually {low}–{high} a visit.",

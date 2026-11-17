@@ -73,7 +73,7 @@
   display: grid;
   border-radius: 20px;
   overflow: hidden;
-  background: var(--surface);
+  background: var(--grad-card);
   box-shadow: var(--lift);
 }
 .record-list > li + li {

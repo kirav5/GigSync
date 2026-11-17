@@ -5,7 +5,7 @@ export const tabs = {
   "nav.jobs": "Activity",
   // The ₹ tab, by whose money it is: what a worker earned, what a household paid.
   "nav.earnings": "Earnings",
-  "nav.payments": "Payments",
+  "nav.qr": "QR",
   "tabs.namaste": "Namaste, {name}",
   "tabs.alerts": "Alerts",
   "tabs.alerts_none": "Nothing needs you right now.",

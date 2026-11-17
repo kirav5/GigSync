@@ -17,7 +17,6 @@ import { setMapSession } from "./adapters/map.js";
 import { chosenModel } from "./adapters/model.js";
 import { createPorts } from "./adapters/ports.js";
 import { onSessionEnded } from "./adapters/session-end.js";
-import { prepareListening } from "./adapters/speech.js";
 import { forgetCloudConsent } from "./adapters/speech-settings.js";
 import { fetchPacksOnTap, prepareLanguage } from "./adapters/translate.js";
 import { forgetFind, loadFind } from "./find/findChats.js";
@@ -51,8 +50,7 @@ export function App() {
       void saveLang(ports, next);
       // Picked with a tap, the one moment engines allow a download: other people's words are ready in it.
       prepareLanguage(next);
-      // And its voice typing, where the phone can fetch it.
-      prepareListening(next);
+      // Not its voice typing: Android asks before a 100 MB download, which belongs to the first tap on the mic.
     },
     [ports],
   );

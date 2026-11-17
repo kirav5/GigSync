@@ -134,10 +134,10 @@ describe("work outside the trades (ADR 0047)", () => {
     expect(values(hinted)).toEqual([A.visit, A.weekly, A.monthly]);
   });
 
-  it("leaves the arrangement out of the board search, which lists no skill worker's arrangements", () => {
+  it("searches a skill's workers by the arrangement asked, as a trade's", () => {
     const s = chooseNeed(hearNeed(withSkill(startNeed(config()), NANNY, "nanny"), "Two year old"), A.hourly);
     expect(s.draft.arrangement).toBe(A.hourly);
-    expect(boardArrangement(s.draft)).toBeUndefined();
+    expect(boardArrangement(s.draft)).toBe(A.hourly);
   });
 });
 

@@ -344,7 +344,7 @@ html[data-keyboard="open"] .start-art[data-small] {
     place-items: center;
     min-height: 0;
     border-radius: var(--radius-tile);
-    background: var(--surface);
+    background: var(--grad-card);
     animation: start-rise 500ms var(--ease-out) both;
   }
   .start-side-tile:first-child {
@@ -428,7 +428,7 @@ html[data-keyboard="open"] .start-art[data-small] {
   padding: 2px 16px;
   border: 1px solid var(--hairline);
   border-radius: var(--radius-tile);
-  background: var(--surface);
+  background: var(--grad-card);
   list-style: none;
   text-align: start;
 }

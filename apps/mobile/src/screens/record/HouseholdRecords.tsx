@@ -1,4 +1,4 @@
-import { agreedPrice, type PaidRow, paidRecord, paidTotals, paidWork, receiptsOf } from "@gigsync/core";
+import { agreedPrice, type PaidRow, paidRecord, paidWork } from "@gigsync/core";
 import { type EngagementId, Role } from "@gigsync/protocol";
 import { useMemo, useState } from "react";
 import type { Account } from "../../adapters/account.js";
@@ -6,11 +6,10 @@ import { type I18n, useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { money } from "../../ui/places.js";
 import { DownloadRecord } from "./DownloadRecord.js";
-import { MoneyHead } from "./MoneyHead.js";
 import { MonthGroup } from "./MonthGroup.js";
 import { NotCompleted } from "./NotCompleted.js";
 import { type CardProps, RecordLine } from "./RecordLine.js";
-import { type Chip, monthText, Tag, weekdayText, whoOf } from "./text.js";
+import { type Chip, Tag, weekdayText, whoOf } from "./text.js";
 import { phoneOffset, useRecords } from "./useRecords.js";
 
 type Props = CardProps & { account: Account };
@@ -32,9 +31,9 @@ function factsOf(t: I18n["t"], { payments }: PaidRow): string[] {
 }
 
 /**
- * A household's Pay tab (design H13): every rupee they said they paid on GigSync since the first, this month's, and
- * what the worker has not confirmed yet; then the work done for them by month, newest first, each row opening the
- * job's own card in place, one at a time; a fold of jobs not completed; and their receipts to download.
+ * A household's Closed jobs, from Activity (2026-11-18: no ₹ tab and no totals for a household, who hires rather than
+ * earns): the work done for them by month, newest first, each row with what they paid and opening the job's own card
+ * in place, one at a time; a fold of jobs not completed; and their receipts to download.
  */
 export function HouseholdRecords({ account, ...card }: Props) {
   const { lang, t } = useI18n();
@@ -43,25 +42,13 @@ export function HouseholdRecords({ account, ...card }: Props) {
   const [openId, setOpenId] = useState<EngagementId>();
   const now = useMemo(() => new Date(), []);
   const { done, notDone } = useRecords(view, now);
-  const { record, totals } = useMemo(
-    () => ({
-      record: paidRecord(paidWork(done, view.jobs, view.payments, me), view.payments, me, now, phoneOffset(now)),
-      totals: paidTotals(receiptsOf(view.jobs, view.payments, me), now, phoneOffset(now)),
-    }),
+  const record = useMemo(
+    () => paidRecord(paidWork(done, view.jobs, view.payments, me), view.payments, me, now, phoneOffset(now)),
     [done, view.jobs, view.payments, me, now],
   );
   const onToggle = (id: EngagementId) => setOpenId((open) => (open === id ? undefined : id));
   return (
     <>
-      <MoneyHead
-        paise={totals.all}
-        label={t("page.records_total")}
-        aside={totals.since && t("record.since", { month: monthText(lang, totals.since) })}
-        stats={[
-          { id: "month", paise: totals.month, label: t("ledger.this_month") },
-          { id: "unconfirmed", paise: totals.unconfirmed, label: t("ledger.not_confirmed") },
-        ]}
-      />
       {record.months.length === 0 ? (
         <p className={C.empty}>{t("page.records_empty")}</p>
       ) : (

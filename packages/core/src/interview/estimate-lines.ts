@@ -12,11 +12,11 @@ import { priceText } from "../i18n/reasons.js";
 import { type MessageKey, pluralKey, t } from "../i18n/t.js";
 import { type Choice, type Line, Pick } from "./card.js";
 import { isMessageKey } from "./choices.js";
-import { blendLine, driverLines } from "./estimate-drivers.js";
+import { driverLines } from "./estimate-drivers.js";
 
 /**
- * An estimate as the interviews show it (ADR 0039, ADR 0041): the range for the job's scope, what it rests on (how
- * many jobs on GigSync and where, and the city's rate card), the legal minimum, and the amount suggested, which the owner taps to use or says their own. Every figure is the estimate's own; nothing here computes
+ * An estimate as the interviews show it (ADR 0039, ADR 0041): the range for the job's scope, what its spread depends
+ * on, the legal minimum, and the amount suggested, which the owner taps to use or says their own. Every figure is the estimate's own; nothing here computes
  * a price.
  */
 
@@ -73,15 +73,11 @@ function placeKeys({ request, estimate }: FoundEstimate): MessageKey[] {
   return isMessageKey(key) ? [key] : [];
 }
 
-/** What the range rests on: every source it blends, or, for a range from before the blend, GigSync's jobs and where. */
-function basisLine(own: Lang, found: FoundEstimate, place: readonly MessageKey[]): Line {
-  const { estimate } = found;
-  if (estimate.basis.blend) return blendLine(own, found.request, estimate);
-  const jobs = estimate.basis.gigsync_jobs;
-  return { key: pluralKey(own, "estimate.jobs", jobs), params: { count: jobs }, names: { place } };
-}
-
-/** The range with its scope and place, then what it rests on, and the legal minimum if known. */
+/**
+ * The range with its scope and place, what its spread mostly depends on, and the legal minimum if known. What the
+ * range rests on (rate cards, seeds, how sure it is, what was assumed) stays in the estimate for the agents: owners
+ * read a price and the one thing that moves it, not its sources.
+ */
 export function estimateLines(own: Lang, found: FoundEstimate): Line[] {
   const { request, estimate } = found;
   const parts = scopeParts(own, request);
@@ -93,7 +89,6 @@ export function estimateLines(own: Lang, found: FoundEstimate): Line[] {
       params: { scope: parts.length > 0 ? t(own, "estimate.scope", { scope: parts.join(", ") }) : "" },
       prices: { low: estimate.low_paise, high: estimate.high_paise },
     },
-    basisLine(own, found, place),
     ...driverLines(estimate),
     ...estimateLegalLines(found),
   ];

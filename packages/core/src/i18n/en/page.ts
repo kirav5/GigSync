@@ -7,8 +7,7 @@ export const page = {
   // Records: completed work, and for a household what it paid
   "page.records_soft_worker": "Work you completed on GigSync, and what it earned.",
   "page.records_soft": "Work done for you on GigSync, and what you paid.",
-  "page.records_total": "Paid in all",
-  "page.records_empty": "Nothing completed yet. A job shows here once the work is done.",
+  "page.records_empty": "Nothing here yet. Work done for you shows here once it is finished.",
   "page.not_paid": "No payment noted",
   "page.not_completed": "Not completed · {count}",
   "page.paid": "Paid {price}",
@@ -18,9 +17,6 @@ export const page = {
   // Privacy
   "page.privacy_title": "Who sees what.",
   "page.privacy_soft": "What your assistant shares, and who you keep away.",
-  "page.privacy_model_title": "Your words and GigSync's model",
-  "page.privacy_model_about":
-    "What you write to your assistant is read by GigSync's own model, on GigSync's computer in India, so it understands you. It is not kept, and nobody else sees it. Answers to private questions, like your lowest rate, never leave this phone. Turn this off to keep everything on this phone: then only the phone's own model reads your words, or none.",
   // Settings
   "page.settings_title": "You and your assistant.",
   "page.settings_soft": "How it bargains, speaks, looks and runs. Kept on this phone.",

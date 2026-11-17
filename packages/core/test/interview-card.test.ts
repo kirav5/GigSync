@@ -83,7 +83,7 @@ describe("the card interview, start to finish", () => {
     expect(keys(s)).toEqual(["iv.what_change"]);
     s = hear(s, "ದರ");
     expect(s.slot).toBe(Slot.rate);
-    expect(keys(s)).toEqual(["iv.ask.rate_month"]);
+    expect(keys(s)).toEqual(["iv.ask.rate_ways"]);
     s = hear(s, "ಎಂಟೂವರೆ ಸಾವಿರ");
     expect(s.slot).toBe(Slot.confirm);
     expect(keys(s)[0]).toBe("iv.got_rate");
@@ -134,9 +134,9 @@ describe("the card interview's checks", () => {
 
   it("asks a monthly trade for its monthly rate, and needs an amount", () => {
     // The going rate is on the price card, not in the chat: the question is one line.
-    expect(keys(atRate)).toEqual(["iv.ask.rate_month"]);
+    expect(keys(atRate)).toEqual(["iv.ask.rate_ways"]);
     expect(prompt(atRate).numeric).toBe(true);
-    expect(keys(hear(atRate, "पता नहीं"))).toEqual(["iv.again.amount", "iv.ask.rate_month"]);
+    expect(keys(hear(atRate, "पता नहीं"))).toEqual(["iv.again.amount", "iv.ask.rate_ways"]);
   });
 
   it("reads the rate back before asking the minimum", () => {
@@ -155,7 +155,7 @@ describe("the card interview's checks", () => {
     expect(prompt(check).lines).toEqual([{ key: "iv.check_amount", prices: { price: 12000000 } }]);
     expect(prompt(check).choices?.map((c) => c.key)).toEqual(["flag.yes", "flag.no"]);
     expect(draftOf(choose(check, "yes")).rate_paise).toBe(12000000);
-    expect(keys(hear(check, "नहीं"))).toEqual(["iv.again.amount", "iv.ask.rate_month"]);
+    expect(keys(hear(check, "नहीं"))).toEqual(["iv.again.amount", "iv.ask.rate_ways"]);
     expect(draftOf(hear(check, "नहीं, बारह हज़ार")).rate_paise).toBe(1200000);
     expect(draftOf(hear(check, "एक लाख बीस हज़ार")).rate_paise).toBe(12000000);
   });

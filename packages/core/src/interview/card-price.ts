@@ -1,16 +1,24 @@
-import { Arrangement, ISO_WEEKDAYS, type IsoWeekday, PAISE_PER_RUPEE, type TimeWindow } from "@gigsync/protocol";
+import {
+  Arrangement,
+  ISO_WEEKDAYS,
+  type IsoWeekday,
+  mainArrangement,
+  PAISE_PER_RUPEE,
+  type TimeWindow,
+} from "@gigsync/protocol";
 import { isMonthly } from "../job/when.js";
 import type { TermPrefs } from "../job/worker-stance.js";
 import { type CardDraft, type InterviewState, type Line, Slot } from "./card.js";
 import { onAmount } from "./card-amount.js";
-import { arranged, cardArrangements, mainOf } from "./card-arrangements.js";
+import { arranged, cardArrangements, mainOf, pickedOf } from "./card-arrangements.js";
 import { cardEstimate } from "./card-estimate.js";
 import { withClock, withTerm } from "./card-terms.js";
 
 /**
- * The price card under "How much do you usually take?" (the design's "Your price"): how the work is priced (by the
- * visit, hour, week or month, as fits it), one amount, the days and the part of the day, answered with one tap. The
- * lowest they take stays its own private question. Typing or saying an amount still answers the question.
+ * The price card under "How much do you usually take?" (the design's "Your price"): each way they take the work (by
+ * the visit, hour, week or month, as fits it), ticked, with an amount for each; the days and the part of the day;
+ * answered with one tap. The longest way ticked is the main rate, whose lowest stays its own private question; the
+ * others' lowest follow at the same share (ADR 0046 §2). Typing or saying an amount still answers the question.
  */
 
 const A = Arrangement.enum;
@@ -26,15 +34,20 @@ export const AMOUNT_STEP_PAISE: Readonly<Record<Arrangement, number>> = {
   [A.monthly]: 500 * PAISE_PER_RUPEE,
 };
 
-/** What the price card answers with. No days means every day; no part of the day means any part. */
-export interface PriceAnswer {
+/** One amount on the price card, for the way it was ticked; none for work priced one way. */
+export interface PriceRate {
   arrangement?: Arrangement | undefined;
   paise: number;
+}
+
+/** What the price card answers with. No days means every day; no part of the day means any part. */
+export interface PriceAnswer {
+  rates: readonly PriceRate[];
   days: readonly IsoWeekday[];
   window?: TimeWindow | undefined;
 }
 
-/** The segments the card offers: the arrangements the work fits; none for work done one way (a repair is a visit). */
+/** The ways the card offers to tick: the arrangements the work fits; none for work done one way (a repair is a visit). */
 export const priceArrangements = (d: CardDraft): Arrangement[] => {
   if (!arranged(d)) return [];
   const fits = cardArrangements(d);
@@ -55,18 +68,49 @@ export function nearYouLine(s: InterviewState): Line | undefined {
   return found && { key: "iv.near_you", prices: { low: found.estimate.low_paise, high: found.estimate.high_paise } };
 }
 
-/** The card priced by one arrangement: the one picked becomes the card's only arrangement, so its rate is the main. */
-function pricedBy(d: CardDraft, arrangement: Arrangement | undefined): CardDraft {
-  if (!arrangement || !priceArrangements(d).includes(arrangement)) return d;
-  const { other_rates: _others, ...rest } = d;
-  return { ...rest, arrangements: [arrangement] };
+/**
+ * The ways ticked on the card: those the draft takes, else the one a card of the work has always meant (monthly for a
+ * maid), else the first the work fits (a visit, for work of their own). Never none: the card is priced some way.
+ */
+export function pricePicked(d: CardDraft): Arrangement[] {
+  const fits = priceArrangements(d);
+  const picked = fits.filter((a) => pickedOf(d).includes(a));
+  return picked.length > 0 ? picked : fits.slice(0, 1);
 }
 
-/** A segment tapped: the question stays open, now in that arrangement's unit (and its estimate). */
+/** The card's arrangements as these, in the order the options are listed, keeping the rates of those still ticked. */
+function withPicked(d: CardDraft, picked: readonly Arrangement[]): CardDraft {
+  const arrangements = Arrangement.options.filter((a) => picked.includes(a));
+  const kept = Object.entries(d.other_rates ?? {}).filter(([a]) => picked.some((p) => p === a));
+  const { other_rates: _others, ...rest } = d;
+  return { ...rest, arrangements, ...(kept.length > 0 ? { other_rates: Object.fromEntries(kept) } : {}) };
+}
+
+/**
+ * A way tapped: ticked on or off, the question still open, its unit and estimate now the main way's. The last one
+ * ticked stays: a card is priced some way.
+ */
 export function choosePriceArrangement(s: InterviewState, value: string): InterviewState {
   const arrangement = Arrangement.safeParse(value).data;
   if (s.slot !== Slot.rate || !arrangement || !priceArrangements(s.draft).includes(arrangement)) return s;
-  return { ...s, draft: pricedBy(s.draft, arrangement), fresh: false };
+  const picked = pricePicked(s.draft);
+  const next = picked.includes(arrangement) ? picked.filter((a) => a !== arrangement) : [...picked, arrangement];
+  return next.length === 0 ? s : { ...s, draft: withPicked(s.draft, next), fresh: false };
+}
+
+/** The card priced by the ways ticked: the longest one's amount is the main rate, each other's its own rate. */
+function pricedBy(d: CardDraft, rates: readonly PriceRate[]): { draft: CardDraft; paise: number | undefined } {
+  const fits = priceArrangements(d);
+  const ticked = rates.filter((r) => r.arrangement !== undefined && fits.includes(r.arrangement));
+  const main = mainArrangement(ticked.flatMap((r) => (r.arrangement ? [r.arrangement] : [])));
+  if (!main) return { draft: d, paise: rates[0]?.paise };
+  const others = ticked.filter((r) => r.arrangement !== main).map((r) => [r.arrangement, r.paise]);
+  const picked = withPicked(
+    d,
+    ticked.flatMap((r) => (r.arrangement ? [r.arrangement] : [])),
+  );
+  const draft = { ...picked, ...(others.length > 0 ? { other_rates: Object.fromEntries(others) } : {}) };
+  return { draft, paise: ticked.find((r) => r.arrangement === main)?.paise };
 }
 
 /**
@@ -80,15 +124,11 @@ function withWhen(prefs: TermPrefs, answer: PriceAnswer): TermPrefs {
   return answer.window ? { ...withClock(dated), windows: [answer.window] } : withTerm(dated, "windows", undefined);
 }
 
-/** The card's answer written into the draft, before its amount is checked like any other (`card-parse.ts`). */
-const pricedDraft = (d: CardDraft, answer: PriceAnswer): CardDraft => {
-  const priced = pricedBy(d, answer.arrangement);
-  return { ...priced, terms: withWhen(priced.terms ?? {}, answer) };
-};
-
-/** The price card answered: the draft as it says, then its amount checked and kept like a typed one. */
-export const keepPrice = (s: InterviewState, answer: PriceAnswer): InterviewState =>
-  onAmount({ ...s, draft: pricedDraft(s.draft, answer) }, answer.paise, false);
+/** The price card answered: the draft as it says, then the main amount checked and kept like a typed one. */
+export function keepPrice(s: InterviewState, answer: PriceAnswer): InterviewState {
+  const { draft, paise } = pricedBy(s.draft, answer.rates);
+  return onAmount({ ...s, draft: { ...draft, terms: withWhen(draft.terms ?? {}, answer) } }, paise, false);
+}
 
 /** The parts of the day set on the card, in the summary when no hours on the clock say it better. */
 export function windowsSummary(d: CardDraft): Line[] {

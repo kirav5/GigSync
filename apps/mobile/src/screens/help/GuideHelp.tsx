@@ -15,7 +15,7 @@ export function GuideLines({ guide }: { guide: CityGuide }) {
     said: h.name,
     number: h.number,
   }));
-  return <CallRows label={t("mentor.helplines")} lines={lines} />;
+  return <CallRows label={t("mentor.helplines")} lines={lines} folded />;
 }
 
 /** One union in a sheet: what the sources say, and the source. */

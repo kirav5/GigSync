@@ -141,3 +141,37 @@ describe("kinds of work (ADR 0059)", () => {
     expect(rates.status).toBe(400);
   });
 });
+
+describe("a kind of work searched by how it is taken (ADR 0046)", () => {
+  /** Bidar, away from every other test file's workers. */
+  const BIDAR = { lat: 17.91, lon: 77.52 };
+  const near = `category=tv_repair&lat=${BIDAR.lat}&lon=${BIDAR.lon}&radius_km=5`;
+  const tv = (name: string, arrangements?: BoardProfileInput["arrangements"]): BoardProfileInput => ({
+    display_name: name,
+    trades: [],
+    skills: [{ text: "TV repair", lang: "en", category: "tv_repair" }],
+    area: BIDAR,
+    area_name: "Bidar",
+    rate_paise: 560000,
+    languages: ["en"],
+    ...(arrangements ? { arrangements } : {}),
+  });
+  const month = { arrangement: "monthly", rate_paise: 560000 } as const;
+  const names = async (viewer: Awaited<ReturnType<typeof signIn>>, arrangement: string) => {
+    const res = await call(viewer, HttpMethod.get, `/board/workers?${near}&arrangement=${arrangement}`);
+    return ((await res.json()) as BoardResult).workers;
+  };
+
+  it("lists who takes one visit, at the visit's rate, and a card naming no way, never a month-only card", async () => {
+    const visit = { arrangement: "visit", rate_paise: 45000 } as const;
+    await (await signIn("+919822400021")).api.publishProfile(tv("Both ways", [visit, month]));
+    await (await signIn("+919822400022")).api.publishProfile(tv("Month only", [month]));
+    await (await signIn("+919822400023")).api.publishProfile(tv("No way named"));
+    const viewer = await signIn("+919822400024");
+    const visits = await names(viewer, "visit");
+    expect(visits.map((w) => w.display_name).sort()).toEqual(["Both ways", "No way named"]);
+    expect(visits.find((w) => w.display_name === "Both ways")?.rate_paise).toBe(45000);
+    const months = await names(viewer, "monthly");
+    expect(months.map((w) => w.display_name).sort()).toEqual(["Both ways", "Month only", "No way named"]);
+  });
+});

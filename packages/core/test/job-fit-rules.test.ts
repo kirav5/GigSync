@@ -65,7 +65,8 @@ describe("the card interview, by the job's nature", () => {
     expect(priceArrangements(s.draft)).toEqual([A.visit, A.weekly, A.monthly]);
     const rate = { ...s, slot: Slot.rate };
     expect(choose(rate, A.hourly)).toBe(rate);
-    expect(choose(rate, A.visit).draft.arrangements).toEqual([A.visit]);
+    // A tap ticks the visit on beside the month a cook's card has always meant.
+    expect(choose(rate, A.visit).draft.arrangements).toEqual([A.visit, A.monthly]);
     // The chips for several, when the owner changes them: said, only the ones a cook takes count.
     const arranging = { ...s, slot: Slot.arrangements };
     expect(prompt(arranging).choices?.map((c) => c.value)).toEqual([A.visit, A.weekly, A.monthly, "yes"]);
@@ -79,11 +80,11 @@ describe("the card interview, by the job's nature", () => {
     expect(cardArrangements({ trades: [T.electrician] })).toEqual([A.visit]);
   });
 
-  it("asks a worker of their own skill, and the rate question follows the longest one they take", () => {
+  it("asks a worker of their own skill, and the rate question asks for each way they take", () => {
     const s = hear({ ...hear(start(config()), "I am a nanny"), slot: Slot.arrangements }, "by the hour and monthly");
     expect(s.draft.arrangements).toEqual([A.hourly, A.monthly]);
     // How far they go comes right after the area; then the rate, after that answer's readback.
-    expect(prompt(hear(hear(s, "Koramangala"), "10")).lines[1]?.key).toBe("iv.ask.rate_month");
+    expect(prompt(hear(hear(s, "Koramangala"), "10")).lines[1]?.key).toBe("iv.ask.rate_ways");
     expect(cardArrangements({ skills: [{ text: "Nanny", lang: "en" }] })).toEqual(Arrangement.options);
   });
 

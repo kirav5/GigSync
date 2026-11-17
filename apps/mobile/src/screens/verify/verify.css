@@ -41,7 +41,7 @@
   padding: 14px 16px;
   border: 1px solid var(--hairline);
   border-radius: 18px;
-  background: var(--surface);
+  background: var(--grad-card);
 }
 .verify-keep li {
   display: grid;

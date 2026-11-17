@@ -26,7 +26,7 @@ import { geo } from "./routes/geo.js";
 import { jobMoney } from "./routes/job-money.js";
 import { jobRecords } from "./routes/job-records.js";
 import { mail } from "./routes/mail.js";
-import { map } from "./routes/map.js";
+import { cachedMap, MAP_ROUTE, map } from "./routes/map.js";
 import { me } from "./routes/me.js";
 import { mentors } from "./routes/mentors.js";
 import { model } from "./routes/model.js";
@@ -71,6 +71,9 @@ app.onError((err, c) => {
 });
 
 app.get("/health", (c) => c.json({ ok: true, env: c.env.ENVIRONMENT, protocol: 1 }));
+
+// ── Map parts the edge already holds: answered before any database work (routes/map.ts) ───────────────────────────
+app.get(`${MAP_ROUTE}*`, cachedMap);
 
 // ── One directory connection per /v1 request, before anything that queries it ─────────────────────────────────────
 app.use(`${V1}/*`, openDirectory);
