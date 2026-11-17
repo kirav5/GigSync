@@ -14,8 +14,8 @@ import { type Context, Hono } from "hono";
 import { clearFailures, isLocked, recordFailure } from "../auth/attempts.js";
 import { codeMatches, issueCode, SendRefused } from "../auth/codes.js";
 import { googleKeys, TokenError, verifyIdToken } from "../auth/firebase.js";
+import { codeSenders } from "../auth/senders.js";
 import { completeSignIn } from "../auth/signin.js";
-import { whatsAppConfig } from "../auth/whatsapp.js";
 import { ApiError, type AppEnv, Var } from "../context.js";
 import { hmacHex, sameSecret } from "../crypto.js";
 import type { Db } from "../db/client.js";
@@ -102,28 +102,29 @@ auth.post("/otp/request", async (c) => {
   const body = OtpRequest.safeParse(await c.req.json().catch(() => null));
   if (!body.success) return c.json({ error: ApiError.badPhone }, 400);
   log.info("otp requested", { requestId: c.get(Var.requestId), phone: pii(body.data.phone) });
-  const whatsApp = whatsAppConfig(c.env);
-  // Without WhatsApp, the phone asks Firebase for the SMS when it has Firebase, and this serves the dev path.
-  if (!whatsApp) return c.json(sentBy(c.env.DEV_OTP ? OtpChannel.enum.dev : OtpChannel.enum.sms));
-  // Every WhatsApp code is paid for: capped per client IP here, and per number in the directory (keepCode).
+  const senders = codeSenders(c.env);
+  // With no sender set up, the phone asks Firebase for the SMS when it has Firebase, and this serves the dev path.
+  if (!senders.length) return c.json(sentBy(c.env.DEV_OTP ? OtpChannel.enum.dev : OtpChannel.enum.sms));
+  // Every code sent is paid for: capped per client IP here, and per number in the directory (keepCode).
   if (!(await withinIpLimit(c, body.data.phone))) return c.json({ error: ApiError.tooManyAttempts }, 429);
   const attempt = await attemptFor(c, body.data.phone);
-  const refused = await issue(attempt, whatsApp);
-  if (refused === SendRefused.tooSoon) return c.json({ error: ApiError.tooManyAttempts }, 429);
-  if (refused === SendRefused.failed) {
-    log.warn("otp not sent", attempt.who);
-    return c.json({ error: ApiError.codeNotSent }, 502);
+  const issued = await issue(attempt, senders);
+  if ("refused" in issued) {
+    log.warn("otp not sent", { ...attempt.who, refused: issued.refused });
+    return issued.refused === SendRefused.tooSoon
+      ? c.json({ error: ApiError.tooManyAttempts }, 429)
+      : c.json({ error: ApiError.codeNotSent }, 502);
   }
-  log.info("otp sent", { ...attempt.who, channel: OtpChannel.enum.whatsapp });
-  return c.json(sentBy(OtpChannel.enum.whatsapp));
+  log.info("otp sent", { ...attempt.who, channel: issued.channel });
+  return c.json(sentBy(issued.channel));
 });
 
 /**
- * True when `code` proves the number: the code the API sent when WhatsApp is on (and then never the dev code, so a
- * DEV_OTP left on a deployment cannot sign anyone in), otherwise the dev code.
+ * True when `code` proves the number: the code the API sent when it sends codes (WhatsApp or MSG91; and then never
+ * the dev code, so a DEV_OTP left on a deployment cannot sign anyone in), otherwise the dev code.
  */
 async function codeProves(c: AuthContext, attempt: Attempt, code: string): Promise<boolean> {
-  if (whatsAppConfig(c.env)) return matches(attempt, code);
+  if (codeSenders(c.env).length) return matches(attempt, code);
   return c.env.DEV_OTP ? sameSecret(code, c.env.DEV_OTP) : false;
 }
 
@@ -140,7 +141,7 @@ auth.post("/otp/verify", async (c) => {
     return c.json({ error: ApiError.wrongCode }, 401);
   }
   // A code the API sent signs in once.
-  if (whatsAppConfig(c.env)) await dropCode(attempt.db, attempt.phoneHmac);
+  if (codeSenders(c.env).length) await dropCode(attempt.db, attempt.phoneHmac);
   return finish(c, attempt, body.data.device);
 });
 
@@ -204,7 +205,7 @@ auth.post("/connector", async (c) => {
   const user = await userForPhone(attempt.db, attempt.phoneHmac);
   if (!user) return c.json({ error: ApiError.noAccount }, 404);
   const token = await insertConnectorSession(attempt.db, user, attempt.now);
-  if (whatsAppConfig(c.env)) await dropCode(attempt.db, attempt.phoneHmac);
+  if (codeSenders(c.env).length) await dropCode(attempt.db, attempt.phoneHmac);
   await clearFailures(attempt.db, attempt.phoneHmac);
   log.info("connector signed in", { ...attempt.who, user });
   return c.json({ user, token });

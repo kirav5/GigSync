@@ -14,7 +14,7 @@ export interface Env {
   LOG_PII?: string;
   /** Comma-separated origins allowed to call the API from a browser or webview (the website and the phone apps). */
   ALLOWED_ORIGINS?: string;
-  /** Secret: the code that always verifies until the SMS gateway exists. Unset means nobody can sign in. */
+  /** Secret: a code that verifies for every number until the API sends codes itself (WhatsApp or MSG91). */
   DEV_OTP?: string;
   /**
    * Public: the Firebase project whose phone sign-in the app uses to send SMS codes; ID tokens must be issued for it.
@@ -34,6 +34,13 @@ export interface Env {
   WHATSAPP_TEMPLATE_LANGUAGE?: string;
   /** Public: the Graph API version to call, e.g. "v23.0"; unset means the one in auth/whatsapp.ts. */
   WHATSAPP_API_VERSION?: string;
+  /**
+   * Secret: MSG91's authkey, for sign-in codes by SMS (ADR 0069), tried after WhatsApp. With the template id below it
+   * turns SMS codes on, and then the dev code no longer signs in. `wrangler secret put MSG91_AUTH_KEY`.
+   */
+  MSG91_AUTH_KEY?: string;
+  /** Secret: the MSG91 OTP template's id, DLT-registered with the sender ID, with `##OTP##` in it. */
+  MSG91_OTP_TEMPLATE_ID?: string;
   /** Secret: HMAC key for phone-number hashes. `wrangler secret put PHONE_HMAC_KEY`. */
   PHONE_HMAC_KEY?: string;
   /** Secret: the key admin-only routes (setting a mentor's vouched badge) expect. Unset means nobody is admin. */

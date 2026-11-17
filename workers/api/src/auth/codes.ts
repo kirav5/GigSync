@@ -2,11 +2,11 @@ import type { Phone } from "@gigsync/protocol";
 import { hmacHex, sameSecret } from "../crypto.js";
 import type { Db } from "../db/client.js";
 import { dropCode, keepCode, pendingCode } from "../db/otp-codes.js";
-import { sendCode, type WhatsAppConfig } from "./whatsapp.js";
+import type { CodeSender } from "./senders.js";
 
 /**
- * Codes the API makes and checks itself (ADR 0069), for the channels it sends on (WhatsApp); Firebase's SMS codes are
- * made and checked by Firebase. A code is six digits, kept only as an HMAC tied to its number, and signs in once.
+ * Codes the API makes and checks itself (ADR 0069), for the channels it sends on (WhatsApp, MSG91's SMS); Firebase's
+ * SMS codes are made and checked by Firebase. A code is six digits, kept only as an HMAC tied to its number, and signs in once.
  */
 
 const CODE_DIGITS = 6;
@@ -29,6 +29,9 @@ const codeHash = (key: string, phoneHmac: string, code: string) => hmacHex(key, 
 export const SendRefused = { tooSoon: "too soon", failed: "failed" } as const;
 export type SendRefused = (typeof SendRefused)[keyof typeof SendRefused];
 
+/** What a send came to: the channel the code went by, or why it did not go. */
+export type Issued = { channel: CodeSender["channel"] } | { refused: SendRefused };
+
 /** What a send needs: the database, the HMAC key, and the number both as typed and hashed. */
 export interface CodeTarget {
   db: Db;
@@ -39,16 +42,17 @@ export interface CodeTarget {
 }
 
 /**
- * Makes a code for the number, keeps it, and sends it by WhatsApp. Refused when the number was sent one just now
- * or has had its codes for the hour; on a failed send the code is forgotten, so asking again is not held up.
+ * Makes a code for the number, keeps it, and sends it by the first sender that takes it (WhatsApp, then SMS). Refused
+ * when the number was sent one just now or has had its codes for the hour; when no sender took it the code is
+ * forgotten, so asking again is not held up.
  */
-export async function issueCode(target: CodeTarget, config: WhatsAppConfig): Promise<SendRefused | undefined> {
+export async function issueCode(target: CodeTarget, senders: readonly CodeSender[]): Promise<Issued> {
   const code = newCode();
   const hash = await codeHash(target.key, target.phoneHmac, code);
-  if (!(await keepCode(target.db, target.phoneHmac, hash, target.now))) return SendRefused.tooSoon;
-  if ((await sendCode(config, target.phone, code)) === undefined) return undefined;
+  if (!(await keepCode(target.db, target.phoneHmac, hash, target.now))) return { refused: SendRefused.tooSoon };
+  for (const sender of senders) if (await sender.send(target.phone, code)) return { channel: sender.channel };
   await dropCode(target.db, target.phoneHmac);
-  return SendRefused.failed;
+  return { refused: SendRefused.failed };
 }
 
 /** True when `code` is the number's pending code and has not expired; the caller drops it once signed in. */

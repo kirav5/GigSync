@@ -57,7 +57,9 @@ LOG_PII = "false"
 # Who may call the API from a browser: the website, then the iOS and Android webviews (capacitor://localhost,
 # https://localhost). Local dev overrides this in .dev.vars.
 ALLOWED_ORIGINS = "https://gigsync.network,https://www.gigsync.network,capacitor://localhost,https://localhost"
-# DEV_OTP is a secret, not a var: the code that always verifies until the SMS gateway exists.
+# DEV_OTP is a secret, not a var: a code that verifies for every number, for local work and tests. Once the API sends
+# codes itself (WhatsApp below, or SMS through MSG91 with the MSG91_AUTH_KEY and MSG91_OTP_TEMPLATE_ID secrets) it no
+# longer signs anyone in; delete it from production then.
 # Local dev reads it from .dev.vars (see .dev.vars.example); the deployed Worker from `wrangler secret put DEV_OTP`.
 # Real SMS codes through Firebase phone sign-in: the Firebase project id (public; it is in every ID token). Empty
 # means phone sign-in is off and only DEV_OTP signs in. Setup: docs/setup/firebase-phone-sign-in.md.
