@@ -18,6 +18,7 @@ export const start: Readonly<Record<keyof typeof en, string>> = {
   "start.number_title": "ನಿಮ್ಮ ಮೊಬೈಲ್ ನಂಬರ್",
   "start.code_sent": "{phone} ಗೆ ಕಳುಹಿಸಲಾಗಿದೆ",
   "start.code_auto": "ಎಸ್‌ಎಂಎಸ್‌ನಿಂದ ತಾನಾಗಿಯೇ ತುಂಬುತ್ತದೆ.",
+  "start.code_whatsapp": "ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಕಳುಹಿಸಲಾಗಿದೆ. ಅಲ್ಲಿ ಕೋಡ್ ಕಾಪಿ ಮಾಡಿ, ನಂತರ ಇಲ್ಲಿಗೆ ಬನ್ನಿ.",
   "start.code_again": "ಕೋಡ್ ಮತ್ತೆ ಕಳುಹಿಸಿ",
   "start.code_resent": "ಹೊಸ ಕೋಡ್ ಬರುತ್ತಿದೆ.",
   "start.change_number": "ನಂಬರ್ ಬದಲಿಸಿ",

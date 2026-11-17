@@ -56,6 +56,11 @@ ALLOWED_ORIGINS = "https://gigsync.network,https://www.gigsync.network,capacitor
 # Real SMS codes through Firebase phone sign-in: the Firebase project id (public; it is in every ID token). Empty
 # means phone sign-in is off and only DEV_OTP signs in. Setup: docs/setup/firebase-phone-sign-in.md.
 FIREBASE_PROJECT_ID = ""
+# Sign-in codes by WhatsApp (ADR 0069, docs/setup/whatsapp-otp.md): the id Meta gives the sending number, and the
+# approved authentication template's name. With both set and the WHATSAPP_TOKEN secret put, the API sends the codes
+# and DEV_OTP stops signing in. Empty means off.
+WHATSAPP_PHONE_NUMBER_ID = ""
+WHATSAPP_TEMPLATE = ""
 # Live cities (README "Live cities"): Bengaluru alone for the pilot, though the directory also has Kanpur. A comma
 # list keeps only those cities; unset serves every live city in the directory; "*" lets every place in, for testing
 # from anywhere (Sitapur): set LIVE_CITIES=* in .dev.vars, which wins over this locally.

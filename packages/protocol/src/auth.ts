@@ -6,6 +6,15 @@ export const Phone = z.string().regex(/^\+[1-9]\d{7,14}$/, "E.164");
 
 export const OtpRequest = z.object({ phone: Phone });
 
+/**
+ * How a sign-in code reaches the phone: the dev code (local and tests), WhatsApp (the API sends it, ADR 0069), or an
+ * SMS that Firebase sends and checks on the phone itself.
+ */
+export const OtpChannel = z.enum(["dev", "whatsapp", "sms"]);
+
+/** What `POST /v1/auth/otp/request` answers: the code is on its way, and by which channel. */
+export const OtpSent = z.object({ sent: z.literal(true), channel: OtpChannel });
+
 /** The public keys a device registers at sign-in, so other agents can verify it and seal envelopes to it. */
 export const DeviceRegistration = z.object({
   signing_key: z.string().min(1).max(200),
@@ -68,6 +77,8 @@ export type Session = z.infer<typeof Session>;
 export type DeviceKeys = z.infer<typeof DeviceKeys>;
 export type DirectoryEntry = z.infer<typeof DirectoryEntry>;
 export type OtpRequest = z.infer<typeof OtpRequest>;
+export type OtpChannel = z.infer<typeof OtpChannel>;
+export type OtpSent = z.infer<typeof OtpSent>;
 export type DeviceRegistration = z.infer<typeof DeviceRegistration>;
 export type OtpVerify = z.infer<typeof OtpVerify>;
 export type PhoneTokenVerify = z.infer<typeof PhoneTokenVerify>;

@@ -16,6 +16,12 @@ ADMIN_KEY=dev-only-admin-key
 # Real SMS codes through Firebase phone sign-in (docs/setup/firebase-phone-sign-in.md): the Firebase project id. Unset
 # means /v1/auth/phone/verify answers 503 and only DEV_OTP signs in. Deployed: FIREBASE_PROJECT_ID in wrangler.toml.
 # FIREBASE_PROJECT_ID=
+# Sign-in codes by WhatsApp (docs/setup/whatsapp-otp.md). With all three set, codes go by WhatsApp and DEV_OTP no
+# longer signs in; Meta's test number only reaches the phones added to its list. Deployed: the token by
+# `wrangler secret put WHATSAPP_TOKEN`, the other two in wrangler.toml.
+# WHATSAPP_TOKEN=
+# WHATSAPP_PHONE_NUMBER_ID=
+# WHATSAPP_TEMPLATE=
 # Geocoding for the address form (ADR 0045): an Ola Maps key. Unset means the geo routes answer 503 and the app
 # offers typing the address instead. Deployed: `wrangler secret put OLA_MAPS_API_KEY`.
 # OLA_MAPS_API_KEY=
