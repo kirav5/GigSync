@@ -6,7 +6,7 @@ export const tabs: Readonly<Record<keyof typeof en, string>> = {
   "nav.home": "ಮುಖಪುಟ",
   "nav.jobs": "ಚಟುವಟಿಕೆ",
   "nav.earnings": "ಗಳಿಕೆ",
-  "nav.payments": "ಪಾವತಿಗಳು",
+  "nav.qr": "ಕ್ಯೂಆರ್",
   "tabs.namaste": "ನಮಸ್ತೆ, {name}",
   "tabs.alerts": "ಸೂಚನೆಗಳು",
   "tabs.alerts_none": "ಈಗ ನಿಮಗಾಗಿ ಏನೂ ಕಾಯುತ್ತಿಲ್ಲ.",

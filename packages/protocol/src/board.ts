@@ -116,7 +116,10 @@ export const BoardQuery = z
     lon: z.coerce.number().min(-180).max(180),
     radius_km: z.coerce.number().positive().max(MAX_RADIUS_KM).default(DEFAULT_RADIUS_KM),
     max_rate_paise: z.coerce.number().int().positive().optional(),
-    /** ADR 0046: only workers who take this arrangement; a card without arrangements takes monthly work only. */
+    /**
+     * ADR 0046: only workers who take this arrangement. A trade's card without arrangements takes monthly work only;
+     * a skill's or a kind of work's takes any (ADR 0047).
+     */
     arrangement: Arrangement.optional(),
     /**
      * ADR 0050: the household's day and part of the day. Workers whose hours leave it out, or who already have a

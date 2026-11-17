@@ -23,7 +23,6 @@ import type { GigView } from "../useGig.js";
 import { AnswerForm } from "./AnswerForm.js";
 import { SignCard } from "./JobDecide.js";
 import { AskAgain } from "./job/AskAgain.js";
-import { shortHash } from "./job/look.js";
 import { MoreSheet } from "./job/MoreSheet.js";
 import { type ApproveDetail, RequestFits } from "./job/RequestFits.js";
 import { ReviewCard } from "./job/ReviewCard.js";
@@ -110,7 +109,7 @@ export function JobActions(props: JobActionProps & { them: string; talk?: ReactN
             asked={isWorker ? undefined : job.request.terms}
             place={job.request.locality}
             them={them}
-            theirHash={job.theirs?.terms.offer_id === terms.offer_id ? shortHash(job.theirs.terms_hash) : undefined}
+            theySigned={job.theirs?.terms.offer_id === terms.offer_id}
             say={[
               t("home.say_sign", { name: them, price: jobPrice(lang, job.request, terms.price_paise) }),
               ...termsLines(lang, terms.terms),

@@ -8,8 +8,7 @@ export const page: Readonly<Record<keyof typeof en, string>> = {
   // Records: completed work, and for a household what it paid
   "page.records_soft_worker": "GigSync पर पूरे किए काम, और उनसे हुई कमाई।",
   "page.records_soft": "GigSync पर आपके लिए हुए काम, और आपने कितना चुकाया।",
-  "page.records_total": "कुल चुकाया",
-  "page.records_empty": "अभी कोई काम पूरा नहीं हुआ। काम पूरा होते ही यहाँ दिखेगा।",
+  "page.records_empty": "अभी यहाँ कुछ नहीं। आपके लिए किया गया काम पूरा होते ही यहाँ दिखेगा।",
   "page.not_paid": "कोई भुगतान दर्ज नहीं",
   "page.not_completed": "पूरे नहीं हुए · {count}",
   "page.paid": "{price} चुकाए",
@@ -19,9 +18,6 @@ export const page: Readonly<Record<keyof typeof en, string>> = {
   // Privacy
   "page.privacy_title": "कौन क्या देखता है।",
   "page.privacy_soft": "आपका सहायक क्या बताता है, और किसे आपने दूर रखा।",
-  "page.privacy_model_title": "आपकी बातें और GigSync का मॉडल",
-  "page.privacy_model_about":
-    "आप अपने सहायक को जो लिखते हैं, उसे GigSync का अपना मॉडल, भारत में GigSync के कंप्यूटर पर, पढ़ता है ताकि आपकी बात समझ सके। उसे रखा नहीं जाता, और कोई और उसे नहीं देखता। निजी सवालों के जवाब, जैसे आपका सबसे कम रेट, इस फ़ोन से बाहर नहीं जाते। सब कुछ इसी फ़ोन पर रखना हो, तो इसे बंद करें: तब आपकी बातें सिर्फ़ फ़ोन का अपना मॉडल पढ़ता है, या कोई नहीं।",
   // Settings
   "page.settings_title": "आप और आपका सहायक।",
   "page.settings_soft": "वह कैसे मोलभाव करता है, बोलता है, दिखता है और चलता है। इसी फ़ोन पर रहता है।",

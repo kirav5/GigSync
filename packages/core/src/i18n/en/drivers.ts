@@ -106,16 +106,7 @@ export const drivers = {
   "driver.noun.vehicle": "the car",
   "driver.noun.problem": "what the job is",
   "driver.noun.points": "how many points",
-  "driver.confidence.high": "fairly sure",
-  "driver.confidence.medium": "a rough guide",
-  "driver.confidence.low": "a very rough guide",
-  "driver.confidence_line": "How sure: {level}.",
   "driver.spread": "It mostly depends on {driver}.",
-  "driver.assumed": "Assumed, since not known: {drivers}.",
-  "driver.basis.gigsync.one": "{count} GigSync job",
-  "driver.basis.gigsync.other": "{count} GigSync jobs",
-  "driver.basis.rate_card": "{city} rate card: {sources}",
-  "driver.basis_line": "From {parts}.",
   "driver.no_trade":
     "GigSync has no prices for {job} yet, and no worker here lists it so far. Try saying the work another way, or pick from the list.",
 } as const;

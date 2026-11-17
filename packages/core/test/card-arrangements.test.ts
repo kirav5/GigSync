@@ -70,7 +70,7 @@ describe("a rate for each", () => {
   it("asks the main rate in its unit, the lowest, then each other rate, and reads them back", () => {
     const atRate = picked(["hourly", "weekly"]);
     expect(atRate.slot).toBe(Slot.rate);
-    expect(keys(atRate)).toContain("iv.ask.rate_week");
+    expect(keys(atRate)).toContain("iv.ask.rate_ways");
     // The monthly city band is not shown under a weekly rate.
     expect(keys(atRate)).not.toContain("iv.band_month");
     const atMore = run(atRate, ["1200", "1000"]);
@@ -87,7 +87,7 @@ describe("a rate for each", () => {
 
   it("keeps a monthly-only maid's card as every card was", () => {
     const atRate = picked(["monthly"]);
-    expect(keys(atRate)).toContain("iv.ask.rate_month");
+    expect(keys(atRate)).toContain("iv.ask.rate_ways");
     const after = run(atRate, ["8000", "7000"]);
     expect(after.slot).toBe(Slot.languages);
     expect(arrangementRates(draftOf(after))).toEqual([{ arrangement: A.monthly, rate_paise: 800000 }]);

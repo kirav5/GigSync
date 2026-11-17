@@ -40,7 +40,7 @@ const MYSURU = RateCard.parse({
 describe("the city's usual pay under the card's rate questions", () => {
   it("asks a cook's rate and least in one line each: the city's band stays off the chat (the price card has the going rate)", () => {
     const rate = atRate("cook");
-    expect(prompt(rate).lines).toEqual([{ key: "iv.ask.rate_month" }]);
+    expect(prompt(rate).lines).toEqual([{ key: "iv.ask.rate_ways" }]);
     // Without an estimate there is no "Near you" line: the city's band alone is not shown as one.
     expect(nearYouLine(rate)).toBeUndefined();
     const min = hear(rate, "9000");

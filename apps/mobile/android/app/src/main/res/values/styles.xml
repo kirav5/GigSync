@@ -16,7 +16,11 @@
     </style>
 
 
+    <!-- The launch screen: GigSync's mark on the app's cream, as Android 12 and later draw it, and the same picture before. -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
+        <item name="windowSplashScreenBackground">#FAF6EE</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="windowSplashScreenIconBackgroundColor">#3B2118</item>
     </style>
 </resources>

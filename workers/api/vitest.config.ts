@@ -26,6 +26,8 @@ export default defineConfig({
           ENVIRONMENT: "local",
           // The directory's live cities, whatever a developer's .dev.vars says (README "Live cities").
           LIVE_CITIES: "",
+          // Android alerts off, whatever Firebase account a developer's .dev.vars holds; tests that send set their own.
+          FCM_SERVICE_ACCOUNT: "",
         },
       },
     }),

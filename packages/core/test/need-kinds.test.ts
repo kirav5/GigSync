@@ -135,3 +135,17 @@ describe("work a worker also does", () => {
     expect(s.draft.skills?.map((k) => k.text)).toEqual(["TV mechanic", "cat care"]);
   });
 });
+
+describe("a kind of work read from the first sentence", () => {
+  const TV = { text: "TV repair", lang: "en", workers: 1, category: WorkCategory.enum.tv_repair } as never;
+  const SAID = "My TV has no picture, only sound. Need it repaired tomorrow in HSR, my budget is 1000 rupees";
+
+  it("keeps the day, the area and the budget the sentence gave, and never sends the budget to workers", () => {
+    const s = withSkill(startNeed(config), TV, SAID, { saysWhat: true });
+    expect(s.draft.day).toBe("tomorrow");
+    expect(s.draft.area).toBe("hsr_layout");
+    expect(s.draft.budget_paise).toBe(100_000);
+    expect(s.draft.detail).toContain("no picture");
+    expect(s.draft.detail).not.toContain("1000");
+  });
+});

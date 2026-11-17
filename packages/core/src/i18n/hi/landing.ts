@@ -3,7 +3,7 @@ import type { landing as en } from "../en/landing.js";
 /** Hindi: moving to a new city for work, and the city guide. */
 export const landing: Readonly<Record<keyof typeof en, string>> = {
   "landing.title": "नए शहर में जा रहे हैं",
-  "landing.draft": "सार्वजनिक स्रोतों से बना ड्राफ़्ट। अभी किसी यूनियन ने जाँचा नहीं है।",
+  "landing.draft": "किसी यूनियन ने अभी यह गाइड नहीं जाँची है।",
   "landing.loading": "गाइड आ रही है…",
   "landing.no_guide": "गाइड डाउनलोड नहीं हो सकी। एक बार इंटरनेट से जुड़ें, फिर यह इसी फ़ोन पर रहेगी।",
   "landing.offline": "इंटरनेट नहीं है: {date} को इस फ़ोन पर रखी गाइड दिख रही है।",
@@ -58,6 +58,8 @@ export const landing: Readonly<Record<keyof typeof en, string>> = {
   "landing.no_answer_next": "नीचे दिए किसी नंबर पर फ़ोन करें, या शहर जानने वाले किसी से पूछें।",
   "landing.by_model": "इस फ़ोन के मॉडल ने गाइड के शीर्षकों में से यह हिस्सा चुना।",
   "landing.helplines": "ये नंबर सेव करें",
+  "landing.lines_title": "आपातकालीन और हेल्पलाइन नंबर",
+  "landing.lines_count": "{count} नंबर, कॉल करने के लिए किसी पर टैप करें",
   "landing.call": "{name} को {number} पर फ़ोन करें",
   "landing.places": "जगहें",
   "landing.places_note": "सार्वजनिक स्रोतों से ली गई सूची, किसी ने गारंटी नहीं दी। जाने से पहले फ़ोन करें।",

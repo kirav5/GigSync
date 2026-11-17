@@ -8,3 +8,50 @@ a.call-row {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
 }
+
+/* A folded list (CallRows folded): one row, its chevron turning down as the numbers slide open beneath it, each
+   number easing in a beat after the one above. Grid rows from 0fr to 1fr animate to the list's own height. */
+.call-fold-chev {
+  transition: transform 260ms var(--ease-out, cubic-bezier(0.2, 0.8, 0.2, 1));
+}
+.call-fold[aria-expanded="true"] .call-fold-chev {
+  transform: rotate(90deg);
+}
+.call-fold-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.call-fold-body[data-open] {
+  grid-template-rows: 1fr;
+}
+.call-fold-body:not([data-open]) {
+  border-top-color: transparent;
+}
+.call-fold-rows {
+  display: grid;
+  min-height: 0;
+  overflow: hidden;
+}
+.call-fold-rows > * + * {
+  border-top: 1px solid var(--hairline);
+}
+.call-fold-rows > .call-row {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity 220ms ease,
+    transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.call-fold-body[data-open] .call-row {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(var(--at, 0) * 35ms + 60ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .call-fold-chev,
+  .call-fold-body,
+  .call-fold-rows > .call-row {
+    transition: none;
+  }
+}

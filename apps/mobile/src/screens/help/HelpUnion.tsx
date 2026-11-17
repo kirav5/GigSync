@@ -15,6 +15,8 @@ const GUIDE_CITY = City.enum.bengaluru;
 interface Props {
   ports: Ports;
   session: Session;
+  /** A worker's Help adds mentors, moving to a new city and the unions; a household's keeps the rest. */
+  worker: boolean;
   /** Opens Find a mentor, for someone who knows the work and the city. */
   onFindMentor: () => void;
   /** Opens one mentor link's thread, where its person can be blocked. */
@@ -28,31 +30,32 @@ interface Props {
 }
 
 /**
- * Help (design P5), from the profile, for workers: a headline and its line, then groups of rows, each an icon tile, a
- * title, one muted line and a chevron. Get help (a mentor, moving to a new city, a problem with a job), the worker's
- * mentor links with their new notes, the numbers the city guide lists (each a tap to call), the unions it lists (each
- * opening what the sources say), then the terms; the guide's own label closes the page. The design's steward,
- * per-job receipts and welfare-day count have nothing real behind them yet (ADR 0017, ADR 0019), so none is drawn.
+ * Help (design P5), from the profile: a headline and its line, then groups of rows, each an icon tile, a title, one
+ * muted line and a chevron. Get help (for a worker a mentor and moving to a new city; for everyone a problem with a
+ * job), the worker's mentor links with their new notes, the numbers the city guide lists (each a tap to call), the
+ * unions it lists for a worker (each opening what the sources say), then the terms; the guide's own label closes the
+ * page. The design's steward, per-job receipts and welfare-day count have nothing real behind them yet (ADR 0017,
+ * ADR 0019), so none is drawn.
  */
-export function HelpUnion({ ports, session, onFindMentor, onOpenLink, onJobs, onMoving, onTerms }: Props) {
+export function HelpUnion({ ports, session, worker, onFindMentor, onOpenLink, onJobs, onMoving, onTerms }: Props) {
   const { t } = useI18n();
   const loaded = useGuide(ports, session, GUIDE_CITY);
   return (
     <PageFrame title={t("me.help_title")} subtitle={t("me.help_lead")}>
       <ListCard label={t("me.help_people")}>
-        <ListRow icon="people" title={t("mentor.find")} sub={t("me.mentor_sub")} onClick={onFindMentor} />
-        <ListRow icon="pin" title={t("me.moving")} sub={t("me.moving_sub")} onClick={onMoving} />
+        {worker && <ListRow icon="people" title={t("mentor.find")} sub={t("me.mentor_sub")} onClick={onFindMentor} />}
+        {worker && <ListRow icon="pin" title={t("me.moving")} sub={t("me.moving_sub")} onClick={onMoving} />}
         <ListRow icon="flag" title={t("me.report")} sub={t("me.report_sub")} onClick={onJobs} />
       </ListCard>
-      <LinksSection onOpen={onOpenLink} />
+      {worker && <LinksSection onOpen={onOpenLink} />}
       {loaded === undefined && <p className={C.muted}>{t("landing.loading")}</p>}
       {loaded === null && <p className={C.muted}>{t("landing.no_guide")}</p>}
       {loaded && <GuideLines guide={loaded.guide} />}
-      {loaded && <GuideUnions guide={loaded.guide} city={t(`landing.city.${GUIDE_CITY}`)} />}
+      {loaded && worker && <GuideUnions guide={loaded.guide} city={t(`landing.city.${GUIDE_CITY}`)} />}
+      {loaded && <GuideLabel loaded={loaded} />}
       <ListCard label={t("me.help_about")}>
         <ListRow icon="doc" title={t("records.terms_title")} sub={t("me.terms_sub")} onClick={onTerms} />
       </ListCard>
-      {loaded && <GuideLabel loaded={loaded} />}
     </PageFrame>
   );
 }

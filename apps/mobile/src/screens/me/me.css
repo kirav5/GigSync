@@ -9,7 +9,7 @@
   padding: 12px 12px 12px 16px;
   border: 1px solid var(--hairline);
   border-radius: 22px;
-  background: var(--surface);
+  background: var(--grad-card);
 }
 .profile-me {
   flex: 1;

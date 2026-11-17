@@ -16,7 +16,7 @@ export function Helplines({ guide }: { guide: CityGuide }) {
     said: h.name,
     number: h.number,
   }));
-  return <CallRows label={t("landing.helplines")} lines={lines} />;
+  return <CallRows label={t("landing.helplines")} lines={lines} folded />;
 }
 
 /** The guide's places, said plainly to be from public sources and vouched for by nobody. */

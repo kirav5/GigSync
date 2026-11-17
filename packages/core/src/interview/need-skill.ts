@@ -1,7 +1,8 @@
 import type { Arrangement, BoardSkill } from "@gigsync/protocol";
 import { afterOutside, moveOn, NeedSlot, type NeedState } from "./need.js";
 import { withSaidArrangement } from "./need-arrangement.js";
-import type { NeedDraft } from "./need-types.js";
+import { parseNeed, withoutMoney } from "./need-parse.js";
+import type { NeedConfig, NeedDraft } from "./need-types.js";
 import { normalize, SPACE } from "./normalize.js";
 
 /**
@@ -45,15 +46,32 @@ function withoutWork(d: NeedDraft): NeedDraft {
 }
 
 /**
+ * Where, when and the budget the owner's words gave ("tomorrow in Jayanagar, my budget is 1000 rupees"), kept where
+ * the draft has none: a reading decided the work, and the word lists still read what they are sure of. The words
+ * the workers read go without their budget, which never leaves the phone.
+ */
+function withSaid(d: NeedDraft, words: string, config: Pick<NeedConfig, "areas" | "today">): NeedDraft {
+  const said = parseNeed(words, config);
+  return {
+    ...(said.area ? { area: said.area } : {}),
+    ...(said.day ? { day: said.day } : {}),
+    ...(said.time ? { time: said.time } : {}),
+    ...(said.budget_paise ? { budget_paise: said.budget_paise } : {}),
+    ...d,
+  };
+}
+
+/**
  * The need as one for a listed skill, unless it already has a trade the owner did not replace by picking from the
  * list; the owner's words are on screen already.
  */
 export function withSkill(s: NeedState, skill: BoardSkill, words: string, how: SkillHow = {}): NeedState {
   const at = s.slot === NeedSlot.outside ? afterOutside(s) : s;
   if (at.draft.trade && !how.picked) return s;
-  const base = how.picked ? withoutWork(at.draft) : at.draft;
-  const said = how.saysWhat || normalize(words).split(SPACE).length >= SAYS_THE_WORK;
-  const found = { ...base, skill, jobType: undefined, need: undefined, ...(said ? { detail: words.trim() } : {}) };
+  const base = withSaid(how.picked ? withoutWork(at.draft) : at.draft, words, at.config);
+  const told = withoutMoney(words);
+  const said = how.saysWhat || normalize(told).split(SPACE).length >= SAYS_THE_WORK;
+  const found = { ...base, skill, jobType: undefined, need: undefined, ...(said && told ? { detail: told } : {}) };
   const draft = withSaidArrangement(found, how.arrangement);
   return moveOn(at, draft, [{ key: "need.skill_found", params: { skill: skill.text } }]);
 }

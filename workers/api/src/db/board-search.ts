@@ -19,7 +19,7 @@ const DISTANCE_SCALE = 10;
 interface BoardRow extends CardRow {
   user_id: UserId;
   distance_km: number;
-  /** The worker's rate for the work searched: its own, else the card's. */
+  /** The worker's rate for the work searched: its own, else the card's for the arrangement asked, else the card's. */
   work_rate: number;
 }
 
@@ -35,7 +35,10 @@ const BY_CATEGORY =
 
 /**
  * The search over the workers in `from`. $11 date, $12 its weekday, $13 window, $14 every day, $15 hour, $16 the
- * length of a job without hours of its own.
+ * length of a job without hours of its own, $17 whether the work is a skill or kind of work rather than a trade.
+ *
+ * With an arrangement asked ($9): workers whose card takes it, at its rate there. A card naming no arrangement takes
+ * monthly work only when it is a trade's (ADR 0046); a skill's takes any, as its assistant does (ADR 0047).
  *
  * A worker's own hours: with an asked hour and the card's from–to (ADR 0053 §1), the hour must fall in them; otherwise
  * the card's parts of the day decide, as before (ADR 0050). A signed job hides the worker on its day (or every day)
@@ -46,7 +49,9 @@ const searchSql = (from: string) => `SELECT p.user_id, ${CARD_COLUMNS}, d.km AS 
   FROM (${from}) w
   JOIN worker_profiles p ON p.user_id = w.user_id
   JOIN users u ON u.user_id = p.user_id AND u.status = 'active'
-  CROSS JOIN LATERAL (SELECT COALESCE(w.rate_paise, p.rate_paise) AS paise) r
+  CROSS JOIN LATERAL (SELECT COALESCE(w.rate_paise,
+    (SELECT a.rate_paise FROM worker_arrangements a WHERE a.user_id = p.user_id AND a.arrangement = $9),
+    p.rate_paise) AS paise) r
   CROSS JOIN LATERAL (SELECT 2 * $7::float8 * asin(sqrt(
     power(sin(radians(p.area_lat - $2) / 2), 2)
     + cos(radians($2)) * cos(radians(p.area_lat)) * power(sin(radians(p.area_lon - $3) / 2), 2))) AS km) d
@@ -55,7 +60,8 @@ const searchSql = (from: string) => `SELECT p.user_id, ${CARD_COLUMNS}, d.km AS 
     AND ($5::int IS NULL OR r.paise <= $5)
     AND ($9::text IS NULL OR EXISTS (
       SELECT 1 FROM worker_arrangements a WHERE a.user_id = p.user_id AND a.arrangement = $9)
-      OR ($9::text = $10::text AND NOT EXISTS (SELECT 1 FROM worker_arrangements a WHERE a.user_id = p.user_id)))
+      OR (($9::text = $10::text OR $17::boolean)
+        AND NOT EXISTS (SELECT 1 FROM worker_arrangements a WHERE a.user_id = p.user_id)))
     AND ($12::smallint IS NULL OR p.work_days IS NULL OR $12::smallint = ANY (p.work_days))
     AND CASE WHEN $15::int IS NOT NULL AND p.work_from IS NOT NULL
       THEN $15::int >= p.work_from AND $15::int < p.work_to
@@ -96,6 +102,7 @@ export async function searchWorkers(db: Db, q: BoardQuery): Promise<BoardWorker[
     q.day === EVERY_DAY,
     q.hour ?? null,
     DEFAULT_JOB_HOURS,
+    from !== BY_TRADE,
   ]);
   return rows.map((r) => ({
     ...cardOf(r),

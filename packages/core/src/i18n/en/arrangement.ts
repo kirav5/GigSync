@@ -34,7 +34,7 @@ export const arrangement = {
   "iv.picked": "You take work {list}.",
   "iv.ask.rate_hour": "How much do you take for an hour?",
   "iv.ask.rate_week": "How much do you take for a week?",
-  "iv.summary_rate": "{arrangement}: {rate}.",
+  "iv.summary_rate": "Also {arrangement}: {rate}.",
   "card.arrangements": "Work I take",
   "card.rate.hourly": "Rate for an hour, ₹",
   "card.rate.visit": "Rate for one visit, ₹",

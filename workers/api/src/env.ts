@@ -56,6 +56,8 @@ export interface Env {
   FCM_SERVICE_ACCOUNT?: string;
   /** Caps geocoding lookups per user (ADR 0045), so one account cannot spend the provider's allowance. */
   GEO_RATE_LIMIT: RateLimit;
+  /** Caps board searches per user, so one account cannot copy the board. */
+  SEARCH_RATE_LIMIT: RateLimit;
   /** Secret: the Ola Maps key the geocoding routes call with (ADR 0045). Unset means they answer 503. */
   OLA_MAPS_API_KEY?: string;
   /** Caps calls to GigSync's model per user (ADR 0052): a chat turn makes a few, not hundreds. */

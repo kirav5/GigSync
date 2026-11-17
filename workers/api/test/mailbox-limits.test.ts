@@ -1,5 +1,5 @@
 import { HttpMethod } from "@gigsync/core";
-import { MAX_CIPHERTEXT_CHARS } from "@gigsync/protocol";
+import { MAX_CIPHERTEXT_CHARS, MAX_REQUESTS_PER_DAY } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
 import { call } from "./mentor-helpers.js";
 import { envelope, signIn } from "./people.js";
@@ -34,5 +34,25 @@ describe("delivery", () => {
     const e = await envelope(asha, ravi, "update", { text: "on the way" });
     const huge = { ...e, ciphertext: "A".repeat(MAX_CIPHERTEXT_CHARS + 32 * 1024) };
     expect((await call(asha, HttpMethod.post, `/mailbox/${ravi.session.user}`, huge)).status).toBe(413);
+  });
+});
+
+/** Agreed 2026-11-18: a household asks at most MAX_REQUESTS_PER_DAY workers in 24 hours. */
+describe("requests a day", () => {
+  it("refuses a household's requests past the day's cap, lets the same one through again, and counts nothing else", async () => {
+    const lata = await signIn("+919844810001");
+    const ravi = await signIn("+919844810002");
+    let last = await envelope(lata, ravi, "request", { text: "need a plumber" });
+    for (let i = 0; i < MAX_REQUESTS_PER_DAY; i++) {
+      last = await envelope(lata, ravi, "request", { text: "need a plumber" });
+      expect((await call(lata, HttpMethod.post, `/mailbox/${ravi.session.user}`, last)).status).toBe(201);
+    }
+    const over = await envelope(lata, ravi, "request", { text: "need a plumber" });
+    expect((await call(lata, HttpMethod.post, `/mailbox/${ravi.session.user}`, over)).status).toBe(429);
+    // A request sent again after a dropped connection is the same one, not one more.
+    expect((await call(lata, HttpMethod.post, `/mailbox/${ravi.session.user}`, last)).status).toBe(200);
+    // Everything else about a job still goes.
+    const update = await envelope(lata, ravi, "update", { text: "on the way" });
+    expect((await call(lata, HttpMethod.post, `/mailbox/${ravi.session.user}`, update)).status).toBe(201);
   });
 });

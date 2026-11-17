@@ -21,11 +21,14 @@ const WORKER_TABS: readonly Tab[] = [
   { screen: Screen.records, label: "nav.earnings", icon: "rupee" },
 ];
 
-/** A household's three: Home is asking for help (Find's chat), then the jobs it led to and what they paid (Payments). */
+/**
+ * A household's three: Home is asking for help (Find's chat), then the jobs it led to (their past work and what they
+ * paid under Closed jobs there), then their QR: the code a worker scans to offer work, and a worker's to scan.
+ */
 const HOUSEHOLD_TABS: readonly Tab[] = [
   { screen: Screen.find, label: "nav.home", icon: "home" },
   { screen: Screen.activity, label: "nav.jobs", icon: "jobs" },
-  { screen: Screen.records, label: "nav.payments", icon: "rupee" },
+  { screen: Screen.card, label: "nav.qr", icon: "qr" },
 ];
 
 /** The tab that carries the count of decisions waiting. */
@@ -94,6 +97,8 @@ export const cardTitleOf = (account: Account): MessageKey => (isWorker(account) 
 export function titleOf(account: Account, screen: Screen): MessageKey | undefined {
   if (isHome(screen)) return undefined;
   if (screen === Screen.card) return cardTitleOf(account);
+  // A household's past work opens from Activity's Closed jobs, and goes by that name.
+  if (screen === Screen.records && !isWorker(account)) return "activity.tab_closed";
   return TITLES[screen] ?? tabsOf(account).find((t) => t.screen === screen)?.label;
 }
 

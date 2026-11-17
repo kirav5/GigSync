@@ -8,9 +8,9 @@ export const ledger = {
   "ledger.waiting_from": "Waiting from {name}",
   "ledger.waiting_many": "Waiting from {count} households",
   "ledger.upi_line": "Your UPI: {vpa}",
-  "ledger.upi_change": "Change in About me",
+  "ledger.upi_change": "Change",
   "ledger.upi_none": "No UPI ID saved yet.",
-  "ledger.upi_add": "Add it in About me",
+  "ledger.upi_add": "Add it",
   // The household's Pay tab and the receipts it downloads
   "ledger.not_confirmed": "Not confirmed yet",
   "ledger.download_receipts": "Download receipts",

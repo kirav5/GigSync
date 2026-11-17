@@ -42,6 +42,12 @@ name = "MODEL_RATE_LIMIT"
 namespace_id = "1003"
 simple = { limit = 120, period = 60 }
 
+# Board searches per user (agreed 2026-11-18): plenty for a person asking, too few to copy the board.
+[[ratelimits]]
+name = "SEARCH_RATE_LIMIT"
+namespace_id = "1004"
+simple = { limit = 30, period = 60 }
+
 # One deployment for the pilot. Split into staging and production when there is a team.
 [vars]
 ENVIRONMENT = "pilot"

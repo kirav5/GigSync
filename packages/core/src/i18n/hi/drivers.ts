@@ -105,16 +105,7 @@ export const drivers: Readonly<Record<keyof typeof en, string>> = {
   "driver.noun.vehicle": "गाड़ी",
   "driver.noun.problem": "काम क्या है",
   "driver.noun.points": "पॉइंट की गिनती",
-  "driver.confidence.high": "काफ़ी पक्का",
-  "driver.confidence.medium": "मोटा अंदाज़ा",
-  "driver.confidence.low": "बहुत मोटा अंदाज़ा",
-  "driver.confidence_line": "कितना पक्का: {level}।",
   "driver.spread": "यह ज़्यादातर {driver} पर निर्भर है।",
-  "driver.assumed": "मालूम नहीं था, इसलिए माना गया: {drivers}।",
-  "driver.basis.gigsync.one": "GigSync का {count} काम",
-  "driver.basis.gigsync.other": "GigSync के {count} काम",
-  "driver.basis.rate_card": "{city} रेट कार्ड: {sources}",
-  "driver.basis_line": "आधार: {parts}।",
   "driver.no_trade":
     "GigSync पर {job} के दाम अभी नहीं हैं, और अभी तक किसी वर्कर ने यह काम नहीं जोड़ा है। काम को दूसरे शब्दों में बताएँ, या सूची से चुनें।",
 };

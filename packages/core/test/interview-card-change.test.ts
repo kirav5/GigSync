@@ -71,7 +71,7 @@ describe("changing a card the owner already has", () => {
     expect(s.slot).toBe(Slot.arrangements);
     const atRate = hear(s, "महीने के हिसाब से");
     expect(atRate.slot).toBe(Slot.rate);
-    expect(prompt(atRate).lines.some((l) => l.key === "iv.ask.rate_month")).toBe(true);
+    expect(prompt(atRate).lines.some((l) => l.key === "iv.ask.rate_ways")).toBe(true);
   });
 
   it("goes back to the summary when there is nothing to change", () => {

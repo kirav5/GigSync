@@ -14,16 +14,15 @@ export const tabBar = (page: Page, lang: Lang = DEFAULT_LANG) =>
   page.getByRole("navigation", { name: t(lang, "shell.tabs") });
 
 /**
- * The tabs each old menu key is reached by now. Records is the ₹ tab, Earnings for a worker and Payments for a
- * household; Home is the chat, Talk or Find.
+ * The tabs each old menu key is reached by now. Records is a worker's ₹ tab, Earnings; a household's past work is
+ * Activity's Closed jobs (`open`). Home is the chat, Talk or Find.
  */
 const TABS: Partial<Record<MessageKey, readonly MessageKey[]>> = {
   "nav.activity": ["nav.jobs"],
   "nav.my_jobs": ["nav.jobs"],
   "nav.jobs": ["nav.jobs"],
-  "nav.records": ["nav.earnings", "nav.payments"],
+  "nav.records": ["nav.earnings"],
   "nav.earnings": ["nav.earnings"],
-  "nav.payments": ["nav.payments"],
   "nav.find": ["nav.home"],
   "nav.home": ["nav.home"],
 };
@@ -31,6 +30,9 @@ const TABS: Partial<Record<MessageKey, readonly MessageKey[]>> = {
 const TALK: MessageKey = "nav.talk";
 /** The old Me tab: the profile sheet now. */
 const ME: MessageKey = "profile.title";
+/** Records, which a household reaches from Activity's Closed jobs row, the page's name too. */
+const RECORDS: MessageKey = "nav.records";
+const CLOSED: MessageKey = "activity.tab_closed";
 
 /** One tab by its name (an old menu key finds its new tab), counted or not: the name is exact. */
 export function tab(page: Page, key: MessageKey, lang: Lang = DEFAULT_LANG): Locator {
@@ -169,6 +171,10 @@ export async function onScreen(page: Page, screen: MessageKey, lang: Lang = DEFA
     await expect(profileSheet(page, lang)).toBeVisible();
     return;
   }
+  if (screen === RECORDS && !(await tab(page, "nav.earnings", lang).isVisible())) {
+    await expect(title(page)).toHaveText(t(lang, CLOSED));
+    return;
+  }
   if (TABS[screen]) {
     await expect(tab(page, screen, lang)).toHaveAttribute("aria-current", "page");
     return;
@@ -187,7 +193,10 @@ const ALERTS = "tabs.alerts";
 export async function open(page: Page, screen: MessageKey, lang: Lang = DEFAULT_LANG) {
   if (screen === TALK) return toTalk(page, lang);
   await backToTabs(page, lang);
-  if (TABS[screen]) {
+  if (screen === RECORDS && !(await tab(page, "nav.earnings", lang).isVisible())) {
+    await tab(page, "nav.jobs", lang).click();
+    await page.getByRole("button", { name: new RegExp(`^${t(lang, CLOSED)}`) }).click();
+  } else if (TABS[screen]) {
     await tab(page, screen, lang).click();
   } else if (screen === ALERTS) {
     await page

@@ -43,6 +43,14 @@ const STOPPED_ART: IconName = "close";
 const DAY_MONTH: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
 const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
 
+/** The job is on a later day than today: not yet time to set off. Work every day starts today. */
+function onLaterDay(request: JobRequest, now: Date): boolean {
+  const day = dayOf(request);
+  if (day === undefined || day === EVERY_DAY) return false;
+  const at = dayDate(day);
+  return !sameDay(at, now) && at > now;
+}
+
 /** "8:02 am" today, "31 Oct" on another day: short enough to sit under a step. */
 function shortWhen(lang: Lang, at: string, now: Date): string {
   const when = new Date(at);
@@ -96,6 +104,8 @@ function aside(job: JobRecord, drawn: readonly ProgressStep[], last: number, nam
   const next = drawn[last + 1]?.step;
   if (next === undefined || !isNextStep(next)) return undefined;
   const side = job.engagement.role === Role.enum.provider ? Side.worker : Side.household;
+  // Signed for a later day: booked, and the card's time says when; setting off is for the day itself.
+  if (next === Step.on_my_way && onLaterDay(job.request, new Date())) return t(`progress.booked_${side}`, { name });
   return t(`progress.next_${side}.${next}`, { name });
 }
 

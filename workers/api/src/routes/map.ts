@@ -1,5 +1,5 @@
 import { log } from "@gigsync/core/log";
-import { type Context, Hono } from "hono";
+import { type Context, Hono, type Next } from "hono";
 import { ApiError, type AppEnv, Var } from "../context.js";
 
 /**
@@ -35,13 +35,41 @@ export function rewritten(text: string, base: string): string {
     .replace(/[?&]"/g, '"');
 }
 
+/** Ola's URL for a map path and query, without the key: the edge cache's key too. */
+function upstreamOf(path: string, query: string): URL {
+  const upstream = new URL(`${OLA_ORIGIN}/${path}`);
+  for (const [k, v] of new URLSearchParams(query)) if (k !== KEY_PARAM) upstream.searchParams.append(k, v);
+  return upstream;
+}
+
+/** The map path a request under this route asks for: the style's own, or the tile, font or sprite after the route. */
+function pathOf(c: MapContext): { path: string; query: string } {
+  const url = new URL(c.req.url);
+  const after = url.pathname.slice(url.pathname.indexOf(MAP_ROUTE) + MAP_ROUTE.length);
+  const path = after === Path.style.slice(1) ? STYLE_PATH : decodeURIComponent(after);
+  return { path, query: after === Path.style.slice(1) ? "" : url.search };
+}
+
+/**
+ * A map part the edge already holds, answered before the directory connection and the session check (index.ts): it
+ * costs Ola nothing and is the same public map for everyone, and a map draws dozens of tiles, so each skipping a
+ * database round trip is what makes it quick. Anything not held goes on to the signed-in route, which fetches it.
+ */
+export async function cachedMap(c: MapContext, next: Next): Promise<Response | undefined> {
+  const { path, query } = pathOf(c);
+  const servable = path.startsWith(MAP_PREFIX) && !TRAVERSAL.test(path);
+  const hit = servable ? await caches.default.match(new Request(upstreamOf(path, query).toString())) : undefined;
+  if (hit) return hit;
+  await next();
+  return undefined;
+}
+
 /** Ola's answer for `path`, from the edge cache when it has it; JSON documents with their links rewritten. */
 async function fetchMap(c: MapContext, path: string, query: string, maxAge: number): Promise<Response> {
   const key = c.env.OLA_MAPS_API_KEY;
   if (!key) return c.json({ error: ApiError.geocodingOff }, 503);
   if (!path.startsWith(MAP_PREFIX) || TRAVERSAL.test(path)) return c.json({ error: ApiError.notFound }, 404);
-  const upstream = new URL(`${OLA_ORIGIN}/${path}`);
-  for (const [k, v] of new URLSearchParams(query)) if (k !== KEY_PARAM) upstream.searchParams.append(k, v);
+  const upstream = upstreamOf(path, query);
   const cacheKey = new Request(upstream.toString());
   const cache = caches.default;
   const hit = await cache.match(cacheKey);
@@ -55,16 +83,16 @@ async function fetchMap(c: MapContext, path: string, query: string, maxAge: numb
   const type = res.headers.get("content-type") ?? "";
   const base = `${new URL(c.req.url).origin}${MAP_ROUTE}`;
   const body = type.includes(JSON_TYPE) ? rewritten(await res.text(), base) : await res.arrayBuffer();
-  const headers = { "content-type": type, "cache-control": `private, max-age=${maxAge}` };
-  const answer = new Response(body, { headers });
-  await cache.put(cacheKey, answer.clone());
-  return answer;
+  // The edge copy says public: the Cache API never stores a `private` answer, so every tile used to go to Ola. It is
+  // the same public map for everyone, and anything not yet held still needs a session (cachedMap).
+  const headers = { "content-type": type, "cache-control": `public, max-age=${maxAge}` };
+  await cache.put(cacheKey, new Response(body, { headers }));
+  return new Response(body, { headers });
 }
 
 map.get(Path.style, (c) => fetchMap(c, STYLE_PATH, "", STYLE_SECONDS));
 
 map.get(Path.any, (c) => {
-  const url = new URL(c.req.url);
-  const path = url.pathname.slice(url.pathname.indexOf(MAP_ROUTE) + MAP_ROUTE.length);
-  return fetchMap(c, decodeURIComponent(path), url.search, TILE_SECONDS);
+  const { path, query } = pathOf(c);
+  return fetchMap(c, path, query, TILE_SECONDS);
 });
