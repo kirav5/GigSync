@@ -36,7 +36,6 @@ export const interview = {
   "iv.ask.asks": "Before you quote, what do you need to know from a household? Say a few things, or say skip.",
   "iv.got_asks": "Your assistant will ask about: {list}.",
   "iv.summary_asks": "Your assistant asks first about: {list}.",
-  "iv.summary_auto_on": "When a household agrees inside your prices, I'll sign for you.",
   "iv.summary_auto_off": "I'll ask you before signing any deal.",
   "iv.summary_min": "Your lowest: {min}. It stays on this phone.",
   "iv.confirm": "Shall I put it on the board?",

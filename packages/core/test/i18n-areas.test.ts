@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { agent } from "../src/i18n/en/agent.js";
 import { ask } from "../src/i18n/en/ask.js";
-import { bargain } from "../src/i18n/en/bargain.js";
 import { cardflow } from "../src/i18n/en/cardflow.js";
 import { chats } from "../src/i18n/en/chats.js";
 import { contacts } from "../src/i18n/en/contacts.js";
@@ -61,7 +60,6 @@ const AREAS: Readonly<Record<string, object>> = {
   landing,
   mentor,
   estimate,
-  bargain,
   terms,
   explain,
   chats,

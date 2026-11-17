@@ -33,7 +33,7 @@ import { CardRates } from "./estimate/CardRates.js";
 
 /** The form's id, so Publish can sit in the dock, outside it. */
 const FORM_ID = "my-card";
-const Field = { ...RateField, about: "about", asks: "asks", auto: "auto" } as const;
+const Field = { ...RateField, about: "about", asks: "asks" } as const;
 const ASK_FIELD = "ask.";
 /** What the board keeps of the line about their work. */
 const ABOUT_MAX = 300;
@@ -120,7 +120,6 @@ export function MyCard({
       about: String(v.get(Field.about) ?? ""),
       asks: asksIn(String(v.get(Field.asks) ?? "")),
       ask_me: askable(trades).filter((k) => v.has(ASK_FIELD + k)),
-      auto: v.has(Field.auto),
       terms: prefs,
     };
     setBusy(true);
@@ -253,10 +252,6 @@ export function MyCard({
             <span className={C.muted}>{t("card.ask_first", { item: t(`detail.${k}`) })}</span>
           </label>
         ))}
-        <label className={C.checkRow}>
-          <input type="checkbox" name={Field.auto} defaultChecked={draft.auto} />
-          <span className={C.muted}>{t("card.auto")}</span>
-        </label>
       </form>
       {account.worker && account.listed !== false && (
         <div className={C.row}>

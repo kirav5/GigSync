@@ -45,8 +45,7 @@ const HINDI: readonly (readonly [said: string, next: MessageKey])[] = [
   // "ना" here only stresses the yes: she wants to be asked first when there are pets.
   ["हाँ ना", "iv.ask.asks"],
   // What she needs to know before quoting (ADR 0063): nothing she wants to list.
-  ["छोड़ो", "iv.ask.auto"],
-  ["नहीं", "iv.confirm"],
+  ["छोड़ो", "iv.confirm"],
   ["हाँ", "iv.published"],
 ];
 const HINDI_SAID = HINDI.map(([said]) => said);
@@ -84,7 +83,7 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
   await test.step("going to another screen keeps her place", async () => {
     await open(page, "nav.about", hi);
     await open(page, "nav.talk", hi);
-    await expect(page.getByText(textOf(hi, "iv.ask.rate_month"))).toHaveCount(1);
+    await expect(page.getByText(textOf(hi, "iv.ask.rate_ways"))).toHaveCount(1);
     await expect(page.getByText(textOf(hi, "iv.ask.trade"))).toHaveCount(1);
   });
 
@@ -118,7 +117,7 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
     // The new interview is added after the finished one and the note: her words, then the rate question, open.
     await expect(page.getByText(said, { exact: true })).toBeVisible();
     await expect(page.getByText(textOf(hi, "iv.published"))).toHaveCount(1);
-    await expect(page.getByText(textOf(hi, "iv.ask.rate_month"))).toHaveCount(2);
+    await expect(page.getByText(textOf(hi, "iv.ask.rate_ways"))).toHaveCount(2);
     await expect(page.getByRole("button", { name: t(hi, "iv.later"), exact: true })).toBeVisible();
     await inOrder(page, [
       textOf(hi, "iv.ask.trade"),
@@ -126,7 +125,7 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
       NOTE,
       t(hi, "card.saved"),
       said,
-      textOf(hi, "iv.ask.rate_month"),
+      textOf(hi, "iv.ask.rate_ways"),
     ]);
   });
   await test.step("New chat keeps this chat in the menu with its open question, and earnings come from Records", async () => {
@@ -166,8 +165,7 @@ test("a Kannada electrician types and taps, says no at the summary, and changes 
   await nextTurn(page, kn, "iv.ask.languages", () => type(page, kn, "400"));
   await nextTurn(page, kn, "iv.ask.about", () => type(page, kn, "ಯಾವುದೂ ಇಲ್ಲ"));
   await nextTurn(page, kn, "iv.ask.asks", () => type(page, kn, "ಫ್ಯಾನ್, ಸ್ವಿಚ್ ಮತ್ತು ವೈರಿಂಗ್ ಕೆಲಸ"));
-  await nextTurn(page, kn, "iv.ask.auto", () => type(page, kn, "ಬಿಡಿ"));
-  await nextTurn(page, kn, "iv.confirm", () => type(page, kn, "ಇಲ್ಲ"));
+  await nextTurn(page, kn, "iv.confirm", () => type(page, kn, "ಬಿಡಿ"));
   await expect(page.getByText(textOf(kn, "iv.summary", { rate: "₹500" }))).toBeVisible();
 
   // No at the summary: the app asks what to change, and the word for rate asks that one again.
@@ -187,7 +185,7 @@ test("a worker who switches to Hindi part-way gets the rest of the interview, an
     ["cook", "iv.ask.also"],
     ["no", "iv.ask.area"],
     ["Koramangala", "iv.ask.radius"],
-    ["10 km", "iv.ask.rate_month"],
+    ["10 km", "iv.ask.rate_ways"],
     ["9000", "iv.ask.min"],
     ["7000", "iv.ask.languages"],
   ] as const) {
@@ -234,7 +232,7 @@ test("with only a cloud recognizer, the mic asks before her voice leaves the pho
   await nextTurn(page, hi, "iv.ask.also", () => allow.click());
   await nextTurn(page, hi, "iv.ask.area", () => type(page, hi, "नहीं"));
   await nextTurn(page, hi, "iv.ask.radius", () => mic(page, hi).click());
-  await nextTurn(page, hi, "iv.ask.rate_month", () => type(page, hi, "दस किलोमीटर"));
+  await nextTurn(page, hi, "iv.ask.rate_ways", () => type(page, hi, "दस किलोमीटर"));
 
   // Settings say where her voice goes, and stop it; the mic then asks again.
   await open(page, "nav.settings", hi);

@@ -109,7 +109,6 @@ export async function publishCard(ports: Ports, account: Account, draft: CardDra
     ...account,
     worker,
     languages: spokenOf(draft, lang),
-    autoConfirm: draft.auto ?? false,
     about: card.about,
     listed: true,
   };
@@ -192,7 +191,6 @@ export function accountDraft(account: Account): CardDraft {
     ...(account.about ? { about: account.about } : {}),
     ask_me: rules.ask_me ?? [],
     ...(rules.asks?.length ? { asks: rules.asks } : {}),
-    auto: account.autoConfirm ?? false,
     ...withPrefs(rules.terms),
   };
 }

@@ -116,7 +116,8 @@ function summary(state: InterviewState): Line[] {
     ...windowsSummary(draft),
     ...about,
     ...asksSummary(draft),
-    { key: draft.auto ? "iv.summary_auto_on" : "iv.summary_auto_off" },
+    // Every deal waits for the worker's own Sign.
+    { key: "iv.summary_auto_off" },
     { key: "iv.summary_min", prices: { min: draft.limit_paise ?? 0 }, silent: true },
   ];
 }

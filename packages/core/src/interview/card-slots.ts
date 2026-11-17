@@ -62,6 +62,5 @@ export const FIELDS: readonly Field[] = [
   Slot.asks,
   Slot.materials,
   Slot.max_hours,
-  Slot.auto,
   Slot.unlist,
 ];

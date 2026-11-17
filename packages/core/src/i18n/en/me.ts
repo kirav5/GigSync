@@ -64,11 +64,7 @@ export const me = {
   "me.shared_about":
     "Once a job is settled, this phone removes their details and their phone removes yours. A problem reported in time keeps them, at most 30 days.",
   // Settings
-  "me.section_agent": "Your assistant",
   "me.section_alerts": "Alerts",
-  "me.auto_sign": "Sign deals for me",
-  "me.auto_sign_sub": "Only inside your prices. Otherwise you tap Sign each time.",
-  "me.auto_sign_failed": "Could not save that. Try again.",
   "me.alerts_job": "When a job needs you",
   // Help
   "me.unions": "Unions in {city}",
