@@ -205,7 +205,7 @@ auth.post("/connector", async (c) => {
   const user = await userForPhone(attempt.db, attempt.phoneHmac);
   if (!user) return c.json({ error: ApiError.noAccount }, 404);
   const token = await insertConnectorSession(attempt.db, user, attempt.now);
-  if (whatsAppConfig(c.env)) await dropCode(attempt.db, attempt.phoneHmac);
+  if (codeSenders(c.env).length) await dropCode(attempt.db, attempt.phoneHmac);
   await clearFailures(attempt.db, attempt.phoneHmac);
   log.info("connector signed in", { ...attempt.who, user });
   return c.json({ user, token });
