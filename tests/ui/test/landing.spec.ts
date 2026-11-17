@@ -46,7 +46,7 @@ async function openChecklist(page: Page) {
     .getByRole("button", { name: t(en, "moving.checklist"), exact: true })
     .last()
     .click();
-  await expect(page.getByRole("heading", { name: t(en, "landing.title") })).toBeVisible();
+  await expect(page.locator(".topbar-title")).toHaveText(t(en, "landing.title"));
 }
 
 const answer = (page: Page) => page.getByRole("region", { name: t(en, "landing.ask_title") });

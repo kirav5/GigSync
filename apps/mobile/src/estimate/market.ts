@@ -9,7 +9,7 @@ import {
   PILOT_AREA_CHOICES,
 } from "@gigsync/core";
 import type { Lang, Session, Trade } from "@gigsync/protocol";
-import { PILOT_CITY } from "../ui/places.js";
+import { homeCity } from "../adapters/cities.js";
 import { fetchEstimate } from "./useEstimate.js";
 
 /**
@@ -29,7 +29,9 @@ export async function answerMarket(
   lang: Lang,
   question: MarketQuestion,
 ): Promise<Explanation> {
-  const request = marketRequest(PILOT_CITY, question);
+  // The owner's own city (ADR 0061): a question with no place named asks about where they are.
+  const city = homeCity();
+  const request = marketRequest(city, question);
   const found = request ? await fetchEstimate(session, request) : undefined;
-  return marketAnswer(model, lang, PILOT_CITY, question, found);
+  return marketAnswer(model, lang, city, question, found);
 }

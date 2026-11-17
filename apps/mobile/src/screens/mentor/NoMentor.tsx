@@ -1,29 +1,9 @@
-import { type GigDevice, loadGuide, log, type Ports } from "@gigsync/core";
-import type { City, Helpline, Session } from "@gigsync/protocol";
-import { useEffect, useState } from "react";
-import { apiClient } from "../../adapters/account.js";
+import type { GigDevice, Ports } from "@gigsync/core";
+import type { City, Session } from "@gigsync/protocol";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
+import { useGuide } from "../help/useGuide.js";
 import { AskPeople } from "./AskPeople.js";
-
-/** The city guide's helplines and the label it carries, from the copy on this phone or a fresh download. */
-function useHelplines(ports: Ports, session: Session, city: City) {
-  const [found, setFound] = useState<{ helplines: readonly Helpline[]; label: string }>();
-  useEffect(() => {
-    let live = true;
-    const fetchGuide = (c: City) => apiClient(session).cityGuide(c);
-    loadGuide(ports.storage, fetchGuide, city, ports.clock.now()).then(
-      (loaded) => {
-        if (live && loaded) setFound({ helplines: loaded.guide.helplines, label: loaded.guide.label });
-      },
-      (err: unknown) => log.warn("guide not loaded", { error: err instanceof Error ? err.message : String(err) }),
-    );
-    return () => {
-      live = false;
-    };
-  }, [ports, session, city]);
-  return found;
-}
 
 interface Props {
   ports: Ports;
@@ -40,7 +20,7 @@ interface Props {
  */
 export function NoMentor({ ports, session, city, womenOnly, device, run }: Props) {
   const { t } = useI18n();
-  const guide = useHelplines(ports, session, city);
+  const guide = useGuide(ports, session, city)?.guide;
   const where = t(`mentor.city.${city}`);
   const title = t("mentor.none");
   return (

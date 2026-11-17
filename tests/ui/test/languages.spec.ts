@@ -2,6 +2,7 @@ import { type ApiClient, plural, priceText, questionText, t } from "@gigsync/cor
 import { Lang, QuestionKey, Trade } from "@gigsync/protocol";
 import { type Browser, type BrowserContext, expect, test } from "@playwright/test";
 import {
+  expand,
   listWorker,
   newPhone,
   open,
@@ -161,7 +162,8 @@ test("Hindi cook, Kannada household: every screen in its own language, free text
   const job = asha.page.getByRole("article");
   await expect(job.locator(TRANSLATED).filter({ hasText: "सुबह खाना बनाने वाले चाहिए" })).toBeVisible();
   // His answers to the agent's questions are with the job's other details, under its Details fold.
-  // It is in the agents' talk (his answer to her agent's question) and again under Details.
+  // It is in the agents' talk (his answer to her agent's question), folded under her decision, and again under Details.
+  await expand(job, "talk.title", hi);
   await expect(job.getByRole("list", { name: t(hi, "talk.title") })).toContainText("सुबह और रात");
   await reveal(asha.page, job.locator(".job-more").locator(TRANSLATED).filter({ hasText: "सुबह और रात" }), hi);
   await expect(job.locator(TRANSLATED).filter({ hasText: "सुबह 7 बजे" }).first()).toBeVisible(); // the time he gave
@@ -210,7 +212,7 @@ test("Hindi cook, Kannada household: every screen in its own language, free text
   await expect(job).not.toContainText(KANNADA);
   await expect(job).not.toContainText(OLD_NOTE);
 
-  await open(asha.page, "nav.about", hi);
+  await open(asha.page, "me.language", hi);
   await expect(asha.page.getByRole("region", { name: t(hi, "profile.language") })).toBeVisible();
   await shoot("settings", shots, folder);
   await openCard(asha.page, hi);

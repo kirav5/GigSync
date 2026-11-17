@@ -2,7 +2,6 @@ import type { moving as en } from "../en/moving.js";
 
 /** Kannada: moving to a new city through Talk. */
 export const moving: Readonly<Record<keyof typeof en, string>> = {
-  "moving.suggest": "ಹೊಸ ಊರಿಗೆ ಹೋಗುತ್ತಿದ್ದೀರಾ?",
   "moving.no_figures": "{trade}: ಈ ನಗರಕ್ಕೆ ಇನ್ನೂ ಸಂಬಳದ ಅಂಕಿಗಳಿಲ್ಲ.",
   "moving.no_outlook": "ಆ ನಗರಕ್ಕೆ ನನ್ನ ಬಳಿ ಇನ್ನೂ ಸಂಬಳದ ಅಂಕಿಗಳಿಲ್ಲ.",
   "moving.listed.one": "GigSync ನಲ್ಲಿ {city}ನ {count} ಕೆಲಸಗಾರರು {trade} ಕೆಲಸ ಮಾಡುತ್ತಾರೆ.",

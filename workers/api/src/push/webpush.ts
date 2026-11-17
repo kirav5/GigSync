@@ -1,5 +1,4 @@
 import { Header, HttpMethod } from "@gigsync/core/http";
-import { log } from "@gigsync/core/log";
 import { EnvelopeKind, isPushEndpoint, type PushNews, type PushSubscribe } from "@gigsync/protocol";
 import type { Env } from "../env.js";
 import { b64url, fromB64url } from "./b64.js";
@@ -147,17 +146,4 @@ export async function wake(address: PushSubscribe, news: PushNews, vapid: Vapid,
   } catch {
     return Woke.failed;
   }
-}
-
-/** Tells every device given, together; counts what happened, never the addresses or the news. */
-export async function wakeAll(
-  addresses: readonly PushSubscribe[],
-  news: PushNews,
-  vapid: Vapid,
-  now: Date,
-  requestId: string,
-): Promise<void> {
-  const results = await Promise.all(addresses.map((a) => wake(a, news, vapid, now)));
-  const count = (w: Woke) => results.filter((r) => r === w).length;
-  log.info("push wake-ups", { requestId, sent: count(Woke.sent), gone: count(Woke.gone), failed: count(Woke.failed) });
 }

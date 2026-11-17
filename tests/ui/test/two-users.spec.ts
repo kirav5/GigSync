@@ -1,4 +1,4 @@
-import { type ApiClient, HttpMethod, type MessageKey, type Params, t } from "@gigsync/core";
+import { type ApiClient, HttpMethod, type MessageKey, type Params, plural, t } from "@gigsync/core";
 import { Lang, MyQr, type QrCode } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import {
@@ -11,7 +11,6 @@ import {
   onScreen,
   open,
   openCard,
-  openDrawer,
   Role,
   RUN,
   reveal,
@@ -22,7 +21,7 @@ import {
   signIn,
   statusTag,
 } from "./helpers.js";
-import { finishWork } from "./jobs.js";
+import { expand, finishWork } from "./jobs.js";
 import { fillAsk, publishCard, unlistCards } from "./journey.js";
 import { downloadRecord } from "./records.js";
 
@@ -39,10 +38,11 @@ const anilName = `Anil ${RUN}`;
 const priyaName = `Priya ${RUN}`;
 const ADDRESS = `Flat 302, 3rd floor, 5th Cross (${RUN})`;
 const UTR = "412345678901";
-/** The manual flow's tabs, gone with it. Written out: their keys are deleted after this change. */
-const GONE_TABS = ["Jobs in person", "Get paid", "My record"];
-/** The menu's rows, as a worker sees them. */
-const NAV_ROWS: MessageKey[] = ["nav.activity", "nav.records", "nav.card", "nav.about", "nav.privacy", "nav.settings"];
+/** The manual flow's tabs, gone with it. Written out: their keys are deleted after this change. ("My record" is a Me row now.) */
+const GONE_TABS = ["Jobs in person", "Get paid"];
+/** The tabs, and the profile sheet's rows, as a worker sees them. */
+const NAV_TABS: MessageKey[] = ["nav.activity", "nav.records"];
+const NAV_ROWS: MessageKey[] = ["nav.card", "nav.about", "nav.privacy", "nav.settings"];
 const SIGN = /^Sign deal for/;
 
 let contexts: BrowserContext[] = [];
@@ -95,12 +95,12 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
     listWorker(`Esha ${RUN}`, ["plumber"], { lat: INDIRANAGAR.lat, lon: INDIRANAGAR.lon + 0.01 }, 60000),
   ]);
 
-  // ── Anil signs in: the menu's six screens, none of the manual flow's ─────────────────────────────────────────
+  // ── Anil signs in: Jobs and Money as tabs, his pages in the profile, none of the manual flow's ──────────────
   await signIn(anil, { role: Role.worker, name: anilName, phone: newPhone() });
-  await openDrawer(anil);
+  for (const row of NAV_TABS) await expect(navRow(anil, row)).toBeVisible();
+  await open(anil, "profile.title");
   for (const row of NAV_ROWS) await expect(navRow(anil, row)).toBeVisible();
   for (const gone of GONE_TABS) await expect(anil.getByRole("button", { name: gone })).toHaveCount(0);
-  await anil.keyboard.press("Escape");
 
   // He publishes his card: public rate ₹700, private minimum ₹550. It has no UPI field; that is in About me alone.
   await publishCard(
@@ -155,12 +155,14 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
 
   // ── The agents haggle inside both limits; then each owner signs. Anil's deal comes to the front, Awaiting you ───
   const signOn = (p: Page) =>
-    (p === anil ? anil.getByRole("tabpanel", { name: say("activity.tab_awaiting") }) : p).getByRole("button", {
+    (p === anil ? anil.getByRole("region", { name: say("activity.tab_awaiting") }) : p).getByRole("button", {
       name: SIGN,
     });
   const first = await whichever([anil, priya], SIGN);
-  // The agents' talk is open on the card while they are at it: his question, her answer, and the offers.
+  // The agents' talk is on the card: his question, her answer, and the offers. Under Needs you the deal to sign leads
+  // and the talk is folded at the card's end, so it is opened first.
   const talk = first.getByRole("list", { name: say("talk.title") });
+  await expand(first, "talk.title");
   await expect(talk).toBeVisible();
   await expect(talk).toContainText("It hums but does not spin");
   await expect(priya.getByLabel(say("a11y.contact"))).toHaveCount(0);
@@ -177,7 +179,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   // ── Both signed: contacts cross, and only now. She asked for today, so it is one of his jobs for today ─────────
   await expect(priya.getByLabel(say("a11y.contact"))).toContainText(anilName);
   await showTab(anil, "activity.tab_agreed");
-  await expect(inSection(anil, "home.today").getByLabel(say("a11y.contact"))).toContainText(ADDRESS);
+  await expect(inSection(anil, "schedule.today").getByLabel(say("a11y.contact"))).toContainText(ADDRESS);
   const deal = ((await priya.getByLabel(say("a11y.deal")).textContent()) ?? "").match(/₹(\d+)/)?.[1];
   expect(Number(deal)).toBeGreaterThanOrEqual(550);
   expect(Number(deal)).toBeLessThanOrEqual(650);
@@ -186,7 +188,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
 
   // ── Work, then UPI payment for the signed amount ──────────────────────────────────────────────────────────────
   const job = anil.getByRole("article", { name: say("a11y.job_with", { name: priyaName }) });
-  const askPayment = job.getByRole("button", { name: say("job.ask_payment"), exact: true });
+  const askPayment = job.getByRole("button", { name: say("money.ask_for", { price: `₹${deal}` }), exact: true });
   const onMyWay = job.getByRole("button", { name: say("update.on_my_way") });
   await onMyWay.click();
   await expect(onMyWay).toBeHidden();
@@ -207,6 +209,8 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await expect(job.getByRole("button", { name: say("job.not_received") })).toHaveCount(0);
 
   const payBox = priya.getByRole("form", { name: say("a11y.pay") });
+  // The QR and the UPI reference wait under "another way": the UPI app is the one way shown.
+  await payBox.getByText(say("money.other_way"), { exact: true }).click();
   await expect(payBox.getByRole("img", { name: say("a11y.qr") })).toBeVisible();
   await expect(payBox.getByRole("link", { name: say("job.open_upi") })).toHaveAttribute(
     "href",
@@ -245,7 +249,8 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   await open(anil, "nav.activity");
   await expect(anil.getByRole("button", { name: say("activity.tab_closed"), exact: true })).toContainText("1");
 
-  // ── Priya rates the job; it is closed on both phones, in Records ──────────────────────────────────────────────
+  // ── Her Money lists the job she paid, though Jobs keeps it for her review; she rates it; closed on both phones ──
+  await openRecordRow(priya, anilName);
   const review = priya.getByRole("form", { name: say("a11y.review") });
   await reveal(priya, review);
   await review.getByLabel(say("a11y.review_text")).fill("Quick and tidy");
@@ -259,7 +264,7 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
     await openRecordRow(priya, anilName);
   }).toPass();
   await expect(statusTag(priya, en, "status.closed")).toBeVisible();
-  await expect(priya.getByLabel(say("a11y.payment"))).toContainText(say("pay.thread.confirmed"));
+  await expect(priya.getByLabel(say("a11y.payment"), { exact: true })).toContainText(say("pay.thread.confirmed"));
   await shoot("paid-rated-closed", phones);
 
   // ── The job reached GigSync from both phones (ADR 0038): his card and the card Priya scans show the same record,
@@ -269,12 +274,11 @@ test("Priya finds an electrician, their agents agree, both sign, contacts swap, 
   const mine = anil.getByRole("region", { name: say("page.card_seen") });
   await expect(mine.getByRole("definition")).toHaveText(["1", say("record.card_stars", { stars: "5" })]);
   const code = await qr;
+  const badges = [plural(en, "record.jobs_done", 1), say("record.card_stars", { stars: "5" })];
   await expect(async () => {
     await priya.goto(`${APP}/?to=${code}`);
     const seen = priya.getByRole("region", { name: "Anil" });
-    await expect(seen.getByRole("definition")).toHaveText(["1", say("record.card_stars", { stars: "5" })], {
-      timeout: 5000,
-    });
+    await expect(seen.getByRole("definition")).toHaveText(badges, { timeout: 5000 });
   }).toPass();
   await shoot("record-on-card", phones);
 

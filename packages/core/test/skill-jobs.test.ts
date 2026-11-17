@@ -31,7 +31,17 @@ describe("a job for a skill outside the trades", () => {
     expect(doesWork({ trades: ["cook"] }, { trade: "other", skill: tailor })).toBe(false);
   });
 
-  it("asks how long, quotes from the worker's own rates, and is recorded without words", async () => {
+  it("takes a request for the kind of work a skill is filed under, whatever words each side used (ADR 0059)", () => {
+    const mechanic = { trades: [], skills: [{ text: "TV mechanic", lang: "en", category: "tv_repair" }] } as const;
+    const asked = { trade: "other", skill: { text: "टीवी मरम्मत", lang: "hi", category: "tv_repair" } } as const;
+    expect(doesWork(mechanic, asked)).toBe(true);
+    expect(doesWork(mechanic, { ...asked, skill: { ...asked.skill, category: "fridge_repair" } })).toBe(false);
+    expect(doesWork({ trades: [], skills: [{ text: "TV mechanic", lang: "en" }] }, asked)).toBe(false);
+    // A household on an older app sends the kind's name only, which still names the kind.
+    expect(doesWork(mechanic, { trade: "other", skill: { text: "TV repair", lang: "en" } })).toBe(true);
+  });
+
+  it("asks nothing it was told, quotes from the worker's own rates, and is recorded without words", async () => {
     const relay = new MemoryRelay();
     const worker = await phone(relay, RAVI, { worker: tailoring() });
     const household = await phone(relay, PRIYA);
@@ -39,12 +49,11 @@ describe("a job for a skill outside the trades", () => {
     const id = job?.engagement.id as never;
 
     await settle([household.device, worker.device]);
-    // The household said what the work is; the worker's agent asks only the other generic question.
+    // The household said what the work is, and without a model there is nothing else to ask: never how long it takes,
+    // which is the worker's to say (ADR 0063).
     const asked = await household.device.job(id);
-    expect(asked.questions?.map((q) => q.key)).toEqual(["duration"]);
+    expect(asked.questions ?? []).toEqual([]);
     expect(asked.estimate).toBeUndefined();
-    await household.device.answer(id, { duration: "Two days" });
-    await settle([household.device, worker.device]);
 
     const tasks = [...(await household.device.tasks()), ...(await worker.device.tasks())];
     expect(tasks.map((t) => t.kind)).toEqual([TaskKind.confirmDeal]);

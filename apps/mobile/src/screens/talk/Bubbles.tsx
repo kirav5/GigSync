@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { type I18n, useI18n } from "../../i18n.js";
 import { money } from "../../ui/places.js";
 import { SpeakButton } from "../../ui/SpeakButton.js";
+import { Cursor, useTyped } from "../../ui/Typed.js";
 import { dayDate } from "../jobGroups.js";
 
 /**
@@ -39,20 +40,54 @@ export function Own({ text }: { text: string }) {
   );
 }
 
-/** A question or readback, with its replay button; the silent lines are shown but never spoken. */
-export function Ask({ lines, children }: { lines: readonly Line[]; children?: ReactNode }) {
+/** Between the lines of a question, as one text to write out. */
+const LINE_BREAK = "\n";
+
+/**
+ * A question or readback, with its replay button; the silent lines are shown but never spoken. With `split`, the
+ * bubble holds only the lines before it: the rest are drawn by `children` (the price question's estimate card), and
+ * are still read aloud with the question. The newest question (`typing`) writes itself out letter by letter with a
+ * blinking cursor, as the AI apps do, and what goes with it (chips, a card) comes once it is written.
+ */
+export function Ask({
+  lines,
+  split,
+  typing = false,
+  children,
+}: {
+  lines: readonly Line[];
+  split?: number | undefined;
+  typing?: boolean;
+  children?: ReactNode;
+}) {
   const i18n = useI18n();
+  const shown = split === undefined ? lines : lines.slice(0, split);
+  const texts = shown.map((line) => lineText(i18n, line));
+  const all = texts.join(LINE_BREAK);
+  const { shown: count, writing } = useTyped(all, typing);
+  const stillWriting = count < all.length;
+  // Where each line starts in the whole text, to cut it at the letters written so far.
+  const starts = texts.map((_, i) => texts.slice(0, i).reduce((n, text) => n + text.length + LINE_BREAK.length, 0));
   return (
     <div className="msg-agent iv-ask">
       <div className="iv-say">
         <div className="text">
-          {lines.map((line) => (
-            <p key={line.key}>{lineText(i18n, line)}</p>
-          ))}
+          {shown.map((line, i) => {
+            const text = texts[i] ?? "";
+            const start = starts[i] ?? 0;
+            if (stillWriting && count <= start && i > 0) return null;
+            const cut = text.slice(0, Math.max(0, count - start));
+            return (
+              <p key={line.key} className={line.aside ? "iv-aside" : undefined}>
+                {cut}
+                {writing && count - start <= text.length && <Cursor />}
+              </p>
+            );
+          })}
         </div>
         <SpeakButton lang={i18n.lang} text={spoken(i18n, lines)} />
       </div>
-      {children}
+      {!stillWriting && children}
     </div>
   );
 }

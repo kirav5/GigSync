@@ -1,68 +1,110 @@
-import { type MessageKey, type PassbookTotals, passbook, workRecord } from "@gigsync/core";
-import type { EngagementId } from "@gigsync/protocol";
+import {
+  LOCALE,
+  type Ports,
+  passbook,
+  type WaitingFrom,
+  waitingBy,
+  weekDayIndex,
+  weekDays,
+  weekPayments,
+  workRecord,
+} from "@gigsync/core";
+import { type EngagementId, Role } from "@gigsync/protocol";
 import { useMemo, useState } from "react";
 import type { Account } from "../../adapters/account.js";
-import { useI18n } from "../../i18n.js";
+import { type I18n, useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { money } from "../../ui/places.js";
-import { ScreenHead } from "../../ui/ScreenHead.js";
 import { DownloadRecord } from "./DownloadRecord.js";
+import { MoneyHead } from "./MoneyHead.js";
 import { NotCompleted } from "./NotCompleted.js";
 import type { CardProps } from "./RecordLine.js";
+import { whoOf } from "./text.js";
+import { UpiLine } from "./UpiLine.js";
 import { phoneOffset, useRecords } from "./useRecords.js";
 import { WorkDone } from "./WorkDone.js";
-import "../../payments/money.css";
 
-/** The four earnings tiles, in the order a worker asks about them. */
-const TOTALS: readonly { key: keyof PassbookTotals; label: MessageKey }[] = [
-  { key: "week", label: "passbook.week" },
-  { key: "month", label: "passbook.month" },
-  { key: "waiting", label: "stat.waiting" },
-  { key: "notAsked", label: "passbook.not_asked" },
-];
+/** A day's shortest name, under its bar ("M", "T"). */
+const NARROW_DAY: Intl.DateTimeFormatOptions = { weekday: "narrow" };
 
-type Props = CardProps & { account: Account };
+type Props = CardProps & {
+  account: Account;
+  ports: Ports;
+  /** Opens About me, where the UPI ID is saved and changed. */
+  onAddPayee: () => void;
+};
+
+/** The waiting tile's words: who the money waits on when it is one household, how many when it is several. */
+function waitingLabel(t: I18n["t"], waiting: readonly WaitingFrom[], names: Readonly<Record<string, string>>): string {
+  const [only] = waiting;
+  if (!only) return t("stat.waiting");
+  if (waiting.length > 1) return t("ledger.waiting_many", { count: waiting.length });
+  return t("ledger.waiting_from", { name: whoOf(only.job, names, t("job.customer")) });
+}
 
 /**
- * A worker's Records: completed work only (done and paid one-off jobs, monthly work once it ended, and jobs restored
- * from GigSync's record on a new phone), newest first by month under the earnings tiles; then a small fold of jobs not
- * completed, and one quiet row to download the work record GigSync keeps. A row opens to the job's own card.
+ * A worker's Money tab (design W15): what came this week, with how many payments; this month and what is waiting,
+ * named by household; what nobody has asked for yet. Then completed work by month, newest first (done and paid one-off
+ * jobs, monthly work once it ended, jobs restored from GigSync's record on a new phone), each row opening to the job's
+ * own card; a fold of jobs not completed; the work record to download; and the UPI ID payers see.
  */
-export function WorkerRecords({ account, ...card }: Props) {
-  const { t } = useI18n();
+export function WorkerRecords({ account, ports, onAddPayee, ...card }: Props) {
+  const { t, plural, lang } = useI18n();
   const { view } = card;
   const me = account.session.user;
   const [openId, setOpenId] = useState<EngagementId>();
   const now = useMemo(() => new Date(), []);
   const { done, notDone } = useRecords(view, now);
-  const { totals, record } = useMemo(
+  const { book, record } = useMemo(
     () => ({
-      totals: passbook(view.jobs, view.payments, me, now, phoneOffset(now)).totals,
+      book: passbook(view.jobs, view.payments, me, now, phoneOffset(now)),
       record: workRecord(done, view.payments, me, now, phoneOffset(now)),
     }),
     [view.jobs, view.payments, done, me, now],
   );
+  const { totals } = book;
+  const count = weekPayments(book.rows, now, phoneOffset(now));
+  const week = useMemo(() => {
+    const days = weekDays(book.rows, now, phoneOffset(now));
+    const today = weekDayIndex(now, phoneOffset(now));
+    // Each day's short name, from this week's own dates, in the owner's language.
+    const names = days.map((_: number, i: number) => {
+      const at = new Date(now);
+      at.setDate(now.getDate() + i - today);
+      return at.toLocaleDateString(LOCALE[lang], NARROW_DAY);
+    });
+    return { days, names, today };
+  }, [book.rows, now, lang]);
+  const todayPaise = week.days[week.today] ?? 0;
   const onToggle = (id: EngagementId) => setOpenId((open) => (open === id ? undefined : id));
 
   return (
     <>
-      <ScreenHead head={t("nav.records")} soft={t("page.records_soft_worker")} />
-      <div className="passbook-totals">
-        {TOTALS.map(({ key, label }) => (
-          <div key={key}>
-            <span className={C.label}>{t(label)}</span>
-            <b>{money(totals[key])}</b>
-          </div>
-        ))}
-      </div>
+      <MoneyHead
+        paise={totals.week}
+        label={t("passbook.week")}
+        aside={count > 0 ? plural("ledger.week_count", count) : undefined}
+        today={todayPaise > 0 ? t("ledger.today", { price: money(todayPaise) }) : undefined}
+        week={week}
+        stats={[
+          { id: "month", paise: totals.month, label: t("ledger.this_month") },
+          { id: "waiting", paise: totals.waiting, label: waitingLabel(t, waitingBy(book.rows), view.names) },
+        ]}
+      />
+      {totals.notAsked > 0 && (
+        <p className="money-line">
+          <span>{t("passbook.not_asked")}</span>
+          <b className={C.money}>{money(totals.notAsked)}</b>
+        </p>
+      )}
       {record.months.length === 0 ? (
         <p className={C.empty}>{t("passbook.empty")}</p>
       ) : (
-        <WorkDone record={record} openId={openId} onToggle={onToggle} {...card} />
+        <WorkDone record={record} openId={openId} onToggle={onToggle} onAddPayee={onAddPayee} {...card} />
       )}
-      <NotCompleted jobs={notDone} {...card} />
-      <DownloadRecord account={account} />
-      <p className={C.faint}>{t("passbook.about")}</p>
+      <NotCompleted jobs={notDone} onAddPayee={onAddPayee} {...card} />
+      <DownloadRecord account={account} side={Role.enum.provider} />
+      <UpiLine ports={ports} onChange={onAddPayee} />
     </>
   );
 }

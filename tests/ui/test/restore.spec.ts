@@ -29,7 +29,8 @@ test("a fresh phone sees the owner's jobs restored from their record", async ({ 
   // Seeding signed the number in elsewhere, so the move prompt comes; this owner is not moving.
   await signIn(page, { role: Role.worker, name: `Shanti ${RUN}`, phone: number, elsewhere: MovePrompt.notNow });
 
-  // Finished jobs live in Records only: Activity counts them under Closed, which opens Records.
+  // Finished jobs are kept in Records: Activity lists the latest under Done and counts them under Closed, which opens
+  // Records.
   await open(page, "nav.activity");
   const closed = page.getByRole("button", { name: t(en, "activity.tab_closed"), exact: true });
   await expect(closed).toContainText(String(JOBS.length));

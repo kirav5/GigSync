@@ -8,7 +8,6 @@ import {
   driversToDetails,
   jobRange,
   RATE_CARDS,
-  rankUnknown,
   typicalFactor,
 } from "../src/index.js";
 
@@ -27,21 +26,17 @@ describe("ranking a job's unknown drivers", () => {
   });
 
   it("asks the area first when only the trade is known, since it also stands for the bedrooms", () => {
-    const ranked = rankUnknown(T.painter, {});
+    const ranked = driverSpread(T.painter, {}).assumed;
     expect(ranked[0]).toBe("area_sqft");
     expect(ranked.indexOf("area_sqft")).toBeLessThan(ranked.indexOf("rooms"));
   });
 
   it("puts meals first for a cook", () => {
-    expect(rankUnknown(T.cook, {})[0]).toBe("meals");
+    expect(driverSpread(T.cook, {}).assumed[0]).toBe("meals");
   });
 
   it("leaves out drivers that do not move the price: floors when only inside walls are painted", () => {
-    expect(rankUnknown(T.painter, { surface: "inside", area_sqft: 1000 })).not.toContain("floors");
-  });
-
-  it("leaves out what the owner said they do not know", () => {
-    expect(rankUnknown(T.painter, VILLA_KNOWN, ["paint_by"])).toEqual(["finish"]);
+    expect(driverSpread(T.painter, { surface: "inside", area_sqft: 1000 }).assumed).not.toContain("floors");
   });
 
   it("widens the range for an unknown driver and narrows it once known", () => {

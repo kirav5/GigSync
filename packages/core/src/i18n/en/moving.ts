@@ -1,6 +1,5 @@
 /** Moving to a new city through Talk: the work outlook, what to sort first, the guide's answers, mentors in the chat. */
 export const moving = {
-  "moving.suggest": "Moving to a new city?",
   "moving.no_figures": "{trade}: no usual pay figures for this city yet.",
   "moving.no_outlook": "I have no pay figures for that city yet.",
   "moving.listed.one": "On GigSync, {count} worker in {city} lists {trade}.",

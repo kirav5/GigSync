@@ -31,7 +31,8 @@ const config = (own: Lang, remembered?: NeedMemory) => ({
   ...(remembered ? { remembered } : {}),
 });
 const start = (remembered?: NeedMemory, own: Lang = "en") => startNeed(config(own, remembered));
-const lines = (s: NeedState) => needPrompt(s).lines;
+/** The question's lines, without the small print over it. */
+const lines = (s: NeedState) => needPrompt(s).lines.filter((l) => !l.aside);
 const choiceValues = (s: NeedState) => needPrompt(s).choices?.map((c) => c.value);
 
 describe("Ask me first: the Find chat offers what the agent remembers", () => {

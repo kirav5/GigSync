@@ -1,14 +1,14 @@
 import { type MessageKey, t } from "@gigsync/core";
 import { type GeoResult, Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { plainMap } from "./address.js";
+import { addressSave, doorField, plainMap } from "./address.js";
 import { say } from "./findChat.js";
 import { API, newPhone, Role, RUN, shoot, signIn } from "./helpers.js";
 import { openCard } from "./menu.js";
 
 /**
- * Addresses by chat, the hour a household books, and a worker's days (ADR 0050): Find's header shows the address in
- * use; "change my address" opens the address turn in the chat, where the household picks one, uses where they are or
+ * Addresses by chat, the hour a household books, and a worker's days (ADR 0050): nothing stands above Home's greeting,
+ * so the chat says the address in use; "change my address" opens the address turn in the chat, where the household picks one, uses where they are or
  * adds one; a place outside the cities GigSync serves is refused. After the day, Find asks the hour. A worker ticks
  * the days they work on My card.
  */
@@ -48,9 +48,7 @@ async function phoneAt(
 }
 
 const desk = (page: Page) => page.getByRole("region", { name: say_("addr.title") });
-const header = (page: Page) => page.getByRole("button", { name: /Address in use|Add your address/ });
-
-test("the address in use is at the top, and the chat changes it", async ({ browser }) => {
+test("the chat changes the address in use", async ({ browser }) => {
   const page = await phoneAt(browser, BANASHANKARI, FOUND.bengaluru);
   await signIn(page, {
     role: Role.consumer,
@@ -59,10 +57,6 @@ test("the address in use is at the top, and the chat changes it", async ({ brows
     address: "Flat 2",
     area: "Koramangala",
   });
-  await expect(header(page)).toContainText(say_("addr.label.home"));
-  await header(page).scrollIntoViewIfNeeded();
-  await shoot("header", { household: page }, FOLDER);
-
   await say({ page, lang: en }, "change my address");
   await expect(desk(page)).toContainText(say_("addr.desk"));
   await shoot("asked", { household: page }, FOLDER);
@@ -77,25 +71,21 @@ test("the address in use is at the top, and the chat changes it", async ({ brows
   await expect(page.getByRole("img", { name: say_("map.of", { place: "Banashankari 2nd Stage" }) })).toBeVisible();
   await expect(page.getByText(say_("map.move_pin"))).toBeVisible();
   const form = page.getByRole("form", { name: say_("addr.add") });
-  await form.getByLabel(say_("addr.house")).fill("No. 45");
+  await doorField(form, en).fill("No. 45");
   await form.getByText(say_("addr.label.work"), { exact: true }).click();
   await shoot("located", { household: page }, FOLDER);
-  await form.getByRole("button", { name: say_("addr.save"), exact: true }).click();
+  await addressSave(form, en).click();
   await expect(desk(page)).toBeHidden();
-  await expect(header(page)).toContainText(say_("addr.label.work"));
-  await expect(header(page)).toContainText("No. 45, Banashankari 2nd Stage");
   await expect(page.getByRole("log")).toContainText(
     say_("addr.using", { label: say_("addr.label.work"), area: "Banashankari 2nd Stage" }),
   );
-  await header(page).scrollIntoViewIfNeeded();
   await shoot("changed", { household: page }, FOLDER);
 });
 
 test("a place outside the cities GigSync serves is not saved, and the chat says so", async ({ browser }) => {
   const page = await phoneAt(browser, MYSURU, FOUND.mysuru);
   await signIn(page, { role: Role.consumer, name: `Ravi ${RUN}`, phone: newPhone() });
-  await expect(header(page)).toContainText(say_("addr.header_none"));
-  await header(page).click();
+  await say({ page, lang: en }, "change my address");
   await desk(page)
     .getByRole("button", { name: say_("addr.use_location"), exact: true })
     .click();

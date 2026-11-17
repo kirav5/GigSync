@@ -1,0 +1,78 @@
+/* The card face (CardFace.tsx, W5 and W6): the earth card with the worker's initial beside their name and the line
+   under it (the work, the area, how far), the badges, a hairline, then the rates in ivory and the rest in gold. The
+   earth card's own tokens (styles.css .card-earth) turn the muted words gold. */
+.card-face {
+  gap: 12px;
+  text-align: start;
+}
+.card-face-who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.card-face-words {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.card-face-name {
+  font-family: var(--serif);
+  font-size: var(--fs-heading);
+  font-weight: 400;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+/* The work, the area and the km on one line, a dot between them, wrapping on a narrow phone. */
+.card-face-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  font-size: var(--fs-label);
+  line-height: 1.4;
+  color: var(--text2);
+}
+.card-face-line > * + *::before {
+  content: "·";
+  margin-inline-end: 6px;
+}
+.card-face-work {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.card-face-work > li {
+  display: inline;
+}
+.card-face-work > li + li::before {
+  content: ", ";
+}
+.card-face-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.card-face-terms {
+  display: grid;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+}
+.card-face-rate {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* My card's switch (BoardSwitch.tsx): the switch beside what it says, and when turning it off, the one question more. */
+.board-switch {
+  display: grid;
+  gap: 8px;
+}
+.board-switch-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

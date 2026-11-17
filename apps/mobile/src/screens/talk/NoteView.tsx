@@ -2,6 +2,7 @@ import { type Card, CardKind, type ChatIntent, type MessageKey } from "@gigsync/
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { Said } from "../../ui/Said.js";
+import { Typed } from "../../ui/Typed.js";
 import { Dots } from "../../ui/Working.js";
 import { ScheduleLines } from "../schedule/ScheduleLines.js";
 import { Own } from "./Bubbles.js";
@@ -12,21 +13,21 @@ import { Own } from "./Bubbles.js";
  * question with one choice per meaning (ADR 0042 amendment 2026-11-03).
  */
 
-/** The heading each card kind gets on screen. */
-const KIND_LABEL: Readonly<Record<Card["kind"], MessageKey>> = {
-  [CardKind.text]: "card.text",
+/** The small line under the words that says what kind of answer it is; plain replies need none. */
+const KIND_LABEL: Readonly<Partial<Record<Card["kind"], MessageKey>>> = {
   [CardKind.saved]: "card.saved",
   [CardKind.answer]: "card.answer",
   [CardKind.draft]: "card.draft",
-  [CardKind.needsModel]: "card.needs_model",
-  [CardKind.clarify]: "card.clarify",
   [CardKind.schedule]: "card.schedule",
 };
 
-/** A card's words: a phrase in the owner's language, or quoted words translated on the phone when needed. */
-function CardText({ card }: { card: Card }) {
+/**
+ * A card's words: a phrase in the owner's language, written out letter by letter while it is the newest (`typing`),
+ * or quoted words translated on the phone when needed.
+ */
+function CardText({ card, typing }: { card: Card; typing: boolean }) {
   const { t } = useI18n();
-  if ("say" in card) return <>{t(card.say.key, card.say.params)}</>;
+  if ("say" in card) return <Typed text={t(card.say.key, card.say.params)} on={typing} />;
   return <Said text={card.words.text} from={card.words.lang} />;
 }
 
@@ -63,11 +64,14 @@ export function Note({
   text,
   card,
   thinking,
+  typing = false,
   onChoose,
 }: {
   text: string;
   card: Card | undefined;
   thinking: boolean;
+  /** The chat's newest note: its answer writes itself out. */
+  typing?: boolean;
   onChoose?: ((intent: ChatIntent) => void) | undefined;
 }) {
   const { t, plural } = useI18n();
@@ -77,10 +81,10 @@ export function Note({
       {!card && thinking && <Thinking />}
       {card && (
         <div className="msg-agent">
-          <span className={C.label}>{t(KIND_LABEL[card.kind])}</span>
           <div className="text">
-            <CardText card={card} />
+            <CardText card={card} typing={typing} />
           </div>
+          {KIND_LABEL[card.kind] && <span className="msg-kind">{t(KIND_LABEL[card.kind] as MessageKey)}</span>}
           {card.kind === CardKind.schedule && <ScheduleLines card={card} />}
           {card.kind === CardKind.answer && card.sources.length > 0 && (
             <span className={C.faint}>{plural("agent.sources", card.sources.length)}</span>

@@ -6,11 +6,21 @@ export interface SessionOwner {
   device_id: DeviceId;
 }
 
-/** Who a bearer token belongs to, or undefined when it is unknown or revoked. */
+/**
+ * How long a session lasts from sign-in. Long, because signing in again costs an SMS and a household may open the app
+ * once a month; short enough that a token copied off a lost phone stops working on its own.
+ */
+export const SESSION_DAYS = 180;
+/** The one status that may use the API: a frozen or deleted account is refused even with a good token. */
+const ACTIVE = "active";
+
+/** Who a bearer token belongs to, or undefined when it is unknown, revoked, expired, or the account is not active. */
 export async function sessionOwner(db: Db, token: string): Promise<SessionOwner | undefined> {
   const { rows } = await db.query<SessionOwner>(
-    "SELECT user_id, device_id FROM sessions WHERE token = $1 AND revoked_at IS NULL",
-    [token],
+    `SELECT s.user_id, s.device_id FROM sessions s
+     JOIN users u ON u.user_id = s.user_id AND u.status = $3
+     WHERE s.token = $1 AND s.revoked_at IS NULL AND s.created_at > now() - make_interval(days => $2)`,
+    [token, SESSION_DAYS, ACTIVE],
   );
   return rows[0];
 }

@@ -2,9 +2,8 @@
 export const qr = {
   // My card and my QR
   "qr.mine": "Your QR code",
-  "qr.about_worker": "Scan with any phone camera to ask {name} for work — no app needed.",
-  "qr.about_household":
-    "A worker who scans it sees only your first name and can offer to work for you. You decide whether to ask them.",
+  "qr.about_worker": "Scan to ask {name} for work.",
+  "qr.about_household": "Workers scan it to offer you work. They see only your first name.",
   "qr.alt": "QR code that finds {name}",
   "qr.download": "Save QR",
   "qr.share": "Share",
@@ -15,15 +14,10 @@ export const qr = {
   "qr.copy": "Copy link",
   "qr.copied": "Link copied.",
   "qr.copy_failed": "This phone did not allow copying.",
-  "qr.new": "Make a new QR",
-  "qr.new_about": "Your old QR and its link stop finding you at once.",
-  "qr.keep": "Keep this one",
-  "qr.new_done": "New QR made. The old one no longer finds you.",
   // Scanning
   "qr.scan": "Scan a QR",
   "qr.scan_close": "Close",
   "qr.scan_label": "Camera, looking for a QR code",
-  "qr.camera_why": "To scan a QR code, GigSync needs the camera, only while you scan. Your phone will ask you next.",
   "qr.camera_denied": "The camera was not allowed. You can also scan with your phone's camera app.",
   "qr.no_camera": "No camera to use here. You can also scan with your phone's camera app.",
   "qr.not_ours": "That is not a GigSync QR code.",

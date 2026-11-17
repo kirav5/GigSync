@@ -16,7 +16,7 @@ export const terms = {
   "terms.hours.one": "{count} hour a day",
   "terms.hours.other": "{count} hours a day",
   "terms.you_asked": "(you asked: {value})",
-  "terms.check": "Your agent took terms you did not ask for. Check them before you sign.",
+  "terms.check": "Your assistant took terms you did not ask for. Check them before you sign.",
   "terms.card": "When you work and what you bring",
   "terms.card_windows": "Parts of the day you take work",
   "terms.card_days": "Days you work",

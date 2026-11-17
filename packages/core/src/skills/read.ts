@@ -1,10 +1,11 @@
 import { type Lang, type Skill, type SkillProblem, skillProblem, type Trade } from "@gigsync/protocol";
 import { tradeNamed } from "../interview/lexicon.js";
+import { categoryNamed } from "./suggest.js";
 
 /**
  * A skill as a worker typed or said it (ADR 0047 §2, §3): one of the trades when the words are clearly that trade, so
- * it keeps its questions and estimates; else the worker's own words, tagged with their language, when a card may list
- * them; else why not.
+ * it keeps its questions and estimates; else the worker's own words, tagged with their language and, when the words are
+ * a kind of work's name, that kind (ADR 0059), when a card may list them; else why not.
  */
 export type SkillRead = { trade: Trade } | { skill: Skill } | { problem: SkillProblem };
 
@@ -15,12 +16,19 @@ export function readSkill(text: string, lang: Lang): SkillRead {
   if (trade) return { trade };
   const words = text.trim().replace(SPACES, " ");
   const problem = skillProblem(words);
-  return problem ? { problem } : { skill: { text: words, lang } };
+  if (problem) return { problem };
+  const category = categoryNamed(words);
+  return { skill: { text: words, lang, ...(category ? { category } : {}) } };
 }
 
 /** Words around a spoken skill that only say "I am" or "I do" ("I am a tailor", "मैं दर्ज़ी हूँ"), in any of the scripts. */
 const FILLER = new Set([
   "i",
+  "also",
+  "too",
+  "bhi",
+  "भी",
+  "ಕೂಡ",
   "im",
   "i'm",
   "am",

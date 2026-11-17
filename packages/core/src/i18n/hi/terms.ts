@@ -15,7 +15,7 @@ export const terms: Readonly<Record<keyof typeof en, string>> = {
   "terms.hours.one": "दिन में {count} घंटा",
   "terms.hours.other": "दिन में {count} घंटे",
   "terms.you_asked": "(आपने कहा था: {value})",
-  "terms.check": "आपके एजेंट ने कुछ शर्तें बदली हैं जो आपने नहीं कहीं। साइन करने से पहले देख लें।",
+  "terms.check": "आपके सहायक ने कुछ शर्तें बदली हैं जो आपने नहीं कहीं। साइन करने से पहले देख लें।",
   "terms.card": "आप कब काम करते हैं और क्या लाते हैं",
   "terms.card_windows": "दिन का कौन सा समय आप काम लेते हैं",
   "terms.card_days": "आप किन दिनों काम करते हैं",

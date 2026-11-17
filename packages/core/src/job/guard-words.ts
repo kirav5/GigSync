@@ -28,6 +28,8 @@ export const DropReason = {
   identity: "identity",
   outside: "outside",
   link: "link",
+  /** How long the work takes, or how to do it: the worker's own call, never the household's (ADR 0063). */
+  worker_call: "worker_call",
   digits: "digits",
   over: "over",
 } as const;
@@ -95,7 +97,17 @@ export const DENY: ReadonlyArray<readonly [DropReason, readonly RegExp[]]> = [
   [
     D.place,
     [
-      latin(["address", "location", "street", "landmark", "pin ?code", "gps", "house number", "flat number", "door"]),
+      latin([
+        "address",
+        "location",
+        "street",
+        "landmark",
+        "pin ?code",
+        "gps",
+        "house number",
+        "flat number",
+        "door (?:number|no)",
+      ]),
       indic(["पता", "पते", "लोकेशन", "गली", "पिन कोड", "मकान नंबर"]),
       indic(["ವಿಳಾಸ", "ಸ್ಥಳ", "ಬೀದಿ", "ಪಿನ್ ಕೋಡ್", "ಮನೆ ನಂಬರ್"]),
     ],
@@ -145,6 +157,18 @@ export const DENY: ReadonlyArray<readonly [DropReason, readonly RegExp[]]> = [
     ],
   ],
   [D.link, [/https?:\/\/|www\.|\b[a-z0-9-]+\.(?:com|in|org|net|io|me|ly|co)\b/i]],
+  [
+    D.worker_call,
+    [
+      latin([
+        "how long (?:will|would|does|do|should) (?:it|this|the (?:job|work|repair)) take",
+        "how much time (?:will|would|does|should) (?:it|this|the (?:job|work|repair))",
+        "how (?:many|much) (?:hours?|days?|time) (?:will|would) (?:it|the (?:job|work)) (?:take|need)",
+        "how (?:should|would|will) (?:i|we) (?:do|fix|repair)",
+      ]),
+      indic(["कितना समय लगेगा", "कितनी देर लगेगी", "कितने दिन लगेंगे", "ಎಷ್ಟು ಸಮಯ ಬೇಕಾಗುತ್ತದೆ", "ಎಷ್ಟು ಸಮಯ ಆಗುತ್ತದೆ", "ಎಷ್ಟು ಹೊತ್ತು"]),
+    ],
+  ],
 ];
 
 /** What each standard detail is called, so a written question about a detail already known is caught. */

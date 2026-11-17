@@ -19,7 +19,8 @@ past chats, delete one.
    chat and the one holding the card interview are never dropped. An empty chat is not kept or listed.
 4. **Titles and the list.** A chat is titled from the owner's first words in it, cut to 48 letters (never through a
    Hindi or Kannada syllable). Chats lists them under Today, Yesterday and Earlier by the owner's calendar, newest
-   first. Opening one shows it and lets the owner carry on; Delete asks once, then removes it from the phone.
+   first. Opening one shows it and lets the owner carry on; Delete asks once, then removes it from the phone. Every
+   launch and reload opens a new chat, with the past ones in the list (amended 2026-11-13: the newest used to reopen).
 5. **New chat** keeps the open chat in the list and opens an empty one, which shows the usual suggestions. The
    "New conversation" button and its confirm are gone.
 6. **The card interview.** At most one is live, and it belongs to the chat it started in. Leaving that chat (New chat,
@@ -44,8 +45,9 @@ same history workers have. Find's chats now follow the decisions above, with the
 3. **An unsent need carries on.** Until the workers are asked, the need (its draft, the budget as typed, and what the
    agent remembered when it began) is kept in its chat's record. Opening the chat, now or after a restart or the next
    sign-in, shows the question it stood at; one closed after the yes but before the search answered searches again.
-   The menu marks such a chat "Not sent to workers yet". After loading, the newest chat opens if its need is unsent;
-   otherwise a new chat opens, ready for the next need.
+   The menu marks such a chat "Not sent to workers yet". After loading, a new chat opens, ready for the next need
+   (amended 2026-11-13: an unsent need used to open by itself; owners wanted every launch and reload to start afresh, so
+   it now waits in the list).
 4. **A sent need stays to read, not to reuse.** Once the workers are asked, the chat keeps what was said, the workers
    found (their boxes fixed) and the "Asked" line, and its job lives on in My jobs as before. Find moves on to a new
    chat at that moment, so coming back to it starts the next need, as it always did. Reopening the sent chat from the

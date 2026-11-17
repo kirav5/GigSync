@@ -1,0 +1,16 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": [
+          "https://gigsync.network",
+          "https://www.gigsync.network",
+          "capacitor://localhost",
+          "https://localhost"
+        ],
+        "methods": ["GET", "HEAD"]
+      },
+      "maxAgeSeconds": 86400
+    }
+  ]
+}

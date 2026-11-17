@@ -88,7 +88,8 @@ const pickedLine = (d: CardDraft): Line => ({
 export function arrangementsPrompt(s: InterviewState): Prompt {
   const picked = s.draft.arrangements ?? [];
   return {
-    lines: [{ key: "iv.ask.arrangements" }, ...(picked.length > 0 ? [pickedLine(s.draft)] : [])],
+    lines: [{ key: "iv.ask.arrangements" }],
+    picked,
     choices: [
       ...cardArrangements(s.draft).map((a) => ({ value: a, key: `arrangement.${a}` as const })),
       { value: Pick.yes, key: "iv.done" },

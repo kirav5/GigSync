@@ -9,8 +9,9 @@ import { Client } from "pg";
 import { migrate } from "./migrate.mjs";
 
 const SERVER_URL = process.env.E2E_POSTGRES_URL ?? "postgres://postgres:postgres@localhost:54329/postgres";
-// A second worktree's stack runs beside the first with its own E2E_DATABASE, E2E_API_PORT, E2E_INSPECTOR_PORT and
-// E2E_APP_ORIGIN; the name goes into DROP DATABASE, which takes no bound values, so it must be a plain identifier.
+// A second stack runs beside the first with its own E2E_DATABASE, E2E_API_PORT, E2E_INSPECTOR_PORT and
+// E2E_APP_ORIGIN, and E2E_STATE_DIR when both run from one worktree; the name goes into DROP DATABASE, which takes
+// no bound values, so it must be a plain identifier.
 const DATABASE = process.env.E2E_DATABASE ?? "gigsync_e2e";
 const IDENTIFIER = /^[a-z_][a-z0-9_]{0,62}$/;
 if (!IDENTIFIER.test(DATABASE)) throw new Error("E2E_DATABASE must be a plain lowercase name");
@@ -18,7 +19,7 @@ const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 const PORT = process.env.E2E_API_PORT ?? "8788";
 const INSPECTOR_PORT = process.env.E2E_INSPECTOR_PORT ?? "9230";
 const APP_ORIGIN = process.env.E2E_APP_ORIGIN ?? "http://localhost:5174";
-const STATE_DIR = ".wrangler/e2e-state";
+const STATE_DIR = process.env.E2E_STATE_DIR ?? ".wrangler/e2e-state";
 
 const server = new URL(SERVER_URL);
 if (!LOCAL_HOSTS.has(server.hostname))
@@ -53,5 +54,11 @@ const args = ["dev", "--port", PORT, "--inspector-port", INSPECTOR_PORT, "--pers
 args.push("--var", `ALLOWED_ORIGINS:${APP_ORIGIN}`);
 // No model for the UI tests (ADR 0052): the pilot's model is never asked by a test run; specs stand in for it.
 args.push("--var", "MODEL_ORIGIN:");
+// No Ola Maps either, even when a developer's .dev.vars has the key for trying maps: the specs' addresses carry a
+// made-up PIN, so a real geocoder would move them across the city, and a test run must not spend the map quota.
+// E2E_MAPS=1 keeps the key, for trying the maps by hand on this stack; never for a spec run.
+if (process.env.E2E_MAPS !== "1") args.push("--var", "OLA_MAPS_API_KEY:");
+// Every live city in the directory, not the pilot's Bengaluru alone (wrangler.toml): the moving specs go to Kanpur.
+args.push("--var", "LIVE_CITIES:");
 const wrangler = spawn("wrangler", args, { stdio: "inherit" });
 wrangler.on("exit", (code) => process.exit(code ?? 1));

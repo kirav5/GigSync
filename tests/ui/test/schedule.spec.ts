@@ -55,8 +55,8 @@ test("a booking said in Talk is kept, listed, shown on Activity and cancelled", 
     await nextTurn(page, en, "schedule.free_day", () => type(page, en, "what is on my schedule today?"));
   });
 
-  await test.step("Activity shows it with Delete", async () => {
-    await open(page, "nav.activity", en);
+  await test.step("Jobs shows it with Delete", async () => {
+    await open(page, "nav.jobs", en);
     await expect(bookings(page).getByText(whole(TWO_TO_THREE))).toBeVisible();
     await expect(
       bookings(page).getByRole("button", { name: whole(say("schedule.delete_named", { when: TWO_TO_THREE })) }),
@@ -66,15 +66,15 @@ test("a booking said in Talk is kept, listed, shown on Activity and cancelled", 
   await test.step("cancelling by chat takes it off", async () => {
     await open(page, "nav.talk", en);
     await nextTurn(page, en, "schedule.cancelled", () => type(page, en, "cancel my booking tomorrow 2pm"));
-    await open(page, "nav.activity", en);
+    await open(page, "nav.jobs", en);
     await expect(bookings(page)).toHaveCount(0);
   });
 
-  await test.step("Delete on Activity takes one said in Hinglish off", async () => {
+  await test.step("Delete on Jobs takes one said in Hinglish off", async () => {
     await open(page, "nav.talk", en);
     await nextTurn(page, en, "schedule.saved", () => type(page, en, "kal 4 se 5 baje booking hai"));
     await expect(talkLog(page).getByText(whole(FOUR_TO_FIVE))).toBeVisible();
-    await open(page, "nav.activity", en);
+    await open(page, "nav.jobs", en);
     await bookings(page)
       .getByRole("button", { name: whole(say("schedule.delete_named", { when: FOUR_TO_FIVE })) })
       .click();

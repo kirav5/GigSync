@@ -24,6 +24,7 @@ import { areaKeyOf } from "../estimate/areas.js";
 import { estimateBand } from "../estimate/band.js";
 import { lookupEstimate } from "../estimate/lookup.js";
 import { basisCount, estimateRequest, perJob } from "../estimate/scope.js";
+import { log } from "../log.js";
 import { pastPrices, proposeMandate } from "./advice.js";
 import { type ArrangementMandate, arrangementMandate, askedArrangement, rateFor } from "./arrangement-rules.js";
 import { questionsFor } from "./ask.js";
@@ -36,6 +37,7 @@ import { type JobRecord, TaskKind } from "./store.js";
 import { drawStrategy, type Strategy } from "./strategy.js";
 import { usualTactic } from "./tactic.js";
 import { nextTerms, termsField, withTermDetails, withTerms, workerTerms } from "./terms-flow.js";
+import { requestWork, type WorkMandate } from "./work-rates.js";
 import type { TermPrefs } from "./worker-stance.js";
 
 /** The standard questions live with the rest of the asking; screens and the interview read them from here. */
@@ -75,6 +77,12 @@ export interface WorkerRules {
   floor_missing?: boolean;
   /** ADR 0046: the arrangements a maid or driver takes, each with its own plan; absent means monthly only. */
   arrangements?: ArrangementMandate[];
+  /** ADR 0062: kinds of work besides the first with a plan of their own; any other kind is at `rate`. */
+  work_rates?: WorkMandate[];
+  /** ADR 0063: the line about their work, as on their card, so their agent asks as they would. */
+  about?: string;
+  /** ADR 0063: what they need to know before quoting, in their own words; never leaves the phone. */
+  asks?: string[];
 }
 
 const EARTH_RADIUS_KM = 6371;
@@ -86,19 +94,23 @@ export function distanceKm(a: Place, b: Place): number {
   return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(h));
 }
 
-/** The worker does this work: one of their trades, or a skill on their card by its key (ADR 0047 §5). */
-export function doesWork(rules: Pick<WorkerRules, "trades" | "skills">, req: Pick<JobRequest, "trade" | "skill">) {
-  if (isTrade(req.trade)) return rules.trades.includes(req.trade);
-  const asked = req.skill && skillKey(req.skill.text);
-  return (rules.skills ?? []).some((s) => skillKey(s.text) === asked);
-}
+/** The worker does this work: a kind on their card (`requestWork`). */
+export const doesWork = (rules: Pick<WorkerRules, "trades" | "skills">, req: Pick<JobRequest, "trade" | "skill">) =>
+  requestWork(rules, req) !== undefined;
 
 /** A new request: decline what this worker does not do, ask what is missing, otherwise quote. */
 export async function onRequest(ctx: JobContext, rules: WorkerRules, r: JobRecord): Promise<JobRecord> {
   const req = r.request;
-  const takes = arrangementMandate(rules, req) !== undefined;
-  if (!doesWork(rules, req) || distanceKm(rules.base, req.area) > rules.radius_km || !takes)
+  const fit = {
+    work: doesWork(rules, req),
+    near: distanceKm(rules.base, req.area) <= rules.radius_km,
+    takes: arrangementMandate(rules, req) !== undefined,
+  };
+  if (!fit.work || !fit.near || !fit.takes) {
+    // Which of the three it was, so a decline can be explained; nothing about the place or the words.
+    log.info("request declined", { engagement: r.engagement, ...fit });
     return cancel(ctx, r, { reason: CancelReason.enum.no_match });
+  }
   // The household's terms answer the details they decide (who buys the paint): its agent need not ask them.
   const told = withTermDetails(r, req.terms);
   if (!told.asked) {
@@ -138,7 +150,7 @@ async function jobEstimate(ctx: JobContext, r: JobRecord, trade: Trade): Promise
   const { details, area, locality } = r.request;
   // A pilot area by its point, else the locality the household's phone named (ADR 0045).
   const key = areaKeyOf(area) ?? (locality ? localitySlug(locality) : undefined);
-  const request = ctx.estimates && estimateRequest(ctx.estimates.city, trade, details, key);
+  const request = ctx.estimates && estimateRequest(ctx.estimates.cityOf(area), trade, details, key);
   if (!ctx.estimates || !request) return undefined;
   const found = await lookupEstimate(ctx.estimates.api, request);
   return found && perJob(found, details);

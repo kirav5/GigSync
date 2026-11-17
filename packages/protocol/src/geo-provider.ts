@@ -29,9 +29,22 @@ export const OlaResult = z.object({
 });
 export type OlaResult = z.infer<typeof OlaResult>;
 
-/** Reverse geocoding answers `results`; geocoding an address answers `geocodingResults`. */
+/**
+ * One autocomplete suggestion: the place's full line and its point, without address parts. Autocomplete finds an
+ * area by name ("Jayanagar 4th Block") where geocoding an address sends it to another state.
+ */
+export const OlaPrediction = z.object({
+  description: z.string(),
+  /** The line's parts in order: the place's name, its street, its locality, the city, the state, the PIN. */
+  terms: z.array(z.object({ value: z.string() })).default([]),
+  geometry: z.object({ location: z.object({ lat: z.number(), lng: z.number() }) }),
+});
+export type OlaPrediction = z.infer<typeof OlaPrediction>;
+
+/** Reverse geocoding answers `results`; geocoding an address `geocodingResults`; autocomplete `predictions`. */
 export const OlaAnswer = z.object({
   results: z.array(OlaResult).optional(),
   geocodingResults: z.array(OlaResult).optional(),
+  predictions: z.array(OlaPrediction).optional(),
 });
 export type OlaAnswer = z.infer<typeof OlaAnswer>;

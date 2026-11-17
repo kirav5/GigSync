@@ -1,17 +1,17 @@
+import type { Phone } from "@gigsync/protocol";
 import { hmacHex, sameSecret } from "../crypto.js";
 import type { Db } from "../db/client.js";
+import { dropCode, keepCode, pendingCode } from "../db/otp-codes.js";
+import type { CodeSender } from "./senders.js";
 
 /**
- * One-time sign-in codes (architecture review row 1). A code lives five minutes, is kept only as a hash keyed by the
- * server's secret, works once, and a number gets a new one at most once a minute, so a stranger cannot run up texts
- * to it. Wrong guesses are capped per number by `attempts.ts`, as before.
+ * Codes the API makes and checks itself (ADR 0069), for the channels it sends on (WhatsApp, MSG91's SMS); Firebase's
+ * SMS codes are made and checked by Firebase. A code is six digits, kept only as an HMAC tied to its number, and signs in once.
  */
 
-export const CODE_TTL_MS = 5 * 60_000;
-export const RESEND_MS = 60_000;
 const CODE_DIGITS = 6;
 const CODE_SPACE = 10 ** CODE_DIGITS;
-/** The largest multiple of the code space a Uint32 holds: values above it are drawn again, so every code is as likely. */
+/** The largest multiple of the code space a 32-bit draw can reach; draws above it are redrawn, so no code is likelier. */
 const FAIR_LIMIT = Math.floor(2 ** 32 / CODE_SPACE) * CODE_SPACE;
 
 /** A uniformly random six-digit code, leading zeros kept. */
@@ -22,34 +22,42 @@ export function newCode(): string {
   return String((draw[0] ?? 0) % CODE_SPACE).padStart(CODE_DIGITS, "0");
 }
 
+/** The code as kept: tied to the number's hash, so the same code for two numbers is two different values. */
 const codeHash = (key: string, phoneHmac: string, code: string) => hmacHex(key, `${phoneHmac}:${code}`);
 
-/** Keeps a new code for a number; false when the last one was sent less than a minute ago. */
-export async function saveCode(db: Db, key: string, phoneHmac: string, code: string, now: Date): Promise<boolean> {
-  const hash = await codeHash(key, phoneHmac, code);
-  const { rowCount } = await db.query(
-    `INSERT INTO otp_codes (phone_hmac, code_hash, sent_at, expires_at) VALUES ($1, $2, $3, $4)
-     ON CONFLICT (phone_hmac) DO UPDATE SET code_hash = excluded.code_hash, sent_at = excluded.sent_at,
-       expires_at = excluded.expires_at
-     WHERE otp_codes.sent_at <= $5`,
-    [phoneHmac, hash, now, new Date(now.getTime() + CODE_TTL_MS), new Date(now.getTime() - RESEND_MS)],
-  );
-  return (rowCount ?? 0) > 0;
+/** Why a code was not sent. */
+export const SendRefused = { tooSoon: "too soon", failed: "failed" } as const;
+export type SendRefused = (typeof SendRefused)[keyof typeof SendRefused];
+
+/** What a send came to: the channel the code went by, or why it did not go. */
+export type Issued = { channel: CodeSender["channel"] } | { refused: SendRefused };
+
+/** What a send needs: the database, the HMAC key, and the number both as typed and hashed. */
+export interface CodeTarget {
+  db: Db;
+  key: string;
+  phone: Phone;
+  phoneHmac: string;
+  now: Date;
 }
 
-/** Forgets a number's code, as when it could not be sent. */
-export async function dropCode(db: Db, phoneHmac: string): Promise<void> {
-  await db.query("DELETE FROM otp_codes WHERE phone_hmac = $1", [phoneHmac]);
+/**
+ * Makes a code for the number, keeps it, and sends it by the first sender that takes it (WhatsApp, then SMS). Refused
+ * when the number was sent one just now or has had its codes for the hour; when no sender took it the code is
+ * forgotten, so asking again is not held up.
+ */
+export async function issueCode(target: CodeTarget, senders: readonly CodeSender[]): Promise<Issued> {
+  const code = newCode();
+  const hash = await codeHash(target.key, target.phoneHmac, code);
+  if (!(await keepCode(target.db, target.phoneHmac, hash, target.now))) return { refused: SendRefused.tooSoon };
+  for (const sender of senders) if (await sender.send(target.phone, code)) return { channel: sender.channel };
+  await dropCode(target.db, target.phoneHmac);
+  return { refused: SendRefused.failed };
 }
 
-/** True when the code is the number's live one; it is then used up. */
-export async function takeCode(db: Db, key: string, phoneHmac: string, code: string, now: Date): Promise<boolean> {
-  const { rows } = await db.query<{ code_hash: string }>(
-    "SELECT code_hash FROM otp_codes WHERE phone_hmac = $1 AND expires_at > $2",
-    [phoneHmac, now],
-  );
-  const stored = rows[0]?.code_hash;
-  if (!stored || !(await sameSecret(stored, await codeHash(key, phoneHmac, code)))) return false;
-  await dropCode(db, phoneHmac);
-  return true;
+/** True when `code` is the number's pending code and has not expired; the caller drops it once signed in. */
+export async function codeMatches(target: CodeTarget, code: string): Promise<boolean> {
+  const stored = await pendingCode(target.db, target.phoneHmac, target.now);
+  if (!stored) return false;
+  return sameSecret(await codeHash(target.key, target.phoneHmac, code), stored.code_hash);
 }

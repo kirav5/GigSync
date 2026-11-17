@@ -1,0 +1,174 @@
+/* The household's Find (app-journey H1–H5): the saved doors as cards,
+   the budget band, the readback's two buttons, and the workers found as cards with a round tick. Tokens only, so the
+   dark look follows. */
+
+/* H2: saved doors first, as two-line cards (the one in use dark), then the chips. */
+.where-cards {
+  display: grid;
+  gap: 8px;
+}
+.where-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-btn);
+  background: var(--sage);
+  color: var(--rust);
+}
+.where-card.on .where-icon {
+  background: var(--rust);
+  color: var(--on-accent);
+}
+.where-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.where-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.door-check {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+.door-check .place-map {
+  height: 160px;
+}
+
+/* H4: the usual range as a band in a card, under the budget question; then the amounts to tap. */
+.budget-card {
+  padding: 14px 16px;
+}
+.readback-actions {
+  display: grid;
+  gap: 4px;
+  padding-top: 4px;
+}
+
+/* H5: a worker as a card. The native box sits, unseen, over the round tick at the card's top right, so a tap there, a
+   tap anywhere on the card (it is one label) and a screen reader all work the same box. */
+.pick {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  cursor: pointer;
+}
+.pick:has(.pick-box:checked) {
+  border-color: var(--rust);
+}
+.pick-box {
+  position: absolute;
+  /* Above the tick it stands for, and scrolled clear of the sticky Ask button below. */
+  z-index: 1;
+  scroll-margin-bottom: 160px;
+  top: 26px;
+  right: 16px;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.pick-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.pick .avatar {
+  width: 48px;
+  height: 48px;
+  font-size: 20px;
+}
+.pick-head .who {
+  flex: 1;
+}
+.pick-name {
+  font-family: var(--serif);
+  font-size: var(--fs-heading);
+  font-weight: 400;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.pick-tick {
+  position: relative;
+  flex: none;
+  align-self: flex-start;
+  width: 28px;
+  height: 28px;
+  margin-top: 10px;
+  border: 1.5px solid var(--hairline);
+  border-radius: 50%;
+  background: var(--surface);
+}
+.pick-box:checked + .pick-head .pick-tick {
+  border-color: var(--rust);
+  background: var(--rust);
+}
+.pick-box:checked + .pick-head .pick-tick::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  background: var(--on-accent);
+  -webkit-mask: var(--tick) center / contain no-repeat;
+  mask: var(--tick) center / contain no-repeat;
+}
+.pick-box:focus-visible + .pick-head .pick-tick {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.pick-box:disabled,
+.pick-box:disabled + .pick-head .pick-tick {
+  cursor: default;
+}
+.pick-box:disabled + .pick-head .pick-tick {
+  opacity: 0.6;
+}
+.pick-rate {
+  font-size: var(--fs-2);
+  font-weight: 600;
+}
+
+/* A worker's record as badges: the figure first, then what it counts. */
+.rec-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+}
+.rec-badges > .badge {
+  flex-direction: row-reverse;
+}
+.rec-badges dd {
+  margin: 0;
+}
+.rec-badges dt {
+  font-weight: 400;
+}
+.rec-stars dt::before {
+  content: "· ";
+}
+/* "Jobs done" is said for readers only: the badge shows it counted, "1 job done". */
+.rec-badges .rec-term {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The Ask button stays in the found group, stuck to the bottom of the screen while the cards scroll under it. */
+.found-ask {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: grid;
+  gap: 6px;
+  padding: 8px 0 4px;
+  background: var(--bg);
+}

@@ -1,8 +1,11 @@
-import type { Agent, GigDevice, NeedTo, Ports } from "@gigsync/core";
+import { type Agent, type GigDevice, type NeedTo, type Ports, startWithWork } from "@gigsync/core";
 import type { City, QrCode, UserId } from "@gigsync/protocol";
 import { type RefObject, useCallback, useEffect, useState } from "react";
 import { type Account, AccountRole } from "../adapters/account.js";
 import { keepBackInApp } from "../adapters/back.js";
+import { interviewConfig } from "../card/choices.js";
+import { beginInterview } from "../card/interviewStore.js";
+import { OpenInterview } from "../card/openInterview.js";
 import { useCardRefill } from "../card/refill.js";
 import { type ChosenWorker, needToOf } from "../find/ask.js";
 import { startFindChat } from "../find/findChats.js";
@@ -11,19 +14,20 @@ import { useMovePrompt } from "../move/useMovePrompt.js";
 import { useOpenedQr } from "../qr/useOpenedQr.js";
 import { useReminders } from "../schedule/useReminders.js";
 import { LinksProvider } from "../screens/mentor/links.js";
+import { WorkStep } from "../screens/start/WorkStep.js";
 import { Screen } from "../state.js";
 import { startChat } from "../talk/talkStore.js";
 import type { GigView } from "../useGig.js";
 import { ConsentToast } from "./ConsentToast.js";
-import { useChatList } from "./chatLists.js";
-import { drawerOpen, setDrawer, useDrawer } from "./drawer.js";
-import { backFrom, homeOf } from "./nav.js";
+import { chatOf, isTab, landingOf } from "./nav.js";
 import { ScreenView } from "./ScreenView.js";
 import { Shell } from "./Shell.js";
 import { useAlerts } from "./useAlerts.js";
 import { useConsentOnOpen } from "./useConsentOnOpen.js";
+import { useNav } from "./useNav.js";
 import { useRecordFollow } from "./useRecordFollow.js";
 import { useRestoredJobs } from "./useRestoredJobs.js";
+import { useWorkStep } from "./useWorkStep.js";
 
 interface Props {
   agent: Agent;
@@ -39,38 +43,40 @@ interface Props {
   back: RefObject<() => boolean>;
 }
 
-/** The open chat's title for the top bar, by its first words; until then "New chat" for a worker, "Find" for a household. */
-function useChatTitle(isWorker: boolean): string {
-  const { t } = useI18n();
-  const { chats, open } = useChatList(isWorker);
-  return chats.find((c) => c.id === open)?.title ?? t(isWorker ? "chats.new" : "nav.find");
-}
-
 /**
- * One signed-in owner's app: which screen is open and what was picked on the way to it, Back (the drawer first, then
- * a screen to the one it was opened from, any other to the chat), and the frame around it all. Mounted afresh for
+ * One signed-in owner's app: where they are (a stack of screens under three tabs, shell/useNav.ts), what was picked on
+ * the way there, Back (one screen at a time, then out of the app), and the frame around it all. Mounted afresh for
  * each owner, so nothing of the last one's screens carries over.
  */
 export function SignedIn({ agent, ports, account, device, view, run, onAccount, onSignOut, back }: Props) {
-  const home = homeOf(account);
+  const landing = landingOf(account);
   const isWorker = account.role === AccountRole.worker;
-  const [screen, setScreen] = useState<Screen>(home);
-  /** Talk opens on the card interview: set by every way into it, cleared once the card is published. */
-  const [interview, setInterview] = useState(false);
+  const tabFor = useCallback((s: Screen) => isTab(account, s), [account]);
+  const nav = useNav(landing, tabFor);
+  const { go } = nav;
+  /**
+   * Talk opens on the card interview: set by every way into it, cleared once Talk has opened it, so coming back to
+   * Talk from the chats keeps the chat picked there. A worker with no card yet starts with one under way carried on,
+   * never a new one: after Later on the work step, Home is the greeting.
+   */
+  const [interview, setInterview] = useState<OpenInterview>(() =>
+    isWorker && !account.worker ? OpenInterview.carryOn : OpenInterview.no,
+  );
   /** Whose mentor link is open on its own screen. */
   const [openLink, setOpenLink] = useState<UserId>();
   /** The city of the move Talk is about, for the moving checklist (the landing journey) to start with. */
   const [movingTo, setMovingTo] = useState<City>();
   /** The QR code whose owner the person screen shows. */
   const [personCode, setPersonCode] = useState<QrCode>();
-  const open = useDrawer();
-  const chatTitle = useChatTitle(isWorker);
   const { lang } = useI18n();
 
-  const showPerson = useCallback((code: QrCode) => {
-    setPersonCode(code);
-    setScreen(Screen.person);
-  }, []);
+  const showPerson = useCallback(
+    (code: QrCode) => {
+      setPersonCode(code);
+      go(Screen.person);
+    },
+    [go],
+  );
   // A QR link the phone's camera opened: whoever it finds.
   useOpenedQr(true, showPerson);
   // An owner signed in before the sign-in line agreed by using GigSync: recorded once, said in one line (ADR 0039 §4).
@@ -85,21 +91,14 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
   useReminders(ports, lang, isWorker);
   // A new phone (ADR 0037): an owner with nothing here yet and another active phone is asked once whether they are
   // moving from it, and a worker's card comes back from the board.
-  // Only from the chat it opened on: a screen the owner moved to meanwhile stays.
-  useMovePrompt(ports, account.session, () => setScreen((now) => (now === home ? Screen.moveIn : now)));
+  // Only from the screen it landed on: a screen the owner moved to meanwhile stays.
+  useMovePrompt(ports, account.session, () => nav.goFrom(landing, Screen.moveIn));
   useCardRefill(ports, account, onAccount);
+  // A worker with no card yet picks their work on tiles once, before the card chat; not over a screen they were sent to.
+  const first = useWorkStep(ports, isWorker && !account.worker);
 
   useEffect(() => {
-    back.current = () => {
-      if (drawerOpen()) {
-        setDrawer(false);
-        return true;
-      }
-      const to = backFrom(screen, home);
-      if (!to) return false;
-      setScreen(to);
-      return true;
-    };
+    back.current = nav.back;
   });
   useEffect(
     () => () => {
@@ -107,45 +106,47 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
     },
     [back],
   );
-  useEffect(() => keepBackInApp(screen !== home || open), [screen, home, open]);
+  useEffect(() => keepBackInApp(nav.stack.length > 1), [nav.stack.length]);
 
-  const go = (s: Screen) => setScreen(s);
-  const moves = {
-    go,
-    showPerson,
-    saved: (a: Account) => {
-      onAccount(a);
-      setInterview(false);
-    },
-    talkCard: () => {
-      setInterview(true);
-      setScreen(Screen.talk);
-    },
-    openLanding: (city: City) => {
-      setMovingTo(city);
-      setScreen(Screen.landing);
-    },
-    showLink: (user: UserId) => {
-      setOpenLink(user);
-      setScreen(Screen.link);
-    },
-    /** A worker chosen from their QR or their offer: a new Find chat, addressed to them alone. */
-    askFor: (worker: ChosenWorker) => {
-      startFindChat(needToOf(worker));
-      setScreen(Screen.find);
-    },
-    /** A job that ended without the work: the same worker asked again, or anyone (ADR 0053 §5). */
-    findFor: (to?: NeedTo) => {
-      startFindChat(to);
-      setScreen(Screen.find);
-    },
-    signOut: onSignOut,
-  };
+  const chat = chatOf(account);
   /** "New chat": the open chat stays in the list and an empty one opens. */
   const newChat = () => {
     if (isWorker) startChat();
     else startFindChat();
-    go(home);
+    go(chat);
+  };
+  const moves = {
+    go,
+    showPerson,
+    newChat,
+    saved: (a: Account) => {
+      onAccount(a);
+      setInterview(OpenInterview.no);
+    },
+    talkCard: () => {
+      setInterview(OpenInterview.yes);
+      go(Screen.talk);
+    },
+    interviewOpened: () => setInterview(OpenInterview.no),
+    openLanding: (city: City) => {
+      setMovingTo(city);
+      go(Screen.landing);
+    },
+    showLink: (user: UserId) => {
+      setOpenLink(user);
+      go(Screen.link);
+    },
+    /** A worker chosen from their QR or their offer: a new Find chat, addressed to them alone. */
+    askFor: (worker: ChosenWorker) => {
+      startFindChat(needToOf(worker));
+      go(Screen.find);
+    },
+    /** A job that ended without the work: the same worker asked again, or anyone (ADR 0053 §5). */
+    findFor: (to?: NeedTo) => {
+      startFindChat(to);
+      go(Screen.find);
+    },
+    signOut: onSignOut,
   };
   const data = {
     agent,
@@ -162,17 +163,27 @@ export function SignedIn({ agent, ports, account, device, view, run, onAccount, 
   return (
     <LinksProvider device={device} syncedAt={view.syncedAt}>
       <Shell
+        ports={ports}
         account={account}
-        home={home}
-        screen={screen}
-        onScreen={go}
-        onNewChat={newChat}
-        onSignOut={onSignOut}
-        onBack={() => back.current()}
+        nav={nav}
         tasks={view.tasks.length + view.offers.length}
-        chatTitle={chatTitle}
+        onNewChat={newChat}
       >
-        <ScreenView screen={screen} d={data} m={moves} />
+        {first.show !== false && nav.screen === landing ? (
+          first.show && (
+            <WorkStep
+              onDone={(kinds, custom) => {
+                // The card chat starts from the work picked, so it goes on to the details instead of asking it again.
+                beginInterview(startWithWork(interviewConfig(lang), kinds, custom));
+                first.seen();
+                moves.talkCard();
+              }}
+              onSkip={first.seen}
+            />
+          )
+        ) : (
+          <ScreenView screen={nav.screen} d={data} m={moves} />
+        )}
         {consent.said && <ConsentToast onDone={consent.dismiss} />}
       </Shell>
     </LinksProvider>

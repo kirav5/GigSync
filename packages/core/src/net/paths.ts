@@ -2,6 +2,13 @@
 export const ApiPath = {
   otpRequest: "/v1/auth/otp/request",
   otpVerify: "/v1/auth/otp/verify",
+  /** Sign-in with a Firebase ID token for the number, when the app sends codes through Firebase. */
+  phoneVerify: "/v1/auth/phone/verify",
+  /** Proving a second number while signed in (the Aadhaar's mobile), without signing in with it. */
+  phoneConfirmRequest: "/v1/phone/confirm/request",
+  phoneConfirm: "/v1/phone/confirm",
+  cities: "/v1/cities",
+  signOut: "/v1/me/signout",
   directory: "/v1/directory/",
   mailbox: "/v1/mailbox/",
   inbox: "/v1/inbox",
@@ -12,10 +19,14 @@ export const ApiPath = {
   boardWorkers: "/v1/board/workers",
   /** The board's skills outside the trades (ADR 0047), matched on the phone: `GET /v1/board/skills`. */
   boardSkills: "/v1/board/skills",
+  /** What workers near a place list for a skill (ADR 0057): `GET /v1/board/rates`. */
+  boardRates: "/v1/board/rates",
+  findCount: "/v1/find/count",
   mentorMe: "/v1/mentors/me",
   mentorMatch: "/v1/mentors/match",
   mentorReport: "/v1/mentors/report",
   mentorBlock: "/v1/mentors/block",
+  mentorUnblock: "/v1/mentors/unblock",
   /** A city's guide for the landing journey: `GET /v1/content/:city`. */
   content: "/v1/content/",
   /** This device now speaks a newer protocol: `PUT /v1/devices/me/protocol`. */

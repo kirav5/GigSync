@@ -15,6 +15,11 @@
       "import": "./dist/log.js",
       "default": "./src/log.ts"
     },
+    "./reader": {
+      "types": "./dist/reader/input.d.ts",
+      "import": "./dist/reader/input.js",
+      "default": "./src/reader/input.ts"
+    },
     "./http": {
       "types": "./dist/http.d.ts",
       "import": "./dist/http.js",

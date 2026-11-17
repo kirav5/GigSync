@@ -12,7 +12,8 @@
     "lint": "biome check . && node scripts/check-file-size.mjs && node scripts/check-magic-strings.mjs",
     "lint:fix": "biome check --write .",
     "typecheck": "pnpm -r --filter './packages/*' --filter './workers/*' --filter './apps/*' --filter './plugins/*' --filter './tests/*' run typecheck",
-    "test": "pnpm -r --filter './packages/*' --filter './workers/*' --filter './plugins/*' run test",
+    "test": "pnpm -r --filter './packages/*' --filter './workers/*' --filter './plugins/*' run test && pnpm test:scripts",
+    "test:scripts": "node --test scripts/reader-data/*.test.mjs",
     "build": "pnpm -r --filter './packages/*' --filter './plugins/*' --filter './apps/*' run build",
     "build:workers": "pnpm --filter @gigsync/worker-api exec wrangler deploy --dry-run --outdir dist && pnpm --filter @gigsync/worker-index exec wrangler deploy --dry-run --outdir dist",
     "dev:workers": "pnpm --filter @gigsync/worker-api dev",
@@ -22,7 +23,14 @@
     "demo:workers": "pnpm --filter @gigsync/e2e demo:workers",
     "test:ui": "pnpm --filter @gigsync/ui-tests ui",
     "i18n:sheet": "pnpm --filter @gigsync/core build && node scripts/i18n-sheet.mjs && biome format --write docs/gigsync/i18n-review.md",
-    "eval:intent": "pnpm --filter @gigsync/core build && node scripts/eval-intent.mjs"
+    "eval:find": "pnpm --filter @gigsync/core build && node scripts/eval-find.mjs",
+    "eval:questions": "pnpm --filter @gigsync/core build && node scripts/eval-questions.mjs",
+    "eval:intent": "pnpm --filter @gigsync/core build && node scripts/eval-intent.mjs",
+    "reader:data": "pnpm --filter @gigsync/core build && node scripts/reader-data.mjs",
+    "reader:watch": "node scripts/reader-data/dashboard.mjs",
+    "reader:publish": "pnpm --filter @gigsync/core build && node scripts/reader-publish.mjs",
+    "models:bundle": "pnpm --filter @gigsync/core build && node scripts/models-bundle.mjs",
+    "reader:train": "node scripts/reader-data/works.mjs --out data/reader/v1 && cd training/reader && uv run train.py --data ../../data/reader/v1 --out ../../data/reader/model-v1 && uv run export.py --model ../../data/reader/model-v1 --data ../../data/reader/v1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.2",

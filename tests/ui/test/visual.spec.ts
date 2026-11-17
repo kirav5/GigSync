@@ -1,17 +1,18 @@
+import { t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { APP, newPhone, open, Role, RUN, SHOTS, signIn } from "./helpers.js";
 
 /**
  * The visual pass (round2-spec §6): each main screen of a worker and a household, in English, Hindi and Kannada, in
- * the light and dark looks (the look is Auto, so it follows the phone's scheme), at a common phone size. It only takes
+ * the one light look, at a common phone size. It only takes
  * screenshots for a person to look at; run it on request:
  *   VISUAL=1 pnpm exec playwright test visual --project=chromium
  */
 
 const ON = process.env.VISUAL;
 const PHONE = { width: 390, height: 844 };
-const SCHEMES = ["light", "dark"] as const;
+const SCHEMES = ["light"] as const;
 type Scheme = (typeof SCHEMES)[number];
 
 test.skip(!ON, "visual pass runs on request (VISUAL=1)");
@@ -37,7 +38,7 @@ for (const lang of Lang.options)
         await browser.newContext({ viewport: PHONE, deviceScaleFactor: 2, colorScheme: scheme })
       ).newPage();
       await worker.goto(APP);
-      await expect(worker.getByRole("radio").first()).toBeVisible();
+      await expect(worker.getByRole("button", { name: t(lang, `lang.${lang}`), exact: true })).toBeVisible();
       await snap(worker, dir, "00-language");
 
       await signIn(worker, { role: Role.worker, name: `Visual ${RUN}`, phone: newPhone(), lang });

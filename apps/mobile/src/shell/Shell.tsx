@@ -1,107 +1,118 @@
-import { type ReactNode, type RefObject, useEffect, useRef, useState } from "react";
+import type { Ports } from "@gigsync/core";
+import { type ReactNode, useState } from "react";
+import { type Account, AccountRole } from "../adapters/account.js";
 import { useWideScreen } from "../adapters/wide.js";
 import { useI18n } from "../i18n.js";
+import { ProfileSheet } from "../screens/me/Profile.js";
 import { useLinks } from "../screens/mentor/links.js";
-import type { Screen } from "../state.js";
+import { Screen } from "../state.js";
+import { BarProvider } from "../ui/Bar.js";
 import { DockProvider } from "../ui/Dock.js";
-import { setDrawer, useDrawer } from "./drawer.js";
-import { COUNTED_ROW, isHome, isSub, titleOf } from "./nav.js";
-import { Sidebar, type SidebarProps } from "./Sidebar.js";
+import { ChatDrawer } from "./ChatDrawer.js";
+import { chatOf, glows, isChat, isTab, sectionOf, titleOf } from "./nav.js";
+import { ProfileButton } from "./ProfileButton.js";
+import { TabBar } from "./TabBar.js";
 import { TopBar } from "./TopBar.js";
+import type { Nav } from "./useNav.js";
 import "./shell.css";
 
-const ESCAPE = "Escape";
-/** The first row of the menu, where focus goes when it opens. */
-const FIRST_ROW = ".sidebar .nav button";
+/** The frame on a phone with the tab bar at its foot: a toast stands above the tabs. Home's glow is a class too. */
+const SHELL = "app shell";
+const TABBED = " tabbed";
+const GLOW = " glow";
 
-type Props = Omit<SidebarProps, "unread" | "drawer" | "onClose"> & {
-  /** The open chat's title, shown in the top bar while the chat is on screen. */
-  chatTitle: string;
-  /** The chat this owner comes home to. */
-  home: Screen;
-  /** The on-screen Back, which goes where Android's would. */
-  onBack: () => void;
+interface Props {
+  ports: Ports;
+  account: Account;
+  nav: Nav;
+  /** Decisions waiting for the owner, counted on the Jobs tab (and only there). */
+  tasks: number;
+  /** "New chat", from the wide rail. */
+  onNewChat: () => void;
   children: ReactNode;
-};
-
-/** Escape closes the open drawer, and focus goes back to the menu button that opened it. */
-function useDrawerKeys(drawer: boolean, menu: RefObject<HTMLButtonElement | null>) {
-  const was = useRef(drawer);
-  useEffect(() => {
-    if (drawer && !was.current) document.querySelector<HTMLElement>(FIRST_ROW)?.focus({ preventScroll: true });
-    if (!drawer && was.current) menu.current?.focus({ preventScroll: true });
-    was.current = drawer;
-    if (!drawer) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === ESCAPE) setDrawer(false);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [drawer, menu]);
 }
 
 /**
- * The signed-in layout, as the collab app's: the menu (a drawer on a phone, a column on a wide screen) and the main
- * area, top to bottom: the title row, the screen, which alone scrolls, and the dock with the screen's one primary
- * action. The chat is home; every other screen is a row of the menu, or opened from one.
+ * What the dot on the profile button says: unread mentor notes, which the sheet's Help row counts too; empty for none.
+ * The decisions waiting are the Jobs tab's count, not the profile's.
  */
-export function Shell({ chatTitle, home, onBack, children, ...side }: Props) {
-  const { t } = useI18n();
+function useProfileDot(): string {
+  const { plural } = useI18n();
   const { unread } = useLinks();
-  const wide = useWideScreen();
-  const open = useDrawer();
-  const drawer = open && !wide;
-  const menu = useRef<HTMLButtonElement>(null);
-  const [dock, setDock] = useState<HTMLDivElement | null>(null);
-  useDrawerKeys(drawer, menu);
-  // Going wide leaves no drawer to come back to.
-  useEffect(() => {
-    if (wide) setDrawer(false);
-  }, [wide]);
+  return unread > 0 ? plural("mentor.unread", unread) : "";
+}
 
-  const { screen, onScreen } = side;
-  const titleKey = titleOf(screen);
-  const go = (s: Screen) => {
-    setDrawer(false);
-    onScreen(s);
-  };
+/**
+ * The signed-in layout, top to bottom: the title row (the chats on its left, the profile on its right), the screen,
+ * which alone scrolls, the dock with the screen's one primary action, and the three tabs on a tab's screen (and on the
+ * landing one, so a worker without a card can reach them from Talk). On a wide screen the tabs stand beside it all as
+ * a rail. The profile is a sheet over whatever is open; a row in it opens its screen above that one, and Back from
+ * that screen comes to the sheet again. On a phone the
+ * chats are a drawer from the left edge (the menu button, or a thumb pulling in from the edge); wide, a screen.
+ */
+export function Shell({ ports, account, nav, tasks, onNewChat, children }: Props) {
+  const { t } = useI18n();
+  const wide = useWideScreen();
+  const dot = useProfileDot();
+  const [dock, setDock] = useState<HTMLDivElement | null>(null);
+  const [chats, setChats] = useState(false);
+  const { screen, stack, go, back, profile, setProfile } = nav;
+  // A tab is a top place, as Home is: the tab bar moves between them, so a tab's bar has no Back.
+  const atTab = isTab(account, screen);
+  const tabbed = atTab || stack.length === 1;
+  const title = titleOf(account, screen);
+  // Home, the owner's chat, shows the brand.
+  const shownTitle = title && t(title);
+  // The warm glow sits at the foot of every screen with the tab bar, so the tabs look the same on each of them.
+  const frame = SHELL + (tabbed && !wide ? TABBED : "") + (tabbed || glows(screen) ? GLOW : "");
   return (
-    <div className={drawer ? "app shell nav-open" : "app shell"}>
-      <Sidebar
-        {...side}
-        onScreen={go}
-        onNewChat={() => {
-          setDrawer(false);
-          side.onNewChat();
-        }}
-        unread={unread}
-        drawer={!wide}
-        onClose={() => setDrawer(false)}
-      />
-      {drawer && <div className="shade" aria-hidden="true" onClick={() => setDrawer(false)} />}
-      <div className="main" inert={drawer}>
-        <TopBar
-          title={isHome(screen) || !titleKey ? chatTitle : t(titleKey)}
-          sub={isSub(screen)}
-          home={screen === home}
-          open={drawer}
-          tasks={side.tasks}
-          unread={unread > 0}
-          onActivity={screen === COUNTED_ROW}
-          menuRef={menu}
-          onMenu={() => setDrawer(!open)}
-          onBack={onBack}
-          onChat={() => go(home)}
-          onNeeds={() => go(COUNTED_ROW)}
-        />
-        {/* Keyed by screen so each one opens scrolled to its top, not where the last one was left. */}
-        <main className="content" key={screen}>
-          <div className="inner">
-            <DockProvider slot={dock}>{children}</DockProvider>
-          </div>
-        </main>
-        <div className="dock" ref={setDock} />
+    <BarProvider>
+      <div className={frame}>
+        <div className="main">
+          <TopBar
+            title={shownTitle}
+            canBack={stack.length > 1 && !atTab}
+            onBack={back}
+            onChats={() => (wide ? go(Screen.chats) : setChats(true))}
+            chatsAtEnd={isChat(screen)}
+            alerts={{ dot: tasks > 0, onOpen: () => go(Screen.alerts) }}
+            profile={<ProfileButton name={account.contact.name} dot={dot} onOpen={() => setProfile(true)} />}
+          />
+          {/* Keyed by screen so each one opens scrolled to its top, not where the last one was left. */}
+          <main className="content" key={screen}>
+            <div className="inner">
+              <DockProvider slot={dock}>{children}</DockProvider>
+            </div>
+          </main>
+          <div className="dock" ref={setDock} />
+          {(tabbed || wide) && (
+            <TabBar
+              account={account}
+              screen={screen}
+              section={sectionOf(account, stack)}
+              tasks={tasks}
+              wide={wide}
+              chatOpen={isChat(screen)}
+              onTab={go}
+              onNewChat={onNewChat}
+              onChatOpened={() => go(chatOf(account))}
+            />
+          )}
+        </div>
+        {!wide && (
+          <ChatDrawer
+            open={chats}
+            onOpenChange={setChats}
+            isWorker={account.role === AccountRole.worker}
+            chatShown={isChat(screen)}
+            onOpened={() => go(chatOf(account))}
+            onNewChat={onNewChat}
+          />
+        )}
       </div>
-    </div>
+      {profile && (
+        <ProfileSheet ports={ports} account={account} onOpen={nav.goFromProfile} onClose={() => setProfile(false)} />
+      )}
+    </BarProvider>
   );
 }

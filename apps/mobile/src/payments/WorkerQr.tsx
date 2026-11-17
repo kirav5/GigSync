@@ -1,9 +1,10 @@
-import { type GigDevice, log, PayeeMissingError, UpiParam } from "@gigsync/core";
+import { type GigDevice, log, PayeeMissingError } from "@gigsync/core";
 import type { Payment } from "@gigsync/protocol";
 import { useEffect, useState } from "react";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { money } from "../ui/places.js";
+import { payeeIn } from "./payer.js";
 import { qrDataUrl } from "./qr.js";
 import "./money.css";
 
@@ -11,12 +12,6 @@ interface Shown {
   qr: string;
   vpa: string;
   name: string;
-}
-
-/** What the QR holds, read back from its own link, so the words under it can never differ from what is scanned. */
-function payeeIn(link: string): { vpa: string; name: string } {
-  const query = new URLSearchParams(link.slice(link.indexOf("?") + 1));
-  return { vpa: query.get(UpiParam.payee) ?? "", name: query.get(UpiParam.name) ?? "" };
 }
 
 /**

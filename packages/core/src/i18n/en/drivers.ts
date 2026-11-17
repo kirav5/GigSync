@@ -116,5 +116,6 @@ export const drivers = {
   "driver.basis.gigsync.other": "{count} GigSync jobs",
   "driver.basis.rate_card": "{city} rate card: {sources}",
   "driver.basis_line": "From {parts}.",
-  "driver.no_trade": "GigSync has no prices for {job} yet, and nobody offers this work on GigSync.",
+  "driver.no_trade":
+    "GigSync has no prices for {job} yet, and no worker here lists it so far. Try saying the work another way, or pick from the list.",
 } as const;

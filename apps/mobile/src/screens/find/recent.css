@@ -1,0 +1,85 @@
+/* Home's recent jobs (RecentJobs.tsx), in the greeting rows' own look: one white card with the rows' hairline and
+   18px corners, a row per job with a hairline under the words between them, as a phone's grouped list draws it. */
+.recent {
+  display: grid;
+  gap: 8px;
+}
+.recent-label {
+  margin: 6px 0 0;
+  color: var(--text2);
+  font-size: var(--fs-label);
+  font-weight: 600;
+}
+.recent-card {
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  background: var(--surface);
+}
+.recent-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 60px;
+  padding: 10px 16px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.recent-row + .recent-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 60px;
+  right: 0;
+  border-top: 1px solid var(--hairline);
+}
+.recent-row:active {
+  background: var(--surface2);
+}
+.recent-text {
+  flex: 1;
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.recent-name {
+  font-weight: 600;
+  font-size: var(--fs-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.recent-line {
+  color: var(--text2);
+  font-size: var(--fs-label);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.recent-end {
+  flex: none;
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+.recent-amount {
+  font-weight: 600;
+  font-size: var(--fs-2);
+  font-variant-numeric: tabular-nums;
+}
+.recent-word {
+  color: var(--text2);
+  font-size: var(--fs-label);
+}
+.recent-word.act {
+  color: var(--accent-ink);
+}
+.recent-word.paid {
+  color: var(--fresh);
+}

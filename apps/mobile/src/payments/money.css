@@ -1,8 +1,12 @@
-/* Money: the worker's pay actions inside a job, their QR, the payee form and the passbook. Uses the shell's tokens. */
+/* Money: the worker's pay steps inside a job, the household's Pay, their QR, the payee form. Uses the
+   shell's tokens and the kit's classes (.card-earth, .card-sage, .money-big, .btn-big, .fine); only the layout is here. */
 
-.worker-pay {
+/* One money step: its buttons full width, one under the other, as the design's phone screens draw them. */
+.worker-pay,
+.pay-box {
   display: grid;
-  gap: 10px;
+  gap: 12px;
+  min-width: 0;
 }
 /* "It's already in my bank": there for money paid without "I paid", but quieter than the buttons above it. */
 .worker-pay .pay-quiet {
@@ -10,64 +14,80 @@
   color: var(--text2);
 }
 
+/* The earth card that says who asks, or says they paid, and how much: the amount is the biggest thing on the screen. */
+.pay-hero {
+  gap: 6px;
+}
+.pay-hero .money-big {
+  overflow-wrap: anywhere;
+}
+/* The reassurance under the ask: its first line in green, as the design's sage card has it. */
+.card-sage .pay-straight {
+  color: var(--green);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Waiting for the customer: whom and since when, in a plain card. */
+.pay-waiting .row {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
 /* Their own UPI QR, shown to the customer standing in front of them. */
 .worker-qr {
   justify-items: center;
   text-align: center;
 }
-.worker-qr img {
+/* Dark modules on white in both looks, so any payment app's camera reads it. */
+.worker-qr img,
+.pay-other img {
   width: 100%;
   max-width: 280px;
   aspect-ratio: 1;
   background: #fff;
-  padding: 6px;
-  border-radius: 6px;
+  /* A quiet white margin, never rounded: rounding clips the corner squares a camera finds the code by. */
+  padding: 14px;
+  border-radius: 0;
+}
+.pay-other img {
+  max-width: 200px;
+  justify-self: center;
 }
 .worker-qr .amount {
-  font-size: 28px;
+  font-family: var(--serif);
+  font-size: 32px;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* "Show my QR" as one row of a card; the QR opens under it, inside the same card. */
+.qr-card {
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.qr-card > .list-row {
+  cursor: pointer;
+}
+.qr-card .worker-qr {
+  padding: 0 16px 16px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+/* Recommending the worker after the review: a heading over the buttons, which wrap two to a row on a phone. */
+.recommend {
+  padding-top: 16px;
+  border-top: 1px solid var(--hairline);
 }
 
 .payee-form h2 {
   margin: 0;
 }
 .payee-form .saved {
-  color: var(--fresh);
-}
-
-/* Passbook: four totals, then one row per payment. */
-.passbook-totals {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border: 1px solid var(--hairline);
-  border-radius: 6px;
-  overflow: hidden;
-}
-@media (min-width: 600px) {
-  .passbook-totals {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-/* One tile alone (what a household paid) takes the whole row, at any width. */
-.passbook-totals.single {
-  grid-template-columns: minmax(0, 1fr);
-}
-.passbook-totals > div {
-  display: grid;
-  gap: 2px;
-  padding: 12px 14px;
-  background: var(--surface);
-  border: 0.5px solid var(--hairline);
-}
-.passbook-totals .label {
-  font-size: var(--fs-label, 13px);
-}
-.passbook-totals b {
-  font-family: var(--mono);
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  color: var(--text2);
 }
 
 /* A saved UPI ID: one line, the ID over the name payers see, with Change at the end. */

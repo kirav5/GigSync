@@ -5,9 +5,11 @@ import { App } from "./App.js";
 import { registerServiceWorker, watchInstall } from "./adapters/install.js";
 import { keepFocusedFieldVisible } from "./adapters/keyboard.js";
 import { openedCode } from "./adapters/links.js";
+import { LaunchSun } from "./ui/LaunchSun.js";
+import "./fonts.css";
 import "./styles.css";
 import "./ui/motion.css";
-import { applyLook, watchDeviceLook } from "./ui/look.js";
+import { applyLook } from "./ui/look.js";
 
 const RELEASE_ENVIRONMENT = "production";
 
@@ -20,7 +22,6 @@ configureLog(
 );
 
 applyLook();
-watchDeviceLook();
 keepFocusedFieldVisible();
 // Before the first render: Chrome can offer its install prompt as soon as the page loads.
 watchInstall();
@@ -32,6 +33,7 @@ const root = document.getElementById("root");
 if (!root) throw new Error("no #root");
 createRoot(root).render(
   <StrictMode>
+    <LaunchSun />
     <App />
   </StrictMode>,
 );

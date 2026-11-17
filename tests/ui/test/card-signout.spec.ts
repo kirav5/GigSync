@@ -27,15 +27,16 @@ const { hi } = Lang.enum;
 test.afterEach(unlistCards);
 
 test("the next worker on the phone gets nothing of the last: answers, UPI ID or voice consent", async ({ page }) => {
-  await fakeSpeech(page, ["मैं खाना बनाती हूँ"], FakeSpeechMode.cloud);
+  // Her work named outright: with no model the word lists never guess it from a sentence (#75).
+  await fakeSpeech(page, ["मैं कुक हूँ"], FakeSpeechMode.cloud);
   const meena = { role: Role.worker, name: `Meena ${RUN}`, phone: newPhone(), lang: hi };
   await signIn(page, meena);
   const { ask, allow } = consent(page, hi);
   await mic(page, hi).click();
-  // A cook says which work she takes (ADR 0051) before her area.
-  await nextTurn(page, hi, "iv.ask.arrangements", () => allow.click());
-  await nextTurn(page, hi, "iv.ask.area", () => type(page, hi, "हर महीने"));
-  await nextTurn(page, hi, "iv.ask.rate_month", () => type(page, hi, "कोरमंगला"));
+  await nextTurn(page, hi, "iv.ask.also", () => allow.click());
+  await nextTurn(page, hi, "iv.ask.area", () => type(page, hi, "नहीं"));
+  await nextTurn(page, hi, "iv.ask.radius", () => type(page, hi, "कोरमंगला"));
+  await nextTurn(page, hi, "iv.ask.rate_month", () => type(page, hi, "दस किलोमीटर"));
   await nextTurn(page, hi, "iv.ask.min", () => type(page, hi, "नौ हज़ार"));
   await nextTurn(page, hi, "iv.ask.languages", () => type(page, hi, "सात हज़ार"));
   await setUpi(page, hi, "meena.test@okaxis");

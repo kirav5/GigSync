@@ -1,10 +1,21 @@
-import { askable, type CardDraft, cardArrangements, log, type Ports, parseAmount, type TermPrefs } from "@gigsync/core";
+import {
+  askable,
+  asksIn,
+  type CardDraft,
+  cardArrangements,
+  log,
+  type Ports,
+  parseAmount,
+  suggestWork,
+  type TermPrefs,
+} from "@gigsync/core";
 import { Arrangement, Lang, mainArrangement, type Skill, Trade } from "@gigsync/protocol";
 import { type FormEvent, useRef, useState } from "react";
 import type { Account } from "../adapters/account.js";
 import { offerAlerts } from "../adapters/push.js";
 import { closeInterview } from "../card/interviewStore.js";
 import { AboutPrivateError, accountDraft, DEFAULT_RADIUS_KM, publishCard, unlistCard } from "../card/publish.js";
+import { useFileWork } from "../card/useFileWork.js";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
 import { Dock } from "../ui/Dock.js";
@@ -12,15 +23,17 @@ import { errorKey } from "../ui/errorKey.js";
 import { Icon } from "../ui/Icon.js";
 import { AREAS, money, rupeesOf } from "../ui/places.js";
 import { cardWork } from "../ui/work.js";
+import { AllWork } from "./card/AllWork.js";
 import { AreaField, type WorkArea } from "./card/AreaField.js";
 import { ArrangementsField, arrangementsValue, otherRates } from "./card/ArrangementsField.js";
+import { RateField, RatesField, workRatesIn } from "./card/RatesField.js";
 import { SkillsField } from "./card/SkillsField.js";
 import { TermPrefsField } from "./card/TermPrefsField.js";
 import { CardRates } from "./estimate/CardRates.js";
 
 /** The form's id, so Publish can sit in the dock, outside it. */
 const FORM_ID = "my-card";
-const Field = { rate: "rate", min: "min", about: "about", auto: "auto" } as const;
+const Field = { ...RateField, about: "about", asks: "asks", auto: "auto" } as const;
 const ASK_FIELD = "ask.";
 /** What the board keeps of the line about their work. */
 const ABOUT_MAX = 300;
@@ -45,6 +58,7 @@ export function MyCard({
   const i18n = useI18n();
   const { lang, t } = i18n;
   const draft = accountDraft(account);
+  const fileWork = useFileWork(ports, account, lang, onSaved);
   const [trades, setTrades] = useState<Trade[]>(draft.trades ?? []);
   const [skills, setSkills] = useState<Skill[]>(draft.skills ?? []);
   const [spoken, setSpoken] = useState<Lang[]>(account.languages ?? [lang]);
@@ -86,7 +100,9 @@ export function MyCard({
     const rate = parseAmount(String(v.get(Field.rate) ?? ""));
     const min = parseAmount(String(v.get(Field.min) ?? ""));
     if (trades.length + skills.length === 0) return setError(t("card.err_trade"));
-    if (rate === undefined || min === undefined || !(min > 0 && rate >= min)) return setError(t("card.err_rate"));
+    const kinds = workRatesIn(v, { trades, skills });
+    if (rate === undefined || min === undefined || !(min > 0 && rate >= min) || !kinds)
+      return setError(t("card.err_rate"));
     const others = arranged ? otherRates({ ...work, picked }) : {};
     if (!others || (arranged && picked.length === 0 && !ownWorkOnly)) return setError(t("card.err_arrangements"));
     if (busy) return;
@@ -99,8 +115,10 @@ export function MyCard({
       ...(arranged ? { arrangements: picked, other_rates: others } : {}),
       rate_paise: rate,
       limit_paise: min,
+      ...kinds,
       languages: spoken,
       about: String(v.get(Field.about) ?? ""),
+      asks: asksIn(String(v.get(Field.asks) ?? "")),
       ask_me: askable(trades).filter((k) => v.has(ASK_FIELD + k)),
       auto: v.has(Field.auto),
       terms: prefs,
@@ -177,14 +195,18 @@ export function MyCard({
           ))}
         </div>
         <SkillsField
+          suggest={(words) => suggestWork(ports.model, words)}
           skills={skills}
           trades={trades}
           onChange={setSkills}
           onTrade={(tr) => setTrades((ts) => [...ts, tr])}
+          onFiled={fileWork}
         />
+        <AllWork trades={trades} skills={skills} onTrades={setTrades} onSkills={setSkills} />
         <CardRates
           trades={trades}
           area={draft.area}
+          place={draft.place}
           session={account.session}
           onRate={fill(rateField)}
           onMin={fill(minField)}
@@ -194,28 +216,7 @@ export function MyCard({
         />
         {arranged && <ArrangementsField offered={offered} value={{ ...work, picked }} onChange={setWork} />}
         <AreaField session={account.session} value={where} onChange={setWhere} />
-        <label className={C.fieldLabel}>
-          <span className={C.muted}>{t(main ? `card.rate.${main}` : "card.rate")}</span>
-          <input
-            className={C.field}
-            name={Field.rate}
-            ref={rateField}
-            inputMode="numeric"
-            required
-            defaultValue={rupeesOf(draft.rate_paise)}
-          />
-        </label>
-        <label className={C.fieldLabel}>
-          <span className={C.muted}>{t("card.min")}</span>
-          <input
-            className={C.field}
-            name={Field.min}
-            ref={minField}
-            inputMode="numeric"
-            required
-            defaultValue={rupeesOf(draft.limit_paise)}
-          />
-        </label>
+        <RatesField draft={draft} work={{ trades, skills }} main={main} rateRef={rateField} minRef={minField} />
         <label className={C.fieldLabel}>
           <span className={C.muted}>{t("card.about")}</span>
           <input
@@ -225,6 +226,10 @@ export function MyCard({
             placeholder={t("card.about_example")}
             defaultValue={draft.about}
           />
+        </label>
+        <label className={C.fieldLabel}>
+          <span className={C.muted}>{t("card.asks")}</span>
+          <textarea className={C.field} name={Field.asks} rows={3} defaultValue={draft.asks?.join("\n")} />
         </label>
         <span className={C.label}>{t("card.languages")}</span>
         <div className={C.row}>

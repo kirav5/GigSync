@@ -1,13 +1,18 @@
-import { DEFAULT_ARRANGEMENT, Lang, Trade } from "@gigsync/protocol";
+import { Lang, Trade } from "@gigsync/protocol";
 import { type MessageKey, t } from "../i18n/t.js";
-import { isMonthly } from "../job/when.js";
 import { askable, type InterviewState, type Line, Pick, type Prompt, Slot } from "./card.js";
-import { arrangementsPrompt, mainOf, moreRatePrompt, RATE_QUESTION, ratesSummary } from "./card-arrangements.js";
+import { alsoPrompt } from "./card-also.js";
+import { minAloud } from "./card-amount.js";
+import { arrangementsPrompt, moreRatePrompt, RATE_QUESTION, ratesSummary } from "./card-arrangements.js";
+import { asksSummary } from "./card-asks.js";
 import { fieldsFor, unlistPrompt, whichRatePrompt } from "./card-edit.js";
 import { estimatePrompt } from "./card-estimate.js";
-import { minAloud } from "./card-parse.js";
-import { rateLines } from "./card-rates.js";
-import { termsPrompt, termsSummary } from "./card-terms.js";
+import { filingPrompt } from "./card-guess.js";
+import { kindPrompt } from "./card-kind.js";
+import { languagesPrompt } from "./card-languages.js";
+import { priceUnit, windowsSummary } from "./card-price.js";
+import { termsSummary } from "./card-terms.js";
+import { restPrompt, workRatesSummary } from "./card-work-rates.js";
 import { areaChoices, areaHints, isMessageKey, YES_NO } from "./choices.js";
 import type { Field } from "./lexicon.js";
 
@@ -28,19 +33,31 @@ export {
   type InterviewState,
   isLastSlot,
   type Line,
+  Pick as CardPick,
   type Prompt,
   Slot,
   start,
   withConfig,
 } from "./card.js";
+export { alsoSaid } from "./card-adding.js";
 export { arrangementRates, askingArrangement, cardArrangements, mainOf, pickedOf } from "./card-arrangements.js";
+export { ASKS_MAX, asksIn } from "./card-asks.js";
 export { edit, editSaid, fieldsFor } from "./card-edit.js";
-export { cardEstimate, withEstimate } from "./card-estimate.js";
+export { cardEstimate, suggestedAmount, withEstimate } from "./card-estimate.js";
 export { aboutIsPrivate, choose, hear, keepPlace } from "./card-parse.js";
+export {
+  AMOUNT_STEP_PAISE,
+  keepPrice,
+  nearYouLine,
+  type PriceAnswer,
+  priceArrangements,
+  priceUnit,
+} from "./card-price.js";
 export { legalLines, legalMonthly, rateHint, rateNote } from "./card-rates.js";
-export { LAST_END, MOST_HOURS, RADII_KM, withClock, withTerm } from "./card-terms.js";
+export { startWithWork } from "./card-seed.js";
+export { ASKED_RADIUS_KM, LAST_END, MOST_HOURS, RADII_KM, withClock, withTerm } from "./card-terms.js";
 export { estimateLines, type FoundEstimate } from "./estimate-lines.js";
-export { editIntent, type Field } from "./lexicon.js";
+export { editIntent, type Field, tradesIn } from "./lexicon.js";
 
 /** The chip for each field the owner can change from confirm, labelled as on the My card form. */
 const FIELD_LABEL: Readonly<Record<Field, MessageKey>> = {
@@ -59,6 +76,8 @@ const FIELD_LABEL: Readonly<Record<Field, MessageKey>> = {
   materials: "terms.card_materials",
   max_hours: "terms.card_hours",
   unlist: "card.unlist",
+  same_rate: "card.work_rates",
+  asks: "card.asks",
 };
 
 /** An area: the place they found, else its catalog name, put in the reader's language when shown, else as the app named it. */
@@ -90,8 +109,11 @@ function summary(state: InterviewState): Line[] {
       prices: { rate: draft.rate_paise ?? 0 },
     },
     ...ratesSummary(draft),
+    ...workRatesSummary(draft),
     ...termsSummary(state),
+    ...windowsSummary(draft),
     ...about,
+    ...asksSummary(draft),
     { key: draft.auto ? "iv.summary_auto_on" : "iv.summary_auto_off" },
     { key: "iv.summary_min", prices: { min: draft.limit_paise ?? 0 }, silent: true },
   ];
@@ -109,15 +131,19 @@ function question(state: InterviewState): Prompt {
   const own = config.own;
   switch (state.slot) {
     case Slot.trade:
+      if (state.filing) return filingPrompt(state);
+      if (state.kind) return kindPrompt(state);
       return {
         lines: [{ key: "iv.ask.trade" }],
         choices: Trade.options.map((tr) => ({ value: tr, key: `trade.${tr}` as const })),
         hints: Trade.options.map((tr) => t(own, `trade.${tr}`)),
       };
+    case Slot.also:
+      return alsoPrompt(state);
     case Slot.area:
       return {
         lines: [{ key: "iv.ask.area" }],
-        choices: areaChoices(config.areas),
+        choices: areaChoices(config.areas, own),
         hints: areaHints(config.areas, own),
       };
     case Slot.rate:
@@ -132,35 +158,20 @@ function question(state: InterviewState): Prompt {
           ...secret,
         };
       }
-      const first = draft.trades?.[0];
-      const main = mainOf(draft);
-      const monthly = first !== undefined && isMonthly(first);
-      const plain = monthly ? "iv.ask.rate_month" : "iv.ask.rate_visit";
-      const ask = min ? "iv.ask.min" : main ? RATE_QUESTION[main] : plain;
-      // The city band is for monthly work: a rate in another unit gets only its estimate.
-      const band = main === undefined || main === DEFAULT_ARRANGEMENT ? rateLines(config.rates, first, min) : [];
-      // The usual pay is public, so it is read aloud with the question; the worker's own amounts never are.
-      const estimate = estimatePrompt(state, min);
-      if (estimate)
-        return { ...estimate, lines: [{ key: ask }, ...estimate.lines], numeric: true, hints: [], ...secret };
-      return { lines: [{ key: ask }, ...band], numeric: true, hints: [], ...secret };
+      // The price card (`card-price.ts`) carries the going rate; the question stays one line, in the price's unit.
+      const unit = priceUnit(draft);
+      const ask = min ? "iv.ask.min" : unit ? RATE_QUESTION[unit] : "iv.ask.rate_visit";
+      return { lines: [{ key: ask }], numeric: true, hints: [], ...secret };
     }
     case Slot.arrangements:
       return arrangementsPrompt(state);
     case Slot.more_rates: {
-      const estimate = estimatePrompt(state, false);
+      const estimate = estimatePrompt(state);
       const asked = moreRatePrompt(state);
       return estimate ? { ...asked, ...estimate, lines: [...asked.lines, ...estimate.lines], hints: [] } : asked;
     }
     case Slot.languages:
-      return {
-        lines: [{ key: "iv.ask.languages", names: { lang: [`lang.${own}`] } }],
-        choices: [
-          ...Lang.options.filter((l) => l !== own).map((l) => ({ value: l, key: `lang.${l}` as const })),
-          { value: Pick.none, key: "iv.none" },
-        ],
-        hints: Lang.options.map((l) => t(own, `lang.${l}`)),
-      };
+      return languagesPrompt(state);
     case Slot.about:
       return { lines: [{ key: "iv.ask.about" }], choices: [{ value: Pick.skip, key: "iv.skip" }], hints: [] };
     case Slot.ask_first: {
@@ -181,7 +192,7 @@ function question(state: InterviewState): Prompt {
     case Slot.unlist:
       return unlistPrompt();
     default:
-      return termsPrompt(state);
+      return restPrompt(state);
   }
 }
 

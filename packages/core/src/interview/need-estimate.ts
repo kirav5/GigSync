@@ -1,8 +1,8 @@
-import type { City, EstimateRequest } from "@gigsync/protocol";
+import type { EstimateRequest, ListedRates, PlaceKey } from "@gigsync/protocol";
 import { areaSlug } from "../estimate/areas.js";
 import { estimateRequest, sameRequest } from "../estimate/scope.js";
 import { suggestForHousehold } from "../estimate/suggest.js";
-import type { Prompt } from "./card.js";
+import type { Line, Prompt } from "./card.js";
 import { draftDrivers, priceOpen } from "./driver-ask.js";
 import { estimateLines, type FoundEstimate, suggestion } from "./estimate-lines.js";
 import type { NeedDraft, NeedState } from "./need.js";
@@ -23,7 +23,7 @@ export const needDetails = (d: NeedDraft): Record<string, string> => ({ ...d.see
  * the scope confirmed, the driver questions done and the area answered. Not before, so a job sends one estimate
  * request, after the last answer, never one per answer (the server may ask a model for it).
  */
-export function needRequest(city: City, d: NeedDraft): EstimateRequest | undefined {
+export function needRequest(city: PlaceKey, d: NeedDraft): EstimateRequest | undefined {
   if (!d.trade || (d.scope && !d.scope.confirmed) || d.area === undefined || priceOpen(d)) return undefined;
   // Structured drivers only: facts the phone's model gathered stay on the phone (founders, 2026-10-31).
   return estimateRequest(city, d.trade, needDetails(d), areaSlug(d.area), draftDrivers(d));
@@ -34,6 +34,20 @@ export const needWithEstimate = (s: NeedState, found: FoundEstimate | undefined)
   ...s,
   estimate: found,
 });
+
+/** The need with what workers nearby list for its skill. */
+export const needWithListed = (s: NeedState, listed: ListedRates): NeedState => ({ ...s, listed });
+
+/** Workers nearby list this much for the skill, as a line for the budget question; none under three workers. */
+export function listedLine(s: NeedState): Line | undefined {
+  const { listed } = s;
+  if (!s.draft.skill || !listed?.low_paise || !listed.high_paise) return undefined;
+  return {
+    key: "need.listed_rates",
+    prices: { low: listed.low_paise, high: listed.high_paise },
+    params: { count: listed.workers },
+  };
+}
 
 /** The estimate, only while it is for the job as now described: a changed trade or detail has none until it comes. */
 export function needEstimate(s: NeedState): FoundEstimate | undefined {

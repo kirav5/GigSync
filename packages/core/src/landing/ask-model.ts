@@ -1,7 +1,10 @@
 import type { CityGuide, GuideSection } from "@gigsync/protocol";
+import { ModelPurpose } from "@gigsync/protocol";
 import { z } from "zod";
 import { firstObject, MODEL_WAIT_MS, within } from "../interview/need-model.js";
 import type { Model } from "../ports.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * A model's one job in "Ask the guide": choose which section answers a question, by id, from the guide's titles. Its
@@ -42,7 +45,10 @@ export async function pickSection(
   waitMs = MODEL_WAIT_MS,
 ): Promise<GuideSection | undefined> {
   try {
-    const reply = await within(model.generate(pickPrompt(guide, question), { maxTokens: MAX_TOKENS }), waitMs);
+    const reply = await within(
+      model.generate(pickPrompt(guide, question), { maxTokens: MAX_TOKENS, purpose: Purpose.landing }),
+      waitMs,
+    );
     const id = reply ? idOf(reply) : undefined;
     return id === undefined ? undefined : guide.sections.find((s) => s.id === id);
   } catch {

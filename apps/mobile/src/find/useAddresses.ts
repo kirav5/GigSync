@@ -33,9 +33,13 @@ export function useAddresses(
     if (now.map((a) => a.id).join() !== (offered ?? []).map((a) => a.id).join()) addressesNeed(chat, now);
   }, [saved, offered, chat]);
   // The chat learns the new address now, before the caller taps it: inside a state updater it would run only at the
-  // next render, after the tap, and the tap would find no such address and leave the chat stuck at "where".
+  // next render, after the tap, and the tap would find no such address and leave the chat stuck at "where". An address
+  // saved again (its pin put on the door) takes its old place, so the worker gets the new pin.
   const added = useCallback((chat: string, address: SavedAddress) => {
-    const next = [...(current.current ?? []), address];
+    const before = current.current ?? [];
+    const next = before.some((a) => a.id === address.id)
+      ? before.map((a) => (a.id === address.id ? address : a))
+      : [...before, address];
     current.current = next;
     addressesNeed(chat, next.map(addressChoice));
     setSaved(next);

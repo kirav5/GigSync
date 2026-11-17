@@ -1,4 +1,5 @@
 export * from "./address/book.js";
+export * from "./address/live-cities.js";
 export * from "./address/served.js";
 export * from "./agent.js";
 export * from "./chat/index.js";
@@ -24,21 +25,23 @@ export * from "./i18n/schedule-text.js";
 export * from "./i18n/t.js";
 export * from "./i18n/terms-text.js";
 export * from "./i18n/translate.js";
+export * from "./identity/index.js";
 export {
   awaitingModel,
   currentQuestion,
   draftDrivers,
   driverToAsk,
   priceOpen,
-  topDriver,
   WORTH_ASKING,
 } from "./interview/driver-ask.js";
 export { type DriverAnswer, driverAnswer, driversIn, saysDontKnow } from "./interview/driver-parse.js";
 export { looksLikeAddress, scrubFacts, scrubJobType, scrubText } from "./interview/fact-scrub.js";
 export * from "./interview/index.js";
-export { checkJobType, jobTypePrompt, modelJobType, withJobType } from "./interview/job-type.js";
+export { checkJobType, jobTypePrompt, modelJobType, withJobType, withNobody } from "./interview/job-type.js";
 export {
   DayWord,
+  firstQuestion,
+  guessedNeed,
   type NeedConfig,
   type NeedDraft,
   type NeedField,
@@ -55,13 +58,16 @@ export {
 } from "./interview/need.js";
 export { ADD_ADDRESS, atAddress } from "./interview/need-address.js";
 export { boardArrangement } from "./interview/need-arrangement.js";
-export { DriverPick, priceContext, withPriceStep } from "./interview/need-drivers.js";
+export { findEventOf } from "./interview/need-counts.js";
+export { askingModel, DriverPick, priceContext, withPriceStep } from "./interview/need-drivers.js";
 export {
   needDetails,
   needEstimate,
   needRequest,
   needWithEstimate,
+  needWithListed,
 } from "./interview/need-estimate.js";
+export { isGreeting } from "./interview/need-greeting.js";
 export { chooseNeed, chooseNeedDate, hearNeed, NeedPick } from "./interview/need-hear.js";
 export { type NeedHint, understandNeed } from "./interview/need-model.js";
 export { type NeedFill, parseNeed, TIME_MAX } from "./interview/need-parse.js";
@@ -76,10 +82,13 @@ export {
   OPENING_SHARE,
   resolveDay,
 } from "./interview/need-request.js";
+export { Say as NeedSay } from "./interview/need-say.js";
 export { chipChoice, ScopePick, scopeDetails } from "./interview/need-scope.js";
-export { withSkill } from "./interview/need-skill.js";
+export { type SkillHow, withSkill } from "./interview/need-skill.js";
+export { namesOtherWork, offerSwitch, type WorkSwitch } from "./interview/need-switch.js";
 export { hourOf, needTerms, windowOf } from "./interview/need-terms.js";
-export { ANY_TIME, ANY_TIME_PICK, hoursOpen } from "./interview/need-time.js";
+export { ANY_TIME, ANY_TIME_PICK, hoursOpen, OTHER_DAY_PICK } from "./interview/need-time.js";
+export { hintOf, notHeard, turnContext, worthReading } from "./interview/need-turn.js";
 export type { AddressChoice } from "./interview/need-types.js";
 export {
   checkPriceStep,
@@ -92,8 +101,10 @@ export {
   pricePrompt,
 } from "./interview/price-model.js";
 export { PROBLEM_MIN_SIMILARITY, problemByMeaning, problemIndex } from "./interview/problem-meaning.js";
+export { readTurn, type TurnContext, type TurnRead } from "./interview/read-turn.js";
 export { readScope, SCOPE_READ, type ScopeChip, ScopeKey, scopeFromWords } from "./interview/scope-read.js";
 export { TRADE_MIN_SIMILARITY, tradeByMeaning, tradeIndex } from "./interview/trade-meaning.js";
+export { tradeTitled } from "./interview/trade-titled.js";
 export * from "./job/activity.js";
 export * from "./job/advice.js";
 export * from "./job/aftercare.js";
@@ -125,6 +136,20 @@ export { canOffer, TalkError, Talks, theirLast, theirLatest } from "./job/talks.
 export * from "./job/terms.js";
 export { type TermsTrack, type TimeAsk, termDetails } from "./job/terms-flow.js";
 export * from "./job/when.js";
+export {
+  atShare,
+  cardWorks,
+  publicWorkRates,
+  requestWork,
+  skillWork,
+  tradeWork,
+  type WorkId,
+  type WorkMandate,
+  type WorkName,
+  workMandate,
+  workName as workNameOf,
+  workOfRate,
+} from "./job/work-rates.js";
 export { doesWork, type WorkerRules } from "./job/worker.js";
 export * from "./job/worker-stance.js";
 export * from "./keys.js";
@@ -146,9 +171,11 @@ export * from "./mentor/types.js";
 export * from "./model-reply.js";
 export * from "./moving/index.js";
 export * from "./net/api.js";
+export { PhoneSignInClient } from "./net/phone-signin.js";
 export { claimLegacyRecords } from "./owner/claim.js";
 export * from "./owner/storage.js";
 export * from "./payments/book.js";
+export * from "./payments/money-tab.js";
 export * from "./payments/paid-record.js";
 export * from "./payments/passbook.js";
 export * from "./payments/payee.js";
@@ -158,6 +185,18 @@ export * from "./payments/upi.js";
 export * from "./policy/engine.js";
 export * from "./ports.js";
 export * from "./qr/index.js";
+export { type ReaderLabels, type ReaderOutputs, readerResult, spansFromTags, tokenOffsets } from "./reader/decode.js";
+export { type ReaderIds, type ReaderRun, type ReaderTokenizer, readerIds, readingOf } from "./reader/input.js";
+export { inEnglishLetters, readerReads } from "./reader/languages.js";
+export {
+  READER_GUESS_MIN,
+  READER_WORK_MIN,
+  readerAsking,
+  readerTurn,
+  readMessage,
+  spanWords,
+  turnFromReader,
+} from "./reader/turn.js";
 export * from "./records/index.js";
 export * from "./router/clarify.js";
 export * from "./router/earnings.js";
@@ -174,7 +213,29 @@ export * from "./router/newcomers.js";
 export * from "./router/reply-schema.js";
 export * from "./router/route-chat.js";
 export * from "./schedule/index.js";
+export { closestKinds, MAX_CLOSEST } from "./skills/closest.js";
+export {
+  cardKinds,
+  categoryPicked,
+  GROUP_PICK,
+  KIND_PICK,
+  kindKey,
+  kindSkill,
+  kindValue,
+  toggleKind,
+} from "./skills/kinds.js";
 export { listedSkill, SKILL_MEANING_MAX, skillIndex, skillNamedIn } from "./skills/match.js";
 export { workName } from "./skills/name.js";
 export { readSkill, type SkillRead, spokenSkill } from "./skills/read.js";
+export { sameWork, sameWorkPrompt } from "./skills/same-work.js";
+export {
+  categoryNamed,
+  checkSuggestion,
+  readWork,
+  suggestPrompt,
+  suggestWork,
+  type WorkMatch,
+  workMatchName,
+} from "./skills/suggest.js";
+export { categorySkill, othersInGroup, type WorkPick, workOptions } from "./skills/work-list.js";
 export * from "./transfer/index.js";

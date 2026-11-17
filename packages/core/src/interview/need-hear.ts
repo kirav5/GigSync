@@ -1,12 +1,12 @@
 import { DetailFlag, Trade } from "@gigsync/protocol";
-import type { MessageKey } from "../i18n/t.js";
 import { countIn } from "../job/details.js";
 import { EVERY_DAY } from "../job/when.js";
 import { type Line, Pick } from "./card.js";
-import { minAloud } from "./card-parse.js";
+import { minAloud } from "./card-amount.js";
 import { withWordDrivers } from "./driver-ask.js";
 import { areaIn, yesNo } from "./lexicon.js";
 import {
+  afterOutside,
   answerMyself,
   DayWord,
   editNeed,
@@ -28,12 +28,17 @@ import { chooseArrangement, hearArrangement } from "./need-arrangement.js";
 import { detailAnswer, settledProblem } from "./need-detail.js";
 import { chooseDriver, hearDriver } from "./need-drivers.js";
 import { suggestedBudget } from "./need-estimate.js";
-import { fillEmpty, fillFromHint } from "./need-fill.js";
+import { changedBy, decidedFill, fillEmpty, fillFromHint } from "./need-fill.js";
+import { askGuesses } from "./need-guess.js";
+import { chooseKindPick } from "./need-kinds.js";
 import { MemoryPick } from "./need-memory.js";
 import type { NeedHint } from "./need-model.js";
 import { amountIn, DETAIL_MAX, type NeedFill, parseNeed } from "./need-parse.js";
+import { Say } from "./need-say.js";
 import { chooseScope, hearScope } from "./need-scope.js";
+import { chooseSwitch, hearSwitch } from "./need-switch.js";
 import { chooseHour, needsHour } from "./need-time.js";
+import { withTook } from "./need-took.js";
 import { NEED_FIELD_WORDS } from "./need-words.js";
 import { finder, firstIn, normalize } from "./normalize.js";
 
@@ -43,7 +48,13 @@ import { finder, firstIn, normalize } from "./normalize.js";
  */
 
 /** What the tap choices carry besides trades, areas, days, radii and fields; `list` opens the trades (ADR 0051). */
-export const NeedPick = { date: "date", change: "change", list: "list" } as const;
+export const NeedPick = {
+  date: "date",
+  change: "change",
+  list: "list",
+  notThis: "not_this",
+  groups: "groups",
+} as const;
 /** The Change chips under a question, by the field the agent filled in from memory. */
 const REDO = new Map<string, NeedField>([
   [MemoryPick.redoDetail, NeedSlot.detail],
@@ -53,12 +64,6 @@ const REDO = new Map<string, NeedField>([
 const WHEN_VALUES: readonly string[] = [DayWord.today, DayWord.tomorrow, EVERY_DAY];
 /** What `JobRequest.need` holds. */
 const NEED_MAX = 1000;
-const Say = {
-  again: "need.again",
-  againBudget: "need.again_budget",
-  againYesNo: "iv.again.yes_no",
-  long: "need.err_long",
-} as const satisfies Record<string, MessageKey>;
 const FIELD_FINDERS = NEED_FIELDS.map((f) => [f, NEED_FIELD_WORDS[f].map(finder)] as const);
 
 /** The field an answer names ("बजट" is the budget). */
@@ -134,29 +139,20 @@ function onOffer(s: NeedState, text: string): NeedState | undefined {
 function onAnswer(s: NeedState, text: string, aloud: boolean, hint: NeedHint): NeedState {
   const offer = onOffer(s, text);
   if (offer) return offer;
-  const fill = parseNeed(text, options(s));
+  const parsed = parseNeed(text, options(s));
+  // A model's trade goes before the lists': "kitchen" is a cook's word in the lists, and a kitchen tap is a plumber's.
+  const fill = hint.decided ? decidedFill(parsed, hint) : hint.trade ? { ...parsed, trade: hint.trade } : parsed;
   const draft = withWordDrivers(fillFromHint(fillEmpty(s.draft, fill), hint, fill.words), fill.words);
   const answered = onSlot(s, draft, text, fill, aloud);
   if (answered) return answered;
-  // The question stays open, but whatever else the answer gave is kept.
+  // The question stays open, but whatever else the answer gave is kept; unsure of the work, the reader's guesses asked.
+  const guessing = s.slot === NeedSlot.trade ? askGuesses(s, draft, hint) : undefined;
+  if (guessing) return guessing;
   return { ...retryNeed(s, { key: s.slot === NeedSlot.budget ? Say.againBudget : Say.again }), draft };
 }
 
-/** The values a sentence at the readback changes: "make it tomorrow", "Koramangala instead". */
-function changedBy(d: NeedDraft, fill: NeedFill): NeedDraft | undefined {
-  const next: NeedDraft = {
-    ...(fill.trade ? withTrade(d, fill.trade) : d),
-    ...(fill.area ? { area: fill.area } : {}),
-    // A new day said alone keeps the hour already given; the hour is asked only when there is none.
-    ...(fill.day ? { day: fill.day, time: fill.time ?? d.time } : fill.time ? { time: fill.time } : {}),
-    ...(fill.budget_paise ? { budget_paise: fill.budget_paise } : {}),
-  };
-  const same = (Object.keys(next) as (keyof NeedDraft)[]).every((k) => next[k] === d[k]);
-  return same ? undefined : next;
-}
-
 function onConfirm(s: NeedState, text: string): NeedState {
-  const changed = changedBy(s.draft, parseNeed(text, options(s)));
+  const changed = changedBy(s.draft, parseNeed(text, options(s)), text);
   if (changed) return moveOn(s, changed);
   const yes = yesNo(text);
   const field = needFieldIn(text);
@@ -183,7 +179,11 @@ function onNobody(s: NeedState, text: string): NeedState {
  * An answer in words: `aloud` when said, false when typed (a typed budget is never read back aloud). `hint` is what a
  * model read from the same words, already checked; it fills only what the word lists left empty.
  */
-export function hearNeed(s: NeedState, text: string, aloud = false, hint: NeedHint = {}): NeedState {
+export const hearNeed = (s: NeedState, text: string, aloud = false, hint: NeedHint = {}): NeedState =>
+  withTook(s, heard(s, text, aloud, hint));
+
+function heard(s: NeedState, text: string, aloud: boolean, hint: NeedHint): NeedState {
+  if (s.switching) return hearSwitch(s, text);
   switch (s.slot) {
     case NeedSlot.confirm:
       return onConfirm(s, text);
@@ -195,8 +195,9 @@ export function hearNeed(s: NeedState, text: string, aloud = false, hint: NeedHi
       return onNobody(s, text);
     case NeedSlot.done:
     case NeedSlot.found:
-    case NeedSlot.outside:
       return s;
+    case NeedSlot.outside:
+      return onAnswer(afterOutside(s), text, aloud, hint);
     default:
       return onAnswer(s, text, aloud, hint);
   }
@@ -216,14 +217,21 @@ function onMemoryPick(s: NeedState, value: string): NeedState | undefined {
 
 /** A tap on one of the prompt's choices. A value the prompt did not offer changes nothing. */
 export function chooseNeed(s: NeedState, value: string): NeedState {
+  if (s.switching) return chooseSwitch(s, value);
+  if (value === NeedPick.notThis) return { ...afterOutside(s), guessed: false };
   const d = s.draft;
   const memory = onMemoryPick(s, value);
   if (memory) return memory;
+  // At work nobody lists yet: the list, or one of the others in its group that have workers (ADR 0061).
+  if (s.slot === NeedSlot.outside)
+    return value === NeedPick.list ? afterOutside(s) : chooseNeed(afterOutside(s), value);
   if (s.slot === NeedSlot.scope) return chooseScope(s, value) ?? s;
   if (s.slot === NeedSlot.driver) return chooseDriver(s, value) ?? s;
   switch (s.slot) {
     case NeedSlot.trade: {
-      if (value === NeedPick.list) return { ...s, fresh: false, notes: [] };
+      if (value === NeedPick.list) return { ...s, fresh: false, notes: [], guesses: undefined };
+      const browsed = chooseKindPick(s, value);
+      if (browsed) return browsed;
       const trade = Trade.options.find((tr) => tr === value);
       return tradeFor(s, trade) ? moveOn(s, withTrade(d, trade)) : s;
     }

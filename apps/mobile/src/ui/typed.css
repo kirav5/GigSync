@@ -1,0 +1,17 @@
+/* The cursor at the end of a reply the assistant is writing out (Typed.tsx): a thin terracotta bar that blinks. The
+   global reduced-motion rule stills it, and the reply then shows whole anyway. */
+.typed-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-inline-start: 2px;
+  vertical-align: -0.15em;
+  border-radius: 1px;
+  background: var(--accent);
+  animation: typed-blink 0.9s steps(1) infinite;
+}
+@keyframes typed-blink {
+  50% {
+    opacity: 0;
+  }
+}

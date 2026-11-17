@@ -12,7 +12,7 @@ const LABEL: Readonly<Record<Tactic, MessageKey>> = {
 const failure = (err: unknown) => ({ error: err instanceof Error ? err.name : typeof err });
 
 /**
- * Settings' "How your agent bargains, usually: Patient / Steady / Quick" (ADR 0033). Each job still draws its own
+ * Settings' "How your agent bargains, usually: Patient / Steady / Quick" (ADR 0033), a block of Your agent's card. Each job still draws its own
  * hidden opening and pace inside the chosen tactic's ranges; a household's words for one job can choose for that job.
  */
 export function TacticSetting({ ports }: { ports: Ports }) {
@@ -33,9 +33,9 @@ export function TacticSetting({ ports }: { ports: Ports }) {
 
   const label = t("bargain.label");
   return (
-    <section className={C.card} aria-label={label}>
-      <span className={C.label}>{label}</span>
-      <span className={C.muted}>{t("bargain.what")}</span>
+    <section className="setting-block" aria-label={label}>
+      <span className="list-row-title">{label}</span>
+      <span className="list-row-sub">{t("bargain.what")}</span>
       <div className={C.row}>
         {TACTICS.map((option) => (
           <button

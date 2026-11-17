@@ -18,18 +18,6 @@ export const worker = {
   "settings.save": "Save",
   "settings.vpa_about":
     "Shown only inside your payment QR, or sent locked to a customer you are working with. Never stored on a server.",
-  "settings.look": "Look",
-  "look.auto": "Auto",
-  "look.light": "Light",
-  "look.dark": "Dark",
-  "pack.title": "Understanding pack",
-  "pack.about":
-    "A small model ({mb} MB, downloaded once) that reads what you mean in English, Hindi and Kannada, on this device. Nothing you type leaves the phone, and everything still works without it.",
-  "pack.get": "Download ({mb} MB)",
-  "pack.downloading": "Downloading… {percent}%",
-  "pack.ready": "Ready · runs on this device",
-  "pack.failed": "The download did not finish. Check your connection and try again.",
-  "pack.lite": "Off in lite mode.",
   "settings.err_vpa": "That does not look like a UPI ID (name@bank).",
   "settings.err_name": "Enter the name customers will see when they pay you.",
   "settings.err_name_long": "Keep the name to {max} characters.",

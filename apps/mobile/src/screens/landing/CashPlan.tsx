@@ -16,7 +16,7 @@ export function CashPlan({ guide, arrival }: { guide: CityGuide; arrival: string
   const title = t("landing.cash_title");
   const day = (d: string) => date(dayAt(d));
   return (
-    <details className={C.card}>
+    <details className={`${C.card} guide-fold`}>
       <summary className={C.label}>{title}</summary>
       <section className={C.stack} aria-label={title}>
         <strong className={C.money}>{t("landing.cash_total", { amount: money(plan.total_paise) })}</strong>

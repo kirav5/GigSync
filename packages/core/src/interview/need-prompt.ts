@@ -6,6 +6,7 @@ import { EVERY_DAY, isMonthly } from "../job/when.js";
 import { Pick as CardPick, type Choice, type Line, type Prompt } from "./card.js";
 import { YES_NO } from "./choices.js";
 import { jobTypeLines } from "./estimate-drivers.js";
+import { kindAsk } from "./kind-ask.js";
 import {
   DayWord,
   firstQuestion,
@@ -21,12 +22,16 @@ import {
 import { areaParts, wherePrompt } from "./need-address.js";
 import { arrangedWork, arrangementLines, arrangementPrompt, budgetUnitLines, oneOffNeed } from "./need-arrangement.js";
 import { driverQuestion } from "./need-drivers.js";
-import { budgetEstimate } from "./need-estimate.js";
+import { budgetEstimate, listedLine } from "./need-estimate.js";
+import { guessPrompt } from "./need-guess.js";
 import { NeedPick } from "./need-hear.js";
+import { kindsPrompt, othersOf } from "./need-kinds.js";
 import { OFFER_CHOICES, recalledLine, redoChoice } from "./need-memory.js";
 import { needWords } from "./need-request.js";
 import { scopeQuestion } from "./need-scope.js";
+import { switchPrompt } from "./need-switch.js";
 import { hourPrompt, needsHour } from "./need-time.js";
+import { understoodNote } from "./need-understood.js";
 
 /**
  * What the need interview shows and reads aloud now: the question for the field still missing, with its tap choices
@@ -152,7 +157,7 @@ function detailPrompt(s: NeedState): Prompt {
   if (!first) return { lines: [], hints: [] };
   const yesNo = YES_NO_QUESTIONS.has(first);
   return {
-    lines: [{ key: `question.${first}` }],
+    lines: [{ key: kindAsk(s.draft) ?? `question.${first}` }],
     choices: yesNo ? YES_NO : [{ value: CardPick.skip, key: "iv.skip" }],
     hints: yesNo ? yesNoHints(s) : [],
   };
@@ -178,6 +183,7 @@ const redoChoices = (s: NeedState): Choice[] =>
   );
 
 function question(s: NeedState): Prompt {
+  if (s.switching) return switchPrompt(s);
   const own = s.config.own;
   const offer = offerPrompt(s);
   if (offer) return offer;
@@ -188,6 +194,8 @@ function question(s: NeedState): Prompt {
       // ADR 0051: the first turn invites the need in the owner's words, with one chip to the trades for whoever cannot
       // say or type it; the grid of trades comes on that tap, or when the words named no work.
       const opening = s.fresh && !s.to;
+      if (s.guesses?.length) return guessPrompt(s, s.guesses);
+      if (!opening && !s.to) return kindsPrompt(s);
       const chips: Choice[] = trades.map((tr) => ({ value: tr, key: `trade.${tr}` as const }));
       return {
         lines: [s.fresh ? startLine(s) : { key: "need.ask.trade" }],
@@ -214,14 +222,27 @@ function question(s: NeedState): Prompt {
       // The estimate, when there is one for this job, in place of the city band; the budget itself stays secret.
       const estimate = budgetEstimate(s);
       const shown = estimate ?? { lines: bandLine(s) };
-      const noRate = !estimate && noGoingRate(s) ? [{ key: "need.skill_no_rate" } as const] : [];
-      const lines = [{ key: "need.ask.budget" } as const, ...budgetUnitLines(s.draft), ...noRate, ...shown.lines];
+      const listed = listedLine(s);
+      const noRate = !estimate && !listed && noGoingRate(s) ? [{ key: "need.skill_no_rate" } as const] : [];
+      const lines = [
+        { key: "need.ask.budget" } as const,
+        ...budgetUnitLines(s.draft),
+        ...(listed ? [listed] : []),
+        ...noRate,
+        ...shown.lines,
+      ];
       return { ...shown, lines, numeric: true, hints: [], secret: true };
     }
     case NeedSlot.confirm:
       return confirmPrompt(s);
-    case NeedSlot.outside:
-      return { lines: jobTypeLines(s.draft.jobType ?? ""), hints: [] };
+    case NeedSlot.outside: {
+      const others = othersOf(s);
+      return {
+        lines: [...jobTypeLines(s.draft.jobType ?? ""), ...others.lines],
+        choices: [...others.choices, { value: NeedPick.list, key: "need.pick_work" }],
+        hints: [],
+      };
+    }
     case NeedSlot.done: {
       if (s.to) return { lines: [{ key: "need.asking_to", params: { name: s.to.name } }], hints: [] };
       return { lines: [{ key: "need.searching", ...areaParts(s.draft) }], hints: [] };
@@ -243,9 +264,26 @@ function question(s: NeedState): Prompt {
 }
 
 /** Whatever is current: the notes (a retry, a readback, what memory filled in), then the question. */
+const NOT_THIS: Choice = { value: NeedPick.notThis, key: "need.not_this" };
+
+/** A model chose the work and the owner is still at a question: one tap takes it back, at no cost to anyone who is happy. */
+const correctable = (s: NeedState): boolean =>
+  s.guessed === true && !s.switching && s.slot !== NeedSlot.confirm && s.slot !== NeedSlot.outside;
+
 export function needPrompt(s: NeedState): Prompt {
   const ask = question(s);
   const redo = redoChoices(s);
-  const choices = redo.length > 0 ? { choices: [...redo, ...(ask.choices ?? [])] } : {};
-  return { ...ask, lines: [...s.notes, ...filledLines(s), ...ask.lines], ...choices };
+  const correct = correctable(s);
+  const chips = [...redo, ...(ask.choices ?? []), ...(correct ? [NOT_THIS] : [])];
+  // The note names the work itself; "For: …" is only for a model's choice with no note.
+  const note = offered(s) ? [] : understoodNote(s);
+  const said =
+    correct && s.draft.trade && note.length === 0
+      ? [{ key: "need.for", params: { work: t(s.config.own, `trade.${s.draft.trade}`) } } as const]
+      : [];
+  return {
+    ...ask,
+    lines: [...s.notes, ...said, ...note, ...filledLines(s), ...ask.lines],
+    ...(chips.length > 0 ? { choices: chips } : {}),
+  };
 }

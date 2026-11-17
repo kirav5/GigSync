@@ -27,7 +27,16 @@ function linesOf(i18n: Words, turn: Turn): ChatLine[] {
         ...(turn.card ? [{ side: ChatSide.agent, text: cardText(i18n, turn.card) }] : []),
       ];
     case Speaker.app:
-      return [{ side: ChatSide.agent, text: turn.lines.map((line) => lineText(i18n, line)).join(" ") }];
+      // The small print is the app's own reasoning, not something said to the owner: the model reads the questions.
+      return [
+        {
+          side: ChatSide.agent,
+          text: turn.lines
+            .filter((l) => !l.aside)
+            .map((l) => lineText(i18n, l))
+            .join(" "),
+        },
+      ];
   }
 }
 

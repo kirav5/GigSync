@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reader data run</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-0: #f4f3f0; --surface-1: #fcfcfb; --border: #e3e1dc;
+    --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #7a7974;
+    --bar: #2a78d6; --track: #ebe9e4;
+    --good: #0f7b3f; --warn: #a15c00; --bad: #c62828;
+    --s-kind: #2a78d6; --s-where: #eb6834; --s-when: #1baf7a; --s-how_long: #eda100; --s-what: #e87ba4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --surface-0: #111110; --surface-1: #1a1a19; --border: #2c2c2a;
+      --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
+      --bar: #3987e5; --track: #2a2a28;
+      --good: #4cc27a; --warn: #e0a440; --bad: #ef6b6b;
+      --s-kind: #3987e5; --s-where: #d95926; --s-when: #199e70; --s-how_long: #c98500; --s-what: #d55181;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface-0); color: var(--text-primary);
+    font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; margin-bottom: 16px; }
+  h1 { font-size: 20px; margin: 0; }
+  h2 { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin: 0 0 12px;
+    text-transform: uppercase; letter-spacing: .04em; }
+  .muted { color: var(--text-muted); }
+  .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .tile .label { font-size: 12px; color: var(--text-secondary); }
+  .tile .value { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; margin: 2px 0; }
+  .tile .sub { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .progress { height: 8px; background: var(--track); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .progress > div { height: 100%; background: var(--bar); border-radius: 4px; transition: width .4s; }
+  .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .bars { display: grid; grid-template-columns: max-content 1fr max-content; gap: 6px 10px; align-items: center; }
+  .bars .name { color: var(--text-secondary); font-size: 13px; }
+  .bars .track { height: 14px; }
+  .bars .fill { height: 100%; background: var(--bar); border-radius: 0 4px 4px 0; min-width: 2px; transition: width .4s; }
+  .bars .num { font-variant-numeric: tabular-nums; font-size: 13px; text-align: right; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; }
+  .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; font-size: 12px; color: var(--text-secondary); }
+  .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+    margin-right: 5px; vertical-align: -1px; background: var(--c); }
+  ul.list { list-style: none; margin: 0; padding: 0; }
+  ul.list li { padding: 8px 0; border-top: 1px solid var(--border); }
+  ul.list li:first-child { border-top: 0; }
+  .turn { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+  mark { background: none; color: inherit; border-bottom: 2px solid var(--c); padding: 0 1px; }
+  mark sub { font-size: 10px; color: var(--text-secondary); margin-left: 2px; }
+  .reason { font-weight: 600; font-size: 12px; color: var(--text-secondary); margin-right: 6px; }
+  .empty { color: var(--text-muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Reader data run</h1>
+    <span class="muted" id="where"></span>
+    <span class="muted" id="updated"></span>
+  </header>
+
+  <section class="tiles">
+    <div class="card tile"><div class="label">Progress</div><div class="value" id="done">–</div>
+      <div class="sub" id="done-sub"></div><div class="progress"><div id="bar" style="width:0"></div></div></div>
+    <div class="card tile"><div class="label">Kept</div><div class="value" id="kept">–</div><div class="sub" id="kept-sub"></div></div>
+    <div class="card tile"><div class="label">Speed</div><div class="value" id="speed">–</div><div class="sub">targets a minute, last 5 min</div></div>
+    <div class="card tile"><div class="label">Time left</div><div class="value" id="eta">–</div><div class="sub" id="eta-sub"></div></div>
+    <div class="card tile"><div class="label">Teacher</div><div class="value"><span class="pill" id="teacher">–</span></div><div class="sub" id="teacher-sub"></div></div>
+    <div class="card tile"><div class="label">Last write</div><div class="value"><span class="pill" id="write">–</span></div><div class="sub" id="write-sub"></div></div>
+  </section>
+
+  <section class="grid3">
+    <div class="card"><h2>Why targets were dropped</h2><div class="bars" id="reasons"></div></div>
+    <div class="card"><h2>Kept, by kind of message</h2><div class="bars" id="turns"></div></div>
+    <div class="card"><h2>Kept, by detail marked</h2><div class="bars" id="slots"></div></div>
+  </section>
+
+  <section class="grid3">
+    <div class="card" style="grid-column: span 2">
+      <h2>Latest kept</h2>
+      <div class="legend" id="legend"></div>
+      <ul class="list" id="recent-kept"></ul>
+    </div>
+    <div class="card"><h2>Latest dropped</h2><ul class="list" id="recent-dropped"></ul></div>
+  </section>
+</main>
+<script>
+  const SLOTS = ["kind", "where", "when", "how_long", "what"];
+  const LABEL = { kind: "kind", where: "where", when: "when", how_long: "how long", what: "what" };
+  const STALL_S = 90;
+  const $ = (id) => document.getElementById(id);
+  const fmt = new Intl.NumberFormat("en-IN");
+  const pct = (x) => `${Math.round(x * 100)}%`;
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+  $("legend").innerHTML = SLOTS.map((s) => `<span style="--c:var(--s-${s})">${LABEL[s]}</span>`).join("");
+
+  function bars(el, counts, label = (k) => k) {
+    const rows = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    if (!rows.length) {
+      el.innerHTML = '<div class="empty">Nothing yet</div>';
+      return;
+    }
+    const max = Math.max(...rows.map(([, n]) => n));
+    el.innerHTML = rows.map(([k, n]) =>
+      `<div class="name">${esc(label(k))}</div><div class="track" title="${esc(label(k))}: ${fmt.format(n)}">` +
+      `<div class="fill" style="width:${(n / max) * 100}%"></div></div><div class="num">${fmt.format(n)}</div>`).join("");
+  }
+
+  function marked(e) {
+    let out = "", at = 0;
+    for (const s of [...e.spans].sort((a, b) => a.start - b.start)) {
+      out += esc(e.text.slice(at, s.start)) +
+        `<mark style="--c:var(--s-${s.slot})">${esc(e.text.slice(s.start, s.end))}<sub>${LABEL[s.slot]}</sub></mark>`;
+      at = s.end;
+    }
+    return out + esc(e.text.slice(at));
+  }
+
+  function minutes(m) {
+    if (m === null) return "–";
+    if (m < 60) return `${Math.round(m)} min`;
+    return `${Math.floor(m / 60)} h ${Math.round(m % 60)} min`;
+  }
+
+  async function tick() {
+    let s;
+    try { s = await (await fetch("/stats")).json(); }
+    catch { $("updated").textContent = "· dashboard server not answering"; return; }
+    const total = s.run?.count;
+    $("where").textContent = `${s.dir}${s.run ? ` · seed ${s.run.seed} · ${s.run.concurrency} at once` : ""}`;
+    $("updated").textContent = `· updated ${new Date().toLocaleTimeString()}`;
+    $("done").textContent = fmt.format(s.done);
+    $("done-sub").textContent = total ? `of ${fmt.format(total)} targets (${pct(s.done / total)})` : "no run.json yet";
+    $("bar").style.width = total ? `${Math.min(100, (s.done / total) * 100)}%` : "0";
+    $("kept").textContent = fmt.format(s.kept);
+    $("kept-sub").textContent = `${pct(s.keepRate)} kept overall · ${pct(s.recentKeepRate)} of the last 300`;
+    $("speed").textContent = s.perMin ? s.perMin.toFixed(1) : "–";
+    $("eta").textContent = s.finished ? "Done" : minutes(s.etaMin);
+    $("eta-sub").textContent = s.finished ? "manifest written" : s.etaMin !== null ? `about ${new Date(Date.now() + s.etaMin * 60000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "";
+    $("teacher").className = `pill ${s.teacher.up ? "good" : "bad"}`;
+    $("teacher").textContent = s.teacher.up ? "● Answering" : "✕ Not reachable";
+    $("teacher-sub").textContent = s.teacher.up ? s.teacher.model : `${s.teacher.url}: is the tunnel up?`;
+    const ago = s.lastWriteAgoS;
+    const stalled = !s.finished && ago !== null && ago > STALL_S;
+    $("write").className = `pill ${s.finished ? "good" : stalled ? "warn" : "good"}`;
+    $("write").textContent = ago === null ? "–" : s.finished ? "✓ Finished" : stalled ? `▲ ${Math.round(ago)} s ago` : `● ${Math.round(ago)} s ago`;
+    $("write-sub").textContent = stalled ? "no new target for a while: stopped or stuck?" : "a new target is written every few seconds";
+    bars($("reasons"), s.reasons, (k) => k.replaceAll("_", " "));
+    bars($("turns"), s.byTurn);
+    bars($("slots"), s.bySlot, (k) => LABEL[k] ?? k);
+    $("recent-kept").innerHTML = s.recentKept.length
+      ? s.recentKept.map((e) => `<li><div class="turn">${esc(e.turn)}${e.asking ? ` · asked ${LABEL[e.asking]}` : ""} · #${e.id}</div>${marked(e)}</li>`).join("")
+      : '<li class="empty">Nothing kept yet</li>';
+    $("recent-dropped").innerHTML = s.recentDropped.length
+      ? s.recentDropped.map((d) => `<li><span class="reason">${esc(d.reason.replaceAll("_", " "))}</span>${esc(d.message ?? "(no message)")}</li>`).join("")
+      : '<li class="empty">Nothing dropped yet</li>';
+  }
+  tick();
+  setInterval(tick, 3000);
+</script>
+</body>
+</html>

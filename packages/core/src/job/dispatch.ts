@@ -27,6 +27,7 @@ import { apply, TransitionError } from "../engagement/machine.js";
 import { log } from "../log.js";
 import type { Received } from "../mail/transport.js";
 import type { Mentors } from "../mentor/mentors.js";
+import { MentorStore } from "../mentor/store.js";
 import type { WorkOffers } from "../qr/offers.js";
 import type { Recommendations } from "../qr/recommend.js";
 import * as after from "./aftercare.js";
@@ -108,6 +109,12 @@ export async function dispatch(
   if (COLLEAGUE_KINDS.has(e.kind) || MENTOR_KINDS.has(e.kind)) return side.mentors.receive(item);
   if (QR_KINDS.has(e.kind)) return side.offers.receive(item);
   const existing = await ctx.store.job(e.engagement);
+  // Someone this owner blocked cannot start a job with them. A job already under way still moves to its end (its
+  // progress, payment and problems), so neither side is left holding a half-done job.
+  if (!existing && e.kind === K.request && (await new MentorStore(ctx.storage).isBlocked(e.from.user))) {
+    log.info("request dropped", { messageId: e.id, reason: "blocked" });
+    return;
+  }
   const r =
     existing ??
     (e.kind === K.request && rules ? newWorkerJob(ctx, e.engagement, e.from.user, body as JobRequest) : undefined);

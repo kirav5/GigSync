@@ -13,6 +13,7 @@ export const arrangement: Readonly<Record<keyof typeof en, string>> = {
   "unit.week": "प्रति हफ़्ता",
   "unit.month": "प्रति महीना",
   "price.per": "{price} {unit}",
+  "price.for_work": "{work}: {price}",
   "estimate.range_week": "{city} में {trade}{scope}: आम तौर पर एक हफ़्ते का {low}–{high}।",
   "need.ask.arrangement": "आपको कितने समय के लिए चाहिए?",
   "need.arr.hourly": "कुछ घंटे",

@@ -1,44 +1,34 @@
 import {
-  asciiDigits,
   type GigDevice,
   type JobRecord,
-  type MessageKey,
   type NeedTo,
-  nextWorkerStep,
+  type TakeOver as TakeOverDetail,
   TaskKind,
+  type TimeAsk,
   termsLines,
-  UNDER_WAY,
-  type WorkerStep,
-  workStarted,
+  type WorkerRules,
 } from "@gigsync/core";
-import {
-  EngagementStatus,
-  type JobTerms,
-  type Payment,
-  PaymentMethod,
-  PaymentStatus,
-  type Question,
-  Role,
-  UpdateCode,
-} from "@gigsync/protocol";
-import { type FormEvent, useEffect, useState } from "react";
+import { EngagementStatus, type JobTerms, PaymentMethod, PaymentStatus, type Question, Role } from "@gigsync/protocol";
+import type { ReactNode } from "react";
 import { useI18n } from "../i18n.js";
-import { qrDataUrl } from "../payments/qr.js";
-import { type Step, useStep } from "../payments/useStep.js";
+import { PayBox } from "../payments/PayBox.js";
+import { useStep } from "../payments/useStep.js";
 import { WorkerPay } from "../payments/WorkerPay.js";
 import { BusyGroup } from "../ui/BusyGroup.js";
 import { C } from "../ui/cls.js";
 import { jobPrice, money } from "../ui/places.js";
 import { useBusy } from "../ui/useBusy.js";
-import { Working } from "../ui/Working.js";
 import { requestWork } from "../ui/work.js";
 import type { GigView } from "../useGig.js";
 import { AnswerForm } from "./AnswerForm.js";
-import { ApproveCard, type ApproveDetail, SignCard } from "./JobDecide.js";
+import { SignCard } from "./JobDecide.js";
 import { AskAgain } from "./job/AskAgain.js";
-import { CancelJob } from "./job/CancelJob.js";
-import { NoteBox } from "./job/NoteBox.js";
-import { TalkDecide } from "./job/TalkDecide.js";
+import { shortHash } from "./job/look.js";
+import { MoreSheet } from "./job/MoreSheet.js";
+import { type ApproveDetail, RequestFits } from "./job/RequestFits.js";
+import { ReviewCard } from "./job/ReviewCard.js";
+import { StuckCard, TakeOver } from "./job/TalkDecide.js";
+import { TimeCard } from "./job/TimeCard.js";
 
 export interface JobActionProps {
   job: JobRecord;
@@ -49,30 +39,27 @@ export interface JobActionProps {
   onAddPayee?: () => void;
   /** Opens a new Find chat, for the same worker or anyone: a household's Records passes it for jobs that ended. */
   onAgain?: (to?: NeedTo) => void;
+  /** The worker's own rules (their card), so a request that fits can say the distance and hours it was checked by. */
+  rules?: WorkerRules | undefined;
 }
 
 const S = EngagementStatus.enum;
 const P = PaymentStatus.enum;
-const U = UpdateCode.enum;
-/** Once both have signed, a worker may leave a note for the customer. */
-const SIGNED: ReadonlySet<EngagementStatus> = new Set([S.agreed, S.in_progress, S.delivered]);
-/** The worker's next move as its button says it: on the way, then arrived and started, then done. */
-const STEP_LABEL: Readonly<Record<WorkerStep, MessageKey>> = {
-  [U.on_my_way]: "update.on_my_way",
-  [U.started]: "job.start_work",
-  [U.done]: "job.mark_done",
-};
-const STARS = [5, 4, 3, 2, 1] as const;
+/** A job its agents are still talking about: the owner may step in. */
+const TALKING: ReadonlySet<EngagementStatus> = new Set([S.sent, S.clarifying, S.negotiating]);
 /** Between the sentence read aloud and each term after it. */
 const SAY_PAUSE = ". ";
 
 /**
- * The decisions and moves open to this owner on this job, and nothing else: decisions first, each with a speaker
- * button that reads it aloud (committing stays a tap), then the work, the money and the note box. `them` is the
- * other side's name as the card shows it. One move at a time: a tap holds every move here until the job has been
- * synced and read back, and a move that failed says so. Notes stay open meanwhile, since they queue by themselves.
+ * The one thing to do now on this job, as the card's hero, and nothing else: a decision first (the request that fits,
+ * a time, questions, the agents stuck, the deal to sign), each with a speaker button that reads it aloud (committing
+ * stays a tap); then `talk`, the agents' turns while they are at it, with the turn and "Take over"; then the day's
+ * step, the money and the note box. `them` is the other side's name as the card shows it. One move at a time: a tap
+ * holds every move here until the job has been synced and read back, and a move that failed says so. Notes stay open
+ * meanwhile, since they queue by themselves.
  */
-export function JobActions({ job, view, device, run, onAddPayee, onAgain, them }: JobActionProps & { them: string }) {
+export function JobActions(props: JobActionProps & { them: string; talk?: ReactNode }) {
+  const { job, view, device, run, onAddPayee, onAgain, rules, them, talk } = props;
   const { lang, t } = useI18n();
   const { busy, guard } = useBusy();
   const act = (work: () => Promise<unknown>) => guard(() => run(work));
@@ -86,24 +73,28 @@ export function JobActions({ job, view, device, run, onAddPayee, onAgain, them }
   const terms = task(TaskKind.confirmDeal)?.detail as JobTerms | undefined;
   const questions = task(TaskKind.answerQuestions);
   const approve = task(TaskKind.approveRequest);
-  const next = nextWorkerStep(job);
-  /** The worker's next step: a progress update, or the work handed over once it is done. */
-  const moveOn = (to: WorkerStep) =>
-    to === U.done ? device.deliver(id, { code: U.done }) : device.update(id, { code: to });
+  // A time the household did not ask for is its own decision, and the talk waits on it.
+  const time = isWorker ? undefined : task(TaskKind.newTime);
+  const talking = !time && TALKING.has(status);
+  const stuck = talking ? task(TaskKind.takeOver) : undefined;
+  const paid = payments.find((p) => p.status === P.confirmed && !p.advance);
+  const decide = { job, view, device, step, them };
 
   return (
-    <div className={C.stack}>
+    <div className={`${C.stack} job-now`}>
       <BusyGroup busy={busy}>
-        <TalkDecide job={job} view={view} device={device} step={step} them={them} />
-        {onAgain && <AskAgain job={job} them={them} onAgain={onAgain} />}
         {approve && (
-          <ApproveCard
+          <RequestFits
+            job={job}
             detail={approve.detail as ApproveDetail}
+            rules={rules}
             say={t("home.say_approve", { name: them, trade: requestWork(t, job.request) })}
             onApprove={() => step(() => device.approveRequest(id))}
             onDecline={() => step(() => device.declineRequest(id))}
           />
         )}
+        {time && <TimeCard job={job} ask={time.detail as TimeAsk} device={device} step={step} them={them} />}
+        {stuck && <StuckCard {...decide} detail={stuck.detail as TakeOverDetail | undefined} />}
         {questions && (
           <AnswerForm
             questions={questions.detail as Question[]}
@@ -117,6 +108,9 @@ export function JobActions({ job, view, device, run, onAddPayee, onAgain, them }
             price={jobPrice(lang, job.request, terms.price_paise)}
             terms={terms.terms}
             asked={isWorker ? undefined : job.request.terms}
+            place={job.request.locality}
+            them={them}
+            theirHash={job.theirs?.terms.offer_id === terms.offer_id ? shortHash(job.theirs.terms_hash) : undefined}
             say={[
               t("home.say_sign", { name: them, price: jobPrice(lang, job.request, terms.price_paise) }),
               ...termsLines(lang, terms.terms),
@@ -125,17 +119,10 @@ export function JobActions({ job, view, device, run, onAddPayee, onAgain, them }
             onDecline={() => step(() => device.declineDeal(id))}
           />
         )}
-        {/* Until the work is handed over, either side may call the job off; the worker moves it on one step at a time. */}
-        {UNDER_WAY.has(status) && (
-          <CancelJob started={workStarted(job)} onCancel={(stop) => step(() => device.cancelJob(id, stop))}>
-            {/* Keyed by step: the next step is a new button, so a tap meant for one never lands on the next. */}
-            {isWorker && next && (
-              <button key={next} type={C.button} className={C.secondary} onClick={() => step(() => moveOn(next))}>
-                {t(STEP_LABEL[next])}
-              </button>
-            )}
-          </CancelJob>
-        )}
+        {/* Turning a request down already ends it: no second way out beside the request that fits. */}
+        {talking && !stuck && !approve && <TakeOver {...decide} />}
+        {talk}
+        {onAgain && <AskAgain job={job} them={them} onAgain={onAgain} />}
         {/* Only Today lists a worker's jobs, and it always passes onAddPayee. */}
         {isWorker && onAddPayee && (
           <WorkerPay job={job} view={view} device={device} run={act} onAddPayee={onAddPayee} />
@@ -143,106 +130,28 @@ export function JobActions({ job, view, device, run, onAddPayee, onAgain, them }
         {!isWorker &&
           payments
             .filter((p) => p.status === P.requested && p.method === PaymentMethod.enum.upi)
-            .map((p) => <PayBox key={p.id} payment={p} device={device} step={step} />)}
-        {!isWorker &&
-          status === S.delivered &&
-          !job.review &&
-          payments.some((p) => p.status === P.confirmed && !p.advance) && (
-            <ReviewForm onSend={(stars, text) => step(() => device.review(id, { stars, text }))} />
-          )}
+            .map((p) => <PayBox key={p.id} payment={p} device={device} step={step} job={job} them={them} />)}
+        {!isWorker && status === S.delivered && !job.review && paid && (
+          <ReviewCard
+            them={them}
+            paid={money(paid.amount_paise)}
+            onSend={(stars, text) => step(() => device.review(id, { stars, text }))}
+          />
+        )}
         {error && <p className={C.error}>{error}</p>}
+        {/* A note, an advance, cancel and the record's small print: one tap away, not on the card. */}
+        <MoreSheet
+          job={job}
+          device={device}
+          step={step}
+          run={act}
+          onNote={(text) => run(() => device.update(id, text))}
+          them={them}
+          isWorker={isWorker}
+          payments={payments}
+          onAddPayee={onAddPayee}
+        />
       </BusyGroup>
-      {isWorker && SIGNED.has(status) && <NoteBox onSend={(text) => run(() => device.update(id, text))} />}
     </div>
-  );
-}
-
-/**
- * The consumer pays in their own UPI app; GigSync only shows the QR and records the reference they paste back. When
- * the link cannot be built (this phone never got the worker's sealed payment request) it says so instead of a dead QR.
- */
-function PayBox({ payment, device, step }: { payment: Payment; device: GigDevice; step: Step }) {
-  const { t } = useI18n();
-  const [link, setLink] = useState<string>();
-  const [qr, setQr] = useState<string>();
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    let live = true;
-    setFailed(false);
-    void (async () => {
-      try {
-        const l = await device.upiLink(payment.id);
-        const image = await qrDataUrl(l);
-        if (!live) return;
-        setLink(l);
-        setQr(image);
-      } catch {
-        if (live) setFailed(true);
-      }
-    })();
-    return () => {
-      live = false;
-    };
-  }, [device, payment.id]);
-  function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const utr = asciiDigits(String(new FormData(e.currentTarget).get("utr") ?? "").trim());
-    step(() => device.markPaid(payment.id, utr || undefined));
-  }
-  return (
-    <form className={C.stack} onSubmit={submit} aria-label={t("a11y.pay")}>
-      <span className={C.label}>
-        {t(payment.advance ? "job.pay_advance" : "job.pay_by_upi", { price: money(payment.amount_paise) })}
-      </span>
-      {failed && <p className={C.error}>{t("error.generic")}</p>}
-      <Working on={!qr && !failed} />
-      {qr && <img src={qr} alt={t("a11y.qr")} width={160} height={160} />}
-      {link && (
-        <a className={C.secondary} href={link}>
-          {t("job.open_upi")}
-        </a>
-      )}
-      <input
-        className={C.field}
-        name="utr"
-        aria-label={t("a11y.utr")}
-        placeholder={t("job.utr_placeholder")}
-        inputMode="numeric"
-      />
-      <div className={C.actions}>
-        <button type={C.submit} className={C.accent}>
-          {t("job.paid")}
-        </button>
-      </div>
-    </form>
-  );
-}
-
-function ReviewForm({ onSend }: { onSend: (stars: number, text: string) => void }) {
-  const { t } = useI18n();
-  function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const v = new FormData(e.currentTarget);
-    onSend(Number(v.get("stars")), String(v.get("text") ?? "").trim());
-  }
-  return (
-    <form className={C.row} onSubmit={submit} aria-label={t("a11y.review")}>
-      <select className={C.field} name="stars" aria-label={t("a11y.stars")} defaultValue={STARS[0]}>
-        {STARS.map((s) => (
-          <option key={s} value={s}>
-            {"★".repeat(s)}
-          </option>
-        ))}
-      </select>
-      <input
-        className={C.field}
-        name="text"
-        aria-label={t("a11y.review_text")}
-        placeholder={t("job.review_placeholder")}
-      />
-      <button type={C.submit} className={C.btn}>
-        {t("job.send_review")}
-      </button>
-    </form>
   );
 }

@@ -2,7 +2,7 @@ import { createExecutionContext, env } from "cloudflare:test";
 import { BEARER_PREFIX, Header } from "@gigsync/core";
 import { GeoResult } from "@gigsync/protocol";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { OLA_BASE, OlaPath, placeOf } from "../src/geo/ola.js";
+import { BIAS_RADIUS_M, OLA_BASE, OlaPath, placeOf } from "../src/geo/ola.js";
 import app from "../src/index.js";
 import { type Person, signIn } from "./people.js";
 
@@ -99,13 +99,91 @@ describe("without the provider's key", () => {
 });
 
 describe("GET /v1/geo/search", () => {
-  it("asks for the typed words and answers at most five places, one per line", async () => {
+  it("asks autocomplete for the typed words, and each suggestion's area from its point, one place per line", async () => {
     const p = await signIn("+919877700003");
-    const fetched = answered({ geocodingResults: Array.from({ length: 7 }, () => BANASHANKARI) });
+    const line = (n: number) => `${n}th Cross, Banashankari 2nd Stage, Bengaluru, Karnataka, 560070, India`;
+    // Seven suggestions: at most five are looked up, and each keeps its own line as the label.
+    const predictions = Array.from({ length: 7 }, (_, n) => ({
+      description: line(n),
+      geometry: { location: { lat: 12.92531, lng: 77.54672 } },
+    }));
+    const fetched = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation(async (url) =>
+        Response.json(
+          new URL(String(url)).pathname.endsWith(OlaPath.autocomplete) ? { predictions } : { results: [BANASHANKARI] },
+        ),
+      );
     const res = await get(p, `/geo/search?q=${encodeURIComponent("Banashankari  2nd")}`);
     const { places } = GeoResult.parse(await res.json());
-    expect(places).toHaveLength(1);
-    expect(new URL(String(fetched.mock.calls[0]?.[0])).searchParams.get("address")).toBe("banashankari 2nd");
+    expect(places.map((place) => place.label)).toEqual([0, 1, 2, 3, 4].map(line));
+    // The place's own point, not its coarse cell: a building lands on its door.
+    expect(places[0]).toMatchObject({
+      locality: "Banashankari 2nd Stage",
+      pin: "560070",
+      point: { lat: 12.92531, lon: 77.54672 },
+    });
+    const asked = new URL(String(fetched.mock.calls[0]?.[0]));
+    expect(asked.pathname.endsWith(OlaPath.autocomplete)).toBe(true);
+    expect(asked.searchParams.get("input")).toBe("banashankari 2nd");
+    expect(asked.searchParams.has("location")).toBe(false);
+    // Autocomplete once, then the five places shown named, each from its own point (the other two never).
+    expect(fetched).toHaveBeenCalledTimes(6);
+  });
+
+  it("names a found place from its own point, never its cell, and favours the city it was asked near", async () => {
+    const p = await signIn("+919877700006");
+    // LGCL Bamboo Forest Villas: its own point is in Choodasandra; its 2-decimal cell is in Parappana Agrahara.
+    const villas = "LGCL Bamboo Forest Villas, Rayasandra Main Rd, Choodasandra, Bengaluru, Karnataka, 560100, India";
+    const choodasandra = result(12.8773, 77.6745, [part("Choodasandra", "sublocality"), part("Bengaluru", "locality")]);
+    const cell = result(12.88, 77.67, [part("Parappana Agrahara", "sublocality"), part("Bengaluru", "locality")]);
+    const fetched = vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+      const asked = new URL(String(url));
+      if (asked.pathname.endsWith(OlaPath.autocomplete))
+        return Response.json({
+          predictions: [{ description: villas, geometry: { location: { lat: 12.8773, lng: 77.6745 } } }],
+        });
+      return Response.json({ results: [asked.searchParams.get("latlng") === "12.8773,77.6745" ? choodasandra : cell] });
+    });
+    const res = await get(p, "/geo/search?q=lgcl%20bamboo&lat=12.9716&lon=77.5946");
+    const { places } = GeoResult.parse(await res.json());
+    expect(places).toEqual([
+      { label: villas, locality: "Choodasandra", city: "Bengaluru", point: { lat: 12.8773, lon: 77.6745 } },
+    ]);
+    const autocomplete = new URL(String(fetched.mock.calls[0]?.[0]));
+    // The centre goes to the provider on the coarse grid only.
+    expect(autocomplete.searchParams.get("location")).toBe("12.97,77.59");
+    expect(autocomplete.searchParams.get("radius")).toBe(String(BIAS_RADIUS_M));
+    // Another city's centre is another search, not the cached one.
+    await get(p, "/geo/search?q=lgcl%20bamboo&lat=18.52&lon=73.86");
+    const second = fetched.mock.calls
+      .map(([u]) => new URL(String(u)))
+      .filter((u) => u.pathname.endsWith(OlaPath.autocomplete));
+    expect(second.map((u) => u.searchParams.get("location"))).toEqual(["12.97,77.59", "18.52,73.86"]);
+  });
+
+  it("takes the area its own line names before the city when the point's parts disagree with it", async () => {
+    const p = await signIn("+919877700008");
+    const line = "Hebbal FlyOver, Bayanna Layout, Hebbal, Bengaluru, Karnataka, 560024, India";
+    const terms = line.split(", ").map((value) => ({ value }));
+    const parts = [part("Sanjay Nagar", "sublocality"), part("Bengaluru", "locality"), part("560024", "postal_code")];
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (url) =>
+      Response.json(
+        new URL(String(url)).pathname.endsWith(OlaPath.autocomplete)
+          ? { predictions: [{ description: line, terms, geometry: { location: { lat: 13.0405, lng: 77.5897 } } }] }
+          : { results: [result(13.0405, 77.5897, parts)] },
+      ),
+    );
+    const { places } = GeoResult.parse(await (await get(p, "/geo/search?q=hebbal%20flyover")).json());
+    expect(places[0]).toMatchObject({ locality: "Hebbal", city: "Bengaluru", pin: "560024" });
+  });
+
+  it("keeps the owner's own point coarse when naming it", async () => {
+    const p = await signIn("+919877700007");
+    const fetched = answered({ results: [result(12.8773, 77.6745, [part("Choodasandra", "sublocality")])] });
+    const { places } = GeoResult.parse(await (await get(p, "/geo/reverse?lat=12.877312&lon=77.674533")).json());
+    expect(new URL(String(fetched.mock.calls[0]?.[0])).searchParams.get("latlng")).toBe("12.88,77.67");
+    expect(places[0]?.point).toEqual({ lat: 12.88, lon: 77.67 });
   });
 
   it("refuses words too short or too long", async () => {

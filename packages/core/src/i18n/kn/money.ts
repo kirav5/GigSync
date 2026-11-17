@@ -1,11 +1,11 @@
 import type { money as en } from "../en/money.js";
 
-/** Kannada: the passbook of jobs signed on GigSync, and the worker's money actions inside a job. */
+/** Kannada: the passbook, the worker's money actions inside a job, the household's Pay and recommending. */
 export const money: Readonly<Record<keyof typeof en, string>> = {
   "passbook.week": "ಈ ವಾರ ಬಂದದ್ದು",
   "passbook.month": "ಈ ತಿಂಗಳು ಬಂದದ್ದು",
   "passbook.not_asked": "ಇನ್ನೂ ಕೇಳಿಲ್ಲ",
-  "passbook.empty": "GigSync ನಲ್ಲಿ ನೀವು ಮುಗಿಸಿದ ಕೆಲಸಗಳು ಮತ್ತು ಅವುಗಳ ಹಣ ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ.",
+  "passbook.empty": "ಹಣ ಬಂದ ಕೆಲಸಗಳು ಇಲ್ಲಿ ಕಾಣುತ್ತವೆ.",
   "passbook.about": "ಪ್ರತಿ ಸಾಲೂ ನೀವು ಮತ್ತು ಗ್ರಾಹಕರು ಇಬ್ಬರೂ ಸಹಿ ಮಾಡಿದ ಕೆಲಸ. ಇದೆಲ್ಲ ಈ ಫೋನ್‌ನಲ್ಲೇ ಇರುತ್ತದೆ.",
   "money.ask_again": "ಮತ್ತೆ ಹಣ ಕೇಳಿ",
   "money.ask_advance": "ಮುಂಗಡ ಕೇಳಿ",
@@ -23,4 +23,22 @@ export const money: Readonly<Record<keyof typeof en, string>> = {
   "money.asked_at": "{time}ಕ್ಕೆ ಕೇಳಿದ್ದು",
   "money.already_in_bank": "ಹಣ ಈಗಾಗಲೇ ನನ್ನ ಬ್ಯಾಂಕಿಗೆ ಬಂದಿದೆ",
   "money.bank_confirm": "{price} ಬಂದಿದೆ ಎಂದು ದಾಖಲಿಸಲೇ?",
+  "money.done_ask": "ಕೆಲಸ ಮುಗಿಯಿತು. ನಿಮ್ಮ {price} ಕೇಳಿ.",
+  "money.ask_for": "{price} ಕೇಳಿ",
+  "money.straight": "{name} ಅವರು ನೇರವಾಗಿ ನಿಮಗೆ ಹಣ ಕೊಡುತ್ತಾರೆ, ಯುಪಿಐ ಅಥವಾ ನಗದು ಮೂಲಕ.",
+  "money.no_cut": "GigSync ಎಂದಿಗೂ ಹಣವನ್ನು ತನ್ನ ಬಳಿ ಇಟ್ಟುಕೊಳ್ಳುವುದಿಲ್ಲ, ಯಾವುದೇ ಕಮಿಷನ್ ತೆಗೆದುಕೊಳ್ಳುವುದಿಲ್ಲ.",
+  "money.says_paid": "ಹಣ ಕೊಟ್ಟಿದ್ದೇವೆ ಎಂದು {name} ಹೇಳುತ್ತಾರೆ",
+  "money.by_upi": "ಯುಪಿಐ",
+  "money.saved_note": "ನೀವು ಖಚಿತಪಡಿಸಿದಾಗ, ಈ ಪಾವತಿ ನಿಮ್ಮ ಕೆಲಸದ ದಾಖಲೆಯಲ್ಲಿ ಉಳಿಯುತ್ತದೆ.",
+  "money.qr_sub": "{name} ಅವರು ಈಗಲೇ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಕೊಡಲು ಬಯಸಿದರೆ",
+  "money.asks_for": "{name} ಅವರು ಕೇಳುತ್ತಿದ್ದಾರೆ",
+  "money.done_at": "ಕೆಲಸ ಮುಗಿದದ್ದು · {time}",
+  "money.pay_to": "{vpa} ಗೆ",
+  "money.holds_nothing": "ನೇರವಾಗಿ {name} ಅವರಿಗೆ. GigSync ಏನನ್ನೂ ತನ್ನ ಬಳಿ ಇಟ್ಟುಕೊಳ್ಳುವುದಿಲ್ಲ.",
+  "money.upi_opens": "ನಿಮ್ಮ ಯುಪಿಐ ಆ್ಯಪ್ {name} ಅವರ ಯುಪಿಐ ಐಡಿ ಮತ್ತು ಮೊತ್ತ ತುಂಬಿಕೊಂಡು ತೆರೆಯುತ್ತದೆ. ಹಿಂತಿರುಗಿದ ಮೇಲೆ “{paid}” ಒತ್ತಿ.",
+  "money.cash_hint": "ನಗದು ಕೊಟ್ಟಿರಾ? {name} ಅವರು ಅದನ್ನು ತಮ್ಮ ಫೋನ್‌ನಲ್ಲಿ ದಾಖಲಿಸುತ್ತಾರೆ.",
+  "money.other_way": "ಬೇರೆ ರೀತಿಯಲ್ಲಿ ಕೊಡಿ, ಅಥವಾ ಯುಪಿಐ ರೆಫರೆನ್ಸ್ ಸೇರಿಸಿ",
+  "money.utr_why": "ನಿಮ್ಮ ಯುಪಿಐ ಆ್ಯಪ್‌ನ 12 ಅಂಕಿಯ ರೆಫರೆನ್ಸ್ {name} ಅವರಿಗೆ ಪಾವತಿಯನ್ನು ಹುಡುಕಲು ನೆರವಾಗುತ್ತದೆ.",
+  "money.recommend_title": "ನಿಮಗೆ ಗೊತ್ತಿರುವವರಿಗೆ {name} ಅವರನ್ನು ಶಿಫಾರಸು ಮಾಡಿ",
+  "money.recommend_private": "GigSync ನಿಮ್ಮ ಸಂಪರ್ಕಗಳನ್ನು ಓದುವುದಿಲ್ಲ, ನೀವು ಯಾರಿಗೆ ಕಳುಹಿಸಿದಿರಿ ಎಂದೂ ನೋಡುವುದಿಲ್ಲ.",
 };

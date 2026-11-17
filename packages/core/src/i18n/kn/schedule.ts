@@ -16,7 +16,7 @@ export const schedule: Readonly<Record<keyof typeof en, string>> = {
   "schedule.tomorrow": "ನಾಳೆ",
   "schedule.job": "GigSync ಕೆಲಸ: {when}",
   "schedule.title": "ನಿಮ್ಮ ಬುಕಿಂಗ್‌ಗಳು",
-  "schedule.hint": "'ಮಾತಾಡಿ'ಯಲ್ಲಿ ನೀವು ಏಜೆಂಟ್‌ಗೆ ಹೇಳಿದ ಬುಕಿಂಗ್‌ಗಳು. ಈ ಸಮಯಗಳಲ್ಲಿ ಏಜೆಂಟ್ ಯಾವ ಕೆಲಸವನ್ನೂ ಒಪ್ಪುವುದಿಲ್ಲ.",
+  "schedule.hint": "'ಮಾತಾಡಿ'ಯಲ್ಲಿ ನೀವು ಸಹಾಯಕನಿಗೆ ಹೇಳಿದ ಬುಕಿಂಗ್‌ಗಳು. ಈ ಸಮಯಗಳಲ್ಲಿ ಸಹಾಯಕ ಯಾವ ಕೆಲಸವನ್ನೂ ಒಪ್ಪುವುದಿಲ್ಲ.",
   "schedule.delete": "ಅಳಿಸಿ",
   "schedule.delete_named": "{when} ಅಳಿಸಿ",
   "schedule.soon": "{minutes} ನಿಮಿಷದಲ್ಲಿ ಶುರು",

@@ -1,7 +1,8 @@
 import { type MessageKey, t } from "@gigsync/core";
 import { type GeoResult, Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { API, listWorker, newPhone, open, Role, RUN, shoot, signIn } from "./helpers.js";
+import { addressSave, doorField, moreDetails } from "./address.js";
+import { API, homePick, listWorker, newPhone, open, Role, RUN, shoot, signIn } from "./helpers.js";
 import { openCard } from "./menu.js";
 
 /**
@@ -64,8 +65,8 @@ test("a household saves its home from its location and asks for a maid by the ho
   const page = await phoneHere(browser);
   await signIn(page, { role: Role.consumer, name: `Uma ${RUN}`, phone: newPhone(), lang: en });
 
-  // Settings › Saved addresses › Add: the reason first, then the phone's position, then the form to check.
-  await open(page, "nav.settings", en);
+  // Me › Addresses › Add: the reason first, then the phone's position, then the form to check.
+  await open(page, "me.addresses", en);
   await page.getByRole("button", { name: t(en, "addr.add"), exact: true }).click();
   const form = page.getByRole("form", { name: t(en, "addr.add") });
   await form.getByRole("button", { name: t(en, "addr.use_location"), exact: true }).click();
@@ -73,19 +74,21 @@ test("a household saves its home from its location and asks for a maid by the ho
   await shoot("why-location", { household: page }, FOLDER);
   await page.getByRole("button", { name: t(en, "addr.allow"), exact: true }).click();
   await expect(form.getByRole("status")).toContainText(t(en, "addr.found", { area: LOCALITY }));
+  await doorField(form, en).fill("Flat 4B");
+  await moreDetails(form, en);
   await expect(form.getByLabel(t(en, "addr.area"), { exact: true })).toHaveValue(LOCALITY);
   await expect(form.getByLabel(t(en, "addr.pin"), { exact: true })).toHaveValue("560070");
-  await form.getByLabel(t(en, "addr.house"), { exact: true }).fill("Flat 4B");
   await form.getByLabel(t(en, "addr.building"), { exact: true }).fill("Prestige Lakeside");
   await shoot("address-form", { household: page }, FOLDER);
-  await form.getByRole("button", { name: t(en, "addr.save"), exact: true }).click();
+  await addressSave(form, en).click();
   const book = page.getByRole("region", { name: t(en, "addr.title") });
   await expect(book).toContainText(`Flat 4B, Prestige Lakeside, 12th Main, ${LOCALITY}, Bengaluru 560070`);
   await shoot("saved-addresses", { household: page }, FOLDER);
 
   // Find: a maid, for a few hours, at home.
   await open(page, "nav.find", en);
-  await chip(page, en, "need.pick_work").click();
+  await homePick(page, "need.pick_work", en);
+  await chip(page, en, "group.house_help").click();
   await chip(page, en, "trade.maid").click();
   await chip(page, en, "iv.skip").click();
   await expect(chip(page, en, "need.arr.hourly")).toBeVisible();
@@ -120,7 +123,8 @@ for (const lang of [hi, kn]) {
   test(`Find asks how long the work is for, in ${lang}`, async ({ browser }) => {
     const page = await phoneHere(browser);
     await signIn(page, { role: Role.consumer, name: `Ravi ${RUN}`, phone: newPhone(), lang });
-    await chip(page, lang, "need.pick_work").click();
+    await homePick(page, "need.pick_work", lang);
+    await chip(page, lang, "group.vehicles").click();
     await chip(page, lang, "trade.driver").click();
     // A driver's first question is the route; skipped here.
     await chip(page, lang, "iv.skip").click();
@@ -151,7 +155,7 @@ test("a maid says on her card which work she takes, with a rate for each, and ho
   await form.getByRole("button", { name: t(en, "card.use_location"), exact: true }).click();
   await page.getByRole("button", { name: t(en, "addr.allow"), exact: true }).click();
   await expect(form.getByText(t(en, "card.area_found", { area: LOCALITY }))).toBeVisible();
-  await form.getByRole("button", { name: t(en, "card.km", { km: 5 }), exact: true }).click();
+  await form.getByRole("slider", { name: t(en, "card.radius"), exact: true }).fill("5");
   await shoot("card-arrangements", { worker: page }, FOLDER);
   const sent = page.waitForRequest((r) => r.url() === `${API}/v1/board/profile` && r.method() === "PUT");
   await page.getByRole("button", { name: t(en, "card.publish"), exact: true }).click();

@@ -1,36 +1,21 @@
-import {
-  Collection,
-  type GenerateOptions,
-  type MessageKey,
-  type Model,
-  type Params,
-  type Storage,
-  withoutReasoning,
-} from "@gigsync/core";
-import type { ModelStatus } from "@gigsync/plugin-llm";
+import { Collection, type GenerateOptions, log, type Model, pii, type Storage, withoutReasoning } from "@gigsync/core";
 import type { Session } from "@gigsync/protocol";
 import { useSyncExternalStore } from "react";
-import { OnDevice } from "./model-device.js";
-import { ENGINE_NONE } from "./model-engine.js";
 import { OllamaModel } from "./ollama.js";
 import { ServerModel } from "./server-model.js";
-
-export { Notice } from "./model-device.js";
-export { ENGINE_NONE } from "./model-engine.js";
 
 /**
  * Which model the agent uses, chosen in Settings and kept on this device. Everything goes through core's `Model`
  * port, so the agent never knows which engine answered (HLD principle 6).
- *   auto:   GigSync's own model on GigSync's computer (ADR 0052); when it cannot answer, the device's own model once
- *           it is downloaded and ready; otherwise lite mode
- *   device: always try the device's own model (WebLLM in the web app; LiteRT-LM on Android, Apple Foundation Models)
- *   lite:   no model at all: rules and templates do every job
+ *   auto:   GigSync's own model on GigSync's computer (ADR 0052); when it cannot answer, lite mode
+ *   lite:   no generative model: the Privacy switch turned off, so nothing typed leaves the phone
  *   ollama: development builds only, a model served by Ollama on this computer
- * `server` is never chosen as such: it is what answers under auto while GigSync's model can be asked.
+ * `server` is never chosen as such: it is what answers under auto while GigSync's model can be asked. Lite is named on
+ * no screen: rules, templates and the understanding pack (embedder.ts, ADR 0042 and 0065) do every job. No generative
+ * model runs on the phone on any platform (2026-11-15): the web no longer downloads one, as the apps never did.
  */
 export const ModelChoice = {
   auto: "auto",
-  device: "device",
   lite: "lite",
   ollama: "ollama",
   server: "server",
@@ -47,47 +32,38 @@ export interface ModelSettings {
 export const OLLAMA_OFFERED = import.meta.env.DEV;
 
 const SETTINGS_KEY = "model";
+/** The choice once saved for the phone's own generative model, read as lite now that there is none. */
+const RETIRED_DEVICE_CHOICE = "device";
+/** A development build given an Ollama model (`VITE_OLLAMA_MODEL`) uses it; there is no screen to pick one. */
+const DEV_OLLAMA = OLLAMA_OFFERED ? (import.meta.env.VITE_OLLAMA_MODEL ?? "") : "";
 const DEFAULTS: ModelSettings = {
-  choice: ModelChoice.auto,
-  ollamaModel: OLLAMA_OFFERED ? (import.meta.env.VITE_OLLAMA_MODEL ?? "") : "",
+  choice: DEV_OLLAMA ? ModelChoice.ollama : ModelChoice.auto,
+  ollamaModel: DEV_OLLAMA,
 };
-const ENGINE_NAMES: Readonly<Record<string, string>> = {
-  litert: "LiteRT-LM",
-  "foundation-models": "Apple Foundation Models",
-};
-
-/** The model's own name when the engine gives one, else the engine's. */
-export const engineName = (status: ModelStatus | undefined) =>
-  status?.model?.name ?? ENGINE_NAMES[status?.engine ?? ENGINE_NONE] ?? status?.engine ?? ENGINE_NONE;
-
 /** The one `Model` the app hands to core; it routes each call to the engine chosen in Settings. */
 export class ChosenModel implements Model {
   private settings: ModelSettings = DEFAULTS;
   private readonly listeners = new Set<() => void>();
   private version = 0;
-  /** The phone's own model: its status and the download. */
-  readonly device = new OnDevice(() => this.notify(), import.meta.env.VITE_MODEL_BASE_URL);
   /** GigSync's own model, through the API (ADR 0052). */
   readonly server = new ServerModel(() => this.notify());
-  /** A secret answer is being read (the lowest rate): only a model on this phone may see it. */
+  /** A secret answer is being read (the lowest rate): it never leaves the phone, so no model reads it. */
   private secret = false;
 
   get current(): ModelSettings {
     return this.settings;
   }
 
-  get deviceInfo(): ModelStatus | undefined {
-    return this.device.status;
-  }
-
-  /** Reads the saved choice and asks the device what it has. */
+  /** Reads the saved choice. */
   async load(storage: Storage): Promise<void> {
     const saved = await storage.get<Partial<ModelSettings>>(Collection.settings, SETTINGS_KEY);
     if (saved) this.settings = { ...DEFAULTS, ...saved };
-    await this.device.load(storage);
+    // The phone's own model was a choice once: lite keeps its promise (nothing leaves the phone).
+    if ((this.settings.choice as string) === RETIRED_DEVICE_CHOICE) {
+      this.settings = { ...this.settings, choice: ModelChoice.lite };
+    }
+    this.notify();
   }
-
-  refresh = () => this.device.refresh();
 
   /** The signed-in owner's session, for GigSync's model; none once signed out. */
   setSession(session: Session | undefined): void {
@@ -106,60 +82,44 @@ export class ChosenModel implements Model {
     this.notify();
   }
 
-  /** The answer without the model's reasoning (model-reply.ts), whichever engine gave it; null when there is none. */
+  /**
+   * The answer without the model's reasoning (model-reply.ts), whichever engine gave it; null when there is none. Each
+   * call is logged by purpose with the engine, how long it took, whether it answered and the sizes; the words only
+   * through `pii()`, which prints on a developer's machine and nowhere else.
+   */
   async generate(prompt: string, options?: GenerateOptions): Promise<string | null> {
-    const reply = await this.ask(prompt, options);
-    return reply === null ? null : withoutReasoning(reply) || null;
+    await this.server.ready();
+    const engine = this.answering();
+    const started = performance.now();
+    const raw = await this.ask(prompt, options);
+    const reply = raw === null ? null : withoutReasoning(raw) || null;
+    const ms = Math.round(performance.now() - started);
+    const call = { purpose: options?.purpose, engine, ms, answered: reply !== null };
+    log.info("model call", { ...call, prompt_chars: prompt.length, reply_chars: reply?.length ?? 0 });
+    log.debug("model call words", { purpose: options?.purpose, prompt: pii(prompt), reply: pii(reply ?? "") });
+    return reply;
   }
 
   private async ask(prompt: string, options?: GenerateOptions): Promise<string | null> {
     switch (this.answering()) {
-      case ModelChoice.server: {
-        // GigSync's model first; when it gives nothing (down, too slow), the phone's own model if it has one.
-        const reply = await this.server.generate(prompt, options);
-        if (reply !== null || !this.device.usable()) return reply;
-        return this.device.generate(prompt, options);
-      }
+      case ModelChoice.server:
+        return this.server.generate(prompt, options);
       case ModelChoice.ollama:
         return new OllamaModel(this.settings.ollamaModel).generate(prompt, options);
-      case ModelChoice.device:
-        return this.device.generate(prompt, options);
       default:
         return null;
     }
   }
 
-  /** Which engine answers right now: the device's own model, Ollama, or none at all (lite mode). */
+  /** Which engine answers right now: GigSync's model, Ollama, or none at all (`lite`). */
   answering(): ModelChoice {
     switch (this.settings.choice) {
-      case ModelChoice.lite:
-        return ModelChoice.lite;
       case ModelChoice.ollama:
         return OLLAMA_OFFERED && this.settings.ollamaModel ? ModelChoice.ollama : ModelChoice.lite;
-      case ModelChoice.device:
-        return this.device.status?.available ? ModelChoice.device : ModelChoice.lite;
-      default:
-        if (!this.secret && this.server.available) return ModelChoice.server;
-        return this.device.usable() ? ModelChoice.device : ModelChoice.lite;
-    }
-  }
-
-  /** One line for the screens, in the owner's language: which engine will answer right now. */
-  label(t: (key: MessageKey, params?: Params) => string): string {
-    const lite = t("model.lite_label");
-    const device = t("model.on_device_label", { engine: engineName(this.device.status) });
-    switch (this.settings.choice) {
       case ModelChoice.lite:
-        return lite;
-      case ModelChoice.ollama:
-        return this.settings.ollamaModel ? t("model.ollama_label", { name: this.settings.ollamaModel }) : lite;
-      case ModelChoice.device:
-        return this.device.status?.available ? device : t("model.not_ready_lite", { device });
-      default: {
-        const now = this.answering();
-        const model = now === ModelChoice.server ? t("model.server_label") : now === ModelChoice.device ? device : lite;
-        return t("model.auto_label", { model });
-      }
+        return ModelChoice.lite;
+      default:
+        return !this.secret && this.server.available ? ModelChoice.server : ModelChoice.lite;
     }
   }
 
@@ -179,7 +139,7 @@ export class ChosenModel implements Model {
 /** The app's single model router. */
 export const chosenModel = new ChosenModel();
 
-/** Re-renders a component whenever the model choice or the device's status changes. */
+/** Re-renders a component whenever the model choice or GigSync's model's reach changes. */
 export function useChosenModel(): ChosenModel {
   useSyncExternalStore(chosenModel.subscribe, chosenModel.snapshot);
   return chosenModel;

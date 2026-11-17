@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from "react";
 
 /**
- * Wide enough for the menu to stand beside the content, as collab's sidebar does on a computer; narrower, it is a
- * drawer over the screen. The same breakpoint as `shell/shell.css`, and collab's (web/styles.css, 820px), in CSS px.
+ * Wide enough for the tabs to stand as a rail beside the content, as collab's sidebar does on a computer; narrower,
+ * they sit at the foot of the screen. The same breakpoint as `shell/shell.css`, and collab's (web/styles.css, 820px).
  */
 const WIDE_QUERY = "(min-width: 821px)";
 

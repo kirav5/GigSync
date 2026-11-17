@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   CITY_RATES,
   checkJobType,
-  checkPriceStep,
   hearNeed,
   looksLikeAddress,
   modelJobType,
@@ -11,14 +10,13 @@ import {
   type NeedState,
   needPrompt,
   needRequest,
-  type PriceContext,
   scrubFacts,
   scrubJobType,
   startNeed,
   withJobType,
 } from "../src/index.js";
 import { FakeModel } from "./model-fakes.js";
-import { ScriptModel, step, think } from "./price-fakes.js";
+import { questions, ScriptModel, think } from "./price-fakes.js";
 
 /** ADR 0041's extras: facts and job types the phone's model writes, scrubbed and checked before they travel. */
 
@@ -32,14 +30,6 @@ const config = (own: Lang, modelQuestions = true) => ({
   modelQuestions,
 });
 const keys = (s: NeedState) => needPrompt(s).lines.map((l) => l.key);
-const context = (said: PriceContext["said"] = []): PriceContext => ({
-  lang: "en",
-  trade: "painter",
-  drivers: { rooms: 3 },
-  notKnown: [],
-  said,
-  asked: 1,
-});
 
 describe("scrubbing what a model wrote", () => {
   it("cuts phone numbers out, in any script", () => {
@@ -62,32 +52,9 @@ describe("scrubbing what a model wrote", () => {
     expect(scrubJobType("tutor at 560102")).toBeUndefined();
   });
 
-  it("keeps a fact's numbers only when the owner said them, and at most five facts", () => {
-    const said = [{ q: "How old is the paint?", a: "about 6 years" }];
-    const reply = step({
-      done: true,
-      facts: [
-        { label: "Paint age", value: "6 years" },
-        { label: "Rooms damp", value: "5 rooms" },
-        ...Array.from({ length: 6 }, (_, i) => ({ label: `Fact ${"abcdef"[i]}`, value: "yes" })),
-      ],
-    });
-    const out = checkPriceStep(reply, context(said));
-    expect("done" in out && out.facts.map((f) => f.label)).toEqual([
-      "Paint age",
-      "Fact a",
-      "Fact b",
-      "Fact c",
-      "Fact d",
-    ]);
-  });
-
-  it("a fact never stands in for a driver", () => {
-    const out = checkPriceStep(
-      step({ done: true, facts: [{ label: "floors", value: "2" }] }),
-      context([{ q: "?", a: "2" }]),
-    );
-    expect("done" in out && out.facts).toEqual([]);
+  it("keeps at most five facts", () => {
+    const many = Array.from({ length: 7 }, (_, i) => ({ label: `Fact ${"abcdefg"[i]}`, value: "yes" }));
+    expect(scrubFacts(many)).toHaveLength(5);
   });
 });
 
@@ -104,7 +71,7 @@ describe("a need outside the trades", () => {
       expect(asked.slot).toBe(NeedSlot.trade);
       const s = withJobType(asked, label, text);
       expect(s.slot).toBe(NeedSlot.driver);
-      const done = await think(s, new ScriptModel([step({ done: true })]));
+      const done = await think(s, new ScriptModel([questions()]));
       expect(done.slot).toBe(NeedSlot.outside);
       expect(needRequest(city, done.draft)).toBeUndefined();
       // No prices for work outside the trades (founders, 2026-10-31): no request, and the plain line.

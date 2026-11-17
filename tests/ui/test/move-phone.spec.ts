@@ -5,6 +5,8 @@ import jsQR from "jsqr";
 import { skipPriceQuestions } from "./findChat.js";
 import {
   drawer,
+  greeting,
+  homePick,
   MovePrompt,
   newPhone,
   open,
@@ -12,6 +14,7 @@ import {
   openDrawer,
   Role,
   RUN,
+  reveal,
   setUpi,
   shoot,
   signIn,
@@ -104,12 +107,14 @@ const tap = (page: Page, label: string) =>
 async function signedJob(meena: Phone, priya: Phone, meenaName: string) {
   const page = priya.page;
   await open(page, "nav.find");
-  await expect(page.getByRole("log")).toContainText(t(en, "need.start"));
-  await tap(page, t(en, "need.pick_work"));
+  await expect(greeting(page, en)).toBeVisible();
+  await homePick(page, "need.pick_work", en);
+  await tap(page, t(en, "group.house_help"));
   await tap(page, t(en, "trade.maid"));
   await say(page, ROOMS);
   await tap(page, t(en, "need.arr.monthly"));
-  await tap(page, t(en, "area.hsr_layout"));
+  // Where: the saved address, as a card (areas are said, no longer offered as chips).
+  await tap(page, t(en, "addr.chip", { label: t(en, "addr.label.home"), area: "HSR Layout" }));
   await skipPriceQuestions(priya);
   // Every day, at an hour (ADR 0050 §1): any time.
   await tap(page, t(en, "when.any_time"));
@@ -163,7 +168,9 @@ test("a household moves to a new phone by QR: the job, memory and chats arrive, 
 
   await newPage.getByRole("button", { name: t(en, "phone.in_continue") }).click();
   await open(newPage, "nav.my_jobs");
-  await expect(newPage.getByLabel(t(en, "a11y.contact"))).toContainText(meenaName);
+  const contact = newPage.getByLabel(t(en, "a11y.contact"));
+  await reveal(newPage, contact);
+  await expect(contact).toContainText(meenaName);
   await open(newPage, "nav.about");
   await expect(memory(newPage)).toContainText(ROOMS);
   await openDrawer(newPage);
@@ -186,7 +193,7 @@ test("a worker's card comes back on a new phone, and moving brings the lowest pr
 
   // A fresh sign-in on another phone: not moving yet. The card comes back from the board; only the lowest price is asked.
   await signIn(newPage, { ...anil, elsewhere: MovePrompt.notNow });
-  await open(newPage, "nav.activity");
+  await open(newPage, "nav.jobs");
   const floor = newPage.getByRole("form", { name: t(en, "phone.floor_title") });
   await expect(floor).toContainText(t(en, "phone.floor_about"));
   await shoot("card-back", { new: newPage }, FOLDER);

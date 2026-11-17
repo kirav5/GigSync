@@ -1,0 +1,149 @@
+[
+  {
+    "id": "hinglish-tap",
+    "says": ["kitchen ka nal tapak raha hai"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "trade": "plumber" }
+  },
+  {
+    "id": "hinglish-drain",
+    "says": ["bathroom ki naali band ho gayi hai"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "trade": "plumber" }
+  },
+  {
+    "id": "hinglish-fan",
+    "says": ["pankha nahi chal raha hai"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "trade": "electrician" }
+  },
+  {
+    "id": "hinglish-switch",
+    "says": ["switch board spark kar raha hai"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "trade": "electrician" }
+  },
+  {
+    "id": "hinglish-maid",
+    "says": ["ghar ki safai aur bartan ke liye bai chahiye"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "trade": "maid" }
+  },
+  {
+    "id": "hinglish-cook",
+    "says": ["family ke liye cook chahiye"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "trade": "cook" }
+  },
+  {
+    "id": "hinglish-driver",
+    "says": ["kal ke liye car driver chahiye"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "trade": "driver" }
+  },
+  {
+    "id": "hinglish-door",
+    "says": ["almari ka darwaza toot gaya hai"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "trade": "carpenter" }
+  },
+  {
+    "id": "hinglish-paint",
+    "says": ["do bedroom ka paint karwana hai"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "trade": "painter" }
+  },
+  {
+    "id": "hinglish-ac",
+    "says": ["mera ac kaam nahi kar raha"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "trade": "ac_technician" }
+  },
+  {
+    "id": "hinglish-acservice",
+    "says": ["ac service karwani hai"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "trade": "ac_technician" }
+  },
+  {
+    "id": "hinglish-tv",
+    "says": ["mera tv nahi chal raha"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "skill": "TV repair" }
+  },
+  {
+    "id": "hinglish-tvoff",
+    "says": ["tv on nahi ho raha"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "skill": "TV repair" }
+  },
+  {
+    "id": "hinglish-fridge",
+    "says": ["fridge thanda nahi kar raha"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "skill": "Fridge repair" }
+  },
+  {
+    "id": "hinglish-pest",
+    "says": ["kitchen mein bahut cockroach hain"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "skill": "Pest control" }
+  },
+  {
+    "id": "hinglish-tutor",
+    "says": ["bete ke liye maths tutor chahiye"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "skill": "School tutor" }
+  },
+  {
+    "id": "hinglish-tailor",
+    "says": ["blouse silwana hai"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "skill": "Tailor" }
+  },
+  {
+    "id": "hinglish-laptop",
+    "says": ["laptop ki screen toot gayi hai"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "skill": "Laptop and computer repair" }
+  },
+  {
+    "id": "hinglish-hello",
+    "says": ["hello ji", "mera tv nahi chal raha"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "skill": "TV repair" }
+  },
+  {
+    "id": "hinglish-hellotap",
+    "says": ["hello", "kitchen ka nal tapak raha hai"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "trade": "plumber" }
+  },
+  {
+    "id": "hinglish-switch-tv",
+    "says": ["mera ac kaam nahi kar raha"],
+    "answers": ["bas ek"],
+    "later": "mera tv bhi nahi chal raha",
+    "want": { "trade": "ac_technician" }
+  },
+  {
+    "id": "hinglish-switch-cook",
+    "says": ["kitchen ka nal tapak raha hai"],
+    "answers": ["bas ek"],
+    "later": "mujhe ek cook bhi chahiye",
+    "want": { "trade": "plumber" }
+  },
+  { "id": "hinglish-nobody", "says": ["mujhe swimming coach chahiye"], "answers": ["x"], "want": { "outside": true } },
+  {
+    "id": "hinglish-fish",
+    "says": ["fish tank saaf karwana hai"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "skill": "Aquarium cleaning" }
+  },
+  {
+    "id": "hinglish-cooler",
+    "says": ["mera cooler kharab ho gaya"],
+    "answers": ["bas ek", "kal se"],
+    "want": { "skill": "Cooler fixing" }
+  }
+]

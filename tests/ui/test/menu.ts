@@ -1,92 +1,233 @@
 import { type MessageKey, t } from "@gigsync/core";
 import { DEFAULT_LANG, type Lang } from "@gigsync/protocol";
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 /**
- * The app's frame as the specs reach it, as the collab app's: a menu (a drawer behind ☰ on a phone, a column beside the
- * content on a wide screen) with six screens, the chat as home, × back to it, and sign-out in the menu's foot.
+ * The app's frame as the specs reach it: three tabs at the foot of a tab's screen (a rail beside the content on a wide
+ * screen), the chats behind the top bar's round button on its left, Back there on every screen opened from inside
+ * another, and the owner's pages in the profile sheet behind the round button with their initial on the right. Specs
+ * name screens by their old menu keys; each finds its way from here.
  */
 
-/** The menu (collab's sidebar), named in the owner's language: a drawer on a phone, beside the content when wide. */
-export const drawer = (page: Page, lang: Lang = DEFAULT_LANG) =>
-  page.getByRole("navigation", { name: t(lang, "shell.drawer") });
-
-/** The top bar's menu button, which opens the drawer; a wide screen has none. */
-export const menuButton = (page: Page, lang: Lang = DEFAULT_LANG) =>
-  page.getByRole("button", { name: t(lang, "shell.menu"), exact: true });
+/** The three tabs, named in the owner's language: at the foot of a tab's screen, or the rail on a wide screen. */
+export const tabBar = (page: Page, lang: Lang = DEFAULT_LANG) =>
+  page.getByRole("navigation", { name: t(lang, "shell.tabs") });
 
 /**
- * The signed-in frame, whatever the width: the menu button on a phone (its drawer closed, so hidden), the menu itself
- * on a wide screen. Exactly one of the two is in the accessibility tree at a time.
+ * The tabs each old menu key is reached by now. Records is the ₹ tab, Earnings for a worker and Payments for a
+ * household; Home is the chat, Talk or Find.
  */
-export const shell = (page: Page, lang: Lang = DEFAULT_LANG) => menuButton(page, lang).or(drawer(page, lang));
+const TABS: Partial<Record<MessageKey, readonly MessageKey[]>> = {
+  "nav.activity": ["nav.jobs"],
+  "nav.my_jobs": ["nav.jobs"],
+  "nav.jobs": ["nav.jobs"],
+  "nav.records": ["nav.earnings", "nav.payments"],
+  "nav.earnings": ["nav.earnings"],
+  "nav.payments": ["nav.payments"],
+  "nav.find": ["nav.home"],
+  "nav.home": ["nav.home"],
+};
+/** Talk, a worker's chat: their Home. */
+const TALK: MessageKey = "nav.talk";
+/** The old Me tab: the profile sheet now. */
+const ME: MessageKey = "profile.title";
 
-/** My jobs, a household's old tab, as some specs still name it: Activity took its place. */
-const MOVED: Partial<Record<MessageKey, MessageKey>> = { "nav.my_jobs": "nav.activity" };
-/** The tabs that were the chat, which is home now: Talk for a worker, Find for a household. */
-const CHAT: ReadonlySet<MessageKey> = new Set(["nav.talk", "nav.find"]);
-
-/** Opens the menu, unless it is open or stands beside the content (a wide screen), backing out of a sub-screen first. */
-export async function openDrawer(page: Page, lang: Lang = DEFAULT_LANG) {
-  // A screen opened from inside another has Back where ☰ was, as collab's detail panel does: back out of it first.
-  const back = page.getByRole("banner").getByRole("button", { name: t(lang, "a11y.back"), exact: true });
-  while (await back.isVisible()) await back.click();
-  // The frame first: right after a reload the app has not drawn yet, and no menu button would mean "wide".
-  await expect(shell(page, lang).first()).toBeVisible();
-  const menu = menuButton(page, lang);
-  if ((await menu.count()) > 0 && (await menu.getAttribute("aria-expanded")) !== "true") await menu.click();
-  await expect(drawer(page, lang)).toBeVisible();
+/** One tab by its name (an old menu key finds its new tab), counted or not: the name is exact. */
+export function tab(page: Page, key: MessageKey, lang: Lang = DEFAULT_LANG): Locator {
+  const [first, ...rest] = (TABS[key] ?? [key]).map((name) =>
+    tabBar(page, lang).getByRole("button", { name: t(lang, name), exact: true }),
+  );
+  return rest.reduce((all, one) => all.or(one), first ?? tabBar(page, lang));
 }
 
-/** Back to the chat from any other screen, with the top bar's ×; nothing to do on the chat itself. */
-export async function toChat(page: Page, lang: Lang = DEFAULT_LANG) {
-  // The top bar first: right after a reload the app has not drawn yet, and no × would mean "on the chat".
+/** The top bar's Back. */
+const back = (page: Page, lang: Lang) =>
+  page.getByRole("banner").getByRole("button", { name: t(lang, "a11y.back"), exact: true });
+
+/** The top bar's title. */
+const title = (page: Page) => page.getByRole("banner").locator(".topbar-title");
+
+/** Talk's composer: a worker is on their chat. */
+const talkForm = (page: Page, lang: Lang) => page.getByRole("form", { name: t(lang, TALK) });
+
+/** The round button with the owner's initial, at the top bar's end, which opens the profile sheet. */
+export const profileButton = (page: Page, lang: Lang = DEFAULT_LANG) =>
+  page.getByRole("banner").getByRole("button", { name: t(lang, "profile.open"), exact: true });
+
+/** The profile sheet, while it is open. */
+export const profileSheet = (page: Page, lang: Lang = DEFAULT_LANG) => page.getByRole("dialog", { name: t(lang, ME) });
+
+/** Opens the profile sheet from any screen. */
+export async function openProfile(page: Page, lang: Lang = DEFAULT_LANG) {
+  if (await profileSheet(page, lang).isVisible()) return;
+  await profileButton(page, lang).click();
+  await expect(profileSheet(page, lang)).toBeVisible();
+}
+
+/** Back out of screens opened from inside others until the tabs show (a phone shows them on a tab's screen only). */
+export async function backToTabs(page: Page, lang: Lang = DEFAULT_LANG) {
+  // The frame first: right after a reload the app has not drawn yet.
   await expect(page.getByRole("banner")).toBeVisible();
-  const close = page.getByRole("button", { name: t(lang, "shell.to_chat"), exact: true });
-  if ((await close.count()) > 0) await close.click();
-  await expect(close).toHaveCount(0);
+  await closeProfile(page, lang);
+  // An open chats drawer shades the screen behind it, as a phone's drawer does: Escape closes it.
+  const chats = page.getByRole("navigation", { name: t(lang, "chats.title"), exact: true });
+  if (await chats.isVisible()) {
+    await page.keyboard.press("Escape");
+    await expect(chats).toBeHidden();
+  }
+  // Back from a screen opened from the profile sheet comes to the sheet again: Done closes it.
+  while (!(await tabBar(page, lang).isVisible()) && (await back(page, lang).isVisible())) {
+    await back(page, lang).click();
+    await closeProfile(page, lang);
+  }
+  await expect(tabBar(page, lang)).toBeVisible();
 }
 
+/** An open profile sheet makes the page behind it inert: Done closes it. */
+export async function closeProfile(page: Page, lang: Lang = DEFAULT_LANG) {
+  if (!(await profileSheet(page, lang).isVisible())) return;
+  await profileSheet(page, lang)
+    .getByRole("button", { name: t(lang, "profile.done"), exact: true })
+    .click();
+  await expect(profileSheet(page, lang)).toBeHidden();
+}
+
+/** Find's chat on a household's Home: its composer, or New need once its workers were asked. */
+const findChat = (page: Page, lang: Lang) =>
+  page
+    .getByRole("form", { name: t(lang, "need.composer") })
+    .or(page.getByRole("button", { name: t(lang, "chats.new_need"), exact: true }));
+
+/** Talk, a worker's Home: already on it, or the Home tab. */
+async function toTalk(page: Page, lang: Lang) {
+  await expect(page.getByRole("banner")).toBeVisible();
+  if (await talkForm(page, lang).isVisible()) return;
+  await backToTabs(page, lang);
+  if (await talkForm(page, lang).isVisible()) return;
+  await tab(page, "nav.home", lang).click();
+  await expect(talkForm(page, lang)).toBeVisible();
+}
+
+/** Back to the owner's chat from any screen: their Home, Talk for a worker and Find for a household. */
+export async function toChat(page: Page, lang: Lang = DEFAULT_LANG) {
+  await expect(page.getByRole("banner")).toBeVisible();
+  if (await talkForm(page, lang).isVisible()) return;
+  await backToTabs(page, lang);
+  if (await talkForm(page, lang).isVisible()) return;
+  await tab(page, "nav.home", lang).click();
+  await expect(talkForm(page, lang).or(findChat(page, lang)).first()).toBeVisible();
+}
+
+/** The chats kept on this phone, on their own screen. */
+export const chatList = (page: Page, lang: Lang = DEFAULT_LANG) =>
+  page.getByRole("region", { name: t(lang, "chats.title") });
+
+/** Opens the chats from the owner's chat: the top bar's round chats button on Talk or Find. */
+export async function showChats(page: Page, lang: Lang = DEFAULT_LANG) {
+  await toChat(page, lang);
+  await page
+    .getByRole("banner")
+    .getByRole("button", { name: t(lang, "chats.title"), exact: true })
+    .click();
+  await expect(chatList(page, lang)).toBeVisible();
+}
+
+/** New chat, from the chats screen: the open chat stays in the list and an empty one opens. */
+export async function newChat(page: Page, lang: Lang = DEFAULT_LANG) {
+  await showChats(page, lang);
+  await page.getByRole("button", { name: t(lang, "chats.new"), exact: true }).click();
+}
+
+/** The names a page goes by for one side or the other: a household's My card is My QR, as it holds only the QR. */
+const NAMES: Partial<Record<MessageKey, readonly MessageKey[]>> = { "nav.card": ["nav.card", "profile.my_qr"] };
+
+/** Text as a regular expression matches it, literally. (helpers.ts has the same; it imports this file.) */
+const literal = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** A screen's name, whichever side the owner is on: exact, as a row's or the top bar's. */
+const nameOf = (screen: MessageKey, lang: Lang): RegExp =>
+  new RegExp(`^(${(NAMES[screen] ?? [screen]).map((k) => literal(t(lang, k))).join("|")})$`);
+
 /**
- * A row of the menu by its name in the person's language (a count or a dot is the row's description, so the name is
- * exact), found even while the drawer is closed, to read which screen is open. Old tab names find their new row.
+ * A screen the old menu opened, by its key: a tab's button, or, for the owner's pages, the profile sheet's row with
+ * that exact name (a count or the line under a row is its description, never its name).
  */
 export const navRow = (page: Page, screen: MessageKey, lang: Lang = DEFAULT_LANG) =>
-  page
-    .getByRole("navigation", { name: t(lang, "shell.drawer"), includeHidden: true })
-    .getByRole("button", { name: t(lang, MOVED[screen] ?? screen), exact: true, includeHidden: true });
+  TABS[screen]
+    ? tab(page, screen, lang)
+    : profileSheet(page, lang)
+        .getByRole("button", { name: nameOf(screen, lang) })
+        .first();
 
-/** Expects `screen` to be the one showing: its menu row marked, or, for the chat, no × back to it. */
+/** Expects `screen` to be the one showing: its tab marked, Talk's composer, the sheet, or its name in the top bar. */
 export async function onScreen(page: Page, screen: MessageKey, lang: Lang = DEFAULT_LANG) {
-  if (CHAT.has(screen)) {
-    await expect(page.getByRole("button", { name: t(lang, "shell.to_chat"), exact: true })).toHaveCount(0);
+  if (screen === TALK) {
+    await expect(talkForm(page, lang)).toBeVisible();
     return;
   }
-  await expect(navRow(page, screen, lang)).toHaveAttribute("aria-current", "page");
+  if (screen === ME) {
+    await expect(profileSheet(page, lang)).toBeVisible();
+    return;
+  }
+  if (TABS[screen]) {
+    await expect(tab(page, screen, lang)).toHaveAttribute("aria-current", "page");
+    return;
+  }
+  await expect(title(page)).toHaveText(nameOf(screen, lang));
 }
 
+/** Alerts open from the bell in the top bar, not from the profile. */
+const ALERTS = "tabs.alerts";
+
 /**
- * Opens a screen through the menu, by its row's name. The old tab names still work: My jobs opens Activity, and Talk
- * or Find go back to the chat.
+ * Opens a screen by its old menu key: the tab for Jobs (Activity, My jobs), Earnings or Payments (Records) and Home (Find, Talk);
+ * the profile sheet for `profile.title`, and its row for My card, About me, Privacy, Settings and the other pages,
+ * which open above the tab the owner was on.
  */
 export async function open(page: Page, screen: MessageKey, lang: Lang = DEFAULT_LANG) {
-  if (CHAT.has(screen)) return toChat(page, lang);
-  await openDrawer(page, lang);
-  await navRow(page, screen, lang).click();
+  if (screen === TALK) return toTalk(page, lang);
+  await backToTabs(page, lang);
+  if (TABS[screen]) {
+    await tab(page, screen, lang).click();
+  } else if (screen === ALERTS) {
+    await page
+      .getByRole("banner")
+      .getByRole("button", { name: t(lang, ALERTS), exact: true })
+      .click();
+  } else {
+    await openProfile(page, lang);
+    if (screen !== ME) await navRow(page, screen, lang).click();
+  }
   await onScreen(page, screen, lang);
 }
 
-/** Signs out from the menu's foot. */
+/** Signs out from Settings' "This phone". */
 export async function signOutHere(page: Page, lang: Lang = DEFAULT_LANG) {
-  await openDrawer(page, lang);
-  await drawer(page, lang)
-    .getByRole("button", { name: t(lang, "shell.sign_out"), exact: true })
-    .click();
+  await open(page, "nav.settings", lang);
+  await page.getByRole("button", { name: t(lang, "shell.sign_out"), exact: true }).click();
 }
 
-/** My card's form, from the menu: My card, then Edit my card. */
+/** My card's form: the profile, My card, then Edit my card. */
 export async function openCard(page: Page, lang: Lang = DEFAULT_LANG) {
   await open(page, "nav.card", lang);
   await page.getByRole("button", { name: t(lang, "shell.edit_card"), exact: true }).click();
   await expect(page.getByRole("form", { name: t(lang, "a11y.my_card") })).toBeVisible();
 }
+
+/*
+ * The drawer's old names, kept so specs written for it still compile: what they did with the drawer is done here now.
+ * The drawer held the chats and New chat, so opening it opens the chats screen and the drawer is the signed-in frame
+ * that screen and its dock stand in; the menu button is the profile button; the frame is the top bar.
+ */
+
+/** The signed-in frame: the top bar, the screen and its dock, and the tabs when they show. */
+export const drawer = (page: Page, _lang: Lang = DEFAULT_LANG) => page.locator(".app.shell");
+
+/** The profile button, which holds what the drawer's rows did. */
+export const menuButton = profileButton;
+
+/** The signed-in frame, whatever the width or screen: its top bar. */
+export const shell = (page: Page, _lang: Lang = DEFAULT_LANG) => page.getByRole("banner");
+
+/** Opens the chats screen, where the drawer's chats and New chat are now. */
+export const openDrawer = showChats;

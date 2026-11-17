@@ -10,7 +10,7 @@ import {
   type TalkStep,
   termsLines,
 } from "@gigsync/core";
-import { EngagementStatus, isModelQuestion, type Lang, type Question, Role } from "@gigsync/protocol";
+import { isModelQuestion, type Lang, type Question, Role } from "@gigsync/protocol";
 import type { ReactNode } from "react";
 import { useI18n } from "../i18n.js";
 import { C } from "../ui/cls.js";
@@ -20,7 +20,6 @@ import { DetailValue } from "./DetailValue.js";
 import { Explain } from "./terms/Explain.js";
 import { OfferTerms } from "./terms/OfferTerms.js";
 
-const S = EngagementStatus.enum;
 /** The note beside an offer far outside the job's estimate (ADR 0030 §5). */
 const NOTE: Readonly<Record<OfferNote, MessageKey>> = {
   [OfferNote.below]: "estimate.below",
@@ -30,19 +29,14 @@ const NOTE: Readonly<Record<OfferNote, MessageKey>> = {
 const GAP = " ";
 /** Between the terms of one proposal. */
 const LIST = ", ";
-/** While the agents are still at it, their talk is open on the card; once it is settled it folds away. */
-const TALKING: ReadonlySet<EngagementStatus> = new Set([
-  S.sent,
-  S.clarifying,
-  S.responded,
-  S.negotiating,
-  S.confirming,
-]);
 
 /**
- * What the two agents said, in order and in the reader's language: the request, the worker's agent's questions and
- * the household's answers (translated when the other side wrote them), every offer, the agreement, each signature and
- * the contacts. It ends by saying the reader's own limit never left the phone.
+ * What the two agents said, in order and in the reader's language, as a chat (W9, H9): the other side's turns on the
+ * left, this owner's agent's on the right, and what belongs to both (the agreement, the contacts) between them. The
+ * request, the worker's agent's questions and the household's answers (translated when the other side wrote them),
+ * every offer, the agreement, each signature and the contacts. It ends by saying the reader's own limit never left
+ * the phone. It starts folded, even while the assistants talk: the latest offer is the card's one row (TakeOver), and
+ * the talk is how it came about, a tap away.
  */
 export function AgentTalk({
   job,
@@ -147,8 +141,9 @@ export function AgentTalk({
   const side = (s: TalkStep) => ("by" in s ? (mine(s.by) ? "mine" : "theirs") : "both");
   const title = t("talk.title");
   return (
-    <details className="job-talk" open={TALKING.has(job.engagement.status)}>
+    <details className="job-talk">
       <summary>{title}</summary>
+      <p className="section-label">{t("jobcard.talk_sides", { name: them })}</p>
       <ol className="talk" aria-label={title}>
         {steps.map((s, i) => (
           // The story only grows, so a step's place in it is stable.

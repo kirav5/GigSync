@@ -15,7 +15,6 @@ let package = Package(
         .package(name: "CapacitorApp", path: "../../../../../node_modules/.pnpm/@capacitor+app@8.1.2_@capacitor+core@8.5.3/node_modules/@capacitor/app"),
         .package(name: "CapacitorKeyboard", path: "../../../../../node_modules/.pnpm/@capacitor+keyboard@8.0.6_@capacitor+core@8.5.3/node_modules/@capacitor/keyboard"),
         .package(name: "CapacitorPreferences", path: "../../../../../node_modules/.pnpm/@capacitor+preferences@8.0.1_@capacitor+core@8.5.3/node_modules/@capacitor/preferences"),
-        .package(name: "GigsyncPluginLlm", path: "../../../node_modules/@gigsync/plugin-llm"),
         .package(name: "GigsyncPluginSpeech", path: "../../../node_modules/@gigsync/plugin-speech"),
         .package(name: "GigsyncPluginTranslate", path: "../../../node_modules/@gigsync/plugin-translate")
     ],
@@ -28,7 +27,6 @@ let package = Package(
                 .product(name: "CapacitorApp", package: "CapacitorApp"),
                 .product(name: "CapacitorKeyboard", package: "CapacitorKeyboard"),
                 .product(name: "CapacitorPreferences", package: "CapacitorPreferences"),
-                .product(name: "GigsyncPluginLlm", package: "GigsyncPluginLlm"),
                 .product(name: "GigsyncPluginSpeech", package: "GigsyncPluginSpeech"),
                 .product(name: "GigsyncPluginTranslate", package: "GigsyncPluginTranslate")
             ]

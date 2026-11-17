@@ -2,21 +2,17 @@ import type { agent as en } from "../en/agent.js";
 
 /** Kannada: the agent screen and its cards, translation on the phone, and the rate card's source line. */
 export const agent: Readonly<Record<keyof typeof en, string>> = {
-  "agent.headline": "ನಿಮ್ಮ ಏಜೆಂಟ್ ಜೊತೆ ಮಾತಾಡಿ.",
+  "agent.headline": "ನಿಮ್ಮ ಸಹಾಯಕನ ಜೊತೆ ಮಾತಾಡಿ.",
   "agent.soft": "ನಿಮ್ಮ ಟಿಪ್ಪಣಿಗಳು ಇಲ್ಲೇ ಇರುತ್ತವೆ.",
-  "agent.placeholder": "ಮಾತಾಡಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ…",
-  "agent.empty": "ಏನಾದರೂ ಕೇಳಿ, ಅಥವಾ ಇವುಗಳಲ್ಲಿ ಒಂದನ್ನು ಒತ್ತಿ.",
+  "agent.empty": "ನಿಮ್ಮ ಸಹಾಯಕ ಏನು ಮಾಡಬೇಕು?",
   "agent.suggest_rate": "ನನ್ನ ದರ ಬದಲಾಯಿಸಿ",
   "agent.suggest_earned": "ಈ ವಾರ ನಾನು ಎಷ್ಟು ಸಂಪಾದಿಸಿದೆ?",
   "agent.earnings": "ಈ ವಾರ ನಿಮಗೆ {week} ಬಂದಿದೆ, ಈ ತಿಂಗಳು {month}. ಇನ್ನೂ ಬರಬೇಕಿರುವುದು: {waiting}.",
   "agent.sources.one": "{count} ಟಿಪ್ಪಣಿಯಿಂದ",
   "agent.sources.other": "{count} ಟಿಪ್ಪಣಿಗಳಿಂದ",
-  "card.text": "ಏಜೆಂಟ್",
   "card.saved": "ಉಳಿಸಲಾಗಿದೆ",
   "card.answer": "ಉತ್ತರ",
   "card.draft": "ಡ್ರಾಫ್ಟ್",
-  "card.needs_model": "ಮಾಡೆಲ್ ಬೇಕು",
-  "card.clarify": "ಪ್ರಶ್ನೆ",
   "agent.clarify": "ನಿಮಗೆ ಏನು ಬೇಕು ಎಂದು ನನಗೆ ಸರಿಯಾಗಿ ಅರ್ಥವಾಗಲಿಲ್ಲ. ನೀವು ಹೇಳಿದ್ದು ಇದೇನಾ:",
   "agent.thinking": "ಯೋಚಿಸುತ್ತಿದ್ದೇನೆ…",
   "choose.editCard": "ನನ್ನ ಕಾರ್ಡ್ ಬದಲಾಯಿಸಿ",

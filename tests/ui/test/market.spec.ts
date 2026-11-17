@@ -1,7 +1,7 @@
 import { priceText, t } from "@gigsync/core";
 import { type Estimate, Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Locator, type Page, test } from "@playwright/test";
-import { newPhone, open, Role, RUN, shoot, signIn, textOf } from "./helpers.js";
+import { greeting, newPhone, open, Role, RUN, shoot, signIn, textOf } from "./helpers.js";
 import { unlistCards } from "./journey.js";
 import { COOK_REQUEST, estimateNow, seedAreaJobs } from "./market-seed.js";
 
@@ -80,7 +80,7 @@ test("the API answers a cook in Jayanagar from the jobs agreed there", () => {
   expect(range?.basis.gigsync_jobs).toBeGreaterThanOrEqual(K_MIN);
 });
 
-test("a worker's rate question shows the range from jobs on GigSync, and Talk answers a market question", async ({
+test("a worker's price card shows the range near her from jobs on GigSync, and Talk answers a market question", async ({
   browser,
 }) => {
   const e = range as Estimate;
@@ -88,19 +88,22 @@ test("a worker's rate question shows the range from jobs on GigSync, and Talk an
   await signIn(page, { role: Role.worker, name: `Asha ${RUN}`, phone: newPhone(), lang: en });
   await expect(page.getByText(textOf(en, "iv.ask.trade"))).toBeVisible();
   await tap(page, t(en, "trade.cook"));
-  // A cook says which work she takes (ADR 0051): by the month, as the range below is.
-  await tap(page, t(en, "arrangement.monthly"));
+  // None of the rest of house help (ADR 0061).
   await tap(page, t(en, "iv.done"));
   await tap(page, PLACE);
+  // How far she goes (ADR 0045), asked right after the area: a quick chip sets it, Use answers.
+  await tap(page, t(en, "card.km", { km: 10 }));
+  await tap(page, t(en, "cardflow.use_km", { km: 10 }));
+  // The price card: by the month unless she picks another, with the range near her from jobs on GigSync in one line.
   const lines = rangeLines(e);
-  await expect(log(page).getByText(lines.range).last()).toBeVisible();
-  await expect(log(page).getByText(lines.basis).last()).toBeVisible();
+  const near = t(en, "iv.near_you", { low: priceText(e.low_paise), high: priceText(e.high_paise) });
+  await expect(log(page).getByText(near, { exact: true })).toBeVisible();
   await shoot("rate-question", { worker: page }, FOLDER);
 
   // Later, then a question in her own words: the answer is the same range, with what it rests on and where.
   await page.getByRole("button", { name: t(en, "iv.later"), exact: true }).click();
   const box = page.getByRole("form", { name: t(en, "nav.talk") });
-  await box.getByPlaceholder(t(en, "agent.placeholder")).fill(QUESTION);
+  await box.getByPlaceholder(t(en, "composer.ask")).fill(QUESTION);
   await page.getByRole("button", { name: t(en, "a11y.send"), exact: true }).click();
   await expect(log(page).getByText(QUESTION)).toBeVisible();
   await expect(log(page)).toContainText(new RegExp(`${lines.range.source}.*${lines.basis.source}`));
@@ -115,7 +118,7 @@ test("a household's market question and budget both show the range from jobs on 
   const page = await phone(browser);
   await signIn(page, { role: Role.consumer, name: `Lata ${RUN}`, phone: newPhone(), address: "Jayanagar", lang: en });
   await open(page, "nav.find");
-  await expect(log(page)).toContainText(t(en, "need.start"));
+  await expect(greeting(page, en)).toBeVisible();
   const box = page.getByRole("form", { name: t(en, "need.composer") });
   const say = async (words: string) => {
     await box.getByRole("textbox").fill(words);

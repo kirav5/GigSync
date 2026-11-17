@@ -8,6 +8,7 @@ import {
   MaidFrequency,
   MaidTasks,
   MaterialsBy,
+  type PlaceKey,
   PlumberProblem,
   PriceUnit,
   type RateCardSource,
@@ -108,7 +109,7 @@ const seed = (unit: PriceUnit, range: PaiseRange): RateCardEntry => ({ unit, ran
  * sweeping, mopping and dishes: the card's band. Driver: per month for one hour a day, six days a week, from a seed of
  * ₹18,000–₹26,000 a month for eight hours. Repairs: per visit for one point of "other" work, seeds.
  */
-export const RATE_CARDS: Readonly<Partial<Record<City, RateCardSet>>> = {
+export const RATE_CARDS: Readonly<Partial<Record<PlaceKey, RateCardSet>>> = {
   [City.enum.bengaluru]: {
     name: "Bengaluru rate card",
     entries: {
@@ -128,7 +129,8 @@ export const RATE_CARDS: Readonly<Partial<Record<City, RateCardSet>>> = {
 };
 
 /** A city's card entry for a trade, when the city has a card. */
-export const rateCardEntry = (city: City, trade: Trade): RateCardEntry | undefined => RATE_CARDS[city]?.entries[trade];
+export const rateCardEntry = (city: PlaceKey, trade: Trade): RateCardEntry | undefined =>
+  RATE_CARDS[city]?.entries[trade];
 
 /** What an estimate is given in, per trade: painting as the whole job once its area is known, household work a month. */
 export const ESTIMATE_UNIT: Readonly<Record<Trade, PriceUnit>> = {

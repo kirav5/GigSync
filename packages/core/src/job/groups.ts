@@ -74,8 +74,9 @@ function shelf(groups: JobGroups, job: JobRecord, decide: boolean, paid: boolean
  * leaves Agreed only once the arrangement ends (closed or cancelled).
  */
 function settled(job: JobRecord): boolean {
-  if (recurs(job.request)) return false;
-  const e = job.engagement;
-  if (e.status !== S.delivered) return false;
-  return !(e.role === Role.enum.requester && !job.review);
+  if (!workDone(job)) return false;
+  return !(job.engagement.role === Role.enum.requester && !job.review);
 }
+
+/** One-off work handed over: done, whatever is left to say about it (a household's review). */
+export const workDone = (job: JobRecord): boolean => !recurs(job.request) && job.engagement.status === S.delivered;

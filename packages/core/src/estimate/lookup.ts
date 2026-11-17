@@ -1,4 +1,11 @@
-import { type City, type Estimate, type EstimateRequest, type EstimateResponse, isEstimate } from "@gigsync/protocol";
+import {
+  type Estimate,
+  type EstimateRequest,
+  type EstimateResponse,
+  isEstimate,
+  type Place,
+  type PlaceKey,
+} from "@gigsync/protocol";
 import { log } from "../log.js";
 
 /** The server's estimate route. ApiClient implements it; tests use a fake. */
@@ -9,7 +16,8 @@ export interface EstimateApi {
 /** What a phone needs to ask for estimates: the route and its city. */
 export interface EstimateOptions {
   api: EstimateApi;
-  city: City;
+  /** The city a job's place is in (ADR 0061); its own jobs and card price it. */
+  cityOf: (point: Place | undefined) => PlaceKey;
 }
 
 /**

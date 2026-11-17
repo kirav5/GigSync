@@ -90,6 +90,11 @@ export const QR_KINDS: ReadonlySet<EnvelopeKind> = new Set([K.work_offer]);
 export const Base64 = z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/, "base64");
 /** A person has at most this many devices to seal one envelope to. */
 export const MAX_RECIPIENT_DEVICES = 10;
+/**
+ * The most a sealed body may be, in base64 characters. Bodies are terms and short notes, a few kilobytes; the mailbox
+ * stores one copy per device, so an unbounded one costs ten times over. Moving a whole phone goes by transfer instead.
+ */
+export const MAX_CIPHERTEXT_CHARS = 128 * 1024;
 const isoDate = z.string().datetime({ offset: true });
 
 /** Everything the mailbox needs to route and expire an envelope. Content stays inside `ciphertext`. */
@@ -116,7 +121,7 @@ export const Envelope = EnvelopeHeader.extend({
     .record(DeviceId, Base64)
     .refine((k) => Object.keys(k).length >= 1 && Object.keys(k).length <= MAX_RECIPIENT_DEVICES, "1 to 10 devices"),
   /** XChaCha20-Poly1305 over the JSON body; only the devices in `keys` can read it. */
-  ciphertext: Base64,
+  ciphertext: Base64.max(MAX_CIPHERTEXT_CHARS),
   /** Ed25519 by the sending device over the canonical JSON of everything above. */
   sig: Base64,
 });

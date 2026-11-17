@@ -18,8 +18,11 @@ import {
   Envelope,
   type EstimateRequest,
   EstimateResponse,
+  type FindEvent,
   type GeoPlace,
   GeoResult,
+  ListedRates,
+  type ListedRatesQueryInput,
   type MatchRequestInput,
   MatchResponse,
   type MentorListingInput,
@@ -30,12 +33,13 @@ import {
   MyQr,
   type MyQrRequest,
   type Place,
+  type PushAddress,
   PushKey,
-  type PushSubscribe,
   type QrCode,
   QrPerson,
   RecommendLink,
   type RecommendRequest,
+  ServedCities,
   Session,
   type UserId,
 } from "@gigsync/protocol";
@@ -63,7 +67,7 @@ export interface Relay {
   claim(engagement: EngagementId): Promise<DeviceId>;
 }
 
-type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
+export type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 const ErrorBody = z.object({ error: z.string() });
 const Removed = z.object({ removed: z.boolean() });
 /** Just enough of an envelope this phone cannot read to acknowledge it. */
@@ -88,6 +92,16 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
 
   async verifyOtp(phone: string, code: string, device: DeviceRegistration): Promise<Session> {
     return Session.parse(await this.call(HttpMethod.post, ApiPath.otpVerify, { phone, code, device }));
+  }
+
+  /** Revokes this device and its session on the server: messages stop being sealed to it. */
+  async signOut(): Promise<void> {
+    await this.call(HttpMethod.post, ApiPath.signOut);
+  }
+
+  /** The cities and areas GigSync serves (ADR 0061), and whether it lets every place in (`LIVE_CITIES=*`). */
+  async cities(): Promise<ServedCities> {
+    return ServedCities.parse(await this.call(HttpMethod.get, ApiPath.cities));
   }
 
   async directory(user: UserId): Promise<DirectoryEntry> {
@@ -167,6 +181,17 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
     return BoardResult.parse(await this.call(HttpMethod.get, `${ApiPath.boardWorkers}?${params}`)).workers;
   }
 
+  /** What workers near a place list for a skill: a range from three workers up (ADR 0057). */
+  async listedRates(query: ListedRatesQueryInput): Promise<ListedRates> {
+    const params = new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)]));
+    return ListedRates.parse(await this.call(HttpMethod.get, `${ApiPath.boardRates}?${params}`));
+  }
+
+  /** One more of an event in Find's daily counts (ADR 0060): no user, no words. */
+  async countFind(event: FindEvent): Promise<void> {
+    await this.call(HttpMethod.post, ApiPath.findCount, { event });
+  }
+
   async boardSkills(): Promise<BoardSkill[]> {
     return BoardSkills.parse(await this.call(HttpMethod.get, ApiPath.boardSkills)).skills;
   }
@@ -188,8 +213,9 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
     return this.call(HttpMethod.post, ApiPath.mentorReport, report);
   }
 
-  blockMentor(user: UserId): Promise<unknown> {
-    return this.call(HttpMethod.post, ApiPath.mentorBlock, { user });
+  /** Blocks `user` for the caller; with `blocked` false, lifts the caller's own block of them. */
+  blockMentor(user: UserId, blocked = true): Promise<unknown> {
+    return this.call(HttpMethod.post, blocked ? ApiPath.mentorBlock : ApiPath.mentorUnblock, { user });
   }
 
   /** Tells the directory this device speaks `protocol` now, after an app update. */
@@ -197,16 +223,16 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
     return this.call(HttpMethod.put, ApiPath.deviceProtocol, { protocol });
   }
 
-  /** The key to subscribe to pushes with, or undefined while push is not set up on the API. */
-  async pushKey(): Promise<string | undefined> {
-    return PushKey.parse(await this.call(HttpMethod.get, ApiPath.pushKey)).public_key;
+  /** The key a browser subscribes to pushes with, and whether the Android app's alerts can go (ADR 0067). */
+  async pushKey(): Promise<PushKey> {
+    return PushKey.parse(await this.call(HttpMethod.get, ApiPath.pushKey));
   }
 
   /**
-   * Tells the API where this device's browser takes pushes and the keys to encrypt them to; only a real push service's
-   * address is kept.
+   * Tells the API where this device takes alerts: a browser's push address and the keys to encrypt them to (only a real
+   * push service's address is kept), or the Android app's FCM token and its language (ADR 0067).
    */
-  async subscribePush(subscription: PushSubscribe): Promise<void> {
+  async subscribePush(subscription: PushAddress): Promise<void> {
     await this.call(HttpMethod.put, ApiPath.devicePush, subscription);
   }
 
@@ -226,9 +252,9 @@ export class ApiClient implements Relay, MentorApi, EstimateApi, QrApi {
     return GeoResult.parse(await this.call(HttpMethod.get, `${ApiPath.geoReverse}?${params}`)).places;
   }
 
-  /** Places matching what the owner typed. */
-  async searchPlaces(q: string): Promise<GeoPlace[]> {
-    const params = new URLSearchParams({ q });
+  async searchPlaces(q: string, near?: Place): Promise<GeoPlace[]> {
+    const b = near && coarsePoint(near); // Typed words, favouring a city's centre: coarse, as every point sent.
+    const params = new URLSearchParams({ q, ...(b && { lat: String(b.lat), lon: String(b.lon) }) });
     return GeoResult.parse(await this.call(HttpMethod.get, `${ApiPath.geoSearch}?${params}`)).places;
   }
 

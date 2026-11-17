@@ -1,69 +1,78 @@
-import type { Ref } from "react";
+import type { ReactNode } from "react";
 import { useI18n } from "../i18n.js";
+import { useBar } from "../ui/Bar.js";
+import { Brand } from "../ui/Brand.js";
 import { C } from "../ui/cls.js";
 import { Icon } from "../ui/Icon.js";
-import { SIDEBAR_ID } from "./Sidebar.js";
+import "./topbar.css";
 
 interface Props {
-  title: string;
-  /** A screen opened from inside another: Back replaces the menu button. */
-  sub: boolean;
-  /** The chat is on screen: nothing to close. */
-  home: boolean;
-  /** The menu is open as a drawer. */
-  open: boolean;
-  /** Decisions waiting (the pill, and a dot on the menu button), and whether a mentor note is unread (a dot). */
-  tasks: number;
-  unread: boolean;
-  /** Activity is on screen: the pill would only point at it. */
-  onActivity: boolean;
-  menuRef: Ref<HTMLButtonElement>;
-  onMenu: () => void;
+  /** The shell's title for the open screen, or none on Home, where the brand stands; a screen's own (`BarTitle`) wins. */
+  title: string | undefined;
+  /** There is somewhere to go back to: the open screen was opened from inside another (never on a tab). */
+  canBack: boolean;
   onBack: () => void;
-  onChat: () => void;
-  onNeeds: () => void;
+  /** Opens the chats kept on this phone. */
+  onChats: () => void;
+  /** A chat opened from inside another screen (Talk from Home): Back takes the left, so the chats go to the end. */
+  chatsAtEnd: boolean;
+  /** The bell to Alerts, on a top place (never beside Back); `dot` while something waits on the owner. */
+  alerts?: { dot: boolean; onOpen: () => void };
+  /** The round profile button, last at the end. */
+  profile: ReactNode;
+}
+
+/** The bell: what happened, a day at a time, with a dot while a decision waits. */
+function BellButton({ dot, onOpen }: { dot: boolean; onOpen: () => void }) {
+  const { t } = useI18n();
+  return (
+    <button type={C.button} className="round-btn bell-btn" aria-label={t("tabs.alerts")} onClick={onOpen}>
+      <Icon name="bell" size={20} />
+      {dot && <span className="bell-dot" aria-hidden />}
+    </button>
+  );
+}
+
+/** The round chats button: every chat kept on this phone, and New chat. */
+function ChatsButton({ onOpen, icon }: { onOpen: () => void; icon: "menu" | "chat" }) {
+  const { t } = useI18n();
+  return (
+    <button
+      type={C.button}
+      className="round-btn"
+      aria-label={t("chats.title")}
+      title={t("chats.title")}
+      onClick={onOpen}
+    >
+      <Icon name={icon} size={20} />
+    </button>
+  );
 }
 
 /**
- * Collab's title row: the menu button (Back on a screen opened from inside another), the open chat's or screen's
- * title, a small pill while decisions wait, and × back to the chat from any other screen.
+ * The title row, one cream band with the phone's status bar above it, as the design's Home: on the left a round
+ * button to the chats (Back instead, while there is somewhere to go back to), beside it the sun and "gigsync" on
+ * Home and the screen's title elsewhere, and on the right the screen's own icon buttons (ui/Bar.tsx `BarEnd`), the bell
+ * to Alerts on a top place, and the round profile button with the owner's initial. The page's one banner.
  */
-export function TopBar(props: Props) {
-  const { title, sub, home, open, tasks, unread, onActivity, menuRef, onMenu, onBack, onChat, onNeeds } = props;
-  const { t, plural } = useI18n();
+export function TopBar({ title, canBack, onBack, onChats, chatsAtEnd, alerts, profile }: Props) {
+  const { t } = useI18n();
+  const bar = useBar();
+  const shown = bar.title ?? title;
   return (
     <header className="topbar">
-      {sub ? (
-        <button type={C.button} className="back" aria-label={t("a11y.back")} onClick={onBack}>
-          <Icon name="back" />
+      {canBack ? (
+        <button type={C.button} className="back round-btn" aria-label={t("a11y.back")} onClick={onBack}>
+          <Icon name="back" size={22} />
         </button>
       ) : (
-        <button
-          ref={menuRef}
-          type={C.button}
-          className="menu"
-          aria-label={t("shell.menu")}
-          aria-controls={SIDEBAR_ID}
-          aria-expanded={open}
-          onClick={onMenu}
-        >
-          <Icon name="menu" size={22} />
-          {(tasks > 0 || unread) && <span className="menu-dot" aria-hidden="true" />}
-        </button>
+        <ChatsButton icon="menu" onOpen={onChats} />
       )}
-      <span className="topbar-title">{title}</span>
-      <span className="bar-end">
-        {tasks > 0 && !onActivity && (
-          <button type={C.button} className="need-pill" onClick={onNeeds}>
-            {plural("shell.need_you", tasks)}
-          </button>
-        )}
-        {!home && (
-          <button type={C.button} className="close" aria-label={t("shell.to_chat")} onClick={onChat}>
-            <Icon name="close" size={20} />
-          </button>
-        )}
-      </span>
+      <span className="topbar-title">{shown ?? <Brand />}</span>
+      <span className="bar-end" ref={bar.setSlot} />
+      {canBack && chatsAtEnd && <ChatsButton icon="chat" onOpen={onChats} />}
+      {!canBack && alerts && <BellButton dot={alerts.dot} onOpen={alerts.onOpen} />}
+      {profile}
     </header>
   );
 }

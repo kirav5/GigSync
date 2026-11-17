@@ -1,0 +1,166 @@
+/* Find work or find help (RoleStep.tsx): the question, its line and the two choices as one block from the top, never
+   floating in the middle. Each choice is a tall white card: its drawing fills a tinted tile across the top, the title
+   and its line sit under it. The whole card is the choice, with no radio dot: a soft layered shadow and a thin warm
+   edge from terracotta to gold; pressed it gives a little; picked, the edge turns terracotta and a tick badge sits on
+   the card's corner, clear of the drawing. Side by side when wide. */
+
+.role-sub {
+  color: var(--text2);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+.role-cards {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  margin: 6px 0 24px;
+  padding: 0;
+  border: 0;
+}
+
+.role-card {
+  --role-edge: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 45%, transparent),
+    color-mix(in srgb, var(--gold) 55%, transparent)
+  );
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 14px;
+  padding: 10px 10px 18px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-tile);
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    var(--role-edge) border-box;
+  box-shadow:
+    0 1px 2px rgb(60 30 10 / 6%),
+    0 6px 16px rgb(60 30 10 / 6%),
+    0 18px 40px rgb(60 30 10 / 6%);
+  cursor: pointer;
+  transition:
+    transform var(--pick-ms) var(--ease-out),
+    box-shadow var(--pick-ms) var(--ease-out);
+}
+.role-card input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.role-card:active {
+  transform: scale(0.98);
+}
+.role-card:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.role-card:has(input:checked) {
+  --role-edge: linear-gradient(var(--accent), var(--accent));
+  border-width: 2px;
+  padding: 9.5px 9.5px 17.5px;
+  box-shadow:
+    0 0 0 3px var(--pick-ring),
+    0 6px 16px rgb(60 30 10 / 8%);
+}
+
+/* The drawing: a wide tile across the card's top, the figures sized by the tile's width so the strip reads whole. */
+.role-picture {
+  display: grid;
+  place-items: center;
+  height: 132px;
+  border-radius: calc(var(--radius-tile) - 8px);
+  background: var(--art-terra);
+  overflow: hidden;
+}
+.role-picture img {
+  width: 70%;
+  max-height: 116px;
+  object-fit: contain;
+}
+
+.role-words {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding-inline: 8px;
+}
+/* The title and its Kannada echo on one baseline, never wrapping apart. */
+.role-name {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+  white-space: nowrap;
+}
+.role-title {
+  font-family: var(--serif);
+  font-size: 24px;
+  line-height: var(--lh-head);
+}
+.role-line {
+  color: var(--text2);
+  font-size: var(--fs-2);
+  line-height: 1.4;
+}
+.role-echo {
+  color: var(--text3);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Nothing in the corner until picked; then a filled tick badge sits on the card's own corner, outside the drawing,
+   ringed in the page colour so it reads on the edge. */
+.role-mark {
+  position: absolute;
+  top: -10px;
+  inset-inline-end: -10px;
+  display: none;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  background: var(--accent);
+}
+.role-mark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--surface);
+  -webkit-mask: var(--tick) center / 14px no-repeat;
+  mask: var(--tick) center / 14px no-repeat;
+}
+.role-card:has(input:checked) .role-mark {
+  display: block;
+  animation: start-pop var(--pop-ms) var(--ease-out) both;
+}
+
+/* Wide: the two side by side, each its drawing over its words. */
+@media (min-width: 720px) {
+  .role-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+  .role-picture {
+    height: 168px;
+  }
+  .role-picture img {
+    max-height: 140px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .role-card,
+  .role-card:active {
+    transition: none;
+    transform: none;
+  }
+  .role-card:has(input:checked) .role-mark {
+    animation: none;
+  }
+}

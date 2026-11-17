@@ -7,6 +7,7 @@ import { sql } from "./sql.js";
 
 const REPORT = "/mentors/report";
 const BLOCK = "/mentors/block";
+const UNBLOCK = "/mentors/unblock";
 const VOUCH = "/mentors/vouch";
 const UNKNOWN_USER = "usr_01J0000000000000000000ZZZZ";
 /** Other files list mentors too (one Postgres for the run), so these tests look only for their own mentor. */
@@ -34,6 +35,29 @@ describe("block", () => {
     expect((await call(p, HttpMethod.post, BLOCK, { user: p.session.user })).status).toBe(400);
     expect((await call(p, HttpMethod.post, BLOCK, { user: "usr_x" })).status).toBe(400);
     expect((await call(p, HttpMethod.post, BLOCK, { user: UNKNOWN_USER })).status).toBe(404);
+  });
+});
+
+describe("unblock", () => {
+  it("lifts the caller's own block, and only theirs: the other side's block stands", async () => {
+    const m = await mentor("+919833300050", listing("Leela", ["cook"]));
+    const p = await signIn("+919833300051");
+    expect((await call(p, HttpMethod.post, BLOCK, { user: m.session.user })).status).toBe(204);
+    expect(await match(p, q("cook"))).not.toContain("Leela");
+    expect((await call(p, HttpMethod.post, UNBLOCK, { user: m.session.user })).status).toBe(204);
+    expect((await call(p, HttpMethod.post, UNBLOCK, { user: m.session.user })).status).toBe(204);
+    expect(await match(p, q("cook"))).toContain("Leela");
+
+    // Leela blocks him; him "unblocking" her lifts nothing, as he never blocked her.
+    expect((await call(m, HttpMethod.post, BLOCK, { user: p.session.user })).status).toBe(204);
+    expect((await call(p, HttpMethod.post, UNBLOCK, { user: m.session.user })).status).toBe(204);
+    expect(await match(p, q("cook"))).not.toContain("Leela");
+  });
+
+  it("refuses unblocking oneself or a bad body", async () => {
+    const p = await signIn("+919833300052");
+    expect((await call(p, HttpMethod.post, UNBLOCK, { user: p.session.user })).status).toBe(400);
+    expect((await call(p, HttpMethod.post, UNBLOCK, { user: "usr_x" })).status).toBe(400);
   });
 });
 

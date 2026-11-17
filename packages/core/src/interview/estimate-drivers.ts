@@ -47,5 +47,5 @@ export function driverLines(estimate: Estimate): Line[] {
   return lines;
 }
 
-/** A need outside the trades: plainly, GigSync has no prices for it yet and nobody offers it on GigSync. */
+/** A need outside the trades: plainly, no prices yet and no listed worker, and how to go on. */
 export const jobTypeLines = (jobType: string): Line[] => [{ key: "driver.no_trade", params: { job: jobType } }];

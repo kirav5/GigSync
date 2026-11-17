@@ -6,7 +6,8 @@ import type { AddressChoice, NeedDraft } from "./need-types.js";
 
 /**
  * Find's "where" question (ADR 0045): the household's saved addresses first, then "Add an address" (the app opens the
- * form and comes back with the new one), then the pilot areas for a need asked by area alone. A saved address sets the
+ * form and comes back with the new one); an area said in words still answers, but is no longer offered as a chip
+ * (founders, 16 Nov: two ways to say where, not a list of areas). A saved address sets the
  * area the search and the estimate use, and the address the worker gets once both have signed.
  */
 
@@ -19,17 +20,24 @@ const addressChip = (s: NeedState, a: AddressChoice): Choice => ({
   params: { label: t(s.config.own, `addr.label.${a.label}`), area: a.areaName },
 });
 
+/** The saved addresses with the one in use first: one tap for the usual answer, and it is still the owner's to give. */
+const inUseFirst = (saved: readonly AddressChoice[], inUse: string | undefined): AddressChoice[] =>
+  [...saved].sort((a, b) => Number(b.id === inUse) - Number(a.id === inUse));
+
 /** The "where" question: saved addresses for a household, the pilot areas for everyone. */
 export function wherePrompt(s: NeedState): Prompt {
   const own = s.config.own;
-  const areas = { choices: areaChoices(s.config.areas), hints: areaHints(s.config.areas, own) };
+  const areas = { choices: areaChoices(s.config.areas, own), hints: areaHints(s.config.areas, own) };
   const saved = s.config.addresses;
   if (!saved) return { lines: [{ key: "need.ask.area" }], ...areas };
-  const chips = [...saved.map((a) => addressChip(s, a)), { value: ADD_ADDRESS, key: "addr.add" } as const];
+  const chips = [
+    ...inUseFirst(saved, s.config.inUse).map((a) => addressChip(s, a)),
+    { value: ADD_ADDRESS, key: "addr.add" } as const,
+  ];
   // The area is known but not the door (no saved address there, or several): only an address answers now.
   if (s.draft.area !== undefined)
     return { lines: [{ key: "need.ask.address_in", ...areaParts(s.draft) }], choices: chips, hints: [] };
-  return { lines: [{ key: "need.ask.address" }], choices: [...chips, ...areas.choices], hints: areas.hints };
+  return { lines: [{ key: "need.ask.address" }], choices: chips, hints: areas.hints };
 }
 
 /** The draft at a saved address. */

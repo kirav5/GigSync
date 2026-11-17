@@ -1,0 +1,750 @@
+/* GigSync website: what moves with the scroll outside the opening, the teaser for the story, and the story's own
+   page. Loaded after site.css. An element marked data-flow carries --p, its progress across the viewport from 0
+   (its top meets the bottom edge) to 1 (its bottom leaves the top edge), set by flow.js. Without the script, or with
+   Reduce Motion on, --p stays at its settled value and nothing moves. */
+
+[data-flow] {
+  --p: 0.5;
+}
+
+/* ---- 04 the story's teaser: two phones meet, and the agreement is sealed between them ---- */
+.story-teaser {
+  background: #ece2ce;
+  border-block: 1px solid #d6c5a9;
+  padding-block: 96px;
+  overflow: hidden;
+}
+.teaser-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6%;
+  align-items: center;
+}
+.teaser-copy .eyebrow {
+  color: #9d6742;
+  margin-bottom: 24px;
+}
+.teaser-copy .intro-copy {
+  max-width: 470px;
+}
+.teaser-link {
+  margin-top: 32px;
+  background: var(--rust);
+  color: #fbf3e2;
+}
+.teaser-link:hover {
+  background: #7d432a;
+}
+.teaser-note {
+  margin-top: 18px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  color: #82664b;
+}
+.teaser-visual {
+  /* how far the phones have come together, and how far the seal has set */
+  --meet: clamp(0, calc((var(--p) - 0.1) * 2.9), 1);
+  --seal: clamp(0, calc((var(--p) - 0.36) * 7), 1);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 26px;
+  min-height: 400px;
+}
+.teaser-visual::before {
+  /* the ground both phones stand on: a soft disc, as the circle in the mural */
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(420px, 100%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px dashed #c3ab84;
+  transform: translate(-50%, -50%) scale(calc(0.82 + var(--meet) * 0.18));
+  opacity: calc(0.35 + var(--meet) * 0.65);
+}
+.duo-phone {
+  position: relative;
+  width: 172px;
+  aspect-ratio: 9 / 17.5;
+  border: 1.5px solid #5a3a2a;
+  border-radius: 28px;
+  background: #fbf5e8;
+  padding: 38px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  box-shadow: 0 30px 44px -26px rgba(69, 48, 36, 0.5);
+  will-change: transform;
+}
+.duo-phone::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  width: 46px;
+  height: 5px;
+  border-radius: 3px;
+  background: #5a3a2a;
+  opacity: 0.45;
+  transform: translateX(-50%);
+}
+.duo-worker {
+  transform: translate3d(calc((1 - var(--meet)) * -64px), calc((1 - var(--meet)) * 18px), 0)
+    rotate(calc(-11deg + var(--meet) * 6deg));
+}
+.duo-house {
+  transform: translate3d(calc((1 - var(--meet)) * 64px), calc((1 - var(--meet)) * -18px), 0)
+    rotate(calc(11deg - var(--meet) * 6deg));
+}
+.duo-tag {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: #5a3a2a;
+  padding-bottom: 9px;
+  border-bottom: 1px solid #e2d3b6;
+  margin-bottom: 3px;
+}
+.duo-bubble {
+  display: block;
+  width: 74%;
+  height: 17px;
+  border-radius: 9px 9px 9px 3px;
+  background: #eadfc8;
+}
+.duo-bubble.duo-reply {
+  align-self: flex-end;
+  border-radius: 9px 9px 3px 9px;
+  background: #e7c9b1;
+}
+.duo-house .duo-bubble.duo-reply {
+  background: #ecd6a6;
+}
+.duo-bubble.duo-short {
+  width: 48%;
+}
+.duo-card {
+  margin-top: auto;
+  display: grid;
+  gap: 7px;
+  padding: 12px 11px;
+  border: 1px solid #cdb893;
+  background: #fffaf0;
+}
+.duo-card i {
+  display: block;
+  height: 5px;
+  border-radius: 3px;
+  background: #d9c8a8;
+}
+.duo-card i + i {
+  width: 62%;
+}
+.duo-card b {
+  display: block;
+  height: 20px;
+  margin-top: 4px;
+  background: var(--rust);
+  opacity: calc(0.25 + var(--seal) * 0.75);
+}
+.duo-house .duo-card b {
+  background: #b98a3e;
+}
+.duo-seal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: var(--earth);
+  color: var(--gold);
+  display: grid;
+  place-items: center;
+  box-shadow:
+    0 0 0 6px #ece2ce,
+    0 0 0 7px #b79268;
+  transform: translate(-50%, -50%) scale(calc(0.5 + var(--seal) * 0.5)) rotate(calc((1 - var(--seal)) * -40deg));
+  opacity: var(--seal);
+}
+.duo-seal svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.teaser-visual:hover .duo-seal {
+  background: var(--rust);
+  color: #fbf3e2;
+}
+
+/* ---- the story's own page ---- */
+.story-page h1 {
+  font-size: clamp(40px, 4.1vw, 59px);
+  line-height: 1.1;
+  letter-spacing: -1.6px;
+}
+.story-page .journey-section {
+  border-top: 0;
+}
+.desktop-nav a[aria-current="page"] {
+  color: #f4e8cf;
+}
+.story-end {
+  background: var(--earth);
+  color: var(--ivory);
+}
+.story-end-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 22px;
+  padding-block: 46px;
+}
+.story-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding-block: 12px;
+  font-size: 14.5px;
+  color: #d7c6aa;
+}
+.story-back span {
+  font-size: 18px;
+}
+.story-back:hover {
+  color: #fff0cc;
+}
+
+@media (max-width: 800px) {
+  .story-teaser {
+    padding-block: 72px;
+  }
+  .teaser-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 44px;
+  }
+  .teaser-visual {
+    min-height: 340px;
+    gap: 18px;
+  }
+  .duo-phone {
+    width: 142px;
+    padding: 34px 12px 14px;
+    border-radius: 24px;
+  }
+  .story-page h1 {
+    font-size: 42px;
+  }
+}
+@media (max-width: 620px) {
+  .story-teaser {
+    padding-block: 60px;
+  }
+  .teaser-link {
+    width: 100%;
+  }
+  .duo-phone {
+    width: min(136px, 36vw);
+  }
+  .duo-worker {
+    transform: translate3d(calc((1 - var(--meet)) * -30px), calc((1 - var(--meet)) * 14px), 0)
+      rotate(calc(-11deg + var(--meet) * 6deg));
+  }
+  .duo-house {
+    transform: translate3d(calc((1 - var(--meet)) * 30px), calc((1 - var(--meet)) * -14px), 0)
+      rotate(calc(11deg - var(--meet) * 6deg));
+  }
+  .story-page h1 {
+    font-size: 39px;
+  }
+  .story-end-inner {
+    padding-block: 36px;
+  }
+}
+
+/* sunrise: from the earth of the roots into the cream of the page. A cream hill rises into the brown band with the
+   mural's sun ahead of it; at the end of the page the same band sets back into the earth of the closing. */
+.sunrise {
+  --rise: clamp(0, calc((var(--p) - 0.1) * 2.4), 1);
+  --hill: 72%;
+  /* the pull: the hill's edge starts nearly flat and draws up into its full arch as the band comes on, and settles
+     back when scrolled away; its base stays on the full width, so the next band never shows beside it */
+  --hill-now: calc(var(--hill) * (0.3 + 0.7 * var(--rise)));
+  position: relative;
+  height: clamp(160px, 17vw, 230px);
+  background: var(--earth);
+  overflow: hidden;
+}
+.sunrise-hill {
+  position: absolute;
+  z-index: 1;
+  left: -22%;
+  right: -22%;
+  bottom: 0;
+  height: var(--hill-now);
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  background: var(--paper);
+}
+.sunrise-sun {
+  --size: clamp(38px, 3.6vw, 50px);
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--hill-now) - var(--size) / 2);
+  width: var(--size);
+  height: var(--size);
+  margin-left: calc(var(--size) / -2);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--gold) 0 34%, transparent 35% 44%, var(--gold) 45% 47%, transparent 48%),
+    repeating-conic-gradient(from 0deg, var(--gold) 0 7deg, transparent 7deg 22.5deg);
+  -webkit-mask: radial-gradient(circle, #000 0 50%, #000 66%, transparent 67%);
+  mask: radial-gradient(circle, #000 0 50%, #000 66%, transparent 67%);
+  transform: translateY(calc(var(--rise) * -26px)) rotate(calc(var(--p) * 120deg));
+  opacity: calc(0.25 + var(--rise) * 0.75);
+}
+.sunset {
+  background: var(--paper);
+}
+.sunset .sunrise-hill {
+  background: var(--earth);
+}
+/* the lower hills in and out of the jobs band, without the sun */
+.hill-low {
+  --hill: 78%;
+  height: clamp(96px, 10vw, 150px);
+}
+/* the header's folk strip, laid along each hill's edge by curves.js: brown on the cream hills, cream on the brown */
+.sunrise-hill svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: var(--earth);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.4;
+}
+.sunrise-hill svg circle {
+  fill: currentColor;
+  color: var(--earth);
+}
+.sunset .sunrise-hill svg {
+  stroke: #eadbb9;
+  opacity: 0.55;
+}
+.sunset .sunrise-hill svg circle {
+  color: #eadbb9;
+}
+.sunrise-hill .strip-line:last-of-type {
+  opacity: 0.35;
+}
+
+/* one faint rust print of the whole mural behind 02 and 03: it stays in place while both sections pass over it, nearing
+   and turning a little with the scroll and breathing slowly on its own */
+.ink-span {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+}
+/* the print fades in and out at both ends of its run instead of stopping on a hard edge */
+.ink-span::before,
+.ink-span::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  right: 0;
+  height: 260px;
+  pointer-events: none;
+}
+.ink-span::before {
+  top: 0;
+  background: linear-gradient(var(--paper), transparent);
+}
+.ink-span::after {
+  bottom: 0;
+  background: linear-gradient(transparent, var(--paper));
+}
+.ink-stage {
+  position: sticky;
+  top: 0;
+  z-index: -2;
+  height: 100lvh;
+  margin-bottom: -100lvh;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  /* fades out at both sides of the screen, so the print has no edge of its own */
+  -webkit-mask: linear-gradient(to right, transparent, #000 24%, #000 76%, transparent);
+  mask: linear-gradient(to right, transparent, #000 24%, #000 76%, transparent);
+}
+.ink-art {
+  /* fills the whole screen, zoomed in on the mural, and never wider than it: a phone would widen its layout to fit */
+  width: 100%;
+  height: 100%;
+  background: url("./mural-ink.webp") center / cover no-repeat;
+  opacity: 0.05;
+  transform: scale(calc(1.08 + var(--p) * 0.22)) rotate(calc((var(--p) - 0.5) * 6deg));
+  animation: ink-breathe 16s ease-in-out infinite alternate;
+}
+@keyframes ink-breathe {
+  from {
+    translate: 0 10px;
+    opacity: 0.04;
+  }
+  to {
+    translate: 0 -10px;
+    opacity: 0.06;
+  }
+}
+
+.site-footer::before {
+  --strip: var(--folk) left bottom / 28px 16px repeat-x;
+}
+
+/* the closing bookend: the ring of dancers rises at the foot of the last band, turning as it comes */
+.closing-section {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.bookend-ring {
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  bottom: 0;
+  width: min(1000px, 150vw);
+  height: auto;
+  opacity: 0.11;
+  pointer-events: none;
+  transform: translate(-50%, calc(66% - var(--p) * 26%)) rotate(calc(var(--p) * 80deg));
+}
+
+/* headlines rise line by line, each out of its own mask (flow.js splits them at their line breaks) */
+h2[data-lines] .line {
+  display: block;
+  overflow: hidden;
+  padding: 0 0.12em 0.12em;
+  margin: 0 -0.12em -0.12em;
+}
+h2[data-lines] .line > span {
+  display: inline-block;
+  translate: 0 110%;
+  transition: translate 1s cubic-bezier(0.2, 0.7, 0.2, 1) calc(var(--i) * 0.12s);
+}
+h2[data-lines][data-arrived] .line > span {
+  translate: 0 0;
+}
+
+/* the teaser picture's link text, for screen readers only */
+.teaser-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* the closing and the footer: one compact brown band, the strip at its top and again above the footer line */
+.closing-section::before {
+  content: none;
+}
+.closing-inner {
+  padding: 34px 0 52px;
+}
+.closing-inner h2 {
+  font-size: clamp(38px, 5vw, 56px);
+  letter-spacing: -1.6px;
+  margin-top: 14px;
+}
+.closing-mark {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+.closing-section .community-border {
+  display: none;
+}
+.site-footer {
+  position: relative;
+  display: block;
+  background: var(--earth);
+  padding: 12px 0 0;
+}
+.site-footer::before {
+  content: "";
+  display: block;
+  height: 16px;
+  background: var(--strip);
+  opacity: 0.55;
+}
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-block: 18px 22px;
+  border-top: 1px solid rgba(234, 219, 185, 0.16);
+  margin-top: 0;
+}
+.site-footer .brand {
+  font-size: 22px;
+  color: var(--ivory);
+}
+.site-footer .brand svg {
+  width: 22px;
+  height: 22px;
+}
+.site-footer p {
+  margin-top: 6px;
+  color: #b69b73;
+}
+.site-footer .footer-right a {
+  color: #d3b17a;
+}
+.site-footer .footer-right p {
+  margin-top: 6px;
+}
+@media (max-width: 600px) {
+  .footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .site-footer .footer-right {
+    text-align: left;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ink-art {
+    animation: none;
+  }
+}
+
+/* 04 sits on top of the shared print, a rounded panel with the print showing all round it */
+.ink-span .story-teaser {
+  position: relative;
+  width: min(1320px, calc(100% - 48px));
+  margin: 24px auto;
+  border: 1px solid #d6c5a9;
+  border-radius: clamp(28px, 4vw, 48px);
+  box-shadow: 0 40px 90px -50px rgba(59, 33, 24, 0.45);
+}
+@media (max-width: 600px) {
+  .ink-span .story-teaser {
+    width: calc(100% - 24px);
+  }
+}
+
+/* the five steps of 03: the label, the icon and the words sit at the same heights in every card, and the titles fit */
+.say .box {
+  justify-content: flex-start;
+}
+.say .n {
+  align-self: flex-start;
+  padding: 7px 0;
+  border: 1px solid transparent;
+}
+.say .ic {
+  margin-top: 28px;
+}
+.say .box > div {
+  margin-top: auto;
+}
+.say {
+  max-width: 1180px;
+}
+.say .box {
+  padding: 24px 22px;
+}
+.say .tag {
+  white-space: normal;
+  max-width: 100%;
+  letter-spacing: 1px;
+}
+.say h3 {
+  font-size: clamp(22px, 1.9vw, 28px);
+}
+.say p {
+  min-height: 4.8em;
+}
+.say.open p {
+  min-width: 0;
+}
+
+/* the hills carry the edge now, so the bands they lead into need no ruled line of their own */
+.jobs-section,
+.closing-section {
+  border-block: 0;
+}
+
+/* the story page: its sand band runs straight into the hill down to the brown ending */
+.journey-section {
+  border-bottom: 0;
+}
+.journey-section + .sunset {
+  background: #ece2ce;
+}
+/* once opened the drawings step aside, so her two cards use their full width like the other three */
+.say.open .box.her > div {
+  max-width: none;
+}
+.say .box.her {
+  padding-bottom: 36px;
+}
+
+/* the hills keep their base on the full width, so no flat edge of the next band ever shows beside them. The jobs band's print fades in under the hill instead of starting on a straight line. */
+.jobs-art {
+  -webkit-mask: linear-gradient(transparent, #000 30%, #000 80%, transparent);
+  mask: linear-gradient(transparent, #000 30%, #000 80%, transparent);
+}
+
+/* 07 keeps its warmer cream, and the hill down to the closing starts from that same cream */
+.community-section + .sunset,
+.ink-warm + .closing-wrap .sunset,
+.ink-warm + .sunset {
+  background: #e5d4b5;
+}
+/* 06 sits on the same warm cream as 07, one band from the hill out of the jobs band down to the closing */
+.ink-warm {
+  background: #e5d4b5;
+}
+.ink-warm::before {
+  background: linear-gradient(#e5d4b5, transparent);
+}
+.ink-warm::after {
+  background: linear-gradient(transparent, #e5d4b5);
+}
+.hill-warm .sunrise-hill {
+  background: #e5d4b5;
+}
+
+/* 06 lines up like the other sections: its label in the narrow left column, the headline, the lead and the two
+   paragraphs one under the other in the wide right one */
+.community-inner > .eyebrow {
+  margin-bottom: 0;
+}
+.community-section .community-lead {
+  max-width: 640px;
+  margin-top: 28px;
+}
+.community-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 48px;
+  margin-top: 32px;
+}
+.community-body p {
+  font-size: 14px;
+  line-height: 1.85;
+  color: #725d45;
+}
+.community-body .text-link {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-top: 14px;
+  font-size: 14.5px;
+}
+@media (max-width: 760px) {
+  .community-body {
+    grid-template-columns: 1fr;
+    row-gap: 14px;
+  }
+}
+
+/* the top band of the mural, the whole tree with the sun, the huts and the people under it, fills the closing from
+   under the hill's curve down to the footer strip. It is one layer over both, above their brown and below the words. */
+.closing-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.closing-wrap > .bookend-tree {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  /* a wide panorama, the tree band with the village's two side columns added at its ends, standing on the footer
+     strip and reaching up to just under the curve; on a narrower screen its far ends are what gets trimmed */
+  height: 86%;
+  object-fit: cover;
+  object-position: 50% 100%;
+  opacity: 0.1;
+  pointer-events: none;
+  -webkit-mask: linear-gradient(transparent, #000 10%, #000 92%, transparent);
+  mask: linear-gradient(transparent, #000 10%, #000 92%, transparent);
+}
+.closing-wrap .closing-section {
+  isolation: auto;
+}
+.closing-wrap .closing-inner {
+  position: relative;
+  z-index: 3;
+}
+
+/* 06 and 07 show the mural's left side, the weavers, the planting and the plough, standing at the left of the band
+   at its full height and fading out towards the text */
+.ink-warm .ink-stage {
+  place-items: stretch start;
+  -webkit-mask: linear-gradient(to right, #000 34%, transparent 72%);
+  mask: linear-gradient(to right, #000 34%, transparent 72%);
+}
+.ink-warm .ink-art {
+  width: auto;
+  height: 100%;
+  aspect-ratio: 245 / 600;
+  background-image: url("./mural-side.webp");
+  background-size: 100% 100%;
+  opacity: 0.09;
+  transform: scale(calc(1.45 + var(--p) * 0.08));
+  transform-origin: 0 50%;
+}
+.ink-warm .community-section {
+  background: none;
+}
+
+/* 03 goes round like the rest of the page: soft-cornered cards, their inner rule and folk strip following the
+   corners, the icon tiles and labels rounded, and the two captions as pills */
+.say .box {
+  border-radius: 28px;
+}
+.say .box.her::before {
+  border-radius: 22px;
+}
+.say .box.her::after {
+  left: 28px;
+  right: 28px;
+}
+.say .ic {
+  border-radius: 14px;
+}
+.say .tag {
+  border-radius: 999px;
+  padding: 7px 12px;
+}
+.say-cap span {
+  border-radius: 999px;
+  padding-inline: 22px;
+}
+
+/* Phones: the headings' lines rise in half the time, one close behind the other. */
+@media (max-width: 700px) {
+  h2[data-lines] .line > span {
+    transition-duration: 0.5s;
+    transition-delay: calc(var(--i) * 0.05s);
+  }
+}

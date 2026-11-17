@@ -1,48 +1,56 @@
 import type { Ports } from "@gigsync/core";
-import { Lang, PAYEE_NAME_MAX } from "@gigsync/protocol";
+import { PAYEE_NAME_MAX } from "@gigsync/protocol";
 import type { Account } from "../../adapters/account.js";
 import { useI18n } from "../../i18n.js";
 import { PayeeForm } from "../../payments/PayeeForm.js";
+import { Avatar, AvatarSize } from "../../ui/Avatar.js";
 import { C } from "../../ui/cls.js";
+import { Dock } from "../../ui/Dock.js";
+import { Icon } from "../../ui/Icon.js";
 import { MemorySection } from "../memory/MemorySection.js";
-import { PageFrame } from "./PageFrame.js";
+import { AboutFields } from "./AboutFields.js";
+import "./pages.css";
 
-/** The owner's language, picked with one tap; every screen follows it at once. */
-function LanguagePicker() {
-  const { lang, setLang, t } = useI18n();
-  return (
-    <section className={C.card} aria-label={t("profile.language")}>
-      <span className={C.label}>{t("profile.language")}</span>
-      <fieldset className={C.row} aria-label={t("a11y.language")}>
-        {Lang.options.map((l) => (
-          <button
-            key={l}
-            type={C.button}
-            lang={l}
-            aria-pressed={lang === l}
-            className={lang === l ? C.chipOn : C.chip}
-            onClick={() => setLang(l)}
-          >
-            {t(`lang.${l}`)}
-          </button>
-        ))}
-      </fieldset>
-    </section>
-  );
+interface Props {
+  ports: Ports;
+  account: Account;
+  isWorker: boolean;
+  /** Opens the worker's card as a form, where work, area and languages are changed. */
+  onEditCard: () => void;
+  /** Opens the work area on its map, where the area and the distance are changed. */
+  onEditArea: () => void;
+  /** Opens Talk on the card interview: the worker changes their card by saying it (ADR 0053 §7). */
+  onTalk: () => void;
 }
 
 /**
- * About me, as collab's: who the owner is (name and role), where a worker is paid (the UPI ID, asked for nowhere
- * else), the language, and what their agent remembers from past jobs. Each part saves as it changes, on this phone.
+ * About me (design P2): who the owner is, then for a worker their work, area and languages as fields that open the
+ * card's form, and where they are paid (the UPI ID, asked for nowhere else); then what their agent remembers, for both
+ * sides; the language is the profile's Language row, not here again. The name is shown, not edited: it is on the board
+ * card and the QR, so changing it here would need the card published again. A worker's one big action is changing the
+ * card by talking.
  */
-export function AboutMe({ ports, account, isWorker }: { ports: Ports; account: Account; isWorker: boolean }) {
+export function AboutMe({ ports, account, isWorker, onEditCard, onEditArea, onTalk }: Props) {
   const { t } = useI18n();
   const name = account.contact.name;
   return (
-    <PageFrame title={t("page.about_title")} subtitle={`${name} · ${t(isWorker ? "role.worker" : "role.customer")}`}>
+    <>
+      <div className="about-head">
+        <Avatar name={name} size={AvatarSize.xl} />
+        <h1 className="hero-title">{name}</h1>
+        {account.nickname && <p className={C.muted}>{t("idcheck.nickname", { name: account.nickname })}</p>}
+      </div>
+      {isWorker && <AboutFields account={account} onEditCard={onEditCard} onEditArea={onEditArea} />}
       {isWorker && <PayeeForm ports={ports} defaultName={name.slice(0, PAYEE_NAME_MAX)} />}
-      <LanguagePicker />
       <MemorySection ports={ports} account={account} />
-    </PageFrame>
+      {isWorker && (
+        <Dock>
+          <button type={C.button} className={`${C.wide} btn-big`} onClick={onTalk}>
+            <Icon name="mic" size={20} />
+            {t("card.change_by_talking")}
+          </button>
+        </Dock>
+      )}
+    </>
   );
 }

@@ -1,0 +1,115 @@
+/* The signed deal as a pass (JobFacts.tsx DealLine), as a boarding pass or a booking is drawn: a terracotta strip
+   with the work and the day, the place and the fixed price as two fields, a torn edge, then both faces and who signed.
+   Colours and sizes are the tokens in styles.css. */
+.deal {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--lift);
+}
+.pass-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 16px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 600 var(--fs-2) / 1.2 var(--sans);
+}
+.pass-body {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+.pass-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.pass-field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.pass-field > span {
+  font: 600 11px / 1 var(--sans);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+:lang(hi) .pass-field > span,
+:lang(kn) .pass-field > span {
+  letter-spacing: normal;
+  font-size: var(--fs-label);
+}
+.pass-field > b {
+  font-size: var(--fs-body);
+  overflow-wrap: anywhere;
+}
+.pass-field > .deal-price {
+  font: 700 22px / 1.1 var(--serif-latin);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+/* The torn edge: a dashed line with a notch cut at each end, in the page's colour. */
+.pass-perf {
+  position: relative;
+  margin: 0 16px;
+  border-top: 1.5px dashed rgb(74 44 30 / 0.22);
+}
+.pass-perf::before,
+.pass-perf::after {
+  content: "";
+  position: absolute;
+  top: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg);
+}
+.pass-perf::before {
+  left: -26px;
+}
+.pass-perf::after {
+  right: -26px;
+}
+.pass-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  font-size: var(--fs-2);
+  color: var(--text2);
+}
+.deal-faces {
+  display: flex;
+  flex: none;
+}
+.deal-face {
+  position: relative;
+}
+.deal-face + .deal-face {
+  margin-left: -8px;
+}
+.deal-face .avatar {
+  box-shadow: 0 0 0 3px var(--surface);
+}
+.deal-tick {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--surface);
+  --icon: #fff;
+  color: #fff;
+}

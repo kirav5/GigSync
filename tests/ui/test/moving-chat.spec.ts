@@ -100,7 +100,8 @@ test("a cook moving to Bengaluru gets the outlook, the guide's answers and a men
 
   // ── The cook says she is moving: the outlook for cooks there, what it rests on, and what to sort first ──────────
   await open(cookPage, "nav.talk");
-  await expect(cookPage.getByRole("button", { name: t(en, "moving.suggest"), exact: true })).toBeVisible();
+  // An empty Talk greets her; a move is said, not picked from a list.
+  await expect(cookPage.getByText(t(en, "agent.empty"))).toBeVisible();
   await type(cookPage, en, "I'm moving to Bengaluru");
   const log = cookPage.getByRole("log");
   // The cook's range at the default scope (ADR 0041): GigSync's jobs blended with the city's rate card when the shared
@@ -149,8 +150,8 @@ test("a cook moving to Bengaluru gets the outlook, the guide's answers and a men
   await expect(log).toContainText(t(en, "moving.sent", { name: mentorName }));
   await shoot("asked", shots, FOLDER);
 
-  // ── The mentor sees the request on Today, as before ──────────────────────────────────────────────────────────
-  await open(mentorPage, "nav.activity");
+  // ── The mentor sees the request on Home ──────────────────────────────────────────────────────────────────────
+  await open(mentorPage, "nav.jobs");
   await expect(mentorPage.getByRole("button", { name: t(en, "mentor.help", { name: `Kavya ${RUN}` }) })).toBeVisible();
 
   // ── About me has nothing about cities any more ──────────────────────────────────────────────────────────────

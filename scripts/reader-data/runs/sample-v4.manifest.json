@@ -1,0 +1,36 @@
+{
+  "seed": 1,
+  "count": 300,
+  "teacher": "qwen3:30b-a3b-instruct-2507-q4_K_M",
+  "recipe_version": 4,
+  "targets": 300,
+  "kept": 170,
+  "train": 155,
+  "dev": 15,
+  "dropped": {
+    "slots": 71,
+    "turn": 5,
+    "unwritten": 30,
+    "words": 10,
+    "invalid": 6,
+    "unlabelled": 7,
+    "no_what": 1
+  },
+  "kept_by_turn": {
+    "need": 102,
+    "other": 9,
+    "market": 16,
+    "answer": 27,
+    "greeting": 16
+  },
+  "kept_by_slot": {
+    "kind": 120,
+    "what": 109,
+    "how_long": 38,
+    "where": 48,
+    "when": 72
+  },
+  "finished_at": "2026-11-10T18:15:17.423Z",
+  "out": "data/reader/sample-v4",
+  "concurrency": 6
+}

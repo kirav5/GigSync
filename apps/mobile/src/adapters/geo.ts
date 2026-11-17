@@ -53,5 +53,10 @@ export const geocodingOff = (err: unknown): boolean => err instanceof HttpError 
 export const placesAt = (session: Session, point: Place): Promise<GeoPlace[]> =>
   apiClient(session).reverseGeocode(point);
 
-/** Places matching what the owner typed. */
-export const placesNamed = (session: Session, q: string): Promise<GeoPlace[]> => apiClient(session).searchPlaces(q);
+/** The API's answer when the owner has made too many lookups this minute: typing on waits, quietly. */
+const TOO_MANY = 429;
+export const geocodingBusy = (err: unknown): boolean => err instanceof HttpError && err.status === TOO_MANY;
+
+/** Places matching what the owner typed, favouring those around `near` (a city's or work area's centre). */
+export const placesNamed = (session: Session, q: string, near?: Place): Promise<GeoPlace[]> =>
+  apiClient(session).searchPlaces(q, near);

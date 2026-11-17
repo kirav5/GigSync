@@ -1,26 +1,53 @@
-import { Collection, type Embedder, log, type Storage } from "@gigsync/core";
-import { useSyncExternalStore } from "react";
+import { Capacitor } from "@capacitor/core";
+import { Collection, type Embedder, log, mayResumeAlone, type Reader, type Storage } from "@gigsync/core";
+import { ModelBundle, type ReaderInput, type ReaderResult } from "@gigsync/protocol";
 import {
+  type Bundled,
   EMBEDDING_MODEL,
   FromWorker,
   type FromWorkerMessage,
   ToWorker,
   type ToWorkerMessage,
 } from "./embed/messages.js";
-import { chosenModel, ModelChoice } from "./model.js";
+import { currentNetwork } from "./network.js";
 
 /**
  * The understanding pack (ADR 0042): a small multilingual embedding model that runs inside this app, through ONNX
  * Runtime in the browser or webview, and turns a sentence into a vector core compares with its labelled sayings. It is
- * fetched once, on the owner's tap, and kept by the browser's cache; after that it loads from the device and nothing
- * typed ever leaves the phone. Lite mode turns it off like every other model. The model itself runs in a worker
+ * fetched once, by itself on Wi-Fi, and kept by the browser's cache; after that it loads from the device and nothing
+ * typed ever leaves the phone, so it stays on whichever model answers, or none. The model itself runs in a worker
  * (embed/worker.ts), so loading and embedding never hold up typing or the screen.
  */
 
 export { EMBEDDING_MODEL };
-export const EMBEDDING_PACK_MB = 129;
-const PERCENT = 100;
-/** Remembers that the owner fetched the pack, so later launches load it from the cache without asking again. */
+
+/**
+ * The phone's reader (ADR 0065), fetched with the pack from GigSync's model host: the folder its files are in, set at
+ * build time (`VITE_READER_URL`). A build without it has no reader, and Find reads as before.
+ */
+const READER_URL = import.meta.env.VITE_READER_URL?.replace(/\/+$/, "") || undefined;
+/**
+ * Where a native app keeps the models it came with (`pnpm models:bundle`), beside its own files: the trimmed embedding
+ * model and the reader trimmed to the same pieces. With them the phone reads from its first launch,
+ * offline, and never fetches either model; the web, which has no bundle, fetches as before.
+ */
+const BUNDLE = "/models/";
+const BUNDLE_MANIFEST = `${BUNDLE}manifest.json`;
+const BUNDLED_READER = `${BUNDLE}reader`;
+
+/** The bundle's manifest, in a native app built with one; undefined everywhere else. */
+async function findBundle(): Promise<Bundled | undefined> {
+  if (!Capacitor.isNativePlatform()) return undefined;
+  try {
+    const response = await fetch(BUNDLE_MANIFEST);
+    if (!response.ok) return undefined;
+    const manifest = ModelBundle.safeParse(await response.json());
+    return manifest.success ? { base: BUNDLE, embedder: manifest.data.embedder } : undefined;
+  } catch {
+    return undefined;
+  }
+}
+/** Remembers that the pack was fetched, so later launches load it from the cache without asking again. */
 const SETTINGS_KEY = "understanding_pack";
 /** Where Transformers.js keeps fetched files (its browser Cache name), and the files this model needs. */
 const TRANSFORMERS_CACHE = "transformers-cache";
@@ -29,23 +56,27 @@ const REVISION = "main";
 /** Transformers.js's default model host, as its cache keys start (`env.remoteHost`); read here without loading it. */
 const MODEL_HOST = "https://huggingface.co/";
 
-export const PackState = {
-  /** Not fetched; a tap fetches it. */
+const PackState = {
+  /** Not fetched yet. */
   downloadable: "downloadable",
   downloading: "downloading",
   ready: "ready",
-  /** The fetch or the runtime failed; a tap tries again. */
+  /** The fetch or the runtime failed; the next launch on Wi-Fi tries again. */
   failed: "failed",
 } as const;
-export type PackState = (typeof PackState)[keyof typeof PackState];
+type PackState = (typeof PackState)[keyof typeof PackState];
 
 type Vectors = (readonly number[] | null)[];
 
-/** The embedding model's state on this device, and the `Embedder` the agent's ports hand to core. */
-export class UnderstandingPack implements Embedder {
+/** The embedding model's and the reader's state on this device, and the `Embedder` and `Reader` core is handed. */
+export class UnderstandingPack implements Embedder, Reader {
   state: PackState = PackState.downloadable;
-  /** Of the download, 0 to 100, while downloading. */
-  percent = 0;
+  /** The reader's own state once the embedding model is ready; undefined in a build with no reader. */
+  readerState: PackState | undefined = READER_URL ? PackState.downloadable : undefined;
+  /** The models the app came with, once `load` looked; the reader then comes from there and never from the host. */
+  private bundled: Bundled | undefined;
+  private settleReader: (() => void) | undefined;
+  private readonly readings = new Map<number, (result: ReaderResult | null) => void>();
   private worker: Worker | undefined;
   private loading: Promise<void> | undefined;
   private settle: ((ok: boolean) => void) | undefined;
@@ -53,23 +84,48 @@ export class UnderstandingPack implements Embedder {
   private readonly pending = new Map<number, (vectors: Vectors | null) => void>();
   /** The device's settings, from `load`: the pack belongs to the device (its cache), not to one owner. */
   private storage: Storage | undefined;
-  private readonly listeners = new Set<() => void>();
-  private version = 0;
 
   /**
-   * Loads the pack when it was fetched on this device before and the browser still holds every file of it; never
-   * fetches on its own. A cache the browser has since cleared leaves the pack downloadable, for the owner's tap.
+   * Loads the pack when it was fetched on this device before and the browser still holds every file of it. Otherwise
+   * it fetches the pack by itself on Wi-Fi, never on mobile data or where the browser can't tell (Settings has no
+   * button for it: the pack is meant to come with the app, and until it does, Wi-Fi brings it).
    */
   async load(storage: Storage): Promise<void> {
     this.storage = storage;
+    this.bundled = await findBundle();
+    if (this.bundled) return this.loadBundled();
     const fetched = await storage.get<boolean>(Collection.settings, SETTINGS_KEY);
+    const wifi = mayResumeAlone(currentNetwork());
     if (fetched && (await this.cached())) await this.start();
+    else if (wifi) return this.prepare();
+    // A reader newer than the pack on this phone comes the same way.
+    await this.startReader(wifi);
   }
 
-  /** Fetches the pack, once, then keeps it. Call only from the owner's tap. */
-  async prepare(): Promise<void> {
+  /** Both models from the app's own files: no network, no cache, on every launch. */
+  private async loadBundled(): Promise<void> {
+    this.readerState = PackState.downloadable;
+    await this.start();
+    await this.startReader(true);
+  }
+
+  /** Fetches the pack, once, then keeps it: the embedding model, then the reader. */
+  private async prepare(): Promise<void> {
     await this.start();
     if (this.state === PackState.ready) await this.storage?.put(Collection.settings, SETTINGS_KEY, true);
+    await this.startReader(true);
+  }
+
+  /** The reader, once the embedding model is ready: from the device at launch, from the host only with the pack. */
+  private startReader(fetchIt: boolean): Promise<void> {
+    // A bundled embedding model was trimmed with its reader: a reader from the host would not share its pieces.
+    const url = this.bundled ? BUNDLED_READER : READER_URL;
+    if (!url || this.state !== PackState.ready || this.readerState === PackState.ready) return Promise.resolve();
+    if (fetchIt) this.setReader(PackState.downloading);
+    return new Promise((resolve) => {
+      this.settleReader = resolve;
+      this.send({ type: ToWorker.loadReader, url, fetch: fetchIt, keep: !this.bundled });
+    });
   }
 
   /** True when the browser's cache holds every file the model loads, so loading reaches no network. */
@@ -96,39 +152,61 @@ export class UnderstandingPack implements Embedder {
   private heard(m: FromWorkerMessage) {
     switch (m.type) {
       case FromWorker.progress:
-        return this.set(PackState.downloading, m.percent);
+        return this.set(PackState.downloading);
       case FromWorker.ready:
-        this.set(PackState.ready, PERCENT);
+        this.set(PackState.ready);
         return this.settle?.(true);
       case FromWorker.failed:
         log.warn("understanding pack: load failed", { error: m.error });
-        this.set(PackState.failed, 0);
+        this.set(PackState.failed);
         return this.settle?.(false);
       case FromWorker.vectors:
         this.pending.get(m.id)?.(m.vectors);
         return this.pending.delete(m.id);
       case FromWorker.error:
-        log.warn("understanding pack: embed failed", { error: m.error });
+        log.warn("understanding pack: embed or read failed", { error: m.error });
         this.pending.get(m.id)?.(null);
+        this.readings.get(m.id)?.(null);
+        this.readings.delete(m.id);
         return this.pending.delete(m.id);
+      default:
+        return this.heardReader(m);
+    }
+  }
+
+  private heardReader(m: FromWorkerMessage) {
+    switch (m.type) {
+      case FromWorker.readerProgress:
+        return this.setReader(PackState.downloading);
+      case FromWorker.readerReady:
+        this.setReader(PackState.ready);
+        return this.settleReader?.();
+      case FromWorker.readerFailed:
+        // Not on the device yet is no failure: the reader comes with the pack, on Wi-Fi.
+        if (this.readerState === PackState.downloading) log.warn("reader: load failed", { error: m.error });
+        this.setReader(this.readerState === PackState.downloading ? PackState.failed : PackState.downloadable);
+        return this.settleReader?.();
+      case FromWorker.reading:
+        this.readings.get(m.id)?.(m.result);
+        return this.readings.delete(m.id);
     }
   }
 
   private start(): Promise<void> {
     if (this.state === PackState.ready) return Promise.resolve();
     this.loading ??= new Promise<void>((resolve) => {
-      this.set(PackState.downloading, 0);
+      this.set(PackState.downloading);
       this.settle = (ok) => {
         this.loading = ok ? this.loading : undefined;
         resolve();
       };
-      this.send({ type: ToWorker.load });
+      this.send({ type: ToWorker.load, bundled: this.bundled });
     });
     return this.loading;
   }
 
   private ask(texts: readonly string[], keep: boolean): Promise<Vectors | null> {
-    if (this.state !== PackState.ready || chosenModel.current.choice === ModelChoice.lite) return Promise.resolve(null);
+    if (this.state !== PackState.ready) return Promise.resolve(null);
     const id = this.nextId++;
     return new Promise((resolve) => {
       this.pending.set(id, resolve);
@@ -146,26 +224,27 @@ export class UnderstandingPack implements Embedder {
     return (await this.ask(texts, true)) ?? texts.map(() => null);
   }
 
-  private set(state: PackState, percent: number) {
-    this.state = state;
-    this.percent = percent;
-    this.version += 1;
-    for (const fn of this.listeners) fn();
+  /**
+   * One message read on the phone; null with no reader ready. Which messages it is asked to read is Find's choice
+   * (`readMessage` in core).
+   */
+  read(input: ReaderInput): Promise<ReaderResult | null> {
+    if (this.readerState !== PackState.ready) return Promise.resolve(null);
+    const id = this.nextId++;
+    return new Promise((resolve) => {
+      this.readings.set(id, resolve);
+      this.send({ type: ToWorker.read, id, input });
+    });
   }
 
-  subscribe = (fn: () => void) => {
-    this.listeners.add(fn);
-    return () => this.listeners.delete(fn);
-  };
+  private setReader(state: PackState) {
+    this.readerState = state;
+  }
 
-  snapshot = () => this.version;
+  private set(state: PackState) {
+    this.state = state;
+  }
 }
 
 /** The app's one pack. */
 export const understanding = new UnderstandingPack();
-
-/** Re-renders a component whenever the pack's state changes. */
-export function useUnderstanding(): UnderstandingPack {
-  useSyncExternalStore(understanding.subscribe, understanding.snapshot);
-  return understanding;
-}

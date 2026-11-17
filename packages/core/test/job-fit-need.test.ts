@@ -63,17 +63,24 @@ describe("a cook, asked as a cook is hired", () => {
     expect(chooseNeed(s, A.hourly)).toBe(s);
   });
 
-  it("reads one meal or a party from the first sentence, in each language, and does not ask", () => {
+  it("takes one meal or a party as the model read the first sentence, in each language, and does not ask", () => {
+    const read = { decided: true, trade: T.cook, arrangement: A.visit } as const;
     for (const [own, words, people] of [
       ["en", "need a cook for one meal on Saturday", "6"],
       ["hi", "पार्टी के लिए खाना बनाने वाली चाहिए", "6"],
       ["kn", "ಪಾರ್ಟಿಗೆ ಅಡುಗೆಯವರು ಬೇಕು", "6"],
     ] as const) {
-      const s = cookAsked(own, words, people);
+      const s = hearNeed(hearNeed(startNeed(config(own)), words, false, read), people);
       expect(s.draft.trade).toBe(T.cook);
       expect(s.draft.arrangement).toBe(A.visit);
       expect(s.slot).not.toBe(NeedSlot.arrangement);
     }
+  });
+
+  it("guesses no arrangement from words alone: with no reading it is asked", () => {
+    const s = cookAsked("en", "need a cook for a party next month", "6");
+    expect(s.draft.arrangement).toBeUndefined();
+    expect(s.slot).toBe(NeedSlot.arrangement);
   });
 
   it("says there is no going rate for one meal yet, rather than a monthly band", () => {
@@ -95,10 +102,17 @@ describe("a cook, asked as a cook is hired", () => {
 });
 
 describe("house help, by the hour", () => {
-  it("takes hours said in the first sentence and asks the rest", () => {
-    const s = hearNeed(startNeed(config()), "need a maid for 3 hours on Saturday in Koramangala");
+  it("takes hours as the model read them in the first sentence, and asks the rest", () => {
+    const read = { decided: true, trade: T.maid, arrangement: A.hourly } as const;
+    const s = hearNeed(startNeed(config()), "need a maid for 3 hours on Saturday in Koramangala", false, read);
     expect(s.draft.arrangement).toBe(A.hourly);
+    expect(s.draft.area).toBe("koramangala");
     expect(s.slot).not.toBe(NeedSlot.arrangement);
+  });
+
+  it('lets no word list set the work once a model read the words: "car cleaning" is no maid\'s', () => {
+    const s = hearNeed(startNeed(config()), "daily car cleaning in my apartment parking", false, { decided: true });
+    expect(s.draft.trade).toBeUndefined();
   });
 });
 

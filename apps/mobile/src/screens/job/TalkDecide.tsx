@@ -1,34 +1,31 @@
 import {
+  AGENT_OFFERS,
   canOffer,
   type GigDevice,
   type JobRecord,
-  type TakeOver,
+  type TakeOver as TakeOverDetail,
   TaskKind,
-  type TimeAsk,
   theirLast,
   theirLatest,
 } from "@gigsync/core";
-import { EngagementStatus, Role, UPI_MAX_PAISE } from "@gigsync/protocol";
+import { Role } from "@gigsync/protocol";
 import { useState } from "react";
 import { useI18n } from "../../i18n.js";
 import type { Step } from "../../payments/useStep.js";
+import { Avatar, AvatarSize, AvatarTone } from "../../ui/Avatar.js";
 import { C } from "../../ui/cls.js";
-import { jobPrice } from "../../ui/places.js";
+import { Icon } from "../../ui/Icon.js";
+import { jobPrice, money } from "../../ui/places.js";
 import type { GigView } from "../../useGig.js";
 import { OfferTerms } from "../terms/OfferTerms.js";
-import { TimeCard } from "./TimeCard.js";
+import { J } from "./look.js";
+import { OwnOffer } from "./OwnOffer.js";
 
 /**
- * The owner takes the talk over from their agent (ADR 0053 §3–5). After five offers each without agreement: accept
- * theirs, send an offer, or end it; the owner waiting on the other may take theirs or end it. A time the household did
- * not ask for, or one that has passed: take theirs, pick another, or end it. While the agents are still talking, the
- * owner may end the talk or take theirs at any time.
+ * The owner takes the talk over from their agent (ADR 0053 §3–5). After five offers each without agreement it is
+ * theirs to decide at once: accept the other side's offer, send one of their own, or end it; the owner waiting on the
+ * other may take theirs or end it. While the agents are still talking, the owner may step in at any turn.
  */
-
-const S = EngagementStatus.enum;
-/** A job its agents are still talking about. */
-const TALKING: ReadonlySet<EngagementStatus> = new Set([S.sent, S.clarifying, S.negotiating]);
-const RUPEE = 100;
 
 interface Props {
   job: JobRecord;
@@ -38,77 +35,112 @@ interface Props {
   them: string;
 }
 
-/** The decisions about the talk itself, on a job still being talked about. */
-export function TalkDecide({ job, view, device, step, them }: Props) {
+/** The other side's offer this owner may accept now, unless a deal already waits for their signature. */
+function theirsNow(job: JobRecord, view: GigView, waiting: boolean) {
+  const id = job.engagement.id;
+  const signing = view.tasks.some((k) => k.kind === TaskKind.confirmDeal && k.engagement === id);
+  const last = signing ? undefined : (theirLast(job) ?? (waiting ? theirLatest(job) : undefined));
+  return { signing, last };
+}
+
+/** The accept, own offer and end controls, the same whether the agents are stuck or the owner stepped in. */
+function Controls({ job, view, device, step, waiting }: Props & { waiting: boolean }) {
   const { lang, t } = useI18n();
   const id = job.engagement.id;
-  const task = (kind: TaskKind) => view.tasks.find((k) => k.kind === kind && k.engagement === id);
-  const time = task(TaskKind.newTime);
-  const takeOver = task(TaskKind.takeOver);
-  if (time && job.engagement.role === Role.enum.requester)
-    return <TimeCard job={job} ask={time.detail as TimeAsk} device={device} step={step} them={them} />;
-  if (!TALKING.has(job.engagement.status)) return null;
-  // Both agents out of offers and the other owner's turn: this one may still take their latest offer, or end it.
-  const waiting = (takeOver?.detail as TakeOver | undefined)?.waiting === true;
-  // A deal waiting for this owner's signature is signed or declined on its own card, not accepted again here.
-  const signing = task(TaskKind.confirmDeal);
-  const last = signing ? undefined : (theirLast(job) ?? (waiting ? theirLatest(job) : undefined));
-  const price = last && jobPrice(lang, job.request, last.price_paise);
+  const { signing, last } = theirsNow(job, view, waiting);
   return (
-    <fieldset className={C.stack} aria-label={t("a11y.takeover")}>
-      {takeOver && (
-        <>
-          <span className={C.label}>{t("decide.takeover_title")}</span>
-          {price && (
-            <span>
-              {waiting ? t("decide.waiting_body", { name: them, price }) : t("decide.takeover_body", { price })}
-            </span>
-          )}
-          {/* Accepting their offer accepts its terms too: say what they are. */}
-          <OfferTerms terms={last?.terms} />
-        </>
-      )}
-      {!takeOver && <span className={C.muted}>{t("talks.take_over")}</span>}
-      <div className={C.actions}>
-        {last && price && (
-          <button type={C.button} className={C.accent} onClick={() => step(() => device.talks.acceptTheirs(id))}>
-            {t("decide.accept_theirs", { price })}
-          </button>
-        )}
-        <button type={C.button} className={C.secondary} onClick={() => step(() => device.talks.end(id))}>
-          {t("decide.end")}
+    <>
+      {last && (
+        <button type={C.button} className={J.hero} onClick={() => step(() => device.talks.acceptTheirs(id))}>
+          <Icon name="tick" />
+          {t("decide.accept_theirs", { price: jobPrice(lang, job.request, last.price_paise) })}
         </button>
-      </div>
+      )}
       {!signing && canOffer(job) && (
         <OwnOffer onSend={(paise, sent) => step(() => device.talks.offer(id, paise), sent)} />
       )}
+      <button type={C.button} className={J.ghost} onClick={() => step(() => device.talks.end(id))}>
+        {t("decide.end")}
+      </button>
+    </>
+  );
+}
+
+/**
+ * The agents used their offers (H8): a dark card says what the other side asks and, on this phone only, this owner's
+ * own limit; then accept, one last offer, or end. The controls show at once: the decision is the owner's now.
+ */
+export function StuckCard(props: Props & { detail: TakeOverDetail | undefined }) {
+  const { job, them, detail } = props;
+  const { lang, t } = useI18n();
+  const waiting = detail?.waiting === true;
+  const { last } = theirsNow(job, props.view, waiting);
+  const price = last && jobPrice(lang, job.request, last.price_paise);
+  const limit = job.mandate && jobPrice(lang, job.request, job.mandate.limit_paise);
+  const isWorker = job.engagement.role === Role.enum.provider;
+  return (
+    <fieldset className={C.stack} aria-label={t("a11y.takeover")}>
+      <div className={J.amount}>
+        <span className={C.muted}>{t("decide.takeover_title")}</span>
+        {price && waiting && <p className={J.heroLine}>{t("decide.waiting_body", { name: them, price })}</p>}
+        {price && !waiting && (
+          <p className={J.heroLine}>
+            {t(isWorker ? "jobcard.they_offer" : "jobcard.they_ask", { name: them, price })}
+            {limit && <> {t(isWorker ? "jobcard.your_lowest" : "jobcard.your_limit", { price: limit })}</>}
+          </p>
+        )}
+        {!waiting && <span className={C.muted}>{t("decide.takeover_body")}</span>}
+        {/* Accepting their offer accepts its terms too: say what they are. */}
+        <OfferTerms terms={last?.terms} />
+      </div>
+      <Controls {...props} waiting={waiting} />
     </fieldset>
   );
 }
 
-/** One offer of the owner's own, in whole rupees. */
-function OwnOffer({ onSend }: { onSend: (paise: number, sent: () => void) => void }) {
-  const { t } = useI18n();
-  const [rupees, setRupees] = useState("");
-  const amount = Number.parseInt(rupees, 10);
+/**
+ * While the agents talk (W9): the other side's latest offer as one row, as inDrive shows one (who, the amount large,
+ * the usual range for the work), then the turn and the owner's own limit, which no offer crosses, in one muted line;
+ * then "Take over from my agent", which opens the controls. Doing nothing leaves the agent to carry on.
+ */
+export function TakeOver(props: Props) {
+  const { job, them } = props;
+  const { lang, t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const isWorker = job.engagement.role === Role.enum.provider;
+  const turn = Math.min(job.offers_made, AGENT_OFFERS);
+  const limit = job.mandate && jobPrice(lang, job.request, job.mandate.limit_paise);
+  const latest = theirLatest(job);
+  const usual = job.estimate && { low: money(job.estimate.low_paise), high: money(job.estimate.high_paise) };
   return (
-    <div className={C.row}>
-      <input
-        className={C.field}
-        inputMode="numeric"
-        aria-label={t("decide.your_offer")}
-        placeholder={t("decide.your_offer")}
-        value={rupees}
-        onChange={(e) => setRupees(e.target.value.replace(/\D/g, ""))}
-      />
-      <button
-        type={C.button}
-        className={C.secondary}
-        disabled={!(amount > 0 && amount * RUPEE <= UPI_MAX_PAISE)}
-        onClick={() => onSend(amount * RUPEE, () => setRupees(""))}
-      >
-        {t("decide.send_offer")}
-      </button>
+    <div className={C.stack}>
+      {latest && (
+        <div className="offer-now">
+          <Avatar name={them} size={AvatarSize.md} tone={AvatarTone.rust} />
+          <span className="offer-now-who">
+            <strong>{them}</strong>
+            {usual && <span className="usual-chip">{t("jobcard.usual", usual)}</span>}
+          </span>
+          <span className="offer-now-price">{jobPrice(lang, job.request, latest.price_paise)}</span>
+        </div>
+      )}
+      {(turn > 0 || limit) && (
+        <p className={`${J.fine} turn-line`}>
+          {turn > 0 && t("jobcard.turn", { count: turn, max: AGENT_OFFERS })}
+          {turn > 0 && limit && " "}
+          {limit && t(isWorker ? "jobcard.floor" : "jobcard.ceiling", { price: limit })}
+        </p>
+      )}
+      {open ? (
+        <Controls {...props} waiting={false} />
+      ) : (
+        <>
+          <button type={C.button} className={J.second} onClick={() => setOpen(true)}>
+            <Icon name="user" />
+            {t("talks.take_over")}
+          </button>
+        </>
+      )}
     </div>
   );
 }

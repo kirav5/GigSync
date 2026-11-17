@@ -1,5 +1,5 @@
 import { Preferences } from "@capacitor/preferences";
-import type { Embedder, Keys, Model, Ports, Storage } from "@gigsync/core";
+import type { Embedder, Keys, Model, Ports, Reader, Storage } from "@gigsync/core";
 import { SecretKeys, SystemClock, traced } from "@gigsync/core";
 import { type DeviceSecrets, newDeviceSecrets, type Sealed } from "@gigsync/crypto";
 import type { DeviceId } from "@gigsync/protocol";
@@ -83,11 +83,16 @@ function createModel(): Model {
 }
 
 function createEmbedder(): Embedder {
-  // The understanding pack (adapters/embedder.ts): null until the owner has fetched it, and in lite mode.
+  // The understanding pack (adapters/embedder.ts): null until the owner has fetched it.
   return {
     embed: traced("embedder.embed", understanding.embed.bind(understanding)),
     embedMany: understanding.embedMany.bind(understanding),
   };
+}
+
+function createReader(): Reader {
+  // The phone's reader (ADR 0065), in the understanding pack: null until fetched, and for other scripts.
+  return { read: traced("reader.read", understanding.read.bind(understanding)) };
 }
 
 export function createPorts(): Ports {
@@ -97,5 +102,6 @@ export function createPorts(): Ports {
     model: createModel(),
     clock: new SystemClock(),
     embedder: createEmbedder(),
+    reader: createReader(),
   };
 }

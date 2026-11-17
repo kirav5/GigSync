@@ -15,6 +15,7 @@ import { fillAsk, type Phone, publishCard, signBoth, unlistCards } from "./journ
 const { en, hi } = Lang.enum;
 const FOLDER = "recommend";
 const WHATSAPP = "https://wa.me/**";
+const RECOMMEND_ROUTE = "**/v1/qr/recommend";
 const WHATSAPP_TEXT = "text";
 const LINK_IN_WORDS = /https?:\/\/\S+$/;
 const say = (key: MessageKey, params?: Params) => t(en, key, params);
@@ -90,11 +91,29 @@ test("a household recommends a worker to a friend, who signs up and can ask them
   const card = await jobCard(lakshmi, name);
   await expect(card.getByRole("button", { name: say("mentor.introduce", { name }) })).toHaveCount(0);
 
+  // ── While the link is on its way the button shows it is working, and a second tap sends nothing more ───────────
+  let asked = 0;
+  let answer = () => {};
+  const held = new Promise<void>((resolve) => {
+    answer = resolve;
+  });
+  await lakshmi.route(RECOMMEND_ROUTE, async (route) => {
+    asked += 1;
+    await held;
+    await route.continue();
+  });
+  const recommend = card.getByRole("button", { name: say("qr.recommend", { name }) });
+  await recommend.click();
+  await expect(recommend).toHaveAttribute("aria-busy", "true");
+  await expect(recommend).toBeDisabled();
+  await recommend.click({ force: true }).catch(() => undefined);
+  answer();
+
   // ── Recommend gets the link; WhatsApp opens with the household's words and the link, and no number ─────────────
   await contexts[1]?.route(WHATSAPP, (route) => route.fulfill({ contentType: "text/html", body: "" }));
-  await card.getByRole("button", { name: say("qr.recommend", { name }) }).click();
   const send = card.getByRole("group", { name: say("qr.recommend", { name }) });
   await expect(send).toContainText(say("qr.recommend_about", { name }));
+  expect(asked).toBe(1);
   await shoot("recommend", shots, FOLDER);
   const whatsApp = send.getByRole("link", { name: say("qr.recommend_whatsapp") });
   const href = (await whatsApp.getAttribute("href")) ?? "";
@@ -108,8 +127,8 @@ test("a household recommends a worker to a friend, who signs up and can ask them
   await (await opened).close();
   await expect(card.getByRole("status").filter({ hasText: say("qr.recommend_told", { name }) })).toBeVisible();
 
-  // ── The worker is told on their Activity, in their language, until they tap OK ─────────────────────────────────
-  await open(ganesh, "nav.activity", hi);
+  // ── The worker is told on Jobs, in their language, until they tap OK ────────────────────────────────────────────
+  await open(ganesh, "nav.jobs", hi);
   const told = t(hi, "qr.recommended", { name: names.household });
   const note = ganesh.getByRole("article", { name: told });
   await expect(note).toBeVisible();

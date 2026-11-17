@@ -23,7 +23,8 @@ export interface MentorApi {
   removeMentor(): Promise<void>;
   matchMentors(query: MatchRequestInput): Promise<MentorProfile[]>;
   reportMentor(report: MentorReport): Promise<unknown>;
-  blockMentor(user: UserId): Promise<unknown>;
+  /** Blocks `user`; with `blocked` false, lifts the caller's own block. */
+  blockMentor(user: UserId, blocked?: boolean): Promise<unknown>;
 }
 
 /** Where a landing request stands, on either phone. */

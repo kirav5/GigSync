@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
-import { defineConfig, type Plugin, type Rolldown } from "vite";
+import { defineConfig, type Plugin } from "vite";
 
 const SW_SOURCE = new URL("./sw/sw.js", import.meta.url);
 const PUBLIC = fileURLToPath(new URL("./public/", import.meta.url));
@@ -13,21 +13,22 @@ const SOURCE_MAP = ".map";
 /** Cloudflare reads this file at deploy and never serves it, so it is no part of what the app precaches. */
 const REDIRECTS = "_redirects";
 /** What only the website loads: an app that opens offline has no use for it, and a phone should not pay for it. */
-const WEBSITE_ONLY = /^assets\/(home-|community-mural-)/;
-/** The on-device model's engine (WebLLM, about 12 MB in two files): fetched on its first use, never precached. */
-const MODEL_ENGINE = "/@mlc-ai/web-llm/";
+const WEBSITE_ONLY = /^assets\/(home-|story-|site-links-|curves-|flow-|community-mural-|mural-)/;
+/**
+ * The understanding pack's Web Worker (adapters/embed/worker.ts, with ONNX Runtime and Transformers.js bundled in):
+ * fetched when the pack first loads, never precached.
+ */
 const MODEL_WORKER = `${ASSETS}model-worker-`;
-
-/** WebLLM's chunk and the worker that runs it: only phones that download the model ever fetch them. */
-function modelEngine(file: Rolldown.OutputChunk | Rolldown.OutputAsset): boolean {
-  if (file.type === "asset") return file.fileName.startsWith(MODEL_WORKER);
-  return file.moduleIds.some((id) => id.includes(MODEL_ENGINE));
-}
+/**
+ * pdf.js and its worker (adapters/aadhaarPdf.ts, about 1.5 MB): only someone verifying with an e-Aadhaar PDF needs
+ * them, so they are fetched when first used, never precached; the service worker keeps them for offline after that.
+ */
+const PDF_READER = /^assets\/pdf(\.worker\.min)?-/;
 
 /**
  * Writes sw.js into the build with the app shell it precaches: ./app (where the web serves index.html), the manifest
  * and icons (everything in public/), and every emitted file under assets/ except source maps, the website's own files
- * and the on-device model's engine (the worker caches that on its first fetch, when the owner downloads the model).
+ * the understanding pack's worker and pdf.js (the service worker caches those on their first fetch).
  * The cache is named by a hash of those names and index.html, so each release gets its own cache and the browser sees a changed worker.
  */
 function serviceWorker(): Plugin {
@@ -38,12 +39,14 @@ function serviceWorker(): Plugin {
     generateBundle: {
       order: "post",
       handler(_output, bundle) {
-        const built = Object.entries(bundle)
-          .filter(
-            ([f, file]) =>
-              f.startsWith(ASSETS) && !f.endsWith(SOURCE_MAP) && !WEBSITE_ONLY.test(f) && !modelEngine(file),
-          )
-          .map(([f]) => f);
+        const built = Object.keys(bundle).filter(
+          (f) =>
+            f.startsWith(ASSETS) &&
+            !f.endsWith(SOURCE_MAP) &&
+            !WEBSITE_ONLY.test(f) &&
+            !f.startsWith(MODEL_WORKER) &&
+            !PDF_READER.test(f),
+        );
         const copied = readdirSync(PUBLIC, { recursive: true, withFileTypes: true })
           .filter((entry) => entry.isFile() && entry.name !== REDIRECTS)
           .map((entry) => relative(PUBLIC, join(entry.parentPath, entry.name)).split(sep).join("/"));
@@ -68,10 +71,11 @@ export default defineConfig({
     outDir: "dist",
     target: "es2022",
     sourcemap: true,
-    // Two pages: the app (index.html, what Capacitor loads) and the website (home.html, the web's root: public/_redirects).
-    rollupOptions: { input: { app: INDEX, home: "home.html" } },
+    // The app (index.html, what Capacitor loads) and the website's two pages: home.html, the web's root
+    // (public/_redirects), and story.html, served at /story.
+    rollupOptions: { input: { app: INDEX, home: "home.html", story: "story.html" } },
   },
-  // The model's Web Worker under a name the service worker can leave out of its precache.
+  // The understanding pack's Web Worker under a name the service worker can leave out of its precache.
   worker: { format: "es", rollupOptions: { output: { entryFileNames: `${MODEL_WORKER}[hash].js` } } },
   server: { port: 5173, host: true },
 });

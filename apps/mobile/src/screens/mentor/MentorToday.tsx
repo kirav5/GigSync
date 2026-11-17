@@ -16,7 +16,7 @@ interface Props {
 }
 
 /**
- * Today's mentor decisions: newcomers asking this owner for help, mentors who offered to help this owner, and
+ * The mentor decisions on a worker's Home: newcomers asking this owner for help, mentors who offered to help this owner, and
  * introductions from people they know. Nothing shows when there is nothing to decide.
  */
 export function MentorToday({ account, device, run, syncedAt }: Props) {

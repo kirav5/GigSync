@@ -31,12 +31,18 @@ describe("a skill in a worker's own words (ADR 0047)", () => {
       expect(skillProblem(ok)).toBeUndefined();
   });
 
+  it("takes a comma, and the longest kind of work's name", () => {
+    expect(skillProblem("mixer, iron repair")).toBeUndefined();
+    expect(skillKey("Mixer, iron repair")).toBe("mixer iron repair");
+    expect(skillProblem("Mixer and small appliance repair")).toBeUndefined();
+  });
+
   it("refuses numbers, contact details, sentences and blocked work", () => {
     expect(skillProblem("Call 9845012345")).toBe(P.characters);
     expect(skillProblem("tailor@gmail.com")).toBe(P.characters);
     expect(skillProblem("https://x.in")).toBe(P.characters);
     expect(skillProblem("२४ घंटे")).toBe(P.characters);
-    expect(skillProblem("I stitch blouses for ladies")).toBe(P.words);
+    expect(skillProblem("I stitch blouses for the ladies")).toBe(P.words);
     expect(skillProblem("a")).toBe(P.length);
     expect(skillProblem("x".repeat(41))).toBe(P.length);
     expect(skillProblem("Escort service")).toBe(P.blocked);

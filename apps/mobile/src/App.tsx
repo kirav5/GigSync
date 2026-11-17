@@ -1,21 +1,29 @@
 import { Agent, ownerPorts } from "@gigsync/core";
 import type { Lang } from "@gigsync/protocol";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { type Account, deviceFor, loadAccount, raiseDeviceProtocol, signOut } from "./adapters/account.js";
+import {
+  type Account,
+  deviceFor,
+  endSession,
+  loadAccount,
+  raiseDeviceProtocol,
+  signInAgainNumber,
+  signOut,
+} from "./adapters/account.js";
 import { keepBackInApp, onBackButton } from "./adapters/back.js";
 import { understanding } from "./adapters/embedder.js";
 import { loadLang, saveLang, suggestedLang } from "./adapters/lang.js";
 import { setMapSession } from "./adapters/map.js";
 import { chosenModel } from "./adapters/model.js";
 import { createPorts } from "./adapters/ports.js";
+import { onSessionEnded } from "./adapters/session-end.js";
 import { prepareListening } from "./adapters/speech.js";
 import { forgetCloudConsent } from "./adapters/speech-settings.js";
 import { fetchPacksOnTap, prepareLanguage } from "./adapters/translate.js";
 import { forgetFind, loadFind } from "./find/findChats.js";
 import { I18nProvider } from "./i18n.js";
 import { LanguageChooser } from "./screens/Language.js";
-import { SignIn } from "./screens/SignIn.js";
-import { setDrawer } from "./shell/drawer.js";
+import { SignIn } from "./screens/start/SignIn.js";
 import { SignedIn } from "./shell/SignedIn.js";
 import { forgetTalk, loadTalk } from "./talk/talkStore.js";
 import { Frame } from "./ui/Frame.js";
@@ -25,6 +33,8 @@ import { useGig } from "./useGig.js";
 export function App() {
   const ports = useMemo(createPorts, []);
   const [account, setAccount] = useState<Account | null>();
+  /** The number whose session the server stopped taking, for sign-in to open on; none after a sign-out. */
+  const [again, setAgain] = useState<string>();
   const owner = account?.session.user;
   /**
    * What the signed-in owner's agent and screens use: this phone, with its storage seen as theirs alone, so a shared
@@ -50,7 +60,8 @@ export function App() {
 
   useEffect(() => {
     void loadLang(ports).then((l) => setLangState(l ?? null));
-    void loadAccount(ports).then((a) => {
+    void loadAccount(ports).then(async (a) => {
+      if (!a) setAgain(await signInAgainNumber(ports));
       setAccount(a ?? null);
       if (a) void raiseDeviceProtocol(ports, a);
     });
@@ -77,8 +88,8 @@ export function App() {
   }, [owner, owned]);
 
   // Back (Android's button, the browser's, or the one on screen): the signed-in screens move back one place
-  // (shell/SignedIn.tsx), and from the chat the app goes to the background, or the browser leaves. One listener for
-  // the app's life, reading the current handler through a ref, so a press never lands between two listeners.
+  // (shell/useNav.ts), and from the landing screen the app goes to the background, or the browser leaves. One
+  // listener for the app's life, reading the current handler through a ref, so a press never lands between two.
   const back = useRef<() => boolean>(() => false);
   // A line waiting for a language pack has it fetched on the owner's next tap anywhere.
   useEffect(() => fetchPacksOnTap(), []);
@@ -86,6 +97,28 @@ export function App() {
   useEffect(() => {
     if (!account) keepBackInApp(false);
   }, [account]);
+
+  /** Off the screen once the account is gone from the phone, by sign-out or by a session that ended. */
+  const signedOut = useCallback(() => {
+    // Talk's and Find's chats stay on the phone under their name, off the screen. The companies they let hear them
+    // were theirs alone.
+    forgetTalk();
+    forgetFind();
+    forgetCloudConsent();
+    setAccount(null);
+  }, []);
+  // Their records stay on the phone under their name, for when they sign in again.
+  const signOutNow = useCallback(() => void signOut(ports).then(signedOut), [ports, signedOut]);
+  // A session the server no longer takes (expired, the device retired, or the server lost it) opens sign-in on the same
+  // number with "Sign in again", once; a reload in between keeps it, as the number is saved.
+  const sessionEnded = useCallback(() => {
+    const phone = account?.contact.phone;
+    void endSession(ports).then(() => {
+      setAgain(phone);
+      signedOut();
+    });
+  }, [ports, account, signedOut]);
+  useEffect(() => (account ? onSessionEnded(sessionEnded) : undefined), [account, sessionEnded]);
 
   if (account === undefined || lang === undefined) return null;
   if (lang === null || account === null || !device) {
@@ -95,24 +128,21 @@ export function App() {
           <LanguageChooser suggested={suggestedLang()} onChoose={setLang} />
         ) : (
           <I18nProvider lang={lang} setLang={setLang}>
-            <SignIn ports={ports} onLanguage={() => setLangState(null)} onSignedIn={setAccount} />
+            <SignIn
+              ports={ports}
+              again={again}
+              onLanguage={() => setLangState(null)}
+              onSignedIn={(a) => {
+                setAgain(undefined);
+                setAccount(a);
+              }}
+            />
           </I18nProvider>
         )}
       </Frame>
     );
   }
 
-  const signOutNow = () =>
-    // Their records stay on the phone under their name, for when they sign in again.
-    void signOut(ports).then(() => {
-      // Talk's and Find's chats stay on the phone under their name, off the screen. The companies they let hear
-      // them were theirs alone.
-      forgetTalk();
-      forgetFind();
-      forgetCloudConsent();
-      setDrawer(false);
-      setAccount(null);
-    });
   return (
     <I18nProvider lang={lang} setLang={setLang}>
       <SignedIn

@@ -1,4 +1,4 @@
-import { cardRatesOf, hourText } from "@gigsync/core";
+import { cardRatesOf, hourText, workNameOf, workOfRate } from "@gigsync/core";
 import { type BoardProfile, ISO_WEEKDAYS, type JobRequest, TimeWindow, type WorkHours } from "@gigsync/protocol";
 import type { I18n } from "../i18n.js";
 import { money, unitKey } from "./places.js";
@@ -23,6 +23,16 @@ export const cardRates = (t: I18n["t"], card: Parameters<typeof cardRatesOf>[0])
       ? t("price.per", { price: money(rate_paise), unit: t(unitKey(arrangement)) })
       : t("find.from", { price: money(rate_paise) }),
   );
+
+/** Each kind with a rate of its own (ADR 0062), "Fridge repair: ₹600", for a card shown whole. */
+export function cardWorkRates(t: I18n["t"], card: Pick<BoardProfile, "trades" | "skills" | "work_rates">): string[] {
+  return (card.work_rates ?? []).flatMap((r) => {
+    const name = workNameOf(card, workOfRate(r));
+    if (!name) return [];
+    const work = "trade" in name ? t(`trade.${name.trade}`) : name.text;
+    return [t("price.for_work", { work, price: money(r.rate_paise) })];
+  });
+}
 
 /** A card's rates on one line, for a list of workers. */
 export const cardRateLine = (t: I18n["t"], card: Parameters<typeof cardRates>[1]): string =>

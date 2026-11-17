@@ -22,10 +22,13 @@ const clientFor = (ip: string) =>
     }),
   );
 
-export async function signIn(phone: string): Promise<Person> {
-  const keys = new SecretKeys(newDeviceSecrets());
-  const session = await clientFor(phone).verifyOtp(phone, "000000", { ...(await keys.publicKeys()), protocol: 1 });
-  return { session, keys, api: clientFor(phone).as(session) };
+/**
+ * Signs a number in with these keys: the same keys are the same phone signing in again. `ip` lets one number sign in
+ * from many places without meeting the per-IP cap.
+ */
+export async function signIn(phone: string, keys = new SecretKeys(newDeviceSecrets()), ip = phone): Promise<Person> {
+  const session = await clientFor(ip).verifyOtp(phone, "000000", { ...(await keys.publicKeys()), protocol: 1 });
+  return { session, keys, api: clientFor(ip).as(session) };
 }
 
 /**

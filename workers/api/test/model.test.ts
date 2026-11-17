@@ -43,13 +43,24 @@ describe("GigSync's model through the API", () => {
       temperature: 0,
     });
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ text: '{"intent":"find"}' });
+    expect(await res.json()).toMatchObject({ text: '{"intent":"find"}', usage: { ms: expect.any(Number) } });
     const [url, init] = fetched.mock.calls[0] ?? [];
     expect(String(url)).toBe(`${ORIGIN}/api/generate`);
     const sent = JSON.parse(String(init?.body));
-    expect(sent).toMatchObject({ model: NAME, stream: false, think: false, format: SCHEMA });
+    expect(sent).toMatchObject({ model: NAME, stream: false, think: false, format: SCHEMA, keep_alive: "24h" });
     expect(sent.options).toEqual({ num_predict: 64, temperature: 0 });
     expect(new Headers(init?.headers).get("CF-Access-Client-Id")).toBe("access-id");
+  });
+
+  it("returns the model's own counts with the answer, and takes what the prompt is for", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json({ response: "ok", load_duration: 2_500_000_000, prompt_eval_count: 812, eval_count: 41 }),
+    );
+    const res = await ask(await signIn("+919844500009"), { prompt: "hi", purpose: "worker_questions" });
+    expect(res.status).toBe(200);
+    const { usage } = (await res.json()) as { usage: Record<string, number> };
+    expect(usage).toMatchObject({ load_ms: 2500, prompt_tokens: 812, reply_tokens: 41 });
+    expect((await ask(await signIn("+919844500009"), { prompt: "hi", purpose: "gossip" })).status).toBe(400);
   });
 
   it("never lets the caller pick the model", async () => {

@@ -8,9 +8,12 @@ import {
   type InterviewState,
   isLastSlot,
   keepPlace,
+  keepPrice,
   type Line,
+  type PriceAnswer,
   prompt,
   Slot,
+  type WorkMatch,
   withConfig,
   withEstimate,
 } from "@gigsync/core";
@@ -125,14 +128,30 @@ function answered(next: (state: InterviewState) => InterviewState, label: string
   });
 }
 
-/** An answer in words: `aloud` when spoken, false when typed (a typed lowest rate is never read back aloud). */
-export function answerInterview(text: string, aloud: boolean): void {
-  answered((state) => hear(state, text, aloud), text);
+/**
+ * An answer in words: `aloud` when spoken, false when typed (a typed lowest rate is never read back aloud). `kind` is
+ * what the model suggests a worker's own words for their work are, asked next as yes or no (ADR 0059).
+ */
+export function answerInterview(text: string, aloud: boolean, kind?: WorkMatch): void {
+  answered((state) => hear(state, text, aloud, kind), text);
 }
 
 /** An answer by tapping a choice; `label` is the choice as the owner read it. */
 export function tapInterview(value: string, label: string): void {
   answered((state) => choose(state, value), label);
+}
+
+/**
+ * A choice that toggles (which kinds of work the worker takes) or only picks (how the price card prices the work):
+ * changed where it stands, so the question above is not asked again for every tap and keeps its words. Done, or the
+ * card's own button, answers it as any tap does.
+ */
+export function toggleInterview(value: string): void {
+  // Only the interview moves: what is on screen stays, and the chips read which are on from it.
+  inOpen((t, live) => {
+    const state = choose(live.state, value);
+    return state === live.state ? t : { ...t, live: { ...live, state } };
+  });
 }
 
 /** The area question answered with the phone's location. */
@@ -168,23 +187,34 @@ export function relanguageInterview(config: InterviewConfig): void {
 }
 
 /**
- * The rate estimate for the worker's first trade arrived (or none did). A rate question already on screen, with
- * nothing said after it, shows it in place, so the range and the suggested amount appear without a second question.
+ * The rate estimate for the worker's first trade arrived (or none did). The price cards read it from the interview
+ * (PriceAsk.tsx); another arrangement's rate question already on screen, with nothing said after it, shows it in
+ * place, so the range and the suggested amount appear without a second question.
  */
 export function interviewEstimate(found: FoundEstimate | undefined): void {
   updateTalk((t) => {
     const live = t.live;
     if (!live || live.state.estimate === found) return t;
     const state = withEstimate(live.state, found);
-    const turns = turnsIn(t, live.chat);
-    const last = turns.at(-1);
-    const open = (state.slot === Slot.rate || state.slot === Slot.min) && state.pending === undefined;
-    if (!open || last?.who !== Speaker.app || cardEstimate(state) === cardEstimate(live.state))
+    if (state.slot !== Slot.more_rates || cardEstimate(state) === cardEstimate(live.state))
       return { ...t, live: { ...live, state } };
-    const p = prompt(state);
-    const shown: Turn = { ...last, lines: p.lines, choices: p.choices ?? [] };
-    return { ...withChatTurns(t, live.chat, [...turns.slice(0, -1), shown]), live: { ...live, state } };
+    return { ...askedAgain(t, live, state), live: { ...live, state } };
   });
+}
+
+/** The open question's turn shown as `state` asks it now, in place: no second question under it. */
+function askedAgain(t: Talk, live: LiveInterview, state: InterviewState): Talk {
+  const turns = turnsIn(t, live.chat);
+  const last = turns.at(-1);
+  if (last?.who !== Speaker.app) return t;
+  const p = prompt(state);
+  const shown: Turn = { ...last, lines: p.lines, choices: p.choices ?? [] };
+  return withChatTurns(t, live.chat, [...turns.slice(0, -1), shown]);
+}
+
+/** The price card answered: how the work is priced, the amount, the days and the part of the day, as one answer. */
+export function priceInterview(answer: PriceAnswer, label: string): void {
+  answered((state) => keepPrice(state, answer), label);
 }
 
 /**

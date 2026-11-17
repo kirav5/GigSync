@@ -1,31 +1,30 @@
-import { DEFAULT_ARRANGEMENT, Lang, PAISE_PER_RUPEE, Trade } from "@gigsync/protocol";
-import type { MessageKey } from "../i18n/t.js";
+import { Lang, Trade } from "@gigsync/protocol";
 import { asciiDigits } from "../job/details.js";
-import { readSkill, spokenSkill } from "../skills/read.js";
+import type { WorkMatch } from "../skills/suggest.js";
 import { parseAmount } from "./amount.js";
 import { advance, askable, type CardDraft, FIELDS, type InterviewState, Pick, retry, Slot } from "./card.js";
-import { chooseArrangements, hearArrangements, hearMoreRate, keepMoreRate, mainOf } from "./card-arrangements.js";
+import { chooseAlso, hearAlso } from "./card-also.js";
+import { onAmount, onCheck, Say } from "./card-amount.js";
+import { chooseArrangements, hearArrangements, hearMoreRate, keepMoreRate } from "./card-arrangements.js";
 import { chooseWhichRate, edit, editSaid, hearWhichRate, onUnlist } from "./card-edit.js";
-import { cardEstimate, suggestedAmount } from "./card-estimate.js";
-import { chooseTerms, hearTerms } from "./card-terms.js";
-import { areaIn, editIntent, fieldIn, isNone, isSkip, languagesIn, tradesIn, yesNo } from "./lexicon.js";
+import { suggestedAmount } from "./card-estimate.js";
+import { chooseFiling, hearFiling } from "./card-guess.js";
+import { chooseKind, hearKind } from "./card-kind.js";
+import { languagesPicked, toggleLanguage } from "./card-languages.js";
+import { choosePriceArrangement } from "./card-price.js";
+import { onTrades, onWork } from "./card-work.js";
+import { chooseRest, hearRest } from "./card-work-rates.js";
+import { areaIn, editIntent, fieldIn, isNone, isSkip, languagesIn, yesNo } from "./lexicon.js";
 
 /**
- * Turning an answer, said, typed or tapped, into the interview's next state: each field's checks, the amount check and
- * readback, and the line about the work, which must not carry anything private onto the public board.
+ * Turning an answer, said, typed or tapped, into the interview's next state: each field's checks (an amount's are in
+ * `card-amount.ts`), and the line about the work, which must not carry anything private onto the public board.
  */
 
 /** Two unclear answers to a yes-or-no question count as no: nothing is agreed to by default. */
 const UNCLEAR_LIMIT = 2;
-/** An amount this far outside the city's usual range for the trade is checked before it is kept. */
-const BAND_SPREAD = 4;
-const NO_BAND_LOW = 50 * PAISE_PER_RUPEE;
-const NO_BAND_HIGH = 50_000 * PAISE_PER_RUPEE;
-const Say = {
-  againAmount: "iv.again.amount",
-  againYesNo: "iv.again.yes_no",
-} as const satisfies Record<string, MessageKey>;
-
+/** An amount the price cards answer with: whole paise. */
+const PAISE = /^\d+$/;
 /** Why a line about the work cannot go on the public card. */
 const AboutProblem = { private: "private", long: "long" } as const;
 type AboutProblem = (typeof AboutProblem)[keyof typeof AboutProblem];
@@ -51,25 +50,6 @@ function aboutProblem(text: string): AboutProblem | undefined {
   return text.trim().length > ABOUT_MAX ? AboutProblem.long : undefined;
 }
 
-function onTrades(s: InterviewState, trades: Trade[]): InterviewState {
-  if (trades.length === 0) return retry(s, { key: "iv.again.trade" });
-  const keep = askable(trades);
-  const ask_me = (s.draft.ask_me ?? []).filter((k) => keep.includes(k));
-  const { skills: _replaced, ...rest } = s.draft;
-  return advance(s, { ...rest, trades, ask_me });
-}
-
-/** The work, said: the trades it names, else the worker's own skill in a few words (ADR 0047), else ask again. */
-function onWork(s: InterviewState, text: string): InterviewState {
-  const trades = tradesIn(text);
-  if (trades.length > 0) return onTrades(s, trades);
-  const read = readSkill(spokenSkill(text), s.config.own);
-  if ("trade" in read) return onTrades(s, [read.trade]);
-  if ("problem" in read) return retry(s, { key: `skill.err.${read.problem}` });
-  const draft = { ...s.draft, trades: [], skills: [read.skill], ask_me: [] };
-  return advance(s, draft, [{ key: "iv.skill_kept", params: { skill: read.skill.text } }]);
-}
-
 function onArea(s: InterviewState, area: string | undefined): InterviewState {
   if (area === undefined) return retry(s, { key: "iv.again.area" });
   // The point found with their location goes with the old area: left in, publishing would keep that place (`baseOf`).
@@ -80,62 +60,6 @@ function onArea(s: InterviewState, area: string | undefined): InterviewState {
 /** The area found with the phone's location: its key, with the place it named (ADR 0045). */
 export const keepPlace = (s: InterviewState, area: string, place: NonNullable<CardDraft["place"]>): InterviewState =>
   advance(s, { ...s.draft, area, place });
-
-/**
- * Whether an amount sits within the usual range for the worker's first trade (the estimate's, else the city band's),
- * or a wide one when there is neither.
- */
-function plausible(s: InterviewState, paise: number): boolean {
-  // The city band is monthly: a rate for an hour, a visit or a week is checked against its estimate alone.
-  const monthly = (mainOf(s.draft) ?? DEFAULT_ARRANGEMENT) === DEFAULT_ARRANGEMENT;
-  const cityBand = monthly ? s.config.rates.bands.find((b) => b.trade === s.draft.trades?.[0]) : undefined;
-  const band = cardEstimate(s)?.estimate ?? cityBand;
-  const low = band ? band.low_paise / BAND_SPREAD : NO_BAND_LOW;
-  const high = band ? band.high_paise * BAND_SPREAD : NO_BAND_HIGH;
-  return paise >= low && paise <= high;
-}
-
-/**
- * Whether a line carrying the lowest rate may be read aloud: only when the owner said the amount aloud, so everyone
- * in earshot heard it already. Typed, it was meant to stay private, and it is shown but never spoken.
- */
-export const minAloud = (aloud: boolean): { silent?: true } => (aloud ? {} : { silent: true });
-
-function keepAmount(s: InterviewState, paise: number, aloud: boolean): InterviewState {
-  if (s.slot === Slot.rate)
-    return advance(s, { ...s.draft, rate_paise: paise }, [{ key: "iv.got_rate", prices: { price: paise } }]);
-  const readback = { key: "iv.got_min", prices: { price: paise }, ...minAloud(aloud) } as const;
-  return advance(s, { ...s.draft, limit_paise: paise }, [readback]);
-}
-
-function onAmount(s: InterviewState, paise: number | undefined, aloud: boolean): InterviewState {
-  const cleared = { ...s, pending: undefined, pendingAloud: undefined };
-  if (paise === undefined || paise <= 0) return retry(cleared, { key: Say.againAmount });
-  const rate = s.draft.rate_paise;
-  if (s.slot === Slot.min && rate !== undefined && paise > rate)
-    return retry(cleared, { key: "iv.err_min", prices: { price: rate } });
-  if (!plausible(s, paise)) return { ...cleared, pending: paise, pendingAloud: aloud, notes: [], fresh: false };
-  return keepAmount(cleared, paise, aloud);
-}
-
-/**
- * The answer to "Did you mean ₹…?": yes or the same amount keeps it; another amount is checked afresh. A yes keeps the
- * amount as it was given: typed stays quiet even when the yes is spoken.
- */
-function onCheck(
-  s: InterviewState,
-  yes: boolean | undefined,
-  paise: number | undefined,
-  aloud: boolean,
-): InterviewState {
-  const pending = s.pending ?? 0;
-  const cleared = { ...s, pending: undefined, pendingAloud: undefined };
-  if (yes === true || paise === pending)
-    return keepAmount(cleared, pending, s.pendingAloud === true || (paise === pending && aloud));
-  if (paise !== undefined) return onAmount(s, paise, aloud);
-  if (yes === false) return retry(cleared, { key: Say.againAmount });
-  return retry(s, { key: Say.againYesNo });
-}
 
 function onLanguages(s: InterviewState, named: readonly Lang[] | undefined): InterviewState {
   if (named === undefined && s.misses + 1 < UNCLEAR_LIMIT)
@@ -197,10 +121,13 @@ function heardLanguages(text: string): Lang[] | undefined {
  * An answer in words: `aloud` when the owner said it, false when they typed it. It decides only whether the lowest
  * rate is read back aloud; leaving it out keeps that readback quiet.
  */
-export function hear(state: InterviewState, text: string, aloud = false): InterviewState {
+export function hear(state: InterviewState, text: string, aloud = false, kind?: WorkMatch | null): InterviewState {
   switch (state.slot) {
     case Slot.trade:
-      return onWork(state, text);
+      if (state.filing) return hearFiling(state, text);
+      return state.kind ? hearKind(state, text) : onWork(state, text, kind);
+    case Slot.also:
+      return hearAlso(state, text);
     case Slot.arrangements:
       return hearArrangements(state, text);
     case Slot.more_rates:
@@ -226,7 +153,7 @@ export function hear(state: InterviewState, text: string, aloud = false): Interv
     case Slot.unlist:
       return onUnlist(state, yesNo(text));
     default:
-      return hearTerms(state, text);
+      return hearRest(state, text);
   }
 }
 
@@ -237,9 +164,13 @@ const flag = (value: string): boolean | undefined =>
 export function choose(state: InterviewState, value: string): InterviewState {
   switch (state.slot) {
     case Slot.trade: {
+      if (state.filing) return chooseFiling(state, value);
+      if (state.kind) return chooseKind(state, value);
       const trade = Trade.options.find((tr) => tr === value);
       return trade ? onTrades(state, [trade]) : state;
     }
+    case Slot.also:
+      return chooseAlso(state, value);
     case Slot.arrangements:
       return chooseArrangements(state, value);
     case Slot.area:
@@ -248,12 +179,16 @@ export function choose(state: InterviewState, value: string): InterviewState {
     case Slot.min: {
       if (state.pending !== undefined)
         return flag(value) === undefined ? state : onCheck(state, flag(value), undefined, false);
-      const suggested = value === Pick.suggested ? suggestedAmount(state, state.slot === Slot.min) : undefined;
-      return suggested === undefined ? state : onAmount(state, suggested, false);
+      // The lowest card's amount, in paise; on the usual rate, a segment of the price card (`card-price.ts`).
+      if (PAISE.test(value)) return onAmount(state, Number(value), false);
+      return choosePriceArrangement(state, value);
     }
     case Slot.languages: {
+      // No other language answers at once; a language ticks on or off; Done answers with those ticked.
+      if (value === Pick.none) return onLanguages(state, []);
+      if (value === Pick.yes) return onLanguages(state, languagesPicked(state));
       const lang = Lang.options.find((l) => l === value);
-      return lang || value === Pick.none ? onLanguages(state, lang ? [lang] : []) : state;
+      return lang ? toggleLanguage(state, lang) : state;
     }
     case Slot.about:
       return value === Pick.skip ? onAbout(state, undefined) : state;
@@ -274,6 +209,6 @@ export function choose(state: InterviewState, value: string): InterviewState {
     case Slot.unlist:
       return flag(value) === undefined ? state : onUnlist(state, flag(value));
     default:
-      return chooseTerms(state, value);
+      return chooseRest(state, value);
   }
 }

@@ -12,6 +12,7 @@ import {
   EstimateBasisKind,
   type EstimateRequest,
   type EstimateResponse,
+  NO_CITY,
   NoEstimateReason,
   tradeDriversOnly,
 } from "@gigsync/protocol";
@@ -38,6 +39,8 @@ const K = EstimateBasisKind.enum;
 
 /** The estimate for a request: from its drivers, or from its scope buckets read as drivers when it sends none. */
 export async function serveEstimate(db: Db, req: EstimateRequest, now: Date): Promise<EstimateResponse> {
+  // A place in no live city (LIVE_CITIES=*) has no card and no market: its jobs come from anywhere at all.
+  if (req.city === NO_CITY) return { none: NONE.unavailable };
   const trade = req.trade;
   // The schema checked each trade's drivers; the cast only widens that union to the shape every trade shares.
   const sent = req.drivers as DriverValues | undefined;
@@ -45,7 +48,7 @@ export async function serveEstimate(db: Db, req: EstimateRequest, now: Date): Pr
   // ADR 0046: a maid or driver job is priced in its arrangement, from jobs and card figures of that arrangement only.
   const arrangement = arrangementOf(trade, req.arrangement);
   const spread = driverSpread(trade, drivers, arrangement);
-  const rows = await unitRows(db, trade, arrangement, marketSince(now));
+  const rows = await unitRows(db, req.city, trade, arrangement, marketSince(now));
   const gigsync = unitRate(trade, rows, req.area, now, arrangement);
   const card = arrangementEntry(req.city, trade, arrangement);
   const parts: Part[] = [];

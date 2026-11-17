@@ -106,7 +106,9 @@ test("two workers on one phone each see only their own jobs, memory and Records,
   await completeSignIn(phonePage, kiran);
   await open(phonePage, "nav.activity");
   await expect(phonePage.getByText(say("activity.hint_worker"))).toBeVisible();
-  await expect(closedCount(phonePage)).toContainText("0");
+  // Nothing finished of his own: no Done section and no Closed jobs row (drawn only from one job up).
+  await expect(closedCount(phonePage)).toHaveCount(0);
+  await expect(phonePage.getByRole("region", { name: say("jobs.done"), exact: true })).toHaveCount(0);
   await expect(jobWithLata(phonePage)).toHaveCount(0);
   await open(phonePage, "nav.records");
   await expect(phonePage.getByText(say("passbook.empty"))).toBeVisible();

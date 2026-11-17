@@ -1,0 +1,450 @@
+/*
+ * The first screens (Language.tsx, start/*): language, who you are, your number, the code, how it works. Built on the
+ * kit in styles.css (.option-row, .card-earth, .hero-title, .fine); this file holds only what is theirs.
+ */
+
+/* The first screens' own measures: big rounded tiles, the tint behind the mural's figures, and how fast a pick lands. */
+:root {
+  --radius-tile: 24px;
+  --art-terra: #f4e6d6;
+  --art-leaf: #e7eddc;
+  --pick-ring: #f1dccb;
+  --pick-ms: 160ms;
+  --pop-ms: 360ms;
+  --rise-ms: 280ms;
+  --code-box-h: 52px;
+  --code-box-radius: 12px;
+}
+.start {
+  gap: 18px;
+}
+.start-head {
+  display: grid;
+  gap: 6px;
+}
+.start-head p,
+.start p {
+  margin: 0;
+}
+
+/* Language: a row per language, its name in its own script; the speaker sits inside the row's right end, a button of
+   its own beside the row's (never inside it). */
+.lang-rows {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lang-row {
+  position: relative;
+}
+.lang-row .option-row {
+  border-radius: var(--radius-tile);
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  min-height: 72px;
+  padding-inline-end: 64px;
+}
+.lang-name {
+  font-size: calc(var(--fs-body) + 2px);
+  font-weight: 600;
+  line-height: var(--lh-head);
+}
+.lang-row .speak-btn {
+  position: absolute;
+  inset-inline-end: 8px;
+  top: 0;
+  bottom: 0;
+  margin: auto 0;
+  border-color: transparent;
+  background: none;
+}
+
+/* The mural figure on a tinted tile, above a step's words. A small one gives way to the keyboard; a bare one (the round
+   mandala) stands straight on the page, centred, with no tile to box it in. */
+.start-art {
+  display: grid;
+  place-items: center;
+  height: 210px;
+  border-radius: var(--radius-tile);
+  background: var(--art-terra);
+}
+.start-art[data-bare] {
+  height: auto;
+  background: none;
+}
+.start-art[data-bare] img {
+  width: 168px;
+  height: 168px;
+}
+.start-art img {
+  max-width: 92%;
+  max-height: 190px;
+}
+.start-art[data-small] {
+  height: 150px;
+}
+.start-art[data-small] img {
+  max-height: 118px;
+}
+html[data-keyboard="open"] .start-art[data-small] {
+  display: none;
+}
+.start-title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: var(--fs-display);
+  font-weight: 600;
+  line-height: var(--lh-head);
+}
+.start-label {
+  color: var(--text2);
+  font-size: var(--fs-label);
+  font-weight: 600;
+}
+/* One quiet line under a field: why it is asked, or who sees it, with a small icon when it has one. */
+.start .start-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: -6px;
+  color: var(--text2);
+  font-size: var(--fs-2);
+  line-height: 1.45;
+}
+.start-note .ic {
+  margin-top: 2px;
+  color: var(--text2);
+}
+
+/* The code: six rounded boxes sharing the width evenly, the next one ringed in terracotta. The field over them
+   (ui/CodeBoxes.tsx) stays as it is, so the SMS suggestion and a paste still land in it. */
+.start .code-boxes {
+  grid-auto-columns: minmax(0, 1fr);
+  justify-content: stretch;
+}
+.start .code-box {
+  height: var(--code-box-h);
+  border-radius: var(--code-box-radius);
+}
+.start-code-foot {
+  display: grid;
+  justify-items: start;
+  gap: 0;
+  margin-top: -4px;
+}
+.start-code-foot .link-btn {
+  font-size: var(--fs-2);
+}
+.start .start-wait {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Each step comes in with its parts rising one after another; a pick pops. Fast, and fades only with Reduce Motion. */
+.start > * {
+  animation: start-rise var(--rise-ms) var(--ease-out) both;
+}
+.start > :nth-child(2) {
+  animation-delay: 40ms;
+}
+.start > :nth-child(3) {
+  animation-delay: 80ms;
+}
+.start > :nth-child(4) {
+  animation-delay: 120ms;
+}
+.start > :nth-child(n + 5) {
+  animation-delay: 160ms;
+}
+@keyframes start-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes start-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .start > * {
+    animation-name: start-fade;
+  }
+}
+@keyframes start-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* The steps after it: Back and the step's name, as the signed-in top bar draws them, at the top of the content. */
+.start-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: var(--tap);
+  margin: -8px 0 -6px -12px;
+}
+.start-back {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+.start-dots {
+  display: flex;
+  gap: 6px;
+  margin-inline-start: auto;
+  padding-inline-end: 4px;
+}
+.start-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--hairline);
+  transition: width var(--pick-ms) var(--ease-out);
+}
+.start-dot[data-on] {
+  width: 22px;
+  background: var(--accent);
+}
+/* The number field with the country's flag and code at its start, a button set off by a line. */
+.start-phone {
+  position: relative;
+  display: block;
+}
+.start-cc {
+  position: absolute;
+  inset-inline-start: 8px;
+  top: 10px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px 0 8px;
+  border: 0;
+  border-inline-end: 1px solid var(--hairline);
+  border-radius: 12px 0 0 12px;
+  background: none;
+  color: var(--text2);
+  font: inherit;
+  font-size: 18px;
+  cursor: pointer;
+}
+.start-cc:hover,
+.start-cc:focus-visible {
+  background: var(--picked);
+}
+.start-flag {
+  font-size: 22px;
+  line-height: 1;
+}
+.start-phone .field {
+  padding-inline-start: 132px;
+}
+/* The country list in its sheet: one tappable row each, the chosen one tinted. */
+.country-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.country-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.country-row[aria-pressed="true"] {
+  background: var(--picked);
+  border-color: var(--accent);
+  color: var(--picked-ink);
+}
+.country-name {
+  flex: 1;
+}
+.country-dial {
+  color: var(--text2);
+}
+.start .field {
+  min-height: 60px;
+  border-width: 1.5px;
+  border-radius: 18px;
+  font-size: 20px;
+  font-weight: 600;
+}
+.start-agree {
+  margin-top: 6px;
+}
+.start-actions {
+  display: grid;
+  gap: 4px;
+}
+
+/* A wide screen: the mural's figures as a panel of tiles on the left, the steps in a centred column on the right with
+   their buttons right under them, not at the foot of the window. */
+.start-side {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .start-frame {
+    display: grid;
+    grid-template-columns: minmax(400px, 44%) minmax(0, 1fr);
+  }
+  .start-side {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    height: 100%;
+    min-height: 0;
+    box-sizing: border-box;
+    padding: 32px;
+    overflow: hidden;
+    background: var(--surface2);
+  }
+  /* The panel carries the pictures here, so the column keeps only its words and fields. */
+  .start-frame .start-art {
+    display: none;
+  }
+  .start-side-tile {
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    border-radius: var(--radius-tile);
+    background: var(--surface);
+    animation: start-rise 500ms var(--ease-out) both;
+  }
+  .start-side-tile:first-child {
+    grid-column: 1 / -1;
+    background: var(--art-terra);
+  }
+  .start-side-tile:nth-child(3) {
+    background: var(--art-leaf);
+  }
+  .start-side-tile:nth-child(2) {
+    animation-delay: 80ms;
+  }
+  .start-side-tile:nth-child(3) {
+    animation-delay: 160ms;
+  }
+  .start-side-tile:nth-child(n + 4) {
+    animation-delay: 240ms;
+  }
+  .start-side-tile {
+    overflow: hidden;
+  }
+  .start-side-tile img {
+    width: auto;
+    max-width: 72%;
+    height: 78%;
+    object-fit: contain;
+  }
+  .start-frame .main {
+    justify-content: center;
+    min-height: 0;
+  }
+  .start-frame .content {
+    flex: 0 1 auto;
+  }
+  .start-frame .inner,
+  .start-frame .dock {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 480px;
+    margin-inline: auto;
+  }
+}
+
+/* The language screen: the brand at the top left, where Home keeps it, then the mandala and the greeting centred
+   above the rows. */
+.start-lang > .brand {
+  justify-self: start;
+}
+.start-lang .start-art[data-bare] img {
+  width: 144px;
+  height: 144px;
+}
+.start-lang .start-head,
+.start-lang .start-foot {
+  text-align: center;
+}
+
+/* The welcome: the mandala, the title, three short promises with their icons, and the language line, as one centred
+   block in the middle of the room above the dock. */
+.inner:has(.start-welcome) {
+  box-sizing: border-box;
+  min-height: 100%;
+  align-content: center;
+}
+.start-welcome {
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+  text-align: center;
+}
+/* The mandala grows with a taller phone, so the block fills the room instead of leaving a band above the dock. */
+.start-welcome .start-art[data-bare] img {
+  width: clamp(150px, 26vh, 230px);
+  height: clamp(150px, 26vh, 230px);
+}
+/* The promises as one white card of three rows, as the settings rows are drawn. */
+.start-points {
+  justify-self: stretch;
+  display: grid;
+  margin: 4px 0 0;
+  padding: 2px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-tile);
+  background: var(--surface);
+  list-style: none;
+  text-align: start;
+}
+.start-points li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 14px 0;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+.start-points li + li {
+  border-top: 1px solid var(--hairline);
+}
+.start-points .ic {
+  margin-top: 2px;
+  color: var(--accent);
+}

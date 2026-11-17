@@ -1,59 +1,60 @@
 import {
   addressAsked,
   addressChoice,
-  ChatIntent,
+  askingModel,
+  categoryPicked,
+  findEventOf,
   type GigDevice,
-  log,
-  modelJobType,
+  hearNeed,
+  isGreeting,
+  NeedSay,
   NeedSlot,
   needPrompt,
   needRequest,
   type Ports,
-  parseNeed,
   problemByMeaning,
-  readScope,
   startNeed,
-  tradeByMeaning,
-  understandNeed,
 } from "@gigsync/core";
-import { useEffect, useRef, useState } from "react";
+import { FindEvent } from "@gigsync/protocol";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import type { Account } from "../../adapters/account.js";
+import { cityOf, rememberHome, useServedCities } from "../../adapters/cities.js";
 import { meaningFor } from "../../adapters/meaning.js";
 import { chosenModel, ModelChoice } from "../../adapters/model.js";
-import { offerAlerts } from "../../adapters/push.js";
 import { stopSpeaking } from "../../adapters/speech.js";
 import { needConfig } from "../../card/choices.js";
-import { answerMarket, routedMarket } from "../../estimate/market.js";
 import { fetchEstimate } from "../../estimate/useEstimate.js";
 import { openAddressDesk } from "../../find/addressDesk.js";
-import { askWorkers, needOf } from "../../find/ask.js";
+import { whereOf } from "../../find/ask.js";
+import { countFind } from "../../find/counts.js";
 import { startFindChat, useNeed } from "../../find/findChats.js";
 import {
+  addressInUseNeed,
   answerNeed,
   beginNeed,
-  jobTypeNeed,
-  needAsked,
+  leaveSwitch,
   needEstimateFound,
   needSay,
   relanguageNeed,
   showOwner,
-  skillNeed,
 } from "../../find/needStore.js";
-import { findRoute } from "../../find/route.js";
-import { skillAsked } from "../../find/skills.js";
+import { NeedSpeaker } from "../../find/needTurns.js";
+import { pickKind, readFirst, readLater } from "../../find/readNeed.js";
+import { useAddressBook } from "../../find/useAddressBook.js";
 import { useAddresses } from "../../find/useAddresses.js";
-import { ASKED, useNeedSearch } from "../../find/useNeedSearch.js";
+import { useAskPicked } from "../../find/useAskPicked.js";
+import { useListedRates } from "../../find/useListedRates.js";
+import { useNeedSearch } from "../../find/useNeedSearch.js";
 import { usePriceQuestions } from "../../find/usePriceQuestions.js";
 import { useI18n } from "../../i18n.js";
 import { Composer, Via } from "../../ui/Composer.js";
 import { C } from "../../ui/cls.js";
 import { Dock } from "../../ui/Dock.js";
-import { errorKey } from "../../ui/errorKey.js";
-import { PILOT_CITY } from "../../ui/places.js";
 import { phoneDay } from "../jobGroups.js";
-import { AddAddress } from "./AddAddress.js";
+import { AddAddress, type Adding } from "./AddAddress.js";
 import { AddressDesk } from "./AddressDesk.js";
-import { type FoundTurn, NeedTurns } from "./NeedTurns.js";
+import { FindStart } from "./FindStart.js";
+import { NeedTurns } from "./NeedTurns.js";
 import { needMemory, withMemory } from "./remembered.js";
 import "../talk.css";
 import { Working } from "../../ui/Working.js";
@@ -63,11 +64,14 @@ interface Props {
   account: Account;
   device: GigDevice;
   onAsked: () => void;
+  /** Opens the saved places, from the greeting's My places. */
+  onPlaces: () => void;
+  /** The latest jobs, shown under the greeting while the chat is empty. */
+  recent?: ReactNode;
 }
 
 /** The phone has a usable model now: it decides the price questions (ADR 0041 §2); lite mode asks the fixed ones. */
 const modelOn = () => chosenModel.answering() !== ModelChoice.lite;
-const failure = (err: unknown) => ({ error: err instanceof Error ? err.message : String(err) });
 
 /**
  * Find as a conversation, the way workers make their card in Talk: the owner says what they need in their own words,
@@ -76,11 +80,10 @@ const failure = (err: unknown) => ({ error: err instanceof Error ? err.message :
  * Each conversation is one of the household's chats (`find/findChats.ts`); once its workers were asked it stays to
  * read, with a way to ask for something else in a new chat.
  */
-export function FindChat({ ports, account, device, onAsked }: Props) {
+export function FindChat({ ports, account, device, onAsked, onPlaces, recent }: Props) {
   const i18n = useI18n();
   const { lang, t } = i18n;
   const { ready, open, state, turns, to } = useNeed();
-  const [busy, setBusy] = useState(false);
   const [reading, setReading] = useState(false);
   const end = useRef<HTMLDivElement>(null);
   const current = state ? needPrompt(state) : undefined;
@@ -89,7 +92,21 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   // from past jobs comes along, with the owner's setting: offered first ("Use it?"), or filled in and said.
   const empty = ready && !state && turns.length === 0;
   const { saved, added } = useAddresses(ports, open, state?.config.addresses);
-  const [adding, setAdding] = useState(false);
+  const { inUse } = useAddressBook(ports.storage);
+  const inUseId = inUse?.id;
+  const [adding, setAdding] = useState<Adding>();
+  // The address at the top of the screen comes first at the "where" question, a tap away.
+  useEffect(() => {
+    if (state && state.config.inUse !== inUseId) addressInUseNeed(open, inUseId);
+  }, [state, open, inUseId]);
+  // A yes to other work part-way: this chat stays in the list, and the words open their own.
+  const carried = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!state?.switching?.accepted) return;
+    carried.current = state.switching.words;
+    leaveSwitch(open);
+    startFindChat();
+  }, [state, open]);
   useEffect(() => {
     if (!empty || !saved) return;
     const now = ports.clock.now();
@@ -123,19 +140,26 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
   );
 
   // The job as described so far, once the trade is known: the usual range for it, shown beside the budget question.
-  const request = state ? needRequest(PILOT_CITY, state.draft) : undefined;
+  // The city is the chosen address's (ADR 0061): its own jobs and rate card, Bengaluru's only in Bengaluru.
+  useServedCities(account.session);
+  const at = state && whereOf(state.draft, saved ?? [])?.area;
+  rememberHome(at);
+  const city = cityOf(at);
+  const request = state ? needRequest(city, state.draft) : undefined;
   const requestKey = request && JSON.stringify(request);
   const session = account.session;
   usePriceQuestions(ports, open, state);
+  useListedRates(session, open, state, saved);
   // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the request's JSON, not its identity
   useEffect(() => {
     if (request) void fetchEstimate(session, request).then((found) => needEstimateFound(open, found));
   }, [requestKey, session, open]);
 
   useNeedSearch({ state, open, account, i18n, ports, device, onAsked, saved });
+  const { busy, ask } = useAskPicked({ ports, device, i18n, state, open, saved, onAsked });
 
-  // The first answer, the need in the owner's words: in English the phone's model helps read it, and in every
-  // language its scope is read into chips the owner confirms before the estimate is asked (ADR 0033 §5).
+  // Every message: read by the model where one is there, else the word lists (`find/readNeed.ts`). The first is the
+  // need in the owner's words; its scope is read into chips the owner confirms before the estimate (ADR 0033 §5).
   async function send(text: string, via: Via) {
     if (!state || busy || reading) return;
     const chat = open;
@@ -145,79 +169,34 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       return openAddressDesk();
     }
     const aloud = via === Via.voice;
-    const first = state.slot === NeedSlot.trade;
+    // At a need outside the list, new words start over: they are read like the first sentence.
+    const first = state.slot === NeedSlot.trade || state.slot === NeedSlot.outside;
+    const message = { ports, session: account.session, state, chat, text, aloud, lang };
     if (first) {
       showOwner(chat, text);
+      if (isGreeting(text)) return needSay(chat, { key: NeedSay.greeting });
+      countFind(account.session, FindEvent.enum.typed);
       setReading(true);
+      return void (await readFirst(message).finally(() => setReading(false)));
     }
-    const route = await findRoute(ports, lang, text, state.slot);
-    // "What do painters charge?" is answered in the chat from the estimate route (ADR 0039 §2); the need waits.
-    const market = route.intent === ChatIntent.market ? routedMarket(text, route.slots) : undefined;
-    if (market) {
-      if (!first) showOwner(chat, text);
-      setReading(true);
-      const answer = await answerMarket(account.session, ports.model, lang, market);
-      setReading(false);
-      return needSay(chat, { key: "estimate.answer", params: { text: answer.text } });
-    }
+    // At the clarifying question, the kind of job the answer sounds like fills the price driver (ADR 0042).
     const meaning = meaningFor(ports);
-    if (!first) {
-      // At the clarifying question, the kind of job the answer sounds like fills the price driver (ADR 0042).
-      const asked = state.slot === NeedSlot.detail ? state.draft.trade : undefined;
-      const problemKind = asked && meaning ? await problemByMeaning(meaning.problems, asked, text) : undefined;
-      return answerNeed(chat, text, aloud, problemKind ? { problemKind } : {});
-    }
-    const { areas, today } = state.config;
-    const hint = await understandNeed(ports.model, text, { areas, lang });
-    // The word lists first, then a language model's reading, then the trade the sentence most sounds like (ADR 0042).
-    const heard =
-      parseNeed(text, { areas, today }).trade ??
-      hint.trade ??
-      (meaning && (await tradeByMeaning(meaning.trades, text)));
-    if (heard) hint.trade = heard;
-    const trade = heard ?? state.draft.trade;
-    const problemKind = trade && meaning ? await problemByMeaning(meaning.problems, trade, text) : undefined;
-    if (problemKind) hint.problemKind = problemKind;
-    // Outside the trades: a skill workers list, matched on this phone (ADR 0047); else the phone's model may name the
-    // work, and the need goes on to its questions and estimate.
-    const skill = trade ? undefined : await skillAsked(ports, account.session, text, state.to?.skills);
-    if (skill) {
-      setReading(false);
-      return skillNeed(chat, skill, text);
-    }
-    const jobType = !trade && state.draft.modelAsk ? await modelJobType(ports.model, text, lang) : undefined;
-    if (jobType) {
-      setReading(false);
-      return jobTypeNeed(chat, jobType, text);
-    }
-    const scope = trade ? await readScope(ports.model, text, { trade, lang }) : [];
-    setReading(false);
-    answerNeed(chat, text, aloud, { ...hint, scope }, true);
+    const asked = state.slot === NeedSlot.detail ? state.draft.trade : undefined;
+    const problemKind = asked && meaning ? await problemByMeaning(meaning.problems, asked, text) : undefined;
+    const hint = problemKind ? { problemKind } : {};
+    setReading(true);
+    const taken = await readLater(message, current?.secret ?? false, hearNeed(state, text, aloud, hint)).finally(() =>
+      setReading(false),
+    );
+    if (!taken) answerNeed(chat, text, aloud, hint);
   }
 
-  async function ask(turn: FoundTurn) {
-    // Asking workers is when this household starts to have news to hear about: the browser may ask, once.
-    void offerAlerts();
-    const need = state && needOf(state, i18n, ports.clock.now(), saved);
-    if (busy || !need) return;
-    const chat = open;
-    setBusy(true);
-    try {
-      await askWorkers(
-        ports,
-        device,
-        need,
-        turn.workers.filter((w) => turn.picked.includes(w.user)),
-      );
-      needAsked(chat, ASKED);
-      onAsked();
-    } catch (err) {
-      log.warn("asking workers failed", failure(err));
-      needSay(chat, { key: errorKey(err) });
-    } finally {
-      setBusy(false);
-    }
-  }
+  useEffect(() => {
+    const words = carried.current;
+    if (!words || !state?.fresh) return;
+    carried.current = undefined;
+    void send(words, Via.typed);
+  });
 
   const conversation = (
     <NeedTurns
@@ -226,7 +205,25 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
       turns={turns}
       busy={busy}
       onAsk={(turn) => void ask(turn)}
-      onAddAddress={() => setAdding(true)}
+      where={{
+        saved: saved ?? [],
+        storage: ports.storage,
+        session: account.session,
+        onSaved: (a) => added(open, a),
+        onAdd: setAdding,
+      }}
+      onSay={(text) => void send(text, Via.typed)}
+      onTap={(value, label) => {
+        if (state) countFind(account.session, findEventOf(state, value));
+        const kind = categoryPicked(value);
+        if (!kind || !state) return false;
+        void pickKind(
+          { ports, session: account.session, state, chat: open, text: label, aloud: false, lang },
+          kind,
+          label,
+        );
+        return true;
+      }}
     />
   );
   const desk = (
@@ -238,7 +235,14 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
     />
   );
   const form = adding && (
-    <AddAddress chat={open} session={account.session} ports={ports} added={added} onDone={() => setAdding(false)} />
+    <AddAddress
+      chat={open}
+      session={account.session}
+      ports={ports}
+      added={added}
+      adding={adding}
+      onDone={() => setAdding(undefined)}
+    />
   );
   // The workers were asked: the chat stays to read, and asking for something else opens a new one.
   if (ready && !state && turns.length > 0)
@@ -253,20 +257,32 @@ export function FindChat({ ports, account, device, onAsked }: Props) {
         </Dock>
       </>
     );
-  const waiting =
-    !state || state.slot === NeedSlot.done || state.slot === NeedSlot.found || state.slot === NeedSlot.outside;
+  const thinking = state !== undefined && askingModel(state);
+  const waiting = !state || state.slot === NeedSlot.done || state.slot === NeedSlot.found || thinking;
+  // Nothing said yet in a chat open to anyone: the greeting, its rows and the recent jobs, over the composer.
+  const greet = state?.slot === NeedSlot.trade && !state.to && !turns.some((turn) => turn.who === NeedSpeaker.owner);
   return (
     <>
-      {conversation}
+      {!greet && conversation}
+      {greet && (
+        <FindStart
+          chat={open}
+          name={account.contact.name}
+          onSay={(text) => void send(text, Via.typed)}
+          onPlaces={onPlaces}
+          recent={recent}
+        />
+      )}
       {desk}
       {form}
       <Working on={reading} words={t("need.reading")} />
+      <Working on={thinking} words={t("driver.thinking")} />
       <Working on={state?.slot === NeedSlot.done} />
       <div ref={end} />
       <Dock>
         <Composer
           label={t("need.composer")}
-          placeholder={t("need.placeholder")}
+          placeholder={t(greet ? "composer.ask" : "need.placeholder")}
           onSend={(text, via) => void send(text, via)}
           busy={busy || reading || waiting}
           hints={current?.hints ?? []}

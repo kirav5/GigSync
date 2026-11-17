@@ -38,7 +38,7 @@ export class TestClock implements Clock {
 export class FakeMentorServer {
   readonly listings = new Map<UserId, MentorListing>();
   readonly reports: (MentorReport & { by: UserId })[] = [];
-  readonly blocks: { by: UserId; user: UserId }[] = [];
+  blocks: { by: UserId; user: UserId }[] = [];
 
   /** The routes as one signed-in caller sees them; `caller` names them at each call. */
   for(caller: () => UserId): MentorApi {
@@ -55,8 +55,10 @@ export class FakeMentorServer {
       reportMentor: async (r: MentorReport) => {
         this.reports.push({ ...r, by: caller() });
       },
-      blockMentor: async (user: UserId) => {
-        this.blocks.push({ by: caller(), user });
+      blockMentor: async (user: UserId, blocked = true) => {
+        const by = caller();
+        if (blocked) this.blocks.push({ by, user });
+        else this.blocks = this.blocks.filter((b) => !(b.by === by && b.user === user));
       },
     };
   }

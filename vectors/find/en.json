@@ -1,0 +1,149 @@
+[
+  {
+    "id": "en-tap",
+    "says": ["my kitchen tap is leaking"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "trade": "plumber" }
+  },
+  {
+    "id": "en-drain",
+    "says": ["the bathroom drain is blocked"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "trade": "plumber" }
+  },
+  {
+    "id": "en-fan",
+    "says": ["the ceiling fan is not working"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "trade": "electrician" }
+  },
+  {
+    "id": "en-switch",
+    "says": ["a switch board is sparking in my room"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "trade": "electrician" }
+  },
+  {
+    "id": "en-maid",
+    "says": ["I need someone to clean my house and wash dishes"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "trade": "maid" }
+  },
+  {
+    "id": "en-cook",
+    "says": ["I need a cook for my family"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "trade": "cook" }
+  },
+  {
+    "id": "en-driver",
+    "says": ["I need a driver for my car tomorrow"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "trade": "driver" }
+  },
+  {
+    "id": "en-door",
+    "says": ["my wardrobe door is broken"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "trade": "carpenter" }
+  },
+  {
+    "id": "en-paint",
+    "says": ["I want my two bedrooms painted"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "trade": "painter" }
+  },
+  {
+    "id": "en-ac",
+    "says": ["my ac is not working"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "trade": "ac_technician" }
+  },
+  {
+    "id": "en-acservice",
+    "says": ["need my ac to be serviced"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "trade": "ac_technician" }
+  },
+  {
+    "id": "en-tv",
+    "says": ["my tv not working"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "skill": "TV repair" }
+  },
+  {
+    "id": "en-tvoff",
+    "says": ["I can't turn on the TV"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "skill": "TV repair" }
+  },
+  {
+    "id": "en-fridge",
+    "says": ["my fridge stopped cooling"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "skill": "Fridge repair" }
+  },
+  {
+    "id": "en-pest",
+    "says": ["there are cockroaches all over my kitchen"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "skill": "Pest control" }
+  },
+  {
+    "id": "en-tutor",
+    "says": ["I need a maths tutor for my son"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "skill": "School tutor" }
+  },
+  {
+    "id": "en-tailor",
+    "says": ["I need a blouse stitched"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "skill": "Tailor" }
+  },
+  {
+    "id": "en-laptop",
+    "says": ["my laptop screen is broken"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "skill": "Laptop and computer repair" }
+  },
+  {
+    "id": "en-hello",
+    "says": ["hey", "my tv not working"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "skill": "TV repair" }
+  },
+  {
+    "id": "en-hellotap",
+    "says": ["hi", "my kitchen tap is leaking"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "trade": "plumber" }
+  },
+  {
+    "id": "en-switch-tv",
+    "says": ["my ac is not working"],
+    "answers": ["just the one"],
+    "later": "my tv not working",
+    "want": { "trade": "ac_technician" }
+  },
+  {
+    "id": "en-switch-cook",
+    "says": ["the kitchen tap is leaking"],
+    "answers": ["just the one"],
+    "later": "I also need a cook",
+    "want": { "trade": "plumber" }
+  },
+  { "id": "en-nobody", "says": ["I need a swimming coach"], "answers": ["x"], "want": { "outside": true } },
+  {
+    "id": "en-fish",
+    "says": ["my fish tank needs cleaning"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "skill": "Aquarium cleaning" }
+  },
+  {
+    "id": "en-cooler",
+    "says": ["my cooler is not working"],
+    "answers": ["just the one", "it started yesterday"],
+    "want": { "skill": "Cooler fixing" }
+  }
+]

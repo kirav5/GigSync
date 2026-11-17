@@ -12,7 +12,7 @@ import { distance, type Finder, finder, firstIn, normalize, SPACE } from "./norm
 const T = Trade.enum;
 const L = Lang.enum;
 
-const TRADE_WORDS: Readonly<Record<Trade, readonly string[]>> = {
+export const TRADE_WORDS: Readonly<Record<Trade, readonly string[]>> = {
   [T.cook]: [
     "cook",
     "cooking",
@@ -33,6 +33,11 @@ const TRADE_WORDS: Readonly<Record<Trade, readonly string[]>> = {
     "housework",
     "house work",
     "cleaning",
+    "cleaner",
+    "sweeping",
+    "mopping",
+    "dishes",
+    "utensils",
     "jhadu",
     "pocha",
     "bartan",
@@ -92,7 +97,10 @@ const LANG_WORDS: Readonly<Record<Lang, readonly string[]>> = {
 };
 
 /** A field of the card an owner can ask to change, by voice or a chip. */
-export type Field = Exclude<Slot, "confirm" | "done" | "unlisted" | "more_rates" | "hours_to" | "which_rate">;
+export type Field = Exclude<
+  Slot,
+  "confirm" | "done" | "unlisted" | "more_rates" | "hours_to" | "which_rate" | "also" | "work_rate"
+>;
 
 /** Taking the card off the board: said as a whole, so no change word is needed. */
 const UNLIST = ["off the board", "remove my card", "hide my card", "delete my card", "take down my card", "unlist"]
@@ -102,6 +110,8 @@ const UNLIST = ["off the board", "remove my card", "hide my card", "delete my ca
 /** Words naming each field, most specific first ("minimum rate" is the minimum, not the rate; "work hours" the hours). */
 const FIELD_WORDS: Readonly<Record<Field, readonly string[]>> = {
   unlist: UNLIST,
+  asks: ["need to know", "before you quote", "what to ask", "मुझे जानना", "जानना है", "ತಿಳಿಯಬೇಕು", "ಏನು ಕೇಳಬೇಕು"],
+  same_rate: ["each work", "each kind", "price for each", "हर काम का दाम", "हर काम का रेट", "ಪ್ರತಿ ಕೆಲಸದ ದರ", "ಪ್ರತಿ ಕೆಲಸಕ್ಕೆ"],
   min: ["minimum", "lowest", "least", "सबसे कम", "कम से कम", "ಕನಿಷ್ಠ"],
   rate: ["rate", "price", "दाम", "रेट", "पैसे", "ದರ", "ದರವನ್ನು", "ಬೆಲೆ"],
   area: ["area", "इलाक़ा", "जगह", "एरिया", "ಏರಿಯಾ", "ಜಾಗ", "ಜಾಗವನ್ನು"],

@@ -1,0 +1,129 @@
+[
+  { "id": "hi-tap", "says": ["रसोई का नल टपक रहा है"], "answers": ["बस एक", "कल से"], "want": { "trade": "plumber" } },
+  {
+    "id": "hi-drain",
+    "says": ["बाथरूम की नाली बंद हो गई है"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "trade": "plumber" }
+  },
+  {
+    "id": "hi-fan",
+    "says": ["छत का पंखा नहीं चल रहा"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "trade": "electrician" }
+  },
+  {
+    "id": "hi-switch",
+    "says": ["मेरे कमरे का स्विच बोर्ड स्पार्क कर रहा है"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "trade": "electrician" }
+  },
+  {
+    "id": "hi-maid",
+    "says": ["घर की सफ़ाई और बर्तन के लिए बाई चाहिए"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "trade": "maid" }
+  },
+  {
+    "id": "hi-cook",
+    "says": ["मेरे परिवार के लिए खाना बनाने वाली चाहिए"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "trade": "cook" }
+  },
+  {
+    "id": "hi-driver",
+    "says": ["कल के लिए कार ड्राइवर चाहिए"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "trade": "driver" }
+  },
+  {
+    "id": "hi-door",
+    "says": ["अलमारी का दरवाज़ा टूट गया है"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "trade": "carpenter" }
+  },
+  {
+    "id": "hi-paint",
+    "says": ["मेरे दो बेडरूम की पुताई करवानी है"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "trade": "painter" }
+  },
+  {
+    "id": "hi-ac",
+    "says": ["मेरा एसी काम नहीं कर रहा"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "trade": "ac_technician" }
+  },
+  {
+    "id": "hi-acservice",
+    "says": ["एसी की सर्विस करवानी है"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "trade": "ac_technician" }
+  },
+  { "id": "hi-tv", "says": ["मेरा टीवी नहीं चल रहा"], "answers": ["बस एक", "कल से"], "want": { "skill": "TV repair" } },
+  { "id": "hi-tvoff", "says": ["टीवी चालू नहीं हो रहा"], "answers": ["बस एक", "कल से"], "want": { "skill": "TV repair" } },
+  {
+    "id": "hi-fridge",
+    "says": ["मेरा फ्रिज ठंडा नहीं कर रहा"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "skill": "Fridge repair" }
+  },
+  {
+    "id": "hi-pest",
+    "says": ["रसोई में बहुत कॉकरोच हैं"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "skill": "Pest control" }
+  },
+  {
+    "id": "hi-tutor",
+    "says": ["मेरे बेटे के लिए गणित के ट्यूटर चाहिए"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "skill": "School tutor" }
+  },
+  { "id": "hi-tailor", "says": ["मुझे ब्लाउज़ सिलवाना है"], "answers": ["बस एक", "कल से"], "want": { "skill": "Tailor" } },
+  {
+    "id": "hi-laptop",
+    "says": ["मेरे लैपटॉप की स्क्रीन टूट गई है"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "skill": "Laptop and computer repair" }
+  },
+  {
+    "id": "hi-hello",
+    "says": ["नमस्ते", "मेरा टीवी नहीं चल रहा"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "skill": "TV repair" }
+  },
+  {
+    "id": "hi-hellotap",
+    "says": ["नमस्ते", "रसोई का नल टपक रहा है"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "trade": "plumber" }
+  },
+  {
+    "id": "hi-switch-tv",
+    "says": ["मेरा एसी काम नहीं कर रहा"],
+    "answers": ["बस एक"],
+    "later": "मेरा टीवी भी नहीं चल रहा",
+    "want": { "trade": "ac_technician" }
+  },
+  {
+    "id": "hi-switch-cook",
+    "says": ["रसोई का नल टपक रहा है"],
+    "answers": ["बस एक"],
+    "later": "मुझे एक कुक भी चाहिए",
+    "want": { "trade": "plumber" }
+  },
+  { "id": "hi-nobody", "says": ["मुझे तैराकी सिखाने वाला चाहिए"], "answers": ["x"], "want": { "outside": true } },
+  {
+    "id": "hi-fish",
+    "says": ["मेरा मछली घर साफ़ करना है"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "skill": "Aquarium cleaning" }
+  },
+  {
+    "id": "hi-cooler",
+    "says": ["मेरा कूलर काम नहीं कर रहा"],
+    "answers": ["बस एक", "कल से"],
+    "want": { "skill": "Cooler fixing" }
+  }
+]

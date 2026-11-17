@@ -1,0 +1,56 @@
+/* Privacy, "Who sees what" (design P3): the three tiers as cards, each with a 32px tile in its colour, and the log of
+   what the agent shared, a row that folds open. Tokens only, so the dark look follows. */
+.tiers {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tier {
+  display: grid;
+  gap: 6px;
+}
+.tier-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tier-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-btn);
+  color: var(--ivory);
+}
+.tier-icon.earth {
+  background: var(--earth);
+}
+.tier-icon.rust {
+  background: var(--rust);
+}
+.tier-icon.green {
+  background: var(--green);
+}
+
+.shared-log > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.shared-log > summary::-webkit-details-marker {
+  display: none;
+}
+.shared-log[open] > summary .list-row-chev {
+  transform: rotate(180deg);
+}
+.shared-body {
+  display: grid;
+}
+.shared-body > * + * {
+  border-top: 1px solid var(--hairline);
+}
+.shared-body > .fine {
+  padding: 12px 16px;
+}

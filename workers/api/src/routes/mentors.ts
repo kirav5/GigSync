@@ -11,18 +11,25 @@ import {
 import { Hono } from "hono";
 import { ApiError, type AppEnv, Var } from "../context.js";
 import { transaction } from "../db/client.js";
-import { block, report } from "../db/mentor-safety.js";
+import { block, report, unblock } from "../db/mentor-safety.js";
 import { matchMentors, ownListing, removeListing, setVouch, upsertListing } from "../db/mentors.js";
 import { requireAdmin } from "../middleware/admin.js";
 
 /**
- * Mentors, behind the session middleware: a worker lists or unlists themselves; a newcomer matches, reports and
- * blocks. The server only filters by fixed rules; the newcomer picks, and contact goes through sealed envelopes.
+ * Mentors, behind the session middleware: a worker lists or unlists themselves; anyone matches, reports, blocks and
+ * unblocks. The server only filters by fixed rules; the newcomer picks, and contact goes through sealed envelopes.
  */
 export const mentors = new Hono<AppEnv>();
 
 /** Paths under /v1/mentors. */
-const Path = { me: "/me", match: "/match", report: "/report", block: "/block", vouch: "/vouch" } as const;
+const Path = {
+  me: "/me",
+  match: "/match",
+  report: "/report",
+  block: "/block",
+  unblock: "/unblock",
+  vouch: "/vouch",
+} as const;
 
 const body = async (req: Request) => req.json().catch(() => null);
 
@@ -80,6 +87,16 @@ mentors.post(Path.block, async (c) => {
   if (!b.success || b.data.user === user) return c.json({ error: ApiError.badRequest }, 400);
   if (!(await block(c.get(Var.db), user, b.data.user, new Date()))) return c.json({ error: ApiError.notFound }, 404);
   log.info("mentor pair blocked", { requestId: c.get(Var.requestId) });
+  return c.body(null, 204);
+});
+
+/** Lifts the caller's own block of someone; a block the other side made stands. Idempotent. */
+mentors.post(Path.unblock, async (c) => {
+  const b = MentorBlock.safeParse(await body(c.req.raw));
+  const user = c.get(Var.user);
+  if (!b.success || b.data.user === user) return c.json({ error: ApiError.badRequest }, 400);
+  await unblock(c.get(Var.db), user, b.data.user);
+  log.info("mentor pair unblocked", { requestId: c.get(Var.requestId) });
   return c.body(null, 204);
 });
 

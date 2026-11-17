@@ -1,5 +1,6 @@
 import type { Chat, Choice, Line } from "@gigsync/core";
 import type { BoardWorker } from "@gigsync/protocol";
+import { ownerSaidNow } from "../ui/saidClock.js";
 
 /**
  * What a Find chat holds, turn by turn: the agent's questions, the household's answers, and the workers a search found
@@ -20,6 +21,9 @@ export type NeedTurn =
   /** What a search found, and the ones the owner picked to ask (the nearest, until they choose). */
   | { id: number; who: typeof NeedSpeaker.found; workers: readonly BoardWorker[]; picked: readonly string[] };
 
+/** A found-workers turn. */
+export type FoundTurn = Extract<NeedTurn, { who: typeof NeedSpeaker.found }>;
+
 /** Turn ids are unique across every Find chat on screen. */
 let lastId = 0;
 
@@ -28,7 +32,11 @@ export function needTurnIdsSeen(max: number): void {
   lastId = Math.max(lastId, max);
 }
 
-export const ownerSaid = (text: string): NeedTurn => ({ id: ++lastId, who: NeedSpeaker.owner, text });
+/** The owner's own words, typed, said or tapped: the reply to them is written out letter by letter (ui/Typed.tsx). */
+export function ownerSaid(text: string): NeedTurn {
+  ownerSaidNow();
+  return { id: ++lastId, who: NeedSpeaker.owner, text };
+}
 export const appSaid = (lines: readonly Line[], choices: readonly Choice[] = []): NeedTurn => ({
   id: ++lastId,
   who: NeedSpeaker.app,

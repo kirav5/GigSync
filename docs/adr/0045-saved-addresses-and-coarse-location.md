@@ -74,3 +74,22 @@ Worker's coarse lookups, switching to Google or to a bundled gazetteer later cha
   one the need is for; with two or more, they pick at the "where" question.
 - With search off (no key) and nothing in the typed words that names a pilot area, the form asks which pilot area
   the address is nearest to, so the request still has a point to search from.
+
+## Update 2026-11-16: a searched place at its own point, and suggestions as the owner types
+
+A household picked "LGCL Bamboo Forest Villas" and the form said Parappana Agrahara: search rounded every suggestion
+to the 1.1 km cell and named the cell, so the pin landed up to 600 m away and the area could be the next locality
+over (the villas are in Choodasandra). A place someone searched for is public, not the owner's location, so:
+- `/v1/geo/search` returns each suggestion at Ola's own point (`precisePoint`, five decimals, about a metre), and
+  names it from a reverse lookup of that same point, done by the API, taking the area its own line names before the
+  city (Ola's address parts and its line can disagree). The naming is cached by point, so the searches made while
+  typing share it. Answers are filed under a new cache name, so no coarse answer is served again.
+- The owner's own fix is unchanged: "Use my current location" still sends only the coarse cell, the API still
+  rounds it again, and the phone keeps its own precise point for the pin and the saved address.
+- The app suggests as the owner types (three letters, then a pause of about 350 ms; one request at a time, the
+  latest words win; Enter still searches at once), and passes the centre of the city in use, rounded to the coarse
+  grid, which the API sends to Ola as `location` with a 50 km `radius` to favour that city. Search answers are cached
+  by words and that cell. `GEO_RATE_LIMIT` (30 a minute per person) covers typing at that pace.
+- Scored by `workers/api/scripts/geo-precision.mjs` (by hand, with the key) on 15 Bengaluru places: before, our
+  point was a median 419 m (at most 635 m) from Ola's and the area was in Ola's own line for 11 of 15; after, 0 m
+  for all 15 and 14 of 15.

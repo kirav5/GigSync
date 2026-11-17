@@ -1,107 +1,42 @@
-import type { MessageKey, Ports } from "@gigsync/core";
-import type { Session } from "@gigsync/protocol";
-import { useState } from "react";
-import { installOffered, useInstallState } from "../../adapters/install.js";
-import { useI18n } from "../../i18n.js";
-import { C } from "../../ui/cls.js";
-import { Icon } from "../../ui/Icon.js";
-import { Look, savedLook, saveLook } from "../../ui/look.js";
-import "../../ui/install.css";
+import type { Ports } from "@gigsync/core";
+import type { Account } from "../../adapters/account.js";
 import { AlertsSettings } from "../AlertsSettings.js";
-import { Addresses } from "../address/Addresses.js";
-import { ModelSettings } from "../ModelSettings.js";
-import { MoveRows, SettingsRow } from "../move/MoveRows.js";
 import { SpeechSettings } from "../SpeechSettings.js";
-import { TacticSetting } from "../TacticSetting.js";
-import { PageFrame } from "./PageFrame.js";
-
-const LOOKS: readonly { look: Look; label: MessageKey }[] = [
-  { look: Look.auto, label: "look.auto" },
-  { look: Look.light, label: "look.light" },
-  { look: Look.dark, label: "look.dark" },
-];
-
-/** Light, dark, or the phone's own setting. */
-function LookPicker() {
-  const { t } = useI18n();
-  const [look, setLook] = useState<Look>(savedLook());
-  const title = t("settings.look");
-  return (
-    <section className={C.card} aria-label={title}>
-      <span className={C.label}>{title}</span>
-      <div className={C.row}>
-        {LOOKS.map((l) => (
-          <button
-            key={l.look}
-            type={C.button}
-            aria-pressed={look === l.look}
-            className={look === l.look ? C.chipOn : C.chip}
-            onClick={() => {
-              saveLook(l.look);
-              setLook(l.look);
-            }}
-          >
-            {t(l.label)}
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
+import { AgentSection } from "./AgentSection.js";
+import { ThisPhone } from "./ThisPhone.js";
+import "./pages.css";
 
 interface Props {
   ports: Ports;
-  /** The signed-in device's session: job alerts tell the API where this device takes pushes. */
-  session: Session;
+  /** The owner's account: its session tells the API where job alerts go; a worker's auto-sign is kept on it. */
+  account: Account;
   isWorker: boolean;
-  /** Opens the Install screen. */
+  /** The account with a rule changed, saved here: the shell builds the agent again with it. */
+  onSaved: (account: Account) => void;
+  /** Opens the Install screen's steps, where the browser has no install prompt of its own to show. */
   onInstall: () => void;
   /** Opens Move to a new phone (this phone's code) and Moving from another phone (scan one). */
   onMoveOut: () => void;
   onMoveIn: () => void;
   /** Opens the Terms and Privacy Notice. */
   onTerms: () => void;
-}
-
-/** The one way from Settings to the Install screen, until the app is on the home screen. */
-function InstallRow({ onOpen }: { onOpen: () => void }) {
-  const { t } = useI18n();
-  const state = useInstallState();
-  if (!installOffered(state)) return null;
-  return (
-    <button type={C.button} className={`${C.card} install-row`} onClick={onOpen}>
-      <span className="install-badge" aria-hidden="true">
-        <Icon name="install" size={18} />
-      </span>
-      <span className="install-text">
-        <span className="install-title">{t("install.screen")}</span>
-        <span className="install-about">{t("install.about")}</span>
-      </span>
-      <span className="install-go" aria-hidden="true">
-        ›
-      </span>
-    </button>
-  );
+  /** Signs this owner out of this phone. */
+  onSignOut: () => void;
 }
 
 /**
- * Settings, as collab's: the look, job alerts, saved addresses (households), voice actions (workers), the model on this phone, how the agent bargains, a row
- * to the Install screen, the two ways of moving between phones, and the Terms and Privacy Notice. Each saves as it
- * changes, on this phone.
+ * Settings (design P4), in three groups: the agent (signing deals, how it bargains, what runs it and the model on this
+ * phone), alerts (job notifications, and the voice services a worker allowed), and this phone (moving, Install, the
+ * Terms, Sign out). There is no look to pick: GigSync is light only. Each saves as it changes, on this phone. Saved addresses are a household's own screen, from Me.
  */
-export function SettingsPage({ ports, session, isWorker, onInstall, onMoveOut, onMoveIn, onTerms }: Props) {
-  const { t } = useI18n();
+export function SettingsPage(props: Props) {
+  const { ports, account, isWorker, onSaved, ...phone } = props;
   return (
-    <PageFrame title={t("page.settings_title")} subtitle={t("page.settings_soft")}>
-      <LookPicker />
-      <AlertsSettings session={session} />
-      {!isWorker && <Addresses ports={ports} session={session} />}
+    <>
+      <AgentSection ports={ports} account={account} isWorker={isWorker} onSaved={onSaved} />
+      <AlertsSettings session={account.session} />
       {isWorker && <SpeechSettings />}
-      <ModelSettings ports={ports} />
-      <TacticSetting ports={ports} />
-      <InstallRow onOpen={onInstall} />
-      <MoveRows onMoveOut={onMoveOut} onMoveIn={onMoveIn} />
-      <SettingsRow icon="shield" title="records.terms_title" about="records.terms_about" onOpen={onTerms} />
-    </PageFrame>
+      <ThisPhone {...phone} />
+    </>
   );
 }

@@ -1,0 +1,267 @@
+/*
+ * The sheet (Sheet.tsx): a native modal <dialog> filling the screen, its ::backdrop the light scrim and its panel at
+ * the bottom, flush with the screen's foot and sides with its top corners rounded, as the phone's own sheets; a finger
+ * can hold it by its handle and pull it down (useSheetDrag.ts). It slides up from below the
+ * screen's edge in 260ms while the scrim fades in, and slides back down as it closes (Sheet.tsx sets data-closing
+ * first). Only the panel's transform moves, so it reads as one solid sheet rising, not a card fading in. Reduce Motion
+ * fades it instead. Wide, it is a card in the middle of the screen that rises a little as it fades in.
+ */
+.sheet {
+  --sheet-ms: 260ms;
+  --sheet-out-ms: 200ms;
+  /* Off quickly and settling gently, as the phone's own sheets move. */
+  --sheet-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --sheet-rise: 100%;
+  --sheet-gap: 0px;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  /* Flush with the foot: the panel itself pads for the home indicator, so its paper runs under it. */
+  padding: 0 var(--sheet-gap);
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  /* The browser's modal dialog scrolls (overflow: auto), and opening it focuses a button in the panel, which is still
+     below the screen: the dialog scrolled the panel into view at once, so the sheet appeared instead of rising. A
+     clipped dialog cannot scroll; hidden is the fallback for engines without clip (Sheet.tsx scrolls it back too). */
+  overflow: hidden;
+}
+@supports (overflow: clip) {
+  .sheet {
+    overflow: clip;
+  }
+}
+.sheet[open] {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+/* A literal colour: older WebViews do not carry custom properties into ::backdrop. The app's earth, lightly. */
+.sheet::backdrop {
+  background: rgb(59 33 24 / 0.24);
+  animation: sheet-fade 260ms ease-out;
+}
+.sheet[data-closing]::backdrop {
+  animation: sheet-fade-out 200ms ease-in forwards;
+}
+.sheet-panel {
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100% - 48px);
+  overflow-y: auto;
+  display: grid;
+  gap: 20px;
+  padding: 10px calc(20px + env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))
+    calc(20px + env(safe-area-inset-left));
+  border-radius: 30px 30px 0 0;
+  background: var(--surface);
+  box-shadow: 0 -2px 24px rgb(59 33 24 / 0.12);
+  animation: sheet-rise var(--sheet-ms) var(--sheet-ease);
+}
+.sheet[data-closing] .sheet-panel {
+  animation: sheet-sink var(--sheet-out-ms) ease-in forwards;
+}
+/* Held by a finger (useSheetDrag.ts) the panel follows it; pulled closed, it carries on down from there instead of
+   jumping back to replay the slide down. */
+.sheet .sheet-panel[data-dragging],
+.sheet[data-closing] .sheet-panel[data-flung] {
+  animation: none;
+}
+.sheet-handle {
+  touch-action: none;
+}
+.sheet-panel:focus {
+  outline: none;
+}
+.sheet-handle {
+  justify-self: center;
+  width: 36px;
+  height: 5px;
+  border-radius: var(--radius-chip);
+  background: var(--hairline);
+}
+.sheet-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+/* A person's initial beside their name and line, centred on the two as their row in the list has it. */
+.sheet-head:has(> .avatar) {
+  align-items: center;
+}
+.sheet-tile {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-row);
+  background: var(--surface2);
+  color: var(--text);
+}
+/* The UI kit has one action colour: a delete is terracotta like every other action, its icon and word saying what it
+   does. --danger stays for error text only. */
+.sheet-tile.danger {
+  border-radius: 50%;
+  background: var(--art-terra, var(--tint));
+  color: var(--accent);
+}
+.sheet-words {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.sheet-title {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: var(--fs-title);
+  font-weight: 700;
+  line-height: var(--lh-head);
+  overflow-wrap: anywhere;
+}
+.sheet-line {
+  margin: 0;
+  color: var(--text2);
+  font-size: var(--fs-2);
+  line-height: var(--lh-body);
+}
+.sheet-actions {
+  display: grid;
+  gap: 8px;
+}
+.sheet-actions .btn {
+  width: 100%;
+}
+/* In a sheet the answer that deletes is the filled terracotta button, the one that keeps is a plain white one; both
+   fully round, as the kit's buttons are. */
+.sheet-actions .btn {
+  min-height: var(--tap-lg);
+  border-radius: var(--radius-chip);
+}
+.sheet-actions .btn.danger {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.sheet-actions .btn.ghost {
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: var(--text);
+}
+
+@media (min-width: 1024px) {
+  .sheet[open] {
+    align-items: center;
+  }
+  .sheet-panel {
+    max-width: 400px;
+    padding: 24px 20px 20px;
+    border-radius: 30px;
+    box-shadow: 0 8px 40px rgb(59 33 24 / 0.18);
+  }
+  .sheet-handle {
+    display: none;
+  }
+  .sheet {
+    --sheet-rise: 24px;
+  }
+  .sheet-panel {
+    animation-name: sheet-rise, sheet-fade;
+  }
+  .sheet[data-closing] .sheet-panel {
+    animation-name: sheet-sink, sheet-fade-out;
+  }
+}
+/* Reduce Motion: the sheet fades in and out where it stands. */
+@media (prefers-reduced-motion: reduce) {
+  .sheet-panel {
+    animation-name: sheet-fade;
+  }
+  .sheet[data-closing] .sheet-panel {
+    animation-name: sheet-fade-out;
+  }
+}
+
+@keyframes sheet-rise {
+  from {
+    transform: translateY(var(--sheet-rise));
+  }
+}
+@keyframes sheet-sink {
+  to {
+    transform: translateY(var(--sheet-rise));
+  }
+}
+@keyframes sheet-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes sheet-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* The tall sheet (Sheet.tsx with `done`): nearly the screen's height, flush with its foot, on the paper; the title row
+   stays put while the body under it scrolls. Wide, a taller card in the middle. */
+.sheet.tall {
+  --sheet-gap: 0px;
+  padding-top: 46px;
+}
+.sheet.tall .sheet-panel {
+  height: 100%;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 0 0;
+  border-radius: 30px 30px 0 0;
+  background: var(--bg);
+  overflow: hidden;
+}
+.sheet.tall .sheet-handle {
+  align-self: center;
+  flex: none;
+}
+.sheet-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px 0 20px;
+}
+.sheet-done {
+  min-height: var(--tap);
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-chip);
+  background: none;
+  color: var(--accent-ink);
+  font: 600 var(--fs-btn) / 1 var(--sans);
+  cursor: pointer;
+}
+.sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  padding: 4px 16px max(20px, env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  .sheet.tall {
+    padding: 0;
+  }
+  .sheet.tall .sheet-panel {
+    height: min(760px, calc(100% - 48px));
+    max-width: 440px;
+    border-radius: 30px;
+  }
+}

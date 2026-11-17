@@ -1,116 +1,86 @@
-import { type Activity, ActivityTab, activityOf, countsOf, firstTab, groupJobs, type MessageKey } from "@gigsync/core";
-import { type ReactNode, useId, useMemo, useState } from "react";
+import { activityOf, countsOf, groupJobs, type JobRecord, type MessageKey } from "@gigsync/core";
+import { type ReactNode, useMemo } from "react";
 import { useI18n } from "../../i18n.js";
-import { C } from "../../ui/cls.js";
 import { phoneDay } from "../jobGroups.js";
-import { ActivityCounters, panelId, tabId } from "./ActivityCounters.js";
-import { type CardProps, JobList, JobSection } from "./JobLists.js";
+import { Day, DoneGroup, EmptyJobs, Foot, Group } from "./ActivityParts.js";
+import type { CardProps } from "./JobLists.js";
+import { JobRow } from "./JobRow.js";
+import { useOpenRows } from "./useOpenRows.js";
 import "./activity.css";
 
-/** What waits on the owner besides the jobs (a household's offers to work), shown first under Awaiting you. */
+/** What waits on the owner besides the jobs (a household's offers to work), shown first under Needs you. */
 export interface MoreAwaiting {
   count: number;
   node: ReactNode;
 }
 
-/** The tab the owner picked, and how many things waited on them then. */
-interface Pick {
-  tab: ActivityTab;
-  awaiting: number;
-}
-
 interface Props extends CardProps {
   now: Date;
-  /** Above the counters: the worker's card and UPI nudges. */
-  top?: ReactNode;
   more?: MoreAwaiting;
-  /** Agreed by day (Today's jobs, Coming up, Other jobs) for a worker; one list for a household. */
-  byDay: boolean;
-  /** What to ask in the chat, said while there is nothing at all. */
+  /** What to ask in the chat, said while there are no jobs at all. */
   hint: MessageKey;
+  /** Opens the Money tab (Pay for a household), where finished jobs are kept. */
   onRecords: () => void;
+  /** What the owner alone is asked, under the heading (a worker's nudges). */
+  lead?: ReactNode;
 }
 
+/** A section's look: Needs you is drawn in rust, the others plain. */
+const NEEDS = "needs";
+
 /**
- * Activity, as collab's: "What your agents are doing", four counters (Awaiting you, In talks, Agreed, and Closed,
- * which opens Records), and the open tab's jobs. It opens on Awaiting you whenever something waits, and follows the
- * jobs until the owner picks a tab; a new decision brings Awaiting you back to the front. Finished jobs are never listed here: they live in Records. A job's agent talk
- * stays inside its own card, so there is no separate log.
+ * The Jobs tab, for both owners, laid out as an activity page: what needs the owner first, then what the agents are
+ * talking over, then the work agreed by day (Today, Coming up, Other days), then the latest finished jobs by the day
+ * they were finished. Each job is a compact card (the person, the work, a status pill, when, the amount) that opens
+ * its whole card in place; a new decision's card opens by itself. A section with nothing in it is not drawn.
  */
-export function ActivityFrame({ now, top, more, byDay, hint, onRecords, ...card }: Props) {
-  const { t, time, plural } = useI18n();
-  const base = useId();
+export function ActivityFrame({ now, more, hint, onRecords, lead, ...card }: Props) {
+  const { t, time } = useI18n();
   const { jobs, tasks, payments, syncedAt } = card.view;
   const day = phoneDay(now);
   const activity = useMemo(() => activityOf(groupJobs({ jobs, tasks, payments, day })), [jobs, tasks, payments, day]);
   const counts = countsOf(activity, more?.count ?? 0);
-  const [picked, setPicked] = useState<Pick>();
-  // The owner's pick holds until something new waits on them: a new decision always comes to the front, and from
-  // then on the tabs follow the jobs again.
-  const held = picked !== undefined && counts.awaiting <= picked.awaiting;
-  if (picked && !held) setPicked(undefined);
-  const shown = held ? picked.tab : firstTab(counts);
-  const pick = (tab: ActivityTab) => setPicked({ tab, awaiting: counts.awaiting });
-  return (
-    <>
-      <div className={C.stack}>
-        <h1 className={C.headline}>{t("activity.headline")}</h1>
-        {syncedAt && <span className={C.faint}>{t("requests.checked", { time: time(syncedAt) })}</span>}
-      </div>
-      {top}
-      <ActivityCounters base={base} counts={counts} shown={shown} onPick={pick} onRecords={onRecords} />
-      <span className={C.muted}>
-        {counts.awaiting > 0
-          ? plural("activity.awaiting", counts.awaiting)
-          : counts.talks > 0
-            ? plural("activity.talking", counts.talks)
-            : t("activity.standing_by")}
-      </span>
-      <div id={panelId(base)} role="tabpanel" aria-labelledby={tabId(base, shown)} className="radar-panel">
-        <Panel shown={shown} activity={activity} more={more} byDay={byDay} {...card} />
-      </div>
-      {jobs.length + (more?.count ?? 0) === 0 && <p className={C.muted}>{t(hint)}</p>}
-      <p className="activity-foot">
-        <span className={C.faint}>{t("activity.records_line")}</span>
-        <button type={C.button} className={C.linkBtn} onClick={onRecords}>
-          {t("activity.records_open")}
-        </button>
-      </p>
-    </>
-  );
-}
-
-type PanelProps = CardProps & {
-  shown: ActivityTab;
-  activity: Activity;
-  more: MoreAwaiting | undefined;
-  byDay: boolean;
-};
-
-/** The open tab's jobs, or what it says when it has none. */
-function Panel({ shown, activity, more, byDay, ...card }: PanelProps) {
-  const { t } = useI18n();
-  const empty = (key: MessageKey) => <p className={C.empty}>{t(key)}</p>;
-  if (shown === ActivityTab.awaiting) {
-    if (activity.awaiting.length + (more?.count ?? 0) === 0) return empty("activity.empty_awaiting");
-    return (
-      <>
-        {more?.node}
-        <JobList jobs={activity.awaiting} {...card} />
-      </>
+  const rows = useOpenRows(tasks);
+  const list = (shown: readonly JobRecord[], { today = false, decide = false } = {}) =>
+    shown.length > 0 && (
+      <ul className="job-rows">
+        {shown.map((job) => {
+          const id = job.engagement.id;
+          return (
+            <JobRow
+              key={id}
+              job={job}
+              day={day}
+              today={today}
+              decide={decide}
+              open={rows.isOpen(id)}
+              onToggle={() => rows.toggle(id)}
+              {...card}
+            />
+          );
+        })}
+      </ul>
     );
-  }
-  if (shown === ActivityTab.talks) {
-    return activity.talks.length === 0 ? empty("activity.empty_talks") : <JobList jobs={activity.talks} {...card} />;
-  }
   const { today, upcoming, other } = activity.agreed;
-  if (today.length + upcoming.length + other.length === 0) return empty("activity.empty_agreed");
-  if (!byDay) return <JobSection title={t("home.jobs")} jobs={[...today, ...upcoming, ...other]} {...card} />;
   return (
     <>
-      <JobSection title={t("home.today")} jobs={today} {...card} />
-      <JobSection title={t("home.upcoming")} jobs={upcoming} {...card} />
-      <JobSection title={t("home.other")} jobs={other} {...card} />
+      <h1 className="jobs-heading">{t("activity.headline")}</h1>
+      {lead}
+      {jobs.length + (more?.count ?? 0) === 0 && <EmptyJobs hint={hint} />}
+      <Group title="activity.tab_awaiting" count={counts.awaiting} look={NEEDS}>
+        {more?.node}
+        {list(activity.awaiting, { decide: true })}
+      </Group>
+      <Group title="activity.tab_talks" count={counts.talks}>
+        {list(activity.talks)}
+      </Group>
+      <Group title="activity.tab_agreed" count={counts.agreed}>
+        <Day title="schedule.today">{list(today, { today: true })}</Day>
+        <Day title="jobs.day.coming">{list(upcoming)}</Day>
+        <Day title="jobs.day.other">{list(other)}</Day>
+      </Group>
+      <DoneGroup jobs={activity.records.done} view={card.view} today={day} onOpen={onRecords} />
+      <Foot closed={counts.closed} checked={syncedAt && time(syncedAt)} onOpen={onRecords} />
     </>
   );
 }

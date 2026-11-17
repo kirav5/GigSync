@@ -1,14 +1,60 @@
-/* The menu's pages (screens/pages): the people the owner blocked, one line each, the name over when. */
-.blocked-rows {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+/* The pages opened from Me and Settings (screens/pages), from the design's P2 to P4. Sizes and colours are the tokens
+   in styles.css, so the dark look and Hindi and Kannada follow by themselves. */
+
+/* A page's head: the serif title line and the short line under it. */
+.page-head {
+  display: grid;
+  gap: 4px;
+}
+
+/* About me's head: the owner's initial on the big disc, and their name beside it. */
+.about-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.about-head .hero-title {
+  overflow-wrap: anywhere;
+}
+
+/* A fact from the worker's card drawn as a form field (its label over the box); the box opens the card's form. */
+.about-field {
+  display: grid;
+  gap: 6px;
+}
+.about-field-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.about-field-box > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.about-field-box .ic {
+  flex: none;
+  color: var(--text3);
+}
+
+/* A setting that is more than one switch (how the agent bargains, the model, the look), as a block of a list card. */
+.setting-block {
   display: grid;
   gap: 8px;
+  padding: 12px 16px;
+  min-width: 0;
 }
-.blocked-rows li {
-  display: grid;
-  gap: 2px;
-  padding-top: 8px;
-  border-top: 1px solid var(--hairline);
+.setting-block.row {
+  display: flex;
+}
+
+/* A status said under a switch's own words, on a line of its own. */
+.row-note {
+  display: block;
+  margin-top: 2px;
 }

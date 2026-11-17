@@ -1,88 +1,83 @@
-// The opening scene's driver. The header, the hero and the roots section share one earth-brown camera
-// that stays on screen while the page scrolls through the opening's track, so the reader sees a scene change rather
-// than a page scroll; scene.js says what the scene looks like at each progress, and this file measures the page,
-// follows the scroll and applies it. The header and the background colour never change.
+// The opening scene's driver. The header, the hero and the roots share one earth-brown camera that stays on screen
+// while the page scrolls through the opening's track, so the reader sees the circle open rather than a page scroll;
+// scene.js says what the scene looks like at each progress, and this file measures the page, follows the scroll and
+// applies it. The background colour never changes.
 //
 // The scene chases the scroll position in the time domain instead of sitting on it: each animation frame the shown
 // progress closes a share of the remaining gap set by the elapsed milliseconds, so a wheel notch becomes a short glide
-// rather than a jump, and the glide carries on for a few frames after the wheel stops. The mural and the roots print
-// stay in the document for the whole scene and move by transform and opacity alone, so nothing is swapped or laid out
-// mid-flight. A phone plays the same scene; the roots paragraphs do not fit its screen with the print, so they wait
-// just below the camera. With Reduce Motion on the same scene only fades (scene.js). Short screens get the three parts
-// stacked in normal flow.
+// rather than a jump. The three layers of the mural stay in the document for the whole scene and change by transform
+// and opacity alone, so nothing is swapped or laid out mid-flight. Phones and desktops play the same scene; only the
+// layout differs (opening.css). With Reduce Motion on the scene only fades. Very short screens get the hero and the
+// roots one after the other in normal flow.
 // "?flight=direct" in the address keeps a one-to-one mapping for comparison.
 import { calmSceneAt, FLIGHT_SHARE, planScene, sceneAt } from "./scene.js";
 
-const DESKTOP = "(min-width: 800px)";
-/** A phone or portrait tablet tall enough for the scene. A media query, so the browser's bars sliding away do not flip it. */
-const PHONE = "(max-width: 799.98px) and (min-height: 540px)";
+/** A screen tall enough for the scene. A media query, so a phone's bars sliding away do not flip it. */
+const FITS = "(min-height: 500px)";
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
-/** A viewport shorter than this cannot hold the hero inside the camera. */
-const MIN_VIEWPORT_PX = 600;
-const MEASURING = "measuring";
-const LANDED = "landed";
-const FLYING = "flying";
-const SHOWN = "shown";
 const MOTION = "motion";
 const TRUE = "true";
-const FALSE = "false";
-const BLOCK = "block";
-const NONE = "none";
+const LANDED = "landed";
 const SMOOTH = "smooth";
 const INSTANT = "instant";
 const FLIGHT_PARAM = "flight";
 const DIRECT = "direct";
 const ROOTS_HASH = "#our-roots";
-/** Where the strip's arrow leads once the picture has landed: on, past the opening. */
-const ONWARD = "onward";
+const ROOTS_TOP = "--roots-top";
+const ROOTS_BOTTOM = "--roots-bottom";
 /** The time, in milliseconds, for the shown progress to close most of the gap to the scroll: the glide's lag. */
 const CHASE_MS = 140;
 /** A frame longer than this (a background tab, a stall) is treated as this long, so the glide never leaps. */
 const MAX_FRAME_MS = 50;
 /** Close enough, in progress units, to count as arrived. */
 const SETTLED = 0.0008;
-/** How close, in pixels, two measurements must be to count as the same layout. */
-const SAME_PX = 0.5;
-/** The least opacity a layer is given: too faint to see, but enough to keep it painted, so that the first frame in
- *  which it shows does not have to wait for it. */
+/** The least opacity a layer is given: too faint to see, but enough to keep it painted. */
 const PAINTED = 0.001;
+/** The heart at the end of the scene: at most this share of the screen's width and height, and this many pixels tall. */
+const END_WIDTH_SHARE = 0.86;
+const END_HEIGHT_SHARE = 0.5;
+const END_MAX_PX = 480;
+/** The room, in pixels, between the heart and the words above and below it, and below the lowest words. */
+const GAP_PX = 18;
+const FOOT_PX = 30;
+
+/** A hidden box as tall as the screen shows now (dvh: taller once a phone's bars slide away), for laying out the end. */
+const SHOWN_SCREEN = "position:absolute;top:0;left:0;width:0;height:100dvh;visibility:hidden;pointer-events:none";
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
-/** A node's box relative to a base box, so positions hold still while the page scrolls under the camera. */
-const stageRect = (node, base) => {
+/** A node's box relative to the camera. */
+const boxIn = (node, base) => {
   const r = node.getBoundingClientRect();
   return { left: r.left - base.left, top: r.top - base.top, width: r.width, height: r.height };
 };
-const sameRect = (a, b) =>
-  Math.abs(a.left - b.left) < SAME_PX &&
-  Math.abs(a.top - b.top) < SAME_PX &&
-  Math.abs(a.width - b.width) < SAME_PX &&
-  Math.abs(a.height - b.height) < SAME_PX;
-const driftOf = (px) => `translate3d(0, ${px.toFixed(2)}px, 0)`;
-/** A tilted box moved and scaled about its own centre. */
-const placed = ({ x, y, scale, turnDeg }) => `translate3d(${x}px, ${y}px, 0) rotate(${turnDeg}deg) scale(${scale})`;
+const px = (v) => `${v.toFixed(2)}px`;
 
 /**
  * @param {{
- *   opening: HTMLElement, camera: HTMLElement, heroLayer: HTMLElement, heroCopy: HTMLElement, heroArt: HTMLElement,
- *   heroFrame: HTMLElement, heroCaption: HTMLElement, strip: HTMLElement, rootsLayer: HTMLElement,
- *   rootsCopy: HTMLElement, rootsArt: HTMLElement, rootsMore: HTMLElement, rootsAfter: HTMLElement,
- *   wash: HTMLElement, veil: HTMLElement,
- *   links: Iterable<HTMLAnchorElement>
+ *   opening: HTMLElement, camera: HTMLElement, village: HTMLElement, ring: HTMLElement, heart: HTMLElement,
+ *   heroParts: Iterable<HTMLElement>, rootsParts: Iterable<HTMLElement>, links: Iterable<HTMLAnchorElement>
  * }} parts
  */
 export function startScene(parts) {
-  const { opening, camera, heroLayer, heroCopy, heroArt, heroFrame, heroCaption, strip } = parts;
-  const { rootsLayer, rootsCopy, rootsArt, rootsMore, rootsAfter, wash, veil, links } = parts;
-  const desktop = matchMedia(DESKTOP);
-  const phone = matchMedia(PHONE);
+  const { opening, camera, village, ring, heart, links } = parts;
+  const heroParts = [...parts.heroParts];
+  const rootsParts = [...parts.rootsParts];
+  const [rootsTop, rootsBottom] = rootsParts;
+  const turn = ring.closest(".mo-ring-turn");
+  const shade = camera.querySelector(".mo-shade");
+  const header = camera.querySelector(".site-header");
+  const layers = [village, turn, heart];
+  const screenNow = document.createElement("div");
+  screenNow.style.cssText = SHOWN_SCREEN;
+  screenNow.setAttribute("aria-hidden", "true");
+  camera.append(screenNow);
+  const fits = matchMedia(FITS);
   const reduced = matchMedia(REDUCED_MOTION);
   const direct = new URLSearchParams(location.search).get(FLIGHT_PARAM) === DIRECT;
-  /** Everything the scene moves; measuring needs them all back in their own places. */
-  const moved = [heroCopy, rootsCopy, rootsArt];
   let plan = null;
-  /** The roots print's box when the plan was made. */
-  let art = null;
+  /** Each layer's top-left corner in the camera, and half the ring's side, for its turn. */
+  let corners = [];
+  let ringHalf = 0;
   let openingTop = 0;
   let flightPx = 1;
   let enabled = false;
@@ -90,89 +85,85 @@ export function startScene(parts) {
   let shown = 0;
   let lastFrame = 0;
 
-  /** The roots paragraphs: beside the print, or on a phone just below the camera. */
-  function placeRootsMore(belowCamera) {
-    const home = belowCamera ? rootsAfter : rootsCopy;
-    if (rootsMore.parentElement !== home) home.append(rootsMore);
-    rootsAfter.hidden = !belowCamera;
-  }
-
   function rest() {
-    placeRootsMore(false);
-    opening.dataset[MOTION] = FALSE;
-    wash.style.display = NONE;
-    document.body.classList.remove(FLYING, LANDED);
-    for (const node of [heroCopy, heroFrame, heroCaption, strip, rootsCopy, rootsArt, veil]) node.style.opacity = "";
-    for (const node of moved) node.style.transform = "";
-    for (const node of [heroLayer, heroCopy, strip, rootsLayer, rootsCopy]) delete node.dataset[SHOWN];
+    delete opening.dataset[MOTION];
+    for (const node of [...layers, ...heroParts, ...rootsParts, shade]) {
+      node.style.opacity = "";
+      node.style.transform = "";
+      node.style.translate = "";
+      node.style.visibility = "";
+    }
+    document.body.classList.remove(LANDED);
     plan = null;
   }
 
   function measure() {
-    const fits = phone.matches || (desktop.matches && window.innerHeight >= MIN_VIEWPORT_PX);
-    enabled = fits;
+    enabled = fits.matches;
     if (!enabled) {
       rest();
       return;
     }
-    placeRootsMore(phone.matches);
     opening.dataset[MOTION] = TRUE;
-    document.body.classList.add(FLYING);
-    // measured with every drift, zoom and tilt removed, relative to the stage: the pictures' positioned parent, which
-    // holds still with the camera
-    const transforms = moved.map((node) => node.style.transform);
-    for (const node of moved) node.style.transform = "";
-    rootsArt.classList.add(MEASURING);
-    const base = wash.parentElement.getBoundingClientRect();
-    const boxes = {
-      start: stageRect(heroArt, base),
-      art: stageRect(rootsArt, base),
-      stage: stageRect(camera, base),
-    };
-    rootsArt.classList.remove(MEASURING);
-    moved.forEach((node, i) => {
-      node.style.transform = transforms[i];
-    });
+    for (const node of layers) node.style.transform = "";
+    const base = camera.getBoundingClientRect();
+    // the camera is a large viewport tall, so a phone's bars sliding away never uncover the page below it; the heart's
+    // end place is laid out in the screen as it shows now, and laid out again (resize) when the bars come or go
+    const view = { width: base.width, height: Math.min(base.height, screenNow.offsetHeight || base.height) };
+    corners = layers.map((node) => boxIn(node, base));
+    ringHalf = corners[1].width / 2;
+    const hero = corners[2];
+    const start = { x: hero.left + hero.width / 2, y: hero.top + hero.height / 2 };
+    // the heart at the end: as big as the screen allows once the words above and below it have their room
+    const above = boxIn(header, base).top + header.offsetHeight + rootsTop.offsetHeight + GAP_PX * 2;
+    const below = rootsBottom.offsetHeight + GAP_PX + FOOT_PX;
+    const calm = reduced.matches;
+    const tall = calm
+      ? hero.height
+      : Math.min(
+          (view.width * END_WIDTH_SHARE * hero.height) / hero.width,
+          view.height * END_HEIGHT_SHARE,
+          END_MAX_PX,
+          view.height - above - below,
+        );
+    const end = calm ? start : { x: view.width / 2, y: above + (view.height - above - below) / 2 };
+    plan = planScene(start, end, Math.max(1, tall / hero.height));
+    camera.style.setProperty(ROOTS_TOP, px(end.y - tall / 2 - GAP_PX));
+    camera.style.setProperty(ROOTS_BOTTOM, px(end.y + tall / 2 + GAP_PX));
     openingTop = opening.getBoundingClientRect().top + window.scrollY;
     flightPx = Math.max(1, (opening.offsetHeight - camera.offsetHeight) * FLIGHT_SHARE);
-    // a measurement that changes nothing must not move a picture in flight
-    const same =
-      plan && sameRect(boxes.start, plan.start) && sameRect(boxes.art, art) && sameRect(boxes.stage, plan.stage);
-    if (!same) {
-      plan = planScene(boxes);
-      art = boxes.art;
-      wash.style.width = `${plan.start.width}px`;
-      wash.style.height = `${plan.start.height}px`;
-      wash.style.display = BLOCK;
-      shown = progressNow();
-    }
-    schedule();
+    shown = progressNow();
+    draw(shown);
   }
 
   const progressNow = () => clamp01((window.scrollY - openingTop) / flightPx);
 
-  function fade(node, opacity) {
-    node.style.opacity = opacity.toFixed(3);
-    node.dataset[SHOWN] = opacity > 0 ? TRUE : FALSE;
+  /** A layer grown `scale` times about the plan's fixed point, its transform counted from its top-left corner. */
+  function grown(corner, scale) {
+    const { anchor } = plan;
+    return `translate3d(${px((scale - 1) * (corner.left - anchor.x))}, ${px((scale - 1) * (corner.top - anchor.y))}, 0) scale(${scale.toFixed(4)})`;
+  }
+
+  function show(nodes, opacity, drift) {
+    for (const node of nodes) {
+      node.style.opacity = opacity.toFixed(3);
+      node.style.translate = drift ? `0 ${px(drift)}` : "";
+      node.style.visibility = opacity > 0 ? "" : "hidden";
+    }
   }
 
   /** Applies the scene at progress `p` to the page. */
   function draw(p) {
-    const scene = reduced.matches ? calmSceneAt(p, plan) : sceneAt(p, plan);
-    fade(heroCopy, scene.heroCopy.opacity);
-    heroCopy.style.transform = driftOf(scene.heroCopy.drift);
-    heroFrame.style.opacity = scene.heroFrame.toFixed(3);
-    heroCaption.style.opacity = scene.heroFrame.toFixed(3);
-    heroLayer.dataset[SHOWN] = scene.heroCopy.opacity > 0 || scene.heroFrame > 0 ? TRUE : FALSE;
-    fade(rootsCopy, scene.rootsCopy.opacity);
-    rootsCopy.style.transform = driftOf(scene.rootsCopy.drift);
-    rootsArt.style.opacity = Math.max(PAINTED, scene.print.opacity).toFixed(3);
-    rootsArt.style.transform = placed(scene.print);
-    fade(strip, scene.strip);
-    rootsLayer.dataset[SHOWN] = scene.rootsCopy.opacity > 0 || scene.print.opacity > 0 ? TRUE : FALSE;
-    wash.style.opacity = scene.wash.opacity.toFixed(3);
-    wash.style.transform = `translate3d(${scene.wash.x}px, ${scene.wash.y}px, 0) scale(${scene.wash.scale})`;
-    veil.style.opacity = Math.max(PAINTED, scene.shade).toFixed(3);
+    const scene = reduced.matches ? calmSceneAt(p) : sceneAt(p, plan);
+    const { scale } = scene;
+    village.style.transform = grown(corners[0], scale);
+    turn.style.transform = `${grown(corners[1], scale)} translate(${px(ringHalf)}, ${px(ringHalf)}) rotate(${scene.turnDeg.toFixed(2)}deg) translate(${px(-ringHalf)}, ${px(-ringHalf)})`;
+    heart.style.transform = grown(corners[2], scale);
+    village.style.opacity = scene.village.toFixed(3);
+    turn.style.opacity = scene.ring.toFixed(3);
+    heart.style.opacity = scene.heart.toFixed(3);
+    shade.style.opacity = Math.max(PAINTED, scene.shade).toFixed(3);
+    show(heroParts, scene.hero.opacity, scene.hero.drift);
+    show(rootsParts, scene.roots.opacity, scene.roots.drift);
     document.body.classList.toggle(LANDED, scene.landed);
   }
 
@@ -199,34 +190,25 @@ export function startScene(parts) {
     if (!frame) frame = requestAnimationFrame(render);
   };
 
-  /** Links into the scene scroll the track instead: the roots sit at the end of the flight, the top at its start. */
+  /** Links into the scene scroll the track instead: the roots sit at the end of the zoom, the top at its start. */
   function jump(place, behavior) {
     if (!enabled) return false;
-    let top = openingTop;
-    if (place === ROOTS_HASH) top = openingTop + flightPx + 1;
-    if (place === ONWARD) top = openingTop + opening.offsetHeight;
-    window.scrollTo({ top, behavior });
+    window.scrollTo({ top: place === ROOTS_HASH ? openingTop + flightPx + 1 : openingTop, behavior });
     return true;
   }
   for (const link of links) {
     link.addEventListener("click", (event) => {
-      const hash = link.getAttribute("href");
-      // once the picture has landed, the strip's arrow leads on to the next section
-      const landed = document.body.classList.contains(LANDED);
-      const place = hash === ROOTS_HASH && landed && strip.contains(link) ? ONWARD : hash;
-      if (jump(place, SMOOTH)) event.preventDefault();
+      if (jump(link.getAttribute("href"), SMOOTH)) event.preventDefault();
     });
   }
 
   // decoded ahead of the first frame that needs them, so the scene never waits on a picture
-  for (const picture of [wash.firstElementChild, rootsArt.querySelector("img")])
-    picture?.decode?.().catch(() => undefined);
+  for (const picture of layers.map((node) => (node === turn ? ring : node))) picture.decode?.().catch(() => undefined);
   window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("resize", measure);
-  desktop.addEventListener("change", measure);
-  phone.addEventListener("change", measure);
+  fits.addEventListener("change", measure);
   reduced.addEventListener("change", measure);
-  // fonts, images and opened details all move the frames; measure again whenever the page changes height
+  // fonts and images move the words; measure again whenever the page changes height
   if ("ResizeObserver" in window) new ResizeObserver(measure).observe(document.body);
   if (document.fonts?.ready) document.fonts.ready.then(measure);
   window.addEventListener("load", () => {

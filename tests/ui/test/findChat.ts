@@ -1,7 +1,8 @@
 import { type MessageKey, t } from "@gigsync/core";
-import type { Lang } from "@gigsync/protocol";
+import { groupOf, type Lang, type WorkKind } from "@gigsync/protocol";
 import { expect, type Locator, type Page } from "@playwright/test";
 import { fillAddressForm } from "./address.js";
+import { greeting, written } from "./composer.js";
 
 /**
  * Driving Find's chat the way a household answers it: the need in their own words, then whatever the agent still
@@ -89,6 +90,7 @@ async function tapIf(target: Locator): Promise<boolean> {
 /** Answers whatever the agent asks now; true at the readback, which the caller answers. */
 async function answer(phone: Phone, ask: NeedAnswers): Promise<boolean> {
   const { page, lang } = phone;
+  await written(page);
   if ((await says(page, lang, "need.confirm")) || (await says(page, lang, "need.confirm_to"))) return true;
   if (await says(page, lang, "need.ask.budget")) return say(phone, ask.budget).then(() => false);
   // The hour, once the day is known (ADR 0050 §1): the journeys take any time unless they say one.
@@ -104,7 +106,8 @@ async function answer(phone: Phone, ask: NeedAnswers): Promise<boolean> {
   const taps = [
     "memory.use",
     "terms.scope_ok",
-    ...(ask.trade ? [`trade.${ask.trade}` as MessageKey] : []),
+    // The list opens on groups (ADR 0061): the trade's group, then the trade.
+    ...(ask.trade ? [`trade.${ask.trade}` as MessageKey, `group.${groupOf(ask.trade as WorkKind)}` as MessageKey] : []),
     `need.arr.${ask.arrangement ?? "monthly"}` as MessageKey,
     areaKey(ask.area),
     // A price question (ADR 0041): the journeys leave it to the estimate to assume.
@@ -130,8 +133,10 @@ async function answer(phone: Phone, ask: NeedAnswers): Promise<boolean> {
  */
 export async function tellNeed(phone: Phone, ask: NeedAnswers) {
   const { page, lang } = phone;
-  await expect(newest(page)).toBeVisible();
-  let before = await agentTurns(page, lang).count();
+  // An empty chat shows Home's greeting, its opening question unseen until the first words: that question counts.
+  await expect(newest(page).or(greeting(page, lang))).toBeVisible();
+  const opening = (await greeting(page, lang).isVisible()) ? 1 : 0;
+  let before = (await agentTurns(page, lang).count()) + opening;
   await say(phone, ask.need);
   let timeSaid = !ask.time;
   for (let turn = 0; turn < TURNS_MAX; turn++) {

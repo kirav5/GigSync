@@ -7,8 +7,10 @@ import type { ChosenWorker } from "../../find/ask.js";
 import { useI18n } from "../../i18n.js";
 import { qrErrorKey } from "../../qr/problems.js";
 import { usePerson } from "../../qr/usePerson.js";
+import { Avatar, AvatarSize } from "../../ui/Avatar.js";
 import { C } from "../../ui/cls.js";
-import { Initial, WorkerCard } from "./PersonCard.js";
+import { Icon } from "../../ui/Icon.js";
+import { ScannedCard } from "./PersonCard.js";
 
 interface Props {
   account: Account;
@@ -20,8 +22,9 @@ interface Props {
 }
 
 /**
- * Whoever a scanned QR or an opened `?to=` link finds, after sign-in: a worker's card with "Ask {name} for work" for a
- * household, or a household's first name with "Offer to work for {name}" for a worker with a card on the board.
+ * Whoever a scanned QR or an opened `?to=` link finds, after sign-in (ADR 0034 §4: a code is looked up only for someone
+ * signed in): a worker's card with one big "Ask {name} for work" for a household, or a household's first name with
+ * "Offer to work for {name}" for a worker with a card on the board.
  */
 export function Person({ account, device, run, code, onAsk }: Props) {
   const { t } = useI18n();
@@ -47,17 +50,21 @@ function ScannedWorker({ account, person, onAsk }: { account: Account; person: W
   const { card, user } = person;
   const household = account.role === AccountRole.consumer;
   return (
-    <section className={C.card} aria-label={person.first_name}>
-      {card ? <WorkerCard card={card} /> : <span>{t("qr.no_card", { name: person.first_name })}</span>}
+    <div className={C.stack}>
+      <section className={`${C.card} person`} aria-label={person.first_name}>
+        {card ? <ScannedCard card={card} /> : <p>{t("qr.no_card", { name: person.first_name })}</p>}
+      </section>
       {household && card && (
-        <div className={C.actions}>
-          <button type={C.button} className={C.accent} onClick={() => onAsk({ user, card })}>
+        <>
+          <p className={C.muted}>{t("find.qr_intro", { name: card.display_name })}</p>
+          <button type={C.button} className={`${C.wide} btn-big`} onClick={() => onAsk({ user, card })}>
+            <Icon name="arrow" />
             {t("qr.ask", { name: card.display_name })}
           </button>
-        </div>
+        </>
       )}
-      {!household && <span className={C.faint}>{t("qr.worker_to_worker")}</span>}
-    </section>
+      {!household && <p className={C.faint}>{t("qr.worker_to_worker")}</p>}
+    </div>
   );
 }
 
@@ -90,7 +97,7 @@ function ScannedHousehold(props: Omit<Props, "onAsk"> & { person: HouseholdPerso
   return (
     <section className={C.card} aria-label={name}>
       <div className={C.row}>
-        <Initial name={name} />
+        <Avatar name={name} size={AvatarSize.lg} />
         <div className="who">
           <strong>{name}</strong>
           <span className={C.muted}>{t("qr.household")}</span>

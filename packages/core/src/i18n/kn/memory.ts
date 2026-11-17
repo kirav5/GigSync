@@ -2,10 +2,10 @@ import type { memory as en } from "../en/memory.js";
 
 /** Kannada: what the agent remembers from past jobs, what the agent says using it, and its setting. */
 export const memory: Readonly<Record<keyof typeof en, string>> = {
-  "memory.title": "ನನ್ನ ಏಜೆಂಟ್‌ಗೆ ಏನು ನೆನಪಿದೆ",
+  "memory.title": "ನನ್ನ ಸಹಾಯಕನಿಗೆ ಏನು ನೆನಪಿದೆ",
   "memory.about":
-    "ಈ ಫೋನ್‌ನಲ್ಲಿ ಮಾತ್ರ ಇರುತ್ತದೆ, ನಿಮ್ಮ ಏಜೆಂಟ್ ಮತ್ತೆ ಕೇಳಬಾರದು ಎಂದು. ಸೈನ್ ಔಟ್ ಮಾಡಿದರೂ ಉಳಿಯುತ್ತದೆ; ಇಲ್ಲಿ ಸೈನ್ ಇನ್ ಮಾಡುವ ಬೇರೆ ಯಾರಿಗೂ ಕಾಣಿಸುವುದಿಲ್ಲ.",
-  "memory.empty": "ಇನ್ನೂ ಏನೂ ಇಲ್ಲ. ನೀವಿಬ್ಬರೂ ಸಹಿ ಮಾಡಿದ ಕೆಲಸದ ನಂತರ, ಏಜೆಂಟ್ ಕಲಿತದ್ದು ಇಲ್ಲಿ ಕಾಣುತ್ತದೆ.",
+    "ಈ ಫೋನ್‌ನಲ್ಲಿ ಮಾತ್ರ ಇರುತ್ತದೆ, ನಿಮ್ಮ ಸಹಾಯಕ ಮತ್ತೆ ಕೇಳಬಾರದು ಎಂದು. ಸೈನ್ ಔಟ್ ಮಾಡಿದರೂ ಉಳಿಯುತ್ತದೆ; ಇಲ್ಲಿ ಸೈನ್ ಇನ್ ಮಾಡುವ ಬೇರೆ ಯಾರಿಗೂ ಕಾಣಿಸುವುದಿಲ್ಲ.",
+  "memory.empty": "ಇನ್ನೂ ಏನೂ ಇಲ್ಲ. ನೀವಿಬ್ಬರೂ ಸಹಿ ಮಾಡಿದ ಕೆಲಸದ ನಂತರ, ಸಹಾಯಕ ಕಲಿತದ್ದು ಇಲ್ಲಿ ಕಾಣುತ್ತದೆ.",
   "memory.area": "ನಿಮ್ಮ ಪ್ರದೇಶ",
   "memory.unnamed": "ನೀವು ಕೆಲಸ ಮಾಡಿದವರು",
   "memory.jobs.one": "ಜೊತೆಯಲ್ಲಿ {count} ಕೆಲಸ",
@@ -28,7 +28,7 @@ export const memory: Readonly<Record<keyof typeof en, string>> = {
   "memory.change": "ಬದಲಿಸಿ",
   "memory.change_detail": "{detail} ಬದಲಿಸಿ",
   "memory.change_area": "ಪ್ರದೇಶ ಬದಲಿಸಿ",
-  "memory.answer_label": "ಹಿಂದಿನ ಕೆಲಸಗಳಿಂದ ನನ್ನ ಏಜೆಂಟ್‌ಗೆ ಉತ್ತರ ತಿಳಿದಿದ್ದಾಗ",
+  "memory.answer_label": "ಹಿಂದಿನ ಕೆಲಸಗಳಿಂದ ನನ್ನ ಸಹಾಯಕನಿಗೆ ಉತ್ತರ ತಿಳಿದಿದ್ದಾಗ",
   "memory.answer_ask": "ಮೊದಲು ನನ್ನನ್ನು ಕೇಳಿ",
   "memory.answer_auto": "ನನ್ನ ಪರವಾಗಿ ಉತ್ತರಿಸಿ",
 };

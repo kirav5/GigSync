@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useId, useState } from "react";
 import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 import { errorKey } from "../../ui/errorKey.js";
@@ -7,9 +7,13 @@ import { Working } from "../../ui/Working.js";
 /** The note field's name in its form. */
 const NOTE_FIELD = "note";
 
-/** The worker's own words to the customer, sent as written and tagged with this phone's language. */
-export function NoteBox({ onSend }: { onSend: (text: string) => Promise<unknown> }) {
+/**
+ * The worker's own words to the customer, sent as written and tagged with this phone's language. `them` is the
+ * customer's name as the card shows it, for the box's label.
+ */
+export function NoteBox({ them, onSend }: { them: string; onSend: (text: string) => Promise<unknown> }) {
   const { t } = useI18n();
+  const id = useId();
   const [sending, setSending] = useState(0);
   const [failed, setFailed] = useState<string>();
   function submit(e: FormEvent<HTMLFormElement>) {
@@ -31,16 +35,16 @@ export function NoteBox({ onSend }: { onSend: (text: string) => Promise<unknown>
       .finally(() => setSending((n) => n - 1));
   }
   return (
-    <form className={C.row} onSubmit={submit} aria-label={t("a11y.note")}>
-      <input
-        className={C.field}
-        name={NOTE_FIELD}
-        aria-label={t("a11y.note")}
-        placeholder={t("job.note_placeholder")}
-      />
-      <button type={C.submit} className={C.btn}>
-        {t("job.send_note")}
-      </button>
+    <form className={`${C.stack} note-box`} onSubmit={submit} aria-label={t("a11y.note")}>
+      <label className={C.fieldLabel} htmlFor={id}>
+        {t("jobcard.note_to", { name: them })}
+      </label>
+      <div className={C.row}>
+        <input id={id} className={C.field} name={NOTE_FIELD} placeholder={t("job.note_placeholder")} />
+        <button type={C.submit} className={C.secondary}>
+          {t("job.send_note")}
+        </button>
+      </div>
       <Working on={sending > 0} words={t("busy.sending")} />
       {failed && <p className={C.error}>{failed}</p>}
     </form>

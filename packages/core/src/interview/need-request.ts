@@ -1,4 +1,12 @@
-import { type Estimate, type JobTrade, type Lang, type Place, QuestionKey, type Skill } from "@gigsync/protocol";
+import {
+  type Estimate,
+  type JobPhoto,
+  type JobTrade,
+  type Lang,
+  type Place,
+  QuestionKey,
+  type Skill,
+} from "@gigsync/protocol";
 import { driversToDetails } from "../estimate/driver-details.js";
 import { t } from "../i18n/t.js";
 import { YES_NO_QUESTIONS } from "../job/details.js";
@@ -45,6 +53,8 @@ export interface NeedParts {
   door?: Place | undefined;
   /** The estimate for the whole job the owner saw beside the budget, if any; it stays on this phone. */
   estimate?: Estimate | undefined;
+  /** Photos of the job the owner added in the chat (ADR 0066). */
+  photos?: readonly JobPhoto[] | undefined;
   /** The terms the owner asked for and what they are flexible about (`needTerms`); their agent negotiates them. */
   terms?: Pick<NewNeed, "terms" | "flexible">;
 }
@@ -67,6 +77,7 @@ export function needToSend(p: NeedParts): NewNeed {
     },
     budget: { opening_paise: Math.round(p.budget_paise * OPENING_SHARE), limit_paise: p.budget_paise },
     ...(p.estimate ? { estimate: p.estimate } : {}),
+    ...(p.photos?.length ? { photos: [...p.photos] } : {}),
     ...p.terms,
   };
 }

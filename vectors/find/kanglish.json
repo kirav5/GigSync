@@ -1,0 +1,149 @@
+[
+  {
+    "id": "kanglish-tap",
+    "says": ["kitchen tap leak aagtide"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "trade": "plumber" }
+  },
+  {
+    "id": "kanglish-drain",
+    "says": ["bathroom drain block aagide"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "trade": "plumber" }
+  },
+  {
+    "id": "kanglish-fan",
+    "says": ["fan work aagta illa"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "trade": "electrician" }
+  },
+  {
+    "id": "kanglish-switch",
+    "says": ["switch board spark aagtide"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "trade": "electrician" }
+  },
+  {
+    "id": "kanglish-maid",
+    "says": ["mane cleaning mattu paatre tolyoke kelasadavru beku"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "trade": "maid" }
+  },
+  {
+    "id": "kanglish-cook",
+    "says": ["namma manege aduge madoru beku"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "trade": "cook" }
+  },
+  {
+    "id": "kanglish-driver",
+    "says": ["naale car ge driver beku"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "trade": "driver" }
+  },
+  {
+    "id": "kanglish-door",
+    "says": ["wardrobe door murdide"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "trade": "carpenter" }
+  },
+  {
+    "id": "kanglish-paint",
+    "says": ["eradu bedroom paint madisbeku"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "trade": "painter" }
+  },
+  {
+    "id": "kanglish-ac",
+    "says": ["nanna ac work aagta illa"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "trade": "ac_technician" }
+  },
+  {
+    "id": "kanglish-acservice",
+    "says": ["ac service madisbeku"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "trade": "ac_technician" }
+  },
+  {
+    "id": "kanglish-tv",
+    "says": ["nanna tv work aagta illa"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "skill": "TV repair" }
+  },
+  {
+    "id": "kanglish-tvoff",
+    "says": ["tv on aagta illa"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "skill": "TV repair" }
+  },
+  {
+    "id": "kanglish-fridge",
+    "says": ["fridge cool aagta illa"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "skill": "Fridge repair" }
+  },
+  {
+    "id": "kanglish-pest",
+    "says": ["kitchen alli tumba cockroach ide"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "skill": "Pest control" }
+  },
+  {
+    "id": "kanglish-tutor",
+    "says": ["nanna maganige maths tutor beku"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "skill": "School tutor" }
+  },
+  {
+    "id": "kanglish-tailor",
+    "says": ["blouse holisbeku"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "skill": "Tailor" }
+  },
+  {
+    "id": "kanglish-laptop",
+    "says": ["laptop screen odedide"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "skill": "Laptop and computer repair" }
+  },
+  {
+    "id": "kanglish-hello",
+    "says": ["namaskara", "nanna tv work aagta illa"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "skill": "TV repair" }
+  },
+  {
+    "id": "kanglish-hellotap",
+    "says": ["hi", "kitchen tap leak aagtide"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "trade": "plumber" }
+  },
+  {
+    "id": "kanglish-switch-tv",
+    "says": ["nanna ac work aagta illa"],
+    "answers": ["ondu matra"],
+    "later": "nanna tv kooda work aagta illa",
+    "want": { "trade": "ac_technician" }
+  },
+  {
+    "id": "kanglish-switch-cook",
+    "says": ["kitchen tap leak aagtide"],
+    "answers": ["ondu matra"],
+    "later": "nange cook kooda beku",
+    "want": { "trade": "plumber" }
+  },
+  { "id": "kanglish-nobody", "says": ["nange swimming coach beku"], "answers": ["x"], "want": { "outside": true } },
+  {
+    "id": "kanglish-fish",
+    "says": ["nanna fish tank clean madbeku"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "skill": "Aquarium cleaning" }
+  },
+  {
+    "id": "kanglish-cooler",
+    "says": ["nanna cooler work aagta illa"],
+    "answers": ["ondu matra", "ninne inda"],
+    "want": { "skill": "Cooler fixing" }
+  }
+]

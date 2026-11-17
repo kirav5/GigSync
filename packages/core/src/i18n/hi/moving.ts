@@ -2,7 +2,6 @@ import type { moving as en } from "../en/moving.js";
 
 /** Hindi: moving to a new city through Talk. */
 export const moving: Readonly<Record<keyof typeof en, string>> = {
-  "moving.suggest": "नए शहर जा रहे हैं?",
   "moving.no_figures": "{trade}: इस शहर के लिए अभी कमाई के आँकड़े नहीं हैं।",
   "moving.no_outlook": "उस शहर के लिए अभी कमाई के आँकड़े मेरे पास नहीं हैं।",
   "moving.listed.one": "GigSync पर {city} में {count} कामगार {trade} का काम करता है।",

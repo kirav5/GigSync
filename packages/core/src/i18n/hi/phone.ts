@@ -3,7 +3,7 @@ import type { phone as en } from "../en/phone.js";
 /** Hindi: a new phone, and the card coming back after a reinstall. */
 export const phone: Readonly<Record<keyof typeof en, string>> = {
   "phone.move_out": "नए फ़ोन पर ले जाएँ",
-  "phone.move_out_about": "आपका एजेंट यहाँ जो कुछ रखता है, सब एक स्कैन से आपके नए फ़ोन पर चला जाता है।",
+  "phone.move_out_about": "आपका सहायक यहाँ जो कुछ रखता है, सब एक स्कैन से आपके नए फ़ोन पर चला जाता है।",
   "phone.move_in": "दूसरे फ़ोन से आ रहे हैं? उसका कोड स्कैन करें",
   "phone.move_in_about": "अपने पुराने फ़ोन से अपने काम, पैसे, याददाश्त और चैट ले आइए।",
   "phone.out_title": "अपने नए फ़ोन पर ले जाएँ।",
@@ -53,8 +53,8 @@ export const phone: Readonly<Record<keyof typeof en, string>> = {
   "phone.problem_too_many": "इस घंटे बहुत सारे कोड बन गए। थोड़ी देर बाद कोशिश करें।",
   "phone.floor_title": "आपका कार्ड वापस आ गया",
   "phone.floor_about":
-    "आपका कार्ड GigSync से वापस आ गया। आपकी सबसे कम कीमत पुराने फ़ोन पर रह गई: एक विज़िट के लिए आप कम से कम कितना लेते हैं? जब तक आप न बताएँ, आपका एजेंट हर कीमत बताने से पहले आपसे पूछेगा।",
+    "आपका कार्ड GigSync से वापस आ गया। आपकी सबसे कम कीमत पुराने फ़ोन पर रह गई: एक विज़िट के लिए आप कम से कम कितना लेते हैं? जब तक आप न बताएँ, आपका सहायक हर कीमत बताने से पहले आपसे पूछेगा।",
   "phone.floor_label": "सबसे कम कीमत (₹)",
   "phone.floor_bad": "अपने आम रेट, {price}, तक की रकम लिखें।",
-  "phone.approve_no_floor": "आपकी सबसे कम कीमत अभी इस फ़ोन पर नहीं है, इसलिए आपका एजेंट आपका इंतज़ार कर रहा है।",
+  "phone.approve_no_floor": "आपकी सबसे कम कीमत अभी इस फ़ोन पर नहीं है, इसलिए आपका सहायक आपका इंतज़ार कर रहा है।",
 };

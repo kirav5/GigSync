@@ -86,21 +86,20 @@ test("the sign-in line in Hindi opens the terms; continuing records the agreemen
   const worker = await phone(browser);
   const who = { role: Role.worker, name: `Sunita ${RUN}`, phone: newPhone(), lang: hi };
   await chooseLanguage(worker, hi);
-  const form = worker.getByRole("form", { name: t(hi, "signin.label") });
-  await form.getByLabel(t(hi, "signin.name")).fill(who.name);
-  // One line under Continue, the documents' name a link inside it.
+  // One line on the welcome, above Get started, the documents' name a link inside it.
   const link = worker.getByRole("button", { name: t(hi, "records.signin_link"), exact: true });
   const sentence = t(hi, "records.signin_line", { link: t(hi, "records.signin_link") });
   await expect(link.locator("xpath=..")).toHaveText(sentence);
   await shot(worker, "signin-line-hi");
   await link.click();
   const terms = worker.getByRole("region", { name: t(hi, "records.terms_title") });
-  await expect(terms).toContainText(t(hi, "records.terms_writing"));
-  await expect(terms).toContainText(t(hi, "records.notice_never"));
-  await shot(worker, "terms-placeholder-hi");
-  await button(worker, hi, "records.terms_back").click();
-  // What she typed is still there.
-  await expect(form.getByLabel(t(hi, "signin.name"))).toHaveValue(who.name);
+  // Section titles and summaries in Hindi, the full text in English, said so at the top.
+  await expect(terms).toContainText(t(hi, "legal.english_only"));
+  await expect(terms).toContainText(t(hi, "legal.privacy.sum"));
+  await shot(worker, "terms-hi");
+  await button(worker, hi, "a11y.back").click();
+  // Back on the welcome, where she was.
+  await expect(button(worker, hi, "start.welcome_go")).toBeVisible();
 
   const accepted = consentAccepted(worker);
   await completeSignIn(worker, who);
@@ -138,7 +137,7 @@ test("an owner signed in before the line has it recorded once on opening, with o
   // The row's name is its title and the line under it.
   await household.getByRole("button", { name: t(kn, "records.terms_title") }).click();
   await expect(household.getByRole("region", { name: t(kn, "records.terms_title") })).toContainText(
-    t(kn, "records.terms_writing"),
+    t(kn, "legal.privacy"),
   );
   // Once: opening again says nothing.
   await household.reload();
@@ -152,7 +151,9 @@ test("Download my work record, one quiet row in Records, pulls the record from G
   const page = await phone(browser);
   await seededCook(page, `Revathi ${RUN}`);
   await open(page, "nav.records");
-  await expect(page.getByText(t(en, "records.download_about"))).toBeVisible();
+  await expect(page.getByRole("button", { name: t(en, "records.download_title") })).toHaveAccessibleDescription(
+    t(en, "records.download_about"),
+  );
   await shot(page, "work-record");
   const { file, lines } = await downloadRecord(page);
   expect(lines[0]).toBe("Date,Work,Price (₹),Received (₹),Paid by,Status,Confirmed by,Stars");

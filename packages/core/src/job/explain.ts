@@ -35,12 +35,21 @@ export type Fact =
       typical_paise?: number;
       jobs?: number;
     }
-  /** The owner's own limit, and how far the offer is from it. */
-  | { kind: typeof FactKind.limit; limit_paise: number; gap_paise: number; within: boolean }
+  /**
+   * The owner's own limit (a worker's lowest price, a household's budget), how far the offer is from it and on which
+   * side: the direction is stated, never left to "past", which a model rewording it read as "over" for an offer under.
+   */
+  | {
+      kind: typeof FactKind.limit;
+      owner: Role;
+      limit_paise: number;
+      gap_paise: number;
+      side: LimitSide;
+      within: boolean;
+    }
   /** The terms an offer proposes that differ from what the other side had on the table. */
   | { kind: typeof FactKind.terms; mine: boolean; changed: TermKey[]; terms: Terms };
 
-/** An offer below the household's limit, or above the worker's, is within it. */
 /** The last offer before `index` that `match` picks. */
 const lastBefore = (job: JobRecord, index: number, match: (by: Role) => boolean) =>
   job.offers
@@ -48,6 +57,14 @@ const lastBefore = (job: JobRecord, index: number, match: (by: Role) => boolean)
     .filter((o) => match(o.by))
     .at(-1)?.offer;
 
+/** Where an offer stands against the owner's limit. */
+export const LimitSide = { above: "above", below: "below", at: "at" } as const;
+export type LimitSide = (typeof LimitSide)[keyof typeof LimitSide];
+
+const sideOf = (price: number, limit: number): LimitSide =>
+  price > limit ? LimitSide.above : price < limit ? LimitSide.below : LimitSide.at;
+
+/** An offer below the household's limit, or above the worker's, is within it. */
 const withinLimit = (owner: Role, price: number, limit: number) =>
   owner === Role.enum.provider ? price >= limit : price <= limit;
 
@@ -101,7 +118,15 @@ export function offerFacts(job: JobRecord, index: number, limit_paise?: number):
   if (usual) facts.push(usual);
   if (limit_paise !== undefined) {
     const gap_paise = Math.abs(price - limit_paise);
-    facts.push({ kind: FactKind.limit, limit_paise, gap_paise, within: withinLimit(role, price, limit_paise) });
+    const side = sideOf(price, limit_paise);
+    facts.push({
+      kind: FactKind.limit,
+      owner: role,
+      limit_paise,
+      gap_paise,
+      side,
+      within: withinLimit(role, price, limit_paise),
+    });
   }
   return facts;
 }

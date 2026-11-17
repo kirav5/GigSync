@@ -15,6 +15,8 @@ export interface Line {
   /** Days as "YYYY-MM-DD", written as a date in the reader's language when shown. */
   dates?: Readonly<Record<string, string>>;
   silent?: true;
+  /** Small print beside the question: the interview's reasoning, shown smaller and never read aloud with it. */
+  aside?: true;
 }
 
 /** A tap answer: the value `choose()` takes, and the label shown. */
@@ -35,4 +37,9 @@ export interface Prompt {
    * whatever the owner allowed for the other questions. Typing and the tap choices still work.
    */
   secret?: true;
+  /**
+   * The choices toggle: tapping one turns it on or off in place, and only the choice that says Done answers. These are
+   * the values on now.
+   */
+  picked?: readonly string[];
 }

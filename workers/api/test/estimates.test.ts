@@ -39,12 +39,12 @@ describe("POST /v1/estimates from a phone that sends scope buckets only", () => 
     expect(Estimate.parse(await res.json()).unit).toBe("month");
   });
 
-  it("refuses bad input: another trade's scope, free text, an unknown city, no body", async () => {
+  it("refuses bad input: another trade's scope, free text, a malformed city, no body", async () => {
     const p = await signIn("+919855500004");
     for (const body of [
       { ...PAINTER, trade: "cook" },
       { city: "bengaluru", trade: "electrician", scope: { problem: "my fan sparks" } },
-      { ...COOK, city: "mumbai" },
+      { ...COOK, city: "Mumbai City" },
       { city: "bengaluru", job_type: "wedding photographer" },
       "not json",
     ]) {

@@ -5,11 +5,10 @@ const OLLAMA_URL = "http://localhost:11434";
 /** Ollama's `format` for any JSON object. */
 const JSON_FORMAT = "json";
 const GENERATE_PATH = "/api/generate";
-const TAGS_PATH = "/api/tags";
 
 /**
- * DEV ONLY: a model served by Ollama on this computer, so the web build can be tried with a real model before the
- * phones' on-device engines exist. Chosen in Settings › On-device model (dev builds only).
+ * DEV ONLY: a model served by Ollama on this computer, so a development build can be tried with a local model instead
+ * of GigSync's. Chosen with `VITE_OLLAMA_MODEL` (model.ts); no screen offers it.
  */
 export class OllamaModel implements Model {
   constructor(
@@ -45,17 +44,5 @@ export class OllamaModel implements Model {
       log.warn("ollama: not reachable; is `ollama serve` running?", { model: this.name, error });
       return null;
     }
-  }
-}
-
-/** The models Ollama on this computer has pulled, for Settings to offer; empty when Ollama is not running. */
-export async function listOllamaModels(base = OLLAMA_URL): Promise<string[]> {
-  try {
-    const res = await fetch(`${base}${TAGS_PATH}`);
-    if (!res.ok) return [];
-    const { models } = (await res.json()) as { models?: { name?: string }[] };
-    return (models ?? []).flatMap((m) => (m.name ? [m.name] : []));
-  } catch {
-    return [];
   }
 }

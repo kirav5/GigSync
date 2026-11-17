@@ -24,7 +24,10 @@ import { BagOfWordsEmbedder } from "./embedder-fakes.js";
 
 const AREAS = [{ key: "koramangala", names: ["Koramangala", "कोरमंगला", "ಕೋರಮಂಗಲ"] }];
 const config = (own: Lang) => ({ own, areas: AREAS, rates: CITY_RATES, today: "2026-11-02" });
-const keys = (s: NeedState) => needPrompt(s).lines.map((l) => l.key);
+const keys = (s: NeedState) =>
+  needPrompt(s)
+    .lines.filter((l) => !l.aside)
+    .map((l) => l.key);
 const listed = (text: string, workers = 1, lang: Lang = "en"): BoardSkill => ({
   key: text.toLowerCase(),
   text,
@@ -43,7 +46,7 @@ describe("reading a skill a worker typed (ADR 0047)", () => {
   it("keeps words that only contain a trade's word as the worker's own skill", () => {
     expect(readSkill("Car cleaning", "en")).toEqual({ skill: { text: "Car cleaning", lang: "en" } });
     expect(readSkill("  Painting   classes ", "en")).toEqual({ skill: { text: "Painting classes", lang: "en" } });
-    expect(readSkill("ದರ್ಜಿ", "kn")).toEqual({ skill: { text: "ದರ್ಜಿ", lang: "kn" } });
+    expect(readSkill("ಹೂಗಾರ", "kn")).toEqual({ skill: { text: "ಹೂಗಾರ", lang: "kn" } });
   });
 
   it("says why words cannot be listed", () => {
@@ -108,8 +111,10 @@ describe("Find for a listed skill", () => {
   });
 
   it("takes a long first sentence as the answer to what the work is", () => {
-    const s = withSkill(startNeed(config("en")), tailor, "I need a tailor to stitch two blouses, just once");
-    // "Just once" said it is one visit, so how long is not asked either.
+    const s = withSkill(startNeed(config("en")), tailor, "I need a tailor to stitch two blouses, just once", {
+      arrangement: "visit",
+    });
+    // The model read "just once" as one visit, so how long is not asked either.
     expect(s.draft.arrangement).toBe("visit");
     expect(s.slot).toBe(NeedSlot.area);
     expect(s.draft.detail).toBe("I need a tailor to stitch two blouses, just once");
@@ -136,8 +141,14 @@ describe("Find for a listed skill", () => {
     expect(s.draft.skill?.key).toBe("tailor");
   });
 
-  it("leaves a need that already has a trade alone", () => {
+  it("leaves a need that already has a trade alone, unless the owner picked the kind from the list", () => {
     const cook = chooseNeed(startNeed(config("en")), "cook");
     expect(withSkill(cook, tailor, "tailor")).toBe(cook);
+    // A tap says what they want: the trade an earlier reading set gives way, and where and when stay.
+    const placed = { ...cook, draft: { ...cook.draft, area: "koramangala" } };
+    const picked = withSkill(placed, tailor, "Tailor", { picked: true });
+    expect(picked.draft.trade).toBeUndefined();
+    expect(picked.draft.skill?.key).toBe("tailor");
+    expect(picked.draft.area).toBe("koramangala");
   });
 });

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { Account } from "../adapters/account.js";
 import { copyText } from "../adapters/clipboard.js";
 import { ShareResult, shareLink } from "../adapters/share.js";
-import { loadMyQr, replaceMyQr, type ShownQr } from "./myQr.js";
+import { loadMyQr, type ShownQr } from "./myQr.js";
 import { qrErrorKey } from "./problems.js";
 
 /** What the share sheet says with the link: who it finds, in the owner's words. */
@@ -14,13 +14,12 @@ export interface ShareWords {
 
 /**
  * The owner's QR for My card, and what its buttons do: drawn at once from the code kept on this phone, shared through
- * the phone's share sheet (copied where there is none), copied, or replaced by a new one. `status` is the line that
- * says how the last of them went.
+ * the phone's share sheet (copied where there is none), or copied. `status` is the line that says how the last of them
+ * went. Asking the server for it also tells it the owner's first name and role as they are now, so a scanner sees them.
  */
 export function useMyQr(ports: Ports, account: Account) {
   const [qr, setQr] = useState<ShownQr>();
   const [status, setStatus] = useState<MessageKey>();
-  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -42,19 +41,5 @@ export function useMyQr(ports: Ports, account: Account) {
     setStatus(result === ShareResult.shared ? "qr.shared" : undefined);
   };
 
-  const renew = async () => {
-    setBusy(true);
-    try {
-      setQr(await replaceMyQr(account, ports.storage));
-      setStatus("qr.new_done");
-      return true;
-    } catch (err) {
-      setStatus(qrErrorKey(err));
-      return false;
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return { qr, status, busy, copy, share, renew };
+  return { qr, status, copy, share };
 }

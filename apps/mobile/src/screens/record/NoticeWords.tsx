@@ -2,8 +2,7 @@ import { useI18n } from "../../i18n.js";
 import { C } from "../../ui/cls.js";
 
 /**
- * What GigSync keeps, why, what it never keeps, and how to delete (ADR 0038 §5): read in Privacy before agreeing again,
- * and on the placeholder for the Terms and Privacy Notice until those are written (ADR 0039 §4).
+ * What GigSync keeps, why, what it never keeps, and how to delete (ADR 0038 §5): read in Privacy before agreeing again.
  */
 export function NoticeWords() {
   const { t } = useI18n();

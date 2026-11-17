@@ -2,7 +2,7 @@ import { hourText, plural, t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import { skipPriceQuestions } from "./findChat.js";
-import { expand, newPhone, open, openCard, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
+import { expand, greeting, newPhone, open, openCard, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
 import { cleanUpLater, type Phone, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -75,7 +75,7 @@ test("a long description becomes confirmed chips, the agents settle the terms, a
   await signIn(homePage, { role: Role.consumer, name: `Lata ${RUN}`, phone: newPhone(), address: "HSR", lang: en });
   await open(homePage, "nav.find");
   const log = homePage.getByRole("log");
-  await expect(log).toContainText(t(en, "need.start"));
+  await expect(greeting(homePage, en)).toBeVisible();
   await say(homePage, DESCRIPTION);
 
   // The scope read from her words waits as chips; nothing about the estimate until she confirms them.
@@ -130,7 +130,11 @@ test("a long description becomes confirmed chips, the agents settle the terms, a
   await expand(homePage, "talk.title");
   const why = homePage.getByRole("note", { name: t(en, "explain.label") });
   await expect(why.first()).toContainText(textOf(en, "explain.opened_theirs", { name }));
-  await expect(why.filter({ hasText: textOf(en, "explain.limit_within") }).first()).toBeVisible();
+  // An offer inside her budget says by how much it is under it (or that it is exactly it), never "past" it.
+  const inside = new RegExp(
+    `${textOf(en, "explain.limit.requester.below").source}|${textOf(en, "explain.limit.requester.at").source}`,
+  );
+  await expect(why.filter({ hasText: inside }).first()).toBeVisible();
   await expect(homePage.getByText(textOf(en, "terms.proposed")).first()).toBeVisible();
   await shoot("sign-terms", { household: homePage, worker: workerPage }, FOLDER);
 

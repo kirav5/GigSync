@@ -15,10 +15,12 @@ import { requestLog } from "./log.js";
 import { admin } from "./routes/admin.js";
 import { auth } from "./routes/auth.js";
 import { board } from "./routes/board.js";
+import { cities } from "./routes/cities.js";
 import { consent } from "./routes/consent.js";
 import { content } from "./routes/content.js";
 import { devices } from "./routes/devices.js";
 import { estimates } from "./routes/estimates.js";
+import { find } from "./routes/find.js";
 import { geo } from "./routes/geo.js";
 import { jobMoney } from "./routes/job-money.js";
 import { jobRecords } from "./routes/job-records.js";
@@ -27,6 +29,7 @@ import { map } from "./routes/map.js";
 import { me } from "./routes/me.js";
 import { mentors } from "./routes/mentors.js";
 import { model } from "./routes/model.js";
+import { phoneConfirm } from "./routes/phone-confirm.js";
 import { qr } from "./routes/qr.js";
 import { transfer } from "./routes/transfer.js";
 
@@ -103,12 +106,15 @@ app.get(`${V1}/directory/:${USER_PARAM}`, async (c) => {
 app.route(V1, mail);
 app.route(`${V1}/board`, board);
 app.route(`${V1}/mentors`, mentors);
+app.route(`${V1}/cities`, cities);
 app.route(`${V1}/content`, content);
 app.route(`${V1}/devices`, devices);
 app.route(`${V1}/estimates`, estimates);
+app.route(`${V1}/find`, find);
 app.route(`${V1}/geo/map`, map);
 app.route(`${V1}/geo`, geo);
 app.route(`${V1}/model`, model);
+app.route(`${V1}/phone/confirm`, phoneConfirm);
 app.route(`${V1}/qr`, qr);
 app.route(`${V1}/transfer`, transfer);
 

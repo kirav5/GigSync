@@ -1,11 +1,11 @@
 import type { money as en } from "../en/money.js";
 
-/** Hindi: the passbook of jobs signed on GigSync, and the worker's money actions inside a job. */
+/** Hindi: the passbook, the worker's money actions inside a job, the household's Pay and recommending. */
 export const money: Readonly<Record<keyof typeof en, string>> = {
   "passbook.week": "इस हफ़्ते मिले",
   "passbook.month": "इस महीने मिले",
   "passbook.not_asked": "अभी तक माँगे नहीं",
-  "passbook.empty": "GigSync पर पूरे किए काम, और उनसे मिले पैसे, यहाँ दिखेंगे।",
+  "passbook.empty": "पैसे मिले काम यहाँ दिखेंगे।",
   "passbook.about": "हर लाइन ऐसा काम है जिस पर आपने और ग्राहक, दोनों ने दस्तख़त किए। यह सब इसी फ़ोन पर रहता है।",
   "money.ask_again": "फिर से पैसे माँगें",
   "money.ask_advance": "एडवांस माँगें",
@@ -23,4 +23,22 @@ export const money: Readonly<Record<keyof typeof en, string>> = {
   "money.asked_at": "{time} पर माँगे",
   "money.already_in_bank": "पैसे मेरे बैंक में आ चुके हैं",
   "money.bank_confirm": "{price} मिल गए, यह दर्ज करें?",
+  "money.done_ask": "काम पूरा हुआ। अपने {price} माँगें।",
+  "money.ask_for": "{price} माँगें",
+  "money.straight": "{name} सीधे आपको पैसे देंगे, यूपीआई से या नक़द।",
+  "money.no_cut": "GigSync पैसे कभी अपने पास नहीं रखता और कोई कमीशन नहीं लेता।",
+  "money.says_paid": "{name} कहते हैं कि उन्होंने पैसे दे दिए",
+  "money.by_upi": "यूपीआई",
+  "money.saved_note": "आपके पक्का करते ही यह भुगतान आपके काम के रिकॉर्ड में सहेज लिया जाता है।",
+  "money.qr_sub": "अगर {name} अभी स्कैन करके देना चाहें",
+  "money.asks_for": "{name} माँग रहे हैं",
+  "money.done_at": "काम पूरा · {time}",
+  "money.pay_to": "{vpa} को",
+  "money.holds_nothing": "सीधे {name} को। GigSync अपने पास कुछ नहीं रखता।",
+  "money.upi_opens": "आपका यूपीआई ऐप {name} की यूपीआई आईडी और रकम भरकर खुलेगा। लौटकर “{paid}” दबाएँ।",
+  "money.cash_hint": "नक़द दिए? {name} इसे अपने फ़ोन पर दर्ज करेंगे।",
+  "money.other_way": "दूसरे तरीक़े से दें, या यूपीआई रेफ़रेंस जोड़ें",
+  "money.utr_why": "आपके यूपीआई ऐप का 12 अंकों का रेफ़रेंस {name} को भुगतान ढूँढने में मदद करता है।",
+  "money.recommend_title": "{name} की सिफ़ारिश किसी जानने वाले से करें",
+  "money.recommend_private": "GigSync आपके कॉन्टैक्ट नहीं पढ़ता, और कभी नहीं देखता कि आपने किसे भेजा।",
 };

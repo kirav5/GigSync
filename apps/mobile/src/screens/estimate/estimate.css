@@ -1,0 +1,53 @@
+/* An estimate's usual range (EstimateBand.tsx): a sage bar from low to high, rust up to the typical amount, a tick
+   there with the amount over it, and the two ends' amounts under the bar's ends. --at (set inline) places all three. */
+.est-band {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+/* Slid by its own width as far as the tick is along: left-aligned at the low end, centred mid-way, right-aligned at
+   the high end, so it never runs off the bar. */
+.est-typical {
+  justify-self: start;
+  margin-left: var(--at);
+  transform: translateX(calc(var(--at) * -1));
+  font-family: var(--serif);
+  font-size: var(--fs-heading);
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+.est-track {
+  position: relative;
+  display: block;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--sage);
+}
+.est-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--at);
+  border-radius: 5px;
+  background: var(--rust);
+}
+.est-tick {
+  position: absolute;
+  top: -4px;
+  left: var(--at);
+  width: 4px;
+  height: 18px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: var(--text);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.est-ends {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: var(--fs-label);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}

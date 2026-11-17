@@ -32,3 +32,8 @@ export async function block(db: Db, blocker: UserId, blocked: UserId, at: Date):
   );
   return (rowCount ?? 0) > 0;
 }
+
+/** Lifts `blocker`'s own block of `blocked`; a block made the other way round stands. Idempotent. */
+export async function unblock(db: Db, blocker: UserId, blocked: UserId): Promise<void> {
+  await db.query("DELETE FROM mentor_blocks WHERE blocker_id = $1 AND blocked_id = $2", [blocker, blocked]);
+}

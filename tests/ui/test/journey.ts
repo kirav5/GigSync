@@ -2,7 +2,8 @@ import { type MessageKey, t } from "@gigsync/core";
 import type { Lang } from "@gigsync/protocol";
 import { expect, type Page } from "@playwright/test";
 import { type NeedAnswers, pickOnly, tellNeed } from "./findChat.js";
-import { navRow, openCard, openDrawer, shoot, textOf } from "./helpers.js";
+import { backToTabs, navRow, openCard, profileButton, shoot, textOf } from "./helpers.js";
+import { closeMore, more } from "./jobs.js";
 
 /** A phone in a journey, with the language its owner chose. */
 export interface Phone {
@@ -58,7 +59,8 @@ export async function unlistCards() {
   for (const { page, lang } of listed) {
     if (page.isClosed()) continue;
     try {
-      await openDrawer(page, lang);
+      await backToTabs(page, lang);
+      await profileButton(page, lang).click({ timeout: CLEANUP_MS });
       await navRow(page, "nav.card", lang).click({ timeout: CLEANUP_MS });
       await page.getByRole("button", { name: t(lang, "shell.edit_card"), exact: true }).click({ timeout: CLEANUP_MS });
       const form = page.getByRole("form", { name: t(lang, "a11y.my_card") });
@@ -115,7 +117,9 @@ export async function dealPaise({ page, lang }: Phone): Promise<number> {
 
 /** The worker sends their own words from the note box under a signed job. */
 export async function sendNote({ page, lang }: Phone, text: string) {
-  const box = page.getByRole("form", { name: t(lang, "a11y.note") });
+  const job = page.getByRole("article").filter({ has: page.getByRole("button", { name: t(lang, "job.more") }) });
+  const box = (await more(job.first(), lang)).getByRole("form", { name: t(lang, "a11y.note") });
   await box.getByRole("textbox").fill(text);
   await box.getByRole("button", { name: t(lang, "job.send_note") }).click();
+  await closeMore(job.first(), lang);
 }

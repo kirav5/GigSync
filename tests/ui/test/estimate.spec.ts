@@ -1,7 +1,7 @@
 import { driverSpread, jobRange, type MessageKey, plural, priceText, RATE_CARDS, t } from "@gigsync/core";
 import { DEFAULT_SCOPE, driversFromScope, Lang } from "@gigsync/protocol";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
-import { newPhone, open, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
+import { greeting, newPhone, open, Role, RUN, reveal, shoot, signIn, textOf } from "./helpers.js";
 import { type Phone, publishCard, signBoth, unlistCards } from "./journey.js";
 
 /**
@@ -32,10 +32,8 @@ const RANGE = {
 };
 /** The usual figure: the household's suggested budget and the worker's suggested opening. */
 const TYPICAL = price(BAND.typical);
-/** What the range rests on: the Bengaluru rate card, whose painting figures are a GigSync seed. */
-const CARD_BASIS = {
-  parts: t(en, "driver.basis.rate_card", { city: t(en, "city.bengaluru"), sources: "GigSync seed, unverified" }),
-};
+/** An amount as the price card's field holds it: rupees, no sign or commas. */
+const digits = (shown: string) => shown.replace(/[₹,]/g, "");
 /** ADR 0030's sharing card and setting, as they were labelled; their strings are gone from the catalog. */
 const OLD_SHARE = /share (this|agreed) prices?/i;
 
@@ -68,7 +66,7 @@ const line = (page: Page, key: MessageKey, params = {}) => page.getByText(textOf
 /** The household asks, in Find's chat, to paint their 2BHK in HSR Layout tomorrow, and picks a budget. */
 async function askToPaint(page: Page, budget: "suggested" | string) {
   await open(page, "nav.find");
-  await expect(page.getByRole("log")).toContainText(t(en, "need.start"));
+  await expect(greeting(page, en)).toBeVisible();
   await say(page, "paint my 2BHK");
   await tap(page, t(en, "area.hsr_layout"));
   // What moves the price (ADR 0041): the household buys the paint, and "I don't know" to the next ends the questions.
@@ -105,24 +103,32 @@ async function painterCard(phone: Phone, name: string) {
   await publishCard(phone, { trade: PAINTER, area: "hsr_layout", rate: "20000", min: "12000", about: "Walls" });
 }
 
-test("a painter making a card in Talk sees the usual range, what it rests on and a suggested amount", async ({
+test("a painter making a card in Talk sees the going rate near him and a suggested amount on the price card", async ({
   browser,
 }) => {
   const [page] = (await phones(browser, 1)) as [Page];
   await signIn(page, { role: Role.worker, name: `Kiran ${RUN}`, phone: newPhone(), lang: en });
   await expect(page.getByText(textOf(en, "iv.ask.trade"))).toBeVisible();
   await tap(page, PAINTER);
+  // None of the rest of home repairs (ADR 0061).
+  await tap(page, t(en, "iv.done"));
   await tap(page, t(en, "area.koramangala"));
+  // How far he goes (ADR 0045), asked right after the area: a quick chip sets it, Use answers.
+  await tap(page, t(en, "card.km", { km: 10 }));
+  await tap(page, t(en, "cardflow.use_km", { km: 10 }));
 
-  await expect(line(page, "estimate.range_job", RANGE)).toBeVisible();
-  await expect(line(page, "driver.basis_line", CARD_BASIS)).toBeVisible();
-  await expect(line(page, "estimate.suggest_rate", { price: TYPICAL })).toBeVisible();
+  // The price card: the going rate near him in one line, and the amount it suggests ready to keep or change.
+  const log = page.getByRole("log");
+  await expect(line(page, "iv.near_you", { low: RANGE.low, high: RANGE.high })).toBeVisible();
+  await expect(log.getByText(textOf(en, "driver.basis_line"))).toHaveCount(0);
+  const amount = log.getByLabel(t(en, "cardflow.amount"));
+  await expect(amount).toHaveValue(digits(TYPICAL));
   await shoot("card-estimate", { worker: page }, FOLDER);
 
-  // The suggestion is the worker's to take or change: a tap uses it, and the least they take is suggested next.
-  await tap(page, t(en, "estimate.use", { price: TYPICAL }));
+  // The suggestion is the worker's to take or change: the button keeps it, and the least card opens at the least.
+  await tap(page, t(en, "cardflow.price_next"));
   await expect(line(page, "iv.got_rate", { price: TYPICAL })).toBeVisible();
-  await expect(line(page, "estimate.suggest_min", { price: RANGE.low })).toBeVisible();
+  await expect(log.getByLabel(t(en, "cardflow.lowest_title"))).toHaveValue(digits(RANGE.low));
 });
 
 test("a household sees the range beside its budget; after both sign nobody is asked to share the price", async ({

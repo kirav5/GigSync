@@ -1,10 +1,12 @@
-import { AskKind, DetailFlag, DetailKey, type ModelQuestion } from "@gigsync/protocol";
+import { AskKind, DetailFlag, DetailKey, ModelPurpose, type ModelQuestion } from "@gigsync/protocol";
 import { z } from "zod";
 import { firstObject, MODEL_WAIT_MS, within } from "../interview/need-model.js";
 import { normalize } from "../interview/normalize.js";
 import { log } from "../log.js";
 import type { Model } from "../ports.js";
 import { numbersIn } from "./details.js";
+
+const Purpose = ModelPurpose.enum;
 
 /**
  * The household's agent may ask its model which of the owner's own words answer a written question, but the answer
@@ -85,7 +87,10 @@ export async function matchWords(
 ): Promise<Record<string, string>> {
   if (questions.length === 0 || !words.trim()) return {};
   try {
-    const reply = await within(model.generate(answerPrompt(words, questions), { maxTokens: MAX_TOKENS }), waitMs);
+    const reply = await within(
+      model.generate(answerPrompt(words, questions), { maxTokens: MAX_TOKENS, purpose: Purpose.household_answers }),
+      waitMs,
+    );
     return reply ? groundedAnswers(reply, words, questions) : {};
   } catch (err) {
     log.warn("model answers failed", { error: (err as Error).name });
