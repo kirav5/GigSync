@@ -1,18 +1,30 @@
 import { Header } from "@gigsync/core/http";
 import { LOCAL_ENVIRONMENT, log, pii, traced } from "@gigsync/core/log";
-import { type DeviceRegistration, OtpRequest, OtpVerify, type Phone, PhoneTokenVerify } from "@gigsync/protocol";
+import {
+  type DeviceRegistration,
+  OtpChannel,
+  OtpRequest,
+  type OtpSent,
+  OtpVerify,
+  type Phone,
+  PhoneTokenVerify,
+} from "@gigsync/protocol";
 import { type Context, Hono } from "hono";
 import { isLocked, recordFailure } from "../auth/attempts.js";
+import { codeMatches, issueCode, SendRefused } from "../auth/codes.js";
 import { googleKeys, TokenError, verifyIdToken } from "../auth/firebase.js";
 import { completeSignIn } from "../auth/signin.js";
+import { whatsAppConfig } from "../auth/whatsapp.js";
 import { ApiError, type AppEnv, Var } from "../context.js";
 import { hmacHex, sameSecret } from "../crypto.js";
 import type { Db } from "../db/client.js";
+import { dropCode } from "../db/otp-codes.js";
 import { requireSecret } from "../env.js";
 
 /**
- * Sign-in by one-time code. Two ways to prove a number: Firebase sends and checks the SMS code and the phone brings its
- * ID token (`/phone/verify`), or, in dev, the fixed DEV_OTP (`/otp/verify`). Both end in the same lockout and session.
+ * Sign-in by one-time code. Three ways to prove a number: the API sends a code by WhatsApp and checks it (`/otp/request`
+ * then `/otp/verify`, ADR 0069); Firebase sends and checks an SMS code and the phone brings its ID token
+ * (`/phone/verify`); or, in dev, the fixed DEV_OTP (`/otp/verify`). All end in the same lockout and session.
  */
 export const auth = new Hono<AppEnv>();
 
@@ -30,13 +42,13 @@ const LOOPBACK = new Set(["::1", "127.0.0.1"]);
 
 /** The client IP to cap sign-ins by; none locally when it is only the loopback address. */
 const clientIp = (ip: string | undefined, local: boolean) => (ip && !(local && LOOPBACK.has(ip)) ? ip : undefined);
-/** How a code request is answered: the dev code, or an SMS (Firebase's, sent by the phone itself). */
-export const OtpChannel = { dev: "dev", sms: "sms" } as const;
 
 const locked = traced("auth.isLocked", isLocked);
 const failed = traced("auth.recordFailure", recordFailure);
 const signIn = traced("auth.completeSignIn", completeSignIn);
 const verifyToken = traced("auth.verifyIdToken", verifyIdToken);
+const issue = traced("auth.issueCode", issueCode);
+const matches = traced("auth.codeMatches", codeMatches);
 
 /** The per-IP cap (stops one machine spraying codes or tokens); locally the number, when known, stands in for the IP. */
 async function withinIpLimit(c: AuthContext, phone: string | undefined): Promise<boolean> {
@@ -52,13 +64,18 @@ async function withinIpLimit(c: AuthContext, phone: string | undefined): Promise
 interface Attempt {
   db: Db;
   now: Date;
+  /** The HMAC key: numbers and the codes sent to them are kept only as HMACs. */
+  key: string;
+  phone: Phone;
   phoneHmac: string;
   who: { requestId: string; phone: ReturnType<typeof pii> };
 }
 
 async function attemptFor(c: AuthContext, phone: Phone): Promise<Attempt> {
-  const phoneHmac = await hmacHex(requireSecret(c.env.PHONE_HMAC_KEY, "PHONE_HMAC_KEY"), phone);
-  return { db: c.get(Var.db), now: new Date(), phoneHmac, who: { requestId: c.get(Var.requestId), phone: pii(phone) } };
+  const key = requireSecret(c.env.PHONE_HMAC_KEY, "PHONE_HMAC_KEY");
+  const phoneHmac = await hmacHex(key, phone);
+  const who = { requestId: c.get(Var.requestId), phone: pii(phone) };
+  return { db: c.get(Var.db), now: new Date(), key, phone, phoneHmac, who };
 }
 
 /** True, and logged, when the number has used up its wrong codes for now. */
@@ -75,13 +92,37 @@ async function finish(c: AuthContext, attempt: Attempt, device: DeviceRegistrati
   return c.json(session);
 }
 
+/** What `/otp/request` answers when the code is on its way. */
+const sentBy = (channel: OtpChannel): OtpSent => ({ sent: true, channel });
+
 auth.post("/otp/request", async (c) => {
   const body = OtpRequest.safeParse(await c.req.json().catch(() => null));
   if (!body.success) return c.json({ error: ApiError.badPhone }, 400);
   log.info("otp requested", { requestId: c.get(Var.requestId), phone: pii(body.data.phone) });
-  // With Firebase configured the phone asks Firebase for the SMS and never calls this; it serves the dev path.
-  return c.json({ sent: true, channel: c.env.DEV_OTP ? OtpChannel.dev : OtpChannel.sms });
+  const whatsApp = whatsAppConfig(c.env);
+  // Without WhatsApp, the phone asks Firebase for the SMS when it has Firebase, and this serves the dev path.
+  if (!whatsApp) return c.json(sentBy(c.env.DEV_OTP ? OtpChannel.enum.dev : OtpChannel.enum.sms));
+  // Every WhatsApp code is paid for: capped per client IP here, and per number in the directory (keepCode).
+  if (!(await withinIpLimit(c, body.data.phone))) return c.json({ error: ApiError.tooManyAttempts }, 429);
+  const attempt = await attemptFor(c, body.data.phone);
+  const refused = await issue(attempt, whatsApp);
+  if (refused === SendRefused.tooSoon) return c.json({ error: ApiError.tooManyAttempts }, 429);
+  if (refused === SendRefused.failed) {
+    log.warn("otp not sent", attempt.who);
+    return c.json({ error: ApiError.codeNotSent }, 502);
+  }
+  log.info("otp sent", { ...attempt.who, channel: OtpChannel.enum.whatsapp });
+  return c.json(sentBy(OtpChannel.enum.whatsapp));
 });
+
+/**
+ * True when `code` proves the number: the code the API sent when WhatsApp is on (and then never the dev code, so a
+ * DEV_OTP left on a deployment cannot sign anyone in), otherwise the dev code.
+ */
+async function codeProves(c: AuthContext, attempt: Attempt, code: string): Promise<boolean> {
+  if (whatsAppConfig(c.env)) return matches(attempt, code);
+  return c.env.DEV_OTP ? sameSecret(code, c.env.DEV_OTP) : false;
+}
 
 auth.post("/otp/verify", async (c) => {
   // Two caps: per client IP, and per number in the directory (stops one target being guessed).
@@ -90,11 +131,13 @@ auth.post("/otp/verify", async (c) => {
   if (!body.success) return c.json({ error: ApiError.badRequest }, 400);
   const attempt = await attemptFor(c, body.data.phone);
   if (await lockedOut(attempt)) return c.json({ error: ApiError.tooManyAttempts }, 429);
-  if (!c.env.DEV_OTP || !(await sameSecret(body.data.code, c.env.DEV_OTP))) {
+  if (!(await codeProves(c, attempt, body.data.code))) {
     await failed(attempt.db, attempt.phoneHmac, attempt.now);
     log.warn("sign-in wrong code", { ...attempt.who, code: pii(body.data.code) });
     return c.json({ error: ApiError.wrongCode }, 401);
   }
+  // A code the API sent signs in once.
+  if (whatsAppConfig(c.env)) await dropCode(attempt.db, attempt.phoneHmac);
   return finish(c, attempt, body.data.device);
 });
 

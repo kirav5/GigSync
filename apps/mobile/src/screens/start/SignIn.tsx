@@ -1,4 +1,5 @@
 import { log, type MessageKey, type Ports } from "@gigsync/core";
+import type { OtpChannel } from "@gigsync/protocol";
 import { type FormEvent, useState } from "react";
 import { type Account, type AccountRole, forgetSignInAgain } from "../../adapters/account.js";
 import { agreeAtSignIn } from "../../adapters/records.js";
@@ -52,6 +53,7 @@ export function SignIn({
   /** The number the code went to, in the form the server takes, and when it was last sent. */
   const [sentTo, setSentTo] = useState<string>();
   const [sentAt, setSentAt] = useState(0);
+  const [channel, setChannel] = useState<OtpChannel>();
   /** A number verified that this phone keeps nothing for: waits on find work or find help. */
   const [verified, setVerified] = useState<Verified>();
   /** Signed in with a number this phone has no name for: waits on the name step. */
@@ -84,7 +86,7 @@ export function SignIn({
     const phone = phoneE164(typed, country);
     if (!phone) return setError(country === INDIA ? "signin.err_phone" : "signin.err_phone_other");
     await run(async () => {
-      await sendCode(phone);
+      setChannel(await sendCode(phone));
       setSentTo(phone);
       setSentAt(Date.now());
       setCode("");
@@ -94,7 +96,7 @@ export function SignIn({
 
   function resend() {
     if (!sentTo) return;
-    void run(() => sendCode(sentTo)).then((sent) => {
+    void run(async () => setChannel(await sendCode(sentTo))).then((sent) => {
       if (!sent) return;
       setSentAt(Date.now());
       setNote("start.code_resent");
@@ -192,6 +194,7 @@ export function SignIn({
             code={code}
             busy={busy}
             sentAt={sentAt}
+            channel={channel}
             onCode={enter}
             onResend={resend}
             onBack={back}

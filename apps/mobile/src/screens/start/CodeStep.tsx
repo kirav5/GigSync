@@ -1,3 +1,4 @@
+import { OtpChannel } from "@gigsync/protocol";
 import { useEffect, useState } from "react";
 import { useI18n } from "../../i18n.js";
 import { CodeBoxes } from "../../ui/CodeBoxes.js";
@@ -23,6 +24,7 @@ export function CodeStep({
   code,
   busy,
   sentAt,
+  channel,
   onCode,
   onResend,
   onBack,
@@ -34,11 +36,14 @@ export function CodeStep({
   busy: boolean;
   /** When the code was last sent: the wait before Send again counts from it. */
   sentAt: number;
+  /** How the code came: WhatsApp's is copied from the chat, an SMS's fills in by itself. */
+  channel: OtpChannel | undefined;
   onCode: (digits: string) => void;
   onResend: () => void;
   onBack: () => void;
 }) {
   const { t } = useI18n();
+  const byWhatsApp = channel === OtpChannel.enum.whatsapp;
   return (
     <>
       <StartBar step={step} onBack={onBack} />
@@ -52,12 +57,18 @@ export function CodeStep({
           </button>
         </p>
       </div>
-      <CodeBoxes name={Field.code} label={t("signin.code")} code={code} busy={busy} onCode={onCode} />
+      <CodeBoxes
+        name={Field.code}
+        label={t(byWhatsApp ? "signin.code_whatsapp" : "signin.code")}
+        code={code}
+        busy={busy}
+        onCode={onCode}
+      />
       <div className="start-code-foot">
-        <p className={C.muted}>{t("start.code_auto")}</p>
+        <p className={C.muted}>{t(byWhatsApp ? "start.code_whatsapp" : "start.code_auto")}</p>
         <SendAgain busy={busy} sentAt={sentAt} onResend={onResend} />
       </div>
-      {import.meta.env.DEV && <p className="fine">{t("signin.code_dev", { code: DEV_CODE })}</p>}
+      {import.meta.env.DEV && !byWhatsApp && <p className="fine">{t("signin.code_dev", { code: DEV_CODE })}</p>}
     </>
   );
 }

@@ -14,6 +14,7 @@ export const screens: Readonly<Record<keyof typeof en, string>> = {
   "signin.err_phone": "6, 7, 8 ಅಥವಾ 9 ರಿಂದ ಶುರುವಾಗುವ 10 ಅಂಕಿಯ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ಬರೆಯಿರಿ.",
   "signin.err_phone_other": "ಸಂಖ್ಯೆ ಪರಿಶೀಲಿಸಿ: ಇದು ಈ ದೇಶದ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ಅಲ್ಲ.",
   "signin.code": "ಎಸ್‌ಎಂಎಸ್‌ನಲ್ಲಿ ಬಂದ ಕೋಡ್",
+  "signin.code_whatsapp": "ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಬಂದ ಕೋಡ್",
   "signin.code_dev": "ಎಸ್‌ಎಂಎಸ್‌ನಲ್ಲಿ ಬಂದ ಕೋಡ್ (ಡೆವ್: {code})",
   "signin.send_code": "ಕೋಡ್ ಕಳುಹಿಸಿ",
   "role.worker": "ಕೆಲಸಗಾರರು",
