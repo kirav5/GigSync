@@ -1,10 +1,9 @@
 import { log, pii, traced } from "@gigsync/core/log";
-import { OtpRequest, PhoneConfirm, type PhoneConfirmed } from "@gigsync/protocol";
+import { OtpChannel, OtpRequest, PhoneConfirm, type PhoneConfirmed } from "@gigsync/protocol";
 import { type Context, Hono } from "hono";
 import { googleKeys, TokenError, verifyIdToken } from "../auth/firebase.js";
 import { ApiError, type AppEnv, Var } from "../context.js";
 import { sameSecret } from "../crypto.js";
-import { OtpChannel } from "./auth.js";
 
 /**
  * Proving a second number without signing in with it: the Aadhaar check (apps/mobile screens/verify) asks for the
@@ -54,7 +53,7 @@ phoneConfirm.post("/request", async (c) => {
   if (!body.success) return c.json({ error: ApiError.badPhone }, 400);
   log.info("phone confirm requested", { requestId: c.get(Var.requestId), phone: pii(body.data.phone) });
   // With Firebase configured the phone asks Firebase for the SMS and never calls this; it serves the dev path.
-  return c.json({ sent: true, channel: c.env.DEV_OTP ? OtpChannel.dev : OtpChannel.sms });
+  return c.json({ sent: true, channel: c.env.DEV_OTP ? OtpChannel.enum.dev : OtpChannel.enum.sms });
 });
 
 phoneConfirm.post("/", async (c) => {

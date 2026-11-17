@@ -21,6 +21,19 @@ export interface Env {
    * Unset or empty means `/v1/auth/phone/verify` answers 503 and only the DEV_OTP path signs in.
    */
   FIREBASE_PROJECT_ID?: string;
+  /**
+   * Secret: the Meta system user's token that sends sign-in codes by WhatsApp (ADR 0069). With the number id and the
+   * template below it turns WhatsApp codes on, and then the dev code no longer signs in. `wrangler secret put`.
+   */
+  WHATSAPP_TOKEN?: string;
+  /** Public: the id Meta gives the WhatsApp number codes are sent from (not the number itself). */
+  WHATSAPP_PHONE_NUMBER_ID?: string;
+  /** Public: the name of the approved authentication template the code is sent in. */
+  WHATSAPP_TEMPLATE?: string;
+  /** Public: the language the template was approved in; unset means "en". */
+  WHATSAPP_TEMPLATE_LANGUAGE?: string;
+  /** Public: the Graph API version to call, e.g. "v23.0"; unset means the one in auth/whatsapp.ts. */
+  WHATSAPP_API_VERSION?: string;
   /** Secret: HMAC key for phone-number hashes. `wrangler secret put PHONE_HMAC_KEY`. */
   PHONE_HMAC_KEY?: string;
   /** Secret: the key admin-only routes (setting a mentor's vouched badge) expect. Unset means nobody is admin. */

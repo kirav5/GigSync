@@ -34,6 +34,7 @@ export const ApiError = {
   badSignature: "bad signature",
   badToken: "bad token",
   callingDevice: "cannot revoke the calling device",
+  codeNotSent: "code not sent",
   envelopeMismatch: "envelope does not match route",
   expired: "expired",
   forbidden: "forbidden",
