@@ -5,6 +5,7 @@ import { deviceWithKey, insertDevice, makeRoomForDevice, refreshDevice } from ".
 import { insertSession } from "../db/sessions.js";
 import { insertUser, userForPhone } from "../db/users.js";
 import { clearFailures } from "./attempts.js";
+import { sessionCache } from "./session-cache.js";
 
 export interface SignedIn {
   user: UserId;
@@ -25,7 +26,8 @@ export async function completeSignIn(
   now: Date,
 ): Promise<SignedIn> {
   const token = `ses_${ulid()}`;
-  return transaction(db, async () => {
+  let retired: DeviceId[] = [];
+  const signedIn = await transaction(db, async () => {
     const existing = await userForPhone(db, phoneHmac);
     const user = existing ?? (`usr_${ulid()}` as UserId);
     if (!existing) await insertUser(db, user, phoneHmac, now);
@@ -33,11 +35,14 @@ export async function completeSignIn(
     const deviceId = known ?? (`dev_${ulid()}` as DeviceId);
     if (known) await refreshDevice(db, known, device, now);
     else {
-      await makeRoomForDevice(db, user, now);
+      retired = await makeRoomForDevice(db, user, now);
       await insertDevice(db, deviceId, user, device, now);
     }
     await insertSession(db, token, user, deviceId, now);
     await clearFailures(db, phoneHmac);
     return { user, device: deviceId, token };
   });
+  // Only once the retirement is committed: this isolate stops honouring the retired phones' tokens at once.
+  sessionCache.forgetDevices(retired, now.getTime());
+  return signedIn;
 }

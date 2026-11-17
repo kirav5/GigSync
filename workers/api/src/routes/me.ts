@@ -1,5 +1,6 @@
 import { log } from "@gigsync/core/log";
 import { Hono } from "hono";
+import { sessionCache } from "../auth/session-cache.js";
 import { type AppEnv, Var } from "../context.js";
 import { transaction } from "../db/client.js";
 import { revokeDevice } from "../db/devices.js";
@@ -23,7 +24,10 @@ me.delete("/records", async (c) => {
  */
 me.post("/signout", async (c) => {
   const db = c.get(Var.db);
-  await transaction(db, () => revokeDevice(db, c.get(Var.user), c.get(Var.device), new Date()));
+  const now = new Date();
+  await transaction(db, () => revokeDevice(db, c.get(Var.user), c.get(Var.device), now));
+  // This isolate refuses the token from here on; another may honour it on cached routes for one more TTL.
+  sessionCache.forgetDevices([c.get(Var.device)], now.getTime());
   log.info("signed out", { requestId: c.get(Var.requestId), user: c.get(Var.user), device: c.get(Var.device) });
   return c.body(null, 204);
 });
