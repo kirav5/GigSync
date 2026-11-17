@@ -9,7 +9,7 @@ import type { Env } from "../env.js";
 
 const GRAPH_ORIGIN = "https://graph.facebook.com";
 /** The Graph API version used when the Worker sets none; Meta retires a version about two years after its release. */
-const DEFAULT_API_VERSION = "v23.0";
+const DEFAULT_API_VERSION = "v25.0";
 /** The template's language when the Worker sets none; it must match a language the template was approved in. */
 const DEFAULT_LANGUAGE = "en";
 const MESSAGING_PRODUCT = "whatsapp";

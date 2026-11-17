@@ -1,7 +1,14 @@
 # Sign-in codes by WhatsApp
 
-How to turn on WhatsApp sign-in codes (ADR 0069). Steps 1 to 4 need no verified business and cost nothing: Meta's free
-test number sends real codes to up to five phones you add yourself.
+How to turn on WhatsApp sign-in codes (ADR 0069). **Meta business verification comes first**: Meta allows the
+Authentication template the code is sent in (step 3) only on a verified business, and some accounts also need a higher
+messaging limit or some sending history before it unlocks. On an unverified business, even with Meta's free test number,
+creating it fails with "This WhatsApp business account does not have permission to create message template". Verify
+the business under the app's **WhatsApp → Step 3. Business verification**, with registration documents whose legal name
+matches the business portfolio. The other steps cost nothing.
+
+GigSync's app and test number are set up already: the app "GigSync sign-in", the GigSync business portfolio
+(unverified), and the test number's phone number ID `1493646687163276`.
 
 ## 1. Create the Meta app
 
@@ -55,7 +62,7 @@ app with one of the phones on the To list: the code arrives in WhatsApp with a C
    Its phone number ID replaces the test one.
 2. **Display name**: Meta reviews it (e.g. "GigSync").
 3. **Payment method** on the WhatsApp account: each code is a paid authentication message.
-4. Until the business is verified, the number reaches about 250 new people a day; verification raises that.
+4. Verification (above) also raises how many new people a number can message a day.
 
 If calls start failing after a long time, Meta may have retired the Graph API version: set `WHATSAPP_API_VERSION` (for
-example `v24.0`) to a current one.
+example `v26.0`) to a current one.

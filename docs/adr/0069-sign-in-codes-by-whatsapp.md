@@ -30,7 +30,9 @@ SMS gateway would. Firebase cannot send WhatsApp messages, so the API has to mak
 - A number without WhatsApp gets no code: Meta accepts the send and fails it later. Until there is an SMS fallback,
   such a person cannot sign in. A fallback (Firebase SMS when Meta's delivery webhook says it failed, or a "Send by
   SMS" choice) is follow-up work.
-- Each code costs a Meta authentication message (a fraction of a rupee in India). Until the business is verified on
-  Meta, a number can reach about 250 new people a day.
+- Each code costs a Meta authentication message (a fraction of a rupee in India).
+- **Meta business verification is a prerequisite**: Meta creates Authentication templates only for verified
+  businesses (tried 2026-11-18 on an unverified one: "does not have permission to create message template"). Until
+  then this stays off, and sign-in is Firebase SMS (10 free a day, then about $0.07 each in India) or the dev code.
 - The second-number check in the Aadhaar flow (`/v1/phone/confirm`) still uses the dev code or Firebase; moving it to
   WhatsApp can reuse `otp_codes`.
