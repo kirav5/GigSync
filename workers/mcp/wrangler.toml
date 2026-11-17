@@ -1,0 +1,25 @@
+name = "gigsync-mcp"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+# The GigSync connector for Claude, ChatGPT and other MCP clients (ADR 0068). Not deployed yet: it is tried locally
+# behind a tunnel first. When it is, it gets its own name (mcp.gigsync.network).
+
+# OAuth clients, grants and tokens (hashed; props encrypted per token), and the short wait between a person's code and
+# their consent. Create with `wrangler kv namespace create gigsync-mcp-oauth` and paste the id.
+[[kv_namespaces]]
+binding = "OAUTH_KV"
+id = "00000000000000000000000000000000"
+
+[vars]
+ENVIRONMENT = "pilot"
+LOG_LEVEL = "info"
+LOG_PII = "false"
+# Where people add the connector, and the API it signs in to and searches. Local runs override both in .dev.vars.
+PUBLIC_ORIGIN = "https://mcp.gigsync.network"
+API_ORIGIN = "https://api.gigsync.network"
+
+[observability]
+enabled = true
+head_sampling_rate = 1

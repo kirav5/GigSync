@@ -6,7 +6,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { routePath } from "hono/route";
-import { ApiError, type AppEnv, USER_PARAM, V1, V1_AUTH, Var } from "./context.js";
+import { ApiError, type AppEnv, USER_PARAM, V1, V1_AUTH, V1_CONNECTOR, Var } from "./context.js";
 import { openDirectory } from "./db/client.js";
 import { activeDevices } from "./db/devices.js";
 import { sessionOwner } from "./db/sessions.js";
@@ -16,6 +16,7 @@ import { admin } from "./routes/admin.js";
 import { auth } from "./routes/auth.js";
 import { board } from "./routes/board.js";
 import { cities } from "./routes/cities.js";
+import { connector } from "./routes/connector.js";
 import { consent } from "./routes/consent.js";
 import { content } from "./routes/content.js";
 import { devices } from "./routes/devices.js";
@@ -80,9 +81,12 @@ app.use(`${V1}/*`, openDirectory);
 // ── Sign-in (OTP), before the session middleware ─────────────────────────────────────────────────────────────────
 app.route(V1_AUTH, auth);
 
+// ── Connected assistants (ADR 0068), by their own tokens ──────────────────────────────────────────────────────────
+app.route(V1_CONNECTOR, connector);
+
 // ── Auth middleware for everything below ──────────────────────────────────────────────────────────────────────────
 app.use(`${V1}/*`, async (c, next) => {
-  if (c.req.path.startsWith(`${V1_AUTH}/`)) return next();
+  if (c.req.path.startsWith(`${V1_AUTH}/`) || c.req.path.startsWith(`${V1_CONNECTOR}/`)) return next();
   const header = c.req.header(Header.authorization);
   const token = header?.startsWith(BEARER_PREFIX) ? header.slice(BEARER_PREFIX.length) : undefined;
   if (!token) return c.json({ error: ApiError.unauthorized }, 401);
