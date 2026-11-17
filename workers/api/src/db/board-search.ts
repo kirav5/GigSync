@@ -9,10 +9,8 @@ import {
 } from "@gigsync/protocol";
 import { CARD_COLUMNS, type CardRow, cardOf } from "./board.js";
 import type { Db } from "./client.js";
+import { EARTH_RADIUS_KM, KM_PER_DEGREE, lonBand } from "./search-band.js";
 
-const EARTH_RADIUS_KM = 6371;
-/** Kilometres per degree of latitude, for the cheap band that narrows a search before exact distances. */
-const KM_PER_DEGREE = 111;
 /** Distances are shown to a tenth of a kilometre: enough to compare, too coarse to locate anyone. */
 const DISTANCE_SCALE = 10;
 
@@ -35,7 +33,7 @@ const BY_CATEGORY =
 
 /**
  * The search over the workers in `from`. $11 date, $12 its weekday, $13 window, $14 every day, $15 hour, $16 the
- * length of a job without hours of its own.
+ * length of a job without hours of its own, $17 and $18 the west and east edges of the longitude band.
  *
  * A worker's own hours: with an asked hour and the card's from–to (ADR 0053 §1), the hour must fall in them; otherwise
  * the card's parts of the day decide, as before (ADR 0050). A signed job hides the worker on its day (or every day)
@@ -51,6 +49,7 @@ const searchSql = (from: string) => `SELECT p.user_id, ${CARD_COLUMNS}, d.km AS 
     power(sin(radians(p.area_lat - $2) / 2), 2)
     + cos(radians($2)) * cos(radians(p.area_lat)) * power(sin(radians(p.area_lon - $3) / 2), 2))) AS km) d
   WHERE p.area_lat BETWEEN $2 - $4 / $8::float8 AND $2 + $4 / $8::float8
+    AND p.area_lon BETWEEN $17::float8 AND $18::float8
     AND d.km <= $4
     AND ($5::int IS NULL OR r.paise <= $5)
     AND ($9::text IS NULL OR EXISTS (
@@ -71,14 +70,15 @@ const searchSql = (from: string) => `SELECT p.user_id, ${CARD_COLUMNS}, d.km AS 
 
 /**
  * Active workers of one trade or skill within the radius, nearest first, then cheapest for that work, each card's rate
- * the one for the work searched. Distance is the haversine
- * formula in SQL; a latitude band (served by an index) keeps it from running over every worker of the trade. With a
- * day, a part of the day or an hour: only workers whose hours include them, and none with a clashing signed job on
- * GigSync's record (see searchSql). Bookings on phones are not seen here.
+ * the one for the work searched. Distance is the haversine formula in SQL; a latitude band (served by an index) and a
+ * longitude band (see lonBand) keep it from running over every worker of the trade. With a day, a part of the day or
+ * an hour: only workers whose hours include them, and none with a clashing signed job on GigSync's record (see
+ * searchSql). Bookings on phones are not seen here.
  */
 export async function searchWorkers(db: Db, q: BoardQuery): Promise<BoardWorker[]> {
   const date = q.day !== undefined && q.day !== EVERY_DAY ? q.day : null;
   const from = q.category ? BY_CATEGORY : q.skill ? BY_SKILL : BY_TRADE;
+  const { west, east } = lonBand(q.lat, q.lon, q.radius_km);
   const { rows } = await db.query<BoardRow>(searchSql(from), [
     q.category ?? q.skill ?? q.trade,
     q.lat,
@@ -96,6 +96,8 @@ export async function searchWorkers(db: Db, q: BoardQuery): Promise<BoardWorker[
     q.day === EVERY_DAY,
     q.hour ?? null,
     DEFAULT_JOB_HOURS,
+    west,
+    east,
   ]);
   return rows.map((r) => ({
     ...cardOf(r),
