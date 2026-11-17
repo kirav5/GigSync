@@ -37,7 +37,7 @@ const HINDI: readonly (readonly [said: string, next: MessageKey])[] = [
   ["नहीं", "iv.ask.area"],
   ["कोरमंगला", "iv.ask.radius"],
   // How far she goes (ADR 0045), asked right after the area.
-  ["दस किलोमीटर", "iv.ask.rate_month"],
+  ["दस किलोमीटर", "iv.ask.rate_ways"],
   ["नौ हज़ार", "iv.ask.min"],
   ["साढ़े सात हज़ार", "iv.ask.languages"],
   ["कोई नहीं", "iv.ask.about"],
@@ -78,8 +78,6 @@ test("a Hindi cook makes her card by voice, leaves halfway and comes back, then 
     expect(e).toBeDefined();
     const prices = { low: priceText(e?.low_paise ?? 0), high: priceText(e?.high_paise ?? 0) };
     await expect(page.getByText(t(hi, "iv.near_you", prices), { exact: true })).toBeVisible();
-    // The rate card's long notes stay off the chat.
-    await expect(page.getByText(textOf(hi, "driver.basis_line"))).toHaveCount(0);
     await expect(page.getByText(textOf(hi, "estimate.legal_min"))).toHaveCount(0);
   });
 

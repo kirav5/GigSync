@@ -6,8 +6,9 @@ import { cleanUpLater, unlistCards } from "./journey.js";
 import { nextTurn, type } from "./talk.js";
 
 /**
- * "Your price" in the card chat (the design's board 10): how the work is priced, one amount, the days and the part of
- * the day on one card under the rate question, then the lowest on a card of its own that stays on the phone.
+ * "Your price" in the card chat (the design's board 10): each way the work is taken, ticked, with an amount for each,
+ * the days and the part of the day on one card under the rate question, then the lowest on a card of its own that
+ * stays on the phone.
  */
 
 const { en } = Lang.enum;
@@ -21,7 +22,7 @@ test.afterEach(unlistCards);
 const log = (page: Page) => page.getByRole("log");
 const tap = (page: Page, name: string) => log(page).getByRole("button", { name, exact: true }).last().click();
 
-test("a cook prices her work by the month on the price card, with her days and mornings, and the summary says so", async ({
+test("a cook prices her work by the month and by the visit, with her days and mornings, and the summary says so", async ({
   page,
 }) => {
   await signIn(page, { role: Role.worker, name: `Lakshmi ${RUN}`, phone: newPhone(), lang: en });
@@ -30,29 +31,31 @@ test("a cook prices her work by the month on the price card, with her days and m
   await nextTurn(page, en, "iv.ask.area", () => tap(page, t(en, "iv.done")));
   await nextTurn(page, en, "iv.ask.radius", () => tap(page, t(en, "area.koramangala")));
   await tap(page, t(en, "card.km", { km: 10 }));
-  await nextTurn(page, en, "iv.ask.rate_month", () => tap(page, t(en, "cardflow.use_km", { km: 10 })));
+  await nextTurn(page, en, "iv.ask.rate_ways", () => tap(page, t(en, "cardflow.use_km", { km: 10 })));
 
   // The card, not a list of notes: no "how sure" or rate-card lines in the chat.
   await expect(log(page).getByText(t(en, "cardflow.price_title"), { exact: true })).toBeVisible();
-  await expect(log(page).getByText(textOf(en, "driver.basis_line"))).toHaveCount(0);
+  await expect(log(page).getByText(/rate card|GigSync seed|How sure|Assumed, since not known/)).toHaveCount(0);
 
-  // Another way of pricing changes the card's unit, never the question above it; back to the month.
-  const segment = (key: MessageKey) => log(page).getByRole("button", { name: t(en, key), exact: true });
-  await segment("cardflow.seg.visit").click();
-  await expect(segment("cardflow.seg.visit")).toHaveAttribute("aria-pressed", "true");
-  await expect(log(page).getByText(t(en, "cardflow.per.visit"), { exact: true })).toBeVisible();
-  await expect(log(page)).not.toContainText(textOf(en, "iv.ask.rate_visit"));
-  await expect(log(page).getByText(textOf(en, "iv.ask.rate_month"))).toHaveCount(1);
-  await segment("cardflow.seg.monthly").click();
-  await expect(segment("cardflow.seg.monthly")).toHaveAttribute("aria-pressed", "true");
+  // The ways she takes the work: the month a cook's card has always meant is ticked, the others not; a visit ticked
+  // beside it brings an amount of its own, and the question above stays the same.
+  const way = (key: MessageKey) => log(page).getByRole("button", { name: t(en, key), exact: true });
+  await expect(way("cardflow.seg.monthly")).toHaveAttribute("aria-pressed", "true");
+  await expect(way("cardflow.seg.visit")).toHaveAttribute("aria-pressed", "false");
+  await way("cardflow.seg.visit").click();
+  await expect(way("cardflow.seg.visit")).toHaveAttribute("aria-pressed", "true");
+  await expect(way("cardflow.seg.monthly")).toHaveAttribute("aria-pressed", "true");
+  await expect(log(page).getByText(textOf(en, "iv.ask.rate_ways"))).toHaveCount(1);
+  const amountFor = (unit: "visit" | "monthly") =>
+    log(page).getByLabel(t(en, "cardflow.amount_per", { per: t(en, `cardflow.per.${unit}`) }));
 
-  // ₹4,000 typed, then one step up: ₹4,500 a month.
-  const amount = log(page).getByLabel(t(en, "cardflow.amount"));
-  await amount.fill("4000");
+  // ₹300 a visit; ₹4,000 a month typed, then one step up: ₹4,500.
+  await amountFor("visit").fill("300");
+  await amountFor("monthly").fill("4000");
   await log(page)
     .getByRole("button", { name: t(en, "cardflow.more", { step: "₹500" }) })
     .click();
-  await expect(amount).toHaveValue("4500");
+  await expect(amountFor("monthly")).toHaveValue("4500");
   // Monday to Saturday: every day is picked to start with, so Sunday is tapped off. Mornings.
   await tap(page, t(en, "day.7"));
   await expect(log(page).getByRole("button", { name: t(en, "day.7"), exact: true })).toHaveAttribute(
@@ -71,8 +74,10 @@ test("a cook prices her work by the month on the price card, with her days and m
   await shoot("price-card-360", { worker: page }, FOLDER);
   await page.setViewportSize(PHONE);
 
-  await nextTurn(page, en, "iv.ask.min", () => tap(page, t(en, "cardflow.price_next")));
-  await expect(log(page).getByText("₹4,500 / month · Mon, Tue, Wed, Thu, Fri, Sat · Morning")).toBeVisible();
+  await nextTurn(page, en, "iv.ask.min", () => tap(page, t(en, "cardflow.prices_next")));
+  await expect(
+    log(page).getByText("₹300 / visit, ₹4,500 / month · Mon, Tue, Wed, Thu, Fri, Sat · Morning"),
+  ).toBeVisible();
   // The lowest is its own card, private.
   const lowest = log(page).getByLabel(t(en, "cardflow.lowest_title"));
   await expect(log(page).getByText(t(en, "cardflow.private")).last()).toBeVisible();
@@ -101,6 +106,8 @@ test("a cook prices her work by the month on the price card, with her days and m
   await nextTurn(page, en, "iv.ask.auto", () => tap(page, t(en, "iv.skip")));
   await nextTurn(page, en, "iv.confirm", () => tap(page, t(en, "flag.no")));
   await expect(log(page)).toContainText(textOf(en, "iv.summary", { rate: "₹4,500" }));
+  // The visit's own rate, from the price card: no question asked it again.
+  await expect(log(page)).toContainText("₹300");
   await expect(log(page)).toContainText(t(en, "iv.summary_days", { days: "Mon, Tue, Wed, Thu, Fri, Sat" }));
   await expect(log(page)).toContainText(t(en, "iv.summary_window", { window: t(en, "terms.window.morning") }));
 });

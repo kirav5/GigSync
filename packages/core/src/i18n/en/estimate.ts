@@ -43,8 +43,6 @@ export const estimate = {
   "estimate.problem.service": "a service",
   "estimate.problem.gas_refill": "a gas refill",
   "estimate.problem.install": "installing one",
-  "estimate.jobs.one": "From {count} job on GigSync in {place}.",
-  "estimate.jobs.other": "From {count} jobs on GigSync in {place}.",
   "estimate.reason_jobs.one": "The usual rate for this job is {low}–{high}, from {count} job on GigSync.",
   "estimate.reason_jobs.other": "The usual rate for this job is {low}–{high}, from {count} jobs on GigSync.",
   "estimate.market_none":

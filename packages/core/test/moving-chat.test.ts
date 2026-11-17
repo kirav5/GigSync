@@ -60,7 +60,7 @@ describe("offering to help newcomers, and stopping", () => {
 });
 
 describe("the work outlook", () => {
-  it("gives the estimate's range, what it rests on and the legal minimum, the board count and the estimate note", () => {
+  it("gives the estimate's range and the legal minimum, the board count and the estimate note", () => {
     const outlook = workOutlook({
       city: blr,
       trades: [cook],
@@ -70,7 +70,7 @@ describe("the work outlook", () => {
     });
     const said = text(outlook.lines);
     expect(said[0]).toContain("₹10,000–₹12,000 a month");
-    expect(said).toContain("From Bengaluru rate card: Karnataka minimum wages 2026.");
+    expect(said.some((line) => line.includes("rate card"))).toBe(false);
     expect(said).toContain("Nothing here is below the legal minimum of ₹6,430.");
     expect(said).toContain("On GigSync, 4 workers in Bengaluru list Cook.");
     expect(said.at(-1)).toBe("These figures are estimates from public sources, not a promise of pay.");

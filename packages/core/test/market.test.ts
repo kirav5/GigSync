@@ -67,20 +67,19 @@ describe("the answer's facts", () => {
   const q = { trade: T.cook, area: "jayanagar", details: {} };
   const request = marketRequest(city, q) as EstimateRequest;
 
-  it("are the estimate's lines: the range, its basis with the area, the legal minimum", () => {
+  it("are the estimate's lines: the range with its area and the legal minimum, not what it rests on", () => {
     const lines = marketLines(en, city, q, { request, estimate: COOK_GIGSYNC });
     expect(lines.map((l) => lineSentence(en, l))).toEqual([
       "Cook in Jayanagar (3–4 people, 2 meals a day): usually ₹10,500–₹12,500 a month.",
-      "From 34 jobs on GigSync in Jayanagar.",
       "Nothing here is below the legal minimum of ₹6,430.",
     ]);
     const hindi = marketLines(hi, city, q, { request, estimate: COOK_GIGSYNC }).map((l) => lineSentence(hi, l));
-    expect(hindi[1]).toBe("जयनगर में GigSync के 34 कामों से।");
+    expect(hindi).toHaveLength(2);
   });
 
-  it("say the city's rate card when the range rests on it", () => {
+  it("say nothing of the city's rate card when the range rests on it", () => {
     const lines = marketLines(en, city, q, { request, estimate: COOK_MONTH });
-    expect(lines.map((l) => l.key)).toEqual(["estimate.range_month", "driver.basis_line", "estimate.legal_min"]);
+    expect(lines.map((l) => l.key)).toEqual(["estimate.range_month", "estimate.legal_min"]);
   });
 
   it("say there is no range yet, for that trade and place, when there is no estimate", () => {
@@ -113,7 +112,7 @@ describe("wording the answer", () => {
   });
 
   it("keeps the model's words when every number is one of the facts'", async () => {
-    const words = "Cooks in Jayanagar usually get ₹10,500 to ₹12,500 a month, going by 34 jobs on GigSync there.";
+    const words = "Cooks in Jayanagar usually get ₹10,500 to ₹12,500 a month, never below ₹6,430.";
     const model = new FakeModel(said(words));
     expect(await wordMarket(model, en, lines)).toEqual({ text: words, by: ExplainedBy.model });
     expect(model.prompts[0]).toContain(template);

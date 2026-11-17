@@ -30,11 +30,32 @@ export const directionsTo = (to: Place | string): string =>
   `${DIRECTIONS}${typeof to === "string" ? encodeURIComponent(to) : `${to.lat},${to.lon}`}`;
 const MARKER_CLASS = "place-map-marker";
 
+/** MapLibre and its stylesheet, a separate download the first map would otherwise wait for. */
+const loadMapLibre = () => Promise.all([import("maplibre-gl"), import("maplibre-gl/dist/maplibre-gl.css")]);
+/** How long the app may stay busy before the warm-up runs anyway, in milliseconds. */
+const WARM_WITHIN_MS = 4000;
+
 /** The signed-in owner's session, set by the app shell; maps are drawn only while someone is signed in. */
 let mapSession: Session | undefined;
 export const setMapSession = (session: Session | undefined): void => {
+  const fresh = session && session.token !== mapSession?.token;
   mapSession = session;
+  if (fresh) whenIdle(() => warmMap(session));
 };
+
+/** Runs `then` once the app is idle (after the first screen has drawn), or straight after a short wait without it. */
+function whenIdle(then: () => void): void {
+  if (typeof requestIdleCallback === "function") requestIdleCallback(then, { timeout: WARM_WITHIN_MS });
+  else setTimeout(then, WARM_WITHIN_MS);
+}
+
+/** The style and MapLibre fetched ahead, so the first map on a job or the card draws at once. A failure is quiet. */
+function warmMap(session: Session): void {
+  if (!API_BASE || mapSession?.token !== session.token) return;
+  styleOf(session)
+    .then((style) => (style ? loadMapLibre() : undefined))
+    .catch((err) => log.debug("map: not warmed", { error: err instanceof Error ? err.name : typeof err }));
+}
 
 /** The style, kept once fetched for this session; a failure (no key on the server, offline) is asked again next time. */
 let kept: { token: string; style: StyleSpecification } | undefined;
@@ -70,9 +91,9 @@ export async function openMap(
   if (!API_BASE || !session) return undefined;
   const auth = { [Header.authorization]: `${BEARER_PREFIX}${session.token}` };
   try {
-    const style = await styleOf(session);
+    // Style and library side by side, not one after the other; both are usually warm already (warmMap).
+    const [style, [maplibre]] = await Promise.all([styleOf(session), loadMapLibre()]);
     if (!style) return undefined;
-    const [maplibre] = await Promise.all([import("maplibre-gl"), import("maplibre-gl/dist/maplibre-gl.css")]);
     const map = new maplibre.Map({
       ...options,
       container,

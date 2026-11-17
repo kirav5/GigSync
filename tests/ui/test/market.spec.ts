@@ -59,19 +59,12 @@ async function firstVisible(locators: readonly Locator[]): Promise<Locator | und
 const tap = (page: Page, label: string) => log(page).getByRole("button", { name: label, exact: true }).last().click();
 
 /** How the app joins the parts of a blend, and a rate card's sources. */
-const JOIN = " + ";
 
-/** The range line for a cook in Jayanagar and the line saying it rests on jobs on GigSync, then the city's rate card. */
+/** The range line for a cook in Jayanagar; what it rests on stays with the assistants, never on screen. */
 function rangeLines(e: Estimate) {
   const prices = { low: priceText(e.low_paise), high: priceText(e.high_paise) };
-  const sources = (e.basis.rate_card?.sources ?? []).map((s) => s.name).join(JOIN);
-  const parts = [
-    t(en, "driver.basis.gigsync.other", { count: e.basis.gigsync_jobs }),
-    t(en, "driver.basis.rate_card", { city: t(en, "city.bengaluru"), sources }),
-  ].join(JOIN);
   return {
     range: textOf(en, "estimate.range_month", { trade: t(en, "trade.cook"), city: PLACE, scope: SCOPE, ...prices }),
-    basis: textOf(en, "driver.basis_line", { parts }),
   };
 }
 
@@ -106,7 +99,8 @@ test("a worker's price card shows the range near her from jobs on GigSync, and T
   await box.getByPlaceholder(t(en, "composer.ask")).fill(QUESTION);
   await page.getByRole("button", { name: t(en, "a11y.send"), exact: true }).click();
   await expect(log(page).getByText(QUESTION)).toBeVisible();
-  await expect(log(page)).toContainText(new RegExp(`${lines.range.source}.*${lines.basis.source}`));
+  await expect(log(page)).toContainText(lines.range);
+  await expect(log(page).getByText(/rate card|GigSync seed|How sure|Assumed, since not known/)).toHaveCount(0);
   await shoot("talk-question", { worker: page }, FOLDER);
 });
 
@@ -127,7 +121,8 @@ test("a household's market question and budget both show the range from jobs on 
 
   // A question first: answered in the chat, and the need has not started.
   await say(QUESTION);
-  await expect(log(page)).toContainText(new RegExp(`${lines.range.source}.*${lines.basis.source}`));
+  await expect(log(page)).toContainText(lines.range);
+  await expect(log(page).getByText(/rate card|GigSync seed|How sure|Assumed, since not known/)).toHaveCount(0);
   await expect(log(page).getByText(textOf(en, "need.ask.budget"))).toHaveCount(0);
   await shoot("find-question", { household: page }, FOLDER);
 
@@ -158,12 +153,8 @@ test("a household's market question and budget both show the range from jobs on 
   const homePrices = { low: priceText(home.low_paise), high: priceText(home.high_paise) };
   const homeLine = textOf(en, "estimate.range_month", { trade: t(en, "trade.cook"), scope: SCOPE, ...homePrices });
   await expect(log(page).getByText(homeLine).last()).toBeVisible();
-  // What it rests on: the jobs on GigSync, then the city's rate card with its sources.
-  const jobs = t(en, "driver.basis.gigsync.other", { count: home.basis.gigsync_jobs });
-  const basis = log(page).getByText(textOf(en, "driver.basis_line")).last();
-  await expect(basis).toContainText(jobs);
-  await expect(basis).toContainText(t(en, "driver.basis.rate_card", { city: t(en, "city.bengaluru"), sources: "" }));
-  await expect(log(page).getByText(textOf(en, "driver.confidence_line")).last()).toBeVisible();
+  // What it rests on and how sure it is stay with the assistants: the owner reads the range and the suggestion.
+  await expect(log(page).getByText(/rate card|GigSync seed|How sure|Assumed, since not known/)).toHaveCount(0);
   await expect(log(page).getByText(textOf(en, "estimate.suggest_budget")).last()).toBeVisible();
   await shoot("budget", { household: page }, FOLDER);
 

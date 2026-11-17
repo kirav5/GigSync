@@ -12,6 +12,9 @@ const config: CapacitorConfig = {
   appId: "app.gigsync",
   appName: "GigSync",
   webDir: "dist",
+  // The bridge logs every plugin call with its data (stored jobs, a worker's lowest price) to the phone's system log,
+  // which other tools on the phone can read: only a development build against the dev server logs; a release, nothing.
+  loggingBehavior: devServer ? "debug" : "none",
   android: { allowMixedContent: false },
   // Edge to edge on both phones; the CSS takes the safe areas off once (env(safe-area-inset-*)), so iOS must not too.
   ios: { contentInset: "never" },

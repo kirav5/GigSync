@@ -4,13 +4,33 @@
 /* The draft label: on every screen that shows the guide, never easy to miss. */
 .guide-label {
   display: grid;
-  gap: 4px;
-  padding: 12px 16px;
-  border-left: 4px solid var(--wait);
-  border-radius: var(--radius-btn);
-  background: var(--wait-fill);
-  color: var(--text);
-  --text2: var(--text);
+  grid-template-columns: auto 1fr;
+  gap: 2px 8px;
+  align-items: start;
+  padding: 0 4px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text2);
+}
+
+.guide-label::before {
+  content: "i";
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 600;
+  font-style: italic;
+  line-height: 1;
+}
+
+.guide-label strong {
+  font-weight: 400;
 }
 
 .journey-steps {

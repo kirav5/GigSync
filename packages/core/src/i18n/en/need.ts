@@ -36,6 +36,8 @@ export const need = {
   "need.found": "Here is who can help nearby. Tick up to three, then ask.",
   "need.nobody": "Nobody within {km} km yet. Look further, or change something?",
   "need.change": "Change something",
+  "need.limit_open": "You have 3 requests going. Sign or cancel one in Activity, then ask again.",
+  "need.limit_day": "You have asked 20 workers today. You can ask more tomorrow.",
   "need.asked": "Asked. Follow it in Activity.",
   "need.start_to": "What do you need {name} for? Say it in your own words.",
   "need.confirm_to": "Shall I ask {name}?",

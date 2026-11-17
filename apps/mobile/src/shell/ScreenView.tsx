@@ -118,6 +118,7 @@ function MeScreen({ screen, d, m }: { screen: Screen; d: ScreenData; m: ScreenMo
         <HelpUnion
           ports={ports}
           session={account.session}
+          worker={isWorker}
           onFindMentor={() => m.go(Screen.findMentor)}
           onOpenLink={m.showLink}
           onJobs={() => m.go(Screen.activity)}

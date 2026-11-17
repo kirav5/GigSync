@@ -57,6 +57,12 @@ test("Help's rows open what they name, its numbers call, and a move starts from 
   await open(page, "me.help");
   await expect(page.getByRole("heading", { name: t(en, "me.help_title") })).toBeVisible();
   const numbers = page.getByRole("region", { name: t(en, "mentor.helplines") });
+  // The numbers wait behind one row and slide open on a tap.
+  const fold = numbers.getByRole("button", { name: new RegExp(t(en, "landing.lines_title")) });
+  await expect(fold).toHaveAttribute("aria-expanded", "false");
+  await fold.click();
+  await expect(fold).toHaveAttribute("aria-expanded", "true");
+  await expect(numbers.getByRole("link").first()).toBeVisible();
   await expect(numbers.getByRole("link").first()).toHaveAttribute("href", /^tel:\+?\d+$/);
   await shoot("help", { phone: page }, FOLDER);
 

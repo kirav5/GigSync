@@ -112,12 +112,12 @@ export function AgentScreen(props: TalkProps) {
     if (account.worker && alsoSaid(said)) {
       const at = edit(fresh(), Slot.trade);
       beginInterview(at);
-      void answerCard(ports, at, said, false);
+      void answerCard(ports, at, said, false, account.session);
       return true;
     }
     if (!state || !paused || state.slot !== Slot.trade || account.worker) return false;
     resumeInterview();
-    void answerCard(ports, state, said, false);
+    void answerCard(ports, state, said, false, account.session);
     return true;
   };
   const { busy, sendNote, choose } = useNotes({
@@ -142,7 +142,7 @@ export function AgentScreen(props: TalkProps) {
   function send(text: string, via: Via) {
     if (!active) return void sendNote(text);
     const moving = movingIntent(text, lang);
-    if (!moving?.certain) return void answerCard(ports, state, text, via === Via.voice);
+    if (!moving?.certain) return void answerCard(ports, state, text, via === Via.voice, account.session);
     pauseInterview();
     moves.start(text, moving.city);
   }

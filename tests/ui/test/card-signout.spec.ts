@@ -36,7 +36,7 @@ test("the next worker on the phone gets nothing of the last: answers, UPI ID or 
   await nextTurn(page, hi, "iv.ask.also", () => allow.click());
   await nextTurn(page, hi, "iv.ask.area", () => type(page, hi, "नहीं"));
   await nextTurn(page, hi, "iv.ask.radius", () => type(page, hi, "कोरमंगला"));
-  await nextTurn(page, hi, "iv.ask.rate_month", () => type(page, hi, "दस किलोमीटर"));
+  await nextTurn(page, hi, "iv.ask.rate_ways", () => type(page, hi, "दस किलोमीटर"));
   await nextTurn(page, hi, "iv.ask.min", () => type(page, hi, "नौ हज़ार"));
   await nextTurn(page, hi, "iv.ask.languages", () => type(page, hi, "सात हज़ार"));
   await setUpi(page, hi, "meena.test@okaxis");

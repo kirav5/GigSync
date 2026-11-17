@@ -27,6 +27,7 @@ export function AmountDial({
   name,
   inputRef,
   required,
+  compact,
   onAmount,
 }: {
   label: string;
@@ -34,6 +35,8 @@ export function AmountDial({
   step: number;
   unit?: string | undefined;
   name?: string;
+  /** One of several amounts on a card: drawn smaller, so the stack stays one screen. */
+  compact?: boolean | undefined;
   inputRef?: RefObject<HTMLInputElement | null>;
   required?: boolean;
   onAmount?: (paise: number | undefined) => void;
@@ -50,7 +53,7 @@ export function AmountDial({
   };
   const stepText = money(step);
   return (
-    <div className="amount-dial">
+    <div className={compact ? "amount-dial compact" : "amount-dial"}>
       <button
         type={C.button}
         className="amount-step"
@@ -84,40 +87,5 @@ export function AmountDial({
         <Icon name="plus" size={22} />
       </button>
     </div>
-  );
-}
-
-/** One option of a segmented control: what it stands for and its words. */
-export interface Segment<T extends string> {
-  value: T;
-  label: string;
-}
-
-/** A segmented control as the design draws it: the options side by side on a light track, the one picked a white pill. */
-export function Segmented<T extends string>({
-  label,
-  options,
-  value,
-  onPick,
-}: {
-  label: string;
-  options: readonly Segment<T>[];
-  value: T | undefined;
-  onPick: (value: T) => void;
-}) {
-  return (
-    <fieldset className="segmented" aria-label={label}>
-      {options.map((o) => (
-        <button
-          key={o.value}
-          type={C.button}
-          aria-pressed={o.value === value}
-          className={o.value === value ? PICKED : undefined}
-          onClick={() => onPick(o.value)}
-        >
-          {o.label}
-        </button>
-      ))}
-    </fieldset>
   );
 }

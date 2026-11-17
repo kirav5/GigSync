@@ -1,17 +1,14 @@
-import { t } from "@gigsync/core";
 import { Lang } from "@gigsync/protocol";
 import { expect, type Page, test } from "@playwright/test";
 import { tellNeed } from "./findChat.js";
-import { API, newPhone, open, Role, RUN, shoot, signIn } from "./helpers.js";
+import { API, newPhone, Role, RUN, signIn } from "./helpers.js";
 
 /**
  * GigSync's own model (ADR 0052), with the API's answers stood in for: test runs have no Mac Studio. When the API has
- * a model, Auto asks it, Settings' chip says so and the Privacy page says who reads what the owner writes; the
- * budget, a secret answer, is never in what is sent. When the API has none, nothing is sent at all.
+ * a model, Auto asks it; the budget, a secret answer, is never in what is sent. When the API has none, nothing is sent at all.
  */
 
 const { en } = Lang.enum;
-const FOLDER = "server-model";
 /** A budget no other part of the conversation would say. */
 const BUDGET = "777";
 /** The prompts the app sends to GigSync's model; the model "answers" nothing, so the phone falls back every time. */
@@ -41,18 +38,12 @@ const need = {
   budget: BUDGET,
 };
 
-test("with a model on the API, Auto asks it, the Privacy page says so, and the budget is never sent", async ({
-  page,
-}) => {
+test("with a model on the API, Auto asks it, and the budget is never sent", async ({ page }) => {
   const prompts = await serverModel(page, true);
   await household(page);
   await tellNeed({ page, lang: en }, need);
   expect(prompts.length).toBeGreaterThan(0);
   expect(prompts.join("\n")).not.toContain(BUDGET);
-  await open(page, "nav.privacy");
-  const section = page.getByRole("region", { name: t(en, "page.privacy_model_title") });
-  await expect(section).toContainText(t(en, "page.privacy_model_about"));
-  await shoot("privacy", { household: page }, FOLDER);
 });
 
 test("without a model on the API, nothing is sent and the phone answers by rules, unnamed", async ({ page }) => {

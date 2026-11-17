@@ -73,25 +73,21 @@ test("a household describing a villa is asked what moves the price, then sees a 
   const range = { low: priceText(103_780 * RUPEE), high: priceText(168_640 * RUPEE) };
   await expect(page.getByRole("log")).toContainText(range.low);
   await expect(page.getByRole("log")).toContainText(range.high);
-  await expect(line(page, "driver.confidence_line", { level: t(en, "driver.confidence.medium") })).toBeVisible();
-  const card = t(en, "driver.basis.rate_card", { city: t(en, "city.bengaluru"), sources: "GigSync seed, unverified" });
-  await expect(line(page, "driver.basis_line", { parts: card })).toBeVisible();
+  // What the range rests on and how sure it is stay with the assistants: the owner reads the range.
+  await expect(page.getByText(/rate card|GigSync seed|How sure|Assumed, since not known/)).toHaveCount(0);
   await shoot("range", { household: page }, FOLDER);
   expect(sent.count).toBe(1);
 });
 
-test("'I don't know' ends the questions, and the range says what it assumed and mostly depends on", async ({
-  page,
-}) => {
+test("'I don't know' ends the questions, and the range says what it mostly depends on", async ({ page }) => {
   const sent = countEstimates(page);
   await villaAsked(page);
   await tap(page, t(en, "driver.dont_know"));
   await tap(page, t(en, "when.tomorrow"));
   await tap(page, t(en, "when.any_time"));
   await expect(line(page, "need.ask.budget")).toBeVisible();
-  await expect(line(page, "driver.confidence_line", { level: t(en, "driver.confidence.low") })).toBeVisible();
   await expect(line(page, "driver.spread", { driver: t(en, "driver.noun.paint_by") })).toBeVisible();
-  await expect(page.getByRole("log")).toContainText(t(en, "driver.noun.finish"));
+  await expect(page.getByText(/rate card|GigSync seed|How sure|Assumed, since not known/)).toHaveCount(0);
   await shoot("assumed", { household: page }, FOLDER);
   expect(sent.count).toBe(1);
 });

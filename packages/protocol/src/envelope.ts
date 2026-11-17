@@ -87,6 +87,12 @@ export const MENTOR_KINDS: ReadonlySet<EnvelopeKind> = new Set([
  */
 export const QR_KINDS: ReadonlySet<EnvelopeKind> = new Set([K.work_offer]);
 
+/**
+ * Workers one household may ask in a day (agreed 2026-11-18): `request` envelopes from one sender in the last 24
+ * hours, counted by the mailbox route. The phone says so before it asks (core job/ask-limits.ts).
+ */
+export const MAX_REQUESTS_PER_DAY = 20;
+
 export const Base64 = z.string().regex(/^[A-Za-z0-9+/]*={0,2}$/, "base64");
 /** A person has at most this many devices to seal one envelope to. */
 export const MAX_RECIPIENT_DEVICES = 10;

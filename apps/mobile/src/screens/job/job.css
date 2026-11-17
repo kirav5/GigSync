@@ -46,7 +46,7 @@
 .job-amount {
   gap: 6px;
   padding: 16px;
-  background: var(--surface);
+  background: var(--grad-card);
   border: 1px solid var(--hairline);
   box-shadow: none;
 }
@@ -87,7 +87,7 @@
   padding: 12px 14px;
   border: 1px solid var(--hairline);
   border-radius: 18px;
-  background: var(--surface);
+  background: var(--grad-card);
 }
 .offer-now-who {
   display: grid;

@@ -3,7 +3,7 @@ import type { landing as en } from "../en/landing.js";
 /** Kannada: moving to a new city for work, and the city guide. */
 export const landing: Readonly<Record<keyof typeof en, string>> = {
   "landing.title": "ಹೊಸ ಊರಿಗೆ ಹೋಗುತ್ತಿದ್ದೀರಾ",
-  "landing.draft": "ಸಾರ್ವಜನಿಕ ಮೂಲಗಳಿಂದ ಮಾಡಿದ ಕರಡು. ಯಾವುದೇ ಯೂನಿಯನ್ ಇನ್ನೂ ಪರಿಶೀಲಿಸಿಲ್ಲ.",
+  "landing.draft": "ಯಾವುದೇ ಯೂನಿಯನ್ ಇನ್ನೂ ಈ ಮಾರ್ಗದರ್ಶಿಯನ್ನು ಪರಿಶೀಲಿಸಿಲ್ಲ.",
   "landing.loading": "ಮಾರ್ಗದರ್ಶಿ ಬರುತ್ತಿದೆ…",
   "landing.no_guide": "ಮಾರ್ಗದರ್ಶಿ ಡೌನ್‌ಲೋಡ್ ಆಗಲಿಲ್ಲ. ಒಮ್ಮೆ ಇಂಟರ್ನೆಟ್‌ಗೆ ಸಂಪರ್ಕಿಸಿ, ನಂತರ ಅದು ಈ ಫೋನ್‌ನಲ್ಲೇ ಇರುತ್ತದೆ.",
   "landing.offline": "ಇಂಟರ್ನೆಟ್ ಇಲ್ಲ: {date} ರಂದು ಈ ಫೋನ್‌ನಲ್ಲಿ ಇಟ್ಟ ಮಾರ್ಗದರ್ಶಿ ತೋರಿಸಲಾಗುತ್ತಿದೆ.",
@@ -58,6 +58,8 @@ export const landing: Readonly<Record<keyof typeof en, string>> = {
   "landing.no_answer_next": "ಕೆಳಗಿನ ಯಾವುದಾದರೂ ಸಂಖ್ಯೆಗೆ ಕರೆ ಮಾಡಿ, ಅಥವಾ ಊರು ಗೊತ್ತಿರುವವರನ್ನು ಕೇಳಿ.",
   "landing.by_model": "ಈ ಫೋನ್‌ನ ಮಾಡೆಲ್ ಮಾರ್ಗದರ್ಶಿಯ ಶೀರ್ಷಿಕೆಗಳಿಂದ ಈ ಭಾಗವನ್ನು ಆರಿಸಿದೆ.",
   "landing.helplines": "ಈ ಸಂಖ್ಯೆಗಳನ್ನು ಉಳಿಸಿಕೊಳ್ಳಿ",
+  "landing.lines_title": "ತುರ್ತು ಮತ್ತು ಸಹಾಯವಾಣಿ ಸಂಖ್ಯೆಗಳು",
+  "landing.lines_count": "{count} ಸಂಖ್ಯೆಗಳು, ಕರೆ ಮಾಡಲು ಒಂದನ್ನು ಒತ್ತಿ",
   "landing.call": "{name} ಗೆ {number} ಗೆ ಕರೆ ಮಾಡಿ",
   "landing.places": "ಜಾಗಗಳು",
   "landing.places_note": "ಸಾರ್ವಜನಿಕ ಮೂಲಗಳಿಂದ ಪಟ್ಟಿ ಮಾಡಿದ್ದು, ಯಾರೂ ಖಾತರಿ ಕೊಟ್ಟಿಲ್ಲ. ಹೋಗುವ ಮೊದಲು ಕರೆ ಮಾಡಿ.",

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- GigSync terracotta, the accent in styles.css: the alert icon's tint and its accent in the tray. -->
+    <color name="gigsync_terracotta">#A4512B</color>
+</resources>

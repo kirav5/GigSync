@@ -115,18 +115,13 @@ describe("the estimate beside the household's budget", () => {
     });
   });
 
-  it("shows the range with what it rests on and suggests a budget, which a tap uses and is not read back aloud", () => {
+  it("shows the range and suggests a budget, which a tap uses and is not read back aloud", () => {
     const s = needWithEstimate(atBudget(), {
       request: needRequest(city, atBudget().draft) as EstimateRequest,
       estimate: PAINT_2BHK,
     });
     const p = needPrompt(s);
-    expect(keys(p.lines)).toEqual([
-      "need.ask.budget",
-      "estimate.range_job",
-      "driver.basis_line",
-      "estimate.suggest_budget",
-    ]);
+    expect(keys(p.lines)).toEqual(["need.ask.budget", "estimate.range_job", "estimate.suggest_budget"]);
     expect(p.secret).toBe(true);
     const used = chooseNeed(s, Pick.suggested);
     expect(used.draft.budget_paise).toBe(1_600_000);

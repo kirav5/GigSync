@@ -35,8 +35,8 @@ interface SignProps {
   place?: string | undefined;
   /** The other side's name as the card shows it. */
   them: string;
-  /** Their signature's hash, short, when they already signed these very terms. */
-  theirHash?: string | undefined;
+  /** They already signed these very terms. */
+  theySigned?: boolean | undefined;
   say: string;
   onSign: () => void;
   onDecline: () => void;
@@ -47,7 +47,7 @@ interface SignProps {
  * other side's signature when they signed first, then one big Sign button that says the amount and a quiet Decline.
  * `say` reads the decision aloud; signing stays a tap.
  */
-export function SignCard({ price, terms, asked, place, them, theirHash, say, onSign, onDecline }: SignProps) {
+export function SignCard({ price, terms, asked, place, them, theySigned, say, onSign, onDecline }: SignProps) {
   const { lang, t } = useI18n();
   const deal = { price };
   return (
@@ -59,10 +59,10 @@ export function SignCard({ price, terms, asked, place, them, theirHash, say, onS
         </div>
         <strong className="price-hero">{price}</strong>
       </div>
-      {theirHash && (
+      {theySigned && (
         <span>
           <Badge icon="tick" tone={BadgeTone.checked}>
-            {t("jobcard.they_signed", { name: them, hash: theirHash })}
+            {t("jobcard.they_signed", { name: them })}
           </Badge>
         </span>
       )}

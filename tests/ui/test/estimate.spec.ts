@@ -76,7 +76,8 @@ async function askToPaint(page: Page, budget: "suggested" | string) {
   await tap(page, t(en, "when.any_time"));
   await expect(line(page, "need.ask.budget")).toBeVisible();
   await expect(line(page, "estimate.range_job", RANGE)).toBeVisible();
-  await expect(line(page, "driver.confidence_line", { level: t(en, "driver.confidence.low") })).toBeVisible();
+  // What the range rests on and how sure it is stay with the assistants: the owner reads a price.
+  await expect(page.getByText(/rate card|GigSync seed|How sure|Assumed, since not known/)).toHaveCount(0);
   await expect(line(page, "estimate.suggest_budget", { price: TYPICAL })).toBeVisible();
   await shoot("budget-estimate", { household: page }, FOLDER);
   if (budget === "suggested") await tap(page, t(en, "estimate.use", { price: TYPICAL }));
@@ -120,7 +121,6 @@ test("a painter making a card in Talk sees the going rate near him and a suggest
   // The price card: the going rate near him in one line, and the amount it suggests ready to keep or change.
   const log = page.getByRole("log");
   await expect(line(page, "iv.near_you", { low: RANGE.low, high: RANGE.high })).toBeVisible();
-  await expect(log.getByText(textOf(en, "driver.basis_line"))).toHaveCount(0);
   const amount = log.getByLabel(t(en, "cardflow.amount"));
   await expect(amount).toHaveValue(digits(TYPICAL));
   await shoot("card-estimate", { worker: page }, FOLDER);

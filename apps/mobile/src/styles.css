@@ -45,6 +45,16 @@
   /* The richer cards: the beige of a total or a QR card, the warm dark of the job happening now, and a soft lift. */
   --sand: #f2e8d8;
   --cocoa: #35261f;
+  /* Cards are lit, not flat (2026-11-18): a white card warms toward cream at its foot; a beige hero deepens to peach;
+     a dark card carries a terracotta glow in its top corner. Each is one token, so every card of a kind matches. */
+  --grad-card: linear-gradient(160deg, #ffffff 0%, #fffaf3 55%, #f8ede0 100%);
+  --grad-sand: linear-gradient(145deg, #f8ecdc 0%, #f2ddc6 55%, #ebcdb0 100%);
+  --grad-cocoa:
+    radial-gradient(130% 90% at 100% 0%, rgb(232 137 107 / 0.36) 0%, transparent 55%),
+    linear-gradient(160deg, #47312a 0%, #35261f 55%, #281b16 100%);
+  --grad-earth:
+    radial-gradient(130% 90% at 100% 0%, rgb(201 113 66 / 0.34) 0%, transparent 55%),
+    linear-gradient(160deg, #4b2c20 0%, #3b2118 60%, #2b1711 100%);
   --on-cocoa: #fff3e4;
   --cocoa-accent: #e8896b;
   --lift: 0 1px 2px rgb(74 44 30 / 0.06), 0 8px 22px -12px rgb(74 44 30 / 0.3);
@@ -492,7 +502,7 @@ select.field {
 
 /* Containers: a card is the surface with a hairline and 10px corners. */
 .card {
-  background: var(--surface);
+  background: var(--grad-card);
   border: 0;
   border-radius: 20px;
   box-shadow: var(--lift);
@@ -518,7 +528,7 @@ select.field {
   padding: 12px 14px;
   border: 1px solid var(--hairline);
   border-radius: var(--radius-card);
-  background: var(--surface);
+  background: var(--grad-card);
   display: grid;
   gap: 2px;
 }
@@ -552,7 +562,7 @@ select.field {
 .empty {
   border: 1px solid var(--hairline);
   border-radius: var(--radius-card);
-  background: var(--surface);
+  background: var(--grad-card);
   padding: 22px 18px;
   color: var(--text2);
   display: grid;
@@ -624,7 +634,7 @@ select.field {
   grid-template-columns: 1fr auto;
   gap: 4px 10px;
   padding: 12px 14px;
-  background: var(--surface);
+  background: var(--grad-card);
   border-top: 1px solid var(--hairline);
 }
 .ledger > div:first-child {
@@ -1033,7 +1043,7 @@ fieldset {
   --surface: color-mix(in srgb, var(--ivory) 10%, var(--earth));
   --inverse: var(--ivory);
   --on-inverse: var(--earth);
-  background: var(--earth);
+  background: var(--grad-earth);
   border-color: var(--earth);
   color: var(--ivory);
 }
@@ -1072,7 +1082,7 @@ fieldset {
   gap: 2px;
   align-content: start;
   padding: 14px;
-  background: var(--surface);
+  background: var(--grad-card);
   border: 0;
   border-radius: 18px;
   box-shadow: var(--lift);
@@ -1153,7 +1163,7 @@ fieldset {
 }
 .list-card {
   display: grid;
-  background: var(--surface);
+  background: var(--grad-card);
   border: 0;
   border-radius: 20px;
   box-shadow: var(--lift);

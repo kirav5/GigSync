@@ -52,7 +52,6 @@ export const me = {
     "Your phone number and the job's address and door pin: given to the worker after you both sign, for that one job, and removed from both phones once it is settled.",
   "me.tier.public_household":
     "Only your first name, on the QR code workers scan. Before you sign, a worker sees the area of a job, never the address.",
-  "me.model_switch": "Let GigSync's model read my chats",
   // Privacy: what the agent shared
   "me.shared": "What your assistant shared",
   "me.shared_sub": "A log, newest first",
@@ -73,7 +72,7 @@ export const me = {
   "me.alerts_job": "When a job needs you",
   // Help
   "me.unions": "Unions in {city}",
-  "me.unions_about": "Listed from public sources and not verified. GigSync sends a union nothing.",
+  "me.unions_about": "From public sources. GigSync sends a union nothing.",
   "me.help_title": "How can we help?",
   "me.help_lead": "Numbers to call, people who know the work, and a plan for a move.",
   "me.help_people": "Get help",

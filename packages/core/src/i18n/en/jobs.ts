@@ -8,7 +8,7 @@ export const jobs = {
   "jobs.word.pay": "Pay {price}",
   "jobs.word.ask": "Ask for {price}",
   "jobs.word.review": "Review",
-  "jobs.word.set_off": "On the way?",
+  "jobs.word.set_off": "Time to go",
   // ...and the line under the name, after the work
   "jobs.line.reached": "Your assistants reached {price}",
   "jobs.line.questions.one": "{count} question for you",
