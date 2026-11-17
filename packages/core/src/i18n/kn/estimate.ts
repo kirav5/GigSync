@@ -41,8 +41,6 @@ export const estimate: Readonly<Record<keyof typeof en, string>> = {
   "estimate.problem.service": "ಸರ್ವಿಸ್",
   "estimate.problem.gas_refill": "ಗ್ಯಾಸ್ ತುಂಬಿಸುವುದು",
   "estimate.problem.install": "ಅಳವಡಿಕೆ",
-  "estimate.jobs.one": "{place} ನಲ್ಲಿ GigSync ನ {count} ಕೆಲಸದಿಂದ.",
-  "estimate.jobs.other": "{place} ನಲ್ಲಿ GigSync ನ {count} ಕೆಲಸಗಳಿಂದ.",
   "estimate.reason_jobs.one": "ಈ ಕೆಲಸಕ್ಕೆ ಸಾಮಾನ್ಯ ದರ {low}–{high}, GigSync ನ {count} ಕೆಲಸದಿಂದ.",
   "estimate.reason_jobs.other": "ಈ ಕೆಲಸಕ್ಕೆ ಸಾಮಾನ್ಯ ದರ {low}–{high}, GigSync ನ {count} ಕೆಲಸಗಳಿಂದ.",
   "estimate.market_none": "{place} ನಲ್ಲಿ {trade} ಸಾಮಾನ್ಯ ದರ ಇನ್ನೂ ಹೇಳಲಾಗದು: GigSync ನಲ್ಲಿ ಕೆಲಸಗಳು ಮತ್ತು ವೆಬ್‌ನಲ್ಲಿ ಬೆಲೆಗಳು ತುಂಬಾ ಕಡಿಮೆ.",

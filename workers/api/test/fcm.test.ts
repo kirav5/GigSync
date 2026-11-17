@@ -100,6 +100,8 @@ describe("an FCM alert", () => {
     expect(message.notification).toEqual({ title: "GigSync", body: t("hi", "alerts.native_body") });
     expect(message).not.toHaveProperty("data");
     expect(message.android).toMatchObject({ priority: "high", ttl: "86400s", notification: { tag: "gigsync-job" } });
+    // In GigSync's colours: the app's sun in the status bar, terracotta.
+    expect(message.android.notification).toMatchObject({ icon: "ic_stat_gigsync", color: "#A4512B" });
   });
 
   it("is sent with the access token Google gave, which is kept for the next one", async () => {

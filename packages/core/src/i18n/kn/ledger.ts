@@ -10,9 +10,9 @@ export const ledger: Readonly<Record<keyof typeof en, string>> = {
   "ledger.waiting_from": "{name} ಅವರಿಂದ ಬರಬೇಕಿದೆ",
   "ledger.waiting_many": "{count} ಮನೆಗಳಿಂದ ಬರಬೇಕಿದೆ",
   "ledger.upi_line": "ನಿಮ್ಮ UPI: {vpa}",
-  "ledger.upi_change": "'ನನ್ನ ಬಗ್ಗೆ'ಯಲ್ಲಿ ಬದಲಿಸಿ",
+  "ledger.upi_change": "ಬದಲಿಸಿ",
   "ledger.upi_none": "ಇನ್ನೂ ಯಾವ UPI ID ಉಳಿಸಿಲ್ಲ.",
-  "ledger.upi_add": "'ನನ್ನ ಬಗ್ಗೆ'ಯಲ್ಲಿ ಸೇರಿಸಿ",
+  "ledger.upi_add": "ಸೇರಿಸಿ",
   // The household's Pay tab and the receipts it downloads
   "ledger.not_confirmed": "ಇನ್ನೂ ಖಚಿತವಾಗಿಲ್ಲ",
   "ledger.download_receipts": "ರಸೀದಿಗಳನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",

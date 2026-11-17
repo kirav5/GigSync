@@ -33,7 +33,7 @@ export const arrangement: Readonly<Record<keyof typeof en, string>> = {
   "iv.picked": "आप काम लेते हैं: {list}।",
   "iv.ask.rate_hour": "एक घंटे का कितना लेते हैं?",
   "iv.ask.rate_week": "एक हफ़्ते का कितना लेते हैं?",
-  "iv.summary_rate": "{arrangement}: {rate}।",
+  "iv.summary_rate": "साथ में {arrangement}: {rate}।",
   "card.arrangements": "मैं कौन सा काम लेता/लेती हूँ",
   "card.rate.hourly": "एक घंटे का दाम, ₹",
   "card.rate.visit": "एक बार का दाम, ₹",

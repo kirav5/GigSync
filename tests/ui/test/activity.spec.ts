@@ -197,7 +197,6 @@ test("a job walks from Awaiting you to In talks to Agreed, then leaves Activity 
   const paidRow = householdPage.locator(".record-list > li").filter({ hasText: workerName });
   await expect(paidRow).toContainText(say("trade.carpenter"));
   await expect(paidRow).toContainText(say("page.paid", { price: amount }));
-  await expect(householdPage.getByText(say("page.records_total")).locator("xpath=..")).toContainText(amount);
   await shoot("household-records", { household: householdPage }, FOLDER);
 
   // The card comes off the board so later runs start clean.

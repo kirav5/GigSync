@@ -3,6 +3,7 @@ import { verify } from "@gigsync/crypto";
 import {
   ClaimRequest,
   Envelope,
+  EnvelopeKind,
   MAX_CIPHERTEXT_CHARS,
   MessageId,
   QR_KINDS,
@@ -15,6 +16,7 @@ import { z } from "zod";
 import { ApiError, type AppEnv, USER_PARAM, Var } from "../context.js";
 import { activeDeviceIds, deviceSigningKey, pushAddresses } from "../db/devices.js";
 import { offerTaken } from "../db/qr-offers.js";
+import { mayRequest, noteRequest } from "../db/request-log.js";
 import { recordFallbackCity } from "../live-cities.js";
 import { sendersOf, wakeAll } from "../push/alerts.js";
 import { WAKE_KINDS } from "../push/webpush.js";
@@ -59,6 +61,12 @@ mail.post(`/mailbox/:${USER_PARAM}`, envelopeLimit, async (c) => {
     log.warn("work offer without a taken offer", { requestId: c.get(Var.requestId), messageId: e.id });
     return c.json({ error: ApiError.offerNotTaken }, 403);
   }
+  // A household asks at most MAX_REQUESTS_PER_DAY workers in a day; which need each request is for stays sealed.
+  const asking = e.kind === EnvelopeKind.enum.request;
+  if (asking && !(await mayRequest(db, e.from.user, e.id))) {
+    log.warn("requests over the day's cap", { requestId: c.get(Var.requestId), from: e.from.user });
+    return c.json({ error: ApiError.tooManyAttempts }, 429);
+  }
   if (devices.length === 0) {
     log.info("delivery to unknown user", { requestId: c.get(Var.requestId), to: to.data });
     return c.json({ error: ApiError.recipientNotFound }, 404);
@@ -71,6 +79,7 @@ mail.post(`/mailbox/:${USER_PARAM}`, envelopeLimit, async (c) => {
   }
   const box = c.env.MAILBOX.get(c.env.MAILBOX.idFromName(to.data));
   const out = await box.deliver({ envelope: e, devices: sealed });
+  if (asking) await noteRequest(db, e.from.user, e.id);
   await noteDeliveredAgree(db, e, c.get(Var.requestId), recordFallbackCity(c.env));
   log.info("envelope delivered", {
     requestId: c.get(Var.requestId),

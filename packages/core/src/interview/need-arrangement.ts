@@ -31,11 +31,12 @@ export const arrangedWork = (d: Pick<NeedDraft, "trade" | "skill">): boolean => 
 };
 
 /**
- * The arrangement a board search filters by: a trade's only. Workers of a skill of their own listed none before
- * ADR 0051, so filtering would hide them all; their agent declines an arrangement its owner does not take instead.
+ * The arrangement a board search filters by, for any work taken more than one way: a worker whose card names other
+ * ways only is not listed, as their assistant would decline at once. A card of a skill that names no way at all still
+ * is (the board's search keeps those): it takes any, as such cards always have.
  */
 export const boardArrangement = (d: NeedDraft): Arrangement | undefined =>
-  d.trade !== undefined && hasArrangements(d.trade) ? d.arrangement : undefined;
+  arrangedWork(d) ? d.arrangement : undefined;
 
 /** The arrangement is still to be asked. */
 export const needsArrangement = (d: NeedDraft): boolean => arrangedWork(d) && d.arrangement === undefined;

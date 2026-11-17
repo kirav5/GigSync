@@ -14,6 +14,8 @@ export const progress = {
   "progress.state.next": "still to come",
   "progress.state.stopped": "stopped here",
   "progress.stopped_at": "Stopped at: {step}",
+  "progress.booked_worker": "You're booked",
+  "progress.booked_household": "{name} is booked",
   "progress.next_worker.on_my_way": "Time to set off",
   "progress.next_worker.started": "Arrive and start work",
   "progress.next_worker.done": "Finish the work",

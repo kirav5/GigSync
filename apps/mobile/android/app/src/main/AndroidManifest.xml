@@ -36,6 +36,13 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+        <!-- Alerts in GigSync's colours (workers/api/src/push/fcm.ts sends the same): the sun in the status bar, terracotta. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_gigsync" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/gigsync_terracotta" />
     </application>
 
     <!-- Permissions -->

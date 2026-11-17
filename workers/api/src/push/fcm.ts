@@ -34,6 +34,9 @@ const MS = 1000;
 const TTL = "86400s";
 const HIGH = "high";
 const TITLE = "GigSync";
+/** The app's own status-bar icon and colour (android res/drawable/ic_stat_gigsync.xml, the terracotta accent). */
+const ICON = "ic_stat_gigsync";
+const COLOR = "#A4512B";
 /** Every alert carries the same tag, so a burst of messages is one line in the tray, not five. */
 const TAG = "gigsync-job";
 /** The Android channel the app creates (adapters/push.ts), named "Job alerts" in the owner's language. */
@@ -106,7 +109,7 @@ export function fcmMessage(address: NativePush) {
       android: {
         priority: HIGH,
         ttl: TTL,
-        notification: { tag: TAG, channel_id: FCM_CHANNEL },
+        notification: { tag: TAG, channel_id: FCM_CHANNEL, icon: ICON, color: COLOR },
       },
     },
   };

@@ -16,6 +16,8 @@ export const progress: Readonly<Record<keyof typeof en, string>> = {
   "progress.state.next": "ಮುಂದಿನ ಹಂತ",
   "progress.state.stopped": "ಇಲ್ಲೇ ನಿಂತಿತು",
   "progress.stopped_at": "ಇಲ್ಲಿ ನಿಂತಿತು: {step}",
+  "progress.booked_worker": "ನಿಮ್ಮ ಬುಕಿಂಗ್ ಖಚಿತ",
+  "progress.booked_household": "{name} ಅವರ ಬುಕಿಂಗ್ ಖಚಿತ",
   "progress.next_worker.on_my_way": "ಹೊರಡುವ ಸಮಯ",
   "progress.next_worker.started": "ತಲುಪಿ ಕೆಲಸ ಶುರು ಮಾಡಿ",
   "progress.next_worker.done": "ಕೆಲಸ ಮುಗಿಸಿ",

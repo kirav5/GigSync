@@ -1,7 +1,7 @@
 /** Moving to a new city for work: the journey, its checklist, and the city guide (a draft from public sources). */
 export const landing = {
   "landing.title": "Moving to a new city",
-  "landing.draft": "Draft from public sources. Not yet checked by a union.",
+  "landing.draft": "A union has not reviewed this guide yet.",
   "landing.loading": "Getting the guide…",
   "landing.no_guide": "The guide could not be downloaded. Connect to the internet once and it stays on this phone.",
   "landing.offline": "No internet: showing the guide saved on this phone on {date}.",
@@ -56,6 +56,8 @@ export const landing = {
   "landing.no_answer_next": "Call one of the numbers below, or ask someone who knows the city.",
   "landing.by_model": "The model on this phone picked this part of the guide from its titles.",
   "landing.helplines": "Numbers to save",
+  "landing.lines_title": "Emergency and helplines",
+  "landing.lines_count": "{count} numbers, tap one to call",
   "landing.call": "Call {name} on {number}",
   "landing.places": "Places",
   "landing.places_note": "Listed from public sources, not vouched for. Call before you go.",

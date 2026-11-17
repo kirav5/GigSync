@@ -1,4 +1,4 @@
-import { Lang, Trade } from "@gigsync/protocol";
+import { type Lang, Trade } from "@gigsync/protocol";
 import { type MessageKey, t } from "../i18n/t.js";
 import { askable, type InterviewState, type Line, Pick, type Prompt, Slot } from "./card.js";
 import { alsoPrompt } from "./card-also.js";
@@ -10,7 +10,7 @@ import { estimatePrompt } from "./card-estimate.js";
 import { filingPrompt } from "./card-guess.js";
 import { kindPrompt } from "./card-kind.js";
 import { languagesPrompt } from "./card-languages.js";
-import { priceUnit, windowsSummary } from "./card-price.js";
+import { priceArrangements, priceUnit, windowsSummary } from "./card-price.js";
 import { termsSummary } from "./card-terms.js";
 import { restPrompt, workRatesSummary } from "./card-work-rates.js";
 import { areaChoices, areaHints, isMessageKey, YES_NO } from "./choices.js";
@@ -50,7 +50,9 @@ export {
   keepPrice,
   nearYouLine,
   type PriceAnswer,
+  type PriceRate,
   priceArrangements,
+  pricePicked,
   priceUnit,
 } from "./card-price.js";
 export { legalLines, legalMonthly, rateHint, rateNote } from "./card-rates.js";
@@ -158,9 +160,11 @@ function question(state: InterviewState): Prompt {
           ...secret,
         };
       }
-      // The price card (`card-price.ts`) carries the going rate; the question stays one line, in the price's unit.
+      // The price card (`card-price.ts`) carries the going rate; the question stays one line, in the price's unit,
+      // or asks for each way when the work is taken several ways (the card ticks them).
       const unit = priceUnit(draft);
-      const ask = min ? "iv.ask.min" : unit ? RATE_QUESTION[unit] : "iv.ask.rate_visit";
+      const ways = priceArrangements(draft).length > 1;
+      const ask = min ? "iv.ask.min" : ways ? "iv.ask.rate_ways" : unit ? RATE_QUESTION[unit] : "iv.ask.rate_visit";
       return { lines: [{ key: ask }], numeric: true, hints: [], ...secret };
     }
     case Slot.arrangements:

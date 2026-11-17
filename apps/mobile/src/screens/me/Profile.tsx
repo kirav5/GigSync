@@ -89,7 +89,7 @@ export function ProfileSheet({ ports, account, onOpen, onClose }: Props) {
         ) : (
           <HouseholdRows ports={ports} onOpen={open} />
         )}
-        {isWorker && <HelpRow onOpen={open} />}
+        <HelpRow onOpen={open} />
       </ListCard>
       <div className="profile-prefs">
         <LanguageChip onOpen={open} />

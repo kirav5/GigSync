@@ -57,13 +57,33 @@ describe("the map through GigSync", () => {
     const me = await signIn("+919844400003");
     expect((await get(me, "places/v1/autocomplete?input=x")).status).toBe(404);
     expect((await get(me, "tiles/../places/v1/x")).status).toBe(404);
-    expect((await get(me, "style.json", "")).status).toBe(503);
-    expect((await get(undefined, "style.json")).status).toBe(401);
+    // A tile nobody has fetched: one already at the edge is served to anyone (below).
+    const fresh = "tiles/vector/v1/data/planet/9/1/1.pbf";
+    expect((await get(me, fresh, "")).status).toBe(503);
+    expect((await get(undefined, fresh)).status).toBe(401);
   });
 
   it("rewrites links and drops the key wherever it sits in a query", () => {
     const base = "https://api.gigsync.network/v1/geo/map/";
     expect(rewritten(`"${OLA_ORIGIN}/tiles/a.json?api_key=k"`, base)).toBe(`"${base}tiles/a.json"`);
     expect(rewritten(`"${OLA_ORIGIN}/tiles/a?x=1&api_key=k&y=2"`, base)).toBe(`"${base}tiles/a?x=1&y=2"`);
+  });
+});
+
+describe("a map part the edge already holds", () => {
+  it("is served without a session or a database round trip; one not held still needs a session", async () => {
+    const tile = "tiles/vector/v1/data/planet/15/23441/15261.pbf";
+    const bytes = () => new Response(new Uint8Array([7, 8]), { headers: { "content-type": "application/x-protobuf" } });
+    const fetched = vi.spyOn(globalThis, "fetch").mockImplementation(async () => bytes());
+    // Fetched once, signed in: it is kept at the edge.
+    expect((await get(await signIn("+919844400011"), tile)).status).toBe(200);
+    expect(fetched).toHaveBeenCalledTimes(1);
+    // Now anyone gets it from the edge, and Ola is not asked again.
+    const again = await get(undefined, tile);
+    expect(again.status).toBe(200);
+    expect(new Uint8Array(await again.arrayBuffer())).toEqual(new Uint8Array([7, 8]));
+    expect(fetched).toHaveBeenCalledTimes(1);
+    // A part the edge does not hold would cost an Ola call: that still needs a session.
+    expect((await get(undefined, "tiles/vector/v1/data/planet/15/1/1.pbf")).status).toBe(401);
   });
 });

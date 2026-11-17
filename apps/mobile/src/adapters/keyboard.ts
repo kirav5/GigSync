@@ -38,12 +38,19 @@ const isIos = () => IOS.test(navigator.userAgent) || (MAC.test(navigator.userAge
 /**
  * The native apps: the keyboard shrinks the web view (the Keyboard plugin's resize "native", in capacitor.config.ts),
  * so only the dock needs telling, from the plugin's own events. The reveal runs on the resize itself, not on
- * keyboardDidShow, which on iOS fires before the web view has shrunk.
+ * keyboardDidShow, which on iOS fires before the web view has shrunk. The app takes the web view's height as it is
+ * after each resize: Android's WebView can keep `100dvh` at its old value once the keyboard goes, leaving the app
+ * taller than the screen with the tab bar's labels below its edge.
  */
 function watchNative(): void {
+  const fit = () => document.documentElement.style.setProperty(APP_HEIGHT, `${innerHeight}px`);
   void Keyboard.addListener("keyboardWillShow", () => markKeyboard(true));
   void Keyboard.addListener("keyboardWillHide", () => markKeyboard(false));
-  globalThis.addEventListener("resize", revealFocusedField);
+  globalThis.addEventListener("resize", () => {
+    fit();
+    revealFocusedField();
+  });
+  fit();
 }
 
 /**

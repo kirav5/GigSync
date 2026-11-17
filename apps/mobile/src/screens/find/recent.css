@@ -14,7 +14,7 @@
   overflow: hidden;
   border: 1px solid var(--hairline);
   border-radius: 18px;
-  background: var(--surface);
+  background: var(--grad-card);
 }
 .recent-row {
   position: relative;

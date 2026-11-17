@@ -60,6 +60,8 @@ board.delete(Path.profile, async (c) => {
 });
 
 board.get(Path.workers, async (c) => {
+  if (!(await c.env.SEARCH_RATE_LIMIT.limit({ key: c.get(Var.user) })).success)
+    return c.json({ error: ApiError.tooManyAttempts }, 429);
   const query = BoardQuery.safeParse(c.req.query());
   if (!query.success) return c.json({ error: ApiError.badRequest }, 400);
   const workers = await searchWorkers(c.get(Var.db), query.data);

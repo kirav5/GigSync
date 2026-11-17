@@ -104,10 +104,9 @@ test("a cook moving to Bengaluru gets the outlook, the guide's answers and a men
   await expect(cookPage.getByText(t(en, "agent.empty"))).toBeVisible();
   await type(cookPage, en, "I'm moving to Bengaluru");
   const log = cookPage.getByRole("log");
-  // The cook's range at the default scope (ADR 0041): GigSync's jobs blended with the city's rate card when the shared
-  // database holds enough, else the rate card alone; either way the line names the rate card.
+  // The cook's range at the default scope (ADR 0041), without what it rests on: that stays with the assistants.
   await expect(log).toContainText(textOf(en, "estimate.range_month", { trade: t(en, "trade.cook") }));
-  await expect(log).toContainText(t(en, "driver.basis.rate_card", { city: t(en, "city.bengaluru"), sources: "" }));
+  await expect(log.getByText(/rate card|GigSync seed|How sure|Assumed, since not known/)).toHaveCount(0);
   await expect(log).toContainText(textOf(en, "estimate.legal_min"));
   await expect(log).toContainText(t(en, "moving.estimates"));
   await expect(log).toContainText(t(en, "moving.first", { city: t(en, "city.bengaluru") }));

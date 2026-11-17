@@ -16,7 +16,7 @@ export const money: Readonly<Record<keyof typeof en, string>> = {
   "money.show_qr": "मेरा क्यूआर दिखाएँ",
   "money.hide_qr": "क्यूआर छिपाएँ",
   "money.cash_confirm": "{price} नक़द मिले, यह दर्ज करें?",
-  "money.need_upi": "ग्राहक जिस यूपीआई आईडी पर पैसे भेजते हैं, उसे “मेरे बारे में” में जोड़ें।",
+  "money.need_upi": "ग्राहक जिस यूपीआई आईडी पर पैसे भेजते हैं, उसे जोड़ें।",
   "money.add_upi": "यूपीआई आईडी जोड़ें",
   "money.nudge": "काम ख़त्म होने से पहले अपना यूपीआई आईडी जोड़ लें, ताकि ग्राहक तुरंत पैसे दे सकें।",
   "money.waiting": "{name} के {price} भेजने का इंतज़ार है।",

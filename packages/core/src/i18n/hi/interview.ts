@@ -7,6 +7,7 @@ export const interview: Readonly<Record<keyof typeof en, string>> = {
   "iv.ask.area": "आप किस इलाक़े में काम करते हैं?",
   "iv.ask.rate_month": "आप आम तौर पर महीने का कितना लेते हैं?",
   "iv.ask.rate_visit": "एक बार आने का आम तौर पर कितना लेते हैं?",
+  "iv.ask.rate_ways": "यह काम आप किस-किस तरह लेते हैं, और हर एक का कितना?",
   "iv.ask.min": "सबसे कम कितने में करेंगे? यह किसी और को नहीं दिखेगा, किसी घर के सहायक को भी नहीं।",
   "iv.band_month": "{city} में {trade}: आम तौर पर महीने का {low}–{high}।",
   "iv.band_visit": "{city} में {trade}: आम तौर पर एक बार का {low}–{high}।",

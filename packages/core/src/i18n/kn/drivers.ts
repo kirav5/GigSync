@@ -105,16 +105,7 @@ export const drivers: Readonly<Record<keyof typeof en, string>> = {
   "driver.noun.vehicle": "ಕಾರು",
   "driver.noun.problem": "ಕೆಲಸ ಏನು",
   "driver.noun.points": "ಪಾಯಿಂಟ್‌ಗಳ ಸಂಖ್ಯೆ",
-  "driver.confidence.high": "ಸಾಕಷ್ಟು ಖಚಿತ",
-  "driver.confidence.medium": "ಸ್ಥೂಲ ಅಂದಾಜು",
-  "driver.confidence.low": "ತುಂಬಾ ಸ್ಥೂಲ ಅಂದಾಜು",
-  "driver.confidence_line": "ಎಷ್ಟು ಖಚಿತ: {level}.",
   "driver.spread": "ಇದು ಹೆಚ್ಚಾಗಿ {driver} ಮೇಲೆ ಅವಲಂಬಿತ.",
-  "driver.assumed": "ಗೊತ್ತಿರಲಿಲ್ಲ, ಹಾಗಾಗಿ ಊಹಿಸಲಾಗಿದೆ: {drivers}.",
-  "driver.basis.gigsync.one": "GigSync ನ {count} ಕೆಲಸ",
-  "driver.basis.gigsync.other": "GigSync ನ {count} ಕೆಲಸಗಳು",
-  "driver.basis.rate_card": "{city} ದರ ಪಟ್ಟಿ: {sources}",
-  "driver.basis_line": "ಆಧಾರ: {parts}.",
   "driver.no_trade":
     "GigSync ನಲ್ಲಿ {job} ಕೆಲಸದ ದರಗಳು ಇನ್ನೂ ಇಲ್ಲ, ಮತ್ತು ಇನ್ನೂ ಯಾವ ಕೆಲಸಗಾರರೂ ಈ ಕೆಲಸವನ್ನು ಸೇರಿಸಿಲ್ಲ. ಕೆಲಸವನ್ನು ಬೇರೆ ಪದಗಳಲ್ಲಿ ಹೇಳಿ, ಅಥವಾ ಪಟ್ಟಿಯಿಂದ ಆರಿಸಿ.",
 };

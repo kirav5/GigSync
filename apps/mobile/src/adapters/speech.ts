@@ -15,7 +15,7 @@ import { cloudAllowed } from "./speech-settings.js";
 /**
  * Voice for the screens, in the owner's language (spec §3.3, ADR 0023): speech to text on the device first, a cloud
  * recognizer only after the owner allowed that company, and reading aloud with local voices only. The recognizer and
- * voice are fetched by themselves (`prepareListening`, and the mic's or speaker's tap), never from a download link.
+ * voice are fetched by themselves (from the mic's or speaker's tap), never from a download link.
  * Screens use this module, speech-settings.ts, speech-watch.ts and `ui/Composer` / `ui/SpeakButton`, never the
  * plugin. In development a scripted engine can stand in for the plugin (speech-fake.ts), so UI tests can speak.
  */
@@ -213,18 +213,6 @@ export async function prepareSpeak(lang: Lang): Promise<SpeechStatus> {
   const { locale } = await speakChoice(lang);
   await fetchVoice(lang, Mode.speak, locale);
   return announce(await speakState(lang));
-}
-
-/**
- * Voice typing fetched without asking (the owner never downloads it by hand): choosing a language is a tap, the moment
- * engines allow a download, so its recognizer is fetched then where the engine offers one. The read-aloud voice waits
- * for a speaker tap, so Android's install screen never interrupts choosing a language.
- */
-export function prepareListening(lang: Lang): void {
-  void choose(lang, Mode.listen).then((choice) => {
-    listenChoices.set(lang, choice);
-    if (choice.status.state === VoiceState.downloadable) void prepareListen(lang);
-  });
 }
 
 /** Reads every language the screens asked about again, refreshing what they are told next. */
