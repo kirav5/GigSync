@@ -23,7 +23,11 @@ SMS gateway would. Firebase cannot send WhatsApp messages, so the API has to mak
    (the app's Send again waits the same), and five per number per hour. Wrong codes keep the existing lockout (five
    per number per 15 minutes).
 5. **With WhatsApp on, the dev code no longer signs in**, so a `DEV_OTP` left on a deployment is not a way in.
-6. **Firebase SMS is unchanged**: a build with Firebase set up still sends its own SMS and signs in with the ID token.
+6. **SMS through MSG91 is the second sender** (`auth/sms.ts`, from #61): on when the `MSG91_AUTH_KEY` and
+   `MSG91_OTP_TEMPLATE_ID` secrets are set (a DLT-registered OTP template with `##OTP##`). The API tries WhatsApp
+   first, then SMS when WhatsApp is off or refuses the send; the same code store, caps and rule 5 apply to both
+   (`auth/senders.ts`).
+7. **Firebase SMS is unchanged**: a build with Firebase set up still sends its own SMS and signs in with the ID token.
 
 ## Consequences
 

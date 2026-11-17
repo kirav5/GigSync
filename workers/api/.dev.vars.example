@@ -22,6 +22,10 @@ ADMIN_KEY=dev-only-admin-key
 # WHATSAPP_TOKEN=
 # WHATSAPP_PHONE_NUMBER_ID=
 # WHATSAPP_TEMPLATE=
+# Sign-in codes by SMS through MSG91, tried after WhatsApp (an OTP template DLT-registered with the sender ID, with
+# ##OTP## in it). With both set, DEV_OTP no longer signs in. Deployed: `wrangler secret put` for each.
+# MSG91_AUTH_KEY=
+# MSG91_OTP_TEMPLATE_ID=
 # Geocoding for the address form (ADR 0045): an Ola Maps key. Unset means the geo routes answer 503 and the app
 # offers typing the address instead. Deployed: `wrangler secret put OLA_MAPS_API_KEY`.
 # OLA_MAPS_API_KEY=
