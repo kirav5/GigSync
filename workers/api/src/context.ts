@@ -8,9 +8,11 @@ export const Var = { user: "user", device: "device", requestId: "requestId", db:
 export type Vars = { [Var.user]: UserId; [Var.device]: DeviceId; [Var.requestId]: string; [Var.db]: Db };
 export type AppEnv = { Bindings: Env; Variables: Vars };
 
-/** Route prefixes. Everything under V1 needs a session except V1_AUTH. */
+/** Route prefixes. Everything under V1 needs a session except V1_AUTH and V1_CONNECTOR. */
 export const V1 = "/v1";
 export const V1_AUTH = `${V1}/auth`;
+/** A connected assistant's routes (ADR 0068): their own token check, not the app session's. */
+export const V1_CONNECTOR = `${V1}/connector`;
 /** Header carrying the admin key for admin-only routes (the vouch route); compared with env ADMIN_KEY. */
 export const ADMIN_HEADER = "x-gigsync-admin";
 /** Path parameter naming the user a directory or mailbox route is about. */
@@ -43,6 +45,7 @@ export const ApiError = {
   internal: "internal error",
   modelFailed: "model failed",
   modelOff: "model not set up",
+  noAccount: "no GigSync account for this number",
   notFound: "not found",
   offerNotTaken: "offer not taken",
   phoneSignInOff: "phone sign-in not set up",

@@ -1,0 +1,8 @@
+# Copy to .dev.vars for `wrangler dev`. Never commit .dev.vars.
+ENVIRONMENT=local
+LOG_LEVEL=debug
+LOG_PII=true
+# The tunnel's https address while trying it from Claude (http://localhost:8797 for a local client only).
+PUBLIC_ORIGIN=http://localhost:8797
+# A local API: the UI tests' stack (pnpm dev:e2e) or pnpm dev:workers.
+API_ORIGIN=http://localhost:8796
