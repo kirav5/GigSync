@@ -1,5 +1,5 @@
 import { claimLegacyRecords, ownerPorts, type Ports } from "@gigsync/core";
-import type { Session } from "@gigsync/protocol";
+import type { OtpChannel, Session } from "@gigsync/protocol";
 import { type Account, type AccountRole, keptProfile, PROTOCOL, type Profile, saveAccount } from "./account.js";
 import { sendPhoneCode, verifyPhoneCode } from "./phoneCode.js";
 
@@ -17,8 +17,9 @@ export interface Verified {
   kept?: Profile;
 }
 
-export async function sendCode(phone: string): Promise<void> {
-  await sendPhoneCode(phone);
+/** Sends the sign-in code; the answer says how it is coming, for the code step's words. */
+export function sendCode(phone: string): Promise<OtpChannel> {
+  return sendPhoneCode(phone);
 }
 
 /**

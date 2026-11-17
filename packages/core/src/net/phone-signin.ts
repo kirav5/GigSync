@@ -1,5 +1,6 @@
 import {
   type DeviceRegistration,
+  OtpSent,
   type PhoneConfirm,
   PhoneConfirmed,
   type PhoneTokenVerify,
@@ -10,6 +11,11 @@ import { ApiClient, ApiPath } from "./api.js";
 
 /** ApiClient with the sign-in a phone makes when Firebase sent and checked its SMS code. */
 export class PhoneSignInClient extends ApiClient {
+  /** Asks the API for a sign-in code; the answer says how it is coming (WhatsApp, or the dev code). */
+  async requestCode(phone: string): Promise<OtpSent> {
+    return OtpSent.parse(await this.call(HttpMethod.post, ApiPath.otpRequest, { phone }));
+  }
+
   /** Signs in with the ID token Firebase gave for the confirmed number, registering this device's keys. */
   async verifyPhoneToken(idToken: string, device: DeviceRegistration): Promise<Session> {
     const body: PhoneTokenVerify = { id_token: idToken, device };

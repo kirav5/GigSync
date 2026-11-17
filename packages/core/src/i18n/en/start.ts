@@ -16,6 +16,7 @@ export const start = {
   "start.number_title": "Your mobile number",
   "start.code_sent": "Sent to {phone}",
   "start.code_auto": "Fills in by itself from the SMS.",
+  "start.code_whatsapp": "Sent on WhatsApp. Tap Copy code there, then come back here.",
   "start.code_again": "Send the code again",
   "start.code_resent": "A new code is on its way.",
   "start.change_number": "Change number",

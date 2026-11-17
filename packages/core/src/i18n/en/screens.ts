@@ -12,6 +12,7 @@ export const screens = {
   "signin.err_phone": "Enter a 10-digit mobile number starting with 6, 7, 8 or 9.",
   "signin.err_phone_other": "Check the number: it is not a mobile number for this country.",
   "signin.code": "Code from SMS",
+  "signin.code_whatsapp": "Code from WhatsApp",
   "signin.code_dev": "Code from SMS (dev: {code})",
   "signin.send_code": "Send code",
   "role.worker": "worker",

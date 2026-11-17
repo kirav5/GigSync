@@ -1,5 +1,5 @@
 import { HttpError, NetError, NetReason, PhoneSignInClient } from "@gigsync/core";
-import type { DeviceRegistration, Session } from "@gigsync/protocol";
+import { type DeviceRegistration, OtpChannel, type Session } from "@gigsync/protocol";
 import type { FirebaseOptions } from "firebase/app";
 import type { Auth, ConfirmationResult, RecaptchaVerifier } from "firebase/auth";
 import { API_BASE } from "./api.js";
@@ -126,11 +126,15 @@ async function withFirebaseToken<T>(
   return result;
 }
 
-/** Sends a sign-in code to `phone` (E.164); sending again replaces the code before. */
-export async function sendPhoneCode(phone: string): Promise<void> {
+/**
+ * Sends a sign-in code to `phone` (E.164) and says how it is coming; sending again replaces the code before. Without
+ * Firebase the API sends it, by WhatsApp when the API has it (ADR 0069), else it is the dev code.
+ */
+export async function sendPhoneCode(phone: string): Promise<OtpChannel> {
   const options = firebaseOptions();
-  if (!options) return signInClient().requestOtp(phone);
-  return sendWithFirebase(options, phone);
+  if (!options) return (await signInClient().requestCode(phone)).channel;
+  await sendWithFirebase(options, phone);
+  return OtpChannel.enum.sms;
 }
 
 /**
