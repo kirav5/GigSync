@@ -22,14 +22,19 @@ export const FromWorker = {
   reading: "reading",
 } as const;
 
-/** Models the app came with: the folder they are in (`models/`), and the embedding model's name there. */
+/**
+ * The phone's two models as one bundle (`pnpm models:bundle`): the folder they are in, ending in "/", and the embedding
+ * model's name there. `hosted`: the folder is on GigSync's model host and its files are kept in the browser's cache, as
+ * on the web; otherwise it is the app's own `models/`, read from the device every launch.
+ */
 export interface Bundled {
   base: string;
   embedder: string;
+  hosted: boolean;
 }
 
 export type ToWorkerMessage =
-  /** `bundled`: load from the app's own files, never the network; absent, from Hugging Face as before. */
+  /** `bundled`: load from a model bundle, the app's own or a hosted one; absent, from Hugging Face as before. */
   | { type: typeof ToWorker.load; bundled: Bundled | undefined }
   /** `keep`: fixed sayings, whose vectors the worker keeps for later launches; never set for an owner's own words. */
   | { type: typeof ToWorker.embed; id: number; texts: readonly string[]; keep: boolean }

@@ -78,19 +78,30 @@ pnpm build && pnpm models:bundle --embedder data/reader/e5-small-trim --reader d
 pnpm --filter @gigsync/mobile exec cap sync android
 ```
 
-## Putting it on phones
+## Putting it on the web
 
-A trained reader goes to GigSync's model host, an R2 bucket, at a folder per version that is never overwritten:
+The website reads with the same bundle as the phone (ADR 0065, amendment of 2026-11-16). Write the bundle alone, a
+folder per version, and put it on GigSync's model host, an R2 bucket, where a version is never overwritten:
 
 ```bash
-pnpm reader:publish --model data/reader/model-v3 --version v3 --dry-run   # checks the labels against protocol
-pnpm reader:publish --model data/reader/model-v3 --version v3             # needs `wrangler login`
+pnpm models:bundle --embedder data/reader/e5-small-trim --reader data/reader/model-v6-trim --out data/models/v6
+pnpm models:publish --bundle data/models/v6 --version v6 --dry-run   # checks the manifest and lists the files
+pnpm models:publish --bundle data/models/v6 --version v6             # needs `wrangler login`
 ```
 
-The app's build reads it from `VITE_READER_URL` (the `READER_URL` repository variable in CI), e.g.
-`https://models.gigsync.network/reader/v3`. The bucket answers the app's origins with CORS (`infra/r2/models-cors.json`:
-`wrangler r2 bucket cors set gigsync-models --file infra/r2/models-cors.json`). Before publishing, score it the way
-phones read, with and without GigSync's model:
+The website's build reads it from `VITE_MODELS_URL` (the `MODELS_URL` repository variable in CI), e.g.
+`https://models.gigsync.network/v6/`. The bucket answers the app's origins with CORS (`infra/r2/models-cors.json`:
+`wrangler r2 bucket cors set gigsync-models --file infra/r2/models-cors.json`).
+
+To try the web app with the bundle locally, serve the folder with CORS and point the dev server at it; the same
+folder is what to give anyone else who tries it:
+
+```bash
+pnpm models:serve        # data/models on http://localhost:8791
+VITE_MODELS_URL=http://localhost:8791/v6/ pnpm --filter @gigsync/mobile exec vite --port 5174
+```
+
+Before publishing, score it the way phones read, with and without GigSync's model:
 
 ```bash
 READER_MODEL=data/reader/model-v3 pnpm eval:find --reader phone --set en --offline
