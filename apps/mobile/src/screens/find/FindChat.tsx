@@ -211,6 +211,7 @@ export function FindChat({ ports, account, device, onAsked, onPlaces, recent }: 
         session: account.session,
         onSaved: (a) => added(open, a),
         onAdd: setAdding,
+        adding,
       }}
       onSay={(text) => void send(text, Via.typed)}
       onTap={(value, label) => {

@@ -20,6 +20,8 @@ export interface WhereTools {
   onSaved: (address: SavedAddress) => void;
   /** "Add an address" or "Use my current location": the app opens the address form (ADR 0045). */
   onAdd: (how: Adding) => void;
+  /** The address form open under the question, if any: its own map has "Use my current location". */
+  adding?: Adding | undefined;
 }
 
 /** What a visitor looks for at the door: the house, floor, building and landmark, as the card's second line. */
@@ -28,10 +30,15 @@ const doorLine = (a: SavedAddress): string =>
 
 const hasPoint = (a: SavedAddress | undefined): a is SavedAddress & { point: Place } => a?.point !== undefined;
 
+/** The tick on the saved address in use, the size of the card's words. */
+const TICK_PX = 20;
+
 /**
- * Find's "where" question (ADR 0045): the saved doors first, each a card named as its chip was ("Home · Koramangala")
- * with its door underneath, the one in use dark; then "Use my current location", "Add an address" and any areas as
- * chips. When the address in use has no door pin yet, its map, to put the pin on the door once.
+ * Find's "where" question (ADR 0045): the saved doors first under "Saved addresses", each a card named as its chip was
+ * ("Home · Koramangala") with its door underneath, the one in use ticked; then "Use my current location", "Add an
+ * address" and any areas as chips. When the address in use has no door pin yet, its map, to put the pin on the door
+ * once, and "Use this address" under it to answer with that address. While the address form is open, its map stands in
+ * for both: neither the door map nor a second "Use my current location".
  */
 export function AddressOptions({
   where,
@@ -52,12 +59,14 @@ export function AddressOptions({
     const a = byId.get(c.value);
     const name = t(c.key, c.params);
     const line = a && doorLine(a);
+    const on = c.value === inUse;
     return (
       <button
         key={c.value}
         type={C.button}
-        className={c.value === inUse ? "option-row on where-card" : "option-row where-card"}
+        className={on ? "option-row where-card in-use" : "option-row where-card"}
         aria-label={name}
+        aria-current={on || undefined}
         onClick={() => tapChoice(chat, c, name, onTap)}
       >
         <span className="where-icon" aria-hidden="true">
@@ -67,24 +76,45 @@ export function AddressOptions({
           <span className="where-name">{name}</span>
           {line && <span className="sub">{line}</span>}
         </span>
+        {on && (
+          <span className="where-tick" aria-hidden="true">
+            <Icon name="tick" size={TICK_PX} />
+          </span>
+        )}
       </button>
     );
   };
+  const checkCard = check && cards.find((c) => c.value === check.id);
+  const pickChecked = () => checkCard && tapChoice(chat, checkCard, t(checkCard.key, checkCard.params), onTap);
   return (
     <>
-      {cards.length > 0 && <div className="where-cards">{cards.map(card)}</div>}
+      {cards.length > 0 && (
+        <div className="where-cards">
+          <p className="where-head">{t("addr.title")}</p>
+          {cards.map(card)}
+        </div>
+      )}
       <Choices
         {...props}
         choices={choices.filter((c) => !byId.has(c.value))}
         onAddAddress={() => where.onAdd(Adding.typed)}
         lead={
-          <button type={C.button} className={C.chip} onClick={() => where.onAdd(Adding.locate)}>
-            {t("addr.use_location")}
-          </button>
+          !where.adding && (
+            <button type={C.button} className={C.chip} onClick={() => where.onAdd(Adding.locate)}>
+              {t("addr.use_location")}
+            </button>
+          )
         }
       />
-      {hasPoint(check) && (
-        <DoorCheck address={check} storage={where.storage} session={where.session} onSaved={where.onSaved} />
+      {hasPoint(check) && !where.adding && (
+        <>
+          <DoorCheck address={check} storage={where.storage} session={where.session} onSaved={where.onSaved} />
+          {checkCard && (
+            <button type={C.button} className={C.wide} onClick={pickChecked}>
+              {t("addr.use_this")}
+            </button>
+          )}
+        </>
       )}
     </>
   );

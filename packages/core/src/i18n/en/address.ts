@@ -48,6 +48,7 @@ export const address = {
   "addr.desk_none": "You have no saved address yet. Add one, or use where you are now.",
   "addr.new": "Add a new address",
   "addr.using": "Using {label}: {area}",
+  "addr.use_this": "Use this address",
   "addr.done": "Done",
   "map.move_pin": "Move the map to put the pin on the door",
   "map.move_area": "Move the map to where you start from",
