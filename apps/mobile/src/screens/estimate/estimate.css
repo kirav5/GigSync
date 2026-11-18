@@ -51,3 +51,22 @@
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
+/* The track and, on the budget card, a native slider laid unseen over it: taller than the bar, so a thumb finds it,
+   and the page still scrolls when a finger moves up or down over it. */
+.est-slide {
+  position: relative;
+  display: block;
+}
+.est-range {
+  position: absolute;
+  inset: -14px 0;
+  width: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+.est-slide:has(.est-range:focus-visible) .est-tick {
+  outline: 2px solid var(--rust);
+  outline-offset: 2px;
+}
