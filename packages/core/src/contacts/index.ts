@@ -1,4 +1,11 @@
-export { ContactKeeper, canReport, ProblemError, type ProblemReport } from "./keeper.js";
+export {
+  ContactKeeper,
+  canReport,
+  ProblemError,
+  type ProblemReport,
+  ReportBlock,
+  whyNoReport,
+} from "./keeper.js";
 export { matchContact, namedIn, nameKey, romanize } from "./names.js";
 export { isIndianNumber, phoneSpans, REMOVED_MARK, withoutPhones } from "./phones.js";
 export {

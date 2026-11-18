@@ -1,4 +1,4 @@
-import { canReport, type GigDevice, type JobRecord, ProblemBy } from "@gigsync/core";
+import { canReport, type GigDevice, type JobRecord, ProblemBy, whyNoReport } from "@gigsync/core";
 import { PROBLEM_HOLD_DAYS, PROBLEM_NOTE_MAX, ProblemReason } from "@gigsync/protocol";
 import { type FormEvent, useState } from "react";
 import { useI18n } from "../i18n.js";
@@ -24,7 +24,8 @@ interface Props {
 /**
  * "Report a problem" on a signed job whose contacts are still here (ADR 0039 §3): a reason from the list and a few
  * words if the owner likes. While it is open both phones keep the contacts, at most 30 days, and either side may mark
- * it resolved.
+ * it resolved. A job it cannot be reported on says why ("once you both sign", "settled"), so the owner sent here from
+ * Help is not left looking for a button.
  */
 export function ProblemCard({ job, them, device, run }: Props) {
   const { t } = useI18n();
@@ -59,7 +60,10 @@ export function ProblemCard({ job, them, device, run }: Props) {
     );
   }
   if (problem?.resolved_at && !job.contacts_removed_at) return <p className={C.faint}>{t("problem.resolved")}</p>;
-  if (!canReport(job, new Date())) return null;
+  if (!canReport(job, new Date())) {
+    const why = whyNoReport(job);
+    return why ? <p className={C.faint}>{t(`problem.why.${why}`)}</p> : null;
+  }
   if (!open)
     return (
       <button type={C.button} className={J.ghost} onClick={() => setOpen(true)}>

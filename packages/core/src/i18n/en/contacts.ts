@@ -19,4 +19,8 @@ export const contacts = {
   "problem.resolve": "Mark resolved",
   "problem.resolved": "The problem was marked resolved.",
   "problem.not_told": "Their app is older, so only this phone knows about it for now.",
+  "problem.why.unsigned": "You can report a problem once you both sign.",
+  "problem.why.never_signed": "This job was never signed, so a problem cannot be reported on it.",
+  "problem.why.restored": "This job was restored from your record, so a problem cannot be reported here.",
+  "problem.why.settled": "This job is settled, so a problem cannot be reported now. In an emergency, call 112.",
 } as const;
