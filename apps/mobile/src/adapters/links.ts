@@ -3,11 +3,19 @@ import { Capacitor } from "@capacitor/core";
 import { codeIn, log, qrLink } from "@gigsync/core";
 import { QR_PARAM, QrCode } from "@gigsync/protocol";
 
+/** The web app's path on its site: the site's root is the website (public/_redirects), which reads no QR link. */
+const APP_PATH = "/app";
+/** The web app's public address, for a link made on a phone, whose own page is the app's files (https://localhost). */
+const PUBLIC_APP_URL = `https://gigsync.network${APP_PATH}`;
+
 /**
- * Where a QR link points: the web app's public address, baked in as VITE_APP_URL, so a QR made in the phone app opens
- * the website for someone without it. Without it (dev, or the website itself), the page's own address.
+ * Where a QR link points: the web app, so a link made in the phone app opens in a browser for someone without it.
+ * VITE_APP_URL when the build sets one (a staging site); else the public web app from a native phone, and this site's
+ * own app on the web, so a link made locally opens locally.
  */
-const APP_URL: string = import.meta.env.VITE_APP_URL?.replace(/\/+$/, "") || window.location.origin;
+const APP_URL: string =
+  import.meta.env.VITE_APP_URL?.replace(/\/+$/, "") ||
+  (Capacitor.isNativePlatform() ? PUBLIC_APP_URL : `${window.location.origin}${APP_PATH}`);
 
 /** The link a person's QR carries. */
 export const myQrLink = (code: QrCode): string => qrLink(APP_URL, code);
