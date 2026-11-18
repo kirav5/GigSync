@@ -14,6 +14,8 @@ export const qr = {
   "qr.copy": "Copy link",
   "qr.copied": "Link copied.",
   "qr.copy_failed": "This phone did not allow copying.",
+  "qr.saved": "QR saved.",
+  "qr.save_failed": "This phone did not save the QR.",
   // Scanning
   "qr.scan": "Scan a QR",
   "qr.scan_close": "Close",
