@@ -1,6 +1,15 @@
 import { type EngagementId, PROBLEM_HOLD_DAYS, PROBLEM_PROTOCOL } from "@gigsync/protocol";
 import { describe, expect, it } from "vitest";
-import { type Clock, ProblemBy, ProblemError, REMOVED_MARK, SETTLE_CAP_DAYS, settle } from "../src/index.js";
+import {
+  type Clock,
+  ProblemBy,
+  ProblemError,
+  REMOVED_MARK,
+  ReportBlock,
+  SETTLE_CAP_DAYS,
+  settle,
+  whyNoReport,
+} from "../src/index.js";
 import {
   ASHA,
   cook,
@@ -226,5 +235,28 @@ describe("Report a problem", () => {
     const [request] = await household.device.request(fanNeed(), [worker.user]);
     const id = request?.engagement.id as EngagementId;
     await expect(household.device.contacts.report(id, { reason: "other" })).rejects.toThrow(ProblemError);
+  });
+});
+
+describe("why a job has no Report a problem", () => {
+  it("says a request must be signed first, and a declined one never was", async () => {
+    const { worker, household, both } = await pair(PROBLEM_PROTOCOL);
+    const [request] = await household.device.request(fanNeed(), [worker.user]);
+    const id = request?.engagement.id as EngagementId;
+    await settle(both);
+    expect(whyNoReport(await job(household, id))).toBe(ReportBlock.unsigned);
+    await worker.device.declineRequest(id);
+    await settle(both);
+    expect(whyNoReport(await job(household, id))).toBe(ReportBlock.neverSigned);
+  });
+
+  it("says nothing while one can be reported, and says settled once the contacts go", async () => {
+    const { worker, household, both } = await pair(PROBLEM_PROTOCOL);
+    const id = await signedFan(household, worker, both);
+    expect(whyNoReport(await job(household, id))).toBeUndefined();
+    await worker.device.deliver(id, "Done");
+    await settle(both);
+    await paid(household, worker, both, id);
+    expect(whyNoReport(await job(household, id))).toBe(ReportBlock.settled);
   });
 });

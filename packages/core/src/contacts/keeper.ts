@@ -8,6 +8,7 @@ import {
   type ProblemReason,
   ProblemState,
   Role,
+  TERMINAL_STATUSES,
 } from "@gigsync/protocol";
 import type { JobContext } from "../job/context.js";
 import type { JobRecord } from "../job/store.js";
@@ -30,6 +31,28 @@ const same = (a: unknown, b: unknown) => canonicalJson(a) === canonicalJson(b);
 /** A problem may be reported on a job both signed whose contacts are still here, and only one at a time. */
 export const canReport = (job: JobRecord, now: Date): boolean =>
   bothSigned(job) && !job.restored && !job.contacts_removed_at && !problemHolds(job.problem, now);
+
+/** Why a job has no "Report a problem", so the card can say so instead of showing nothing. */
+export const ReportBlock = {
+  /** Not signed by both yet: a problem can be reported once it is. */
+  unsigned: "unsigned",
+  /** Over without both signing (declined, expired, cancelled): there never was an agreement to report on. */
+  neverSigned: "never_signed",
+  /** Restored from the record: its contacts never came back, so nothing can be held for a problem. */
+  restored: "restored",
+  /** Settled: its contact details were removed, so there is nothing a problem could hold. */
+  settled: "settled",
+} as const;
+export type ReportBlock = (typeof ReportBlock)[keyof typeof ReportBlock];
+
+/** Why no problem can be reported on the job; undefined when one can, or one is already open. */
+export function whyNoReport(job: JobRecord): ReportBlock | undefined {
+  if (job.restored) return ReportBlock.restored;
+  if (!bothSigned(job))
+    return TERMINAL_STATUSES.has(job.engagement.status) ? ReportBlock.neverSigned : ReportBlock.unsigned;
+  if (job.contacts_removed_at) return ReportBlock.settled;
+  return undefined;
+}
 
 /**
  * The contact details of settled jobs, and the problems that hold them (ADR 0039 §3), on one phone. `sweep` runs on

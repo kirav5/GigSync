@@ -21,4 +21,8 @@ export const contacts: Readonly<Record<keyof typeof en, string>> = {
   "problem.resolve": "हल हो गया",
   "problem.resolved": "समस्या हल मान ली गई।",
   "problem.not_told": "उनका ऐप पुराना है, इसलिए अभी सिर्फ़ इस फ़ोन को इसकी जानकारी है।",
+  "problem.why.unsigned": "दोनों के हस्ताक्षर के बाद आप शिकायत कर सकते हैं।",
+  "problem.why.never_signed": "इस काम पर कभी हस्ताक्षर नहीं हुए, इसलिए इस पर शिकायत नहीं हो सकती।",
+  "problem.why.restored": "यह काम आपके रिकॉर्ड से वापस लाया गया है, इसलिए यहाँ शिकायत नहीं हो सकती।",
+  "problem.why.settled": "इस काम का हिसाब हो चुका है, इसलिए अब शिकायत नहीं हो सकती। आपात स्थिति में 112 पर कॉल करें।",
 };
