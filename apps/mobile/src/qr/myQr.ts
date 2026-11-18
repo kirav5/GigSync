@@ -2,6 +2,7 @@ import { qrOwner, type Storage, showMyQr } from "@gigsync/core";
 import { type MyQr, QrRole } from "@gigsync/protocol";
 import { type Account, AccountRole, apiClient } from "../adapters/account.js";
 import { myQrLink } from "../adapters/links.js";
+import { type Saved, saveFile } from "../adapters/saveFile.js";
 import { qrDataUrl } from "../payments/qr.js";
 
 /** The owner's QR as the screen shows it: the link it carries and the picture of it. */
@@ -40,3 +41,9 @@ export async function loadMyQr(account: Account, storage: Storage, show: (qr: Sh
 
 /** The name a downloaded QR picture is saved under. */
 export const QR_FILE = "gigsync-qr.png";
+
+/** Save QR: the picture handed to the owner as a PNG file (the phone's share sheet, or a download in a browser). */
+export async function saveMyQr(qr: ShownQr): Promise<Saved> {
+  const picture = await (await fetch(qr.image)).blob();
+  return saveFile(QR_FILE, picture);
+}

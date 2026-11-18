@@ -15,6 +15,8 @@ export const qr: Readonly<Record<keyof typeof en, string>> = {
   "qr.copy": "ಲಿಂಕ್ ನಕಲಿಸಿ",
   "qr.copied": "ಲಿಂಕ್ ನಕಲಾಯಿತು.",
   "qr.copy_failed": "ಈ ಫೋನ್ ನಕಲಿಸಲು ಬಿಡಲಿಲ್ಲ.",
+  "qr.saved": "QR ಉಳಿಸಲಾಯಿತು.",
+  "qr.save_failed": "ಈ ಫೋನ್ QR ಉಳಿಸಲಿಲ್ಲ.",
   "qr.scan": "QR ಸ್ಕ್ಯಾನ್ ಮಾಡಿ",
   "qr.scan_close": "ಮುಚ್ಚಿ",
   "qr.scan_label": "ಕ್ಯಾಮೆರಾ, QR ಕೋಡ್ ಹುಡುಕುತ್ತಿದೆ",

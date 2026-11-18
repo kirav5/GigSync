@@ -3,7 +3,6 @@ import type { QrCode } from "@gigsync/protocol";
 import { type ReactNode, useState } from "react";
 import type { Account } from "../../adapters/account.js";
 import { useI18n } from "../../i18n.js";
-import { QR_FILE } from "../../qr/myQr.js";
 import { type ShareWords, useMyQr } from "../../qr/useMyQr.js";
 import { C } from "../../ui/cls.js";
 import { Icon } from "../../ui/Icon.js";
@@ -77,17 +76,10 @@ export function MyQr({
             <Icon name="share" />
             {t("qr.share")}
           </button>
-          {qr ? (
-            <a className={C.secondary} download={QR_FILE} href={qr.image}>
-              <Icon name="download" />
-              {t("qr.download")}
-            </a>
-          ) : (
-            <button type={C.button} className={C.secondary} disabled>
-              <Icon name="download" />
-              {t("qr.download")}
-            </button>
-          )}
+          <button type={C.button} className={C.secondary} disabled={!qr} onClick={() => void mine.save()}>
+            <Icon name="download" />
+            {t("qr.download")}
+          </button>
         </div>
         <button type={C.button} className={C.quiet} disabled={!qr} onClick={() => void mine.copy()}>
           <Icon name="copy" />

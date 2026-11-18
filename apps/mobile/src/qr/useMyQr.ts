@@ -2,8 +2,9 @@ import { log, type MessageKey, type Ports } from "@gigsync/core";
 import { useEffect, useState } from "react";
 import type { Account } from "../adapters/account.js";
 import { copyText } from "../adapters/clipboard.js";
+import { Saved } from "../adapters/saveFile.js";
 import { ShareResult, shareLink } from "../adapters/share.js";
-import { loadMyQr, type ShownQr } from "./myQr.js";
+import { loadMyQr, type ShownQr, saveMyQr } from "./myQr.js";
 import { qrErrorKey } from "./problems.js";
 
 /** What the share sheet says with the link: who it finds, in the owner's words. */
@@ -14,8 +15,8 @@ export interface ShareWords {
 
 /**
  * The owner's QR for My card, and what its buttons do: drawn at once from the code kept on this phone, shared through
- * the phone's share sheet (copied where there is none), or copied. `status` is the line that says how the last of them
- * went. Asking the server for it also tells it the owner's first name and role as they are now, so a scanner sees them.
+ * the phone's share sheet (copied where there is none), saved as a picture, or copied. `status` is the line that says
+ * how the last of them went. Asking the server for it also tells it the owner's first name and role as they are now, so a scanner sees them.
  */
 export function useMyQr(ports: Ports, account: Account) {
   const [qr, setQr] = useState<ShownQr>();
@@ -41,5 +42,16 @@ export function useMyQr(ports: Ports, account: Account) {
     setStatus(result === ShareResult.shared ? "qr.shared" : undefined);
   };
 
-  return { qr, status, copy, share };
+  const save = async () => {
+    if (!qr) return;
+    try {
+      const saved = await saveMyQr(qr);
+      setStatus(saved === Saved.cancelled ? undefined : "qr.saved");
+    } catch (err) {
+      log.warn("my qr not saved", { error: err instanceof Error ? err.name : String(err) });
+      setStatus("qr.save_failed");
+    }
+  };
+
+  return { qr, status, copy, share, save };
 }
