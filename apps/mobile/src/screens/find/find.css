@@ -41,6 +41,8 @@
 
 /* H4: the usual range as a band in a card, under the budget question; then the amounts to tap. */
 .budget-card {
+  display: grid;
+  gap: 14px;
   padding: 14px 16px;
 }
 .readback-actions {
