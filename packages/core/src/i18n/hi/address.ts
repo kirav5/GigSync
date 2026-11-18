@@ -47,6 +47,7 @@ export const address: Readonly<Record<keyof typeof en, string>> = {
   "addr.desk_none": "अभी कोई पता सेव नहीं है। एक जोड़ें, या अभी जहाँ हैं वहाँ का इस्तेमाल करें।",
   "addr.new": "नया पता जोड़ें",
   "addr.using": "चुना गया: {label}, {area}",
+  "addr.use_this": "यही पता रखें",
   "addr.done": "हो गया",
   "map.move_pin": "नक्शा खिसकाकर पिन को दरवाज़े पर लाएँ",
   "map.move_area": "मैप को वहाँ ले जाएँ जहाँ से आप निकलते हैं",

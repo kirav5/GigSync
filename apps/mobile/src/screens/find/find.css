@@ -2,10 +2,26 @@
    the budget band, the readback's two buttons, and the workers found as cards with a round tick. Tokens only, so the
    dark look follows. */
 
-/* H2: saved doors first, as two-line cards (the one in use dark), then the chips. */
+/* H2: saved doors first under "Saved addresses", as two-line cards (the one in use ticked, on a rust edge), then the
+   chips. The card in use stays light: a dark block read as a heading, not as an address to tap. */
 .where-cards {
   display: grid;
   gap: 8px;
+}
+.where-head {
+  margin: 0;
+  color: var(--text2);
+  font-size: var(--fs-label);
+  font-weight: 600;
+}
+.where-card.in-use {
+  border-color: var(--rust);
+  box-shadow: inset 0 0 0 1px var(--rust);
+}
+.where-tick {
+  flex: none;
+  margin-left: auto;
+  color: var(--rust);
 }
 .where-icon {
   flex: none;
@@ -17,7 +33,7 @@
   background: var(--sage);
   color: var(--rust);
 }
-.where-card.on .where-icon {
+.where-card.in-use .where-icon {
   background: var(--rust);
   color: var(--on-accent);
 }

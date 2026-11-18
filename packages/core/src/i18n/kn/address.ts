@@ -46,6 +46,7 @@ export const address: Readonly<Record<keyof typeof en, string>> = {
   "addr.desk_none": "ಇನ್ನೂ ಯಾವ ವಿಳಾಸವೂ ಉಳಿಸಿಲ್ಲ. ಒಂದನ್ನು ಸೇರಿಸಿ, ಅಥವಾ ಈಗ ಇರುವ ಸ್ಥಳ ಬಳಸಿ.",
   "addr.new": "ಹೊಸ ವಿಳಾಸ ಸೇರಿಸಿ",
   "addr.using": "ಬಳಸುತ್ತಿರುವುದು: {label}, {area}",
+  "addr.use_this": "ಈ ವಿಳಾಸ ಬಳಸಿ",
   "addr.done": "ಆಯಿತು",
   "map.move_pin": "ನಕ್ಷೆಯನ್ನು ಸರಿಸಿ ಪಿನ್ ಅನ್ನು ಬಾಗಿಲಿನ ಮೇಲೆ ತನ್ನಿ",
   "map.move_area": "ನೀವು ಹೊರಡುವ ಜಾಗಕ್ಕೆ ಮ್ಯಾಪ್ ಸರಿಸಿ",
