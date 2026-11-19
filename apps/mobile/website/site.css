@@ -1020,15 +1020,6 @@ summary:hover {
   padding-left: 42px;
   max-width: 650px;
 }
-.privacy-example {
-  background: #e9ddc5;
-  padding: 18px;
-  margin: 18px 0;
-  font-size: 13px;
-}
-.privacy-example p {
-  margin-top: 7px;
-}
 
 /* 03 community */
 .community-section {
