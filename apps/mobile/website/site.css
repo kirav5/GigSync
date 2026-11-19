@@ -3239,7 +3239,7 @@ body.flying .hero-visual .community-art {
   --p: 1;
 }
 .jobs-section[data-motion="true"] {
-  height: 300vh;
+  height: 360vh;
 }
 .jobs-stage {
   position: relative;
@@ -3300,80 +3300,143 @@ body.flying .hero-visual .community-art {
 }
 .jobs-rows {
   display: grid;
-  gap: 10px;
+  border-top: 1px solid rgba(214, 197, 169, 0.16);
 }
 .jobs-row {
-  display: grid;
-  grid-template-columns: 104px repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  border-bottom: 1px solid rgba(214, 197, 169, 0.16);
 }
+.jobs-row-head {
+  margin: 0;
+  font: inherit;
+}
+/* each step is a single line until it opens: its number, its name (the phone's tab says the same), a chevron */
 .jobs-row-title {
-  font-size: 11.5px;
-  letter-spacing: 1.5px;
-  line-height: 1.4;
-  text-transform: uppercase;
-  color: #a48a66;
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 3px;
-  border-right: 1px solid rgba(214, 197, 169, 0.16);
-  padding-right: 10px;
+  align-items: baseline;
+  gap: 16px;
+  padding: 13px 4px 13px 2px;
+  border: 0;
+  background: none;
+  color: #a48a66;
+  font: 400 22px / 1.2 var(--serif);
+  text-align: left;
+  cursor: pointer;
   transition: color 0.3s;
 }
-.jobs-row-title span {
-  font: italic 13px var(--serif);
-  letter-spacing: 0;
-  text-transform: none;
+.jobs-row-title:hover {
+  color: #e6d6b9;
+}
+.jobs-row-title:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.jobs-row-num {
+  min-width: 22px;
+  font: italic 14px var(--serif);
+  font-variant-numeric: tabular-nums;
   color: #8f6e50;
   transition: color 0.3s;
 }
+.jobs-row-name {
+  flex: 1;
+}
+.jobs-row-chev {
+  align-self: center;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-3px) rotate(45deg);
+  transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
 .jobs-row[data-active="true"] .jobs-row-title {
   color: #f4e8cf;
+  cursor: default;
 }
-.jobs-row[data-active="true"] .jobs-row-title span {
+.jobs-row[data-active="true"] .jobs-row-num {
   color: var(--gold);
+}
+.jobs-row[data-active="true"] .jobs-row-chev {
+  transform: translateY(2px) rotate(-135deg);
+}
+/* the open step's four cards: the panel grows from nothing, then the cards rise in one after another */
+.jobs-cards {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.jobs-row[data-active="true"] .jobs-cards {
+  grid-template-rows: 1fr;
+}
+.jobs-cards-inner {
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding-bottom: 0;
+  transition: padding-bottom 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.jobs-row[data-active="true"] .jobs-cards-inner {
+  padding-bottom: 16px;
 }
 .job {
   position: relative;
-  isolation: isolate;
-  min-height: 56px;
+  min-height: 62px;
   border: 1px solid rgba(214, 197, 169, 0.3);
-  padding: 8px 10px 8px 28px;
+  padding: 10px 12px 10px 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 3px;
-  font-size: 14.5px;
-  line-height: 1.2;
-  overflow: hidden;
-  /* The fill and the words share one edge: two background layers, the words' colour on top (clipped to the text),
-     earth over the filled part and light over the rest, so no letter is ever dark on dark while the fill sweeps.
-     Nothing inside a chip takes an opacity of its own, as Safari leaves such text out of the clip. */
-  --edge: calc(var(--fill, 1) * 100%);
-  color: transparent;
-  background:
-    linear-gradient(to right, var(--earth) var(--edge), #d9c8aa var(--edge)),
-    linear-gradient(to right, #eadbb9 var(--edge), transparent var(--edge));
-  -webkit-background-clip: text, padding-box;
-  background-clip: text, padding-box;
+  font-size: 15px;
+  line-height: 1.25;
+  color: #f4e8cf;
+  background: rgba(234, 219, 185, 0.04);
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 0.3s,
+    background-color 0.3s;
 }
-.job[data-filled="true"] {
+.jobs-row[data-active="true"] .job {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.12s;
+}
+.jobs-row[data-active="true"] .job:nth-child(2) {
+  transition-delay: 0.18s;
+}
+.jobs-row[data-active="true"] .job:nth-child(3) {
+  transition-delay: 0.24s;
+}
+.jobs-row[data-active="true"] .job:nth-child(4) {
+  transition-delay: 0.3s;
+}
+.job:hover {
   border-color: #eadbb9;
+  background-color: rgba(234, 219, 185, 0.08);
 }
 .job-check {
   position: absolute;
-  left: 10px;
+  left: 12px;
   top: 50%;
+  width: 18px;
+  height: 18px;
   transform: translateY(-50%);
-  font-style: normal;
-  font-size: 13.5px;
-  color: var(--rust);
-  opacity: var(--fill, 1);
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .job small {
-  font-size: 11.5px;
-  line-height: 1.3;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #cfbea4;
 }
 .jobs-bottom {
   display: flex;
@@ -3594,8 +3657,9 @@ body.flying .hero-visual .community-art {
   justify-items: center;
   align-content: center;
   gap: 3px;
-  font-size: 11px;
-  letter-spacing: 0.4px;
+  font-size: 9.5px;
+  letter-spacing: 0;
+  white-space: nowrap;
   color: #a78d6c;
   border-top: 2px solid transparent;
   transition:
@@ -3610,6 +3674,9 @@ body.flying .hero-visual .community-art {
   stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+.jobs-tabs span {
+  cursor: pointer;
 }
 .jobs-tabs span[data-active="true"] {
   color: var(--rust);
@@ -3654,55 +3721,28 @@ body.flying .hero-visual .community-art {
   .jobs-inner {
     gap: 28px;
   }
-  .jobs-row {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 4px 6px;
-  }
   .jobs-row-title {
-    grid-column: 1 / -1;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: baseline;
-    gap: 8px;
-    border-right: 0;
-    padding: 0;
-  }
-  .job {
-    font-size: 14.5px;
-    padding-left: 26px;
+    font-size: 20px;
   }
 }
-@media (max-width: 1100px) and (max-height: 820px) {
+/* a wide screen that is short: the lead and the cards' second lines give way first */
+@media (min-width: 760px) and (max-height: 780px) {
   .jobs-lead {
     display: none;
   }
   .jobs-top {
     margin-bottom: 14px;
   }
+  .jobs-row-title {
+    padding-block: 10px;
+  }
 }
-@media (max-width: 1100px) and (max-height: 720px) {
+@media (min-width: 760px) and (max-height: 680px) {
   .job {
-    min-height: 44px;
+    min-height: 46px;
   }
   .job small {
     display: none;
-  }
-}
-@media (max-width: 1100px) and (max-height: 620px) {
-  .jobs-stage {
-    padding: 12px 0;
-  }
-  .jobs-top {
-    margin-bottom: 10px;
-  }
-  .jobs-top h2 {
-    font-size: 30px;
-  }
-  .jobs-rows {
-    gap: 6px;
-  }
-  .job {
-    min-height: 40px;
   }
 }
 @media (max-width: 1000px) {
@@ -3713,56 +3753,26 @@ body.flying .hero-visual .community-art {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 22px;
   }
-  .jobs-top {
-    margin-bottom: 12px;
-  }
   .jobs-top h2 {
     font-size: 30px;
   }
-  .jobs-lead {
-    display: none;
-  }
-  .jobs-rows {
-    gap: 7px;
-  }
-  .jobs-row {
-    gap: 4px 5px;
-  }
-  .jobs-row-title {
-    font-size: 11px;
-  }
-  .jobs-row-title span {
-    font-size: 13.5px;
-  }
   .job {
-    min-height: 44px;
-    font-size: 13.5px;
-    padding: 6px 6px 6px 22px;
-  }
-  .job small {
-    display: none;
+    padding-left: 36px;
+    font-size: 14px;
   }
   .job-check {
-    left: 7px;
-    font-size: 12.5px;
+    left: 10px;
   }
 }
+/* a phone: in flow, the steps first and the phone under them */
 @media (max-width: 759px) {
-  .jobs-section[data-motion="true"] {
-    height: auto;
-  }
-  .jobs-section[data-motion="true"] .jobs-stage {
-    position: relative;
-    top: auto;
-    min-height: 0;
-  }
   .jobs-stage {
     min-height: 0;
     padding: 64px 0;
   }
   .jobs-inner {
     grid-template-columns: 1fr;
-    gap: 40px;
+    gap: 36px;
   }
   .jobs-top {
     margin-bottom: 22px;
@@ -3770,77 +3780,27 @@ body.flying .hero-visual .community-art {
   .jobs-top h2 {
     font-size: 34px;
   }
-  .jobs-lead {
-    display: block;
-  }
-  .jobs-rows {
-    gap: 10px;
-  }
-  .jobs-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
-  .jobs-row-title {
-    padding: 6px 0 0;
-    font-size: 11.5px;
-  }
-  .jobs-row-title span {
-    font-size: 13px;
-  }
-  .job {
-    min-height: 56px;
-    font-size: 14.5px;
-    padding: 8px 10px 8px 28px;
-  }
-  .job small {
-    display: block;
-  }
-  .job-check {
-    left: 10px;
-    font-size: 13.5px;
-  }
   .jp-phone.jobs-phone {
-    width: min(292px, 78vw);
+    width: min(270px, 72vw);
   }
 }
 @media (max-width: 480px) {
-  .jobs-row {
+  .jobs-cards-inner {
     grid-template-columns: 1fr;
   }
   .job {
     min-height: 0;
   }
-  .jobs-bottom {
-    flex-direction: column;
-    align-items: start;
-    gap: 10px;
-  }
-}
-@media (max-height: 800px) and (min-width: 1101px) {
-  .jobs-lead {
-    display: none;
-  }
-  .jobs-top {
-    margin-bottom: 16px;
-  }
-  .jobs-rows {
-    gap: 8px;
-  }
-  .job {
-    min-height: 48px;
-  }
-}
-@media (max-height: 720px) and (min-width: 1101px) {
-  .job {
-    min-height: 44px;
-  }
-  .job small {
-    display: none;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .jp-scr.off {
     opacity: 0;
+  }
+  .jobs-cards,
+  .jobs-cards-inner,
+  .job,
+  .jobs-row-chev {
+    transition: none;
   }
 }
 
@@ -3922,93 +3882,6 @@ body.flying .hero-visual .community-art {
     width: min(100%, 56svh, calc((100svh - 350px) * 1.08));
     max-width: none;
     margin: 0 auto;
-  }
-}
-
-/* ---- behind the scenes on a phone: the same sweep, one row at a time. The row's four cards stand beside the phone,
-   as on a wide screen, so the phone keeps enough height to be read; the rows change as the scroll fills them. ---- */
-@keyframes jobs-row-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-}
-@media (max-width: 759.98px) {
-  .jobs-section[data-motion="true"] {
-    height: 300svh;
-  }
-  .jobs-section[data-motion="true"] .jobs-stage {
-    position: sticky;
-    top: 0;
-    height: 100svh;
-    min-height: 0;
-    padding: 18px 0 14px;
-    overflow: hidden;
-  }
-  .jobs-section[data-motion="true"] .jobs-inner {
-    align-self: stretch;
-    width: calc(100% - 40px);
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto minmax(0, 1fr) auto auto;
-    gap: 12px;
-    align-items: center;
-  }
-  .jobs-section[data-motion="true"] .jobs-left {
-    display: contents;
-  }
-  .jobs-section[data-motion="true"] .jobs-top {
-    grid-column: 1 / -1;
-    margin: 0;
-  }
-  .jobs-section[data-motion="true"] .jobs-top .eyebrow {
-    margin-bottom: 8px;
-  }
-  .jobs-section[data-motion="true"] .jobs-top h2 {
-    font-size: clamp(26px, 7.6vw, 40px);
-  }
-  .jobs-section[data-motion="true"] .jobs-lead,
-  .jobs-section[data-motion="true"] .job small,
-  .jobs-section[data-motion="true"] .jobs-phone figcaption {
-    display: none;
-  }
-  .jobs-section[data-motion="true"] .jobs-row {
-    display: none;
-  }
-  .jobs-section[data-motion="true"] .jobs-row[data-active="true"] {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
-    animation: jobs-row-in 0.35s ease;
-  }
-  .jobs-section[data-motion="true"] .jobs-row-title {
-    padding: 0 0 2px;
-    font-size: 12.5px;
-  }
-  .jobs-section[data-motion="true"] .job {
-    min-height: 58px;
-    padding: 8px 8px 8px 26px;
-    font-size: 14.5px;
-    line-height: 1.25;
-  }
-  .jobs-section[data-motion="true"] .job-check {
-    left: 8px;
-  }
-  .jobs-section[data-motion="true"] .jobs-phone-col {
-    grid-column: 2;
-    grid-row: 2;
-  }
-  .jobs-section[data-motion="true"] .jp-phone.jobs-phone {
-    width: min(100vw - 170px, (100svh - 216px) / 2.12);
-  }
-  .jobs-section[data-motion="true"] .jobs-bottom {
-    grid-column: 1 / -1;
-    flex-direction: row;
-    margin: 0;
-  }
-  .jobs-section[data-motion="true"] .jobs-track {
-    grid-column: 1 / -1;
-    margin: 0;
   }
 }
 
