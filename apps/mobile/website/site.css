@@ -512,16 +512,22 @@ h2 {
 .worker-paths {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 36px;
+  gap: 0 36px;
   margin-top: 52px;
-  /* each card is as tall as its own words, so one opening does not stretch the others */
-  align-items: start;
+  /* The cards share their rows (drawing, term, headline, words, link), so the headlines and links line up across
+     the three. An open card's longer text runs into the last, flexible row, so one opening does not move the
+     others' words. */
+  grid-template-rows: repeat(5, auto) 1fr;
 }
 /* A card is always the panel it opens into: its padding sits outside the column (the negative margin) and its
    border is there but clear. Opening only colours it in, so the words never move; ideas.js glides the height. */
 .path-card {
   --card-pad: 16px;
   position: relative;
+  grid-row: span 6;
+  display: grid;
+  grid-template-rows: subgrid;
+  align-content: start;
   margin-inline: calc(-1 * var(--card-pad));
   padding: 22px var(--card-pad) 10px;
   border: 1px solid transparent;
@@ -580,6 +586,7 @@ h2 {
 }
 .path-card .text-link {
   margin-top: 15px;
+  align-self: start;
   width: fit-content;
   font-size: 14.5px;
 }
@@ -618,6 +625,8 @@ h2 {
   color: var(--rust);
 }
 .path-more {
+  grid-row: 4 / -1;
+  align-self: start;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1449,17 +1458,23 @@ body.flying .hero-visual .community-art {
 @media (max-width: 700px) {
   .worker-paths {
     grid-template-columns: 1fr;
+    grid-template-rows: none;
     gap: 25px;
   }
   /* the page keeps a 16px gutter on a phone, so the panel reaches only part of the way into it */
   .path-card {
     --card-pad: 10px;
+    grid-row: auto;
     display: grid;
+    grid-template-rows: none;
     grid-template-columns: 62px 1fr;
     column-gap: 20px;
   }
   .path-card > :not(.path-art) {
     grid-column: 2;
+  }
+  .path-more {
+    grid-row: auto;
   }
   .path-card.open {
     --x-room: 0px;
