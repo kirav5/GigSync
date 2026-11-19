@@ -177,42 +177,6 @@
 .mo-centre h1 em {
   color: var(--gold);
 }
-.mo-flank {
-  position: absolute;
-  top: var(--fy);
-  margin: 0;
-  transform: translateY(-50%);
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 21px;
-  color: #d1b88e;
-  white-space: nowrap;
-}
-.mo-flank-left {
-  right: calc(50% + var(--d) * 0.5 + 34px);
-}
-.mo-flank-right {
-  left: calc(50% + var(--d) * 0.5 + 34px);
-}
-.mo-flank::before,
-.mo-flank::after {
-  content: "";
-  display: inline-block;
-  vertical-align: middle;
-  width: 26px;
-  height: 1px;
-  background: rgba(216, 178, 118, 0.5);
-}
-.mo-flank-left::before,
-.mo-flank-right::after {
-  display: none;
-}
-.mo-flank-left::after {
-  margin-left: 14px;
-}
-.mo-flank-right::before {
-  margin-right: 14px;
-}
 .mo-foot > *,
 .mo-button {
   animation: mo-rise 1.1s 0.75s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
@@ -257,8 +221,7 @@
   color: #fff1d4;
 }
 .mo-note,
-.mo-caption,
-.mo-flank {
+.mo-caption {
   display: none;
 }
 .mo-note {
@@ -315,13 +278,9 @@
   .mo-aside {
     margin: 0;
   }
-  .mo-flank,
   .mo-note,
   .mo-caption {
     display: flex;
-  }
-  .mo-flank {
-    display: block;
   }
   .mo-foot {
     position: absolute;
