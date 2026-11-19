@@ -1,159 +1,123 @@
-// "Behind the scenes": a tall section whose stage sticks while the page scrolls through it. Twenty cards in five rows
-// fill one after another as the scroll advances, and the phone beside them shows the screen for the row being filled,
-// each part of the screen lighting up as its card fills. The progress the cards see chases the scroll position a
-// little behind it, so a wheel step or a trackpad flick never lands as a jump. A phone plays the same sweep one row at a
-// time, and Reduce Motion leaves it on: the cards only fill as far as the reader scrolls, and the stylesheet takes the
-// screens' slide away. Short screens get the stage in flow, every card filled and the first screen showing. Plain browser JS on purpose: the website loads
-// no app code.
+// "How it works": five steps as an accordion beside a phone. One step is open at a time; its four cards show and the
+// phone shows that step's screen and tab. A reader opens a step by clicking its row (or the phone's tab), or by
+// scrolling: on a wide screen the stage sticks while the page scrolls through the section, and the scroll walks the
+// steps from 01 to 05. A click there also moves the scroll to that step, so scrolling on carries on from it. Phones and
+// short screens get the section in flow, opened by tap only. Plain browser JS on purpose: the website loads no app code.
 
 const MOTION = "(min-width: 760px)";
-/** A phone tall enough for the stage. A media query, so the browser's bars sliding away do not flip it. */
-const PHONE = "(max-width: 759.98px) and (min-height: 540px)";
-const FILL = "--fill";
+const REDUCED = "(prefers-reduced-motion: reduce)";
 const PROGRESS = "--p";
-const FILLED = "filled";
-const DONE = "done";
 const ACTIVE = "active";
 const ON = "on";
 const OFF = "off";
 const NAME = "name";
 const TRUE = "true";
 const FALSE = "false";
-/** Cards start one unit apart and each takes this many units to fill, so neighbours overlap a little. */
-const CARD_WINDOW = 1.6;
-/** The time, in milliseconds, for the shown progress to close most of the gap to the scroll: the sweep's lag. */
-const CHASE_MS = 120;
-/** A frame longer than this (a background tab, a stall) is treated as this long, so the sweep never leaps. */
-const MAX_FRAME_MS = 50;
-/** Close enough to stop chasing. */
-const SETTLED = 0.0005;
-/** A card counts as filled, and its part of the screen lights up, once its fill passes this point. */
-const COUNTED_AT = 0.5;
-/** The pinned distance is shared out as a short lead-in, the sweep, and a hold with every card filled. */
-const LEAD_IN = 0.06;
-const SWEEP = 0.76;
+const EXPANDED = "aria-expanded";
+const FIRST_STEP = 0;
 /** A viewport shorter than this cannot hold the stage, so it gets the layout in flow instead. */
-const MIN_VIEWPORT_PX = 560;
-const FIRST_SCREEN = 0;
+const MIN_VIEWPORT_PX = 640;
+/** The pinned distance is shared out as a short lead-in, the steps, and a short hold on the last one. */
+const LEAD_IN = 0.04;
+const SWEEP = 0.9;
+/** After a click scrolls the page, the scroll is not read again until it settles, so no step in between flashes. */
+const CLICK_LOCK_MS = 900;
 /** The width, in pixels, the screens are drawn at; the phone scales them to its own width. */
 const DRAWN_SCREEN_PX = 276;
 const SCALE = "--k";
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
-const ease = (p) => p * p * (3 - 2 * p);
+const pad = (n) => String(n).padStart(2, "0");
 
 /**
  * @param {{
- *   section: HTMLElement, stage: HTMLElement, jobs: Iterable<HTMLElement>, rows: Iterable<HTMLElement>,
- *   count: HTMLElement, track: HTMLElement, screens: Iterable<HTMLElement>, tabs: Iterable<HTMLElement>,
- *   phoneScreen: HTMLElement, screenName: HTMLElement, screenIndex: HTMLElement
+ *   section: HTMLElement, stage: HTMLElement, rows: Iterable<HTMLElement>, count: HTMLElement, track: HTMLElement,
+ *   screens: Iterable<HTMLElement>, tabs: Iterable<HTMLElement>, phoneScreen: HTMLElement,
+ *   screenName: HTMLElement, screenIndex: HTMLElement
  * }} parts
  */
 export function startJobs(parts) {
-  const { section, stage, jobs, rows, count, track, screens, tabs, phoneScreen, screenName, screenIndex } = parts;
+  const { section, stage, rows, count, track, screens, tabs, phoneScreen, screenName, screenIndex } = parts;
   const motion = matchMedia(MOTION);
-  const phone = matchMedia(PHONE);
-  const cards = [...jobs];
+  const reduced = matchMedia(REDUCED);
   const rowList = [...rows];
   const screenList = [...screens];
   const tabList = [...tabs];
-  const span = cards.length - 1 + CARD_WINDOW;
-  // the part of a screen that lights up with each card
-  const groupOf = cards.map((card) => Number(card.dataset.group ?? 0));
-  const partOf = cards.map(
-    (card, i) => screenList[groupOf[i]]?.querySelector(`[data-item="${card.dataset.item}"]`) ?? null,
-  );
+  const steps = rowList.length;
   let active = -1;
-  let enabled = false;
+  let pinned = false;
   let top = 0;
   let distance = 1;
-  let shown = 0;
-  let target = 0;
+  let lockedUntil = 0;
   let frame = 0;
-  let lastFrame = 0;
 
-  /** Shows one screen: the old one slides away to the left, the new one slides in from the right. */
-  function showScreen(index) {
+  /** Opens one step: its row and cards, its screen (sliding in from the right) and its tab. */
+  function show(index) {
     if (index === active) return;
+    rowList.forEach((row, i) => {
+      const open = i === index;
+      row.dataset[ACTIVE] = open ? TRUE : FALSE;
+      row.querySelector("button")?.setAttribute(EXPANDED, open ? TRUE : FALSE);
+      const cards = row.querySelector(".jobs-cards");
+      if (cards) cards.inert = !open;
+    });
     screenList.forEach((screen, i) => {
       screen.classList.toggle(OFF, i === active);
       screen.classList.toggle(ON, i === index);
     });
-    for (const list of [rowList, tabList]) {
-      list.forEach((node, i) => {
-        node.dataset[ACTIVE] = i === index ? TRUE : FALSE;
-      });
-    }
-    screenName.textContent = screenList[index].dataset[NAME] ?? "";
+    tabList.forEach((tab, i) => {
+      tab.dataset[ACTIVE] = i === index ? TRUE : FALSE;
+    });
+    screenName.textContent = screenList[index]?.dataset[NAME] ?? "";
     screenIndex.textContent = `${index + 1} / ${screenList.length}`;
+    count.textContent = pad(index + 1);
+    track.style.setProperty(PROGRESS, ((index + 1) / steps).toFixed(4));
     active = index;
   }
 
-  function paint(progress) {
-    let filled = 0;
-    let current = -1;
-    cards.forEach((card, i) => {
-      const fill = ease(clamp01((progress * span - i) / CARD_WINDOW));
-      card.style.setProperty(FILL, fill.toFixed(3));
-      const done = fill >= COUNTED_AT;
-      card.dataset[FILLED] = done ? TRUE : FALSE;
-      if (partOf[i]) partOf[i].dataset[DONE] = done ? TRUE : FALSE;
-      if (done) filled += 1;
-      else if (current < 0) current = i;
-    });
-    count.textContent = String(filled);
-    track.style.setProperty(PROGRESS, progress.toFixed(4));
-    return current < 0 ? screenList.length - 1 : groupOf[current];
-  }
+  /** The scroll position, within the pinned section, at which a step sits in the middle of its share. */
+  const scrollFor = (index) => top + distance * (LEAD_IN + (SWEEP * (index + 0.5)) / steps);
 
-  function rest() {
-    section.dataset.motion = FALSE;
-    paint(1);
-    showScreen(FIRST_SCREEN);
+  function choose(index) {
+    show(index);
+    if (!pinned) return;
+    lockedUntil = performance.now() + CLICK_LOCK_MS;
+    window.scrollTo({ top: scrollFor(index), behavior: reduced.matches ? "auto" : "smooth" });
   }
 
   function measure() {
     phoneScreen.style.setProperty(SCALE, (phoneScreen.clientWidth / DRAWN_SCREEN_PX).toFixed(4));
-    enabled = phone.matches || (motion.matches && window.innerHeight >= MIN_VIEWPORT_PX);
-    if (!enabled) {
-      rest();
-      return;
-    }
-    section.dataset.motion = TRUE;
+    pinned = motion.matches && window.innerHeight >= MIN_VIEWPORT_PX;
+    section.dataset.motion = pinned ? TRUE : FALSE;
+    if (!pinned) return;
     const rect = section.getBoundingClientRect();
     top = rect.top + window.scrollY;
     distance = Math.max(1, rect.height - stage.getBoundingClientRect().height);
     onScroll();
   }
 
-  function step(now) {
+  function read() {
     frame = 0;
-    const gap = target - shown;
-    if (Math.abs(gap) < SETTLED) {
-      shown = target;
-      lastFrame = 0;
-      showScreen(paint(shown));
-      return;
-    }
-    // exponential chase on wall-clock time: the same sweep on a 60 Hz and a 120 Hz screen
-    const elapsed = lastFrame ? Math.min(MAX_FRAME_MS, now - lastFrame) : MAX_FRAME_MS / 3;
-    lastFrame = now;
-    shown += gap * (1 - Math.exp(-elapsed / CHASE_MS));
-    showScreen(paint(shown));
-    frame = requestAnimationFrame(step);
+    if (!pinned || performance.now() < lockedUntil) return;
+    const progress = clamp01(((window.scrollY - top) / distance - LEAD_IN) / SWEEP);
+    show(Math.min(steps - 1, Math.floor(progress * steps)));
   }
 
   function onScroll() {
-    if (!enabled) return;
-    const raw = clamp01((window.scrollY - top) / distance);
-    target = clamp01((raw - LEAD_IN) / SWEEP);
-    if (!frame) frame = requestAnimationFrame(step);
+    if (pinned && !frame) frame = requestAnimationFrame(read);
   }
 
+  rowList.forEach((row, i) => {
+    row.querySelector("button")?.addEventListener("click", () => choose(i));
+  });
+  tabList.forEach((tab, i) => {
+    tab.addEventListener("click", () => choose(i));
+  });
+
+  show(FIRST_STEP);
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", measure);
   motion.addEventListener("change", measure);
-  phone.addEventListener("change", measure);
   if ("ResizeObserver" in window) new ResizeObserver(measure).observe(document.body);
   if (document.fonts?.ready) document.fonts.ready.then(measure);
   window.addEventListener("load", measure);
