@@ -1,4 +1,4 @@
-// The three idea cards under "Starting with workers". "Explore this idea" opens a card in place to its longer text;
+// The three idea cards under "Starting with workers". "See how it works" opens a card in place to its longer text;
 // it closes again when the mouse moves away, on a tap or click elsewhere, when keyboard focus leaves it, and on its
 // ×, its Close or Escape. The card's height glides between the two states and the words that arrive fade up, while
 // site.css fades the panel's colours in; the words already on screen never move.
