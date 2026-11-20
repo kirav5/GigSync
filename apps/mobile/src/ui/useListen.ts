@@ -1,6 +1,5 @@
 import type { SpeechStatus, SpeechVendor } from "@gigsync/plugin-speech";
 import { type RefObject, useEffect, useRef, useState } from "react";
-import { chosenModel } from "../adapters/model.js";
 import { needsExplaining, Permission } from "../adapters/permissions.js";
 import {
   ListenRefusal,
@@ -62,12 +61,6 @@ export function useListen({ hints, onDeviceOnly, maxLength, field, setText, onHe
   /** What the field held when a dictation began; the heard words follow it. */
   const kept = useRef("");
   const withKept = (words: string) => [kept.current, words].filter(Boolean).join(" ");
-
-  // A secret answer (the lowest rate) is read only by a model on this phone, never GigSync's (ADR 0052).
-  useEffect(() => {
-    chosenModel.holdOnPhone(onDeviceOnly);
-    return () => chosenModel.holdOnPhone(false);
-  }, [onDeviceOnly]);
 
   // A fetch the line speaks of ends: ready, the mic works and the line clears; not coming, it says to type unless a
   // company's recognizer is left to ask about.

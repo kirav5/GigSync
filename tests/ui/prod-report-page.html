@@ -110,7 +110,7 @@
   </section>
   <section>
     <h2>Where the model's time went</h2>
-    <p class="meta">Every call either phone made to the Mac Studio, by what it was for. The full log, with every prompt and reply, is <a href="model-calls.jsonl" target="_blank" rel="noopener">model-calls.jsonl</a> (one JSON line per call).</p>
+    <p class="meta">Every call either phone made to a generative model, by what it was for. The full log, with every prompt and reply, is <a href="model-calls.jsonl" target="_blank" rel="noopener">model-calls.jsonl</a> (one JSON line per call).</p>
     <div class="scroll"><table id="purposes"></table></div>
   </section>
   <section>
@@ -138,7 +138,7 @@
     "5-customer-job": "Customer: the job", "6-worker-job": "Worker: the job", "x-worker-at-stop": "Worker: where it stopped",
     "x-customer-at-stop": "Customer: where it stopped" };
 
-  $("meta").textContent = `${DATA.kinds} kinds, one worker and one customer each, against Neon and the Mac Studio model. Run ${DATA.run}.`;
+  $("meta").textContent = `${DATA.kinds} kinds, one worker and one customer each, against Neon. Run ${DATA.run}.`;
   const tiles = [
     [DATA.signed, "both signed"], [DATA.found, "customer found the worker"], [DATA.stopped, "stopped part-way"],
     [`${DATA.median_s.card}s`, "median card by chat"], [`${DATA.median_s.find}s`, "median Find chat"],

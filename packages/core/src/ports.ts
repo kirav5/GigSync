@@ -164,7 +164,7 @@ export interface Ports {
   clock: Clock;
   /** Absent on a device with no embedding model; every reader then uses the word lists alone. */
   embedder?: Embedder;
-  /** Absent on a device with no reader; Find then reads with GigSync's model or the word lists. */
+  /** Absent on a device with no reader; Find then reads with the generative model, if any, or the word lists. */
   reader?: Reader;
 }
 

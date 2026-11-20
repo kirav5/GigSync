@@ -5,6 +5,9 @@ model) and [ADR 0040](0040-on-phone-model-router.md) (chat text stays on the pho
 analysis ([cloud-model-for-lite-phones.md](../gigsync/cloud-model-for-lite-phones.md), PR #26) planned, on GigSync's
 own computer instead of Workers AI.
 
+**Retired 2026-11-21 by [ADR 0070](0070-no-gigsync-model-server.md):** the API's model route, the Auto choice and
+the tunnel settings are gone; what follows records the removed design.
+
 **Note 2026-11-15:** the app no longer offers, downloads or loads a generative model on any platform: the web
 app's WebLLM offer (about 1,050 MB) is gone, as the Android and iPhone apps never had one. Auto is GigSync's model,
 then lite mode, and the Privacy switch's off is lite mode; the understanding pack ([ADR 0042](0042-meaning-router-small-embedding-model.md),

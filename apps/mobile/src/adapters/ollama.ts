@@ -8,7 +8,7 @@ const GENERATE_PATH = "/api/generate";
 
 /**
  * DEV ONLY: a model served by Ollama on this computer, so a development build can be tried with a local model instead
- * of GigSync's. Chosen with `VITE_OLLAMA_MODEL` (model.ts); no screen offers it.
+ * of lite mode. Chosen with `VITE_OLLAMA_MODEL` (model.ts); no screen offers it.
  */
 export class OllamaModel implements Model {
   constructor(

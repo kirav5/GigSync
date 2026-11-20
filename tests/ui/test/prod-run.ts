@@ -3,8 +3,8 @@ import type { Locator, Page, Request } from "@playwright/test";
 import { en } from "../../../packages/core/dist/i18n/en/index.js";
 
 /**
- * What the production run (prod-kinds.spec.ts) keeps for each kind: every model call either phone made, with its
- * prompt, reply, purpose and timing (model-calls.jsonl), each chat as turns, and each agent line marked as the app's
+ * What the production run (prod-kinds.spec.ts) keeps for each kind: every model call either phone made to the
+ * development build's Ollama (adapters/ollama.ts), with its prompt, reply, purpose and timing (model-calls.jsonl), each chat as turns, and each agent line marked as the app's
  * own fixed words or the model's. Written under tests/ui/prod-runs/<run>/, which git ignores.
  */
 
@@ -12,9 +12,10 @@ export const RUN_ID = process.env.PROD_RUN_ID ?? new Date().toISOString().slice(
 export const RUN_DIR = new URL(`../prod-runs/${RUN_ID}/`, import.meta.url).pathname;
 const MODEL_LOG = `${RUN_DIR}model-calls.jsonl`;
 const CONSOLE_LOG = `${RUN_DIR}console.jsonl`;
-const GENERATE = "/v1/model/generate";
+/** Ollama's endpoint, which a development build given `VITE_OLLAMA_MODEL` calls. */
+const GENERATE = "/api/generate";
 
-/** Each prompt by the words it opens with, for calls from an app that sends no purpose. */
+/** Each prompt by the words it opens with: Ollama's request carries no purpose. */
 const PROMPT_OPENS: ReadonlyArray<readonly [string, string]> = [
   ["You read one message", "read_turn"],
   ["A household in India wants", "price"],
@@ -44,14 +45,21 @@ export function recordModel(page: Page, kind: string, side: Side): void {
 
 const line = (entry: Record<string, unknown>) => appendFileSync(MODEL_LOG, `${JSON.stringify(entry)}\n`);
 
+/** What Ollama's reply carries that the run keeps: the answer and its token counts. */
+interface OllamaReply {
+  response?: string;
+  prompt_eval_count?: number;
+  eval_count?: number;
+}
+
 async function logCall(req: Request, kind: string, side: Side) {
   if (!req.url().endsWith(GENERATE)) return;
-  const sent = (req.postDataJSON() ?? {}) as { prompt?: string; purpose?: string; max_tokens?: number };
+  const sent = (req.postDataJSON() ?? {}) as { prompt?: string; options?: { num_predict?: number } };
   const res = await req.response();
-  const body = res ? ((await res.json().catch(() => ({}))) as { text?: string | null; usage?: unknown }) : {};
+  const body = res ? ((await res.json().catch(() => ({}))) as OllamaReply) : {};
   const timing = req.timing();
   const prompt = sent.prompt ?? "";
-  const purpose = sent.purpose ?? PROMPT_OPENS.find(([opens]) => prompt.startsWith(opens))?.[1] ?? "unknown";
+  const purpose = PROMPT_OPENS.find(([opens]) => prompt.startsWith(opens))?.[1] ?? "unknown";
   line({
     kind,
     side,
@@ -59,10 +67,10 @@ async function logCall(req: Request, kind: string, side: Side) {
     purpose,
     ms: Math.round(timing.responseEnd),
     status: res?.status(),
-    max_tokens: sent.max_tokens,
-    usage: body.usage,
+    max_tokens: sent.options?.num_predict,
+    usage: { prompt_tokens: body.prompt_eval_count, reply_tokens: body.eval_count },
     prompt,
-    reply: body.text ?? null,
+    reply: body.response ?? null,
   });
 }
 

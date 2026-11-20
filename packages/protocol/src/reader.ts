@@ -14,7 +14,7 @@ export const READER_TEXT_MAX = 1000;
 /** More spans than this in one message is not a reading: one or two of each detail at most. */
 export const READER_SPANS_MAX = 12;
 
-/** What a message in Find is (ADR 0056), as GigSync's model and the phone's reader both name it. */
+/** What a message in Find is (ADR 0056), as a generative model and the phone's reader both name it. */
 export const TurnKind = z.enum(["greeting", "need", "answer", "market", "other"]);
 export type TurnKind = z.infer<typeof TurnKind>;
 

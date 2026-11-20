@@ -16,7 +16,7 @@ import type { Reader } from "../ports.js";
 import { inEnglishLetters, readerReads } from "./languages.js";
 
 /**
- * The phone's reader's answer as Find's reading of a message (ADR 0065 §7), in the shape GigSync's model's reading
+ * The phone's reader's answer as Find's reading of a message (ADR 0065 §7), in the shape a generative model's reading
  * takes (`read-turn.ts`), so the interview decides from it as it does from the model's. The work is the reader's own
  * when it is sure; below that the message's words go to the matchers that read it with no model (by meaning, then the
  * listed skills). How the work is hired comes from the words marked `how_long` only, so "next month" is never monthly.
@@ -34,7 +34,7 @@ export const READER_GUESS_MIN = 0.1;
 const Slot = ReaderSlot.enum;
 
 /**
- * Daily work is hired by the month, as GigSync's model was told ("a cook daily"): read so only in the words the reader
+ * Daily work is hired by the month, as the generative model was told ("a cook daily"): read so only in the words the reader
  * marked `how_long`, where "every day" says how the work is hired and not when one visit is.
  */
 const DAILY = /\b(?:daily|every ?day)\b|रोज़|रोज|ಪ್ರತಿದಿನ|ದಿನಾಲೂ/i;
@@ -122,7 +122,7 @@ export async function readerTurn(reader: Reader, text: string, slot?: NeedSlot):
 
 /**
  * Find's reading of one message (ADR 0065 §7, amended 2026-11-14): the reader alone for English and Hinglish, and
- * GigSync's model not asked; the model for the rest; and the reader again for Kanglish the model did not answer.
+ * no generative model asked; that model, when there is one, for the rest; and the reader again for Kanglish the model did not answer.
  */
 export async function readMessage(
   reader: Reader | undefined,
