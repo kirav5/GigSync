@@ -9,8 +9,8 @@ import { RUN_DIR, recordModel, saveKind, snap, turnsOf } from "./prod-run.js";
  * Every kind of work, end to end on the production data and model (run only with PROD_KINDS=1): a worker makes their
  * card by chat, a household asks for that work by chat, finds them and asks, the agents talk, and both sign. Each kind
  * keeps its chats turn by turn (agent lines marked fixed or model-written), every model call with prompt and reply,
- * and screenshots of both phones, under tests/ui/prod-runs/<run>/. Point it at the dev servers on Neon and the Mac
- * Studio: APP_URL=http://localhost:5173 API_BASE=http://localhost:8787.
+ * and screenshots of both phones, under tests/ui/prod-runs/<run>/. Point it at the dev servers on Neon:
+ * APP_URL=http://localhost:5173 API_BASE=http://localhost:8787.
  */
 
 const en = Lang.enum.en;

@@ -1,7 +1,8 @@
 # ADR 0040: The phone's own model reads what the chat is asking; keyword lists only when it has none
 
 Date: 2026-10-31. Status: accepted. Amended 2026-11-04 by [ADR 0052](0052-gigsync-model-on-a-mac-studio.md): Auto asks
-GigSync's own model first, then the phone's, then the lists. Amends [LLD §3.5 and §8.4](../gigsync/LLD.md) (intent only "when the keyword
+GigSync's own model first, then the phone's, then the lists; retired 2026-11-21 by
+[ADR 0070](0070-no-gigsync-model-server.md). Amends [LLD §3.5 and §8.4](../gigsync/LLD.md) (intent only "when the keyword
 router is unsure"); keeps [ADR 0010](0010-no-cloud-model-in-gigsync.md) (no cloud model reads what owners type).
 Amended 2026-10-31: the web engine is WebLLM running Qwen2.5-0.5B-Instruct ([Amendment](#amendment-2026-10-31-the-web-engine-is-webllm)).
 Amended 2026-11-01 (round 2): a shorter prompt, 4.0 s per message

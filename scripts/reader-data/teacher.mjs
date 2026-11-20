@@ -1,9 +1,9 @@
-// The teacher: GigSync's model through Ollama (ADR 0052, 0065 §5). Locally that is the Mac Studio, through an SSH
-// tunnel (`ssh -N -L 11435:localhost:11434 <user>@<studio>`), so the default address is the tunnel's end. One call is
-// one JSON object held to a schema; anything else is no reply, and the target is dropped as unwritten or unlabelled.
+// The teacher: a large model served by Ollama (ADR 0065 §5), at TEACHER_URL, on whichever computer writes the data.
+// One call is one JSON object held to a schema; anything else is no reply, and the target is dropped as unwritten or
+// unlabelled.
 import { core } from "./core.mjs";
 
-export const TEACHER_URL = process.env.TEACHER_URL ?? "http://localhost:11435";
+export const TEACHER_URL = process.env.TEACHER_URL ?? "http://localhost:11434";
 export const TEACHER_MODEL = process.env.TEACHER_MODEL ?? "qwen3:30b-a3b-instruct-2507-q4_K_M";
 
 const GENERATE_PATH = "/api/generate";

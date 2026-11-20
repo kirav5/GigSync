@@ -74,7 +74,7 @@ const readByModel = async (m: Message, list: readonly BoardSkill[]) =>
   (await readTurn(m.ports.model, turnContext(m.state, m.text, workOptions(list)))) ??
   (await readTurn(m.ports.model, turnContext(m.state, m.text, workOptions(list))));
 
-/** One message's reading: the phone's reader alone for English, GigSync's model for the rest (`readMessage`). */
+/** One message's reading: the phone's reader alone for English, the generative model for the rest (`readMessage`). */
 const readOnce = (m: Message, list: readonly BoardSkill[], slot?: NeedSlot): Promise<TurnRead | undefined> =>
   readMessage(m.ports.reader, m.text, slot, () => readByModel(m, list));
 

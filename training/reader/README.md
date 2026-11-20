@@ -101,7 +101,7 @@ pnpm models:serve        # data/models on http://localhost:8791
 VITE_MODELS_URL=http://localhost:8791/v6/ pnpm --filter @gigsync/mobile exec vite --port 5174
 ```
 
-Before publishing, score it the way phones read, with and without GigSync's model:
+Before publishing, score it the way phones read, with no generative model (`--offline`):
 
 ```bash
 READER_MODEL=data/reader/model-v3 pnpm eval:find --reader phone --set en --offline

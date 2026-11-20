@@ -3,9 +3,9 @@ import { langOf } from "../job/guard.js";
 
 /**
  * What the phone's reader reads (ADR 0065 §6, amended 2026-11-14): English and Hinglish, which it is trained on, never
- * through GigSync's model. Hindi and Kannada show in their scripts; Kanglish is typed in English letters, so it is told
- * by its everyday words and Kannada's verb endings. Messages the reader does not read go to GigSync's model; with no
- * answer from it, the reader still tries Kanglish (its reading beats the word lists), never Hindi or Kannada in their
+ * through a generative model. Hindi and Kannada show in their scripts; Kanglish is typed in English letters, so it is told
+ * by its everyday words and Kannada's verb endings. Messages the reader does not read go to the generative model, when the
+ * app has one; with no answer from it, the reader still tries Kanglish (its reading beats the word lists), never Hindi or Kannada in their
  * scripts.
  */
 

@@ -2,7 +2,8 @@
 
 Date: 2026-10-25. Status: proposed. This ADR amends the sanitize ADR ([ADR 0008](0008-sanitize-in-code-then-local-model.md))
 for GigSync. Amended 2026-11-04 by [ADR 0052](0052-gigsync-model-on-a-mac-studio.md): GigSync's own model, on GigSync's
-computer, reads what owners write unless they choose On-device or Lite mode.
+computer, reads what owners write unless they choose On-device or Lite mode. Restored 2026-11-21 by
+[ADR 0070](0070-no-gigsync-model-server.md): GigSync runs no model server, so no model off the phone reads it.
 
 ## Decision
 
