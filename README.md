@@ -293,4 +293,4 @@ Secrets to add in the repository settings when ready: `CLOUDFLARE_API_TOKEN`, `C
 - The LLM plugin returns "no model" on every platform; the agent runs in lite mode (keyword router, note search).
 - Public records on Bluesky (ADR 0005) are optional, from Settings; the board in PR #8 is the discovery path (ADR 0018).
 
-No license yet.
+MIT, see [LICENSE](LICENSE).
