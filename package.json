@@ -1,6 +1,7 @@
 {
   "name": "gigsync",
   "private": true,
+  "license": "MIT",
   "description": "GigSync: a gig worker's own agent on her phone. It agrees the job, holds back her contact until both sides sign, and keeps the signed record.",
   "engines": {
     "node": ">=24",
