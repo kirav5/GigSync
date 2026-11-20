@@ -60,19 +60,6 @@ export interface Env {
   SEARCH_RATE_LIMIT: RateLimit;
   /** Secret: the Ola Maps key the geocoding routes call with (ADR 0045). Unset means they answer 503. */
   OLA_MAPS_API_KEY?: string;
-  /** Caps calls to GigSync's model per user (ADR 0052): a chat turn makes a few, not hundreds. */
-  MODEL_RATE_LIMIT: RateLimit;
-  /**
-   * Public: where GigSync's model answers (ADR 0052), Ollama's origin: the Cloudflare Tunnel's hostname in the pilot,
-   * the Mac Studio's LAN address locally. Unset means the model route answers 503 and phones use their own model.
-   */
-  MODEL_ORIGIN?: string;
-  /** Public: the model Ollama serves there, e.g. `qwen3:30b-a3b-instruct-2507-q4_K_M`. */
-  MODEL_NAME?: string;
-  /** Secret: the Cloudflare Access service token's id, when the tunnel is behind Access. */
-  MODEL_ACCESS_ID?: string;
-  /** Secret: that token's secret. */
-  MODEL_ACCESS_SECRET?: string;
   /**
    * Public: which of the directory's live cities are served (ADR 0061), as a comma list of keys ("bengaluru,kanpur").
    * Unset means all of them; `*` means every place, inside a city or not, for development and testing anywhere.

@@ -1,4 +1,4 @@
-// Training data for the phone's reader (ADR 0065 §5): GigSync's model writes messages for drawn targets and labels
+// Training data for the phone's reader (ADR 0065 §5): a large model writes messages for drawn targets and labels
 // them blind; only those where the two agree are kept. Run with `pnpm reader:data` (builds core first). Options:
 //   --count N        targets to draw (default 500, a sample to read before a full run)
 //   --seed S         the run's seed (default 1): the same seed draws the same targets
@@ -39,7 +39,7 @@ const dir = settings.out;
 const lang = langOf(settings.lang);
 
 if (!(await teacherReady())) {
-  console.error(`No ${TEACHER_MODEL} at ${TEACHER_URL}. Is the tunnel to the Mac Studio up?`);
+  console.error(`No ${TEACHER_MODEL} at ${TEACHER_URL}. Is Ollama serving it there (TEACHER_URL)?`);
   process.exit(EXIT_NO_TEACHER);
 }
 mkdirSync(dir, { recursive: true });

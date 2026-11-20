@@ -18,7 +18,7 @@ interface Props {
 /**
  * Privacy, "Who sees what" (design P3): the three tiers in plain words, the log of what the agent shared, and the job
  * records GigSync keeps with their one delete (ADR 0038 §5). No switches (2026-11-18): a worker's record on their card is
- * set on My record, and GigSync's model reads the chats as ADR 0052's Auto does. The people the owner blocked are on
+ * set on My record, and no model off the phone reads the chats (ADR 0070). The people the owner blocked are on
  * People you know, with Unblock; a worker's mentor links are on Help, with the mentors.
  */
 export function Privacy({ ports, account, view, isWorker }: Props) {

@@ -1,11 +1,10 @@
 // The Find conversation eval: every conversation in vectors/find through the real interview and a real model, scored
 // on what went wrong in Find's first real tests: the wrong job, a question asked twice, "Sorry, I didn't catch that",
 // and chats that end nowhere. The intent eval scores one message; this scores the whole chat.
-// Run with `pnpm eval:find` (builds core first). GigSync's model through its tunnel needs OLLAMA_URL, OLLAMA_MODEL,
-// MODEL_ACCESS_ID and MODEL_ACCESS_SECRET in the environment. Options:
+// Run with `pnpm eval:find` (builds core first), against the model OLLAMA_URL and OLLAMA_MODEL name. Options:
 //   --reader R   what reads a message: `lists` (the three prompts and word lists), `turn` (one model reading) or
 //                `phone` (the phone's reader, ADR 0065; READER_MODEL names its folder), default lists
-//   --offline    no model at all, as a phone without GigSync's model: for `--reader phone` or `lists`
+//   --offline    no model at all, as a phone in lite mode: for `--reader phone` or `lists`
 //   --set SET    only one set: en, hi, kn, hinglish, hinglish-held (never trained or tuned on) or kanglish
 //   --limit N    only the first N of each set
 //   --json FILE  also write every conversation's record
@@ -40,7 +39,7 @@ const { values } = parseArgs({
 const sets = values.set ? [values.set] : SETS;
 const reader = values.reader ?? Reader.lists;
 const phone = reader === Reader.phone ? await loadPhone(LISTED) : undefined;
-/** Offline, every model call answers nothing, as on a phone that cannot reach GigSync's model. */
+/** Offline, every model call answers nothing, as on a phone in lite mode. */
 const offline = async () => null;
 if (!values.offline && !(await ollamaReady())) {
   console.error(`No ${OLLAMA_MODEL} at ${new URL(OLLAMA_URL).host}.`);

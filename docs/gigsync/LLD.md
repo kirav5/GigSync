@@ -1057,8 +1057,8 @@ English/Hinglish.
 ### 9.1 Choosing the model (Settings › On-device model)
 
 **Retired 2026-11-15:** the app no longer offers, downloads or loads a generative model on any platform (the web
-app's WebLLM offer below is gone; the native engines were stubs). `ChosenModel` answers with GigSync's model (ADR 0052)
-or Ollama in development builds, else lite mode; the understanding pack (ADR 0042, 0065) is the only model on the
+app's WebLLM offer below is gone; the native engines were stubs). `ChosenModel` answers with Ollama in development builds,
+else lite mode (GigSync's own model, ADR 0052, was retired by ADR 0070); the understanding pack (ADR 0042, 0065) is the only model on the
 phone. What follows records the removed design; `plugins/gigsync-llm` stays only for `scripts/eval-intent`.
 
 The app hands core one `Model`: `ChosenModel` (`apps/mobile/src/adapters/model.ts`), which routes each call to the

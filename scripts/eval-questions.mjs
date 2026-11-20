@@ -2,8 +2,8 @@
 // with a card, a line about their work and what they said they need to know. Prints what the model asked, what the
 // guards dropped and why, so a person can judge whether each question fits this worker and this job; counts the
 // requests left with nothing to ask and the questions that ask the household how long the work takes.
-// Run with `pnpm eval:questions` (builds core first). GigSync's model through its tunnel needs OLLAMA_URL,
-// OLLAMA_MODEL, MODEL_ACCESS_ID and MODEL_ACCESS_SECRET in the environment, as `pnpm eval:find` does.
+// Run with `pnpm eval:questions` (builds core first), against the model OLLAMA_URL and OLLAMA_MODEL name, as
+// `pnpm eval:find` does.
 import { askModel } from "../packages/core/dist/job/question-model.js";
 import { OLLAMA_MODEL, OLLAMA_URL, ollamaReady, RecordingModel } from "./eval-intent/ollama.mjs";
 

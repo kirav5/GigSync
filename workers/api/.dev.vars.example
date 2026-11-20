@@ -32,9 +32,3 @@ ADMIN_KEY=dev-only-admin-key
 # Live cities (README "Live cities"): unset serves the directory's live cities; a comma list only those
 # (bengaluru,kanpur); `*` lets every place in, for testing from anywhere. Leave it unset for the UI tests.
 # LIVE_CITIES=*
-
-# GigSync's own model (ADR 0052): Ollama on the Mac Studio. Unset, the model route answers 503 and phones use their
-# own model or lite mode. Locally, the Studio's LAN address; deployed, the Cloudflare Tunnel's hostname, set as vars,
-# with the Access service token as secrets (`wrangler secret put MODEL_ACCESS_ID`, `MODEL_ACCESS_SECRET`).
-# MODEL_ORIGIN=http://192.168.1.8:11434
-# MODEL_NAME=qwen3:30b-a3b-instruct-2507-q4_K_M

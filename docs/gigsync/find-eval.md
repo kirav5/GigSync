@@ -17,11 +17,10 @@ optionally other work they name part-way. Everything else has a fixed answer: ch
 budget is ₹2,500, and one address is saved in HSR Layout. There are 25 conversations in each of five sets: English,
 Hindi, Kannada, Hinglish and Kanglish.
 
-To run it against GigSync's model through its tunnel:
+To run it against a model served by Ollama:
 
 ```bash
-OLLAMA_URL=https://model.gigsync.network OLLAMA_MODEL=qwen3:30b-a3b-instruct-2507-q4_K_M \
-MODEL_ACCESS_ID=… MODEL_ACCESS_SECRET=… pnpm eval:find
+OLLAMA_URL=http://localhost:11434 OLLAMA_MODEL=qwen3:30b-a3b-instruct-2507-q4_K_M pnpm eval:find
 ```
 
 Limits: the conversations were written by a developer, not collected from households, and the Hindi, Kannada and
@@ -31,7 +30,7 @@ two runs differ a little.
 
 ## Baseline
 
-The 30B on the Mac Studio, 2026-11-06, the first 20 conversations of each set, after the bugs in the first tests were
+The 30B served by Ollama, 2026-11-06, the first 20 conversations of each set, after the bugs in the first tests were
 fixed (`--reader lists`):
 
 | Set      | Right job | No repeats | No "Sorry" | Reached the readback |
