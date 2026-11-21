@@ -1,49 +1,36 @@
-/* The demo's words, on the left of the phones: a line on the phones it is built for, then one step at a
+/* The demo's words, on the left of the phones: the label, then one step at a
  * time, in the manner of the story page: the step's name, a large line with its point in italic, a sentence, and a
  * quieter note set off by a rule. All the steps share one cell, so the column keeps the height of the longest and
  * nothing below it moves as they change. */
 
-/* the column runs the stage's height: the line about the phones it is built for at the top, the steps in the middle */
-.dm-copy {
-  display: flex;
-  flex-direction: column;
-  align-self: stretch;
-}
 .dm-eyebrow {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
   margin: 0;
-  font: 400 clamp(22px, min(2vw, 3.4svh), 30px) / 1.25 var(--serif);
-  letter-spacing: -0.01em;
-  text-transform: none;
-  color: #e5d4b3;
-}
-.dm-eyebrow span {
-  font-style: italic;
-  color: #b8976a;
+  font-family: var(--sans);
+  color: var(--gold);
 }
 .dm-steps {
   display: grid;
-  margin: auto 0;
-  padding: clamp(20px, 4svh, 48px) 0 0;
+  margin: clamp(28px, 6svh, 64px) 0 0;
+  padding: 0;
   list-style: none;
   max-width: 560px;
 }
+/* the steps change in place: the old one fades out quickly, then the new one fades in where it stood, with no
+   movement, so nothing on the left slides while the phones play */
 .dm-steps li {
   grid-area: 1 / 1;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(14px);
   transition:
-    opacity 0.45s ease,
-    transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1),
-    visibility 0.45s;
+    opacity 0.22s ease,
+    visibility 0s 0.22s;
 }
 .dm-steps li.on {
   opacity: 1;
   visibility: visible;
-  transform: none;
+  transition:
+    opacity 0.5s ease 0.18s,
+    visibility 0s;
 }
 .dm-label {
   display: flex;
@@ -85,12 +72,11 @@
 
 @media (max-width: 860px) {
   .dm-eyebrow {
-    gap: 10px;
-    font-size: 18px;
+    margin-bottom: 6px;
+    font-size: 11px;
   }
   .dm-steps {
-    margin-top: 0;
-    padding-top: 14px;
+    margin-top: 14px;
   }
   .dm-label {
     font-size: 11px;
