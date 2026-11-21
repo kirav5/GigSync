@@ -174,11 +174,22 @@
   width: 22px;
   height: 22px;
 }
-.ins-footer p,
-.ins-footer > a:last-child {
+.ins-footer p {
   margin: 0;
   font-size: 12.5px;
   color: #8f7d62;
+}
+
+/* the way to the app, bottom right: Google Play's badge as Google draws it, with a word on when */
+.ins-footer .ins-get {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.ins-play {
+  display: block;
+  width: 140px;
+  height: 42px;
 }
 
 /* on a desktop the whole light section, footer included, fits one screen: its spacing and drawings follow the
@@ -189,13 +200,13 @@
     flex-direction: column;
     box-sizing: border-box;
     min-height: 100svh;
-    padding-top: clamp(24px, 4svh, 64px);
+    padding-top: clamp(14px, 2svh, 40px);
   }
   .ins {
     padding-top: 0;
   }
   .pv-inner {
-    padding-top: clamp(20px, 4svh, 40px);
+    padding-top: clamp(16px, 2.5svh, 32px);
   }
   .ins h2 {
     font-size: clamp(32px, min(4.1vw, 6svh), 59px);
@@ -245,6 +256,9 @@
   .ins-story {
     padding-bottom: 26px;
     border-bottom: 1px solid var(--line);
+  }
+  .ins-story:last-child {
+    border-bottom: 0;
   }
   .ins-art {
     max-width: 380px;
