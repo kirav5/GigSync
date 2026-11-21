@@ -1,5 +1,5 @@
 /* The demo's words, on the left of the phones: the label, then one step at a
- * time, in the manner of the story page: the step's name, a large line with its point in italic, a sentence, and a
+ * time: the step's number, its name in large type, a sentence, and a
  * quieter note set off by a rule. All the steps share one cell, so the column keeps the height of the longest and
  * nothing below it moves as they change. */
 
@@ -32,30 +32,17 @@
     opacity 0.5s ease 0.18s,
     visibility 0s;
 }
-.dm-label {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
+/* the step's number, small and italic, over its name */
+.dm-n {
   margin: 0;
-  font: 600 13px / 1.4 var(--sans);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gold);
-}
-.dm-label::before {
-  content: attr(data-n);
   font: italic 400 22px / 1 var(--serif);
-  letter-spacing: 0;
   color: #b8976a;
 }
 .dm-steps h3 {
-  margin: clamp(14px, 2.6svh, 28px) 0 0;
+  margin: clamp(10px, 1.8svh, 18px) 0 0;
   font: 400 clamp(34px, min(3.8vw, 6svh), 60px) / 1.06 var(--serif);
   letter-spacing: -0.02em;
   color: var(--ivory);
-}
-.dm-steps h3 em {
-  color: var(--gold);
 }
 .dm-body {
   margin: clamp(14px, 2.6svh, 26px) 0 0;
@@ -78,10 +65,7 @@
   .dm-steps {
     margin-top: 14px;
   }
-  .dm-label {
-    font-size: 11px;
-  }
-  .dm-label::before {
+  .dm-n {
     font-size: 17px;
   }
   .dm-steps h3 {
