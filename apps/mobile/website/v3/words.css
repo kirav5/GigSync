@@ -1,17 +1,32 @@
-/* The demo's words, on the left of the phones: the label, then one step at a
+/* The demo's words, on the left of the phones: a line on the phones it is built for, then one step at a
  * time, in the manner of the story page: the step's name, a large line with its point in italic, a sentence, and a
  * quieter note set off by a rule. All the steps share one cell, so the column keeps the height of the longest and
  * nothing below it moves as they change. */
 
+/* the column runs the stage's height: the line about the phones it is built for at the top, the steps in the middle */
+.dm-copy {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+}
 .dm-eyebrow {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
   margin: 0;
-  font-family: var(--sans);
-  color: var(--gold);
+  font: 400 clamp(22px, min(2vw, 3.4svh), 30px) / 1.25 var(--serif);
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: #e5d4b3;
+}
+.dm-eyebrow span {
+  font-style: italic;
+  color: #b8976a;
 }
 .dm-steps {
   display: grid;
-  margin: clamp(28px, 6svh, 64px) 0 0;
-  padding: 0;
+  margin: auto 0;
+  padding: clamp(20px, 4svh, 48px) 0 0;
   list-style: none;
   max-width: 560px;
 }
@@ -70,11 +85,12 @@
 
 @media (max-width: 860px) {
   .dm-eyebrow {
-    margin-bottom: 6px;
-    font-size: 11px;
+    gap: 10px;
+    font-size: 18px;
   }
   .dm-steps {
-    margin-top: 14px;
+    margin-top: 0;
+    padding-top: 14px;
   }
   .dm-label {
     font-size: 11px;
