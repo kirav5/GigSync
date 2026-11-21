@@ -1,0 +1,253 @@
+/* The inspiration: the light section after the demo. Three small line drawings that loop (questions gathering into
+ * one fit, a bridge of agreed terms, a record carried to a new city), each with a line and a link back into the demo,
+ * then the "rooted in community" notes. */
+
+/* the link down lands it flush with the top of the screen, so the whole section, footer included, is in view */
+.ins {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  scroll-margin-top: -32px;
+  padding: 72px 0 0;
+  background: var(--paper);
+  color: var(--ink);
+}
+/* the faint print of the mural behind privacy by design, fading out before the drawings */
+.ins::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url("../mural-ink.webp") center top / cover no-repeat;
+  opacity: 0.05;
+  -webkit-mask: linear-gradient(#000 35%, transparent 70%);
+  mask: linear-gradient(#000 35%, transparent 70%);
+}
+/* privacy by design, as on the home page: a short rule, the label on the left, the heading and words on the right */
+.pv-inner {
+  position: relative;
+  padding-top: 40px;
+}
+.pv-inner::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 74px;
+  height: 1px;
+  background: #b79268;
+}
+.ins h2 em {
+  color: var(--rust);
+}
+.ins-stories {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 36px;
+}
+.ins-story h3 {
+  margin: 14px 0 10px;
+  font: 400 28px / 1.15 var(--serif);
+  letter-spacing: -0.01em;
+}
+.ins-story > p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--muted);
+}
+.ins-link {
+  display: inline-block;
+  margin-top: 18px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #bea582;
+  font-size: 13.5px;
+  color: var(--rust);
+}
+.ins-link:hover {
+  color: var(--earth);
+  border-bottom-color: var(--earth);
+}
+
+/* ---------- The drawings ---------- */
+
+.ins-art {
+  color: #9b6c47;
+}
+.ins-art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 360 / 210;
+  overflow: visible;
+}
+.ins-art path,
+.ins-art rect,
+.ins-art circle {
+  stroke: currentColor;
+  stroke-width: 1.4;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ins-art text {
+  fill: currentColor;
+  stroke: none;
+  font: 400 12px var(--sans);
+  text-anchor: middle;
+}
+.ins-thread {
+  stroke: #c4ad81 !important;
+  stroke-dasharray: 4 6;
+}
+.ins-q rect,
+.ins-plank rect {
+  fill: #efe5d0 !important;
+}
+.ins-qc text {
+  font-size: 10px;
+}
+.ins-shared rect {
+  fill: var(--paper) !important;
+  stroke: #a28b58 !important;
+}
+.ins-shared text {
+  text-anchor: start;
+  font-size: 10px;
+}
+.ins-spark,
+.ins-leaf {
+  fill: #b29b61 !important;
+  stroke: none !important;
+}
+.ins-check circle {
+  fill: #ece2c8 !important;
+}
+.ins-bridge {
+  stroke: #b19868 !important;
+  stroke-dasharray: 240;
+}
+.ins-village {
+  opacity: 0.6;
+}
+.ins-path {
+  stroke-dasharray: 3 6;
+}
+.ins-record rect {
+  fill: #f0e5ca !important;
+}
+.ins-record circle {
+  fill: var(--paper) !important;
+}
+.ins-caption {
+  position: relative;
+  margin: 6px 0 0;
+  min-height: 20px;
+  text-align: center;
+  font-size: 11.5px;
+  color: #9a805d;
+}
+.ins-caption span {
+  position: absolute;
+  inset: 0;
+}
+
+/* ---------- Rooted in community ---------- */
+
+/* the title on its own line, then the three notes in the same three columns as the drawings above */
+/* ---------- The footer: one quiet row under a hairline, inside the cream ---------- */
+
+.ins-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-top: 64px;
+  padding: 22px 0;
+  border-top: 1px solid rgba(187, 164, 130, 0.4);
+}
+.ins-footer .brand {
+  font-size: 22px;
+  color: var(--ink);
+}
+.ins-footer .brand svg {
+  width: 22px;
+  height: 22px;
+}
+.ins-footer p,
+.ins-footer > a:last-child {
+  margin: 0;
+  font-size: 12.5px;
+  color: #8f7d62;
+}
+
+/* on a desktop the whole light section, footer included, fits one screen: its spacing and drawings follow the
+   screen's height, and the footer sits at the bottom */
+@media (min-width: 861px) {
+  .ins > .wrap {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    min-height: 100svh;
+    padding-top: clamp(24px, 4svh, 64px);
+  }
+  .ins {
+    padding-top: 0;
+  }
+  .pv-inner {
+    padding-top: clamp(20px, 4svh, 40px);
+  }
+  .ins h2 {
+    font-size: clamp(32px, min(4.1vw, 6svh), 59px);
+  }
+  .ins .intro-copy {
+    margin-top: clamp(10px, 2svh, 22px);
+  }
+  .ins .stage-note {
+    margin-top: clamp(8px, 1.6svh, 21px);
+  }
+  .ins-art {
+    max-width: calc(26svh * 360 / 210);
+  }
+  .ins-story h3 {
+    margin: clamp(6px, 1.2svh, 14px) 0 clamp(4px, 0.8svh, 10px);
+    font-size: clamp(22px, 3svh, 28px);
+  }
+  .ins-link {
+    margin-top: clamp(8px, 1.4svh, 18px);
+  }
+  /* the drawings sit in the middle of the room left between the heading and the footer */
+  .ins-stories {
+    margin-block: auto clamp(14px, 2.2svh, 40px);
+  }
+  .ins-footer {
+    margin-top: auto;
+    padding: clamp(10px, 1.6svh, 22px) 0;
+  }
+}
+
+@media (max-width: 860px) {
+  .ins {
+    padding: 64px 0 0;
+  }
+  .ins-footer {
+    flex-wrap: wrap;
+    margin-top: 40px;
+  }
+  .ins-footer p {
+    order: 3;
+    width: 100%;
+  }
+  .ins-stories {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .ins-story {
+    padding-bottom: 26px;
+    border-bottom: 1px solid var(--line);
+  }
+  .ins-art {
+    max-width: 380px;
+    margin-inline: auto;
+  }
+}

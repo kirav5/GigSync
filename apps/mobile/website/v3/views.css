@@ -1,0 +1,216 @@
+/* The worker phone's own screens beside the chat: her card with its QR, which a household scans to find her, and her
+ * record after the job is paid. demo.js turns one on by the scroll; each covers the bar and the chat, under the notch. */
+
+.dm-view {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3.4cqw;
+  padding: 14cqw 6cqw 6cqw;
+  background: #fbf7ef;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.35s,
+    visibility 0.35s;
+}
+.dm-view.on {
+  opacity: 1;
+  visibility: visible;
+}
+.dm-view-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 0;
+  padding-bottom: 3cqw;
+  border-bottom: 1px solid #eadfcc;
+  font: 600 5cqw / 1.2 var(--sans);
+  color: var(--ink);
+}
+.dm-view-top small {
+  font: 600 3.6cqw / 1 var(--sans);
+  color: var(--muted);
+}
+/* the GigSync mark and name, as in the site's header, at the top of each of her screens */
+.dm-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.8cqw;
+  font: 400 6.2cqw / 1 var(--serif);
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+.dm-brand svg {
+  width: 8.6cqw;
+  height: 8.6cqw;
+  color: var(--rust);
+}
+.dm-brand i {
+  font-style: normal;
+  color: var(--gold);
+}
+/* and the mark alone at the end of each chat's header */
+.dm-bar .dm-logo {
+  flex: none;
+  width: 10cqw;
+  height: 10cqw;
+  margin-left: auto;
+  color: var(--rust);
+}
+
+/* her card: the QR, and who she is under it */
+.dm-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3cqw;
+  padding: 5cqw 4cqw 4cqw;
+  text-align: center;
+  border: 1px solid #e3d6be;
+  border-radius: 4.5cqw;
+  background: #fff;
+}
+.dm-qr-mark {
+  flex: none;
+  width: 42cqw;
+  height: 42cqw;
+  fill: var(--ink);
+  shape-rendering: crispEdges;
+}
+.dm-qr p {
+  display: flex;
+  flex-direction: column;
+  gap: 1cqw;
+  margin: 0;
+  font: 400 3.8cqw / 1.3 var(--sans);
+  color: var(--muted);
+}
+.dm-qr b {
+  font: 600 7.4cqw / 1.1 var(--serif);
+  color: var(--ink);
+}
+.dm-qr em {
+  margin-top: 1cqw;
+  font: 600 3.8cqw / 1.3 var(--sans);
+  color: var(--rust);
+}
+.dm-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3cqw;
+}
+.dm-stats p {
+  margin: 0;
+  padding: 3cqw;
+  border-radius: 3.5cqw;
+  background: #f2ead9;
+  font: 400 3.4cqw / 1.3 var(--sans);
+  color: var(--muted);
+}
+.dm-stats b {
+  display: block;
+  font: 600 6.4cqw / 1.1 var(--serif);
+  color: var(--ink);
+}
+
+/* rows, the record's ledger, and the one action at the foot */
+.dm-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 3cqw;
+  margin: 0;
+  padding: 2.4cqw 0;
+  border-bottom: 1px solid #eee3cf;
+  font: 400 4.2cqw / 1.3 var(--sans);
+  color: var(--ink);
+}
+.dm-row b {
+  color: #6b7a4f;
+}
+.dm-view h4 {
+  margin: 2cqw 0 1cqw;
+  font: 400 9.4cqw / 1.1 var(--serif);
+  color: var(--ink);
+}
+.dm-view h4 em {
+  color: var(--rust);
+}
+.dm-ledger {
+  padding: 0 4cqw;
+  border: 1px solid #e3d6be;
+  border-radius: 4.5cqw;
+  background: #fff;
+}
+.dm-ledger p {
+  display: flex;
+  justify-content: space-between;
+  gap: 3cqw;
+  margin: 0;
+  padding: 3cqw 0;
+  border-bottom: 1px solid #f0e7d6;
+  font: 400 4.2cqw / 1.3 var(--sans);
+  color: var(--ink);
+}
+.dm-ledger p:last-child {
+  border-bottom: 0;
+}
+.dm-ledger b {
+  font-weight: 600;
+  color: #4f5e36;
+}
+.dm-ledger i {
+  margin-left: 1.4cqw;
+  padding: 0.4cqw 1.8cqw;
+  border-radius: 99px;
+  background: #f3e3cf;
+  font: 600 3cqw / 1 var(--sans);
+  font-style: normal;
+  color: var(--rust);
+}
+.dm-cta {
+  margin-top: auto;
+  padding: 3.6cqw;
+  border-radius: 99px;
+  background: var(--rust);
+  font: 600 4cqw / 1 var(--sans);
+  text-align: center;
+  color: #fff;
+}
+
+/* a new city: the mentor who knows the work and the place */
+.dm-mentor {
+  display: flex;
+  align-items: center;
+  gap: 3.4cqw;
+  padding: 4cqw;
+  border: 1px solid #e3d6be;
+  border-radius: 4.5cqw;
+  background: #fff;
+}
+.dm-mentor i {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 12cqw;
+  height: 12cqw;
+  border-radius: 50%;
+  background: #6b7a4f;
+  font: 600 5.4cqw / 1 var(--sans);
+  font-style: normal;
+  color: #fff;
+}
+.dm-mentor p {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8cqw;
+  margin: 0;
+  font: 400 3.8cqw / 1.3 var(--sans);
+  color: var(--muted);
+}
+.dm-mentor b {
+  font: 600 4.6cqw / 1.2 var(--sans);
+  color: var(--ink);
+}

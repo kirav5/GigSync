@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>GigSync — an assistant on your side</title>
+<title>GigSync · your assistant, on your side</title>
 <meta name="description" content="GigSync gives a home-service worker an assistant on their own phone: it finds work, agrees fair pay with the household's assistant, signs the terms before any work starts, and keeps a record that belongs to the worker." />
 <meta name="theme-color" content="#3b2118" />
 <link rel="canonical" href="https://gigsync.network/" />
@@ -16,7 +16,12 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&family=Inter:wght@400;600&family=Noto+Sans+Kannada:wght@400;600&display=swap" /></noscript>
 <link rel="stylesheet" href="./website/site.css" />
 <link rel="stylesheet" href="./website/opening.css" />
-<link rel="stylesheet" href="./website/flow.css" />
+<link rel="stylesheet" href="./website/v3/demo.css" />
+<link rel="stylesheet" href="./website/v3/words.css" />
+<link rel="stylesheet" href="./website/v3/phones.css" />
+<link rel="stylesheet" href="./website/v3/views.css" />
+<link rel="stylesheet" href="./website/v3/inspire.css" />
+<link rel="stylesheet" href="./website/v3/inspire-motion.css" />
 <!-- a phone gets the mural's layers at a phone's size: the same pictures, a fifth of the bytes -->
 <link rel="preload" as="image" href="./website/mural-ring.webp" media="(min-width: 701px)" />
 <link rel="preload" as="image" href="./website/mural-ring-phone.webp" media="(max-width: 700px)" />
@@ -29,17 +34,6 @@
 </head>
 <body>
 <main id="main">
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></symbol>
-  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 5 5"/></symbol>
-  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v10H9l-5 4z"/><path d="M8 9h8M8 12h5"/></symbol>
-  <symbol id="i-tap" viewBox="0 0 24 24"><path d="M9 11V5a2 2 0 1 1 4 0v6"/><path d="M13 10a2 2 0 1 1 4 0v2a2 2 0 1 1 3 1v3a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-3l-3-5a2 2 0 0 1 3-2l1 2"/></symbol>
-  <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
-  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v9H4z"/><path d="M10 20v-6h4v6"/></symbol>
-  <symbol id="i-book" viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 0-3 3z"/><path d="M5 4v16a3 3 0 0 1 3-3h11M9 9h6M9 13h4"/></symbol>
-  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z"/><path d="M12 8v5M12 16v.5"/></symbol>
-  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s6-6 6-11a6 6 0 1 0-12 0c0 5 6 11 6 11z"/><circle cx="12" cy="10" r="2"/></symbol>
-</defs></svg>
   <div class="mo" id="opening">
     <div class="mo-camera" id="camera">
       <div class="mo-world" aria-hidden="true">
@@ -51,23 +45,21 @@
       <div class="header-band mo-header">
         <header id="top" class="site-header wrap">
           <a class="brand" href="#top"><svg viewBox="0 0 64 64" aria-hidden="true" data-logo></svg>gigsync<span class="brand-dot">.</span></a>
-          <nav class="desktop-nav" id="siteNav"><a href="#request-to-receipt">How it works</a><a href="#our-roots">Our roots</a><a href="./story" data-page="story">The story</a><a href="#have-a-say">Have a say</a><a class="nav-cta" href="./app">Open GigSync ↗︎</a></nav>
+          <nav class="desktop-nav" id="siteNav"><a href="#our-roots">Our roots</a><a href="#demo">See demo</a><a href="#inspiration">The idea</a><a class="nav-cta" href="./app">Open GigSync ↗︎</a></nav>
           <a class="header-cta" href="./app">Open GigSync <span>↗︎</span></a>
           <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="siteNav" aria-label="Menu"><span></span><span></span></button>
         </header>
       </div>
       <section class="mo-hero" id="heroLayer" aria-labelledby="hero-title">
         <div class="mo-centre" id="heroCopy">
-          <p class="eyebrow mo-eyebrow"><span class="tiny-sun">✳︎</span> For the people who do the work, and the homes they do it in</p>
-          <h1 id="hero-title" aria-label="An assistant, on your side, for life.">An assistant,<br>on your side,<br><em class="mo-turns" aria-hidden="true"><span>for life.</span><span>for fair pay.</span><span>on your terms.</span><span>in every city.</span><span>for your record.</span></em></h1>
-          <a class="button mo-button" href="#the-idea">See what's possible <span>↓</span></a>
+          <p class="eyebrow mo-eyebrow"><span class="tiny-sun">✳︎</span> For the people who do the work</p>
+          <h1 id="hero-title" aria-label="Your assistant, on your side, for life.">Your assistant,<br>on your side,<br><em class="mo-turns" aria-hidden="true"><span>for life.</span><span>for fair pay.</span><span>on your terms.</span><span>in every city.</span><span>for your record.</span></em></h1>
+          <a class="button mo-button" href="#demo">See the demo <span>↓</span></a>
         </div>
         <div class="mo-foot" id="heroFoot">
-          <p class="mo-description">Assistants that work for you and follow your rules. Helping workers find work, agree fair terms, and keep what they earn—starting with the people who clean, cook and care in Bengaluru.</p>
+          <p class="mo-description">An assistant aligned with your interests, helping gig workers find common ground, agree clear terms, and carry the trust they earn wherever work takes them.</p>
           <div class="mo-aside">
-            <a class="text-link" href="#have-a-say">Help it grow <span>↗︎</span></a>
-            <p class="mo-note"><span class="status-dot"></span> Your work. Your goodwill. Your say.</p>
-            <p class="mo-caption"><span>I / The circle</span><span>Each of us. Part of something more.</span></p>
+            <a class="text-link" href="#inspiration">The idea <span>↗︎</span></a>
           </div>
         </div>
       </section>
@@ -85,346 +77,149 @@
     </div>
   </div>
 
+  <div class="dm-band">
+  <div class="dm-backdrop" aria-hidden="true"><img class="dm-art" src="./website/community-mural.webp" alt="" width="720" height="720" loading="lazy" /></div>
   <section class="mo-after" aria-label="Our roots, continued">
     <div class="wrap mo-after-inner">
       <div class="mo-after-side">
-        <p class="mo-after-motto">Many phones.<br>One connected circle.</p>
+        <p class="mo-after-motto">One connected circle.</p>
         <p class="mo-after-credit">Inspired by Warli art, with gratitude to the Warli community.</p>
       </div>
       <div class="mo-after-body">
-        <p>In traditional Warli paintings, life is drawn as a circle—village, work, and community held together without a hierarchy.</p>
+        <p>In traditional Warli paintings, life is drawn as a circle: village, work, and community held together without a hierarchy.</p>
         <p>That is the spirit behind GigSync: technology designed to stay quietly in the background while real people connect on their own terms.</p>
       </div>
     </div>
   </section>
 
-  <div class="sunrise" data-flow aria-hidden="true"><span class="sunrise-sun"></span><span class="sunrise-hill"></span></div>
-
-  <div class="ink-span" data-flow>
-  <div class="ink-stage" aria-hidden="true"><span class="ink-art"></span></div>
-  <section id="the-idea" class="idea-section wrap section-space">
-    <div class="section-intro">
-      <p class="eyebrow">02 / Privacy by design</p>
-      <div>
-        <h2 id="idea-title">Your agent, on your phone.<br>Your data, <em>strictly yours.</em></h2>
-        <p class="intro-copy">Powered by a local AI model running directly on your smartphone. Your conversations, work history, and intent stay strictly on your device—never uploaded to external servers, never mined, and never shared without your say.</p>
-        <p class="stage-note">On-device AI · Zero data leaves your phone</p>
-      </div>
-    </div>
-    <div class="worker-paths">
-      <article class="path-card">
-        <div class="path-art"><span>01</span><svg viewBox="0 0 96 72" aria-hidden="true"><circle cx="25" cy="14" r="5"/><circle cx="71" cy="14" r="5"/><path d="m15 24 20 0-10 15Zm10 15L14 57h22ZM61 24h20L71 39Zm10 15L60 57h22ZM16 26 6 42m28-16 14 12 14-12m18 0 10 16M19 58l-3 10m14-10 3 10m32-10-3 10m14-10 3 10"/></svg></div>
-        <p class="concept-term">Smart replies</p>
-        <h3>Less back-and-forth before work.</h3>
-        <p class="path-short">Your on-device assistant answers routine questions about your availability, rates, and area—filtering out bad fits so you only talk to serious matches.</p>
-        <button class="text-link path-open" type="button" aria-expanded="false" aria-controls="idea-assisted">See how it works <span aria-hidden="true">↗︎</span></button>
-        <div class="path-more" id="idea-assisted" tabindex="-1" hidden>
-          <button class="path-close path-x" type="button" aria-label="Close">×</button>
-          <p>Language tools provide profound opportunity to explore and deeply understand our peers. Agents not only answer redundant questions but enable each one of us to collaborate by understanding each one's preferences, priorities, and boundaries.</p>
-          <div class="path-note"><p class="path-note-label">In practice</p><p class="path-note-text">A worker goes home to Bihar for the harvest. Their assistant finds work that respects that time with family.</p></div>
-          <button class="text-link path-close" type="button">Close</button>
+  <section class="dm" id="demo" aria-labelledby="demo-title">
+    <div class="dm-stage" id="demoStage">
+      <div class="dm-inner wrap">
+        <div class="dm-copy">
+          <h2 id="demo-title" class="eyebrow dm-eyebrow">02 / Built especially for low-end phones</h2>
+          <ol class="dm-steps" id="demoSteps">
+            <li><p class="dm-label" data-n="01">Be found</p><h3>Found by the homes <em>nearby.</em></h3><p class="dm-body">Homes near you find you on the network, or scan the QR on your card. Either way, they ask your assistant directly.</p><p class="dm-aside">Your card shows your trade, your area and your languages. Your number stays hidden.</p></li>
+            <li><p class="dm-label" data-n="02">Clarity before commitment</p><h3>Everything clear, <em>before you say yes.</em></h3><p class="dm-body">Work, hours, place and pay arrive in one request, before you say a word.</p><p class="dm-aside">No surprise tasks, no unclear hours. If something is missing, your assistant asks.</p></li>
+            <li><p class="dm-label" data-n="03">Negotiation within your limits</p><h3>Your limits, <em>kept private.</em></h3><p class="dm-body">Your assistant bargains only inside the limits you set: your rate, your days off, how far you will go.</p><p class="dm-aside">Your lowest rate never leaves your phone. The household sees only the offer.</p></li>
+            <li><p class="dm-label" data-n="04">Never a deal without approval</p><h3>Nothing happens <em>without your OK.</em></h3><p class="dm-body">Every offer waits for you. Say okay, ask for a change, or say no.</p><p class="dm-aside">Your assistant suggests; you decide. It never agrees on your behalf.</p></li>
+            <li><p class="dm-label" data-n="05">Agree fair terms</p><h3>The contract, <em>written for you.</em></h3><p class="dm-body">The hardest part, done for you: pay, hours and days off in plain words, signed on both phones.</p><p class="dm-aside">Both phones keep the same signed copy, so nobody can change it later.</p></li>
+            <li><p class="dm-label" data-n="06">Keep what you earn</p><h3>Paid in full, <em>by UPI.</em></h3><p class="dm-body">The household pays straight to your UPI. No cut taken.</p><p class="dm-aside">A receipt signed by both phones, not a screenshot.</p></li>
+            <li><p class="dm-label" data-n="07">Your data, strictly yours</p><h3>Your number, <em>only until it's paid.</em></h3><p class="dm-body">Phone numbers are shared after signing and hidden again once the job is paid.</p><p class="dm-aside">Your chats and your limits stay on your phone.</p></li>
+            <li><p class="dm-label" data-n="08">Your trust travels with you</p><h3>A record that's <em>yours to keep.</em></h3><p class="dm-body">Every job and payment goes into an open record you own. Read it, share it, take it anywhere.</p><p class="dm-aside">No app can take your work history away.</p></li>
+            <li><p class="dm-label" data-n="09">A familiar circle</p><h3>New city, <em>familiar faces.</em></h3><p class="dm-body">A mentor who knows the work and the place, and the going rate before your first job.</p><p class="dm-aside">Help nearby, in your language.</p></li>
+          </ol>
         </div>
-      </article>
-      <article class="path-card">
-        <div class="path-art"><span>02</span><svg viewBox="0 0 96 72" aria-hidden="true"><path d="M48 65V23m0 24L26 31m22 6 22-16M48 54 75 41M48 26 33 12"/><path d="M26 31Q9 30 12 15q16 0 14 16Zm44-10Q66 5 82 5q2 13-12 16ZM33 12Q19 13 22 1q14 0 11 11ZM75 41q-1-15 15-14 1 14-15 14Z"/><circle cx="48" cy="15" r="6"/><path d="m30 66 18-9 18 9"/></svg></div>
-        <p class="concept-term">Portable work record</p>
-        <h3>Your track record stays yours.</h3>
-        <p class="path-short">Every completed job and verified receipt is saved directly on your phone—not locked inside one app—so you can prove your experience anywhere you go.</p>
-        <button class="text-link path-open" type="button" aria-expanded="false" aria-controls="idea-goodwill">See how it works <span aria-hidden="true">↗︎</span></button>
-        <div class="path-more" id="idea-goodwill" tabindex="-1" hidden>
-          <button class="path-close path-x" type="button" aria-label="Close">×</button>
-          <p>During our conversations with gig workers, one theme always came up. ID blocks on a platform might seem insignificant to some, but for a gig worker it means migrating to a new platform, with no leverage or credentials to distinguish themselves based on their prior work.</p>
-          <div class="path-note"><p class="path-note-label">The idea</p><p class="path-note-text">A record of your work and the trust you have earned, carried with you and shared on your terms.</p></div>
-          <button class="text-link path-close" type="button">Close</button>
-        </div>
-      </article>
-      <article class="path-card">
-        <div class="path-art"><span>03</span><svg viewBox="0 0 96 72" aria-hidden="true"><path d="M23 5h41l10 11v50H23Zm41 0v12h10M33 29h31M33 39h23M33 49h12"/><circle cx="65" cy="55" r="12"/><path d="m59 55 4 4 8-9"/></svg></div>
-        <p class="concept-term">Contract writing</p>
-        <h3>Clarity before commitment.</h3>
-        <p class="path-short">Rate, hours, weekly off, leave and the payment schedule, agreed and signed by both phones before any work begins.</p>
-        <button class="text-link path-open" type="button" aria-expanded="false" aria-controls="idea-contract">See how it works <span aria-hidden="true">↗︎</span></button>
-        <div class="path-more" id="idea-contract" tabindex="-1" hidden>
-          <button class="path-close path-x" type="button" aria-label="Close">×</button>
-          <p>We believe price encapsulates expectation around quality of service.</p>
-          <p>Expectation being subjective, any divergence in perception around quality of work between a customer and a gig worker may lead to a small dispute, as is natural. So the contract must also include pre-emptive measures to reach mutual understanding in case any issues occur.</p>
-          <p>Preventing small disputes from turning into serious conflicts.</p>
-          <div class="path-note"><p class="path-note-label">Agree in advance</p><p class="path-note-text">What is included, what good work means, and how both people will resolve a concern.</p></div>
-          <button class="text-link path-close" type="button">Close</button>
-        </div>
-      </article>
-    </div>
-  </section>
-
-  <section id="she-says" class="say-section wrap section-space">
-    <div class="section-intro">
-      <p class="eyebrow">03 / How it feels</p>
-      <div>
-        <h2>Say it.<br><em>It's done.</em></h2>
-        <p class="intro-copy">Everything in between happens on your phone, without you. <span class="hint-mouse">Rest the pointer on</span><span class="hint-touch">Tap</span> the two steps you see to open the three your assistant takes.</p>
-      </div>
-    </div>
-    <div class="say" id="say">
-      <div class="box her"><span class="n">01 · You</span><span class="ic"><svg aria-hidden="true"><use href="#i-mic"/></svg></span><div><h3>Say it.</h3><p>In Kannada or Hindi: the work, the days, your minimum.</p></div><svg class="scene" viewBox="0 0 400 300" aria-hidden="true" data-scene="say"></svg></div>
-      <div class="box us"><span class="tag">Your assistant does this</span><span class="ic"><svg aria-hidden="true"><use href="#i-search"/></svg></span><div><h3>We find.</h3><p>Households nearby whose terms fit your rules.</p></div></div>
-      <div class="box us"><span class="tag">Your assistant does this</span><span class="ic"><svg aria-hidden="true"><use href="#i-chat"/></svg></span><div><h3>We talk.</h3><p>Rate, hours, the weekly off, with the household's assistant.</p></div></div>
-      <div class="box us"><span class="tag">We ask, you tap</span><span class="ic"><svg aria-hidden="true"><use href="#i-tap"/></svg></span><div><h3>You approve.</h3><p>Nothing is final before this.</p></div></div>
-      <div class="box her"><span class="n">05 · Done</span><span class="ic"><svg aria-hidden="true"><use href="#i-check"/></svg></span><div><h3>Done.</h3><p>Both phones signed. Paid by UPI, straight to you.</p></div><svg class="scene" viewBox="0 0 400 300" aria-hidden="true" data-scene="done"></svg></div>
-    </div>
-    <div class="say-cap"><span class="a">What you see: 2 steps</span><span class="b">What your assistant does in between: 3 steps</span></div>
-  </section>
-
-  <section id="journey" class="story-teaser"><div class="wrap teaser-inner">
-    <div class="teaser-copy">
-      <p class="eyebrow">04 / See how it works</p>
-      <h2 id="journey-title">See how a job<br><em>actually happens.</em></h2>
-      <p class="intro-copy">Here is an example of a real booking on GigSync. Follow Lakshmi, a home cleaner in Koramangala, and Priya, a family needing weekday help—from their first chat to payment and work record.</p>
-      <a class="button teaser-link" href="./story" data-page="story">See the example <span>↗︎</span></a>
-      <p class="teaser-note">Step-by-step walkthrough · Twelve short chapters, one phone at a time.</p>
-    </div>
-    <a class="teaser-visual" href="./story" data-page="story" data-flow>
-        <span class="teaser-label">See the example</span>
-      <span class="duo-phone duo-worker" aria-hidden="true">
-        <span class="duo-tag"><i class="legend-dot worker"></i>Lakshmi</span>
-        <span class="duo-bubble"></span><span class="duo-bubble duo-reply"></span><span class="duo-bubble duo-short"></span>
-        <span class="duo-card"><i></i><i></i><b></b></span>
-      </span>
-      <span class="duo-seal" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg></span>
-      <span class="duo-phone duo-house" aria-hidden="true">
-        <span class="duo-tag"><i class="legend-dot house"></i>Priya</span>
-        <span class="duo-bubble duo-reply"></span><span class="duo-bubble"></span><span class="duo-bubble duo-reply duo-short"></span>
-        <span class="duo-card"><i></i><i></i><b></b></span>
-      </span>
-    </a>
-  </div></section>
-
-
-  <section id="request-to-receipt" class="stack-section wrap section-space">
-    <div class="section-intro">
-      <p class="eyebrow">05 / From a request to a receipt</p>
-      <div>
-        <h2>Three cards.<br>One <em>clear</em> understanding.</h2>
-        <p class="intro-copy">Scroll, and each step settles on top of the one before it.</p>
-      </div>
-    </div>
-    <div class="stack" id="stack">
-      <article class="card">
-        <div class="card-copy"><p class="eyebrow">01 / Find work</p><h3>A household asks.<br>The worker's assistant answers, within their rules.</h3><p>The request arrives sealed. The worker's assistant checks the trade, the distance, the hours and the minimum rate, and answers only if it fits.</p></div>
-        <div class="card-demo"><p class="demo-label">Request · sealed</p><div class="chat customer"><span>Household</span><p>Cleaning, Monday to Friday, 8 to 11, Koramangala. Budget ₹500 a visit.</p></div><div class="chat agent"><span>Lakshmi's assistant</span><p>Fits: 2 km, inside Lakshmi's hours, above the ₹400 minimum.</p></div></div>
-      </article>
-      <article class="card">
-        <div class="card-copy"><p class="eyebrow">02 / Agree the terms</p><h3>Both phones sign<br>the same terms.</h3><p>Rate, hours, weekly off, leave and the payment schedule, written down and signed before anyone comes to the door. Only now is the worker's number shared.</p></div>
-        <div class="card-demo"><p class="demo-label">Terms · 7f3a…c21e</p><ol class="milestone-list"><li><span>01</span><div><strong>₹450 a visit, Mon–Fri 8–11</strong><p>Sunday off, four days' leave a year.</p></div></li><li><span>02</span><div><strong>Signed on both phones</strong><p>Number shared for this job only.</p></div></li></ol></div>
-      </article>
-      <article class="card">
-        <div class="card-copy"><p class="eyebrow">03 / Get paid, keep the proof</p><h3>Paid by UPI.<br>Recorded on the worker's phone.</h3><p>Each visit is a receipt the household countersigns. The money goes straight to the worker; the record stays theirs, wherever they go next.</p></div>
-        <div class="card-demo"><p class="demo-label">Receipt · Friday</p><div class="record-row"><span class="record-icon">✳︎</span><div><strong>Fri 6 Nov · Cleaning · countersigned</strong><span>₹450 by UPI, the same day.</span></div></div><div class="record-row"><span class="record-icon">✳︎</span><div><strong>Week 1 · 5 of 5 visits</strong><span>Chained to the worker's record; only they can export it.</span></div></div></div>
-      </article>
-    </div>
-  </section>
-  </div>
-
-  <div class="sunrise sunset hill-low" data-flow aria-hidden="true"><span class="sunrise-hill"></span></div>
-  <section id="one-agent" class="jobs-section" data-motion="true">
-    <div class="jobs-stage" id="jobsStage">
-      <img class="jobs-art" src="./website/community-mural.webp" alt="" width="720" height="720" loading="lazy" decoding="async" />
-      <div class="wrap jobs-inner">
-        <div class="jobs-left">
-          <header class="jobs-top">
-            <p class="eyebrow">How it works</p>
-            <h2>Everything happens <em>on her phone.</em></h2>
-            <p class="jobs-lead">Select any step below to see how a worker finds jobs, sets her rules, and gets paid—without her data ever leaving her device.</p>
-          </header>
-          <div class="jobs-rows" id="jobsMap">
-            <div class="jobs-row" data-active="true">
-              <h3 class="jobs-row-head"><button class="jobs-row-title" type="button" aria-expanded="true" aria-controls="jobsStep1"><span class="jobs-row-num">01</span><span class="jobs-row-name">Be Found</span><i class="jobs-row-chev" aria-hidden="true"></i></button></h3>
-              <section class="jobs-cards" id="jobsStep1" aria-label="Be Found"><div class="jobs-cards-inner">
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">Her card, with a QR</span><small>scan it, your assistant talks to hers</small></div>
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">Word of mouth</span><small>her card, passed from home to home</small></div>
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">Nearby households</span><small>her trade, her hours, within 3 km</small></div>
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">The going rate</span><small>from jobs agreed nearby, not guesses</small></div>
-              </div></section>
-            </div>
-            <div class="jobs-row" data-active="false">
-              <h3 class="jobs-row-head"><button class="jobs-row-title" type="button" aria-expanded="false" aria-controls="jobsStep2"><span class="jobs-row-num">02</span><span class="jobs-row-name">Agree</span><i class="jobs-row-chev" aria-hidden="true"></i></button></h3>
-              <section class="jobs-cards" id="jobsStep2" aria-label="Agree" inert><div class="jobs-cards-inner">
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">The price</span><small>her floor, never below it</small></div>
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">Hours and the day off</span><small>Mon to Sat, Sunday kept</small></div>
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">Terms in writing</span><small>signed by both phones first</small></div>
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">Her number, held back</span><small>shared after signing, gone when settled</small></div>
-              </div></section>
-            </div>
-            <div class="jobs-row" data-active="false">
-              <h3 class="jobs-row-head"><button class="jobs-row-title" type="button" aria-expanded="false" aria-controls="jobsStep3"><span class="jobs-row-num">03</span><span class="jobs-row-name">Get Paid</span><i class="jobs-row-chev" aria-hidden="true"></i></button></h3>
-              <section class="jobs-cards" id="jobsStep3" aria-label="Get Paid" inert><div class="jobs-cards-inner">
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">Paid the same day</span><small>UPI, straight to her</small></div>
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">A receipt, signed by both</span><small>not a screenshot</small></div>
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">No cut</span><small>a platform keeps about 28%</small></div>
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">No rating penalty</span><small>stars never cut her pay</small></div>
-              </div></section>
-            </div>
-            <div class="jobs-row" data-active="false">
-              <h3 class="jobs-row-head"><button class="jobs-row-title" type="button" aria-expanded="false" aria-controls="jobsStep4"><span class="jobs-row-num">04</span><span class="jobs-row-name">Records</span><i class="jobs-row-chev" aria-hidden="true"></i></button></h3>
-              <section class="jobs-cards" id="jobsStep4" aria-label="Records" inert><div class="jobs-cards-inner">
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">Her work history</span><small>survives any phone, hers to take</small></div>
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">Proof for a helpline</span><small>she chooses what a union sees</small></div>
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">Days towards welfare</span><small>the 90 and 120 day test, counted</small></div>
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">Moving cities</span><small>the record travels with her</small></div>
-              </div></section>
-            </div>
-            <div class="jobs-row" data-active="false">
-              <h3 class="jobs-row-head"><button class="jobs-row-title" type="button" aria-expanded="false" aria-controls="jobsStep5"><span class="jobs-row-num">05</span><span class="jobs-row-name">Private</span><i class="jobs-row-chev" aria-hidden="true"></i></button></h3>
-              <section class="jobs-cards" id="jobsStep5" aria-label="Private" inert><div class="jobs-cards-inner">
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">Chats stay on the phones</span><small>Sealed in transit, never read by a server.</small></div>
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">Her lowest rate stays private</span><small>Stored locally; no AI or server sees it.</small></div>
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">On-device understanding</span><small>A small local AI on her phone reads her messages.</small></div>
-                <div class="job"><svg class="job-check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25"/><path d="M6.4 10.2l2.4 2.4 4.8-5"/></svg><span class="job-name">Her rules, not an algorithm</span><small>She controls her rate, hours, and work area.</small></div>
-              </div></section>
+        <div class="dm-phones" id="demoPhones" aria-hidden="true">
+          <div class="dm-phone dm-worker">
+            <div class="dm-screen">
+              <span class="dm-notch"></span>
+              <div class="dm-bar"><i>L</i><span><b>Lakshmi</b><small>Her assistant</small></span><svg class="dm-logo" viewBox="0 0 64 64" aria-hidden="true" data-logo></svg></div>
+              <div class="dm-chat" data-chat="worker"></div>
+              <div class="dm-view" data-view="found">
+                <p class="dm-view-top"><span class="dm-brand"><svg viewBox="0 0 64 64" aria-hidden="true" data-logo></svg>gigsync<i>.</i></span><small>Your card</small></p>
+                <div class="dm-qr"><svg class="dm-qr-mark" viewBox="0 0 21 21" aria-hidden="true"><path d="M0 0h1v1h-1zM0 1h1v1h-1zM0 2h1v1h-1zM0 3h1v1h-1zM0 4h1v1h-1zM0 5h1v1h-1zM0 6h1v1h-1zM0 8h1v1h-1zM0 14h1v1h-1zM0 15h1v1h-1zM0 16h1v1h-1zM0 17h1v1h-1zM0 18h1v1h-1zM0 19h1v1h-1zM0 20h1v1h-1zM1 0h1v1h-1zM1 6h1v1h-1zM1 9h1v1h-1zM1 14h1v1h-1zM1 20h1v1h-1zM2 0h1v1h-1zM2 2h1v1h-1zM2 3h1v1h-1zM2 4h1v1h-1zM2 6h1v1h-1zM2 8h1v1h-1zM2 9h1v1h-1zM2 10h1v1h-1zM2 14h1v1h-1zM2 16h1v1h-1zM2 17h1v1h-1zM2 18h1v1h-1zM2 20h1v1h-1zM3 0h1v1h-1zM3 2h1v1h-1zM3 3h1v1h-1zM3 4h1v1h-1zM3 6h1v1h-1zM3 8h1v1h-1zM3 14h1v1h-1zM3 16h1v1h-1zM3 17h1v1h-1zM3 18h1v1h-1zM3 20h1v1h-1zM4 0h1v1h-1zM4 2h1v1h-1zM4 3h1v1h-1zM4 4h1v1h-1zM4 6h1v1h-1zM4 8h1v1h-1zM4 9h1v1h-1zM4 11h1v1h-1zM4 12h1v1h-1zM4 14h1v1h-1zM4 16h1v1h-1zM4 17h1v1h-1zM4 18h1v1h-1zM4 20h1v1h-1zM5 0h1v1h-1zM5 6h1v1h-1zM5 8h1v1h-1zM5 9h1v1h-1zM5 11h1v1h-1zM5 14h1v1h-1zM5 20h1v1h-1zM6 0h1v1h-1zM6 1h1v1h-1zM6 2h1v1h-1zM6 3h1v1h-1zM6 4h1v1h-1zM6 5h1v1h-1zM6 6h1v1h-1zM6 12h1v1h-1zM6 14h1v1h-1zM6 15h1v1h-1zM6 16h1v1h-1zM6 17h1v1h-1zM6 18h1v1h-1zM6 19h1v1h-1zM6 20h1v1h-1zM7 8h1v1h-1zM8 0h1v1h-1zM8 1h1v1h-1zM8 2h1v1h-1zM8 3h1v1h-1zM8 5h1v1h-1zM8 7h1v1h-1zM8 10h1v1h-1zM8 11h1v1h-1zM8 15h1v1h-1zM8 16h1v1h-1zM8 19h1v1h-1zM8 20h1v1h-1zM9 0h1v1h-1zM9 3h1v1h-1zM9 4h1v1h-1zM9 5h1v1h-1zM9 6h1v1h-1zM9 8h1v1h-1zM9 10h1v1h-1zM9 11h1v1h-1zM9 13h1v1h-1zM9 15h1v1h-1zM9 16h1v1h-1zM9 17h1v1h-1zM9 18h1v1h-1zM10 0h1v1h-1zM10 2h1v1h-1zM10 3h1v1h-1zM10 6h1v1h-1zM10 8h1v1h-1zM10 9h1v1h-1zM10 11h1v1h-1zM10 12h1v1h-1zM10 13h1v1h-1zM10 14h1v1h-1zM10 16h1v1h-1zM10 18h1v1h-1zM10 19h1v1h-1zM11 3h1v1h-1zM11 4h1v1h-1zM11 7h1v1h-1zM11 8h1v1h-1zM11 11h1v1h-1zM11 15h1v1h-1zM11 16h1v1h-1zM11 17h1v1h-1zM11 19h1v1h-1zM12 0h1v1h-1zM12 3h1v1h-1zM12 4h1v1h-1zM12 6h1v1h-1zM12 7h1v1h-1zM12 11h1v1h-1zM12 13h1v1h-1zM12 14h1v1h-1zM12 15h1v1h-1zM12 16h1v1h-1zM12 17h1v1h-1zM12 18h1v1h-1zM12 19h1v1h-1zM13 8h1v1h-1zM13 9h1v1h-1zM13 15h1v1h-1zM13 16h1v1h-1zM13 17h1v1h-1zM14 0h1v1h-1zM14 1h1v1h-1zM14 2h1v1h-1zM14 3h1v1h-1zM14 4h1v1h-1zM14 5h1v1h-1zM14 6h1v1h-1zM14 8h1v1h-1zM14 12h1v1h-1zM14 14h1v1h-1zM15 0h1v1h-1zM15 6h1v1h-1zM15 9h1v1h-1zM15 13h1v1h-1zM15 18h1v1h-1zM16 0h1v1h-1zM16 2h1v1h-1zM16 3h1v1h-1zM16 4h1v1h-1zM16 6h1v1h-1zM16 8h1v1h-1zM16 13h1v1h-1zM16 16h1v1h-1zM16 18h1v1h-1zM16 20h1v1h-1zM17 0h1v1h-1zM17 2h1v1h-1zM17 3h1v1h-1zM17 4h1v1h-1zM17 6h1v1h-1zM17 10h1v1h-1zM17 15h1v1h-1zM17 16h1v1h-1zM17 17h1v1h-1zM17 19h1v1h-1zM17 20h1v1h-1zM18 0h1v1h-1zM18 2h1v1h-1zM18 3h1v1h-1zM18 4h1v1h-1zM18 6h1v1h-1zM18 10h1v1h-1zM18 12h1v1h-1zM18 14h1v1h-1zM18 15h1v1h-1zM18 19h1v1h-1zM19 0h1v1h-1zM19 6h1v1h-1zM19 8h1v1h-1zM19 9h1v1h-1zM19 15h1v1h-1zM19 16h1v1h-1zM19 17h1v1h-1zM19 18h1v1h-1zM19 19h1v1h-1zM19 20h1v1h-1zM20 0h1v1h-1zM20 1h1v1h-1zM20 2h1v1h-1zM20 3h1v1h-1zM20 4h1v1h-1zM20 5h1v1h-1zM20 6h1v1h-1zM20 10h1v1h-1zM20 13h1v1h-1zM20 14h1v1h-1zM20 15h1v1h-1zM20 17h1v1h-1zM20 20h1v1h-1z"/></svg><p><b>Lakshmi</b><span>Cleaner · Koramangala</span><span>Kannada · Hindi</span><em>Scan to ask Lakshmi for work</em></p></div>
+                <div class="dm-stats"><p><b>47</b>jobs, both signed</p><p><b>3 km</b>from home</p></div>
+                <p class="dm-row"><span>Card shared by a household</span><b>✓</b></p>
+                <p class="dm-row"><span>4 homes asking nearby</span><b>✓</b></p>
+                <p class="dm-row"><span>Cleaners here: ₹400–500 a visit</span><b>✓</b></p>
+                <span class="dm-cta">Share my card</span>
+              </div>
+              <div class="dm-view" data-view="record">
+                <p class="dm-view-top"><span class="dm-brand"><svg viewBox="0 0 64 64" aria-hidden="true" data-logo></svg>gigsync<i>.</i></span><small>Your record · open</small></p>
+                <h4>48 jobs. <em>All yours.</em></h4>
+                <div class="dm-ledger"><p class="new"><span>Cleaning, Koramangala <i>new</i></span><b>₹450</b></p><p><span>Deep clean, Indiranagar</span><b>₹1,800</b></p><p><span>Weekly, HSR Layout</span><b>₹600</b></p><p><span>Cleaning, BTM Layout</span><b>₹450</b></p><p><span>Kitchen, Jayanagar</span><b>₹700</b></p></div>
+                <p class="dm-row"><span>Signed by both, every job</span><b>✓</b></p>
+                <p class="dm-row"><span>Days towards welfare, counted</span><b>✓</b></p>
+                <p class="dm-row"><span>Moving cities? It comes along</span><b>✓</b></p>
+                <span class="dm-cta">Share my record</span>
+              </div>
+              <div class="dm-view" data-view="circle">
+                <p class="dm-view-top"><span class="dm-brand"><svg viewBox="0 0 64 64" aria-hidden="true" data-logo></svg>gigsync<i>.</i></span><small>New city</small></p>
+                <h4>New in Hyderabad? <em>You're not alone.</em></h4>
+                <div class="dm-mentor"><i>S</i><p><b>Sunita · your mentor</b><span>Cleaner here for 6 years</span><span>Speaks Kannada · from Tumakuru</span></p></div>
+                <p class="dm-row"><span>Going rate here: ₹500–600 a visit</span><b>✓</b></p>
+                <p class="dm-row"><span>Your record came with you</span><b>✓</b></p>
+                <p class="dm-row"><span>Helplines nearby, in Kannada</span><b>✓</b></p>
+                <span class="dm-cta">Message Sunita</span>
+              </div>
             </div>
           </div>
-          <div class="jobs-bottom">
-            <p class="jobs-status">Step <b id="jobsCount">01</b> / 05</p>
-            <a class="text-link" href="#built-around-you">Next steps <span>↓</span></a>
+          <div class="dm-phone dm-home">
+            <div class="dm-screen">
+              <span class="dm-notch"></span>
+              <div class="dm-bar"><i>P</i><span><b>Priya</b><small>Her assistant</small></span><svg class="dm-logo" viewBox="0 0 64 64" aria-hidden="true" data-logo></svg></div>
+              <div class="dm-chat" data-chat="home"></div>
+            </div>
           </div>
-          <div class="jobs-track" id="jobsTrack"><i></i></div>
-        </div>
-        <div class="jobs-phone-col">
-          <figure class="jp-phone jobs-phone" id="jobsPhone" data-state="active">
-            <div class="jp-phone-frame"><div class="jp-phone-screen">
-              <div class="jobs-fit">
-              <div class="jp-scr on" data-name="Her card">
-                <div class="jp-scr-top"><svg viewBox="0 0 64 64" aria-hidden="true" data-logo></svg><span>Her card</span></div>
-                <div class="jp-card-face" data-item="0" data-done="true"><svg class="jp-qr-mark" viewBox="0 0 21 21" aria-hidden="true"><path d="M0 0h1v1h-1zM0 1h1v1h-1zM0 2h1v1h-1zM0 3h1v1h-1zM0 4h1v1h-1zM0 5h1v1h-1zM0 6h1v1h-1zM0 8h1v1h-1zM0 14h1v1h-1zM0 15h1v1h-1zM0 16h1v1h-1zM0 17h1v1h-1zM0 18h1v1h-1zM0 19h1v1h-1zM0 20h1v1h-1zM1 0h1v1h-1zM1 6h1v1h-1zM1 9h1v1h-1zM1 14h1v1h-1zM1 20h1v1h-1zM2 0h1v1h-1zM2 2h1v1h-1zM2 3h1v1h-1zM2 4h1v1h-1zM2 6h1v1h-1zM2 8h1v1h-1zM2 9h1v1h-1zM2 10h1v1h-1zM2 14h1v1h-1zM2 16h1v1h-1zM2 17h1v1h-1zM2 18h1v1h-1zM2 20h1v1h-1zM3 0h1v1h-1zM3 2h1v1h-1zM3 3h1v1h-1zM3 4h1v1h-1zM3 6h1v1h-1zM3 8h1v1h-1zM3 14h1v1h-1zM3 16h1v1h-1zM3 17h1v1h-1zM3 18h1v1h-1zM3 20h1v1h-1zM4 0h1v1h-1zM4 2h1v1h-1zM4 3h1v1h-1zM4 4h1v1h-1zM4 6h1v1h-1zM4 8h1v1h-1zM4 9h1v1h-1zM4 11h1v1h-1zM4 12h1v1h-1zM4 14h1v1h-1zM4 16h1v1h-1zM4 17h1v1h-1zM4 18h1v1h-1zM4 20h1v1h-1zM5 0h1v1h-1zM5 6h1v1h-1zM5 8h1v1h-1zM5 9h1v1h-1zM5 11h1v1h-1zM5 14h1v1h-1zM5 20h1v1h-1zM6 0h1v1h-1zM6 1h1v1h-1zM6 2h1v1h-1zM6 3h1v1h-1zM6 4h1v1h-1zM6 5h1v1h-1zM6 6h1v1h-1zM6 12h1v1h-1zM6 14h1v1h-1zM6 15h1v1h-1zM6 16h1v1h-1zM6 17h1v1h-1zM6 18h1v1h-1zM6 19h1v1h-1zM6 20h1v1h-1zM7 8h1v1h-1zM8 0h1v1h-1zM8 1h1v1h-1zM8 2h1v1h-1zM8 3h1v1h-1zM8 5h1v1h-1zM8 7h1v1h-1zM8 10h1v1h-1zM8 11h1v1h-1zM8 15h1v1h-1zM8 16h1v1h-1zM8 19h1v1h-1zM8 20h1v1h-1zM9 0h1v1h-1zM9 3h1v1h-1zM9 4h1v1h-1zM9 5h1v1h-1zM9 6h1v1h-1zM9 8h1v1h-1zM9 10h1v1h-1zM9 11h1v1h-1zM9 13h1v1h-1zM9 15h1v1h-1zM9 16h1v1h-1zM9 17h1v1h-1zM9 18h1v1h-1zM10 0h1v1h-1zM10 2h1v1h-1zM10 3h1v1h-1zM10 6h1v1h-1zM10 8h1v1h-1zM10 9h1v1h-1zM10 11h1v1h-1zM10 12h1v1h-1zM10 13h1v1h-1zM10 14h1v1h-1zM10 16h1v1h-1zM10 18h1v1h-1zM10 19h1v1h-1zM11 3h1v1h-1zM11 4h1v1h-1zM11 7h1v1h-1zM11 8h1v1h-1zM11 11h1v1h-1zM11 15h1v1h-1zM11 16h1v1h-1zM11 17h1v1h-1zM11 19h1v1h-1zM12 0h1v1h-1zM12 3h1v1h-1zM12 4h1v1h-1zM12 6h1v1h-1zM12 7h1v1h-1zM12 11h1v1h-1zM12 13h1v1h-1zM12 14h1v1h-1zM12 15h1v1h-1zM12 16h1v1h-1zM12 17h1v1h-1zM12 18h1v1h-1zM12 19h1v1h-1zM13 8h1v1h-1zM13 9h1v1h-1zM13 15h1v1h-1zM13 16h1v1h-1zM13 17h1v1h-1zM14 0h1v1h-1zM14 1h1v1h-1zM14 2h1v1h-1zM14 3h1v1h-1zM14 4h1v1h-1zM14 5h1v1h-1zM14 6h1v1h-1zM14 8h1v1h-1zM14 12h1v1h-1zM14 14h1v1h-1zM15 0h1v1h-1zM15 6h1v1h-1zM15 9h1v1h-1zM15 13h1v1h-1zM15 18h1v1h-1zM16 0h1v1h-1zM16 2h1v1h-1zM16 3h1v1h-1zM16 4h1v1h-1zM16 6h1v1h-1zM16 8h1v1h-1zM16 13h1v1h-1zM16 16h1v1h-1zM16 18h1v1h-1zM16 20h1v1h-1zM17 0h1v1h-1zM17 2h1v1h-1zM17 3h1v1h-1zM17 4h1v1h-1zM17 6h1v1h-1zM17 10h1v1h-1zM17 15h1v1h-1zM17 16h1v1h-1zM17 17h1v1h-1zM17 19h1v1h-1zM17 20h1v1h-1zM18 0h1v1h-1zM18 2h1v1h-1zM18 3h1v1h-1zM18 4h1v1h-1zM18 6h1v1h-1zM18 10h1v1h-1zM18 12h1v1h-1zM18 14h1v1h-1zM18 15h1v1h-1zM18 19h1v1h-1zM19 0h1v1h-1zM19 6h1v1h-1zM19 8h1v1h-1zM19 9h1v1h-1zM19 15h1v1h-1zM19 16h1v1h-1zM19 17h1v1h-1zM19 18h1v1h-1zM19 19h1v1h-1zM19 20h1v1h-1zM20 0h1v1h-1zM20 1h1v1h-1zM20 2h1v1h-1zM20 3h1v1h-1zM20 4h1v1h-1zM20 5h1v1h-1zM20 6h1v1h-1zM20 10h1v1h-1zM20 13h1v1h-1zM20 14h1v1h-1zM20 15h1v1h-1zM20 17h1v1h-1zM20 20h1v1h-1z"/></svg><p><strong>Meena</strong><span>Cook · HSR Layout</span><span>Hindi · Kannada · English</span><em>Scan to ask Meena for work</em></p></div>
-                <div class="jp-stats"><p><b>47</b>jobs, both signed</p><p><b>4.8</b>from 31 homes</p><p><b>3 km</b>from home</p></div>
-                <div class="jp-row" data-item="1" data-done="true"><span>Card shared by a household</span><b class="jp-ok">✓</b></div>
-                <div class="jp-row" data-item="2" data-done="true"><span>4 households asking nearby</span><b class="jp-ok">✓</b></div>
-                <div class="jp-row" data-item="3" data-done="true"><span>Cooks here: ₹9,000 to 10,000</span><b class="jp-ok">✓</b></div>
-                <span class="jp-cta">Share my card</span>
-              </div>
-              <div class="jp-scr" data-name="The agreement">
-                <div class="jp-scr-top"><svg viewBox="0 0 64 64" aria-hidden="true" data-logo></svg><span>Agreement</span></div>
-                <p class="jp-scr-label">Priya's family · weekday breakfasts</p>
-                <h3>₹9,500 a month, <em>Sunday off.</em></h3>
-                <div class="jp-row" data-item="0" data-done="true"><span>Offered ₹8,500 · her floor ₹9,000</span><b class="jp-ok">✓</b></div>
-                <div class="jp-row" data-item="1" data-done="true"><span>Mon to Sat, 7 to 9 am</span><b class="jp-ok">✓</b></div>
-                <div class="jp-row" data-item="2" data-done="true"><span>Terms in writing · 7c1e…a9f3</span><b class="jp-ok">✓</b></div>
-                <div class="jp-row" data-item="3" data-done="true"><span>Her number: shared now, gone when settled</span><b class="jp-ok">✓</b></div>
-                <div class="jp-signers"><span>Meena's phone ✓</span><span>Priya's phone ✓</span></div>
-                <span class="jp-cta">Signed on both phones</span>
-              </div>
-              <div class="jp-scr" data-name="Paid, the same day">
-                <div class="jp-scr-top"><svg viewBox="0 0 64 64" aria-hidden="true" data-logo></svg><span>Payment</span></div>
-                <p class="jp-scr-label">Deep clean · Indiranagar · today</p>
-                <p class="jp-value" data-item="0" data-done="true"><span>₹1,800</span></p>
-                <p class="jp-hint">UPI at 6:12 pm, <b>straight to her</b></p>
-                <div class="jp-row" data-item="1" data-done="true"><span>Receipt, signed by both</span><b class="jp-ok">✓</b></div>
-                <div class="jp-compare" data-item="2" data-done="true"><p><span>Reaches her</span><b>₹1,800</b></p><i class="jp-bar"></i><p><span>On a platform, after its cut</span><b>about ₹1,300</b></p><i class="jp-bar jp-cut"></i></div>
-                <div class="jp-row" data-item="3" data-done="true"><span>Held back for a rating</span><b>nothing, ever</b></div>
-                <span class="jp-cta">Saved to her record</span>
-              </div>
-              <div class="jp-scr" data-name="Her record">
-                <div class="jp-scr-top"><svg viewBox="0 0 64 64" aria-hidden="true" data-logo></svg><span>Her record</span></div>
-                <h3>47 jobs. <em>All hers.</em></h3>
-                <div class="jp-ledger" data-item="0" data-done="true"><p class="jp-line"><span>Deep clean, Indiranagar</span><span class="jp-paid">₹1,800</span></p><p class="jp-line"><span>Weekly, Koramangala</span><span class="jp-paid">₹600</span></p><p class="jp-line"><span>Paint job, day 2 of 4</span><span>₹1,500</span></p></div>
-                <div class="jp-row" data-item="1" data-done="true"><span>Evidence pack: unpaid day 3</span><b class="jp-ok">✓</b></div>
-                <div class="jp-row" data-item="2" data-done="true"><span>Days towards welfare, counted</span><b class="jp-ok">✓</b></div>
-                <div class="jp-row" data-item="3" data-done="true"><span>Moving to Hyderabad? It comes along</span><b class="jp-ok">✓</b></div>
-                <span class="jp-cta">Take my record</span>
-              </div>
-              <div class="jp-scr" data-name="On her phone">
-                <div class="jp-scr-top"><svg viewBox="0 0 64 64" aria-hidden="true" data-logo></svg><span>Private by design</span></div>
-                <h3>What she says <em>stays hers.</em></h3>
-                <div class="jp-relay"><span>Her phone</span><i></i><span class="jp-mid">Relay</span><i></i><span>Their phone</span></div>
-                <div class="jp-row" data-item="0" data-done="true"><span>Chats</span><b>on the phones, not a server</b></div>
-                <div class="jp-row" data-item="1" data-done="true"><span>Lowest rate</span><b>stays on this phone</b></div>
-                <div class="jp-row" data-item="2" data-done="true"><span>Model</span><b>small and offline, or none</b></div>
-                <div class="jp-row" data-item="3" data-done="true"><span>Her rules</span><b>₹9,000 · Mon–Sat · 3 km</b></div>
-                <p class="jp-hint">The relay sees who, whom and when. <b>Never what.</b></p>
-                <span class="jp-cta">Hers to take, any time</span>
-              </div>
-              <div class="jobs-tabs" id="jobsTabs">
-                <span data-active="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="1.5"/><path d="M7 9.5h4v4H7zM14 10h3M14 13h3"/></svg>Be Found</span>
-                <span data-active="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="12" r="5"/><circle cx="15" cy="12" r="5"/></svg>Agree</span>
-                <span data-active="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9 8.5h6M9 11h6M9.5 8.5c3.4 0 3.4 2.5 0 2.5l4 4.5"/></svg>Get Paid</span>
-                <span data-active="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9"/></svg>Records</span>
-                <span data-active="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="10.5" width="13" height="9" rx="1.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>Private</span>
-              </div>
-              </div>
-            </div></div>
-            <figcaption><b id="jobsScreenName">Her card</b><span id="jobsScreenIndex">1 / 5</span></figcaption>
-          </figure>
+          <span class="dm-seal" id="demoSeal"></span>
         </div>
       </div>
+      <div class="dm-track" aria-hidden="true"><i id="demoTrack"></i></div>
+      <p class="dm-hint" aria-hidden="true">Scroll to play</p>
+      <a class="dm-skip" href="#inspiration">The inspiration <span aria-hidden="true">↓</span></a>
     </div>
   </section>
 
-  <div class="sunrise hill-low hill-warm" data-flow aria-hidden="true"><span class="sunrise-hill"></span></div>
-
-  <div class="ink-span ink-warm" data-flow>
-  <div class="ink-stage" aria-hidden="true"><span class="ink-art"></span></div>
-  <section class="community-section"><div class="wrap community-inner section-intro">
-    <p class="eyebrow">06 / Built for new arrivals</p>
-    <div>
-      <h2>New city.<br>Fair pay from day&nbsp;one.</h2>
-      <p class="community-lead">Know the going rate before you accept your first job—even when you’re brand new in town.</p>
-      <div class="community-body">
-        <p>Workers have told us about moving to a city because a brother, a friend, or someone from their village was already there. A familiar person can make an unfamiliar world feel safer. Most of the women we spoke to found their first work through someone, not through an app.</p>
-        <p>GigSync helps bridge the gap. It acts as a guide, ready to help workers get a fair understanding of the price of their work in a new city. It shows the usual pay for their work there, so they never have to guess or settle for less. When a household asks, their assistant agrees the price, the hours and the day off within the worker’s own rules.</p>
-        <a class="text-link" href="#have-a-say">What would help your community? <span>↗︎</span></a>
-      </div>
-    </div>
-  </div></section>
-
-  <section id="built-around-you" class="principles-section wrap section-space">
-    <div class="section-intro">
-      <p class="eyebrow">07 / What’s next</p>
-      <div>
-        <h2>Where GigSync<br>is headed next.</h2>
-        <p class="intro-copy">As our Bengaluru pilot grows, we are expanding how workers connect and get discovered—without ever giving up control of their data.</p>
-      </div>
-    </div>
-    <div class="roadmap-list">
-      <details><summary><span class="roadmap-number">01</span><span><small>Next interface</small>Meet people where they already are.</span><span class="roadmap-tag">WhatsApp</span></summary><div class="detail-body"><p>A household signs the terms and pays from a WhatsApp or SMS link without installing anything. The link carries a notice and nothing else; the terms, the contact cards and the record never pass through Meta's servers.</p></div></details>
-      <details><summary><span class="roadmap-number">02</span><span><small>Access by design</small>Intelligence within reach.</span><span class="roadmap-tag">Local models</span></summary><div class="detail-body"><p>Today our model supports English and Hinglish. We are striving to build an inclusive community, so models supporting other regional languages locally on the phone come as the next step.</p></div></details>
-      <details><summary><span class="roadmap-number">03</span><span><small>Open network</small>Discoverable anywhere, locked in nowhere.</span><span class="roadmap-tag">ONDC</span></summary><div class="detail-body"><p>Upcoming ONDC integration so households searching across any ONDC-connected app can discover and book local workers—while rates, permissions, and work records remain strictly on the worker’s phone.</p></div></details>
-    </div>
-  </section>
   </div>
 
-
-  <div class="closing-wrap" data-flow>
-  <img class="bookend-tree" src="./website/mural-tree.webp" alt="" width="1825" height="500" loading="lazy" aria-hidden="true" />
-  <div class="sunrise sunset" data-flow aria-hidden="true"><span class="sunrise-sun"></span><span class="sunrise-hill"></span></div>
-  <section id="have-a-say" class="closing-section" data-flow>
-    <div class="wrap closing-inner">
-      <div class="closing-mark" aria-hidden="true">✳︎</div>
-      <p class="eyebrow">Built with people, not just for them</p>
-      <h2 id="closing-title">Her experience.<br>Our next <em>possibility.</em></h2>
-      <p>What would make her work feel fairer?<br>Every idea, question, and lived experience is welcome.</p>
-      <div class="closing-actions"><a class="button button-cream" href="./app">Open GigSync <span>↗︎</span></a><a class="closing-secondary" href="https://github.com/kirav5/GigSync">Help shape GigSync ↗︎</a></div>
-      <div class="community-border"></div>
+  <section class="ins" id="inspiration" aria-labelledby="privacy-title">
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+      <symbol id="ins-worker" viewBox="0 0 65 85"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="10" r="6"/><path d="M32 21 18 44h28L32 21 17 64h30L32 44M25 64l-5 15m19-15 5 15M20 25 8 39 1 32m43-7 12 14 8-7"/></g></symbol>
+      <symbol id="ins-tree" viewBox="0 0 100 80"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M50 71V19M50 53 25 38M50 43l24-17M50 64 74 50M50 31 29 17M33 72l17-7 17 7"/><path d="M25 38Q7 38 12 21q18 0 13 17ZM29 17Q12 17 16 4q17 0 13 13ZM74 26Q70 8 89 9q1 16-15 17ZM74 50q-3-17 16-17 1 17-16 17Z"/><circle cx="50" cy="13" r="6"/></g></symbol>
+    </defs></svg>
+    <div class="wrap">
+      <div class="section-intro pv-inner">
+        <p class="eyebrow">03 / Privacy by design</p>
+        <div>
+          <h2 id="privacy-title">Your data, <em>strictly yours.</em></h2>
+          <p class="intro-copy">Powered by a local AI model running directly on your smartphone. Your conversations, work history, and intent stay strictly on your device. Never uploaded to external servers, never mined, and never shared without your say.</p>
+          <p class="stage-note">On-device AI · Zero data leaves your phone</p>
+        </div>
+      </div>
+      <div class="ins-stories">
+        <article class="ins-story rise">
+          <div class="ins-art ins-fit" role="img" aria-label="Questions about time, work and pay gather between two people into a shared understanding.">
+            <svg viewBox="0 0 360 210" aria-hidden="true"><path class="ins-thread" d="M70 145 Q130 20 180 112 T290 145M70 145Q150 205 180 112T290 145"/><use href="#ins-worker" x="28" y="108" width="65" height="85"/><use href="#ins-worker" x="270" y="108" width="65" height="85"/><g class="ins-q ins-qa"><rect x="105" y="25" width="62" height="30" rx="15"/><text x="136" y="45">When?</text></g><g class="ins-q ins-qb"><rect x="194" y="50" width="66" height="30" rx="15"/><text x="227" y="70">What?</text></g><g class="ins-q ins-qc"><rect x="100" y="86" width="66" height="30" rx="15"/><text x="133" y="106">How much?</text></g><g class="ins-shared"><rect x="122" y="70" width="116" height="83" rx="4"/><path d="m139 90 4 4 8-10m-12 28 4 4 8-10m-12 28 4 4 8-10"/><text x="162" y="94">Mon–Fri</text><text x="162" y="113">Cleaning</text><text x="162" y="132">₹450</text></g><circle class="ins-spark" cx="180" cy="175" r="4"/></svg>
+            <p class="ins-caption"><span class="ins-before">Questions, back and forth</span><span class="ins-after">A good fit, understood</span></p>
+          </div>
+          <h3>Less back-and-forth.</h3>
+          <p>Your assistant explores the fit.<br>Your preferences lead the way.</p>
+          <a class="ins-link" href="#demo" data-chapter="1">Explore the conversation</a>
+        </article>
+        <article class="ins-story rise">
+          <div class="ins-art ins-contract" role="img" aria-label="Agreed terms build a bridge between two people, including a step for handling changes.">
+            <svg viewBox="0 0 360 210" aria-hidden="true"><use href="#ins-worker" x="24" y="106" width="58" height="76"/><use href="#ins-worker" x="278" y="106" width="58" height="76"/><path d="M18 185h65m194 0h65"/><path class="ins-bridge" d="M78 184q102-75 204 0"/><g class="ins-plank"><path d="m90 162 15 25"/><rect x="83" y="58" width="63" height="29" rx="3"/><text x="114" y="77">Scope</text></g><g class="ins-plank ins-p2"><path d="m138 142 7 29"/><rect x="152" y="32" width="57" height="29" rx="3"/><text x="180" y="51">Pay</text></g><g class="ins-plank ins-p3"><path d="m179 135 0 30"/><rect x="215" y="58" width="65" height="29" rx="3"/><text x="247" y="77">What-ifs</text></g><g class="ins-plank ins-p4"><path d="m222 142-7 29m50-9-15 25"/></g><g class="ins-check"><circle cx="181" cy="106" r="16"/><path d="m173 105 6 6 10-12"/></g></svg>
+            <p class="ins-caption"><span class="ins-before">Expectations, put into words</span><span class="ins-after">A way forward, agreed together</span></p>
+          </div>
+          <h3>Agree on your terms.</h3>
+          <p>Simple contracts. Clear expectations.<br>A plan for when things change.</p>
+          <a class="ins-link" href="#demo" data-chapter="4">Explore the agreement</a>
+        </article>
+        <article class="ins-story rise">
+          <div class="ins-art ins-trust" role="img" aria-label="A worker carries their growing work record between communities, keeping their experience with them.">
+            <svg viewBox="0 0 360 210" aria-hidden="true"><g class="ins-village"><path d="m15 95 28-23 28 23v46H15Zm8 0h39m-28 46v-24h18v24"/><use href="#ins-tree" x="66" y="60" width="60" height="75"/></g><g class="ins-village"><path d="M274 145V77h28v68m0 0V56h38v89m-59-52h8m-8 17h8m21-36h9m-9 18h9m-9 18h9"/></g><path class="ins-path" d="M60 173q120 24 242 0"/><g class="ins-traveller"><use href="#ins-worker" x="130" y="91" width="61" height="80"/><g class="ins-record"><rect x="187" y="103" width="47" height="58" rx="3"/><path d="M196 117h27m-27 9h27m-27 9h17"/><circle cx="226" cy="153" r="10"/><path d="m221 153 4 4 7-9"/></g><circle class="ins-leaf" cx="162" cy="70" r="4"/><circle class="ins-leaf ins-l2" cx="177" cy="60" r="4"/><circle class="ins-leaf ins-l3" cx="191" cy="73" r="4"/></g></svg>
+            <p class="ins-caption"><span class="ins-before">New city. New platform.</span><span class="ins-after">Your experience comes with you</span></p>
+          </div>
+          <h3>Your trust travels with you.</h3>
+          <p>No app can take your work history away.<br>Keep a record you can share.</p>
+          <a class="ins-link" href="#demo" data-chapter="7">Explore a record that stays yours</a>
+        </article>
+      </div>
+      <footer class="ins-footer">
+        <a class="brand" href="#top"><svg viewBox="0 0 64 64" aria-hidden="true" data-logo></svg>gigsync<span class="brand-dot">.</span></a>
+        <p>Built around people.</p>
+        <a href="#top">Back to the beginning</a>
+      </footer>
     </div>
   </section>
-  </div>
 </main>
-
-<footer class="site-footer">
-  <div class="wrap footer-inner"><div><a class="brand" href="#top"><svg viewBox="0 0 64 64" aria-hidden="true" data-logo></svg>gigsync<span class="brand-dot">.</span></a><p>Built around people. Enabled by assistants on their own phones.</p></div>
-  <div class="footer-right"><a href="#top">Back to the beginning <span>↑</span></a><p>Product vision · Bengaluru · 2026</p></div></div>
-</footer>
 
 <script type="module">
   import { drawLogoMark } from "./website/art.js";
-  import { curveStrips } from "./website/curves.js";
-  import { drawDoneScene, drawSayScene } from "./website/drawings.js";
-  import { revealLines, startFlow } from "./website/flow.js";
   import { startScene } from "./website/fly.js";
-  import { ideaCards } from "./website/ideas.js";
-  import { startJobs } from "./website/jobs.js";
-  import { hoverAccordion, phoneMenu, revealOnArrival, stackCards } from "./website/motion.js";
-  import { linkPages } from "./website/site-links.js";
+  import { phoneMenu, revealOnArrival } from "./website/motion.js";
+  import { startDemo } from "./website/v3/demo.js";
 
-  linkPages();
   for (const svg of document.querySelectorAll("[data-logo]")) drawLogoMark(svg);
   startScene({
     opening: document.getElementById("opening"),
@@ -437,27 +232,14 @@
     links: document.querySelectorAll('a[href="#our-roots"], a[href="#top"]'),
   });
   phoneMenu(document.getElementById("top"));
-  revealLines(document.querySelectorAll("#the-idea h2, #she-says h2, #journey h2, #one-agent h2, #built-around-you h2, #request-to-receipt h2, .community-section h2, #have-a-say h2"));
-  startFlow(document.querySelectorAll("[data-flow]"));
-  curveStrips(document.querySelectorAll(".sunrise-hill"));
   revealOnArrival(".rise");
-  hoverAccordion(document.getElementById("say"));
-  ideaCards(document.querySelectorAll(".path-card"));
-  drawSayScene(document.querySelector('[data-scene="say"]'));
-  drawDoneScene(document.querySelector('[data-scene="done"]'));
-  stackCards(document.getElementById("stack"));
-  startJobs({
-    section: document.getElementById("one-agent"),
-    stage: document.getElementById("jobsStage"),
-    rows: document.querySelectorAll("#jobsMap .jobs-row"),
-    count: document.getElementById("jobsCount"),
-    track: document.getElementById("jobsTrack"),
-    screens: document.querySelectorAll("#jobsPhone .jp-scr"),
-    tabs: document.querySelectorAll("#jobsTabs span"),
-    phoneScreen: document.querySelector("#jobsPhone .jp-phone-screen"),
-    screenName: document.getElementById("jobsScreenName"),
-    screenIndex: document.getElementById("jobsScreenIndex"),
-  });
+  const demo = startDemo(document.getElementById("demo"));
+  for (const link of document.querySelectorAll("[data-chapter]")) {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      demo.goTo(Number(link.dataset.chapter));
+    });
+  }
 </script>
 </body>
 </html>

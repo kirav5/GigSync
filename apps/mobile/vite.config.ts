@@ -13,7 +13,7 @@ const SOURCE_MAP = ".map";
 /** Cloudflare reads this file at deploy and never serves it, so it is no part of what the app precaches. */
 const REDIRECTS = "_redirects";
 /** What only the website loads: an app that opens offline has no use for it, and a phone should not pay for it. */
-const WEBSITE_ONLY = /^assets\/(home-|story-|site-links-|curves-|flow-|community-mural-|mural-)/;
+const WEBSITE_ONLY = /^assets\/(home-|story-|alpha-|site-links-|curves-|flow-|community-mural-|mural-)/;
 /**
  * The understanding pack's Web Worker (adapters/embed/worker.ts, with ONNX Runtime and Transformers.js bundled in):
  * fetched when the pack first loads, never precached.
@@ -71,9 +71,9 @@ export default defineConfig({
     outDir: "dist",
     target: "es2022",
     sourcemap: true,
-    // The app (index.html, what Capacitor loads) and the website's two pages: home.html, the web's root
-    // (public/_redirects), and story.html, served at /story.
-    rollupOptions: { input: { app: INDEX, home: "home.html", story: "story.html" } },
+    // The app (index.html, what Capacitor loads) and the website's pages: home.html, the web's root
+    // (public/_redirects), story.html, served at /story, and alpha.html, the earlier home, kept at /alpha.
+    rollupOptions: { input: { app: INDEX, home: "home.html", story: "story.html", alpha: "alpha.html" } },
   },
   // The understanding pack's Web Worker under a name the service worker can leave out of its precache.
   worker: { format: "es", rollupOptions: { output: { entryFileNames: `${MODEL_WORKER}[hash].js` } } },

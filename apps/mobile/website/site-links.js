@@ -1,5 +1,5 @@
-// The website's pages have clean addresses where it is served (/ and /story). The dev server only knows the files
-// (home.html, story.html), so there the links between the pages are pointed at the files instead.
+// The website's pages have clean addresses where it is served (/, /story and /alpha). The dev server only knows the
+// files (home.html, story.html, alpha.html), so there the links between the pages are pointed at the files instead.
 
 const DEV_PAGE = /\.html$/;
 const PAGE_LINKS = "a[data-page]";

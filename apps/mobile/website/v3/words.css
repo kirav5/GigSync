@@ -1,0 +1,96 @@
+/* The demo's words, on the left of the phones: the label, then one step at a
+ * time, in the manner of the story page: the step's name, a large line with its point in italic, a sentence, and a
+ * quieter note set off by a rule. All the steps share one cell, so the column keeps the height of the longest and
+ * nothing below it moves as they change. */
+
+.dm-eyebrow {
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--gold);
+}
+.dm-steps {
+  display: grid;
+  margin: clamp(28px, 6svh, 64px) 0 0;
+  padding: 0;
+  list-style: none;
+  max-width: 560px;
+}
+.dm-steps li {
+  grid-area: 1 / 1;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(14px);
+  transition:
+    opacity 0.45s ease,
+    transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1),
+    visibility 0.45s;
+}
+.dm-steps li.on {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+.dm-label {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin: 0;
+  font: 600 13px / 1.4 var(--sans);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.dm-label::before {
+  content: attr(data-n);
+  font: italic 400 22px / 1 var(--serif);
+  letter-spacing: 0;
+  color: #b8976a;
+}
+.dm-steps h3 {
+  margin: clamp(14px, 2.6svh, 28px) 0 0;
+  font: 400 clamp(34px, min(3.8vw, 6svh), 60px) / 1.06 var(--serif);
+  letter-spacing: -0.02em;
+  color: var(--ivory);
+}
+.dm-steps h3 em {
+  color: var(--gold);
+}
+.dm-body {
+  margin: clamp(14px, 2.6svh, 26px) 0 0;
+  font: 400 clamp(18px, min(1.6vw, 2.7svh), 23px) / 1.55 var(--serif);
+  color: #e5d4b3;
+}
+.dm-aside {
+  margin: clamp(14px, 2.4svh, 24px) 0 0;
+  padding-left: 18px;
+  border-left: 1px solid rgba(216, 178, 118, 0.45);
+  font: 400 15px / 1.7 var(--sans);
+  color: #c8b391;
+}
+
+@media (max-width: 860px) {
+  .dm-eyebrow {
+    margin-bottom: 6px;
+    font-size: 11px;
+  }
+  .dm-steps {
+    margin-top: 14px;
+  }
+  .dm-label {
+    font-size: 11px;
+  }
+  .dm-label::before {
+    font-size: 17px;
+  }
+  .dm-steps h3 {
+    margin-top: 8px;
+    font-size: clamp(24px, 6.6vw, 32px);
+  }
+  .dm-body {
+    margin-top: 8px;
+    font-size: 15px;
+  }
+  .dm-aside {
+    display: none;
+  }
+}

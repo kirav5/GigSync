@@ -1,0 +1,193 @@
+/* The inspiration's drawings in motion: every one runs on the same nine-second loop, and stands still with Reduce
+ * Motion on, showing its settled state. */
+
+.ins-before {
+  animation: ins-before 9s infinite;
+}
+.ins-after {
+  animation: ins-after 9s infinite;
+}
+.ins-qa {
+  animation: ins-qa 9s infinite;
+}
+.ins-qb {
+  animation: ins-qb 9s infinite;
+}
+.ins-qc {
+  animation: ins-qc 9s infinite;
+}
+.ins-shared,
+.ins-check {
+  animation: ins-show 9s infinite;
+}
+.ins-bridge {
+  animation: ins-draw 9s infinite;
+}
+.ins-plank {
+  animation: ins-plank 9s infinite;
+}
+.ins-p2 {
+  animation-delay: 0.5s;
+}
+.ins-p3 {
+  animation-delay: 1s;
+}
+.ins-p4 {
+  animation-delay: 1.5s;
+}
+.ins-traveller {
+  animation: ins-travel 9s infinite;
+}
+.ins-l2 {
+  animation: ins-glow 4s infinite;
+}
+.ins-l3 {
+  animation: ins-glow 4s 1s infinite;
+}
+
+@keyframes ins-before {
+  0%,
+  25% {
+    opacity: 1;
+  }
+  40%,
+  85% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes ins-after {
+  0%,
+  30% {
+    opacity: 0;
+  }
+  45%,
+  80% {
+    opacity: 1;
+  }
+  95%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes ins-qa {
+  0%,
+  22% {
+    opacity: 1;
+    transform: none;
+  }
+  40%,
+  85% {
+    opacity: 0;
+    transform: translate(45px, 65px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ins-qb {
+  0%,
+  22% {
+    opacity: 1;
+    transform: none;
+  }
+  40%,
+  85% {
+    opacity: 0;
+    transform: translate(-45px, 40px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ins-qc {
+  0%,
+  22% {
+    opacity: 1;
+    transform: none;
+  }
+  40%,
+  85% {
+    opacity: 0;
+    transform: translate(45px, 5px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ins-show {
+  0%,
+  29% {
+    opacity: 0;
+  }
+  44%,
+  82% {
+    opacity: 1;
+  }
+  96%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes ins-draw {
+  0%,
+  10% {
+    stroke-dashoffset: 240;
+  }
+  45%,
+  90% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 240;
+  }
+}
+@keyframes ins-plank {
+  0%,
+  15% {
+    opacity: 0.15;
+  }
+  40%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.15;
+  }
+}
+@keyframes ins-travel {
+  0%,
+  12% {
+    transform: translateX(-50px);
+  }
+  62%,
+  82% {
+    transform: translateX(45px);
+  }
+  100% {
+    transform: translateX(-50px);
+  }
+}
+@keyframes ins-glow {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ins-art * {
+    animation: none !important;
+  }
+  .ins-q,
+  .ins-before {
+    opacity: 0;
+  }
+  .ins-bridge {
+    stroke-dashoffset: 0;
+  }
+}

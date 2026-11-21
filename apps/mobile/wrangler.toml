@@ -1,5 +1,6 @@
 # The web build, served as static assets by a Worker (Cloudflare Pages now runs on Workers). The root is the website
-# (home.html, by public/_redirects); every other address that is not a file, /app included, gets index.html: the app.
+# (home.html, by public/_redirects), with /story and /alpha (the earlier home) beside it; every other address that is
+# not a file, /app included, gets index.html: the app.
 # Deploy: pnpm build && pnpm --filter @gigsync/worker-api exec wrangler deploy --config ../../apps/mobile/wrangler.toml
 name = "gigsync-app"
 compatibility_date = "2026-08-01"
