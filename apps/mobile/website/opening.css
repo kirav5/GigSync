@@ -151,8 +151,10 @@
   align-items: center;
   gap: 9px;
   margin: 0 auto;
-  /* wide enough that the line above the headline stays on two lines: a third runs into the ring on a phone */
-  max-width: 40ch;
+  /* wide enough that the line above the headline keeps to one line, or two at most: a third runs into the ring on a
+     phone */
+  max-width: 50ch;
+  text-wrap: balance;
   grid-area: brow;
   align-self: start;
   text-align: center;
