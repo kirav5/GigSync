@@ -185,16 +185,31 @@
   color: #8f7d62;
 }
 
-/* the way to the app, bottom right: Google Play's badge as Google draws it, with a word on when */
-.ins-footer .ins-get {
+/* bottom right: the code, open on GitHub, and Google Play's badge as Google draws it */
+.ins-links {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 24px;
 }
 .ins-play {
   display: block;
   width: 140px;
   height: 42px;
+}
+.ins-gh {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #8f7d62;
+}
+.ins-gh svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+.ins-gh:hover {
+  color: var(--rust);
 }
 
 /* on a desktop the whole light section, footer included, fits one screen: its spacing and drawings follow the
