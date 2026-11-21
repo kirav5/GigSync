@@ -45,6 +45,10 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 36px;
 }
+/* each story is centred under its drawing, which is drawn round its own middle */
+.ins-story {
+  text-align: center;
+}
 .ins-story h3 {
   margin: 14px 0 10px;
   font: 400 28px / 1.15 var(--serif);
@@ -72,6 +76,7 @@
 /* ---------- The drawings ---------- */
 
 .ins-art {
+  margin-inline: auto;
   color: #9b6c47;
 }
 .ins-art svg {
