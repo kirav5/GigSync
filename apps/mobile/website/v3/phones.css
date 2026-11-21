@@ -1,0 +1,290 @@
+/* The demo's two phones (Lakshmi, the worker, on the left; Priya, the household, on the right), their chats, and the
+ * sealed note that crosses between them. Sizes inside a screen are in cqw, so a phone reads the same at any size. */
+
+.dm-phones {
+  position: relative;
+  height: 100%;
+  max-height: 720px;
+  container-type: size;
+  font-family: var(--sans);
+}
+.dm-phone {
+  position: absolute;
+  width: min(46cqw, 44cqh);
+  aspect-ratio: 9 / 19.2;
+  border-radius: 13% / 6.2%;
+  background: #241812;
+  padding: 2.4%;
+  box-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.06) inset,
+    0 36px 60px -24px rgba(0, 0, 0, 0.65);
+  opacity: 0;
+  transition:
+    transform 1s cubic-bezier(0.2, 0.75, 0.1, 1),
+    opacity 0.6s;
+}
+.dm-worker {
+  left: 3cqw;
+  top: 2cqh;
+  transform: translate(-20%, 10%) rotate(-6deg);
+}
+.dm-home {
+  right: 3cqw;
+  top: 10cqh;
+  transform: translate(25%, 12%) rotate(6deg);
+  transition-delay: 0.12s;
+}
+.dm.in .dm-phone {
+  opacity: 1;
+}
+.dm.in .dm-worker {
+  transform: rotate(-2.5deg);
+}
+.dm.in .dm-home {
+  transform: rotate(2.5deg);
+}
+
+.dm-seal {
+  position: absolute;
+  width: 9cqw;
+  max-width: 54px;
+  aspect-ratio: 1.4;
+  border-radius: 3px;
+  background: var(--ivory);
+  box-shadow: 0 6px 14px -4px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.dm-seal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom right, transparent 49%, #b9975c 50%, transparent 52%),
+    linear-gradient(to bottom left, transparent 49%, #b9975c 50%, transparent 52%);
+  background-size: 100% 60%;
+  background-repeat: no-repeat;
+}
+
+.dm-screen {
+  position: relative;
+  height: 100%;
+  border-radius: 11% / 5.2%;
+  overflow: hidden;
+  background: #fbf7ef;
+  display: flex;
+  flex-direction: column;
+  container-type: inline-size;
+}
+.dm-bar {
+  display: flex;
+  align-items: center;
+  gap: 4cqw;
+  padding: 13cqw 6cqw 4cqw;
+  border-bottom: 1px solid #eadfcc;
+  background: #fbf7ef;
+}
+.dm-bar i {
+  width: 11cqw;
+  height: 11cqw;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 600 5cqw / 1 var(--sans);
+  font-style: normal;
+  color: #fff;
+  flex: none;
+}
+.dm-worker .dm-bar i {
+  background: var(--rust);
+}
+.dm-home .dm-bar i {
+  background: #6b7a4f;
+}
+.dm-bar b {
+  display: block;
+  font: 600 5.4cqw / 1.15 var(--sans);
+  color: var(--ink);
+}
+.dm-bar small {
+  display: block;
+  font: 400 4.2cqw / 1.2 var(--sans);
+  color: var(--muted);
+}
+
+.dm-notch {
+  position: absolute;
+  top: 3.2cqw;
+  left: 50%;
+  width: 30cqw;
+  height: 7cqw;
+  border-radius: 99px;
+  background: #241812;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.dm-chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2.6cqw;
+  padding: 4cqw 4.5cqw 6cqw;
+  overflow: hidden;
+}
+
+.dm-msg {
+  max-width: 86%;
+  padding: 3cqw 4cqw;
+  border-radius: 5cqw;
+  font: 400 4.6cqw / 1.38 var(--sans);
+  color: var(--ink);
+  animation: dm-in 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.dm-msg.me {
+  align-self: flex-end;
+  background: var(--ink);
+  color: #fbf3e4;
+  border-bottom-right-radius: 1.6cqw;
+}
+.dm-msg.bot {
+  align-self: flex-start;
+  background: #efe5d3;
+  border-bottom-left-radius: 1.6cqw;
+}
+.dm-msg .who {
+  display: block;
+  margin-bottom: 0.8cqw;
+  font: 600 3.7cqw / 1.2 var(--sans);
+  color: var(--rust);
+}
+.dm-home .dm-msg .who {
+  color: #5a6842;
+}
+
+.dm-card {
+  align-self: stretch;
+  padding: 3.6cqw 4cqw;
+  border: 1px solid #e3d6be;
+  border-radius: 4.5cqw;
+  background: #fff;
+  font: 400 4.3cqw / 1.4 var(--sans);
+  animation: dm-in 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.dm-card .k {
+  display: block;
+  margin-bottom: 1.4cqw;
+  font: 600 3.6cqw / 1.2 var(--sans);
+  color: var(--muted);
+}
+.dm-card b {
+  display: block;
+  font: 600 6.4cqw / 1.15 var(--serif);
+  color: var(--ink);
+}
+.dm-card ul {
+  margin: 1.6cqw 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+}
+.dm-card li::before {
+  content: "✓";
+  margin-right: 1.6cqw;
+  color: #6b7a4f;
+}
+.dm-card.signed {
+  border-color: #c9d0b4;
+  background: #f4f6ec;
+}
+.dm-card.paid b {
+  color: #4f5e36;
+}
+
+.dm-btns {
+  align-self: stretch;
+  display: flex;
+  gap: 2cqw;
+  animation: dm-in 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.dm-btns span {
+  flex: 1;
+  padding: 2.6cqw 0;
+  border-radius: 99px;
+  text-align: center;
+  font: 600 4.2cqw / 1 var(--sans);
+  background: #efe5d3;
+  color: var(--ink);
+}
+.dm-btns span.go {
+  background: var(--ink);
+  color: #fbf3e4;
+}
+.dm-btns span.go.tapped {
+  background: var(--rust);
+  color: #fff;
+  transform: scale(0.97);
+}
+
+.dm-typing {
+  align-self: flex-start;
+  display: flex;
+  gap: 1.2cqw;
+  padding: 3.4cqw 4cqw;
+  border-radius: 5cqw;
+  background: #efe5d3;
+  animation: dm-in 0.3s both;
+}
+.dm-typing i {
+  width: 1.8cqw;
+  height: 1.8cqw;
+  border-radius: 50%;
+  background: var(--muted);
+  animation: dm-dot 1s infinite;
+}
+.dm-typing i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.dm-typing i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes dm-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes dm-dot {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dm-phone,
+  .dm-msg,
+  .dm-card,
+  .dm-btns,
+  .dm-typing {
+    animation: none;
+    transition: opacity 0.3s;
+  }
+}
+.dm-btns span {
+  transition:
+    background 0.3s,
+    transform 0.3s;
+}
+.dm-btns span.kn {
+  font-family: var(--kn), var(--sans);
+}
